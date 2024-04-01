@@ -21,9 +21,12 @@ import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import static software.amazon.awssdk.transfer.s3.util.ChecksumUtils.computeCheckSum;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -50,19 +53,34 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
         deleteBucketAndAllContents(BUCKET);
     }
 
-    @Test
-    void copy_copiedObject_hasSameContent() {
+    enum TmType{
+        JAVA, CRT
+    }
+
+    private static Stream<Arguments> transferManagers() {
+        return Stream.of(
+            Arguments.of(TmType.JAVA)
+            //Arguments.of(TmType.CRT)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void copy_copiedObject_hasSameContent(TmType tmType) throws Exception {
+        CaptureTransferListener transferListener = new CaptureTransferListener();
         byte[] originalContent = randomBytes(OBJ_SIZE);
         createOriginalObject(originalContent, ORIGINAL_OBJ);
-        copyObject(ORIGINAL_OBJ, COPIED_OBJ);
+        copyObject(ORIGINAL_OBJ, COPIED_OBJ, transferListener, tmType);
         validateCopiedObject(originalContent, ORIGINAL_OBJ);
     }
 
-    @Test
-    void copy_specialCharacters_hasSameContent() {
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void copy_specialCharacters_hasSameContent(TmType tmType) throws Exception {
+        CaptureTransferListener transferListener = new CaptureTransferListener();
         byte[] originalContent = randomBytes(OBJ_SIZE);
         createOriginalObject(originalContent, ORIGINAL_OBJ_SPECIAL_CHARACTER);
-        copyObject(ORIGINAL_OBJ_SPECIAL_CHARACTER, COPIED_OBJ_SPECIAL_CHARACTER);
+        copyObject(ORIGINAL_OBJ_SPECIAL_CHARACTER, COPIED_OBJ_SPECIAL_CHARACTER, transferListener, tmType);
         validateCopiedObject(originalContent, COPIED_OBJ_SPECIAL_CHARACTER);
     }
 
@@ -72,18 +90,34 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
                      RequestBody.fromBytes(originalContent));
     }
 
-    private void copyObject(String original, String destination) {
-        Copy copy = tmCrt.copy(c -> c
+    private void copyObject(String original, String destination, CaptureTransferListener transferListener, TmType tmType) throws Exception {
+        S3TransferManager tm = tmType == TmType.JAVA ? tmJava : tmCrt;
+        Copy copy = tm.copy(c -> c
             .copyObjectRequest(r -> r
                 .sourceBucket(BUCKET)
                 .sourceKey(original)
                 .destinationBucket(BUCKET)
                 .destinationKey(destination))
-            .addTransferListener(LoggingTransferListener.create()));
+            .addTransferListener(LoggingTransferListener.create())
+            .addTransferListener(transferListener));
 
         CompletedCopy completedCopy = copy.completionFuture().join();
         assertThat(completedCopy.response().responseMetadata().requestId()).isNotNull();
         assertThat(completedCopy.response().sdkHttpResponse()).isNotNull();
+
+        if (tmType == TmType.JAVA) {
+            Thread.sleep(500);
+            assertListenerForSuccessfulTransferComplete(transferListener);
+        }
+    }
+
+    private static void assertListenerForSuccessfulTransferComplete(CaptureTransferListener transferListener) {
+        assertThat(transferListener.isTransferInitiated()).isTrue();
+        assertThat(transferListener.isTransferComplete()).isTrue();
+        assertThat(transferListener.getRatioTransferredList()).isNotEmpty();
+        assertThat(transferListener.getRatioTransferredList()).contains(0.0);
+        assertThat(transferListener.getRatioTransferredList()).contains(1.0);
+        assertThat(transferListener.getExceptionCaught()).isNull();
     }
 
     private void validateCopiedObject(byte[] originalContent, String originalKey) {

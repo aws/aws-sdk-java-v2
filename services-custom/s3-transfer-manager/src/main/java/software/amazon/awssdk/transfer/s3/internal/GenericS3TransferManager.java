@@ -40,6 +40,7 @@ import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncCli
 import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -286,6 +287,20 @@ class GenericS3TransferManager implements S3TransferManager {
                                .build();
     }
 
+    private CopyObjectRequest attachSdkAttribute(CopyObjectRequest copyObjectRequest,
+                                                 Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
+        AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
+            copyObjectRequest.overrideConfiguration()
+                            .map(o -> o.toBuilder().applyMutation(builderMutation).build())
+                            .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
+                                                                            .applyMutation(builderMutation)
+                                                                            .build());
+
+        return copyObjectRequest.toBuilder()
+                               .overrideConfiguration(modifiedRequestOverrideConfig)
+                               .build();
+    }
+
     @Override
     public final DirectoryUpload uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
         Validate.paramNotNull(uploadDirectoryRequest, "uploadDirectoryRequest");
@@ -457,9 +472,17 @@ class GenericS3TransferManager implements S3TransferManager {
 
         CompletableFuture<CompletedCopy> returnFuture = new CompletableFuture<>();
 
-        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(copyRequest, null);
-        progressUpdater.transferInitiated();
-        progressUpdater.registerCompletion(returnFuture);
+        // set length to 10000 as reference value, since we don't make HeadObject call yet
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(copyRequest, 10000L);
+        if (isS3ClientMultipartEnabled()) {
+            Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressListener =
+                b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());
+            CopyObjectRequest copyObjectRequest = attachSdkAttribute(copyRequest.copyObjectRequest(), attachProgressListener);
+            copyRequest = copyRequest.toBuilder().copyObjectRequest(copyObjectRequest).build();
+
+            progressUpdater.transferInitiated();
+            progressUpdater.registerCompletion(returnFuture);
+        }
 
         try {
             assertNotUnsupportedArn(copyRequest.copyObjectRequest().sourceBucket(), "copy sourceBucket");

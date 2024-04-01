@@ -18,7 +18,9 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,6 +35,7 @@ import java.net.URI;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
@@ -42,10 +45,12 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.CaptureTransferListener;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.Copy;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
@@ -173,7 +178,6 @@ public class S3JavaMultipartTransferProgressListenerTest {
         assertThat(transferListener.isTransferComplete()).isFalse();
         assertThat(transferListener.isTransferInitiated()).isTrue();
         assertMockOnFailure(transferListenerMock);
-
     }
 
     @ParameterizedTest
@@ -207,6 +211,143 @@ public class S3JavaMultipartTransferProgressListenerTest {
         Mockito.verify(transferListenerMock, times(1)).transferComplete(ArgumentMatchers.any());
 
         int numTimesBytesTransferred = multipartEnabled ? 2 : 1;
+        Mockito.verify(transferListenerMock, times(numTimesBytesTransferred)).bytesTransferred(ArgumentMatchers.any());
+    }
+
+    @Test
+    void copyWithJavaBasedClient_listeners_reports_ErrorsWithValidPayload() throws InterruptedException {
+        S3AsyncClient s3Async = s3AsyncClient(true);
+
+        TransferListener transferListenerMock = mock(TransferListener.class);
+        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(404).withBody(ERROR_BODY)));
+        S3TransferManager tm = new GenericS3TransferManager(s3Async, mock(UploadDirectoryHelper.class),
+                                                            mock(TransferManagerConfiguration.class),
+                                                            mock(DownloadDirectoryHelper.class));
+        CaptureTransferListener transferListener = new CaptureTransferListener();
+
+        Copy copy =
+            tm.copy(u -> u.copyObjectRequest(p -> p
+                              .sourceBucket(EXAMPLE_BUCKET)
+                              .sourceKey(TEST_KEY)
+                              .destinationBucket(EXAMPLE_BUCKET)
+                              .destinationKey("copiedObj"))
+                          .addTransferListener(LoggingTransferListener.create())
+                          .addTransferListener(transferListener)
+                          .addTransferListener(transferListenerMock)
+                          .build());
+
+        assertThatExceptionOfType(CompletionException.class).isThrownBy(() -> copy.completionFuture().join());
+        Thread.sleep(500);
+        assertThat(transferListener.getExceptionCaught()).isInstanceOf(NoSuchKeyException.class);
+        assertThat(transferListener.isTransferComplete()).isFalse();
+        assertThat(transferListener.isTransferInitiated()).isTrue();
+        assertMockOnFailure(transferListenerMock);
+    }
+
+    @Test
+    void copyWithJavaBasedClient_listeners_reports_ErrorsWithValidInValidPayload() throws InterruptedException {
+        S3AsyncClient s3Async = s3AsyncClient(true);
+
+        TransferListener transferListenerMock = mock(TransferListener.class);
+        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(404).withBody("?")));
+        S3TransferManager tm = new GenericS3TransferManager(s3Async, mock(UploadDirectoryHelper.class),
+                                                            mock(TransferManagerConfiguration.class),
+                                                            mock(DownloadDirectoryHelper.class));
+        CaptureTransferListener transferListener = new CaptureTransferListener();
+
+        Copy copy =
+            tm.copy(u -> u.copyObjectRequest(p -> p
+                              .sourceBucket(EXAMPLE_BUCKET)
+                              .sourceKey(TEST_KEY)
+                              .destinationBucket(EXAMPLE_BUCKET)
+                              .destinationKey("copiedObj"))
+                          .addTransferListener(LoggingTransferListener.create())
+                          .addTransferListener(transferListener)
+                          .addTransferListener(transferListenerMock)
+                          .build());
+
+        assertThatExceptionOfType(CompletionException.class).isThrownBy(() -> copy.completionFuture().join());
+        Thread.sleep(500);
+        assertThat(transferListener.getExceptionCaught()).isInstanceOf(S3Exception.class);
+        assertThat(transferListener.isTransferComplete()).isFalse();
+        assertThat(transferListener.isTransferInitiated()).isTrue();
+        assertMockOnFailure(transferListenerMock);
+    }
+
+    @Test
+    void copyWithJavaBasedClient_listeners_reports_ErrorsWhenCancelled() throws InterruptedException {
+        S3AsyncClient s3Async = s3AsyncClient(true);
+
+        TransferListener transferListenerMock = mock(TransferListener.class);
+        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody("{}")));
+        S3TransferManager tm = new GenericS3TransferManager(s3Async, mock(UploadDirectoryHelper.class),
+                                                            mock(TransferManagerConfiguration.class),
+                                                            mock(DownloadDirectoryHelper.class));
+        CaptureTransferListener transferListener = new CaptureTransferListener();
+
+        tm.copy(u -> u.copyObjectRequest(p -> p
+                          .sourceBucket(EXAMPLE_BUCKET)
+                          .sourceKey(TEST_KEY)
+                          .destinationBucket(EXAMPLE_BUCKET)
+                          .destinationKey("copiedObj"))
+                      .addTransferListener(LoggingTransferListener.create())
+                      .addTransferListener(transferListener)
+                      .addTransferListener(transferListenerMock)
+                      .build()).completionFuture().cancel(true);
+
+        Thread.sleep(500);
+        assertThat(transferListener.getExceptionCaught()).isInstanceOf(CancellationException.class);
+        assertThat(transferListener.isTransferComplete()).isFalse();
+        assertThat(transferListener.isTransferInitiated()).isTrue();
+        assertMockOnFailure(transferListenerMock);
+    }
+
+    @Test
+    void copyWithJavaBasedClient_listeners_reports_ProgressWhenSuccess_copy() throws InterruptedException {
+        String destinationKey = "copiedObj";
+        S3AsyncClient s3Async = s3AsyncClient(true);
+
+        TransferListener transferListenerMock = mock(TransferListener.class);
+
+        stubFor(head(anyUrl()).willReturn(aResponse().withStatus(200).withHeader("Content-Length", "16777216")));
+
+        String createMpuUrl = "/" + EXAMPLE_BUCKET + "/" + destinationKey + "?uploads";
+        String createMpuResponse = "<CreateMultipartUploadResult><UploadId>1234</UploadId></CreateMultipartUploadResult>";
+        stubFor(post(urlEqualTo(createMpuUrl)).willReturn(aResponse().withStatus(200).withBody(createMpuResponse)));
+
+        String copyObjectUrl = "/" + EXAMPLE_BUCKET + "/" + destinationKey + "?uploadId=1234";
+        String copyObjectUrl1 = "/" + EXAMPLE_BUCKET + "/" + destinationKey + "?partNumber=1&uploadId=1234";
+        String copyObjectUrl2 = "/" + EXAMPLE_BUCKET + "/" + destinationKey + "?partNumber=2&uploadId=1234";
+
+        String copyObjectResponse = "<CopyPartResult><ETag>test-etag</ETag></CopyPartResult>";
+        stubFor(post(copyObjectUrl).willReturn(aResponse().withStatus(200).withBody(copyObjectResponse)));
+        stubFor(put(copyObjectUrl1).willReturn(aResponse().withStatus(200).withBody(copyObjectResponse)));
+        stubFor(put(copyObjectUrl2).willReturn(aResponse().withStatus(200).withBody(copyObjectResponse)));
+
+        S3TransferManager tm = new GenericS3TransferManager(s3Async, mock(UploadDirectoryHelper.class),
+                                                            mock(TransferManagerConfiguration.class),
+                                                            mock(DownloadDirectoryHelper.class));
+        CaptureTransferListener transferListener = new CaptureTransferListener();
+
+        tm.copy(u -> u.copyObjectRequest(p -> p
+                          .sourceBucket(EXAMPLE_BUCKET)
+                          .sourceKey(TEST_KEY)
+                          .destinationBucket(EXAMPLE_BUCKET)
+                          .destinationKey(destinationKey))
+                      .addTransferListener(LoggingTransferListener.create())
+                      .addTransferListener(transferListener)
+                      .addTransferListener(transferListenerMock)
+                      .build());
+
+        Thread.sleep(500);
+        assertThat(transferListener.getExceptionCaught()).isNull();
+        assertThat(transferListener.isTransferComplete()).isTrue();
+        assertThat(transferListener.isTransferInitiated()).isTrue();
+        Mockito.verify(transferListenerMock, times(0)).transferFailed(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, times(1)).transferInitiated(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, times(1)).transferComplete(ArgumentMatchers.any());
+
+        int numTimesBytesTransferred = 2;
         Mockito.verify(transferListenerMock, times(numTimesBytesTransferred)).bytesTransferred(ArgumentMatchers.any());
     }
 }
