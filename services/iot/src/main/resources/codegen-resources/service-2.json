@@ -1714,7 +1714,7 @@
         {"shape":"UnauthorizedException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns a unique endpoint specific to the Amazon Web Services account making the call.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DescribeEndpoint</a> action.</p>"
+      "documentation":"<p>Returns or creates a unique endpoint specific to the Amazon Web Services account making the call.</p> <note> <p>The first time <code>DescribeEndpoint</code> is called, an endpoint is created. All subsequent calls to <code>DescribeEndpoint</code> return the same endpoint.</p> </note> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DescribeEndpoint</a> action.</p>"
     },
     "DescribeEventConfigurations":{
       "name":"DescribeEventConfigurations",
@@ -2382,7 +2382,7 @@
         {"shape":"InternalFailureException"},
         {"shape":"InvalidRequestException"}
       ],
-      "documentation":"<p>Gets a registration code used to register a CA certificate with IoT.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">GetRegistrationCode</a> action.</p>"
+      "documentation":"<p>Gets a registration code used to register a CA certificate with IoT.</p> <p>IoT will create a registration code as part of this API call if the registration code doesn't exist or has been deleted. If you already have a registration code, this API call will return the same registration code.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">GetRegistrationCode</a> action.</p>"
     },
     "GetStatistics":{
       "name":"GetStatistics",
@@ -4154,6 +4154,7 @@
       "output":{"shape":"UpdatePackageResponse"},
       "errors":[
         {"shape":"ThrottlingException"},
+        {"shape":"ConflictException"},
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"}
@@ -4172,6 +4173,7 @@
       "output":{"shape":"UpdatePackageConfigurationResponse"},
       "errors":[
         {"shape":"ThrottlingException"},
+        {"shape":"ConflictException"},
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"}
       ],
@@ -4189,6 +4191,7 @@
       "output":{"shape":"UpdatePackageVersionResponse"},
       "errors":[
         {"shape":"ThrottlingException"},
+        {"shape":"ConflictException"},
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"}
@@ -4878,7 +4881,7 @@
         },
         "namespaceId":{
           "shape":"NamespaceId",
-          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is in public preview.</p> </note>",
+          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is only supported by IoT Greengrass at this time. For more information, see <a href=\"https://docs.aws.amazon.com/greengrass/v2/developerguide/setting-up.html\">Setting up IoT Greengrass core devices.</a> </p> </note>",
           "location":"querystring",
           "locationName":"namespaceId"
         }
@@ -7008,6 +7011,10 @@
         "tlsConfig":{
           "shape":"TlsConfig",
           "documentation":"<p>An object that specifies the TLS configuration for a domain.</p>"
+        },
+        "serverCertificateConfig":{
+          "shape":"ServerCertificateConfig",
+          "documentation":"<p>The server certificate configuration.</p>"
         }
       }
     },
@@ -7210,7 +7217,7 @@
         },
         "namespaceId":{
           "shape":"NamespaceId",
-          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is in public preview.</p> </note>"
+          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is only supported by IoT Greengrass at this time. For more information, see <a href=\"https://docs.aws.amazon.com/greengrass/v2/developerguide/setting-up.html\">Setting up IoT Greengrass core devices.</a> </p> </note>"
         },
         "jobTemplateArn":{
           "shape":"JobTemplateArn",
@@ -7230,7 +7237,7 @@
         },
         "destinationPackageVersions":{
           "shape":"DestinationPackageVersions",
-          "documentation":"<p>The package version Amazon Resource Names (ARNs) that are installed on the device when the job successfully completes. </p> <p> <b>Note:</b>The following Length Constraints relates to a single ARN. Up to 25 package version ARNs are allowed.</p>"
+          "documentation":"<p>The package version Amazon Resource Names (ARNs) that are installed on the device when the job successfully completes. The package version must be in either the Published or Deprecated state when the job deploys. For more information, see <a href=\"https://docs.aws.amazon.com/iot/latest/developerguide/preparing-to-use-software-package-catalog.html#package-version-lifecycle\">Package version lifecycle</a>. </p> <p> <b>Note:</b>The following Length Constraints relates to a single ARN. Up to 25 package version ARNs are allowed.</p>"
         }
       }
     },
@@ -7298,7 +7305,7 @@
         },
         "destinationPackageVersions":{
           "shape":"DestinationPackageVersions",
-          "documentation":"<p>The package version Amazon Resource Names (ARNs) that are installed on the device when the job successfully completes. </p> <p> <b>Note:</b>The following Length Constraints relates to a single ARN. Up to 25 package version ARNs are allowed.</p>"
+          "documentation":"<p>The package version Amazon Resource Names (ARNs) that are installed on the device when the job successfully completes. The package version must be in either the Published or Deprecated state when the job deploys. For more information, see <a href=\"https://docs.aws.amazon.com/iot/latest/developerguide/preparing-to-use-software-package-catalog.html#package-version-lifecycle\">Package version lifecycle</a>.</p> <p> <b>Note:</b>The following Length Constraints relates to a single ARN. Up to 25 package version ARNs are allowed.</p>"
         }
       }
     },
@@ -8534,7 +8541,7 @@
         },
         "namespaceId":{
           "shape":"NamespaceId",
-          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is in public preview.</p> </note>",
+          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is only supported by IoT Greengrass at this time. For more information, see <a href=\"https://docs.aws.amazon.com/greengrass/v2/developerguide/setting-up.html\">Setting up IoT Greengrass core devices.</a> </p> </note>",
           "location":"querystring",
           "locationName":"namespaceId"
         }
@@ -8558,7 +8565,7 @@
         },
         "namespaceId":{
           "shape":"NamespaceId",
-          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is in public preview.</p> </note>",
+          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is only supported by IoT Greengrass at this time. For more information, see <a href=\"https://docs.aws.amazon.com/greengrass/v2/developerguide/setting-up.html\">Setting up IoT Greengrass core devices.</a> </p> </note>",
           "location":"querystring",
           "locationName":"namespaceId"
         }
@@ -9483,6 +9490,10 @@
         "tlsConfig":{
           "shape":"TlsConfig",
           "documentation":"<p>An object that specifies the TLS configuration for a domain.</p>"
+        },
+        "serverCertificateConfig":{
+          "shape":"ServerCertificateConfig",
+          "documentation":"<p>The server certificate configuration.</p>"
         }
       }
     },
@@ -9742,7 +9753,7 @@
         },
         "destinationPackageVersions":{
           "shape":"DestinationPackageVersions",
-          "documentation":"<p>The package version Amazon Resource Names (ARNs) that are installed on the device when the job successfully completes. </p> <p> <b>Note:</b>The following Length Constraints relates to a single ARN. Up to 25 package version ARNs are allowed.</p>"
+          "documentation":"<p>The package version Amazon Resource Names (ARNs) that are installed on the device when the job successfully completes. The package version must be in either the Published or Deprecated state when the job deploys. For more information, see <a href=\"https://docs.aws.amazon.com/iot/latest/developerguide/preparing-to-use-software-package-catalog.html#package-version-lifecycle\">Package version lifecycle</a>.</p> <p> <b>Note:</b>The following Length Constraints relates to a single ARN. Up to 25 package version ARNs are allowed.</p>"
         }
       }
     },
@@ -10907,6 +10918,7 @@
       },
       "documentation":"<p>Parameters used when defining a mitigation action that enable Amazon Web Services IoT Core logging.</p>"
     },
+    "EnableOCSPCheck":{"type":"boolean"},
     "EnableTopicRuleRequest":{
       "type":"structure",
       "required":["ruleName"],
@@ -12300,7 +12312,7 @@
         },
         "namespaceId":{
           "shape":"NamespaceId",
-          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is in public preview.</p> </note>"
+          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is only supported by IoT Greengrass at this time. For more information, see <a href=\"https://docs.aws.amazon.com/greengrass/v2/developerguide/setting-up.html\">Setting up IoT Greengrass core devices.</a> </p> </note>"
         },
         "jobTemplateArn":{
           "shape":"JobTemplateArn",
@@ -12328,7 +12340,7 @@
         },
         "destinationPackageVersions":{
           "shape":"DestinationPackageVersions",
-          "documentation":"<p>The package version Amazon Resource Names (ARNs) that are installed on the device when the job successfully completes. </p> <p> <b>Note:</b>The following Length Constraints relates to a single ARN. Up to 25 package version ARNs are allowed.</p>"
+          "documentation":"<p>The package version Amazon Resource Names (ARNs) that are installed on the device when the job successfully completes. The package version must be in either the Published or Deprecated state when the job deploys. For more information, see <a href=\"https://docs.aws.amazon.com/iot/latest/developerguide/preparing-to-use-software-package-catalog.html#package-version-lifecycle\">Package version lifecycle</a>.The package version must be in either the Published or Deprecated state when the job deploys. For more information, see <a href=\"https://docs.aws.amazon.com/iot/latest/developerguide/preparing-to-use-software-package-catalog.html#package-version-lifecycle\">Package version lifecycle</a>.</p> <p> <b>Note:</b>The following Length Constraints relates to a single ARN. Up to 25 package version ARNs are allowed.</p>"
         }
       },
       "documentation":"<p>The <code>Job</code> object contains details about a job.</p>"
@@ -13741,7 +13753,7 @@
         },
         "namespaceId":{
           "shape":"NamespaceId",
-          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is in public preview.</p> </note>",
+          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is only supported by IoT Greengrass at this time. For more information, see <a href=\"https://docs.aws.amazon.com/greengrass/v2/developerguide/setting-up.html\">Setting up IoT Greengrass core devices.</a> </p> </note>",
           "location":"querystring",
           "locationName":"namespaceId"
         },
@@ -13849,7 +13861,7 @@
         },
         "namespaceId":{
           "shape":"NamespaceId",
-          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is in public preview.</p> </note>",
+          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is only supported by IoT Greengrass at this time. For more information, see <a href=\"https://docs.aws.amazon.com/greengrass/v2/developerguide/setting-up.html\">Setting up IoT Greengrass core devices.</a> </p> </note>",
           "location":"querystring",
           "locationName":"namespaceId"
         }
@@ -15421,9 +15433,7 @@
         "THING_GROUP",
         "CLIENT_ID",
         "SOURCE_IP",
-        "PRINCIPAL_ID",
-        "EVENT_TYPE",
-        "DEVICE_DEFENDER"
+        "PRINCIPAL_ID"
       ]
     },
     "LoggingOptionsPayload":{
@@ -17505,8 +17515,8 @@
           "documentation":"<p>The token used to get the next set of results, or <code>null</code> if there are no additional results.</p>"
         },
         "maxResults":{
-          "shape":"QueryMaxResults",
-          "documentation":"<p>The maximum number of results to return per page at one time. The response might contain fewer results but will never contain more.</p>"
+          "shape":"SearchQueryMaxResults",
+          "documentation":"<p>The maximum number of results to return per page at one time. This maximum number cannot exceed 100. The response might contain fewer results but will never contain more. You can use <a href=\"https://docs.aws.amazon.com/iot/latest/apireference/API_SearchIndex.html#iot-SearchIndex-request-nextToken\"> <code>nextToken</code> </a> to retrieve the next set of results until <code>nextToken</code> returns <code>NULL</code>.</p>"
         },
         "queryVersion":{
           "shape":"QueryVersion",
@@ -17530,6 +17540,10 @@
           "documentation":"<p>The thing groups that match the search query.</p>"
         }
       }
+    },
+    "SearchQueryMaxResults":{
+      "type":"integer",
+      "min":1
     },
     "SearchableAttributes":{
       "type":"list",
@@ -17619,6 +17633,16 @@
       "member":{"shape":"AcmCertificateArn"},
       "max":1,
       "min":0
+    },
+    "ServerCertificateConfig":{
+      "type":"structure",
+      "members":{
+        "enableOCSPCheck":{
+          "shape":"EnableOCSPCheck",
+          "documentation":"<p>A Boolean value that indicates whether Online Certificate Status Protocol (OCSP) server certificate check is enabled or not.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/iot/latest/developerguide/iot-custom-domain-ocsp-config.html\">Configuring OCSP server-certificate stapling in domain configuration</a> from Amazon Web Services IoT Core Developer Guide.</p>"
+        }
+      },
+      "documentation":"<p>The server certificate configuration.</p>"
     },
     "ServerCertificateStatus":{
       "type":"string",
@@ -19818,6 +19842,10 @@
         "tlsConfig":{
           "shape":"TlsConfig",
           "documentation":"<p>An object that specifies the TLS configuration for a domain.</p>"
+        },
+        "serverCertificateConfig":{
+          "shape":"ServerCertificateConfig",
+          "documentation":"<p>The server certificate configuration.</p>"
         }
       }
     },
@@ -19993,7 +20021,7 @@
         },
         "namespaceId":{
           "shape":"NamespaceId",
-          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is in public preview.</p> </note>",
+          "documentation":"<p>The namespace used to indicate that a job is a customer-managed job.</p> <p>When you specify a value for this parameter, Amazon Web Services IoT Core sends jobs notifications to MQTT topics that contain the value in the following format.</p> <p> <code>$aws/things/<i>THING_NAME</i>/jobs/<i>JOB_ID</i>/notify-namespace-<i>NAMESPACE_ID</i>/</code> </p> <note> <p>The <code>namespaceId</code> feature is only supported by IoT Greengrass at this time. For more information, see <a href=\"https://docs.aws.amazon.com/greengrass/v2/developerguide/setting-up.html\">Setting up IoT Greengrass core devices.</a> </p> </note>",
           "location":"querystring",
           "locationName":"namespaceId"
         },

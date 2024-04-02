@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import org.reactivestreams.Subscriber;
@@ -40,6 +42,8 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
     private volatile boolean upstreamDone;
     private Subscription subscription;
 
+    private final Set<CompletableFuture<?>> requestsInFlight;
+
     public AsyncBufferingSubscriber(Function<T, CompletableFuture<?>> consumer,
                                     CompletableFuture<Void> returnFuture,
                                     int maxConcurrentExecutions) {
@@ -47,6 +51,13 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
         this.consumer = consumer;
         this.maxConcurrentExecutions = maxConcurrentExecutions;
         this.numRequestsInFlight = new AtomicInteger(0);
+        this.requestsInFlight = ConcurrentHashMap.newKeySet();
+
+        returnFuture.whenComplete((r, t) -> {
+            if (t != null) {
+                requestsInFlight.forEach(f -> f.cancel(true));
+            }
+        });
     }
 
     @Override
@@ -64,8 +75,11 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
     @Override
     public void onNext(T item) {
         numRequestsInFlight.incrementAndGet();
-        consumer.apply(item).whenComplete((r, t) -> {
+        CompletableFuture<?> currentRequest = consumer.apply(item);
+        requestsInFlight.add(currentRequest);
+        currentRequest.whenComplete((r, t) -> {
             checkForCompletion(numRequestsInFlight.decrementAndGet());
+            requestsInFlight.remove(currentRequest);
             synchronized (this) {
                 subscription.request(1);
             }

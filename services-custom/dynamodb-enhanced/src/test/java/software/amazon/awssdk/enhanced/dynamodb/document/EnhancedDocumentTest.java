@@ -64,6 +64,7 @@ class EnhancedDocumentTest {
             , Arguments.of("\n", "{\"key\":\"\\n\"}")
             , Arguments.of("\r", "{\"key\":\"\\r\"}")
             , Arguments.of("\f", "{\"key\":\"\\f\"}")
+            , Arguments.of("\u001a \u001A", "{\"key\":\"\\u001A \\u001A\"}")
         );
     }
 

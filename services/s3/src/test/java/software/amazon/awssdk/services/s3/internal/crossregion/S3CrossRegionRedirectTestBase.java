@@ -65,7 +65,8 @@ public abstract class S3CrossRegionRedirectTestBase {
         ArgumentCaptor<ListObjectsRequest> requestArgumentCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
         verifyTheApiServiceCall(2, requestArgumentCaptor);
 
-        assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
+        assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider().get())
+            .isInstanceOf(BucketEndpointProvider.class);
         verifyTheEndPointProviderOverridden(1, requestArgumentCaptor, CROSS_REGION.id());
 
         verifyHeadBucketServiceCall(0);
@@ -86,7 +87,8 @@ public abstract class S3CrossRegionRedirectTestBase {
         ArgumentCaptor<ListObjectsRequest> requestArgumentCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
         verifyTheApiServiceCall(3, requestArgumentCaptor);
 
-        assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
+        assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider().get())
+            .isInstanceOf(BucketEndpointProvider.class);
         verifyTheEndPointProviderOverridden(1, requestArgumentCaptor, CROSS_REGION.id());
         verifyTheEndPointProviderOverridden(2, requestArgumentCaptor, CROSS_REGION.id());
         verifyHeadBucketServiceCall(0);
@@ -120,7 +122,8 @@ public abstract class S3CrossRegionRedirectTestBase {
         ArgumentCaptor<ListObjectsRequest> requestArgumentCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
         verifyTheApiServiceCall(2, requestArgumentCaptor);
 
-        assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
+        assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider().get())
+            .isInstanceOf(BucketEndpointProvider.class);
         verifyTheEndPointProviderOverridden(1, requestArgumentCaptor, CROSS_REGION.id());
         verifyHeadBucketServiceCall(1);
     }
@@ -144,7 +147,8 @@ public abstract class S3CrossRegionRedirectTestBase {
         // We need to captor again so that we get the args used in second API Call
         ArgumentCaptor<ListObjectsRequest> overAllPostCacheCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
         verifyTheApiServiceCall(3, overAllPostCacheCaptor);
-        assertThat(overAllPostCacheCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
+        assertThat(overAllPostCacheCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider().get())
+            .isInstanceOf(BucketEndpointProvider.class);
         verifyTheEndPointProviderOverridden(1, overAllPostCacheCaptor, CROSS_REGION.id());
         verifyTheEndPointProviderOverridden(2, overAllPostCacheCaptor, CROSS_REGION.id());
         verifyHeadBucketServiceCall(1);
@@ -163,61 +167,7 @@ public abstract class S3CrossRegionRedirectTestBase {
         verifyHeadBucketServiceCall(0);
     }
 
-    @Test
-    void given_CrossRegionClient_when_AuthorizationFailureInMainCall_then_RegionRetrievedFromHeadBucketFailureResponse() throws Throwable {
-        stubServiceClientConfiguration();
-        stubApiWithAuthorizationHeaderMalformedError() ;
-        stubHeadBucketRedirect();
-        ListObjectsResponse firstListObjectCall = apiCallToService();
-        assertThat(firstListObjectCall.contents()).isEqualTo(S3_OBJECTS);
-
-        ArgumentCaptor<ListObjectsRequest> preCacheCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
-        verifyTheApiServiceCall(2, preCacheCaptor);
-        // We need to get the BucketEndpointProvider in order to update the cache
-        verifyTheEndPointProviderOverridden(1, preCacheCaptor, CROSS_REGION.id());
-
-
-        ListObjectsResponse secondListObjectCall = apiCallToService();
-        assertThat(secondListObjectCall.contents()).isEqualTo(S3_OBJECTS);
-        // We need to captor again so that we get the args used in second API Call
-        ArgumentCaptor<ListObjectsRequest> overAllPostCacheCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
-        verifyTheApiServiceCall(3, overAllPostCacheCaptor);
-        assertThat(overAllPostCacheCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
-        verifyTheEndPointProviderOverridden(1, overAllPostCacheCaptor, CROSS_REGION.id());
-        verifyTheEndPointProviderOverridden(2, overAllPostCacheCaptor, CROSS_REGION.id());
-        verifyHeadBucketServiceCall(1);
-    }
-
-
-    @Test
-    void given_CrossRegionClient_when_AuthorizationFailureInHeadBucketWithRegion_then_CrossRegionCallSucceeds() throws Throwable {
-        stubServiceClientConfiguration();
-        stubApiWithAuthorizationHeaderMalformedError() ;
-        stubHeadBucketRedirectWithAuthorizationHeaderMalformed();
-        ListObjectsResponse firstListObjectCall = apiCallToService();
-        assertThat(firstListObjectCall.contents()).isEqualTo(S3_OBJECTS);
-
-        ArgumentCaptor<ListObjectsRequest> preCacheCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
-        verifyTheApiServiceCall(2, preCacheCaptor);
-        // We need to get the BucketEndpointProvider in order to update the cache
-        verifyTheEndPointProviderOverridden(1, preCacheCaptor, CROSS_REGION.id());
-        ListObjectsResponse secondListObjectCall = apiCallToService();
-        assertThat(secondListObjectCall.contents()).isEqualTo(S3_OBJECTS);
-        // We need to captor again so that we get the args used in second API Call
-        ArgumentCaptor<ListObjectsRequest> overAllPostCacheCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
-        verifyTheApiServiceCall(3, overAllPostCacheCaptor);
-        assertThat(overAllPostCacheCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
-        verifyTheEndPointProviderOverridden(1, overAllPostCacheCaptor, CROSS_REGION.id());
-        verifyTheEndPointProviderOverridden(2, overAllPostCacheCaptor, CROSS_REGION.id());
-        verifyHeadBucketServiceCall(1);
-    }
-
     protected abstract void stubApiWithAuthorizationHeaderWithInternalSoftwareError();
-
-
-    protected abstract void stubHeadBucketRedirectWithAuthorizationHeaderMalformed();
-
-    protected abstract void stubApiWithAuthorizationHeaderMalformedError();
 
     protected abstract void verifyNoBucketCall();
 

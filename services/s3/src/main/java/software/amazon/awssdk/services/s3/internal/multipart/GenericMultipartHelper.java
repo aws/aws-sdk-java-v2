@@ -15,22 +15,24 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
+import static software.amazon.awssdk.services.s3.internal.multipart.SdkPojoConversionUtils.toCompleteMultipartUploadRequest;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
-import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Request;
 import software.amazon.awssdk.services.s3.model.S3Response;
 import software.amazon.awssdk.utils.Logger;
@@ -81,34 +83,20 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
     }
 
     public CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(
-        RequestT request, String uploadId, CompletedPart[] parts) {
+        PutObjectRequest request, String uploadId, CompletedPart[] parts) {
         log.debug(() -> String.format("Sending completeMultipartUploadRequest, uploadId: %s",
                                       uploadId));
-        CompleteMultipartUploadRequest completeMultipartUploadRequest =
-            CompleteMultipartUploadRequest.builder()
-                                          .bucket(request.getValueForField("Bucket", String.class).get())
-                                          .key(request.getValueForField("Key", String.class).get())
-                                          .uploadId(uploadId)
-                                          .multipartUpload(CompletedMultipartUpload.builder()
-                                                                                   .parts(parts)
-                                                                                   .build())
-                                          .build();
+
+        CompleteMultipartUploadRequest completeMultipartUploadRequest = toCompleteMultipartUploadRequest(request, uploadId,
+                                                                                                         parts);
         return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);
     }
 
-    public CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(
-        RequestT request, String uploadId, AtomicReferenceArray<CompletedPart> completedParts) {
-        CompletedPart[] parts =
-            IntStream.range(0, completedParts.length())
-                     .mapToObj(completedParts::get)
-                     .toArray(CompletedPart[]::new);
-        return completeMultipartUpload(request, uploadId, parts);
-    }
-
-    public BiFunction<CompleteMultipartUploadResponse, Throwable, Void> handleExceptionOrResponse(
-        RequestT request,
-        CompletableFuture<ResponseT> returnFuture,
-        String uploadId) {
+    public BiFunction<CompleteMultipartUploadResponse, Throwable, Void> handleExceptionOrResponse(RequestT request,
+        CompletableFuture<ResponseT> returnFuture, String uploadId) {
+        PublisherListener<Long> progressListener = request.overrideConfiguration()
+                                                          .map(c -> c.executionAttributes().getAttribute(JAVA_PROGRESS_LISTENER))
+                                                          .orElseGet(PublisherListener::noOp);
 
         return (completeMultipartUploadResponse, throwable) -> {
             if (throwable != null) {
@@ -118,6 +106,7 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
             } else {
                 returnFuture.complete(responseConverter.apply(
                     completeMultipartUploadResponse));
+                progressListener.subscriberOnComplete();
             }
 
             return null;

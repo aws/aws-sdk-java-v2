@@ -1,0 +1,36 @@
+{
+    "version": "2.22.8",
+    "date": "2023-12-28",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix for Signing Error when ampersand character included in HttpQuery when using DefaultAwsCrtV4aSigner."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeStar connections",
+            "contributor": "",
+            "description": "New integration with the GitLab self-managed provider type."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Video Streams Archived Media",
+            "contributor": "",
+            "description": "NoDataRetentionException thrown when GetImages requested for a Stream that does not retain data (that is, has a DataRetentionInHours of 0)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon SageMaker Studio now supports Docker access from within app container"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

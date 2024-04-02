@@ -25,10 +25,8 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
-import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
-import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.utils.Logger;
@@ -45,32 +43,57 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
 
     private final SimplePublisher<ByteBuffer> responsePublisher = new SimplePublisher<>();
 
-    private final SdkHttpResponse.Builder respBuilder = SdkHttpResponse.builder();
-    private volatile S3MetaRequest metaRequest;
+    private final SdkHttpResponse.Builder initialHeadersResponse = SdkHttpResponse.builder();
+    private final CompletableFuture<S3MetaRequestWrapper> metaRequestFuture;
 
     private final PublisherListener<S3MetaRequestProgress> progressListener;
 
+    private volatile boolean responseHandlingInitiated;
+
     public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture,
                                        SdkAsyncHttpResponseHandler responseHandler,
-                                       PublisherListener<S3MetaRequestProgress> progressListener) {
+                                       PublisherListener<S3MetaRequestProgress> progressListener,
+                                       CompletableFuture<S3MetaRequestWrapper> metaRequestFuture) {
         this.resultFuture = executeFuture;
+        this.metaRequestFuture = metaRequestFuture;
+
+        resultFuture.whenComplete((r, t) -> {
+            S3MetaRequestWrapper s3MetaRequest = s3MetaRequest();
+            if (s3MetaRequest == null) {
+                return;
+            }
+
+            if (t != null) {
+                s3MetaRequest.cancel();
+            }
+            s3MetaRequest.close();
+        });
+
         this.responseHandler = responseHandler;
         this.progressListener = progressListener == null ? new NoOpPublisherListener() : progressListener;
     }
 
-    @Override
-    public void onResponseHeaders(int statusCode, HttpHeader[] headers) {
-        for (HttpHeader h : headers) {
-            respBuilder.appendHeader(h.getName(), h.getValue());
+    private S3MetaRequestWrapper s3MetaRequest() {
+        if (!metaRequestFuture.isDone()) {
+            return null;
         }
 
-        respBuilder.statusCode(statusCode);
-        responseHandler.onHeaders(respBuilder.build());
-        responseHandler.onStream(responsePublisher);
+        return metaRequestFuture.join();
+    }
+
+    @Override
+    public void onResponseHeaders(int statusCode, HttpHeader[] headers) {
+        // Note, we cannot call responseHandler.onHeaders() here because the response status code and headers may not represent
+        // whether the request has succeeded or not (e.g. if this is for a HeadObject call that CRT calls under the hood). We
+        // need to rely on onResponseBody/onFinished being called to determine this.
+        populateSdkHttpResponse(initialHeadersResponse, statusCode, headers);
     }
 
     @Override
     public int onResponseBody(ByteBuffer bodyBytesIn, long objectRangeStart, long objectRangeEnd) {
+        // See reasoning in onResponseHeaders for why we call this here and not there.
+        initiateResponseHandling(initialHeadersResponse.build());
+
         if (bodyBytesIn == null) {
             failResponseHandlerAndFuture(new IllegalStateException("ByteBuffer delivered is null"));
             return 0;
@@ -85,6 +108,13 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                 return;
             }
 
+            S3MetaRequestWrapper metaRequest = s3MetaRequest();
+            if (metaRequest == null) {
+                // should not happen
+                failResponseHandlerAndFuture(SdkClientException.create("Unexpected exception occurred: s3metaRequest is not "
+                                                                       + "initialized yet"));
+                return;
+            }
             metaRequest.incrementReadWindow(bytesReceived);
         });
 
@@ -98,6 +128,10 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         if (crtCode != CRT.AWS_CRT_SUCCESS) {
             handleError(context);
         } else {
+            // onResponseBody() is not invoked for responses with no content, so we may not have invoked
+            // SdkAsyncHttpResponseHandler#onHeaders yet.
+            // See also  reasoning in onResponseHeaders for why we call this here and not there.
+            initiateResponseHandling(initialHeadersResponse.build());
             onSuccessfulResponseComplete();
         }
     }
@@ -109,28 +143,20 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                 return;
             }
             this.progressListener.subscriberOnComplete();
-            completeFutureAndCloseRequest();
+            resultFuture.complete(null);
         });
-    }
-
-    private void completeFutureAndCloseRequest() {
-        resultFuture.complete(null);
-        runAndLogError(log.logger(), "Exception thrown in S3MetaRequest#close, ignoring",
-                       () -> metaRequest.close());
-    }
-
-    public void cancelRequest() {
-        SdkCancellationException sdkClientException =
-            new SdkCancellationException("request is cancelled");
-        failResponseHandlerAndFuture(sdkClientException);
     }
 
     private void handleError(S3FinishedResponseContext context) {
         int crtCode = context.getErrorCode();
+        HttpHeader[] headers = context.getErrorHeaders();
         int responseStatus = context.getResponseStatus();
         byte[] errorPayload = context.getErrorPayload();
 
         if (isErrorResponse(responseStatus) && errorPayload != null) {
+            SdkHttpResponse.Builder errorResponse = populateSdkHttpResponse(SdkHttpResponse.builder(),
+                                                                            responseStatus, headers);
+            initiateResponseHandling(errorResponse.build());
             onErrorResponseComplete(errorPayload);
         } else {
             Throwable cause = context.getCause();
@@ -142,6 +168,14 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         }
     }
 
+    private void initiateResponseHandling(SdkHttpResponse response) {
+        if (!responseHandlingInitiated) {
+            responseHandlingInitiated = true;
+            responseHandler.onHeaders(response);
+            responseHandler.onStream(responsePublisher);
+        }
+    }
+
     private void onErrorResponseComplete(byte[] errorPayload) {
         responsePublisher.send(ByteBuffer.wrap(errorPayload))
                          .thenRun(responsePublisher::complete)
@@ -150,30 +184,35 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                                  failResponseHandlerAndFuture(throwable);
                                  return null;
                              }
-                             completeFutureAndCloseRequest();
+                             resultFuture.complete(null);
                              return null;
                          });
     }
 
     private void failResponseHandlerAndFuture(Throwable exception) {
-        resultFuture.completeExceptionally(exception);
         runAndLogError(log.logger(), "Exception thrown in SdkAsyncHttpResponseHandler#onError, ignoring",
                        () -> responseHandler.onError(exception));
-        runAndLogError(log.logger(), "Exception thrown in S3MetaRequest#close, ignoring",
-                       () -> metaRequest.close());
+        resultFuture.completeExceptionally(exception);
     }
 
     private static boolean isErrorResponse(int responseStatus) {
         return responseStatus != 0;
     }
 
-    public void metaRequest(S3MetaRequest s3MetaRequest) {
-        metaRequest = s3MetaRequest;
-    }
-
     @Override
     public void onProgress(S3MetaRequestProgress progress) {
         this.progressListener.subscriberOnNext(progress);
+    }
+
+    private static SdkHttpResponse.Builder populateSdkHttpResponse(SdkHttpResponse.Builder respBuilder,
+                                                                   int statusCode, HttpHeader[] headers) {
+        if (headers != null) {
+            for (HttpHeader h : headers) {
+                respBuilder.appendHeader(h.getName(), h.getValue());
+            }
+        }
+        respBuilder.statusCode(statusCode);
+        return respBuilder;
     }
 
     private static class NoOpPublisherListener implements PublisherListener<S3MetaRequestProgress> {

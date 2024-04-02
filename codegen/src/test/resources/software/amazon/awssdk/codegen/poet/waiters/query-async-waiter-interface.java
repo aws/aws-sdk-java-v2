@@ -4,7 +4,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.services.query.QueryAsyncClient;
@@ -18,6 +20,8 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
+@ThreadSafe
+@Immutable
 public interface QueryAsyncWaiter extends SdkAutoCloseable {
     /**
      * Polls {@link QueryAsyncClient#aPostOperation} API until the desired condition {@code PostOperationSuccess} is
@@ -30,7 +34,7 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
      *         desired state.
      */
     default CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilPostOperationSuccess(
-        APostOperationRequest aPostOperationRequest) {
+            APostOperationRequest aPostOperationRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -47,7 +51,7 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
      *         with the waiter success condition
      */
     default CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilPostOperationSuccess(
-        Consumer<APostOperationRequest.Builder> aPostOperationRequest) {
+            Consumer<APostOperationRequest.Builder> aPostOperationRequest) {
         return waitUntilPostOperationSuccess(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build());
     }
 
@@ -63,7 +67,7 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
      *         condition
      */
     default CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilPostOperationSuccess(
-        APostOperationRequest aPostOperationRequest, WaiterOverrideConfiguration overrideConfig) {
+            APostOperationRequest aPostOperationRequest, WaiterOverrideConfiguration overrideConfig) {
         throw new UnsupportedOperationException();
     }
 
@@ -82,10 +86,10 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
      *         condition
      */
     default CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilPostOperationSuccess(
-        Consumer<APostOperationRequest.Builder> aPostOperationRequest,
-        Consumer<WaiterOverrideConfiguration.Builder> overrideConfig) {
+            Consumer<APostOperationRequest.Builder> aPostOperationRequest,
+            Consumer<WaiterOverrideConfiguration.Builder> overrideConfig) {
         return waitUntilPostOperationSuccess(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build(),
-                                             WaiterOverrideConfiguration.builder().applyMutation(overrideConfig).build());
+                WaiterOverrideConfiguration.builder().applyMutation(overrideConfig).build());
     }
 
     /**

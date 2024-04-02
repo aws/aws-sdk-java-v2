@@ -17,14 +17,13 @@ package software.amazon.awssdk.services.cloudfront;
 
 import org.junit.BeforeClass;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.cloudfront.model.GetDistributionRequest;
-import software.amazon.awssdk.services.cloudfront.model.GetDistributionResponse;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class IntegrationTestBase extends AwsIntegrationTestBase {
@@ -32,6 +31,7 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
     protected static CloudFrontClient cloudFrontClient;
     protected static CloudFrontUtilities cloudFrontUtilities;
     protected static S3Client s3Client;
+    protected static SecretsManagerClient secretsManagerClient;
 
     /**
      * Loads the AWS account info for the integration tests and creates an
@@ -50,34 +50,11 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                      .region(Region.US_EAST_1)
                      .build();
-    }
 
-    /**
-     * Polls the test distribution until it moves into the "Deployed" state, or
-     * throws an exception and gives up after waiting too long.
-     *
-     * @param distributionId
-     *        	The distribution to delete
-     */
-    protected static void waitForDistributionToDeploy(String distributionId) throws InterruptedException {
-        int timeoutInMinutes = 20;
-        long startTime = System.currentTimeMillis();
-        while (true) {
-            GetDistributionResponse getDistributionResponse =
-                cloudFrontClient.getDistribution(GetDistributionRequest.builder().id(distributionId).build());
-            String status = getDistributionResponse.distribution().status();
-            System.out.println(status);
-            if (status.equalsIgnoreCase("Deployed")) {
-                return;
-            }
-
-            if ((System.currentTimeMillis() - startTime) > (1000 * 60 * timeoutInMinutes)) {
-                throw new RuntimeException("Waited " + timeoutInMinutes
-                                           + " minutes for distribution to be deployed, but never happened");
-            }
-
-            Thread.sleep(1000 * 20);
-        }
+        secretsManagerClient = SecretsManagerClient.builder()
+                                                   .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                   .region(Region.US_EAST_1)
+                                                   .build();
     }
 
     /**

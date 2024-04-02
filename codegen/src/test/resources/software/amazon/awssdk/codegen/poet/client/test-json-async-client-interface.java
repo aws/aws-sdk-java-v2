@@ -53,7 +53,9 @@ import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithout
 
 /**
  * Service client for accessing Json Service asynchronously. This can be created using the static {@link #builder()}
- * method.
+ * method.The asynchronous client performs non-blocking I/O when configured with any {@link SdkAsyncHttpClient}
+ * supported in the SDK. However, full non-blocking is not guaranteed as the async client may perform blocking calls in
+ * some cases such as credentials retrieval and endpoint discovery as part of the async API call.
  *
  * A service that is implemented using the query protocol
  */
@@ -760,7 +762,6 @@ public interface JsonAsyncClient extends AwsClient {
     }
 
     /**
-     * Some paginated operation with result_key in paginators.json file<br/>
      * <p>
      * This is a variant of
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
@@ -835,7 +836,6 @@ public interface JsonAsyncClient extends AwsClient {
     }
 
     /**
-     * Some paginated operation with result_key in paginators.json file<br/>
      * <p>
      * This is a variant of
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
@@ -912,7 +912,6 @@ public interface JsonAsyncClient extends AwsClient {
     }
 
     /**
-     * Some paginated operation with result_key in paginators.json file<br/>
      * <p>
      * This is a variant of
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
@@ -966,6 +965,7 @@ public interface JsonAsyncClient extends AwsClient {
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
      * operation.</b>
      * </p>
+     * <br/>
      * <p>
      * This is a convenience which creates an instance of the {@link PaginatedOperationWithResultKeyRequest.Builder}
      * avoiding the need to create one manually via {@link PaginatedOperationWithResultKeyRequest#builder()}
@@ -1055,7 +1055,6 @@ public interface JsonAsyncClient extends AwsClient {
     }
 
     /**
-     * Some paginated operation without result_key in paginators.json file<br/>
      * <p>
      * This is a variant of
      * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
@@ -1132,7 +1131,6 @@ public interface JsonAsyncClient extends AwsClient {
     }
 
     /**
-     * Some paginated operation without result_key in paginators.json file<br/>
      * <p>
      * This is a variant of
      * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
@@ -1186,6 +1184,7 @@ public interface JsonAsyncClient extends AwsClient {
      * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
      * operation.</b>
      * </p>
+     * <br/>
      * <p>
      * This is a convenience which creates an instance of the {@link PaginatedOperationWithoutResultKeyRequest.Builder}
      * avoiding the need to create one manually via {@link PaginatedOperationWithoutResultKeyRequest#builder()}

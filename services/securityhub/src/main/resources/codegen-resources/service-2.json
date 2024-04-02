@@ -18628,10 +18628,6 @@
           "shape":"Double",
           "documentation":"<p>The less-than-equal condition to be applied to a single field when querying for findings. </p>"
         },
-        "Eq":{
-          "shape":"Double",
-          "documentation":"<p>The equal-to condition to be applied to a single field when querying for findings.</p>"
-        },
         "Gt":{
           "shape":"Double",
           "documentation":"<p> The greater-than condition to be applied to a single field when querying for findings. </p>"
@@ -18639,6 +18635,10 @@
         "Lt":{
           "shape":"Double",
           "documentation":"<p> The less-than condition to be applied to a single field when querying for findings. </p>"
+        },
+        "Eq":{
+          "shape":"Double",
+          "documentation":"<p>The equal-to condition to be applied to a single field when querying for findings.</p>"
         }
       },
       "documentation":"<p>A number filter for querying findings.</p>"
@@ -21763,6 +21763,10 @@
         "ExploitAvailable":{
           "shape":"VulnerabilityExploitAvailable",
           "documentation":"<p>Whether an exploit is available for a finding. </p>"
+        },
+        "LastKnownExploitAt":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The date and time of the last exploit associated with a finding discovered in your environment. </p>"
         },
         "CodeVulnerabilities":{
           "shape":"VulnerabilityCodeVulnerabilitiesList",

@@ -301,6 +301,11 @@ public class CustomizationConfig {
     private boolean s3ExpressAuthSupport;
 
     /**
+     * Set to true to enable compiled endpoint rules. Currently defaults to false.
+     */
+    private boolean enableGenerateCompiledEndpointRules = false;
+
+    /**
      * Customization related to auth scheme derived from endpoints.
      */
     private EndpointAuthSchemeConfig endpointAuthSchemeConfig;
@@ -310,6 +315,13 @@ public class CustomizationConfig {
      * By default, it's "software.amazon.awssdk.services.[serviceId]"
      */
     private String rootPackageName;
+
+    /**
+     * Set to true to read from c2j multi-auth values. Currently defaults to false.
+     *
+     * TODO(multi-auth): full multi-auth support is not implemented
+     */
+    private boolean useMultiAuth;
 
     private CustomizationConfig() {
     }
@@ -721,6 +733,14 @@ public class CustomizationConfig {
         this.useS3ExpressSessionAuth = useS3ExpressSessionAuth;
     }
 
+    public boolean isEnableGenerateCompiledEndpointRules() {
+        return enableGenerateCompiledEndpointRules;
+    }
+
+    public void setEnableGenerateCompiledEndpointRules(boolean enableGenerateCompiledEndpointRules) {
+        this.enableGenerateCompiledEndpointRules = enableGenerateCompiledEndpointRules;
+    }
+
     public Map<String, String> getSkipEndpointTests() {
         return skipEndpointTests;
     }
@@ -827,5 +847,13 @@ public class CustomizationConfig {
     public CustomizationConfig withRootPackageName(String packageName) {
         this.rootPackageName = packageName;
         return this;
+    }
+
+    public void setUseMultiAuth(boolean useMultiAuth) {
+        this.useMultiAuth = useMultiAuth;
+    }
+
+    public boolean useMultiAuth() {
+        return useMultiAuth;
     }
 }

@@ -1,10 +1,6 @@
 name: AWS CodeBuild CI
 on:
   pull_request:
-    paths-ignore:
-      - '**.md'
-      - '.all-contributorsrc'
-      - 'docs/**'
   push:
     branches:
       - master
@@ -121,3 +117,16 @@ jobs:
           PR: ${{ github.event.number }}
           BRANCH: ${{ github.head_ref || 'master'}}
           BASE: ${{ github.base_ref }}
+  endpoints-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run endpoints test
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: aws-sdk-java-v2-endpoints-test
