@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.23__ __2024-04-02__
+## __AWS Glue__
+  - ### Features
+    - Adding View related fields to responses of read-only Table APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fixed toJson function in EnhancedDocument API to properly handle unicode control characters by escaping them with backslashes, preventing JsonParseException.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only update for Amazon ECS.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Doc-only update. Changed "Resources" to "Key Concepts" in docs and updated text.
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - This release increases the limit on the roleArns request parameter for the *Profile APIs that support it. This parameter can now take up to 250 role ARNs.
+
 # __2.25.22__ __2024-04-01__
 ## __AWS SDK for Java v2__
   - ### Features
