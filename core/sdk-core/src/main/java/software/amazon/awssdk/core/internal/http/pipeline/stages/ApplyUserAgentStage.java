@@ -144,7 +144,8 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         StringBuilder userAgent = new StringBuilder(clientUserAgent);
 
         //additional cfg information
-        identityProviderName(context.executionAttributes()).ifPresent(i -> userAgent.append(SPACE).append(AUTH_CONFIG.apply(i)));
+        identityProviderName(context.executionAttributes())
+            .ifPresent(providerName -> userAgent.append(SPACE).append(AUTH_CONFIG.apply(providerName)));
 
         //request API names
         requestApiNames(context.requestConfig().apiNames()).ifPresent(userAgent::append);

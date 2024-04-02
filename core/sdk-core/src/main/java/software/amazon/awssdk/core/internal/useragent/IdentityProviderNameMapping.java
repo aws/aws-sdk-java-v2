@@ -19,11 +19,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * A enum class representing a short form of identity providers to record in the UA string.
  */
+@SdkInternalApi
 public enum IdentityProviderNameMapping {
 
     SYS("SystemPropertyCredentialsProvider"),
@@ -60,15 +63,19 @@ public enum IdentityProviderNameMapping {
         return String.valueOf(value);
     }
 
+    /**
+     * Map the given provider name to a shorter form. If null or empty, return unknown.
+     * If not recognized, use the given string if it conforms to the accepted pattern.
+     */
     public static Optional<String> mapFrom(String source) {
+        if (StringUtils.isBlank(source)) {
+            return Optional.of(UNKNOWN.name().toLowerCase(Locale.US));
+        }
         return mappedName(source).map(mapping -> Optional.of(mapping.name().toLowerCase(Locale.US)))
                                  .orElseGet(() -> sanitizedProviderOrNull(source));
     }
 
     private static Optional<IdentityProviderNameMapping> mappedName(String value) {
-        if (value == null) {
-            return Optional.of(UNKNOWN);
-        }
         if (VALUE_MAP.containsKey(value)) {
             return Optional.of(VALUE_MAP.get(value));
         }

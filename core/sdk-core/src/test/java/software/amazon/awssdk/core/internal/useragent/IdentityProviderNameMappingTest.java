@@ -23,6 +23,18 @@ import org.junit.jupiter.api.Test;
 class IdentityProviderNameMappingTest {
 
     @Test
+    void when_providerIsNull_unknownValueIsReturned() {
+        Optional<String> mappedProviderName = IdentityProviderNameMapping.mapFrom(null);
+        assertThat(mappedProviderName).isPresent().contains("unknown");
+    }
+
+    @Test
+    void when_providerIsEmpty_unknownValueIsReturned() {
+        Optional<String> mappedProviderName = IdentityProviderNameMapping.mapFrom("");
+        assertThat(mappedProviderName).isPresent().contains("unknown");
+    }
+
+    @Test
     void when_providerIsKnown_shortValueIsReturned() {
         Optional<String> mappedProviderName = IdentityProviderNameMapping.mapFrom("StaticCredentialsProvider");
         assertThat(mappedProviderName).isPresent().contains("stat");
