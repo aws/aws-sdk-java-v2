@@ -1,4 +1,170 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.23__ __2024-04-02__
+## __AWS Glue__
+  - ### Features
+    - Adding View related fields to responses of read-only Table APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fixed toJson function in EnhancedDocument API to properly handle unicode control characters by escaping them with backslashes, preventing JsonParseException.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only update for Amazon ECS.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Doc-only update. Changed "Resources" to "Key Concepts" in docs and updated text.
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - This release increases the limit on the roleArns request parameter for the *Profile APIs that support it. This parameter can now take up to 250 role ARNs.
+
+# __2.25.22__ __2024-04-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - AWS Deadline Cloud is a new fully managed service that helps customers set up, deploy, and scale rendering projects in minutes, so they can improve the efficiency of their rendering pipelines and take on more projects.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - This release adds support for CloudWatch Anomaly Detection on cross-account metrics. SingleMetricAnomalyDetector and MetricDataQuery inputs to Anomaly Detection APIs now take an optional AccountId field.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release supports the feature of AI recommendations for descriptions to enrich the business data catalog in Amazon DataZone.
+
+## __Amazon EMR__
+  - ### Features
+    - This release fixes a broken link in the documentation.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support to upgrade the TLS version of the distribution.
+
+# __2.25.21__ __2024-03-29__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Supporting new EDI X12 transaction sets for X12 versions 4010, 4030, and 5010.
+
+## __AWS CodeBuild__
+  - ### Features
+    - Add new fleet status code for Reserved Capacity.
+
+## __AWS CodeConnections__
+  - ### Features
+    - Duplicating the CodeStar Connections service into the new, rebranded AWS CodeConnections service.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Add support for retrieving key historical and live metrics for LoRaWAN devices and gateways
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - This release enhances the ListEntities API to support ResaleAuthorizationId filter and sort for OfferEntity in the request and the addition of a ResaleAuthorizationId field in the response of OfferSummary.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - This release adds support to allow customers to track cross account monitors through ListMonitor, GetMonitor, ListHealthEvents, GetHealthEvent, StartQuery APIs.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Add the new API Start-Import-Task for Amazon Neptune Analytics.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for custom images for the CodeEditor App on SageMaker Studio
+
+# __2.25.20__ __2024-03-28__
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables AWS Compute Optimizer to analyze and generate recommendations with a new customization preference, Memory Utilization.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CodeCatalyst__
+  - ### Features
+    - This release adds support for understanding pending changes to subscriptions by including two new response parameters for the GetSubscription API for Amazon CodeCatalyst.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 C7gd, M7gd and R7gd metal instances with up to 3.8 TB of local NVMe-based SSD block-level storage have up to 45% improved real-time NVMe storage performance than comparable Graviton2-based instances.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Add multiple customer error code to handle customer caused failure when managing EKS node groups
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add EC2 support for GuardDuty Runtime Monitoring auto management.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Update ImportTaskCancelled waiter to evaluate task state correctly and minor documentation changes.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Amazon QuickSight: Adds support for setting up VPC Endpoint restrictions for accessing QuickSight Website.
+
+## __CloudWatch Observability Access Manager__
+  - ### Features
+    - This release adds support for sharing AWS::InternetMonitor::Monitor resources.
+
+# __2.25.19__ __2024-03-27__
+## __AWS Batch__
+  - ### Features
+    - This feature allows AWS Batch to support configuration of imagePullSecrets and allowPrivilegeEscalation for jobs running on EKS
+
+## __AWS SDK For Java v2__
+  - ### Bugfixes
+    - Remediate CVE-2024-29025 by updating netty version
+        - Contributed by: [@FatalEnigma](https://github.com/FatalEnigma)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This changes introduces metadata documents statistics and also updates the documentation for bedrock agent.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces filtering support on Retrieve and RetrieveAndGenerate APIs.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Added minimum capacity to Amazon ElastiCache Serverless. This feature allows customer to ensure minimum capacity even without current load
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Set a limit on the number of concurrent upload file requests for upload directory. This fixes the OOM issue that could surface when users try to upload a directory that has millions of small files. See [#5023](https://github.com/aws/aws-sdk-java-v2/issues/5023).
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@FatalEnigma](https://github.com/FatalEnigma)
 # __2.25.18__ __2024-03-26__
 ## __AWS Cost Explorer Service__
   - ### Features
