@@ -200,7 +200,9 @@ public final class AwsBasicCredentials implements AwsCredentials,
 
         /**
          * Whether this class should verify that accessKeyId and secretAccessKey are not null.
+         * Used internally by the SDK for legacy reasons.
          */
+        @SdkInternalApi
         public Builder validateCredentials(Boolean validateCredentials) {
             this.validateCredentials = validateCredentials;
             return this;
