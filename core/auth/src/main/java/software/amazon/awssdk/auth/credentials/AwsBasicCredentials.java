@@ -52,13 +52,13 @@ public final class AwsBasicCredentials implements AwsCredentials,
     private final String accessKeyId;
     private final String secretAccessKey;
     private final boolean validateCredentials;
-    private final String provider;
+    private final String providerName;
 
     private AwsBasicCredentials(Builder builder) {
         this.accessKeyId = trimToNull(builder.accessKeyId);
         this.secretAccessKey = trimToNull(builder.secretAccessKey);
         this.validateCredentials = builder.validateCredentials;
-        this.provider = builder.provider;
+        this.providerName = builder.providerName;
 
         if (builder.validateCredentials) {
             Validate.notNull(this.accessKeyId, "Access key ID cannot be blank.");
@@ -76,7 +76,7 @@ public final class AwsBasicCredentials implements AwsCredentials,
         this.accessKeyId = trimToNull(accessKeyId);
         this.secretAccessKey = trimToNull(secretAccessKey);
         this.validateCredentials = false;
-        this.provider = null;
+        this.providerName = null;
     }
 
     public static Builder builder() {
@@ -115,15 +115,15 @@ public final class AwsBasicCredentials implements AwsCredentials,
      * The name of the identity provider that created this credential identity.
      */
     @Override
-    public Optional<String> provider() {
-        return Optional.ofNullable(provider);
+    public Optional<String> providerName() {
+        return Optional.ofNullable(providerName);
     }
 
     @Override
     public String toString() {
         return ToString.builder("AwsCredentials")
                        .add("accessKeyId", accessKeyId)
-                       .add("provider", provider)
+                       .add("providerName", providerName)
                        .build();
     }
 
@@ -153,7 +153,7 @@ public final class AwsBasicCredentials implements AwsCredentials,
         return builder().accessKeyId(accessKeyId)
                         .secretAccessKey(secretAccessKey)
                         .validateCredentials(validateCredentials)
-                        .provider(provider);
+                        .providerName(providerName);
     }
 
     @Override
@@ -168,7 +168,7 @@ public final class AwsBasicCredentials implements AwsCredentials,
     public static final class Builder implements CopyableBuilder<AwsBasicCredentials.Builder, AwsBasicCredentials> {
         private String accessKeyId;
         private String secretAccessKey;
-        private String provider;
+        private String providerName;
         private boolean validateCredentials = true;
 
         private Builder() {
@@ -193,8 +193,8 @@ public final class AwsBasicCredentials implements AwsCredentials,
         /**
          * The name of the identity provider that created this credential identity.
          */
-        public Builder provider(String provider) {
-            this.provider = provider;
+        public Builder providerName(String providerName) {
+            this.providerName = providerName;
             return this;
         }
 

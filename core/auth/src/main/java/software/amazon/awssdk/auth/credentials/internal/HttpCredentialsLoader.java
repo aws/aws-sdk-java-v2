@@ -104,12 +104,12 @@ public final class HttpCredentialsLoader {
                                         .accessKeyId(accessKeyId)
                                         .secretAccessKey(secretKey)
                                         .sessionToken(token)
-                                        .provider(providerName)
+                                        .providerName(providerName)
                                         .build() :
                    AwsBasicCredentials.builder()
                                       .accessKeyId(accessKeyId)
                                       .secretAccessKey(secretKey)
-                                      .provider(providerName)
+                                      .providerName(providerName)
                                       .build();
         }
 

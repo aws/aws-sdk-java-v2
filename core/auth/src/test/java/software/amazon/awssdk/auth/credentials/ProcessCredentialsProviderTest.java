@@ -26,7 +26,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.utils.DateUtils;
-import software.amazon.awssdk.utils.Platform;
 
 class ProcessCredentialsProviderTest {
 
@@ -63,7 +62,7 @@ class ProcessCredentialsProviderTest {
         assertThat(credentials).isInstanceOf(AwsBasicCredentials.class);
         assertThat(credentials.accessKeyId()).isEqualTo("accessKeyId");
         assertThat(credentials.secretAccessKey()).isEqualTo("secretAccessKey");
-        assertThat(credentials.provider()).isPresent().contains("ProcessCredentialsProvider");
+        assertThat(credentials.providerName()).isPresent().contains("ProcessCredentialsProvider");
     }
  
     @Test

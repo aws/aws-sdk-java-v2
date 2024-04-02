@@ -137,7 +137,7 @@ public class InstanceProfileCredentialsProviderTest {
         AwsCredentials credentials = provider.resolveCredentials();
         assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
         assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
-        assertThat(credentials.provider()).isPresent().contains("InstanceProfileCredentialsProvider");
+        assertThat(credentials.providerName()).isPresent().contains("InstanceProfileCredentialsProvider");
         verifyImdsCallWithToken();
     }
 

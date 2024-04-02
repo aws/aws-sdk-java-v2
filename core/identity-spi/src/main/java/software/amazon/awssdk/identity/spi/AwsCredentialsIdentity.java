@@ -73,7 +73,7 @@ public interface AwsCredentialsIdentity extends Identity {
         /**
          * The name of the identity provider that created this credential identity.
          */
-        default Builder provider(String provider) {
+        default Builder providerName(String providerName) {
             return this;
         }
 

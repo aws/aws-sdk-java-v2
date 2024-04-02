@@ -32,7 +32,7 @@ class AwsBasicCredentialsTest {
     void equalsHashcode() {
         EqualsVerifier.forClass(AwsBasicCredentials.class)
                       .withIgnoredFields("validateCredentials")
-                      .withIgnoredFields("provider")
+                      .withIgnoredFields("providerName")
                       .verify();
     }
 
@@ -72,9 +72,9 @@ class AwsBasicCredentialsTest {
                                                               .accessKeyId(ACCESS_KEY_ID)
                                                               .secretAccessKey(SECRET_ACCESS_KEY)
                                                               .build();
-        AwsBasicCredentials copy = identity.copy(c -> c.provider(PROVIDER_NAME));
+        AwsBasicCredentials copy = identity.copy(c -> c.providerName(PROVIDER_NAME));
         assertEquals(ACCESS_KEY_ID, copy.accessKeyId());
         assertEquals(SECRET_ACCESS_KEY, copy.secretAccessKey());
-        assertEquals(PROVIDER_NAME, copy.provider().get());
+        assertEquals(PROVIDER_NAME, copy.providerName().get());
     }
 }

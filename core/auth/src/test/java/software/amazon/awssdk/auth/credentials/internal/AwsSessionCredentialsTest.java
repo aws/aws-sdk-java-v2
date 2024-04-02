@@ -32,7 +32,7 @@ class AwsSessionCredentialsTest {
     @Test
     void equalsHashcode() {
         EqualsVerifier.forClass(AwsSessionCredentials.class)
-                      .withIgnoredFields("provider")
+                      .withIgnoredFields("providerName")
                       .verify();
     }
 
@@ -86,10 +86,10 @@ class AwsSessionCredentialsTest {
                                                               .secretAccessKey(SECRET_ACCESS_KEY)
                                                               .sessionToken(SESSION_TOKEN)
                                                               .build();
-        AwsSessionCredentials copy = identity.copy(c -> c.provider(PROVIDER_NAME));
+        AwsSessionCredentials copy = identity.copy(c -> c.providerName(PROVIDER_NAME));
         assertEquals(ACCESS_KEY_ID, copy.accessKeyId());
         assertEquals(SECRET_ACCESS_KEY, copy.secretAccessKey());
         assertEquals(SESSION_TOKEN, copy.sessionToken());
-        assertEquals(PROVIDER_NAME, copy.provider().get());
+        assertEquals(PROVIDER_NAME, copy.providerName().get());
     }
 }

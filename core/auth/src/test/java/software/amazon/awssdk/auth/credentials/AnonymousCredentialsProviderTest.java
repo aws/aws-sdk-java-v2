@@ -26,6 +26,6 @@ class AnonymousCredentialsProviderTest {
         AwsCredentials credentials = AnonymousCredentialsProvider.create().resolveCredentials();
         assertThat(credentials.accessKeyId()).isNull();
         assertThat(credentials.secretAccessKey()).isNull();
-        assertThat(credentials.provider()).isPresent().contains("AnonymousCredentialsProvider");
+        assertThat(credentials.providerName()).isPresent().contains("AnonymousCredentialsProvider");
     }
 }

@@ -26,7 +26,7 @@ public class SsoOidcTokenTest {
     @Test
     public void equalsAndHashCode_workCorrectly() {
         EqualsVerifier.forClass(SsoOidcToken.class)
-                      .withIgnoredFields("provider")
+                      .withIgnoredFields("providerName")
                       .usingGetClass()
                       .verify();
     }

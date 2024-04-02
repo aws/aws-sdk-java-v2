@@ -56,7 +56,7 @@ public class ApplyUserAgentStageTest {
 
     private static final AwsCredentialsIdentity IDENTITY_WITH_SOURCE =
         AwsSessionCredentialsIdentity.builder().accessKeyId("akid").secretAccessKey("secret").sessionToken("token")
-                                     .provider(PROVIDER_SOURCE).build();
+                                     .providerName(PROVIDER_SOURCE).build();
 
     @Test
     public void when_noAdditionalDataIsPresent_outputStringEqualsInputString() throws Exception {

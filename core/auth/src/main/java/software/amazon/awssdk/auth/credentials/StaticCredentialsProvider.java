@@ -34,10 +34,10 @@ public final class StaticCredentialsProvider implements AwsCredentialsProvider {
 
     private AwsCredentials withProviderName(AwsCredentials credentials) {
         if (credentials instanceof AwsBasicCredentials) {
-            return ((AwsBasicCredentials) credentials).copy(c -> c.provider(PROVIDER_NAME));
+            return ((AwsBasicCredentials) credentials).copy(c -> c.providerName(PROVIDER_NAME));
         }
         if (credentials instanceof AwsSessionCredentials) {
-            return ((AwsSessionCredentials) credentials).copy(c -> c.provider(PROVIDER_NAME));
+            return ((AwsSessionCredentials) credentials).copy(c -> c.providerName(PROVIDER_NAME));
         }
         return credentials;
     }

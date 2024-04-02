@@ -50,7 +50,7 @@ public final class SsoOidcToken implements SdkToken {
     private final Instant registrationExpiresAt;
     private final String region;
     private final String startUrl;
-    private final String provider;
+    private final String providerName;
 
     private SsoOidcToken(BuilderImpl builder) {
         Validate.paramNotNull(builder.accessToken, "accessToken");
@@ -63,7 +63,7 @@ public final class SsoOidcToken implements SdkToken {
         this.registrationExpiresAt = builder.registrationExpiresAt;
         this.region = builder.region;
         this.startUrl = builder.startUrl;
-        this.provider = builder.provider;
+        this.providerName = builder.providerName;
     }
 
     @Override
@@ -77,8 +77,8 @@ public final class SsoOidcToken implements SdkToken {
     }
 
     @Override
-    public Optional<String> provider() {
-        return Optional.of(provider);
+    public Optional<String> providerName() {
+        return Optional.of(providerName);
     }
 
     public String refreshToken() {
@@ -174,7 +174,7 @@ public final class SsoOidcToken implements SdkToken {
 
         Builder startUrl(String startUrl);
 
-        Builder provider(String provider);
+        Builder providerName(String providerName);
 
         SsoOidcToken build();
     }
@@ -188,7 +188,7 @@ public final class SsoOidcToken implements SdkToken {
         private Instant registrationExpiresAt;
         private String region;
         private String startUrl;
-        private String provider;
+        private String providerName;
 
         @Override
         public Builder accessToken(String accessToken) {
@@ -239,8 +239,8 @@ public final class SsoOidcToken implements SdkToken {
         }
 
         @Override
-        public Builder provider(String provider) {
-            this.provider = provider;
+        public Builder providerName(String providerName) {
+            this.providerName = providerName;
             return this;
         }
 

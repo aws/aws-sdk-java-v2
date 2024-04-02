@@ -30,7 +30,7 @@ public class AwsCredentialsIdentityTest {
     @Test
     public void equalsHashcode() {
         EqualsVerifier.forClass(DefaultAwsCredentialsIdentity.class)
-                      .withIgnoredFields("provider")
+                      .withIgnoredFields("providerName")
                       .verify();
     }
 

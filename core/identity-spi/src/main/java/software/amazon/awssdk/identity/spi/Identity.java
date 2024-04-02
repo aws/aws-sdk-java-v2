@@ -44,7 +44,7 @@ public interface Identity {
      * this string value would be set by an identity provider implementation and is
      * intended to be used for for tracking purposes. Avoid building logic on its value.
      */
-    default Optional<String> provider() {
+    default Optional<String> providerName() {
         return Optional.empty();
     }
 }

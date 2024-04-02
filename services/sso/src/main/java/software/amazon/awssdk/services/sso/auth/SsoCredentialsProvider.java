@@ -111,7 +111,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
                                                                         .accessKeyId(roleCredentials.accessKeyId())
                                                                         .secretAccessKey(roleCredentials.secretAccessKey())
                                                                         .sessionToken(roleCredentials.sessionToken())
-                                                                        .provider(PROVIDER_NAME)
+                                                                        .providerName(PROVIDER_NAME)
                                                                         .build();
         return new SessionCredentialsHolder(sessionCredentials, Instant.ofEpochMilli(roleCredentials.expiration()));
     }

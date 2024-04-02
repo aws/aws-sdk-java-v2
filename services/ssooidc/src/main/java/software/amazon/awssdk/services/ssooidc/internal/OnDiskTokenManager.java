@@ -118,7 +118,7 @@ public final class OnDiskTokenManager implements TokenManager<SsoOidcToken> {
             .ifPresent(tokenBuilder::registrationExpiresAt);
         node.field("region").map(JsonNode::text).ifPresent(tokenBuilder::region);
         node.field("startUrl").map(JsonNode::text).ifPresent(tokenBuilder::startUrl);
-        tokenBuilder.provider(SsoOidcToken.PROVIDER_NAME);
+        tokenBuilder.providerName(SsoOidcToken.PROVIDER_NAME);
         return tokenBuilder.build();
     }
 

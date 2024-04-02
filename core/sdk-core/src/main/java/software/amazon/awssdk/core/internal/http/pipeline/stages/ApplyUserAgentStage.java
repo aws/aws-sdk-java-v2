@@ -171,7 +171,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     private static <T extends Identity> Optional<String> providerNameFromIdentity(SelectedAuthScheme<T> selectedAuthScheme) {
         CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
         T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
-        return identity.provider().flatMap(IdentityProviderNameMapping::mapFrom);
+        return identity.providerName().flatMap(IdentityProviderNameMapping::mapFrom);
     }
 
     private Optional<String> requestApiNames(List<ApiName> requestApiNames) {

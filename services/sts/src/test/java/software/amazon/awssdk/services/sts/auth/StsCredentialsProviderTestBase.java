@@ -20,10 +20,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -131,7 +129,7 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
                 assertThat(providedCredentials.accessKeyId()).isEqualTo("a");
                 assertThat(providedCredentials.secretAccessKey()).isEqualTo("b");
                 assertThat(providedCredentials.sessionToken()).isEqualTo("c");
-                assertThat(providedCredentials.provider()).isPresent().contains(providerName());
+                assertThat(providedCredentials.providerName()).isPresent().contains(providerName());
             }
         }
     }

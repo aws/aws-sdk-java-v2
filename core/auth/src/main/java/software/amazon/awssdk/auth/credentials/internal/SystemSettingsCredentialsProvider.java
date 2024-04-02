@@ -71,13 +71,13 @@ public abstract class SystemSettingsCredentialsProvider implements AwsCredential
         return StringUtils.isBlank(sessionToken) ? AwsBasicCredentials.builder()
                                                                       .accessKeyId(accessKey)
                                                                       .secretAccessKey(secretKey)
-                                                                      .provider(provider())
+                                                                      .providerName(provider())
                                                                       .build()
                                                  : AwsSessionCredentials.builder()
                                                                         .accessKeyId(accessKey)
                                                                         .secretAccessKey(secretKey)
                                                                         .sessionToken(sessionToken)
-                                                                        .provider(provider())
+                                                                        .providerName(provider())
                                                                         .build();
     }
 

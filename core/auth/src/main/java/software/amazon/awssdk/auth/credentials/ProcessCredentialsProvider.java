@@ -176,12 +176,12 @@ public final class ProcessCredentialsProvider
                                     .accessKeyId(accessKeyId)
                                     .secretAccessKey(secretAccessKey)
                                     .sessionToken(sessionToken)
-                                    .provider(PROVIDER_NAME)
+                                    .providerName(PROVIDER_NAME)
                                     .build() :
                AwsBasicCredentials.builder()
                                   .accessKeyId(accessKeyId)
                                   .secretAccessKey(secretAccessKey)
-                                  .provider(PROVIDER_NAME)
+                                  .providerName(PROVIDER_NAME)
                                   .build();
     }
 

@@ -30,7 +30,7 @@ public final class StsAuthUtils {
                                     .secretAccessKey(credentials.secretAccessKey())
                                     .sessionToken(credentials.sessionToken())
                                     .expirationTime(credentials.expiration())
-                                    .provider(provider)
+                                    .providerName(provider)
                                     .build();
     }
 }

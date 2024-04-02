@@ -54,7 +54,7 @@ public final class SsoOidcTokenTransformer implements TokenTransformer<SsoOidcTo
                            .region(baseToken.region())
                            .clientSecret(baseToken.clientSecret())
                            .clientId(baseToken.clientId())
-                           .provider(SsoOidcToken.PROVIDER_NAME)
+                           .providerName(SsoOidcToken.PROVIDER_NAME)
                            .build();
     }
 }

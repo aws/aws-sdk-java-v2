@@ -26,8 +26,8 @@ class StaticCredentialsProviderTest {
         AwsCredentials credentials = new AwsBasicCredentials("akid", "skid");
         AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
         assertThat(credentials).isEqualTo(actualCredentials);
-        assertThat(credentials.provider()).isNotPresent();
-        assertThat(actualCredentials.provider()).isPresent();
+        assertThat(credentials.providerName()).isNotPresent();
+        assertThat(actualCredentials.providerName()).isPresent();
     }
 
     @Test
@@ -35,8 +35,8 @@ class StaticCredentialsProviderTest {
         AwsSessionCredentials credentials = AwsSessionCredentials.create("akid", "skid", "token");
         AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
         assertThat(credentials).isEqualTo(actualCredentials);
-        assertThat(credentials.provider()).isNotPresent();
-        assertThat(actualCredentials.provider()).isPresent();
+        assertThat(credentials.providerName()).isNotPresent();
+        assertThat(actualCredentials.providerName()).isPresent();
     }
 
     @Test

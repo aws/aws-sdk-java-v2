@@ -41,14 +41,14 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     private final String sessionToken;
 
     private final Instant expirationTime;
-    private final String provider;
+    private final String providerName;
 
     private AwsSessionCredentials(Builder builder) {
         this.accessKeyId = Validate.paramNotNull(builder.accessKeyId, "accessKey");
         this.secretAccessKey = Validate.paramNotNull(builder.secretAccessKey, "secretKey");
         this.sessionToken = Validate.paramNotNull(builder.sessionToken, "sessionToken");
         this.expirationTime = builder.expirationTime;
-        this.provider = builder.provider;
+        this.providerName = builder.providerName;
     }
 
     /**
@@ -107,15 +107,15 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
      * The name of the identity provider that created this credential identity.
      */
     @Override
-    public Optional<String> provider() {
-        return Optional.ofNullable(provider);
+    public Optional<String> providerName() {
+        return Optional.ofNullable(providerName);
     }
 
     @Override
     public String toString() {
         return ToString.builder("AwsSessionCredentials")
                        .add("accessKeyId", accessKeyId())
-                       .add("provider", provider)
+                       .add("providerName", providerName)
                        .build();
     }
 
@@ -151,7 +151,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
                         .secretAccessKey(secretAccessKey)
                         .sessionToken(sessionToken)
                         .expirationTime(expirationTime)
-                        .provider(provider);
+                        .providerName(providerName);
     }
 
     @Override
@@ -168,7 +168,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         private String secretAccessKey;
         private String sessionToken;
         private Instant expirationTime;
-        private String provider;
+        private String providerName;
 
         /**
          * The AWS access key, used to identify the user interacting with services. Required.
@@ -208,8 +208,8 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         /**
          * The name of the identity provider that created this credential identity.
          */
-        public Builder provider(String provider) {
-            this.provider = provider;
+        public Builder providerName(String providerName) {
+            this.providerName = providerName;
             return this;
         }
 

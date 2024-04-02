@@ -27,12 +27,12 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
 
     private final String accessKeyId;
     private final String secretAccessKey;
-    private final String provider;
+    private final String providerName;
 
     private DefaultAwsCredentialsIdentity(Builder builder) {
         this.accessKeyId = builder.accessKeyId;
         this.secretAccessKey = builder.secretAccessKey;
-        this.provider = builder.provider;
+        this.providerName = builder.providerName;
 
         Validate.paramNotNull(accessKeyId, "accessKeyId");
         Validate.paramNotNull(secretAccessKey, "secretAccessKey");
@@ -53,15 +53,15 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
     }
 
     @Override
-    public Optional<String> provider() {
-        return Optional.ofNullable(provider);
+    public Optional<String> providerName() {
+        return Optional.ofNullable(providerName);
     }
 
     @Override
     public String toString() {
         return ToString.builder("AwsCredentialsIdentity")
                        .add("accessKeyId", accessKeyId)
-                       .add("provider", provider)
+                       .add("providerName", providerName)
                        .build();
     }
 
@@ -89,7 +89,7 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
     private static final class Builder implements AwsCredentialsIdentity.Builder {
         private String accessKeyId;
         private String secretAccessKey;
-        private String provider;
+        private String providerName;
 
         private Builder() {
         }
@@ -107,8 +107,8 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
         }
 
         @Override
-        public Builder provider(String provider) {
-            this.provider = provider;
+        public Builder providerName(String providerName) {
+            this.providerName = providerName;
             return this;
         }
 

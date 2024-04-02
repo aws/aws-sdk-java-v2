@@ -19,8 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -28,8 +26,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.utils.UserHomeDirectoryUtils.userHomeDirectory;
 
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -44,7 +40,6 @@ import java.time.Instant;
 import java.util.Locale;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.awscore.internal.token.TokenManager;
@@ -111,7 +106,7 @@ public class SsoOidcTokenProviderTest {
         SsoOidcTokenProvider tokenProvider = getDefaultSsoOidcTokenProviderBuilder().build();
         SdkToken resolvedToken = tokenProvider.resolveToken();
         assertThat(resolvedToken).isEqualTo(ssoOidcToken);
-        assertThat(resolvedToken.provider()).isPresent().contains("SsoOidcTokenProvider");
+        assertThat(resolvedToken.providerName()).isPresent().contains("SsoOidcTokenProvider");
     }
 
     private SsoOidcTokenProvider.Builder getDefaultSsoOidcTokenProviderBuilder() {

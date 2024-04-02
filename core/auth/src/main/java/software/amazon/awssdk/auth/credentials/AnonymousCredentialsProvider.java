@@ -38,7 +38,7 @@ public final class AnonymousCredentialsProvider implements AwsCredentialsProvide
     public AwsCredentials resolveCredentials() {
         return AwsBasicCredentials.builder()
                                   .validateCredentials(false)
-                                  .provider(PROVIDER_NAME)
+                                  .providerName(PROVIDER_NAME)
                                   .build();
     }
 
