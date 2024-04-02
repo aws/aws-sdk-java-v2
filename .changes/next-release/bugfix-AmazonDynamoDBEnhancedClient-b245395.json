@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon DynamoDB Enhanced Client",
-    "contributor": "",
-    "description": "Fixed toJson function in EnhancedDocument API to properly handle unicode control characters by escaping them with backslashes, preventing JsonParseException."
-}
