@@ -27,7 +27,6 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
-import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
@@ -48,6 +47,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsAssumeRoleWithWebIdentityCredentialsProvider.Builder,
                                  StsAssumeRoleWithWebIdentityCredentialsProvider> {
+    private static final String PROVIDER_NAME = "StsAssumeRoleWithWebIdentityCredentialsProvider";
     private final Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequest;
 
     /**
@@ -71,12 +71,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
         AssumeRoleWithWebIdentityRequest request = assumeRoleWithWebIdentityRequest.get();
         notNull(request, "AssumeRoleWithWebIdentityRequest can't be null");
-        return toAwsSessionCredentials(stsClient.assumeRoleWithWebIdentity(request).credentials());
-    }
-
-    @Override
-    public String toString() {
-        return ToString.create("StsAssumeRoleWithWebIdentityCredentialsProvider");
+        return toAwsSessionCredentials(stsClient.assumeRoleWithWebIdentity(request).credentials(), PROVIDER_NAME);
     }
 
     @Override
@@ -84,6 +79,11 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
         return new Builder(this);
     }
 
+    @Override
+    String providerName() {
+        return PROVIDER_NAME;
+    }
+    
     /**
      * A builder (created by {@link StsAssumeRoleWithWebIdentityCredentialsProvider#builder()}) for creating a
      * {@link StsAssumeRoleWithWebIdentityCredentialsProvider}.

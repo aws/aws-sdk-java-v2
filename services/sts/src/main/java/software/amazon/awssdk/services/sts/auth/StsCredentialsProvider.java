@@ -28,6 +28,7 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -130,10 +131,17 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         return prefetchTime;
     }
 
+    @Override
+    public String toString() {
+        return ToString.create(providerName());
+    }
+
     /**
      * Implemented by a child class to call STS and get a new set of credentials to be used by this provider.
      */
     abstract AwsSessionCredentials getUpdatedCredentials(StsClient stsClient);
+
+    abstract String providerName();
 
     /**
      * Extended by child class's builders to share configuration across credential providers.

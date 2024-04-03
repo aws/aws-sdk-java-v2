@@ -25,7 +25,6 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenRequest;
-import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -46,6 +45,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public class StsGetSessionTokenCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsGetSessionTokenCredentialsProvider.Builder, StsGetSessionTokenCredentialsProvider> {
+    private static final String PROVIDER_NAME = "StsGetSessionTokenCredentialsProvider";
+    
     private final GetSessionTokenRequest getSessionTokenRequest;
 
     /**
@@ -67,12 +68,7 @@ public class StsGetSessionTokenCredentialsProvider
 
     @Override
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
-        return toAwsSessionCredentials(stsClient.getSessionToken(getSessionTokenRequest).credentials());
-    }
-
-    @Override
-    public String toString() {
-        return ToString.create("StsGetSessionTokenCredentialsProvider");
+        return toAwsSessionCredentials(stsClient.getSessionToken(getSessionTokenRequest).credentials(), PROVIDER_NAME);
     }
 
     @Override
@@ -80,6 +76,11 @@ public class StsGetSessionTokenCredentialsProvider
         return new Builder(this);
     }
 
+    @Override
+    String providerName() {
+        return PROVIDER_NAME;
+    }
+    
     /**
      * A builder (created by {@link StsGetSessionTokenCredentialsProvider#builder()}) for creating a
      * {@link StsGetSessionTokenCredentialsProvider}.

@@ -1,0 +1,42 @@
+{
+    "version": "2.25.16",
+    "date": "2024-03-22",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "akidambisrinivasan",
+            "description": "Improve HTTP2/PING timeout logic. Improvement avoids premature timeouts due to delays in scheduling the write of PING frame to the channel and/or flushing it to the socket."
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "Documentation update, March 2024. Corrects some docs for Amazon Kendra."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Price List Service",
+            "contributor": "",
+            "description": "Add ResourceNotFoundException to ListPriceLists and GetPriceListFileUrl APIs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Added new resource detail object to ASFF, including resource for LastKnownExploitAt"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Firehose",
+            "contributor": "",
+            "description": "Updates Amazon Firehose documentation for message regarding Enforcing Tags IAM Policy."
+        },
+        {
+            "type": "feature",
+            "category": "IAM Roles Anywhere",
+            "contributor": "",
+            "description": "This release relaxes constraints on the durationSeconds request parameter for the *Profile APIs that support it. This parameter can now take on values that go up to 43200."
+        }
+    ]
+}

@@ -13,10 +13,19 @@
  * permissions and limitations under the License.
  */
 
-console.log('Loading event')
+package software.amazon.awssdk.auth.credentials;
 
-exports.handler = function (event, context) {
-    console.log(event);
-    if (event === "BOOM") context.blowUp();
-    context.done(null, "Hello World");
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
+
+class AnonymousCredentialsProviderTest {
+
+    @Test
+    void resolveCredentials_returnsAnonymousCredentials()  {
+        AwsCredentials credentials = AnonymousCredentialsProvider.create().resolveCredentials();
+        assertThat(credentials.accessKeyId()).isNull();
+        assertThat(credentials.secretAccessKey()).isNull();
+        assertThat(credentials.providerName()).isPresent().contains("AnonymousCredentialsProvider");
+    }
 }

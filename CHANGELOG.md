@@ -1,4 +1,345 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.24__ __2024-04-03__
+## __AWS Clean Rooms ML__
+  - ### Features
+    - The release includes a public SDK for AWS Clean Rooms ML APIs, making them globally available to developers worldwide.
+
+## __AWS CloudFormation__
+  - ### Features
+    - This release would return a new field - PolicyAction in cloudformation's existed DescribeChangeSetResponse, showing actions we are going to apply on the physical resource (e.g., Delete, Retain) according to the user's template
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Cmaf Ingest outputs are now supported in Media Live
+
+## __AWS Ground Station__
+  - ### Features
+    - This release adds visibilityStartTime and visibilityEndTime to DescribeContact and ListContacts responses.
+
+## __AWS Health Imaging__
+  - ### Features
+    - SearchImageSets API now supports following enhancements - Additional support for searching on UpdatedAt and SeriesInstanceUID - Support for searching existing filters between dates/times - Support for sorting the search result by Ascending/Descending - Additional parameters returned in the response
+
+## __AWS Lambda__
+  - ### Features
+    - Add Ruby 3.3 (ruby3.3) support to AWS Lambda
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Records identity provider names in a resolved identity and adds this information to the user agent string
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Add ability to specify Security Policies for SFTP Connectors
+
+## __Amazon DataZone__
+  - ### Features
+    - This release supports the feature of dataQuality to enrich asset with dataQualityResult in Amazon DataZone.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - This release adds Global Cluster Switchover capability which enables you to change your global cluster's primary AWS Region, the region that serves writes, while preserving the replication between all regions in the global cluster.
+
+# __2.25.23__ __2024-04-02__
+## __AWS Glue__
+  - ### Features
+    - Adding View related fields to responses of read-only Table APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fixed toJson function in EnhancedDocument API to properly handle unicode control characters by escaping them with backslashes, preventing JsonParseException.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only update for Amazon ECS.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Doc-only update. Changed "Resources" to "Key Concepts" in docs and updated text.
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - This release increases the limit on the roleArns request parameter for the *Profile APIs that support it. This parameter can now take up to 250 role ARNs.
+
+# __2.25.22__ __2024-04-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - AWS Deadline Cloud is a new fully managed service that helps customers set up, deploy, and scale rendering projects in minutes, so they can improve the efficiency of their rendering pipelines and take on more projects.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - This release adds support for CloudWatch Anomaly Detection on cross-account metrics. SingleMetricAnomalyDetector and MetricDataQuery inputs to Anomaly Detection APIs now take an optional AccountId field.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release supports the feature of AI recommendations for descriptions to enrich the business data catalog in Amazon DataZone.
+
+## __Amazon EMR__
+  - ### Features
+    - This release fixes a broken link in the documentation.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support to upgrade the TLS version of the distribution.
+
+# __2.25.21__ __2024-03-29__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Supporting new EDI X12 transaction sets for X12 versions 4010, 4030, and 5010.
+
+## __AWS CodeBuild__
+  - ### Features
+    - Add new fleet status code for Reserved Capacity.
+
+## __AWS CodeConnections__
+  - ### Features
+    - Duplicating the CodeStar Connections service into the new, rebranded AWS CodeConnections service.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Add support for retrieving key historical and live metrics for LoRaWAN devices and gateways
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - This release enhances the ListEntities API to support ResaleAuthorizationId filter and sort for OfferEntity in the request and the addition of a ResaleAuthorizationId field in the response of OfferSummary.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - This release adds support to allow customers to track cross account monitors through ListMonitor, GetMonitor, ListHealthEvents, GetHealthEvent, StartQuery APIs.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Add the new API Start-Import-Task for Amazon Neptune Analytics.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for custom images for the CodeEditor App on SageMaker Studio
+
+# __2.25.20__ __2024-03-28__
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables AWS Compute Optimizer to analyze and generate recommendations with a new customization preference, Memory Utilization.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CodeCatalyst__
+  - ### Features
+    - This release adds support for understanding pending changes to subscriptions by including two new response parameters for the GetSubscription API for Amazon CodeCatalyst.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 C7gd, M7gd and R7gd metal instances with up to 3.8 TB of local NVMe-based SSD block-level storage have up to 45% improved real-time NVMe storage performance than comparable Graviton2-based instances.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Add multiple customer error code to handle customer caused failure when managing EKS node groups
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add EC2 support for GuardDuty Runtime Monitoring auto management.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Update ImportTaskCancelled waiter to evaluate task state correctly and minor documentation changes.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Amazon QuickSight: Adds support for setting up VPC Endpoint restrictions for accessing QuickSight Website.
+
+## __CloudWatch Observability Access Manager__
+  - ### Features
+    - This release adds support for sharing AWS::InternetMonitor::Monitor resources.
+
+# __2.25.19__ __2024-03-27__
+## __AWS Batch__
+  - ### Features
+    - This feature allows AWS Batch to support configuration of imagePullSecrets and allowPrivilegeEscalation for jobs running on EKS
+
+## __AWS SDK For Java v2__
+  - ### Bugfixes
+    - Remediate CVE-2024-29025 by updating netty version
+        - Contributed by: [@FatalEnigma](https://github.com/FatalEnigma)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This changes introduces metadata documents statistics and also updates the documentation for bedrock agent.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces filtering support on Retrieve and RetrieveAndGenerate APIs.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Added minimum capacity to Amazon ElastiCache Serverless. This feature allows customer to ensure minimum capacity even without current load
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Set a limit on the number of concurrent upload file requests for upload directory. This fixes the OOM issue that could surface when users try to upload a directory that has millions of small files. See [#5023](https://github.com/aws/aws-sdk-java-v2/issues/5023).
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@FatalEnigma](https://github.com/FatalEnigma)
+# __2.25.18__ __2024-03-26__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Adds support for backfill of cost allocation tags, with new StartCostAllocationTagBackfill and ListCostAllocationTagBackfillHistory API.
+
+## __AWS S3__
+  - ### Features
+    - allow user to configure subscriber timeout for input stream
+        - Contributed by: [@benarnao](https://github.com/benarnao)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds support to customize prompts sent through the RetrieveAndGenerate API in Agents for Amazon Bedrock.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation update for Amazon ECS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Elastic Compute Cloud (EC2).
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Add new operation delete-kx-cluster-node and add status parameter to list-kx-cluster-node operation.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@benarnao](https://github.com/benarnao)
+# __2.25.17__ __2024-03-25__
+## __AWS CodeBuild__
+  - ### Features
+    - Supporting GitLab and GitLab Self Managed as source types in AWS CodeBuild.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Exposing TileMedia H265 options
+
+## __AWS Global Accelerator__
+  - ### Features
+    - AWS Global Accelerator now supports cross-account sharing for bring your own IP addresses.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Support creating an `SdkPublisher` from an `Iterable`
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only update for Amazon ECS.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - This release increases the number of supported job template parameters from 20 to 100.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for ModifyInstanceMetadataDefaults and GetInstanceMetadataDefaults to set Instance Metadata Service account defaults
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introduced support for the following new instance types on SageMaker Studio for JupyterLab and CodeEditor applications: m6i, m6id, m7i, c6i, c6id, c7i, r6i, r6id, r7i, and p5
+
+# __2.25.16__ __2024-03-22__
+## __AWS Price List Service__
+  - ### Features
+    - Add ResourceNotFoundException to ListPriceLists and GetPriceListFileUrl APIs
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Improve HTTP2/PING timeout logic. Improvement avoids premature timeouts due to delays in scheduling the write of PING frame to the channel and/or flushing it to the socket.
+        - Contributed by: [@akidambisrinivasan](https://github.com/akidambisrinivasan)
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added new resource detail object to ASFF, including resource for LastKnownExploitAt
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Documentation update, March 2024. Corrects some docs for Amazon Kendra.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Updates Amazon Firehose documentation for message regarding Enforcing Tags IAM Policy.
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - This release relaxes constraints on the durationSeconds request parameter for the *Profile APIs that support it. This parameter can now take on values that go up to 43200.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@akidambisrinivasan](https://github.com/akidambisrinivasan)
+# __2.25.15__ __2024-03-21__
+## __CodeArtifact__
+  - ### Features
+    - This release adds Package groups to CodeArtifact so you can more conveniently configure package origin controls for multiple packages.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix normalize key method to not strip extra character when prefix is not immediately followed by separator in the key.
+    - Fixed OOM issue that could surface when users try to download objects from an S3 bucket that has millions of small files. See [#4987](https://github.com/aws/aws-sdk-java-v2/issues/4987)
+
+# __2.25.14__ __2024-03-20__
+## __AWS CodeBuild__
+  - ### Features
+    - This release adds support for new webhook events (RELEASED and PRERELEASED) and filter types (TAG_NAME and RELEASE_NAME).
+
+## __AWS Savings Plans__
+  - ### Features
+    - Introducing the Savings Plans Return feature enabling customers to return their Savings Plans within 7 days of purchase.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for policy validation and external access findings for DynamoDB tables and streams. IAM Access Analyzer helps you author functional and secure resource-based policies and identify cross-account access. Updated service API, documentation, and paginators.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release updates the *InstanceStorageConfig APIs to support a new ResourceType: REAL_TIME_CONTACT_ANALYSIS_CHAT_SEGMENTS. Use this resource type to enable streaming for real-time analysis of chat contacts and to associate a Kinesis stream where real-time analysis chat segments will be published.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This release introduces 3 new APIs ('GetResourcePolicy', 'PutResourcePolicy' and 'DeleteResourcePolicy') and modifies the existing 'CreateTable' API for the resource-based policy support. It also modifies several APIs to accept a 'TableArn' for the 'TableName' parameter.
+
+## __Amazon Managed Blockchain Query__
+  - ### Features
+    - AMB Query: update GetTransaction to include transactionId as input
+
 # __2.25.13__ __2024-03-19__
 ## __AWS CloudFormation__
   - ### Features
