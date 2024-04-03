@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DataZone",
+    "contributor": "",
+    "description": "This release supports the feature of dataQuality to enrich asset with dataQualityResult in Amazon DataZone."
+}
