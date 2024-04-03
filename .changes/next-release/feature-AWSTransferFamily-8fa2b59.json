@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Transfer Family",
+    "contributor": "",
+    "description": "Add ability to specify Security Policies for SFTP Connectors"
+}
