@@ -21,7 +21,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 
 /**
- * The IntelligentTieringEventData key is only visible for S3 Intelligent-Tiering events.
+ * The IntelligentTieringEventData key is only visible for
+ * <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/intelligent-tiering.html">S3 Intelligent-Tiering</a>
+ * related events.
  */
 @SdkPublicApi
 public class IntelligentTieringEventData {
