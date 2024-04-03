@@ -474,6 +474,9 @@ class GenericS3TransferManager implements S3TransferManager {
 
         // set length to 10000 as reference value, since we don't make HeadObject call yet
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(copyRequest, 10000L);
+
+        // TransferListener is not supported for CRT-based client, so we'll only initiate and register completion when using
+        // the Java-based client with multipart enabled
         if (isS3ClientMultipartEnabled()) {
             Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressListener =
                 b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());

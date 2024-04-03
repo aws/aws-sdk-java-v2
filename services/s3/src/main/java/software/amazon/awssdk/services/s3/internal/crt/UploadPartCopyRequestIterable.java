@@ -92,6 +92,11 @@ public final class UploadPartCopyRequestIterable implements SdkIterable<UploadPa
             return uploadPartCopyRequest;
         }
 
+        /**
+         * Report progress to the listener as we send each part. Since we didn't know the content length when initializing the
+         * TransferProgressUpdater in the TransferManager, we set it to a reference value of 10000. We need to scale the part
+         * value based on the reference value to report the progress accurately.
+         */
         private void updateProgressListener() {
             if (partNumber == numberOfParts) {
                 progressListener.subscriberOnNext(progressUpdaterRemainingBytes);
