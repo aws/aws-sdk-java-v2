@@ -68,6 +68,7 @@ public class OnDiskTokenManagerTest {
         SsoOidcToken token = SsoOidcToken.builder()
                                          .accessToken("accesstoken")
                                          .expiresAt(expiresAt)
+                                         .providerName("test")
                                          .build();
         String tokenJson = String.format("{\n"
                                          + "    \"accessToken\": \"accesstoken\",\n"
@@ -110,6 +111,7 @@ public class OnDiskTokenManagerTest {
                                          .registrationExpiresAt(registrationExpiresAt)
                                          .region("region")
                                          .startUrl("starturl")
+                                         .providerName("test")
                                          .build();
 
         String ssoSession = "admin";
@@ -157,6 +159,7 @@ public class OnDiskTokenManagerTest {
                                          .registrationExpiresAt(registrationExpiresAt)
                                          .region("region")
                                          .startUrl(startUrl)
+                                         .providerName("test")
                                          .build();
 
         String expectedFile = "d033e22ae348aeb5660fc2140aec35850c4da997.json";
@@ -188,6 +191,7 @@ public class OnDiskTokenManagerTest {
                                          .registrationExpiresAt(registrationExpiresAt)
                                          .region("region")
                                          .startUrl(startUrl)
+                                         .providerName("test")
                                          .build();
 
         OnDiskTokenManager onDiskTokenManager = OnDiskTokenManager.create(cache, sessionName);
