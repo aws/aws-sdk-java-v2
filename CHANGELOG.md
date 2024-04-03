@@ -1,4 +1,75 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.24__ __2024-04-03__
+## __AWS Clean Rooms ML__
+  - ### Features
+    - The release includes a public SDK for AWS Clean Rooms ML APIs, making them globally available to developers worldwide.
+
+## __AWS CloudFormation__
+  - ### Features
+    - This release would return a new field - PolicyAction in cloudformation's existed DescribeChangeSetResponse, showing actions we are going to apply on the physical resource (e.g., Delete, Retain) according to the user's template
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Cmaf Ingest outputs are now supported in Media Live
+
+## __AWS Ground Station__
+  - ### Features
+    - This release adds visibilityStartTime and visibilityEndTime to DescribeContact and ListContacts responses.
+
+## __AWS Health Imaging__
+  - ### Features
+    - SearchImageSets API now supports following enhancements - Additional support for searching on UpdatedAt and SeriesInstanceUID - Support for searching existing filters between dates/times - Support for sorting the search result by Ascending/Descending - Additional parameters returned in the response
+
+## __AWS Lambda__
+  - ### Features
+    - Add Ruby 3.3 (ruby3.3) support to AWS Lambda
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Records identity provider names in a resolved identity and adds this information to the user agent string
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Add ability to specify Security Policies for SFTP Connectors
+
+## __Amazon DataZone__
+  - ### Features
+    - This release supports the feature of dataQuality to enrich asset with dataQualityResult in Amazon DataZone.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - This release adds Global Cluster Switchover capability which enables you to change your global cluster's primary AWS Region, the region that serves writes, while preserving the replication between all regions in the global cluster.
+
+# __2.25.23__ __2024-04-02__
+## __AWS Glue__
+  - ### Features
+    - Adding View related fields to responses of read-only Table APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fixed toJson function in EnhancedDocument API to properly handle unicode control characters by escaping them with backslashes, preventing JsonParseException.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only update for Amazon ECS.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Doc-only update. Changed "Resources" to "Key Concepts" in docs and updated text.
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - This release increases the limit on the roleArns request parameter for the *Profile APIs that support it. This parameter can now take up to 250 role ARNs.
+
 # __2.25.22__ __2024-04-01__
 ## __AWS SDK for Java v2__
   - ### Features
