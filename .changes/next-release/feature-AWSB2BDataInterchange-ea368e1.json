@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS B2B Data Interchange",
-    "contributor": "",
-    "description": "Adding support for X12 5010 HIPAA EDI version and associated transaction sets."
-}

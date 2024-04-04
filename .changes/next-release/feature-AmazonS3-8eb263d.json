@@ -1,6 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Implement TransferListener for copy operations when using TransferManager with Java-based S3Client with multipart enabled"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Verified Permissions",
-    "contributor": "",
-    "description": "Adds GroupConfiguration field to Identity Source API's"
-}

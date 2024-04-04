@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EMR Containers",
-    "contributor": "",
-    "description": "This release adds support for integration with EKS AccessEntry APIs to enable automatic Cluster Access for EMR on EKS."
-}
