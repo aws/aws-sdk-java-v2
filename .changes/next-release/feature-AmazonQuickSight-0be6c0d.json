@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon QuickSight",
+    "contributor": "",
+    "description": "Adding IAMIdentityCenterInstanceArn parameter to CreateAccountSubscription"
+}
