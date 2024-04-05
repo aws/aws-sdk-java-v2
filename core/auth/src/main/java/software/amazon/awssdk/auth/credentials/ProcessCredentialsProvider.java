@@ -293,7 +293,8 @@ public final class ProcessCredentialsProvider
          * Configure the command that should be executed to retrieve credentials.
          *
          * @deprecated The recommended approach is to specify the command as a list of Strings, using {@link #command(List)}
-         * instead. This single-string command will be executed in a shell, which brings the risk of command injections.
+         * instead, which makes it easier to programmatically add parameters to commands without needing to escape those
+         * parameters to protect against command injection.
          */
         @Deprecated
         public Builder command(String command) {
