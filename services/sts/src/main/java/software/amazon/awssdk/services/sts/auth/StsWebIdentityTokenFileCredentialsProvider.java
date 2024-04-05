@@ -57,6 +57,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class StsWebIdentityTokenFileCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsWebIdentityTokenFileCredentialsProvider.Builder, StsWebIdentityTokenFileCredentialsProvider> {
+    private static final String PROVIDER_NAME = "StsWebIdentityTokenFileCredentialsProvider";
 
     private final AwsCredentialsProvider credentialsProvider;
     private final RuntimeException loadException;
@@ -146,12 +147,18 @@ public final class StsWebIdentityTokenFileCredentialsProvider
         notNull(request, "AssumeRoleWithWebIdentityRequest can't be null");
         AssumeRoleWithWebIdentityResponse assumeRoleWithWebIdentityResponse = stsClient.assumeRoleWithWebIdentity(request);
         return toAwsSessionCredentials(assumeRoleWithWebIdentityResponse.credentials(),
-                                  accountIdFromArn(assumeRoleWithWebIdentityResponse.assumedRoleUser()));
+                                       accountIdFromArn(assumeRoleWithWebIdentityResponse.assumedRoleUser()),
+                                       PROVIDER_NAME);
     }
 
     @Override
     public Builder toBuilder() {
         return new Builder(this);
+    }
+
+    @Override
+    String providerName() {
+        return PROVIDER_NAME;
     }
 
     public static final class Builder extends BaseBuilder<Builder, StsWebIdentityTokenFileCredentialsProvider> {

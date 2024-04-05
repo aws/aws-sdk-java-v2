@@ -230,6 +230,23 @@
       ],
       "documentation":"<p>Deletes a kdb cluster.</p>"
     },
+    "DeleteKxClusterNode":{
+      "name":"DeleteKxClusterNode",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/kx/environments/{environmentId}/clusters/{clusterName}/nodes/{nodeId}"
+      },
+      "input":{"shape":"DeleteKxClusterNodeRequest"},
+      "output":{"shape":"DeleteKxClusterNodeResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Deletes the specified nodes from a cluster. </p>"
+    },
     "DeleteKxDatabase":{
       "name":"DeleteKxDatabase",
       "http":{
@@ -964,7 +981,12 @@
       "max":100,
       "min":1
     },
-    "AvailabilityZoneId":{"type":"string"},
+    "AvailabilityZoneId":{
+      "type":"string",
+      "max":12,
+      "min":8,
+      "pattern":"^[a-zA-Z0-9-]+$"
+    },
     "AvailabilityZoneIds":{
       "type":"list",
       "member":{"shape":"AvailabilityZoneId"}
@@ -1025,7 +1047,8 @@
     "ChangesetId":{
       "type":"string",
       "max":26,
-      "min":1
+      "min":1,
+      "pattern":"^[a-zA-Z0-9]+$"
     },
     "ChangesetStatus":{
       "type":"string",
@@ -1170,7 +1193,7 @@
         },
         "changeRequests":{
           "shape":"ChangeRequests",
-          "documentation":"<p>A list of change request objects that are run in order. A change request object consists of <code>changeType</code> , <code>s3Path</code>, and <code>dbPath</code>. A changeType can has the following values: </p> <ul> <li> <p>PUT – Adds or updates files in a database.</p> </li> <li> <p>DELETE – Deletes files in a database.</p> </li> </ul> <p>All the change requests require a mandatory <code>dbPath</code> attribute that defines the path within the database directory. All database paths must start with a leading / and end with a trailing /. The <code>s3Path</code> attribute defines the s3 source file path and is required for a PUT change type. The <code>s3path</code> must end with a trailing / if it is a directory and must end without a trailing / if it is a file. </p> <p>Here are few examples of how you can use the change request object:</p> <ol> <li> <p>This request adds a single sym file at database root location. </p> <p> <code>{ \"changeType\": \"PUT\", \"s3Path\":\"s3://bucket/db/sym\", \"dbPath\":\"/\"}</code> </p> </li> <li> <p>This request adds files in the given <code>s3Path</code> under the 2020.01.02 partition of the database.</p> <p> <code>{ \"changeType\": \"PUT\", \"s3Path\":\"s3://bucket/db/2020.01.02/\", \"dbPath\":\"/2020.01.02/\"}</code> </p> </li> <li> <p>This request adds files in the given <code>s3Path</code> under the <i>taq</i> table partition of the database.</p> <p> <code>[ { \"changeType\": \"PUT\", \"s3Path\":\"s3://bucket/db/2020.01.02/taq/\", \"dbPath\":\"/2020.01.02/taq/\"}]</code> </p> </li> <li> <p>This request deletes the 2020.01.02 partition of the database.</p> <p> <code>[{ \"changeType\": \"DELETE\", \"dbPath\": \"/2020.01.02/\"} ]</code> </p> </li> <li> <p>The <i>DELETE</i> request allows you to delete the existing files under the 2020.01.02 partition of the database, and the <i>PUT</i> request adds a new taq table under it.</p> <p> <code>[ {\"changeType\": \"DELETE\", \"dbPath\":\"/2020.01.02/\"}, {\"changeType\": \"PUT\", \"s3Path\":\"s3://bucket/db/2020.01.02/taq/\", \"dbPath\":\"/2020.01.02/taq/\"}]</code> </p> </li> </ol>"
+          "documentation":"<p>A list of change request objects that are run in order. A change request object consists of <code>changeType</code> , <code>s3Path</code>, and <code>dbPath</code>. A changeType can have the following values: </p> <ul> <li> <p>PUT – Adds or updates files in a database.</p> </li> <li> <p>DELETE – Deletes files in a database.</p> </li> </ul> <p>All the change requests require a mandatory <code>dbPath</code> attribute that defines the path within the database directory. All database paths must start with a leading / and end with a trailing /. The <code>s3Path</code> attribute defines the s3 source file path and is required for a PUT change type. The <code>s3path</code> must end with a trailing / if it is a directory and must end without a trailing / if it is a file. </p> <p>Here are few examples of how you can use the change request object:</p> <ol> <li> <p>This request adds a single sym file at database root location. </p> <p> <code>{ \"changeType\": \"PUT\", \"s3Path\":\"s3://bucket/db/sym\", \"dbPath\":\"/\"}</code> </p> </li> <li> <p>This request adds files in the given <code>s3Path</code> under the 2020.01.02 partition of the database.</p> <p> <code>{ \"changeType\": \"PUT\", \"s3Path\":\"s3://bucket/db/2020.01.02/\", \"dbPath\":\"/2020.01.02/\"}</code> </p> </li> <li> <p>This request adds files in the given <code>s3Path</code> under the <i>taq</i> table partition of the database.</p> <p> <code>[ { \"changeType\": \"PUT\", \"s3Path\":\"s3://bucket/db/2020.01.02/taq/\", \"dbPath\":\"/2020.01.02/taq/\"}]</code> </p> </li> <li> <p>This request deletes the 2020.01.02 partition of the database.</p> <p> <code>[{ \"changeType\": \"DELETE\", \"dbPath\": \"/2020.01.02/\"} ]</code> </p> </li> <li> <p>The <i>DELETE</i> request allows you to delete the existing files under the 2020.01.02 partition of the database, and the <i>PUT</i> request adds a new taq table under it.</p> <p> <code>[ {\"changeType\": \"DELETE\", \"dbPath\":\"/2020.01.02/\"}, {\"changeType\": \"PUT\", \"s3Path\":\"s3://bucket/db/2020.01.02/taq/\", \"dbPath\":\"/2020.01.02/taq/\"}]</code> </p> </li> </ol>"
         },
         "clientToken":{
           "shape":"ClientTokenString",
@@ -1504,7 +1527,7 @@
         },
         "azMode":{
           "shape":"KxAzMode",
-          "documentation":"<p>The number of availability zones you want to assign per cluster. This can be one of the following </p> <ul> <li> <p> <code>SINGLE</code> – Assigns one availability zone per cluster.</p> </li> <li> <p> <code>MULTI</code> – Assigns all the availability zones per cluster.</p> </li> </ul>"
+          "documentation":"<p>The number of availability zones you want to assign per volume. Currently, FinSpace only supports <code>SINGLE</code> for volumes. This places dataview in a single AZ.</p>"
         },
         "availabilityZoneId":{
           "shape":"AvailabilityZoneId",
@@ -1521,6 +1544,10 @@
         "autoUpdate":{
           "shape":"booleanValue",
           "documentation":"<p>The option to specify whether you want to apply all the future additions and corrections automatically to the dataview, when you ingest new changesets. The default value is false.</p>"
+        },
+        "readWrite":{
+          "shape":"booleanValue",
+          "documentation":"<p> The option to specify whether you want to make the dataview writable to perform database maintenance. The following are some considerations related to writable dataviews.&#x2028;&#x2028;</p> <ul> <li> <p>You cannot create partial writable dataviews. When you create writeable dataviews you must provide the entire database path.</p> </li> <li> <p>You cannot perform updates on a writeable dataview. Hence, <code>autoUpdate</code> must be set as <b>False</b> if <code>readWrite</code> is <b>True</b> for a dataview.</p> </li> <li> <p>You must also use a unique volume for creating a writeable dataview. So, if you choose a volume that is already in use by another dataview, the dataview creation fails.</p> </li> <li> <p>Once you create a dataview as writeable, you cannot change it to read-only. So, you cannot update the <code>readWrite</code> parameter later.</p> </li> </ul>"
         },
         "description":{
           "shape":"Description",
@@ -1554,7 +1581,7 @@
         },
         "azMode":{
           "shape":"KxAzMode",
-          "documentation":"<p>The number of availability zones you want to assign per cluster. This can be one of the following </p> <ul> <li> <p> <code>SINGLE</code> – Assigns one availability zone per cluster.</p> </li> <li> <p> <code>MULTI</code> – Assigns all the availability zones per cluster.</p> </li> </ul>"
+          "documentation":"<p>The number of availability zones you want to assign per volume. Currently, FinSpace only supports <code>SINGLE</code> for volumes. This places dataview in a single AZ.</p>"
         },
         "availabilityZoneId":{
           "shape":"AvailabilityZoneId",
@@ -1575,6 +1602,10 @@
         "autoUpdate":{
           "shape":"booleanValue",
           "documentation":"<p>The option to select whether you want to apply all the future additions and corrections automatically to the dataview when you ingest new changesets. The default value is false.</p>"
+        },
+        "readWrite":{
+          "shape":"booleanValue",
+          "documentation":"<p>Returns True if the dataview is created as writeable and False otherwise. </p>"
         },
         "createdTimestamp":{
           "shape":"Timestamp",
@@ -1680,7 +1711,7 @@
         },
         "hostType":{
           "shape":"KxHostType",
-          "documentation":"<p> The memory and CPU capabilities of the scaling group host on which FinSpace Managed kdb clusters will be placed. </p>"
+          "documentation":"<p> The memory and CPU capabilities of the scaling group host on which FinSpace Managed kdb clusters will be placed.</p> <p>You can add one of the following values:</p> <ul> <li> <p> <code>kx.sg.4xlarge</code> – The host type with a configuration of 108 GiB memory and 16 vCPUs.</p> </li> <li> <p> <code>kx.sg.8xlarge</code> – The host type with a configuration of 216 GiB memory and 32 vCPUs.</p> </li> <li> <p> <code>kx.sg.16xlarge</code> – The host type with a configuration of 432 GiB memory and 64 vCPUs.</p> </li> <li> <p> <code>kx.sg.32xlarge</code> – The host type with a configuration of 864 GiB memory and 128 vCPUs.</p> </li> <li> <p> <code>kx.sg1.16xlarge</code> – The host type with a configuration of 1949 GiB memory and 64 vCPUs.</p> </li> <li> <p> <code>kx.sg1.24xlarge</code> – The host type with a configuration of 2948 GiB memory and 96 vCPUs.</p> </li> </ul>"
         },
         "availabilityZoneId":{
           "shape":"AvailabilityZoneId",
@@ -1818,7 +1849,7 @@
         },
         "azMode":{
           "shape":"KxAzMode",
-          "documentation":"<p>The number of availability zones you want to assign per cluster. Currently, FinSpace only support <code>SINGLE</code> for volumes.</p>"
+          "documentation":"<p>The number of availability zones you want to assign per volume. Currently, FinSpace only supports <code>SINGLE</code> for volumes. This places dataview in a single AZ.</p>"
         },
         "availabilityZoneIds":{
           "shape":"AvailabilityZoneIds",
@@ -1863,7 +1894,7 @@
         },
         "azMode":{
           "shape":"KxAzMode",
-          "documentation":"<p>The number of availability zones you want to assign per cluster. Currently, FinSpace only support <code>SINGLE</code> for volumes.</p>"
+          "documentation":"<p>The number of availability zones you want to assign per volume. Currently, FinSpace only supports <code>SINGLE</code> for volumes. This places dataview in a single AZ.</p>"
         },
         "description":{
           "shape":"Description",
@@ -1942,6 +1973,39 @@
       }
     },
     "DeleteEnvironmentResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "DeleteKxClusterNodeRequest":{
+      "type":"structure",
+      "required":[
+        "clusterName",
+        "nodeId",
+        "environmentId"
+      ],
+      "members":{
+        "environmentId":{
+          "shape":"KxEnvironmentId",
+          "documentation":"<p>A unique identifier for the kdb environment.</p>",
+          "location":"uri",
+          "locationName":"environmentId"
+        },
+        "clusterName":{
+          "shape":"KxClusterName",
+          "documentation":"<p>The name of the cluster, for which you want to delete the nodes.</p>",
+          "location":"uri",
+          "locationName":"clusterName"
+        },
+        "nodeId":{
+          "shape":"KxClusterNodeIdString",
+          "documentation":"<p>A unique identifier for the node that you want to delete.</p>",
+          "location":"uri",
+          "locationName":"nodeId"
+        }
+      }
+    },
+    "DeleteKxClusterNodeResponse":{
       "type":"structure",
       "members":{
       }
@@ -2734,7 +2798,7 @@
         },
         "azMode":{
           "shape":"KxAzMode",
-          "documentation":"<p>The number of availability zones you want to assign per cluster. This can be one of the following </p> <ul> <li> <p> <code>SINGLE</code> – Assigns one availability zone per cluster.</p> </li> <li> <p> <code>MULTI</code> – Assigns all the availability zones per cluster.</p> </li> </ul>"
+          "documentation":"<p>The number of availability zones you want to assign per volume. Currently, FinSpace only supports <code>SINGLE</code> for volumes. This places dataview in a single AZ.</p>"
         },
         "availabilityZoneId":{
           "shape":"AvailabilityZoneId",
@@ -2759,6 +2823,10 @@
         "autoUpdate":{
           "shape":"booleanValue",
           "documentation":"<p>The option to specify whether you want to apply all the future additions and corrections automatically to the dataview when new changesets are ingested. The default value is false.</p>"
+        },
+        "readWrite":{
+          "shape":"booleanValue",
+          "documentation":"<p>Returns True if the dataview is created as writeable and False otherwise. </p>"
         },
         "environmentId":{
           "shape":"EnvironmentId",
@@ -2898,7 +2966,7 @@
         },
         "hostType":{
           "shape":"KxHostType",
-          "documentation":"<p> The memory and CPU capabilities of the scaling group host on which FinSpace Managed kdb clusters will be placed. </p>"
+          "documentation":"<p> The memory and CPU capabilities of the scaling group host on which FinSpace Managed kdb clusters will be placed.</p> <p>It can have one of the following values:</p> <ul> <li> <p> <code>kx.sg.4xlarge</code> – The host type with a configuration of 108 GiB memory and 16 vCPUs.</p> </li> <li> <p> <code>kx.sg.8xlarge</code> – The host type with a configuration of 216 GiB memory and 32 vCPUs.</p> </li> <li> <p> <code>kx.sg.16xlarge</code> – The host type with a configuration of 432 GiB memory and 64 vCPUs.</p> </li> <li> <p> <code>kx.sg.32xlarge</code> – The host type with a configuration of 864 GiB memory and 128 vCPUs.</p> </li> <li> <p> <code>kx.sg1.16xlarge</code> – The host type with a configuration of 1949 GiB memory and 64 vCPUs.</p> </li> <li> <p> <code>kx.sg1.24xlarge</code> – The host type with a configuration of 2948 GiB memory and 96 vCPUs.</p> </li> </ul>"
         },
         "clusters":{
           "shape":"KxClusterNameList",
@@ -3030,7 +3098,7 @@
         },
         "azMode":{
           "shape":"KxAzMode",
-          "documentation":"<p>The number of availability zones you want to assign per cluster. Currently, FinSpace only support <code>SINGLE</code> for volumes.</p>"
+          "documentation":"<p>The number of availability zones you want to assign per volume. Currently, FinSpace only supports <code>SINGLE</code> for volumes. This places dataview in a single AZ.</p>"
         },
         "availabilityZoneIds":{
           "shape":"AvailabilityZoneIds",
@@ -3345,13 +3413,13 @@
     },
     "KxCommandLineArgumentKey":{
       "type":"string",
-      "max":50,
+      "max":1024,
       "min":1,
       "pattern":"^(?![Aa][Ww][Ss])(s|([a-zA-Z][a-zA-Z0-9_]+))|(AWS_ZIP_DEFAULT)"
     },
     "KxCommandLineArgumentValue":{
       "type":"string",
-      "max":50,
+      "max":1024,
       "min":1,
       "pattern":"^[a-zA-Z0-9_:./,]+$"
     },
@@ -3507,7 +3575,7 @@
         },
         "azMode":{
           "shape":"KxAzMode",
-          "documentation":"<p>The number of availability zones you want to assign per cluster. This can be one of the following </p> <ul> <li> <p> <code>SINGLE</code> – Assigns one availability zone per cluster.</p> </li> <li> <p> <code>MULTI</code> – Assigns all the availability zones per cluster.</p> </li> </ul>"
+          "documentation":"<p>The number of availability zones you want to assign per volume. Currently, FinSpace only supports <code>SINGLE</code> for volumes. This places dataview in a single AZ.</p>"
         },
         "availabilityZoneId":{
           "shape":"AvailabilityZoneId",
@@ -3536,6 +3604,10 @@
         "autoUpdate":{
           "shape":"booleanValue",
           "documentation":"<p> The option to specify whether you want to apply all the future additions and corrections automatically to the dataview when you ingest new changesets. The default value is false. </p>"
+        },
+        "readWrite":{
+          "shape":"booleanValue",
+          "documentation":"<p> Returns True if the dataview is created as writeable and False otherwise. </p>"
         },
         "createdTimestamp":{
           "shape":"Timestamp",
@@ -3572,6 +3644,10 @@
         "volumeName":{
           "shape":"KxVolumeName",
           "documentation":"<p> The name of the volume where you want to add data. </p>"
+        },
+        "onDemand":{
+          "shape":"booleanValue",
+          "documentation":"<p>Enables on-demand caching on the selected database path when a particular file or a column of the database is accessed. When on demand caching is <b>True</b>, dataviews perform minimal loading of files on the filesystem as needed. When it is set to <b>False</b>, everything is cached. The default value is <b>False</b>. </p>"
         }
       },
       "documentation":"<p> The configuration that contains the database path of the data that you want to place on each selected volume. Each segment must have a unique database path for each volume. If you do not explicitly specify any database path for a volume, they are accessible from the cluster through the default S3/object store segment. </p>"
@@ -3725,14 +3801,13 @@
         },
         "size":{
           "shape":"KxNAS1Size",
-          "documentation":"<p> The size of the network attached storage.</p>"
+          "documentation":"<p> The size of the network attached storage. For storage type <code>SSD_1000</code> and <code>SSD_250</code> you can select the minimum size as 1200 GB or increments of 2400 GB. For storage type <code>HDD_12</code> you can select the minimum size as 6000 GB or increments of 6000 GB.</p>"
         }
       },
       "documentation":"<p> The structure containing the size and type of the network attached storage (NAS_1) file system volume. </p>"
     },
     "KxNAS1Size":{
       "type":"integer",
-      "max":33600,
       "min":1200
     },
     "KxNAS1Type":{
@@ -3757,9 +3832,20 @@
         "launchTime":{
           "shape":"Timestamp",
           "documentation":"<p>The time when a particular node is started. The value is determined as epoch time in milliseconds. For example, the value for Monday, November 1, 2021 12:00:00 PM UTC is specified as 1635768000000.</p>"
+        },
+        "status":{
+          "shape":"KxNodeStatus",
+          "documentation":"<p> Specifies the status of the cluster nodes. </p> <ul> <li> <p> <code>RUNNING</code> – The node is actively serving.</p> </li> <li> <p> <code>PROVISIONING</code> – The node is being prepared.</p> </li> </ul>"
         }
       },
       "documentation":"<p>A structure that stores metadata for a kdb node.</p>"
+    },
+    "KxNodeStatus":{
+      "type":"string",
+      "enum":[
+        "RUNNING",
+        "PROVISIONING"
+      ]
     },
     "KxNodeSummaries":{
       "type":"list",
@@ -3801,7 +3887,7 @@
         },
         "hostType":{
           "shape":"KxHostType",
-          "documentation":"<p> The memory and CPU capabilities of the scaling group host on which FinSpace Managed kdb clusters will be placed. </p>"
+          "documentation":"<p> The memory and CPU capabilities of the scaling group host on which FinSpace Managed kdb clusters will be placed.</p> <p>You can add one of the following values:</p> <ul> <li> <p> <code>kx.sg.4xlarge</code> – The host type with a configuration of 108 GiB memory and 16 vCPUs.</p> </li> <li> <p> <code>kx.sg.8xlarge</code> – The host type with a configuration of 216 GiB memory and 32 vCPUs.</p> </li> <li> <p> <code>kx.sg.16xlarge</code> – The host type with a configuration of 432 GiB memory and 64 vCPUs.</p> </li> <li> <p> <code>kx.sg.32xlarge</code> – The host type with a configuration of 864 GiB memory and 128 vCPUs.</p> </li> <li> <p> <code>kx.sg1.16xlarge</code> – The host type with a configuration of 1949 GiB memory and 64 vCPUs.</p> </li> <li> <p> <code>kx.sg1.24xlarge</code> – The host type with a configuration of 2948 GiB memory and 96 vCPUs.</p> </li> </ul>"
         },
         "clusters":{
           "shape":"KxClusterNameList",
@@ -3949,7 +4035,7 @@
         },
         "azMode":{
           "shape":"KxAzMode",
-          "documentation":"<p> The number of availability zones assigned to the volume. Currently, only <code>SINGLE</code> is supported. </p>"
+          "documentation":"<p>The number of availability zones you want to assign per volume. Currently, FinSpace only supports <code>SINGLE</code> for volumes. This places dataview in a single AZ.</p>"
         },
         "availabilityZoneIds":{
           "shape":"AvailabilityZoneIds",
@@ -4601,7 +4687,7 @@
       "type":"string",
       "max":1093,
       "min":9,
-      "pattern":"^s3:\\/\\/[a-z0-9][a-z0-9-]{1,61}[a-z0-9]\\/([^\\/]+\\/)*[^\\/]*$"
+      "pattern":"^s3:\\/\\/[a-z0-9][a-z0-9-.]{1,61}[a-z0-9]\\/([^\\/]+\\/)*[^\\/]*$"
     },
     "SamlMetadataDocument":{
       "type":"string",
@@ -5040,7 +5126,7 @@
         },
         "azMode":{
           "shape":"KxAzMode",
-          "documentation":"<p>The number of availability zones you want to assign per cluster. This can be one of the following </p> <ul> <li> <p> <code>SINGLE</code> – Assigns one availability zone per cluster.</p> </li> <li> <p> <code>MULTI</code> – Assigns all the availability zones per cluster.</p> </li> </ul>"
+          "documentation":"<p>The number of availability zones you want to assign per volume. Currently, FinSpace only supports <code>SINGLE</code> for volumes. This places dataview in a single AZ.</p>"
         },
         "availabilityZoneId":{
           "shape":"AvailabilityZoneId",
@@ -5065,6 +5151,10 @@
         "autoUpdate":{
           "shape":"booleanValue",
           "documentation":"<p>The option to specify whether you want to apply all the future additions and corrections automatically to the dataview when new changesets are ingested. The default value is false.</p>"
+        },
+        "readWrite":{
+          "shape":"booleanValue",
+          "documentation":"<p>Returns True if the dataview is created as writeable and False otherwise. </p>"
         },
         "description":{
           "shape":"Description",
@@ -5389,7 +5479,7 @@
         },
         "azMode":{
           "shape":"KxAzMode",
-          "documentation":"<p>The number of availability zones you want to assign per cluster. Currently, FinSpace only support <code>SINGLE</code> for volumes.</p>"
+          "documentation":"<p>The number of availability zones you want to assign per volume. Currently, FinSpace only supports <code>SINGLE</code> for volumes. This places dataview in a single AZ.</p>"
         },
         "availabilityZoneIds":{
           "shape":"AvailabilityZoneIds",

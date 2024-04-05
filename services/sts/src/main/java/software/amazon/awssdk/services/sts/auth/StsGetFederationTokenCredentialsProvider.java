@@ -49,6 +49,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public class StsGetFederationTokenCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsGetFederationTokenCredentialsProvider.Builder, StsGetFederationTokenCredentialsProvider> {
+    private static final String PROVIDER_NAME = "StsGetFederationTokenCredentialsProvider";
+
     private final GetFederationTokenRequest getFederationTokenRequest;
 
     /**
@@ -71,7 +73,8 @@ public class StsGetFederationTokenCredentialsProvider
     @Override
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
         GetFederationTokenResponse federationToken = stsClient.getFederationToken(getFederationTokenRequest);
-        return toAwsSessionCredentials(federationToken.credentials(), accountIdFromArn(federationToken.federatedUser()));
+        String accountId = accountIdFromArn(federationToken.federatedUser());
+        return toAwsSessionCredentials(federationToken.credentials(), PROVIDER_NAME, accountId);
     }
 
     private String accountIdFromArn(FederatedUser federatedUser) {
@@ -91,6 +94,11 @@ public class StsGetFederationTokenCredentialsProvider
     @Override
     public Builder toBuilder() {
         return new Builder(this);
+    }
+
+    @Override
+    String providerName() {
+        return PROVIDER_NAME;
     }
 
     /**

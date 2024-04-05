@@ -18,11 +18,14 @@ package software.amazon.awssdk.auth.credentials;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * A special type of {@link AwsCredentials} that provides a session token to be used in service authentication. Session
@@ -31,19 +34,21 @@ import software.amazon.awssdk.utils.Validate;
  */
 @Immutable
 @SdkPublicApi
-public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCredentialsIdentity {
-
+public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCredentialsIdentity,
+                                                    ToCopyableBuilder<AwsSessionCredentials.Builder, AwsSessionCredentials> {
     private final String accessKeyId;
     private final String secretAccessKey;
     private final String sessionToken;
     private final String accountId;
     private final Instant expirationTime;
+    private final String providerName;
 
     private AwsSessionCredentials(Builder builder) {
         this.accessKeyId = Validate.paramNotNull(builder.accessKeyId, "accessKey");
         this.secretAccessKey = Validate.paramNotNull(builder.secretAccessKey, "secretKey");
         this.sessionToken = Validate.paramNotNull(builder.sessionToken, "sessionToken");
         this.expirationTime = builder.expirationTime;
+        this.providerName = builder.providerName;
         this.accountId = builder.accountId;
     }
 
@@ -94,8 +99,17 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
      * Retrieve the AWS session token. This token is retrieved from an AWS token service, and is used for authenticating that this
      * user has received temporary permission to access some resource.
      */
+    @Override
     public String sessionToken() {
         return sessionToken;
+    }
+
+    /**
+     * The name of the identity provider that created this credential identity.
+     */
+    @Override
+    public Optional<String> providerName() {
+        return Optional.ofNullable(providerName);
     }
 
     @Override
@@ -107,6 +121,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     public String toString() {
         return ToString.builder("AwsSessionCredentials")
                        .add("accessKeyId", accessKeyId())
+                       .add("providerName", providerName)
                        .add("accountId", accountId)
                        .build();
     }
@@ -139,15 +154,30 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         return hashCode;
     }
 
+    @Override
+    public Builder toBuilder() {
+        return builder().accessKeyId(accessKeyId)
+                        .secretAccessKey(secretAccessKey)
+                        .sessionToken(sessionToken)
+                        .expirationTime(expirationTime)
+                        .providerName(providerName);
+    }
+
+    @Override
+    public AwsSessionCredentials copy(Consumer<? super Builder> modifier) {
+        return ToCopyableBuilder.super.copy(modifier);
+    }
+
     /**
      * A builder for creating an instance of {@link AwsSessionCredentials}. This can be created with the static
      * {@link #builder()} method.
      */
-    public static final class Builder {
+    public static final class Builder implements CopyableBuilder<AwsSessionCredentials.Builder, AwsSessionCredentials> {
         private String accessKeyId;
         private String secretAccessKey;
         private String sessionToken;
         private Instant expirationTime;
+        private String providerName;
         private String accountId;
 
         /**
@@ -182,6 +212,14 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
          */
         public Builder expirationTime(Instant expirationTime) {
             this.expirationTime = expirationTime;
+            return this;
+        }
+
+        /**
+         * The name of the identity provider that created this credential identity.
+         */
+        public Builder providerName(String providerName) {
+            this.providerName = providerName;
             return this;
         }
 

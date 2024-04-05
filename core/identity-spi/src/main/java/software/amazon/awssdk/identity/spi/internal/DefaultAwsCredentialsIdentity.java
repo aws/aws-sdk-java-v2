@@ -27,11 +27,13 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
 
     private final String accessKeyId;
     private final String secretAccessKey;
+    private final String providerName;
     private final String accountId;
 
     private DefaultAwsCredentialsIdentity(Builder builder) {
         this.accessKeyId = builder.accessKeyId;
         this.secretAccessKey = builder.secretAccessKey;
+        this.providerName = builder.providerName;
         this.accountId = builder.accountId;
 
         Validate.paramNotNull(accessKeyId, "accessKeyId");
@@ -53,6 +55,11 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
     }
 
     @Override
+    public Optional<String> providerName() {
+        return Optional.ofNullable(providerName);
+    }
+
+    @Override
     public Optional<String> accountId() {
         return Optional.ofNullable(accountId);
     }
@@ -61,6 +68,7 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
     public String toString() {
         return ToString.builder("AwsCredentialsIdentity")
                        .add("accessKeyId", accessKeyId)
+                       .add("providerName", providerName)
                        .add("accountId", accountId)
                        .build();
     }
@@ -91,6 +99,7 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
     private static final class Builder implements AwsCredentialsIdentity.Builder {
         private String accessKeyId;
         private String secretAccessKey;
+        private String providerName;
         private String accountId;
 
         private Builder() {
@@ -105,6 +114,12 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
         @Override
         public Builder secretAccessKey(String secretAccessKey) {
             this.secretAccessKey = secretAccessKey;
+            return this;
+        }
+
+        @Override
+        public Builder providerName(String providerName) {
+            this.providerName = providerName;
             return this;
         }
 

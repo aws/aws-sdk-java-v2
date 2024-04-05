@@ -81,6 +81,11 @@ public class StsWebIdentityTokenCredentialsProviderBaseTest
         return client.assumeRoleWithWebIdentity(request);
     }
 
+    @Override
+    protected String providerName() {
+        return "StsAssumeRoleWithWebIdentityCredentialsProvider";
+    }
+
     private String getToken(Path file) {
         try (InputStream webIdentityTokenStream = Files.newInputStream(file)) {
             return IoUtils.toUtf8String(webIdentityTokenStream);

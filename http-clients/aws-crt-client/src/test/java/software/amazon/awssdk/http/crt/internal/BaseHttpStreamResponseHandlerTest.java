@@ -183,6 +183,33 @@ public abstract class BaseHttpStreamResponseHandlerTest {
     }
 
     @Test
+    void publisherWritesFutureCompletesBeforeConnectionClosed_shouldInvokeIncrementWindow() {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        when(simplePublisher.send(any(ByteBuffer.class))).thenReturn(future);
+        when(simplePublisher.complete()).thenReturn(future);
+
+        HttpStreamResponseHandler handler = responseHandlerWithMockedPublisher(simplePublisher);
+
+
+        HttpHeader[] httpHeaders = getHttpHeaders();
+
+        handler.onResponseHeaders(httpStream, 200, HttpHeaderBlock.MAIN.getValue(),
+                                  httpHeaders);
+        handler.onResponseHeadersDone(httpStream, 0);
+        handler.onResponseBody(httpStream,
+                               RandomStringUtils.random(1 * 1024 * 1024).getBytes(StandardCharsets.UTF_8));
+
+        future.complete(null);
+        handler.onResponseComplete(httpStream, 0);
+        requestFuture.join();
+        verify(httpStream).incrementWindow(anyInt());
+
+        verify(crtConn, never()).shutdown();
+        verify(crtConn).close();
+        verify(httpStream).close();
+    }
+
+    @Test
     void publisherWritesFutureCompletesWhenConnectionClosed_shouldNotInvokeIncrementWindow() {
         CompletableFuture<Void> future = new CompletableFuture<>();
         when(simplePublisher.send(any(ByteBuffer.class))).thenReturn(future);

@@ -70,6 +70,9 @@ public interface AwsSessionCredentialsIdentity extends AwsCredentialsIdentity {
         Builder sessionToken(String sessionToken);
 
         @Override
+        Builder providerName(String providerName);
+
+        @Override
         AwsSessionCredentialsIdentity build();
     }
 }

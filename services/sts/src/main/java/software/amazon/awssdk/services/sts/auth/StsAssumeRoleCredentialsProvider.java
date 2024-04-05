@@ -49,6 +49,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class StsAssumeRoleCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsAssumeRoleCredentialsProvider.Builder, StsAssumeRoleCredentialsProvider> {
+    private static final String PROVIDER_NAME = "StsAssumeRoleCredentialsProvider";
     private Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
 
     /**
@@ -74,16 +75,17 @@ public final class StsAssumeRoleCredentialsProvider
         Validate.notNull(assumeRoleRequest, "Assume role request must not be null.");
         AssumeRoleResponse assumeRoleResponse = stsClient.assumeRole(assumeRoleRequest);
         return toAwsSessionCredentials(assumeRoleResponse.credentials(), accountIdFromArn(assumeRoleResponse.assumedRoleUser()));
-    }
-
-    @Override
-    public String toString() {
-        return ToString.create("StsAssumeRoleCredentialsProvider");
+        return toAwsSessionCredentials(stsClient.assumeRole(assumeRoleRequest).credentials(), PROVIDER_NAME);
     }
 
     @Override
     public Builder toBuilder() {
         return new Builder(this);
+    }
+
+    @Override
+    String providerName() {
+        return PROVIDER_NAME;
     }
 
     /**

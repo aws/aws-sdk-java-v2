@@ -50,4 +50,9 @@ public class StsAssumeRoleWithWebIdentityCredentialsProviderTest
     protected AssumeRoleWithWebIdentityResponse callClient(StsClient client, AssumeRoleWithWebIdentityRequest request) {
         return client.assumeRoleWithWebIdentity(request);
     }
+
+    @Override
+    protected String providerName() {
+        return "StsAssumeRoleWithWebIdentityCredentialsProvider";
+    }
 }

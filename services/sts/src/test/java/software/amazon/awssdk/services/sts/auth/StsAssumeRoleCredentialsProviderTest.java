@@ -48,4 +48,9 @@ public class StsAssumeRoleCredentialsProviderTest extends StsCredentialsProvider
     protected AssumeRoleResponse callClient(StsClient client, AssumeRoleRequest request) {
         return client.assumeRole(request);
     }
+
+    @Override
+    protected String providerName() {
+        return "StsAssumeRoleCredentialsProvider";
+    }
 }

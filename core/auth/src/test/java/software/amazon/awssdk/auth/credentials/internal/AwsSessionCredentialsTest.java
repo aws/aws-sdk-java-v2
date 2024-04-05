@@ -24,25 +24,28 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 
-public class AwsSessionCredentialsTest {
+class AwsSessionCredentialsTest {
 
     private static final String ACCESS_KEY_ID = "accessKeyId";
     private static final String SECRET_ACCESS_KEY = "secretAccessKey";
     private static final String SESSION_TOKEN = "sessionToken";
+    private static final String PROVIDER_NAME = "StaticCredentialsProvider";
     private static final String ACCOUNT_ID = "accountId";
 
-    public void equalsHashcode() {
+    @Test
+    void equalsHashcode() {
         EqualsVerifier.forClass(AwsSessionCredentials.class)
+                      .withIgnoredFields("providerName")
                       .verify();
     }
 
     @Test
-    public void emptyBuilder_ThrowsException() {
+    void emptyBuilder_ThrowsException() {
         assertThrows(NullPointerException.class, () -> AwsSessionCredentials.builder().build());
     }
 
     @Test
-    public void builderMissingSessionToken_ThrowsException() {
+    void builderMissingSessionToken_ThrowsException() {
         assertThrows(NullPointerException.class, () -> AwsSessionCredentials.builder()
                                                                             .accessKeyId(ACCESS_KEY_ID)
                                                                             .secretAccessKey(SECRET_ACCESS_KEY)
@@ -50,7 +53,7 @@ public class AwsSessionCredentialsTest {
     }
 
     @Test
-    public void builderMissingAccessKeyId_ThrowsException() {
+    void builderMissingAccessKeyId_ThrowsException() {
         assertThrows(NullPointerException.class, () -> AwsSessionCredentials.builder()
                                                                             .secretAccessKey(SECRET_ACCESS_KEY)
                                                                             .sessionToken(SESSION_TOKEN)
@@ -58,7 +61,7 @@ public class AwsSessionCredentialsTest {
     }
 
     @Test
-    public void create_isSuccessful() {
+    void create_isSuccessful() {
         AwsSessionCredentials identity = AwsSessionCredentials.create(ACCESS_KEY_ID,
                                                                       SECRET_ACCESS_KEY,
                                                                       SESSION_TOKEN);
@@ -69,17 +72,30 @@ public class AwsSessionCredentialsTest {
     }
 
     @Test
-    public void build_isSuccessful() {
+    void build_isSuccessful() {
         AwsSessionCredentials identity = AwsSessionCredentials.builder()
                                                               .accessKeyId(ACCESS_KEY_ID)
                                                               .secretAccessKey(SECRET_ACCESS_KEY)
                                                               .sessionToken(SESSION_TOKEN)
-                                                              .accountId(ACCOUNT_ID)
                                                               .build();
         assertEquals(ACCESS_KEY_ID, identity.accessKeyId());
         assertEquals(SECRET_ACCESS_KEY, identity.secretAccessKey());
         assertEquals(SESSION_TOKEN, identity.sessionToken());
         assertTrue(identity.accountId().isPresent());
         assertEquals(ACCOUNT_ID, identity.accountId().get());
+    }
+
+    @Test
+    void copy_isSuccessful() {
+        AwsSessionCredentials identity = AwsSessionCredentials.builder()
+                                                              .accessKeyId(ACCESS_KEY_ID)
+                                                              .secretAccessKey(SECRET_ACCESS_KEY)
+                                                              .sessionToken(SESSION_TOKEN)
+                                                              .build();
+        AwsSessionCredentials copy = identity.copy(c -> c.providerName(PROVIDER_NAME));
+        assertEquals(ACCESS_KEY_ID, copy.accessKeyId());
+        assertEquals(SECRET_ACCESS_KEY, copy.secretAccessKey());
+        assertEquals(SESSION_TOKEN, copy.sessionToken());
+        assertEquals(PROVIDER_NAME, copy.providerName().get());
     }
 }

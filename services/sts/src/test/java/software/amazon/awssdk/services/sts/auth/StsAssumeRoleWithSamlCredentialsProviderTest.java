@@ -51,4 +51,9 @@ public class StsAssumeRoleWithSamlCredentialsProviderTest
     protected AssumeRoleWithSamlResponse callClient(StsClient client, AssumeRoleWithSamlRequest request) {
         return client.assumeRoleWithSAML(request);
     }
+
+    @Override
+    protected String providerName() {
+        return "StsAssumeRoleWithSamlCredentialsProvider";
+    }
 }

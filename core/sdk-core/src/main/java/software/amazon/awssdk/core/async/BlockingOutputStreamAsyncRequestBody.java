@@ -27,6 +27,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.CancellableOutputStream;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.OutputStreamPublisher;
 
 /**
@@ -46,13 +47,11 @@ public final class BlockingOutputStreamAsyncRequestBody implements AsyncRequestB
     private final Long contentLength;
     private final Duration subscribeTimeout;
 
-    BlockingOutputStreamAsyncRequestBody(Long contentLength) {
-        this(contentLength, Duration.ofSeconds(10));
-    }
-
-    BlockingOutputStreamAsyncRequestBody(Long contentLength, Duration subscribeTimeout) {
-        this.contentLength = contentLength;
-        this.subscribeTimeout = subscribeTimeout;
+    private BlockingOutputStreamAsyncRequestBody(Builder builder) {
+        this.contentLength = builder.contentLength;
+        this.subscribeTimeout = Validate.isPositiveOrNull(builder.subscribeTimeout, "subscribeTimeout") != null ?
+                                builder.subscribeTimeout :
+                                Duration.ofSeconds(10);
     }
 
     /**
@@ -67,6 +66,13 @@ public final class BlockingOutputStreamAsyncRequestBody implements AsyncRequestB
     public CancellableOutputStream outputStream() {
         waitForSubscriptionIfNeeded();
         return delegate;
+    }
+
+    /**
+     * Creates a default builder for {@link BlockingOutputStreamAsyncRequestBody}.
+     */
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
@@ -97,6 +103,43 @@ public final class BlockingOutputStreamAsyncRequestBody implements AsyncRequestB
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Interrupted while waiting for subscription.", e);
+        }
+    }
+
+    public static final class Builder {
+        private Duration subscribeTimeout;
+        private Long contentLength;
+
+        private Builder() {
+        }
+
+        /**
+         * Defines how long it should wait for this AsyncRequestBody to be subscribed (to start streaming) before timing out.
+         * By default, it's 10 seconds.
+         *
+         * <p>You may want to increase it if the request may not be executed right away.
+         *
+         * @param subscribeTimeout the timeout
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        public Builder subscribeTimeout(Duration subscribeTimeout) {
+            this.subscribeTimeout = subscribeTimeout;
+            return this;
+        }
+
+        /**
+         * The content length of the output stream.
+         *
+         * @param contentLength the content length
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        public Builder contentLength(Long contentLength) {
+            this.contentLength = contentLength;
+            return this;
+        }
+
+        public BlockingOutputStreamAsyncRequestBody build() {
+            return new BlockingOutputStreamAsyncRequestBody(this);
         }
     }
 }
