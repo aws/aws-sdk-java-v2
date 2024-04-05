@@ -291,6 +291,7 @@ public final class ProcessCredentialsProvider
 
         /**
          * Configure the command that should be executed to retrieve credentials.
+         * See {@link ProcessBuilder} for details on how this command is used.
          *
          * @deprecated The recommended approach is to specify the command as a list of Strings, using {@link #command(List)}
          * instead, which makes it easier to programmatically add parameters to commands without needing to escape those
@@ -304,6 +305,7 @@ public final class ProcessCredentialsProvider
 
         /**
          * Configure the command that should be executed to retrieve credentials, as a list of strings.
+         * See {@link ProcessBuilder} for details on how this command is used.
          */
         public Builder command(List<String> commandAsListOfStrings) {
             this.commandAsListOfStrings = commandAsListOfStrings;
