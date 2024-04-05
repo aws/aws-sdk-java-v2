@@ -49,6 +49,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class StsAssumeRoleWithSamlCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsAssumeRoleWithSamlCredentialsProvider.Builder, StsAssumeRoleWithSamlCredentialsProvider> {
+    private static final String PROVIDER_NAME = "StsAssumeRoleWithSamlCredentialsProvider";
     private final Supplier<AssumeRoleWithSamlRequest> assumeRoleWithSamlRequestSupplier;
 
 
@@ -74,7 +75,8 @@ public final class StsAssumeRoleWithSamlCredentialsProvider
         AssumeRoleWithSamlRequest assumeRoleWithSamlRequest = assumeRoleWithSamlRequestSupplier.get();
         Validate.notNull(assumeRoleWithSamlRequest, "Assume role with saml request must not be null.");
         AssumeRoleWithSamlResponse assumeRoleResponse = stsClient.assumeRoleWithSAML(assumeRoleWithSamlRequest);
-        return toAwsSessionCredentials(assumeRoleResponse.credentials(), accountIdFromArn(assumeRoleResponse.assumedRoleUser()));
+        String accountId = accountIdFromArn(assumeRoleResponse.assumedRoleUser());
+        return toAwsSessionCredentials(assumeRoleResponse.credentials(), PROVIDER_NAME, accountId);
     }
 
     @Override
@@ -85,6 +87,11 @@ public final class StsAssumeRoleWithSamlCredentialsProvider
     @Override
     public Builder toBuilder() {
         return new Builder(this);
+    }
+
+    @Override
+    String providerName() {
+        return PROVIDER_NAME;
     }
 
     /**

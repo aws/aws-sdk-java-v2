@@ -49,4 +49,9 @@ public class StsGetSessionTokenCredentialsProviderTest
     protected GetSessionTokenResponse callClient(StsClient client, GetSessionTokenRequest request) {
         return client.getSessionToken(request);
     }
+
+    @Override
+    protected String providerName() {
+        return "StsGetSessionTokenCredentialsProvider";
+    }
 }

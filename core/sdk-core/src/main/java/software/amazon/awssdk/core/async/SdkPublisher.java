@@ -30,6 +30,7 @@ import software.amazon.awssdk.utils.async.BufferingSubscriber;
 import software.amazon.awssdk.utils.async.EventListeningSubscriber;
 import software.amazon.awssdk.utils.async.FilteringSubscriber;
 import software.amazon.awssdk.utils.async.FlatteningSubscriber;
+import software.amazon.awssdk.utils.async.IterablePublisher;
 import software.amazon.awssdk.utils.async.LimitingSubscriber;
 import software.amazon.awssdk.utils.async.SequentialSubscriber;
 import software.amazon.awssdk.utils.internal.MappingSubscriber;
@@ -49,6 +50,17 @@ public interface SdkPublisher<T> extends Publisher<T> {
      */
     static <T> SdkPublisher<T> adapt(Publisher<T> toAdapt) {
         return toAdapt::subscribe;
+    }
+
+    /**
+     * Create an {@link SdkPublisher} from an {@link Iterable}.
+     *
+     * @param iterable {@link Iterable} to adapt.
+     * @param <T> Type of object being published.
+     * @return SdkPublisher
+     */
+    static <T> SdkPublisher<T> fromIterable(Iterable<T> iterable) {
+        return adapt(new IterablePublisher<>(iterable));
     }
 
     /**

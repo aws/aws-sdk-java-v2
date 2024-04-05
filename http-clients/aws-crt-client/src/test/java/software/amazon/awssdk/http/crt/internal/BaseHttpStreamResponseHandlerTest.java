@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +41,6 @@ import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpStream;
 import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
-import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 @ExtendWith(MockitoExtension.class)
@@ -180,6 +178,33 @@ public abstract class BaseHttpStreamResponseHandlerTest {
         verify(crtConn).close();
         verify(httpStream).close();
         verify(httpStream, never()).incrementWindow(anyInt());
+    }
+
+    @Test
+    void publisherWritesFutureCompletesBeforeConnectionClosed_shouldInvokeIncrementWindow() {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        when(simplePublisher.send(any(ByteBuffer.class))).thenReturn(future);
+        when(simplePublisher.complete()).thenReturn(future);
+
+        HttpStreamResponseHandler handler = responseHandlerWithMockedPublisher(simplePublisher);
+
+
+        HttpHeader[] httpHeaders = getHttpHeaders();
+
+        handler.onResponseHeaders(httpStream, 200, HttpHeaderBlock.MAIN.getValue(),
+                                  httpHeaders);
+        handler.onResponseHeadersDone(httpStream, 0);
+        handler.onResponseBody(httpStream,
+                               RandomStringUtils.random(1 * 1024 * 1024).getBytes(StandardCharsets.UTF_8));
+
+        future.complete(null);
+        handler.onResponseComplete(httpStream, 0);
+        requestFuture.join();
+        verify(httpStream).incrementWindow(anyInt());
+
+        verify(crtConn, never()).shutdown();
+        verify(crtConn).close();
+        verify(httpStream).close();
     }
 
     @Test

@@ -20,13 +20,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.Test;
 
-public class StaticCredentialsProviderTest {
+class StaticCredentialsProviderTest {
+
+    private static final String PROVIDER_NAME = "StaticCredentialsProvider";
 
     @Test
     void getAwsCredentials_ReturnsSameCredentials() {
         AwsCredentials credentials = AwsBasicCredentials.create("akid", "skid");
         AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
-        assertThat(actualCredentials).isEqualTo(credentials);
+        assertThat(credentials).isEqualTo(actualCredentials);
+        assertThat(credentials.providerName()).isNotPresent();
+        assertThat(actualCredentials.providerName()).isPresent();
     }
 
     @Test
@@ -34,6 +38,7 @@ public class StaticCredentialsProviderTest {
         AwsCredentials credentials = AwsBasicCredentials.builder()
                                                         .accessKeyId("akid")
                                                         .secretAccessKey("skid")
+                                                        .providerName(PROVIDER_NAME)
                                                         .accountId("acctid")
                                                         .build();
         AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
@@ -44,19 +49,9 @@ public class StaticCredentialsProviderTest {
     void getSessionAwsCredentials_ReturnsSameCredentials() {
         AwsSessionCredentials credentials = AwsSessionCredentials.create("akid", "skid", "token");
         AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
-        assertThat(actualCredentials).isEqualTo(credentials);
-    }
-
-    @Test
-    void getSessionAwsCredentialsWithAccountId_ReturnsSameCredentials() {
-        AwsSessionCredentials credentials = AwsSessionCredentials.builder()
-                                                                 .accessKeyId("akid")
-                                                                 .secretAccessKey("skid")
-                                                                 .sessionToken("token")
-                                                                 .accountId("acctid")
-                                                                 .build();
-        AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
-        assertThat(actualCredentials).isEqualTo(credentials);
+        assertThat(credentials).isEqualTo(actualCredentials);
+        assertThat(credentials.providerName()).isNotPresent();
+        assertThat(actualCredentials.providerName()).isPresent();
     }
 
     @Test

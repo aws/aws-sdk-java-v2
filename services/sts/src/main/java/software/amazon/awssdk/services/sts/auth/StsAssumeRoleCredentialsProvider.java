@@ -28,7 +28,6 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
-import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -49,6 +48,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class StsAssumeRoleCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsAssumeRoleCredentialsProvider.Builder, StsAssumeRoleCredentialsProvider> {
+    private static final String PROVIDER_NAME = "StsAssumeRoleCredentialsProvider";
     private Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
 
     /**
@@ -73,17 +73,18 @@ public final class StsAssumeRoleCredentialsProvider
         AssumeRoleRequest assumeRoleRequest = assumeRoleRequestSupplier.get();
         Validate.notNull(assumeRoleRequest, "Assume role request must not be null.");
         AssumeRoleResponse assumeRoleResponse = stsClient.assumeRole(assumeRoleRequest);
-        return toAwsSessionCredentials(assumeRoleResponse.credentials(), accountIdFromArn(assumeRoleResponse.assumedRoleUser()));
-    }
-
-    @Override
-    public String toString() {
-        return ToString.create("StsAssumeRoleCredentialsProvider");
+        String accountId = accountIdFromArn(assumeRoleResponse.assumedRoleUser());
+        return toAwsSessionCredentials(assumeRoleResponse.credentials(), PROVIDER_NAME, accountId);
     }
 
     @Override
     public Builder toBuilder() {
         return new Builder(this);
+    }
+
+    @Override
+    String providerName() {
+        return PROVIDER_NAME;
     }
 
     /**

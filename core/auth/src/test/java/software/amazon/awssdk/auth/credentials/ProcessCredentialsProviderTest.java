@@ -165,6 +165,7 @@ public class ProcessCredentialsProviderTest {
     private void verifyCredentials(AwsCredentials credentials) {
         assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
         assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
+        assertThat(credentials.providerName()).isPresent().contains("ProcessCredentialsProvider");
     }
 
     @Test

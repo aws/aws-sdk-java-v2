@@ -311,6 +311,13 @@ public class CustomizationConfig {
      */
     private String rootPackageName;
 
+    /**
+     * Set to true to read from c2j multi-auth values. Currently defaults to false.
+     *
+     * TODO(multi-auth): full multi-auth support is not implemented
+     */
+    private boolean useMultiAuth;
+
     private CustomizationConfig() {
     }
 
@@ -827,5 +834,13 @@ public class CustomizationConfig {
     public CustomizationConfig withRootPackageName(String packageName) {
         this.rootPackageName = packageName;
         return this;
+    }
+
+    public void setUseMultiAuth(boolean useMultiAuth) {
+        this.useMultiAuth = useMultiAuth;
+    }
+
+    public boolean useMultiAuth() {
+        return useMultiAuth;
     }
 }

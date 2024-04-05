@@ -28,6 +28,7 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
     private final String accessKeyId;
     private final String secretAccessKey;
     private final String sessionToken;
+    private final String providerName;
     private final String accountId;
 
 
@@ -35,6 +36,7 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
         this.accessKeyId = Validate.paramNotNull(builder.accessKeyId, "accessKeyId");
         this.secretAccessKey = Validate.paramNotNull(builder.secretAccessKey, "secretAccessKey");
         this.sessionToken = Validate.paramNotNull(builder.sessionToken, "sessionToken");
+        this.providerName = builder.providerName;
         this.accountId = builder.accountId;
     }
 
@@ -63,9 +65,15 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
     }
 
     @Override
+    public Optional<String> providerName() {
+        return Optional.ofNullable(providerName);
+    }
+
+    @Override
     public String toString() {
         return ToString.builder("AwsSessionCredentialsIdentity")
                        .add("accessKeyId", accessKeyId)
+                       .add("providerName", providerName)
                        .add("accountId", accountId)
                        .build();
     }
@@ -99,6 +107,7 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
         private String accessKeyId;
         private String secretAccessKey;
         private String sessionToken;
+        private String providerName;
         private String accountId;
 
         private Builder() {
@@ -119,6 +128,12 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
         @Override
         public Builder sessionToken(String sessionToken) {
             this.sessionToken = sessionToken;
+            return this;
+        }
+
+        @Override
+        public Builder providerName(String providerName) {
+            this.providerName = providerName;
             return this;
         }
 

@@ -82,6 +82,13 @@ public interface AwsCredentialsIdentity extends Identity {
          */
         Builder accountId(String accountId);
 
+        /**
+         * The name of the identity provider that created this credential identity.
+         */
+        default Builder providerName(String providerName) {
+            return this;
+        }
+
         AwsCredentialsIdentity build();
     }
 }

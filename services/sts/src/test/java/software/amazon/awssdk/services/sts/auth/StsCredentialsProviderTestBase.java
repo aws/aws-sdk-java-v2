@@ -20,10 +20,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -31,7 +29,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.endpoints.internal.Arn;
 import software.amazon.awssdk.services.sts.model.Credentials;
 
 /**
@@ -101,6 +98,8 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
 
     protected abstract ResponseT callClient(StsClient client, RequestT request);
 
+    protected abstract String providerName();
+
     public void callClientWithCredentialsProvider(Instant credentialsExpirationDate, int numTimesInvokeCredentialsProvider, boolean overrideStaleAndPrefetchTimes) {
         Credentials credentials = Credentials.builder().accessKeyId("a").secretAccessKey("b").sessionToken("c").expiration(credentialsExpirationDate).build();
         RequestT request = getRequest();
@@ -131,6 +130,7 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
                 assertThat(providedCredentials.accessKeyId()).isEqualTo("a");
                 assertThat(providedCredentials.secretAccessKey()).isEqualTo("b");
                 assertThat(providedCredentials.sessionToken()).isEqualTo("c");
+                assertThat(providedCredentials.providerName()).isPresent().contains(providerName());
                 if (!(credentialsProvider instanceof StsGetSessionTokenCredentialsProvider)) {
                     assertThat(providedCredentials.accountId().isPresent());
                     assertThat(providedCredentials.accountId().get()).isEqualTo("123456789012");

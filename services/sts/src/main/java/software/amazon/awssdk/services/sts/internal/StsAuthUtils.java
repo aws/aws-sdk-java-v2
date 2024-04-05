@@ -37,15 +37,16 @@ public final class StsAuthUtils {
     }
 
     public static AwsSessionCredentials toAwsSessionCredentials(Credentials credentials) {
-        return toAwsSessionCredentials(credentials, null);
+        return toAwsSessionCredentials(credentials, null, null);
     }
 
-    public static AwsSessionCredentials toAwsSessionCredentials(Credentials credentials, String accountId) {
+    public static AwsSessionCredentials toAwsSessionCredentials(Credentials credentials, String provider, String accountId) {
         return AwsSessionCredentials.builder()
                                     .accessKeyId(credentials.accessKeyId())
                                     .secretAccessKey(credentials.secretAccessKey())
                                     .sessionToken(credentials.sessionToken())
                                     .expirationTime(credentials.expiration())
+                                    .providerName(provider)
                                     .accountId(accountId)
                                     .build();
     }

@@ -34,6 +34,7 @@ public class AwsSessionCredentialsIdentityTest {
     @Test
     public void equalsHashcode() {
         EqualsVerifier.forClass(DefaultAwsSessionCredentialsIdentity.class)
+                      .withIgnoredFields("providerName")
                       .verify();
     }
 

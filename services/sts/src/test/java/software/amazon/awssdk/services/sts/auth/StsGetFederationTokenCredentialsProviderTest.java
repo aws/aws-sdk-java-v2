@@ -51,4 +51,9 @@ public class StsGetFederationTokenCredentialsProviderTest
     protected GetFederationTokenResponse callClient(StsClient client, GetFederationTokenRequest request) {
         return client.getFederationToken(request);
     }
+
+    @Override
+    protected String providerName() {
+        return "StsGetFederationTokenCredentialsProvider";
+    }
 }

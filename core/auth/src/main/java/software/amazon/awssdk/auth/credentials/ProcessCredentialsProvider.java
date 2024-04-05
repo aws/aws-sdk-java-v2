@@ -64,6 +64,7 @@ public final class ProcessCredentialsProvider
     implements AwsCredentialsProvider,
                SdkAutoCloseable,
                ToCopyableBuilder<ProcessCredentialsProvider.Builder, ProcessCredentialsProvider> {
+    private static final String PROVIDER_NAME = "ProcessCredentialsProvider";
     private static final JsonNodeParser PARSER = JsonNodeParser.builder()
                                                                .removeErrorLocations(true)
                                                                .build();
@@ -174,18 +175,19 @@ public final class ProcessCredentialsProvider
 
         String resolvedAccountId = accountId == null ? this.staticAccountId : accountId;
 
-        if (sessionToken != null) {
-            return AwsSessionCredentials.builder()
-                                        .accessKeyId(accessKeyId)
-                                        .secretAccessKey(secretAccessKey)
-                                        .sessionToken(sessionToken)
-                                        .expirationTime(credentialExpirationTime(credentialsJson))
-                                        .accountId(resolvedAccountId)
-                                        .build();
-        }
-        return AwsBasicCredentials.builder()
+        return sessionToken != null ?
+               AwsSessionCredentials.builder()
+                                    .accessKeyId(accessKeyId)
+                                    .secretAccessKey(secretAccessKey)
+                                    .sessionToken(sessionToken)
+                                    .expirationTime(credentialExpirationTime(credentialsJson))
+                                    .providerName(PROVIDER_NAME)
+                                    .accountId(resolvedAccountId)
+                                    .build() :
+               AwsBasicCredentials.builder()
                                   .accessKeyId(accessKeyId)
                                   .secretAccessKey(secretAccessKey)
+                                  .providerName(PROVIDER_NAME)
                                   .accountId(resolvedAccountId)
                                   .build();
     }
@@ -330,7 +332,7 @@ public final class ProcessCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.builder("ProcessCredentialsProvider")
+        return ToString.builder(PROVIDER_NAME)
                        .add("cmd", executableCommand)
                        .build();
     }

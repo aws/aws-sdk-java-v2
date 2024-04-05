@@ -50,6 +50,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsAssumeRoleWithWebIdentityCredentialsProvider.Builder,
                                  StsAssumeRoleWithWebIdentityCredentialsProvider> {
+    private static final String PROVIDER_NAME = "StsAssumeRoleWithWebIdentityCredentialsProvider";
     private final Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequest;
 
     /**
@@ -74,7 +75,8 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
         AssumeRoleWithWebIdentityRequest request = assumeRoleWithWebIdentityRequest.get();
         notNull(request, "AssumeRoleWithWebIdentityRequest can't be null");
         AssumeRoleWithWebIdentityResponse assumeRoleResponse = stsClient.assumeRoleWithWebIdentity(request);
-        return toAwsSessionCredentials(assumeRoleResponse.credentials(), accountIdFromArn(assumeRoleResponse.assumedRoleUser()));
+        String accountId = accountIdFromArn(assumeRoleResponse.assumedRoleUser());
+        return toAwsSessionCredentials(assumeRoleResponse.credentials(), PROVIDER_NAME, accountId);
     }
 
     @Override
@@ -85,6 +87,11 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
     @Override
     public Builder toBuilder() {
         return new Builder(this);
+    }
+
+    @Override
+    String providerName() {
+        return PROVIDER_NAME;
     }
 
     /**

@@ -37,7 +37,7 @@ public final class TransferConfigurationOption<T> extends AttributeMap.Key<T> {
 
     public static final String DEFAULT_DELIMITER = "/";
     public static final String DEFAULT_PREFIX = "";
-    public static final int DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY = 100;
+    public static final int DEFAULT_DIRECTORY_TRANSFER_MAX_CONCURRENCY = 100;
 
     private static final int DEFAULT_UPLOAD_DIRECTORY_MAX_DEPTH = Integer.MAX_VALUE;
 
