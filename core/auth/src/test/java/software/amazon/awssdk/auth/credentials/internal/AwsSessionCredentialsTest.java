@@ -77,6 +77,7 @@ class AwsSessionCredentialsTest {
                                                               .accessKeyId(ACCESS_KEY_ID)
                                                               .secretAccessKey(SECRET_ACCESS_KEY)
                                                               .sessionToken(SESSION_TOKEN)
+                                                              .accountId(ACCOUNT_ID)
                                                               .build();
         assertEquals(ACCESS_KEY_ID, identity.accessKeyId());
         assertEquals(SECRET_ACCESS_KEY, identity.secretAccessKey());

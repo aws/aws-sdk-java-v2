@@ -22,6 +22,8 @@ import org.junit.jupiter.api.Test;
 
 class StaticCredentialsProviderTest {
 
+    private static final String PROVIDER_NAME = "StaticCredentialsProvider";
+
     @Test
     void getAwsCredentials_ReturnsSameCredentials() {
         AwsCredentials credentials = AwsBasicCredentials.create("akid", "skid");
@@ -36,6 +38,7 @@ class StaticCredentialsProviderTest {
         AwsCredentials credentials = AwsBasicCredentials.builder()
                                                         .accessKeyId("akid")
                                                         .secretAccessKey("skid")
+                                                        .providerName(PROVIDER_NAME)
                                                         .accountId("acctid")
                                                         .build();
         AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();

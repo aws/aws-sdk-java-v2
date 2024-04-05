@@ -29,7 +29,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.endpoints.internal.Arn;
 import software.amazon.awssdk.services.sts.model.Credentials;
 
 /**

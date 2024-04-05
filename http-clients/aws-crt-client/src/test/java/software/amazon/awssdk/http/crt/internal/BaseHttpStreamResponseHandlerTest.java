@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +41,6 @@ import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpStream;
 import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
-import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 @ExtendWith(MockitoExtension.class)

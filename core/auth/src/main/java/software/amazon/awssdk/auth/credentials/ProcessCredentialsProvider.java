@@ -180,6 +180,7 @@ public final class ProcessCredentialsProvider
                                     .accessKeyId(accessKeyId)
                                     .secretAccessKey(secretAccessKey)
                                     .sessionToken(sessionToken)
+                                    .expirationTime(credentialExpirationTime(credentialsJson))
                                     .providerName(PROVIDER_NAME)
                                     .accountId(resolvedAccountId)
                                     .build() :

@@ -68,7 +68,8 @@ public class StsGetSessionTokenCredentialsProvider
 
     @Override
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
-        return toAwsSessionCredentials(stsClient.getSessionToken(getSessionTokenRequest).credentials(), PROVIDER_NAME);
+        return toAwsSessionCredentials(stsClient.getSessionToken(getSessionTokenRequest).credentials(), PROVIDER_NAME,
+                                       null);
     }
 
     @Override

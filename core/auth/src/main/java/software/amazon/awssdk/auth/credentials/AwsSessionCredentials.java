@@ -160,7 +160,8 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
                         .secretAccessKey(secretAccessKey)
                         .sessionToken(sessionToken)
                         .expirationTime(expirationTime)
-                        .providerName(providerName);
+                        .providerName(providerName)
+                        .accountId(accountId);
     }
 
     @Override
