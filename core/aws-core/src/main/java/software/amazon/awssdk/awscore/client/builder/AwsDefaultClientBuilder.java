@@ -350,7 +350,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     private void configureRetryStrategy(SdkClientConfiguration.Builder config) {
         RetryStrategy<?, ?> strategy = config.option(SdkClientOption.RETRY_STRATEGY);
         if (strategy != null) {
-            config.option(SdkClientOption.RETRY_STRATEGY, strategy);
+            config.option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.configureStrategy(strategy.toBuilder()).build());
             return;
         }
         config.lazyOption(SdkClientOption.RETRY_STRATEGY, this::resolveAwsRetryStrategy);

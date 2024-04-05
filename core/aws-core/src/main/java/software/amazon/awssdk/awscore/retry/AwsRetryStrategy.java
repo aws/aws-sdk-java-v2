@@ -128,6 +128,16 @@ public final class AwsRetryStrategy {
         return builder.retryOnException(AwsRetryStrategy::retryOnAwsRetryableErrors);
     }
 
+    /**
+     * Configures any retry strategy using its builder to add AWS-specific retry exceptions.
+     *
+     * @param builder The builder to add the AWS-specific retry exceptions
+     * @return The given builder
+     */
+    public static RetryStrategy.Builder<?, ?> configureStrategy(RetryStrategy.Builder<?, ?> builder) {
+        return builder.retryOnException(AwsRetryStrategy::retryOnAwsRetryableErrors);
+    }
+
     private static boolean retryOnAwsRetryableErrors(Throwable ex) {
         if (ex instanceof AwsServiceException) {
             AwsServiceException exception = (AwsServiceException) ex;
