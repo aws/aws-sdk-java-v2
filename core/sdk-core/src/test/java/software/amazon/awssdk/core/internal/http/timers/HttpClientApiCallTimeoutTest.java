@@ -71,7 +71,7 @@ public class HttpClientApiCallTimeoutTest {
                     .willReturn(aResponse().withStatus(200).withBody("{}")));
 
         assertThatThrownBy(() -> requestBuilder().execute(combinedSyncResponseHandler(
-            superSlowResponseHandler(API_CALL_TIMEOUT.toMillis()), null)))
+            superSlowResponseHandler(API_CALL_TIMEOUT.toMillis() * 2), null)))
             .isInstanceOf(ApiCallTimeoutException.class);
     }
 

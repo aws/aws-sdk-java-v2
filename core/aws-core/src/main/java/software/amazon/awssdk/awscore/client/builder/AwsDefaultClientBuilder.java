@@ -182,7 +182,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                             .lazyOption(AwsClientOption.SIGNING_REGION, this::resolveSigningRegion)
                             .lazyOption(SdkClientOption.HTTP_CLIENT_CONFIG, this::resolveHttpClientConfig)
                             .applyMutation(this::configureRetryPolicy)
-                            .lazyOption(SdkClientOption.RETRY_STRATEGY, this::resolveAwsRetryStrategy)
+                            .applyMutation(this::configureRetryStrategy)
                             .lazyOptionIfAbsent(SdkClientOption.IDENTITY_PROVIDERS, this::resolveIdentityProviders)
                             .build();
     }
@@ -344,18 +344,16 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             if (policy.additionalRetryConditionsAllowed()) {
                 config.option(SdkClientOption.RETRY_POLICY, AwsRetryPolicy.addRetryConditions(policy));
             }
-            return;
         }
-        config.lazyOption(SdkClientOption.RETRY_POLICY, this::resolveAwsRetryPolicy);
     }
 
-    private RetryPolicy resolveAwsRetryPolicy(LazyValueSource config) {
-        RetryMode retryMode = RetryMode.resolver()
-                                       .profileFile(config.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                                       .profileName(config.get(SdkClientOption.PROFILE_NAME))
-                                       .defaultRetryMode(config.get(SdkClientOption.DEFAULT_RETRY_MODE))
-                                       .resolve();
-        return AwsRetryPolicy.forRetryMode(retryMode);
+    private void configureRetryStrategy(SdkClientConfiguration.Builder config) {
+        RetryStrategy<?, ?> strategy = config.option(SdkClientOption.RETRY_STRATEGY);
+        if (strategy != null) {
+            config.option(SdkClientOption.RETRY_STRATEGY, strategy);
+            return;
+        }
+        config.lazyOption(SdkClientOption.RETRY_STRATEGY, this::resolveAwsRetryStrategy);
     }
 
     private RetryStrategy<?, ?> resolveAwsRetryStrategy(LazyValueSource config) {

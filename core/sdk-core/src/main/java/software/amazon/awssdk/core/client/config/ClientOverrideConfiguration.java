@@ -110,6 +110,7 @@ public final class ClientOverrideConfiguration
         options.add(CONFIGURED_COMPRESSION_CONFIGURATION);
         options.add(CONFIGURED_SCHEDULED_EXECUTOR_SERVICE);
         options.add(RETRY_POLICY);
+        options.add(RETRY_STRATEGY);
         options.add(API_CALL_TIMEOUT);
         options.add(API_CALL_ATTEMPT_TIMEOUT);
         options.add(PROFILE_FILE_SUPPLIER);
@@ -213,7 +214,7 @@ public final class ClientOverrideConfiguration
      *
      * @see Builder#retryStrategy(RetryStrategy)
      */
-    public Optional<RetryStrategy> retryStrategy() {
+    public Optional<RetryStrategy<?, ?>> retryStrategy() {
         return Optional.ofNullable(config.option(RETRY_STRATEGY));
     }
 
@@ -358,6 +359,7 @@ public final class ClientOverrideConfiguration
         return ToString.builder("ClientOverrideConfiguration")
                        .add("headers", headers())
                        .add("retryPolicy", retryPolicy().orElse(null))
+                       .add("retryStrategy", retryStrategy().orElse(null))
                        .add("apiCallTimeout", apiCallTimeout().orElse(null))
                        .add("apiCallAttemptTimeout", apiCallAttemptTimeout().orElse(null))
                        .add("executionInterceptors", executionInterceptors())

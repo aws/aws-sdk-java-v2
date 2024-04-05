@@ -310,7 +310,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private SdkClientConfiguration finalizeConfiguration(SdkClientConfiguration config) {
         return config.toBuilder()
                      .lazyOption(SCHEDULED_EXECUTOR_SERVICE, this::resolveScheduledExecutorService)
-                     .lazyOptionIfAbsent(RETRY_POLICY, this::resolveRetryPolicy)
                      .lazyOptionIfAbsent(RETRY_STRATEGY, this::resolveRetryStrategy)
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
                      .lazyOption(CLIENT_USER_AGENT, this::resolveClientUserAgent)
@@ -393,15 +392,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                                           config.get(SYNC_HTTP_CLIENT),
                                                           config.get(ASYNC_HTTP_CLIENT),
                                                           retryMode);
-    }
-
-    private RetryPolicy resolveRetryPolicy(LazyValueSource config) {
-        RetryMode retryMode = RetryMode.resolver()
-                                       .profileFile(config.get(PROFILE_FILE_SUPPLIER))
-                                       .profileName(config.get(PROFILE_NAME))
-                                       .defaultRetryMode(config.get(DEFAULT_RETRY_MODE))
-                                       .resolve();
-        return RetryPolicy.forRetryMode(retryMode);
     }
 
     private RetryStrategy<?, ?> resolveRetryStrategy(LazyValueSource config) {

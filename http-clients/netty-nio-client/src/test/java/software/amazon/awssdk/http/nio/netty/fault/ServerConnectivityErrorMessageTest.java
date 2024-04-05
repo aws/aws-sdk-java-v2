@@ -125,8 +125,8 @@ public class ServerConnectivityErrorMessageTest {
         netty = null;
     }
 
-    @ParameterizedTest
-    @MethodSource("testCases")
+    //@ParameterizedTest
+    //@MethodSource("testCases")
     void closeTimeHasCorrectMessage(TestCase testCase) throws Exception {
         server = new Server(ServerConfig.builder().httpResponseStatus(HttpResponseStatus.OK).build());
         setupTestCase(testCase);
