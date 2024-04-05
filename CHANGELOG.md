@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.26__ __2024-04-05__
+## __AWS Resource Groups__
+  - ### Features
+    - Added a new QueryErrorCode RESOURCE_TYPE_NOT_SUPPORTED that is returned by the ListGroupResources operation if the group query contains unsupported resource types.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adding IAMIdentityCenterInstanceArn parameter to CreateAccountSubscription
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adding BatchIsAuthorizedWithToken API which supports multiple authorization requests against a PolicyStore given a bearer token.
+
 # __2.25.25__ __2024-04-04__
 ## __AWS B2B Data Interchange__
   - ### Features
