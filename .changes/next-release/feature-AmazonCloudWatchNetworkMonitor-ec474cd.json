@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Network Monitor",
-    "contributor": "",
-    "description": "Updated the allowed monitorName length for CloudWatch Network Monitor."
-}
