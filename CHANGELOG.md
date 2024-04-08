@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.27__ __2024-04-08__
+## __AWS Control Catalog__
+  - ### Features
+    - This is the initial SDK release for AWS Control Catalog, a central catalog for AWS managed controls. This release includes 3 new APIs - ListDomains, ListObjectives, and ListCommonControls - that vend high-level data to categorize controls across the AWS platform.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Network Monitor__
+  - ### Features
+    - Updated the allowed monitorName length for CloudWatch Network Monitor.
+
+## __Application Migration Service__
+  - ### Features
+    - Added USE_SOURCE as default option to LaunchConfigurationTemplate bootMode parameter.
+
 # __2.25.26__ __2024-04-05__
 ## __AWS Resource Groups__
   - ### Features
