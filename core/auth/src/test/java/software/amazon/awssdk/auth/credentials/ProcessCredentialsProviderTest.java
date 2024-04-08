@@ -20,6 +20,7 @@ import static software.amazon.awssdk.auth.credentials.internal.ProcessCredential
 import static software.amazon.awssdk.auth.credentials.internal.ProcessCredentialsTestUtils.copyHappyCaseProcessCredentialsScript;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -202,5 +203,36 @@ class ProcessCredentialsProviderTest {
                                       .build();
         credentialsProvider.resolveCredentials();
         credentialsProvider.close();
+    }
+
+    @Test
+    void commandAsListOfStrings_isNotExecutedInAShell() {
+        ProcessCredentialsProvider providerWithSingleStringCommand =
+            ProcessCredentialsProvider.builder()
+                                      .command("echo \"Hello, World!\" > output.txt; rm output.txt")
+                                      .build();
+
+        try {
+            providerWithSingleStringCommand.resolveCredentials();
+        } catch (IllegalStateException e) {
+            // executed in a shell
+            assertThat(e.getCause()).isInstanceOf(NullPointerException.class);
+            assertThat(e.getMessage()).isEqualTo("Failed to refresh process-based credentials.");
+        }
+
+        ProcessCredentialsProvider providerWithCommandAsListOfStrings =
+            ProcessCredentialsProvider.builder()
+                                      .command(Arrays.asList("echo \"Hello, World!\" > output.txt; rm output.txt"))
+                                      .build();
+
+        try {
+            providerWithCommandAsListOfStrings.resolveCredentials();
+        } catch (IllegalStateException e) {
+            // executed not in a shell
+            assertThat(e.getCause()).isInstanceOf(IOException.class);
+            assertThat(e.getCause().getMessage())
+                .isEqualTo("Cannot run program \"echo \"Hello, World!\" > output.txt; rm output.txt\": error=2, "
+                           + "No such file or directory");
+        }
     }
 }
