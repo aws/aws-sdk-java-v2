@@ -660,7 +660,7 @@ public interface S3Presigner extends SdkPresigner {
         Builder dualstackEnabled(Boolean dualstackEnabled);
 
         @Override
-        Builder fipsEnabled(Boolean dualstackEnabled);
+        Builder fipsEnabled(Boolean fipsEnabled);
 
         @Override
         Builder endpointOverride(URI endpointOverride);
