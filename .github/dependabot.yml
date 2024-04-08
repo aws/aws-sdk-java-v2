@@ -1,0 +1,48 @@
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: "/"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 5
+    groups:
+      # Group updates together that tend to update multiple packages together
+      netty:
+        patterns:
+          - "io.netty*"
+      jackson:
+        patterns:
+          - "com.fasterxml.jackson*"
+    ignore:
+      # Ignore test dependencies to reduce PR noisiness. We don't need to stay
+      # on top of them as much as compile/runtime dependencies
+      - dependency-name: "com.amazonaws:aws-java-sdk*"
+      - dependency-name: "com.amazonaws:DynamoDBLocal"
+      - dependency-name: "com.github.tomakehurst:*"
+      - dependency-name: "org.mockito:*"
+      - dependency-name: "nl.jqno.equalsverifier:*"
+      - dependency-name: "org.assertj:*"
+      - dependency-name: "com.google.guava:*"
+      - dependency-name: "com.google.jimfs:jimfs"
+      - dependency-name: "org.junit.jupiter:*"
+      - dependency-name: "junit:*"
+      - dependency-name: "org.testng:*"
+      - dependency-name: "org.hamcrest:*"
+      - dependency-name: "com.almworks.sqlite4java:*"
+      - dependency-name: "org.eclipse.jetty:*"
+      - dependency-name: "javax.servlet:*"
+      - dependency-name: "io.reactivex.rxjava3:rxjava"
+
+      # Non runtime dependencies
+      # Eclipse JDT deps used at codegen time
+      - dependency-name: "org.eclipse.jdt:*"
+
+      # Maven/build system updates don't have to track very latest. Again, to
+      # reduce noisiness
+      - dependency-name: "org.apache.maven.plugins:*"
+      - dependency-name: "org.sonatype.plugins:*"
+      - dependency-name: "org.apache.maven.plugins:maven-archetype-plugin"
+      - dependency-name: "org.codehaus.mojo:build-helper-maven-plugin"
+      - dependency-name: "org.codehaus.mojo:exec-maven-plugin"
+      - dependency-name: "org.apache.maven.plugin-tools:maven-plugin-annotations"
+      - dependency-name: "org.graalvm.buildtools:*"

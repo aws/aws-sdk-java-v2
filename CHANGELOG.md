@@ -1,4 +1,75 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.27__ __2024-04-08__
+## __AWS Control Catalog__
+  - ### Features
+    - This is the initial SDK release for AWS Control Catalog, a central catalog for AWS managed controls. This release includes 3 new APIs - ListDomains, ListObjectives, and ListCommonControls - that vend high-level data to categorize controls across the AWS platform.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Network Monitor__
+  - ### Features
+    - Updated the allowed monitorName length for CloudWatch Network Monitor.
+
+## __Application Migration Service__
+  - ### Features
+    - Added USE_SOURCE as default option to LaunchConfigurationTemplate bootMode parameter.
+
+# __2.25.26__ __2024-04-05__
+## __AWS Resource Groups__
+  - ### Features
+    - Added a new QueryErrorCode RESOURCE_TYPE_NOT_SUPPORTED that is returned by the ListGroupResources operation if the group query contains unsupported resource types.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adding IAMIdentityCenterInstanceArn parameter to CreateAccountSubscription
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adding BatchIsAuthorizedWithToken API which supports multiple authorization requests against a PolicyStore given a bearer token.
+
+# __2.25.25__ __2024-04-04__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Adding support for X12 5010 HIPAA EDI version and associated transaction sets.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Feature: New schemaStatusDetails field to the existing Schema object that displays a status on Schema API responses to show whether a schema is queryable or not. New BatchGetSchemaAnalysisRule API to retrieve multiple schemaAnalysisRules using a single API call.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - This release adds support for integration with EKS AccessEntry APIs to enable automatic Cluster Access for EMR on EKS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 G6 instances powered by NVIDIA L4 Tensor Core GPUs can be used for a wide range of graphics-intensive and machine learning use cases. Gr6 instances also feature NVIDIA L4 GPUs and can be used for graphics workloads with higher memory requirements.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - API update to include an SRT ingest endpoint and passphrase for all channels.
+
+## __Amazon S3__
+  - ### Features
+    - Implement TransferListener for copy operations when using TransferManager with Java-based S3Client with multipart enabled
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adds GroupConfiguration field to Identity Source API's
+
+## __S3__
+  - ### Documentations
+    - improve javadoc for S3 Event Notification module.
+
 # __2.25.24__ __2024-04-03__
 ## __AWS Clean Rooms ML__
   - ### Features
