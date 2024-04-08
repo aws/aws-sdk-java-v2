@@ -18,11 +18,11 @@ package software.amazon.awssdk.migration.recipe;
 import static org.openrewrite.java.Assertions.java;
 
 import org.junit.jupiter.api.Test;
-import org.openrewrite.java.ChangeType;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import software.amazon.awssdk.migration.recipe.ChangeSdkType;
 
 public class ChangeSdkTypeTest implements RewriteTest {
 
@@ -32,6 +32,7 @@ public class ChangeSdkTypeTest implements RewriteTest {
     }
 
     @Test
+    @EnabledOnJre({JRE.JAVA_8})
     void shouldChangeVariables() {
         rewriteRun(
             spec -> spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs")),
@@ -65,6 +66,7 @@ public class ChangeSdkTypeTest implements RewriteTest {
     }
 
     @Test
+    @EnabledOnJre({JRE.JAVA_8})
     void shouldChangeFields() {
         rewriteRun(
             spec -> spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs")),
@@ -87,6 +89,7 @@ public class ChangeSdkTypeTest implements RewriteTest {
     }
 
     @Test
+    @EnabledOnJre({JRE.JAVA_8})
     void shouldChangeFieldsInAList() {
         rewriteRun(
             spec -> spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs")),
@@ -107,6 +110,7 @@ public class ChangeSdkTypeTest implements RewriteTest {
     }
 
     @Test
+    @EnabledOnJre({JRE.JAVA_8})
     void shouldChangeMethodParameters() {
         rewriteRun(
             spec -> spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs")),
@@ -127,6 +131,7 @@ public class ChangeSdkTypeTest implements RewriteTest {
     }
 
     @Test
+    @EnabledOnJre({JRE.JAVA_8})
     void shouldNotChangeExistingV2Types() {
         rewriteRun(
             spec -> spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs", "sqs")),
@@ -153,6 +158,7 @@ public class ChangeSdkTypeTest implements RewriteTest {
     }
 
     @Test
+    @EnabledOnJre({JRE.JAVA_8})
     void shouldChangeFieldsInInnerClass() {
         rewriteRun(
             spec -> spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs")),
