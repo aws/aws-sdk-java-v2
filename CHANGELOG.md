@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.28__ __2024-04-09__
+## __AWS CodeBuild__
+  - ### Features
+    - Add new webhook filter types for GitHub webhooks
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes support for bringing your own fonts to use for burn-in or DVB-Sub captioning workflows.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - The OrchestrationSendingRoleArn has been added to the email channel and is used to send emails from campaigns or journeys.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for specifying the CA certificate to use for the new db instance when restoring from db snapshot, restoring from s3, restoring to point in time, and creating a db instance read replica.
+
 # __2.25.27__ __2024-04-08__
 ## __AWS Control Catalog__
   - ### Features
