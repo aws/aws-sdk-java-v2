@@ -138,7 +138,7 @@
         <sqllite.version>1.0.392</sqllite.version>
         <blockhound.version>1.0.8.RELEASE</blockhound.version>
         <jetty.version>9.4.45.v20220203</jetty.version>
-        <bytebuddy.version>1.14.8</bytebuddy.version>
+        <bytebuddy.version>1.14.13</bytebuddy.version>
 
         <!-- build plugin dependencies-->
         <maven.surefire.version>3.1.2</maven.surefire.version>
