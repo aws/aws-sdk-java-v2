@@ -71,7 +71,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      * @param aPostOperationRequest
      * @return A Java Future containing the result of the APostOperation operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
      *         for an input parameter.</li>
@@ -99,7 +100,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      * @param aPostOperationWithOutputRequest
      * @return A Java Future containing the result of the APostOperationWithOutput operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
      *         for an input parameter.</li>
@@ -126,7 +128,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      * @param bearerAuthOperationRequest
      * @return A Java Future containing the result of the BearerAuthOperation operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
@@ -151,7 +154,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      * @param eventStreamOperationRequest
      * @return A Java Future containing the result of the EventStreamOperation operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
@@ -178,7 +182,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      * @return A Java Future containing the result of the EventStreamOperationWithOnlyInput operation returned by the
      *         service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
@@ -206,7 +211,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      * @return A Java Future containing the result of the EventStreamOperationWithOnlyOutput operation returned by the
      *         service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
@@ -233,7 +239,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      * @param getOperationWithChecksumRequest
      * @return A Java Future containing the result of the GetOperationWithChecksum operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
@@ -260,7 +267,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      * @param getWithoutRequiredMembersRequest
      * @return A Java Future containing the result of the GetWithoutRequiredMembers operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
      *         for an input parameter.</li>
@@ -288,7 +296,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      * @return A Java Future containing the result of the OperationWithChecksumRequired operation returned by the
      *         service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
@@ -314,7 +323,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      * @return A Java Future containing the result of the OperationWithRequestCompression operation returned by the
      *         service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
@@ -341,7 +351,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      * @return A Java Future containing the result of the PaginatedOperationWithResultKey operation returned by the
      *         service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
@@ -368,7 +379,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      * @return A Java Future containing the result of the PaginatedOperationWithoutResultKey operation returned by the
      *         service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
@@ -412,7 +424,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      *        '.
      * @return A future to the transformed result of the AsyncResponseTransformer.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
@@ -444,7 +457,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      *        uploading from a file. The service documentation for the request content is as follows 'This be a stream'
      * @return A Java Future containing the result of the StreamingInputOperation operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
@@ -479,7 +493,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      *        the response content is as follows 'This be a stream'.
      * @return A future to the transformed result of the AsyncResponseTransformer.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
@@ -511,7 +526,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      *        the response content is as follows 'This be a stream'.
      * @return A future to the transformed result of the AsyncResponseTransformer.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
