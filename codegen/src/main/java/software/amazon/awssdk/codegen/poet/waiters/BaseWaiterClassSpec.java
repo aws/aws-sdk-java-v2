@@ -21,6 +21,7 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.utils.internal.CodegenNamingUtils.lowercaseFirstChar;
 
+import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsString;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -477,15 +478,32 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                 return CodeBlock.of("new $T($L, $T.$L)", waitersRuntimeClass().nestedClass("ResponseStatusAcceptor"),
                                     expected, WaiterState.class, waiterState(acceptor));
             case "error":
-                result.add("OnExceptionAcceptor(");
-                result.add(errorAcceptorBody(acceptor));
-                result.add(")");
+                if (acceptor.getExpected() instanceof JrsBoolean) {
+                    result.add(booleanValueErrorBlock(acceptor, Boolean.parseBoolean(acceptor.getExpected().asText())).build());
+                } else {
+                    result.add("OnExceptionAcceptor(");
+                    result.add(errorAcceptorBody(acceptor));
+                    result.add(")");
+                }
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported acceptor matcher: " + acceptor.getMatcher());
         }
 
         return result.build();
+    }
+
+    private CodeBlock.Builder booleanValueErrorBlock(Acceptor acceptor, Boolean expectedBoolean) {
+        CodeBlock.Builder codeBlock = CodeBlock.builder();
+        if (Boolean.FALSE.equals(expectedBoolean)) {
+            codeBlock.add("OnResponseAcceptor(");
+            codeBlock.add(trueForAllResponse());
+        } else {
+            codeBlock.add("OnExceptionAcceptor(");
+            codeBlock.add("error -> errorCode(error) " + (expectedBoolean ? "!=" : "==") + " null");
+        }
+        codeBlock.add(")");
+        return codeBlock;
     }
 
     private String waiterState(Acceptor acceptor) {
@@ -543,6 +561,12 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                              + "resultValues.stream().anyMatch(v -> $T.equals(v, " + expectedType + "));",
                              Objects.class, expected)
                         .add("}")
+                        .build();
+    }
+
+    private CodeBlock trueForAllResponse() {
+        return CodeBlock.builder()
+                        .add("response -> true")
                         .build();
     }
 

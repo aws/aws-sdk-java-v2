@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Added support for Waiters specifically for Matchers with Error to accept true/false value not as string but as boolean values such that True value is  to match on any error code, or boolean false to test if no errors were encountered as per the SDK Waiter specs."
+}
