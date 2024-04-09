@@ -1,4 +1,208 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.27__ __2024-04-08__
+## __AWS Control Catalog__
+  - ### Features
+    - This is the initial SDK release for AWS Control Catalog, a central catalog for AWS managed controls. This release includes 3 new APIs - ListDomains, ListObjectives, and ListCommonControls - that vend high-level data to categorize controls across the AWS platform.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Network Monitor__
+  - ### Features
+    - Updated the allowed monitorName length for CloudWatch Network Monitor.
+
+## __Application Migration Service__
+  - ### Features
+    - Added USE_SOURCE as default option to LaunchConfigurationTemplate bootMode parameter.
+
+# __2.25.26__ __2024-04-05__
+## __AWS Resource Groups__
+  - ### Features
+    - Added a new QueryErrorCode RESOURCE_TYPE_NOT_SUPPORTED that is returned by the ListGroupResources operation if the group query contains unsupported resource types.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adding IAMIdentityCenterInstanceArn parameter to CreateAccountSubscription
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adding BatchIsAuthorizedWithToken API which supports multiple authorization requests against a PolicyStore given a bearer token.
+
+# __2.25.25__ __2024-04-04__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Adding support for X12 5010 HIPAA EDI version and associated transaction sets.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Feature: New schemaStatusDetails field to the existing Schema object that displays a status on Schema API responses to show whether a schema is queryable or not. New BatchGetSchemaAnalysisRule API to retrieve multiple schemaAnalysisRules using a single API call.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - This release adds support for integration with EKS AccessEntry APIs to enable automatic Cluster Access for EMR on EKS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 G6 instances powered by NVIDIA L4 Tensor Core GPUs can be used for a wide range of graphics-intensive and machine learning use cases. Gr6 instances also feature NVIDIA L4 GPUs and can be used for graphics workloads with higher memory requirements.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - API update to include an SRT ingest endpoint and passphrase for all channels.
+
+## __Amazon S3__
+  - ### Features
+    - Implement TransferListener for copy operations when using TransferManager with Java-based S3Client with multipart enabled
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adds GroupConfiguration field to Identity Source API's
+
+## __S3__
+  - ### Documentations
+    - improve javadoc for S3 Event Notification module.
+
+# __2.25.24__ __2024-04-03__
+## __AWS Clean Rooms ML__
+  - ### Features
+    - The release includes a public SDK for AWS Clean Rooms ML APIs, making them globally available to developers worldwide.
+
+## __AWS CloudFormation__
+  - ### Features
+    - This release would return a new field - PolicyAction in cloudformation's existed DescribeChangeSetResponse, showing actions we are going to apply on the physical resource (e.g., Delete, Retain) according to the user's template
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Cmaf Ingest outputs are now supported in Media Live
+
+## __AWS Ground Station__
+  - ### Features
+    - This release adds visibilityStartTime and visibilityEndTime to DescribeContact and ListContacts responses.
+
+## __AWS Health Imaging__
+  - ### Features
+    - SearchImageSets API now supports following enhancements - Additional support for searching on UpdatedAt and SeriesInstanceUID - Support for searching existing filters between dates/times - Support for sorting the search result by Ascending/Descending - Additional parameters returned in the response
+
+## __AWS Lambda__
+  - ### Features
+    - Add Ruby 3.3 (ruby3.3) support to AWS Lambda
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Records identity provider names in a resolved identity and adds this information to the user agent string
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Add ability to specify Security Policies for SFTP Connectors
+
+## __Amazon DataZone__
+  - ### Features
+    - This release supports the feature of dataQuality to enrich asset with dataQualityResult in Amazon DataZone.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - This release adds Global Cluster Switchover capability which enables you to change your global cluster's primary AWS Region, the region that serves writes, while preserving the replication between all regions in the global cluster.
+
+# __2.25.23__ __2024-04-02__
+## __AWS Glue__
+  - ### Features
+    - Adding View related fields to responses of read-only Table APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fixed toJson function in EnhancedDocument API to properly handle unicode control characters by escaping them with backslashes, preventing JsonParseException.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only update for Amazon ECS.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Doc-only update. Changed "Resources" to "Key Concepts" in docs and updated text.
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - This release increases the limit on the roleArns request parameter for the *Profile APIs that support it. This parameter can now take up to 250 role ARNs.
+
+# __2.25.22__ __2024-04-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - AWS Deadline Cloud is a new fully managed service that helps customers set up, deploy, and scale rendering projects in minutes, so they can improve the efficiency of their rendering pipelines and take on more projects.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - This release adds support for CloudWatch Anomaly Detection on cross-account metrics. SingleMetricAnomalyDetector and MetricDataQuery inputs to Anomaly Detection APIs now take an optional AccountId field.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release supports the feature of AI recommendations for descriptions to enrich the business data catalog in Amazon DataZone.
+
+## __Amazon EMR__
+  - ### Features
+    - This release fixes a broken link in the documentation.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support to upgrade the TLS version of the distribution.
+
+# __2.25.21__ __2024-03-29__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Supporting new EDI X12 transaction sets for X12 versions 4010, 4030, and 5010.
+
+## __AWS CodeBuild__
+  - ### Features
+    - Add new fleet status code for Reserved Capacity.
+
+## __AWS CodeConnections__
+  - ### Features
+    - Duplicating the CodeStar Connections service into the new, rebranded AWS CodeConnections service.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Add support for retrieving key historical and live metrics for LoRaWAN devices and gateways
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - This release enhances the ListEntities API to support ResaleAuthorizationId filter and sort for OfferEntity in the request and the addition of a ResaleAuthorizationId field in the response of OfferSummary.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - This release adds support to allow customers to track cross account monitors through ListMonitor, GetMonitor, ListHealthEvents, GetHealthEvent, StartQuery APIs.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Add the new API Start-Import-Task for Amazon Neptune Analytics.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for custom images for the CodeEditor App on SageMaker Studio
+
 # __2.25.20__ __2024-03-28__
 ## __AWS Compute Optimizer__
   - ### Features

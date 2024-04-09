@@ -19,6 +19,12 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 
+/**
+ * The responseElements key value is useful if you want to trace a request by following up with AWS Support.
+ * Both x-amz-request-id and x-amz-id-2 help Amazon S3 trace an individual request. These values are the same as those that
+ * Amazon S3 returns in the response to the request that initiates the events. This is so they can be used to match the event
+ * to the request.
+ */
 @SdkPublicApi
 public class ResponseElements {
 
