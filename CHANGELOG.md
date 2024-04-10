@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.29__ __2024-04-10__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - AWS Clean Rooms Differential Privacy is now fully available. Differential privacy protects against user-identification attempts.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Set keepAile in SocketOptions to true if TcpKeepAliveConfiguration is set.
+        - Contributed by: [@eckardnet](https://github.com/eckardnet)
+
+## __AWS Supply Chain__
+  - ### Features
+    - This release includes API SendDataIntegrationEvent for AWS Supply Chain
+
+## __Amazon CloudWatch Network Monitor__
+  - ### Features
+    - Examples were added to CloudWatch Network Monitor commands.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds new Submit Auto Evaluation Action for Amazon Connect Rules.
+
+## __Amazon Q Connect__
+  - ### Features
+    - This release adds a new QiC public API updateSession and updates an existing QiC public API createSession
+
+## __Amazon Rekognition__
+  - ### Features
+    - Added support for ContentType to content moderation detections.
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Adding tags field to SoftwareSet. Removing tags fields from Summary objects. Changing the list of exceptions in tagging APIs. Fixing an issue where the SDK returns empty tags in Get APIs.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@eckardnet](https://github.com/eckardnet)
 # __2.25.28__ __2024-04-09__
 ## __AWS CodeBuild__
   - ### Features
