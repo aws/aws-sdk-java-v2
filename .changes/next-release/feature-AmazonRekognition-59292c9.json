@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Rekognition",
+    "contributor": "",
+    "description": "Added support for ContentType to content moderation detections."
+}
