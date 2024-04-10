@@ -67,7 +67,8 @@ final class DefaultProtocolRestJsonWithCustomPackageAsyncClient implements Proto
      * @param oneOperationRequest
      * @return A Java Future containing the result of the OneOperation operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
