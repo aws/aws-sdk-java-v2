@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "contributor": "",
+    "description": "Updates Amazon RDS documentation for Standard Edition 2 support in RDS Custom for Oracle."
+}
