@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Identity and Access Management",
-    "contributor": "",
-    "description": "For CreateOpenIDConnectProvider API, the ThumbprintList parameter is no longer required."
-}

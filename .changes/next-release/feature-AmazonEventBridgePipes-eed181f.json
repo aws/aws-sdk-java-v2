@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EventBridge Pipes",
-    "contributor": "",
-    "description": "LogConfiguration ARN validation fixes"
-}
