@@ -28,9 +28,12 @@ import software.amazon.awssdk.utils.StringUtils;
  * The only supported {@code <unit>} is the {@code bytes} value.
  */
 @SdkInternalApi
-public class ContentRangeParser {
+public final class ContentRangeParser {
 
     private static final Logger log = Logger.loggerFor(ContentRangeParser.class);
+
+    private ContentRangeParser() {
+    }
 
     /**
      * Parse the Content-Range to extract the total number of byte from the content. Only supports the {@code bytes} unit, any
@@ -41,7 +44,7 @@ public class ContentRangeParser {
      * @return The total number of bytes in the content range or an empty optional if the contentRange is null, empty or if the
      * total length is not a valid long.
      */
-    public OptionalLong totalBytes(String contentRange) {
+    public static OptionalLong totalBytes(String contentRange) {
         if (StringUtils.isEmpty(contentRange)) {
             return OptionalLong.empty();
         }

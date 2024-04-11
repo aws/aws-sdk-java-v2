@@ -143,8 +143,7 @@ public class TransferProgressUpdater {
             new BaseAsyncResponseTransformerListener() {
                 @Override
                 public void transformerOnResponse(GetObjectResponse response) {
-                    ContentRangeParser contentRangeParser = new ContentRangeParser();
-                    contentRangeParser.totalBytes(response.contentRange())
+                    ContentRangeParser.totalBytes(response.contentRange())
                         .ifPresent(totalBytes -> progress.updateAndGet(b -> b.totalBytes(totalBytes).sdkResponse(response)));
                 }
             }

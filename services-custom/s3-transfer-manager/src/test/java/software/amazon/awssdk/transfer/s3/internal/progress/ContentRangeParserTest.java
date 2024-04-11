@@ -28,15 +28,10 @@ class ContentRangeParserTest {
 
     private ContentRangeParser parser;
 
-    @BeforeEach
-    void init() {
-        this.parser = new ContentRangeParser();
-    }
-
     @ParameterizedTest
     @MethodSource("argumentProvider")
     void testContentRangeParser(String contentRange, OptionalLong expected) {
-        assertThat(parser.totalBytes(contentRange)).isEqualTo(expected);
+        assertThat(ContentRangeParser.totalBytes(contentRange)).isEqualTo(expected);
     }
 
     static Stream<Arguments> argumentProvider() {
