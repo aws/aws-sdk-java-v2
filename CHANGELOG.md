@@ -1,4 +1,53 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.30__ __2024-04-11__
+## __AWS Batch__
+  - ### Features
+    - This release adds the task properties field to attempt details and the name field on EKS container detail.
+
+## __AWS CodeBuild__
+  - ### Features
+    - Support access tokens for Bitbucket sources
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive introduces workflow monitor, a new feature that enables the visualization and monitoring of your media workflows. Create signal maps of your existing workflows and monitor them by creating notification and monitoring template groups.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - For CreateOpenIDConnectProvider API, the ThumbprintList parameter is no longer required.
+
+## __AWS S3 Control__
+  - ### Features
+    - Documentation updates for Amazon S3-control.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - Adds an updated version of smoke tests, including smithy trait, for SDK testing.
+
+## __Amazon CloudFront__
+  - ### Features
+    - CloudFront origin access control extends support to AWS Lambda function URLs and AWS Elemental MediaPackage v2 origins.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - This release adds support for Metric Characteristics for CloudWatch Anomaly Detection. Anomaly Detector now takes Metric Characteristics object with Periodic Spikes boolean field that tells Anomaly Detection that spikes that repeat at the same time every week are part of the expected pattern.
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - LogConfiguration ARN validation fixes
+
+## __Amazon Omics__
+  - ### Features
+    - This release adds support for retrieval of S3 direct access metadata on sequence stores and read sets, and adds support for SHA256up and SHA512up HealthOmics ETags.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for Standard Edition 2 support in RDS Custom for Oracle.
+
 # __2.25.29__ __2024-04-10__
 ## __AWS Clean Rooms Service__
   - ### Features
