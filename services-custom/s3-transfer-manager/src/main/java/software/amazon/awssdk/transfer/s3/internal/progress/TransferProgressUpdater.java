@@ -136,41 +136,31 @@ public class TransferProgressUpdater {
         };
     }
 
+    public <ResultT> AsyncResponseTransformer<GetObjectResponse, ResultT> wrapResponseTransformerForMultipartDownload(
+        AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer) {
+        return AsyncResponseTransformerListener.wrap(
+            responseTransformer,
+            new BaseAsyncResponseTransformerListener() {
+                @Override
+                public void transformerOnResponse(GetObjectResponse response) {
+                    ContentRangeParser contentRangeParser = new ContentRangeParser();
+                    contentRangeParser.totalBytes(response.contentRange())
+                        .ifPresent(totalBytes -> progress.updateAndGet(b -> b.totalBytes(totalBytes).sdkResponse(response)));
+                }
+            }
+        );
+    }
+
     public <ResultT> AsyncResponseTransformer<GetObjectResponse, ResultT> wrapResponseTransformer(
         AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer) {
         return AsyncResponseTransformerListener.wrap(
             responseTransformer,
-            new AsyncResponseTransformerListener<GetObjectResponse>() {
+            new BaseAsyncResponseTransformerListener() {
                 @Override
                 public void transformerOnResponse(GetObjectResponse response) {
                     if (response.contentLength() != null) {
-                            progress.updateAndGet(b -> b.totalBytes(response.contentLength()).sdkResponse(response));
+                        progress.updateAndGet(b -> b.totalBytes(response.contentLength()).sdkResponse(response));
                     }
-                }
-
-                @Override
-                public void transformerExceptionOccurred(Throwable t) {
-                    transferFailed(t);
-                }
-
-                @Override
-                public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
-                    resetBytesTransferred();
-                }
-
-                @Override
-                public void subscriberOnNext(ByteBuffer byteBuffer) {
-                    incrementBytesTransferred(byteBuffer.limit());
-                }
-
-                @Override
-                public void subscriberOnError(Throwable t) {
-                    transferFailed(t);
-                }
-
-                @Override
-                public void subscriberOnComplete() {
-                    endOfStreamFuture.complete(null);
                 }
             });
     }
@@ -221,5 +211,40 @@ public class TransferProgressUpdater {
                                                                             b -> b.progressSnapshot(progress.snapshot())))
                                                                     .exception(t)
                                                                     .build());
+    }
+
+    private class BaseAsyncResponseTransformerListener implements AsyncResponseTransformerListener<GetObjectResponse> {
+        @Override
+        public void transformerOnResponse(GetObjectResponse response) {
+            if (response.contentLength() != null) {
+                progress.updateAndGet(b -> b.totalBytes(response.contentLength()).sdkResponse(response));
+            }
+        }
+
+        @Override
+        public void transformerExceptionOccurred(Throwable t) {
+            transferFailed(t);
+        }
+
+        @Override
+        public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
+            resetBytesTransferred();
+        }
+
+        @Override
+        public void subscriberOnNext(ByteBuffer byteBuffer) {
+            incrementBytesTransferred(byteBuffer.limit());
+        }
+
+        @Override
+        public void subscriberOnError(Throwable t) {
+            transferFailed(t);
+        }
+
+        @Override
+        public void subscriberOnComplete() {
+            endOfStreamFuture.complete(null);
+        }
+
     }
 }

@@ -292,7 +292,9 @@ class GenericS3TransferManager implements S3TransferManager {
 
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
         progressUpdater.transferInitiated();
-        responseTransformer = progressUpdater.wrapResponseTransformer(responseTransformer);
+        responseTransformer = isS3ClientMultipartEnabled()
+                              ? progressUpdater.wrapResponseTransformerForMultipartDownload(responseTransformer)
+                              : progressUpdater.wrapResponseTransformer(responseTransformer);
         progressUpdater.registerCompletion(returnFuture);
 
         try {
@@ -335,7 +337,9 @@ class GenericS3TransferManager implements S3TransferManager {
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
         try {
             progressUpdater.transferInitiated();
-            responseTransformer = progressUpdater.wrapResponseTransformer(responseTransformer);
+            responseTransformer = isS3ClientMultipartEnabled()
+                                  ? progressUpdater.wrapResponseTransformerForMultipartDownload(responseTransformer)
+                                  : progressUpdater.wrapResponseTransformer(responseTransformer);
             progressUpdater.registerCompletion(returnFuture);
 
             assertNotUnsupportedArn(downloadRequest.getObjectRequest().bucket(), "download");
