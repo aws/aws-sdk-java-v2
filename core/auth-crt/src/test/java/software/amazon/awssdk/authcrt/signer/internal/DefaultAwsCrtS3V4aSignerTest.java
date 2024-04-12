@@ -132,6 +132,18 @@ public class DefaultAwsCrtS3V4aSignerTest {
         verifySignedChecksumPayload(signedRequest);
     }
 
+    @Test
+    public void protocol_http_does_not_trigger_payload_signing_when_explicitly_configured() {
+        SigningTestCase testCase = SignerTestUtils.createBasicHeaderSigningTestCase();
+        ExecutionAttributes executionAttributes = SignerTestUtils.buildBasicExecutionAttributes(testCase);
+        executionAttributes.putAttribute(ENABLE_PAYLOAD_SIGNING, false);
+        SdkHttpFullRequest.Builder requestBuilder = testCase.requestBuilder;
+        requestBuilder.uri(URI.create("http://demo.us-east-1.amazonaws.com"));
+
+        SdkHttpFullRequest signedRequest = s3V4aSigner.sign(requestBuilder.build(), executionAttributes);
+        verifyUnsignedPayload(signedRequest);
+    }
+
 
     @Test
     public void unsigned_payload_signing_with_trailer_checksums() {

@@ -124,15 +124,19 @@ public final class DefaultAwsCrtS3V4aSigner implements AwsCrtS3V4aSigner {
     }
 
     private boolean shouldSignPayload(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
+        Boolean payloadSigning =
+            executionAttributes.getAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING);
+        if (payloadSigning != null && !booleanValue(payloadSigning)) {
+            return false;
+        }
+
         if (!request.protocol().equals("https") && request.contentStreamProvider().isPresent()) {
             return true;
         }
-        boolean payloadSigning =
-            booleanValue(executionAttributes.getAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING));
         boolean chunkedEncoding =
             booleanValue(executionAttributes.getAttribute(S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING));
 
-        return payloadSigning && chunkedEncoding;
+        return booleanValue(payloadSigning) && chunkedEncoding;
     }
 
     private void setHeaderContentLength(SdkHttpFullRequest.Builder mutableRequest, SignerChecksumParams signerChecksumParams) {
