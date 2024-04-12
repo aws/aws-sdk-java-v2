@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.31__ __2024-04-12__
+## __AWS CloudFormation__
+  - ### Features
+    - Adding support for the new parameter "IncludePropertyValues" in the CloudFormation DescribeChangeSet API. When this parameter is included, the DescribeChangeSet response will include more detailed information such as before and after values for the resource properties that will change.
+
+## __AWS Config__
+  - ### Features
+    - Updates documentation for AWS Config
+
+## __AWS Glue__
+  - ### Features
+    - Modifying request for GetUnfilteredTableMetadata for view-related fields.
+
+## __AWS IoT Fleet Hub__
+  - ### Features
+    - Documentation updates for AWS IoT Fleet Hub to clarify that Fleet Hub supports organization instance of IAM Identity Center.
+
+## __AWS Key Management Service__
+  - ### Features
+    - This feature supports the ability to specify a custom rotation period for automatic key rotations, the ability to perform on-demand key rotations, and visibility into your key material rotations.
+
+## __AWS MediaTailor__
+  - ### Features
+    - Added InsertionMode to PlaybackConfigurations. This setting controls whether players can use stitched or guided ad insertion. The default for players that do not specify an insertion mode is stitched.
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds EXPEDITORS as a valid shipment carrier.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This change releases support for importing self signed certificates to the Transfer Family for sending outbound file transfers over TLS/HTTPS.
+
+## __Amazon HealthLake__
+  - ### Features
+    - Added new CREATE_FAILED status for data stores. Added new errorCause to DescribeFHIRDatastore API and ListFHIRDatastores API response for additional insights into data store creation and deletion workflows.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Update to API documentation to resolve customer reported issues.
+
+## __Amazon Redshift__
+  - ### Features
+    - Adds support for Amazon Redshift DescribeClusterSnapshots API to include Snapshot ARN response field.
+
 # __2.25.30__ __2024-04-11__
 ## __AWS Batch__
   - ### Features

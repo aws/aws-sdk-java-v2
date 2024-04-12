@@ -1952,7 +1952,8 @@
         "DHL",
         "DBS",
         "FEDEX",
-        "UPS"
+        "UPS",
+        "EXPEDITORS"
       ]
     },
     "ShipmentInformation":{
