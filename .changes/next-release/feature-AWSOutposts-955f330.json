@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Outposts",
+    "contributor": "",
+    "description": "This release adds EXPEDITORS as a valid shipment carrier."
+}
