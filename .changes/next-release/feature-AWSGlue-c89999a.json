@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "contributor": "",
-    "description": "Modifying request for GetUnfilteredTableMetadata for view-related fields."
-}
