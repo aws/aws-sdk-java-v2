@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -23,14 +24,13 @@ import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -39,12 +39,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.CaptureTransferListener;
@@ -53,6 +57,8 @@ import software.amazon.awssdk.transfer.s3.model.CompletedObjectTransfer;
 import software.amazon.awssdk.transfer.s3.model.TransferObjectRequest;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
+import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
+import software.amazon.awssdk.utils.async.SimplePublisher;
 
 class TransferProgressUpdaterTest {
     private static final long OBJ_SIZE = 16 * MB;
@@ -151,6 +157,52 @@ class TransferProgressUpdaterTest {
 
         Mockito.verify(mockListener, times(1)).transferFailed(ArgumentMatchers.any(TransferListener.Context.TransferFailed.class));
         Mockito.verify(mockListener, never()).transferComplete(ArgumentMatchers.any(TransferListener.Context.TransferComplete.class));
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {8, 16, 31, 32, 33, 1024, Long.MAX_VALUE})
+    void transferProgressUpdater_useContentRangeForTotalBytes(long contentLength) {
+        TransferObjectRequest unusedMockTransferRequest = Mockito.mock(TransferObjectRequest.class);
+        TransferProgressUpdater transferProgressUpdater = new TransferProgressUpdater(unusedMockTransferRequest, null);
+        AsyncResponseTransformer<GetObjectResponse, Void> transformer =
+            transferProgressUpdater.wrapResponseTransformerForMultipartDownload(
+                new AsyncResponseTransformer<GetObjectResponse, Void>() {
+                    @Override
+                    public CompletableFuture<Void> prepare() {
+                        return new CompletableFuture<>();
+                    }
+
+                    @Override
+                    public void onResponse(GetObjectResponse response) {
+                        // noop, test only
+                    }
+
+                    @Override
+                    public void onStream(SdkPublisher<ByteBuffer> publisher) {
+                        publisher.subscribe(b -> { /* do nothing, test only */ });
+                    }
+
+                    @Override
+                    public void exceptionOccurred(Throwable error) {
+                        // noop, test only
+                    }
+                });
+        transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder()
+                                                .contentRange("bytes 0-127/" + contentLength)
+                                                .build());
+        TransferProgressSnapshot snapshot = transferProgressUpdater.progress().snapshot();
+        assertThat(snapshot.totalBytes()).isPresent();
+        assertThat(snapshot.totalBytes().getAsLong()).isEqualTo(contentLength);
+
+        // simulate sending bytes
+        SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
+        transformer.onStream(SdkPublisher.adapt(publisher));
+        assertThat(transferProgressUpdater.progress().snapshot().transferredBytes()).isEqualTo(0L);
+
+        publisher.send(ByteBuffer.wrap(new byte[] {0, 1, 2, 3, 4, 5, 6, 7})).join();
+        assertThat(transferProgressUpdater.progress().snapshot().totalBytes().getAsLong()).isEqualTo(contentLength);
+        assertThat(transferProgressUpdater.progress().snapshot().transferredBytes()).isEqualTo(8L);
     }
 
 
