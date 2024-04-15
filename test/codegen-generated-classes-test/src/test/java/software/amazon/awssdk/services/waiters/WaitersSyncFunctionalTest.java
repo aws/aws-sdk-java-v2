@@ -300,8 +300,8 @@ public class WaitersSyncFunctionalTest {
     }
 
     /**
-     * Case with the model just defined that it should Fail when there are no Errors But waitor  does not tell what to do if there
-     * is a error.
+     * Case with the model just defined that it should Fail when there are no Errors but the waiter does not tell what to do if
+     * there is an error.
      */
     @Test
     public void errorMatcherWithExpectedFalse_TerminatesWaitingIfErrorReported() {

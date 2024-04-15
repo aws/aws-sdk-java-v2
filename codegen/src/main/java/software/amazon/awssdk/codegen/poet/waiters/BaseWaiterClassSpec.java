@@ -500,7 +500,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
             codeBlock.add(trueForAllResponse());
         } else {
             codeBlock.add("OnExceptionAcceptor(");
-            codeBlock.add("error -> errorCode(error) " + (expectedBoolean ? "!=" : "==") + " null");
+            codeBlock.add("error -> errorCode(error) != null");
         }
         codeBlock.add(")");
         return codeBlock;
