@@ -88,7 +88,8 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
      * @param describeEndpointsRequest
      * @return A Java Future containing the result of the DescribeEndpoints operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
@@ -144,7 +145,8 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
      * @return A Java Future containing the result of the TestDiscoveryIdentifiersRequired operation returned by the
      *         service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
@@ -225,7 +227,8 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
      * @param testDiscoveryOptionalRequest
      * @return A Java Future containing the result of the TestDiscoveryOptional operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>
@@ -297,7 +300,8 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
      * @param testDiscoveryRequiredRequest
      * @return A Java Future containing the result of the TestDiscoveryRequired operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
      *         Can be used for catch all scenarios.</li>

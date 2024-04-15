@@ -72,7 +72,8 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
      * @param aPostOperationRequest
      * @return A Java Future containing the result of the APostOperation operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
      *         <ul>
      *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
      *         for an input parameter.</li>
