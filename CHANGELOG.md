@@ -1,4 +1,46 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.32__ __2024-04-16__
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Dash v2 is a MediaPackage V2 feature to support egressing on DASH manifest format.
+
+## __AWS EntityResolution__
+  - ### Features
+    - Cross Account Resource Support .
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Add PublicGateways in the GetWirelessStatistics call response, indicating the LoRaWAN public network accessed by the device.
+
+## __AWS Lake Formation__
+  - ### Features
+    - This release adds Lake Formation managed RAM support for the 4 APIs - "DescribeLakeFormationIdentityCenterConfiguration", "CreateLakeFormationIdentityCenterConfiguration", "DescribeLakeFormationIdentityCenterConfiguration", and "DeleteLakeFormationIdentityCenterConfiguration"
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds new APIs to allow customers to configure their Outpost capacity at order-time.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added support for Waiters specifically for Matchers with Error to accept true/false value not as string but as boolean values such that True value is to match on any error code, or boolean false to test if no errors were encountered as per the SDK Waiter specs.
+    - Updated endpoint and partition metadata.
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - AWS Well-Architected now has a Connector for Jira to allow customers to efficiently track workload risks and improvement efforts and create closed-loop mechanisms.
+
+## __AWSMainframeModernization__
+  - ### Features
+    - Adding new ListBatchJobRestartPoints API and support for restart batch job.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - For Create Agent API, the agentResourceRoleArn parameter is no longer required.
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds support for shuffle optimized disks that allow larger disk sizes and higher IOPS to efficiently run shuffle heavy workloads.
+
 # __2.25.31__ __2024-04-12__
 ## __AWS CloudFormation__
   - ### Features
