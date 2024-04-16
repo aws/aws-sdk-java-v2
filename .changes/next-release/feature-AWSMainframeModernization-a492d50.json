@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWSMainframeModernization",
-    "contributor": "",
-    "description": "Adding new ListBatchJobRestartPoints API and support for restart batch job."
-}

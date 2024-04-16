@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Agents for Amazon Bedrock",
-    "contributor": "",
-    "description": "For Create Agent API, the agentResourceRoleArn parameter is no longer required."
-}

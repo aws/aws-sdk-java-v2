@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lake Formation",
-    "contributor": "",
-    "description": "This release adds Lake Formation managed RAM support for the 4 APIs - \"DescribeLakeFormationIdentityCenterConfiguration\", \"CreateLakeFormationIdentityCenterConfiguration\", \"DescribeLakeFormationIdentityCenterConfiguration\", and \"DeleteLakeFormationIdentityCenterConfiguration\""
-}
