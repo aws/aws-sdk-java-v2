@@ -205,12 +205,6 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-neptunegraph
-      newGroupId: software.amazon.awssdk
-      newArtifactId: neptunegraph
-      newVersion: 2.23.16-SNAPSHOT
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-secretsmanager
       newGroupId: software.amazon.awssdk
       newArtifactId: secretsmanager
@@ -769,12 +763,6 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-kinesisvideoarchivedmedia
-      newGroupId: software.amazon.awssdk
-      newArtifactId: kinesisvideoarchivedmedia
-      newVersion: 2.23.16-SNAPSHOT
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-iotroborunner
       newGroupId: software.amazon.awssdk
       newArtifactId: iotroborunner
@@ -994,12 +982,6 @@ recipeList:
       oldArtifactId: aws-java-sdk-recyclebin
       newGroupId: software.amazon.awssdk
       newArtifactId: rbin
-      newVersion: 2.23.16-SNAPSHOT
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-cloudfrontkeyvaluestore
-      newGroupId: software.amazon.awssdk
-      newArtifactId: cloudfrontkeyvaluestore
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
@@ -2197,12 +2179,6 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-transcribestreaming
-      newGroupId: software.amazon.awssdk
-      newArtifactId: transcribestreaming
-      newVersion: 2.23.16-SNAPSHOT
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-ram
       newGroupId: software.amazon.awssdk
       newArtifactId: ram
@@ -2218,12 +2194,6 @@ recipeList:
       oldArtifactId: aws-java-sdk-efs
       newGroupId: software.amazon.awssdk
       newArtifactId: efs
-      newVersion: 2.23.16-SNAPSHOT
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-kinesisvideomedia
-      newGroupId: software.amazon.awssdk
-      newArtifactId: kinesisvideomedia
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws

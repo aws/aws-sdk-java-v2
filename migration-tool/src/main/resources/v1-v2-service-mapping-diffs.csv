@@ -48,3 +48,8 @@
 "ssm","simplesystemsmanagement","ssm"
 "swf","simpleworkflow","simpleworkflow"
 "sfn","stepfunctions","stepfunctions"
+"cloudfrontkeyvaluestore","",""
+"kinesisvideoarchivedmedia","",""
+"kinesisvideomedia","",""
+"neptunegraph","",""
+"transcribestreaming","",""

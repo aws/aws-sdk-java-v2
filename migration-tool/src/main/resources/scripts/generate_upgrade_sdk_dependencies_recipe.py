@@ -30,7 +30,9 @@ SERVICE_DIR = os.path.join(
 def load_all_service_modules():
     service_mapping = {}
     for s in [s for s in os.listdir(SERVICE_DIR) if os.path.isdir(os.path.join(SERVICE_DIR, s))]:
-         service_mapping[s] = find_v1_equivalent(s)
+        v1_equivalent = find_v1_equivalent(s)
+        if v1_equivalent:
+            service_mapping[s] = v1_equivalent
     return service_mapping
 
 def find_v1_equivalent(s):
@@ -38,7 +40,12 @@ def find_v1_equivalent(s):
     mappings = load_module_mappings(filename)
 
     if s in mappings:
-        return "aws-java-sdk-" + mappings[s]
+        if not mappings[s]:
+            # v2 module does not exist in v1
+            return ""
+        else:
+            # v2 module is named differently in v1
+            return "aws-java-sdk-" + mappings[s]
     else:
         return "aws-java-sdk-" + s
 
