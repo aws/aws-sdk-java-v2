@@ -16,6 +16,7 @@ from scripts.utils import find_sdk_version
 from scripts.utils import load_module_mappings
 
 MAPPING_FILE_NAME = 'upgrade-sdk-dependencies.yml'
+DIFF_CSV_NAME = 'v1-v2-service-mapping-diffs.csv'
 RESOURCES_ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(os.path.join(__file__, "../resources"))))
 RECIPE_ROOT_DIR =os.path.join(
     RESOURCES_ROOT_DIR,
@@ -33,7 +34,8 @@ def load_all_service_modules():
     return service_mapping
 
 def find_v1_equivalent(s):
-    mappings = load_module_mappings("v1-v2-service-mapping-diffs.csv")
+    filename = os.path.join(RESOURCES_ROOT_DIR, DIFF_CSV_NAME)
+    mappings = load_module_mappings(filename)
 
     if s in mappings:
         return "aws-java-sdk-" + mappings[s]
