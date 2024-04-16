@@ -10,6 +10,7 @@
 #  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
 #  express or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
+import csv
 import os
 import re
 
@@ -21,3 +22,12 @@ def find_sdk_version():
     version = re.search(reg, pom.read())
     versionStr = version.group(0)
     return versionStr[9:-10]
+
+def load_module_mappings(filename):
+    mappings = {}
+    with open(filename, mode='r', newline='', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            if row:
+                mappings[row[0]] = row[2]
+    return mappings

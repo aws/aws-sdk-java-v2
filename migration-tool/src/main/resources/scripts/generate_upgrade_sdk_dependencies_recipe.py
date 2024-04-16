@@ -12,8 +12,8 @@
 #  permissions and limitations under the License.
 
 import os
-import re
 from scripts.utils import find_sdk_version
+from scripts.utils import load_module_mappings
 
 MAPPING_FILE_NAME = 'upgrade-sdk-dependencies.yml'
 RESOURCES_ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(os.path.join(__file__, "../resources"))))
@@ -33,8 +33,12 @@ def load_all_service_modules():
     return service_mapping
 
 def find_v1_equivalent(s):
-    return "aws-java-sdk-" + s
+    mappings = load_module_mappings("v1-v2-service-mapping-diffs.csv")
 
+    if s in mappings:
+        return "aws-java-sdk-" + mappings[s]
+    else:
+        return "aws-java-sdk-" + s
 
 def write_bom_recipe(f, version):
     change_bom = '''
@@ -46,6 +50,15 @@ def write_bom_recipe(f, version):
       newVersion: {0}'''
     f.write(change_bom.format(version))
 
+def write_cloudwatch_recipe(f, version):
+    change_bom = '''
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: com.amazonaws
+      oldArtifactId: aws-java-sdk-cloudwatch
+      newGroupId: software.amazon.awssdk
+      newArtifactId: cloudwatch
+      newVersion: {0}'''
+    f.write(change_bom.format(version))
 
 def write_recipe_yml_file(service_mapping):
     filename = os.path.join(RECIPE_ROOT_DIR, MAPPING_FILE_NAME)
@@ -55,6 +68,11 @@ def write_recipe_yml_file(service_mapping):
         write_recipe_metadata(f, version)
         write_bom_recipe(f, version)
         for s in service_mapping:
+            # edge case : v1 contains modules: cloudwatch AND cloudwatchmetrics, which both map to cloudwatch in v2
+            # (there is no cloudwatchmetrics module in v2)
+            # service_mapping maps cloudwatch to cloudwatchmetrics, so we'll write cloudwatch-cloudwatch manually
+            if (s == "cloudwatch"):
+                write_cloudwatch_recipe(f, version)
             write_recipe(f, s, service_mapping, version)
     return filename
 

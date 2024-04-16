@@ -25,7 +25,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-iotdataplane
+      oldArtifactId: aws-java-sdk-iot
       newGroupId: software.amazon.awssdk
       newArtifactId: iotdataplane
       newVersion: 2.23.16-SNAPSHOT
@@ -307,6 +307,12 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
+      oldArtifactId: aws-java-sdk-cloudwatchmetrics
+      newGroupId: software.amazon.awssdk
+      newArtifactId: cloudwatch
+      newVersion: 2.23.16-SNAPSHOT
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-glue
       newGroupId: software.amazon.awssdk
       newArtifactId: glue
@@ -445,7 +451,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-sagemakeredge
+      oldArtifactId: aws-java-sdk-sagemakeredgemanager
       newGroupId: software.amazon.awssdk
       newArtifactId: sagemakeredge
       newVersion: 2.23.16-SNAPSHOT
@@ -469,7 +475,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-sagemakera2iruntime
+      oldArtifactId: aws-java-sdk-augmentedairuntime
       newGroupId: software.amazon.awssdk
       newArtifactId: sagemakera2iruntime
       newVersion: 2.23.16-SNAPSHOT
@@ -535,7 +541,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-sms
+      oldArtifactId: aws-java-sdk-servermigration
       newGroupId: software.amazon.awssdk
       newArtifactId: sms
       newVersion: 2.23.16-SNAPSHOT
@@ -565,7 +571,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-privatenetworks
+      oldArtifactId: aws-java-sdk-private5g
       newGroupId: software.amazon.awssdk
       newArtifactId: privatenetworks
       newVersion: 2.23.16-SNAPSHOT
@@ -781,7 +787,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-rum
+      oldArtifactId: aws-java-sdk-cloudwatchrum
       newGroupId: software.amazon.awssdk
       newArtifactId: rum
       newVersion: 2.23.16-SNAPSHOT
@@ -835,7 +841,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-cloudsearchdomain
+      oldArtifactId: aws-java-sdk-cloudsearch
       newGroupId: software.amazon.awssdk
       newArtifactId: cloudsearchdomain
       newVersion: 2.23.16-SNAPSHOT
@@ -856,6 +862,12 @@ recipeList:
       oldArtifactId: aws-java-sdk-transfer
       newGroupId: software.amazon.awssdk
       newArtifactId: transfer
+      newVersion: 2.23.16-SNAPSHOT
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: com.amazonaws
+      oldArtifactId: aws-java-sdk-deadline
+      newGroupId: software.amazon.awssdk
+      newArtifactId: deadline
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
@@ -895,7 +907,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-databasemigration
+      oldArtifactId: aws-java-sdk-dms
       newGroupId: software.amazon.awssdk
       newArtifactId: databasemigration
       newVersion: 2.23.16-SNAPSHOT
@@ -925,7 +937,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-route53domains
+      oldArtifactId: aws-java-sdk-route53
       newGroupId: software.amazon.awssdk
       newArtifactId: route53domains
       newVersion: 2.23.16-SNAPSHOT
@@ -967,7 +979,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-grafana
+      oldArtifactId: aws-java-sdk-managedgrafana
       newGroupId: software.amazon.awssdk
       newArtifactId: grafana
       newVersion: 2.23.16-SNAPSHOT
@@ -979,7 +991,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-rbin
+      oldArtifactId: aws-java-sdk-recyclebin
       newGroupId: software.amazon.awssdk
       newArtifactId: rbin
       newVersion: 2.23.16-SNAPSHOT
@@ -1027,7 +1039,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-kinesisvideosignaling
+      oldArtifactId: aws-java-sdk-kinesisvideosignalingchannels
       newGroupId: software.amazon.awssdk
       newArtifactId: kinesisvideosignaling
       newVersion: 2.23.16-SNAPSHOT
@@ -1051,7 +1063,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-cloudwatchlogs
+      oldArtifactId: aws-java-sdk-logs
       newGroupId: software.amazon.awssdk
       newArtifactId: cloudwatchlogs
       newVersion: 2.23.16-SNAPSHOT
@@ -1063,7 +1075,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-lookoutvision
+      oldArtifactId: aws-java-sdk-lookoutforvision
       newGroupId: software.amazon.awssdk
       newArtifactId: lookoutvision
       newVersion: 2.23.16-SNAPSHOT
@@ -1141,7 +1153,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-servicecatalogappregistry
+      oldArtifactId: aws-java-sdk-appregistry
       newGroupId: software.amazon.awssdk
       newArtifactId: servicecatalogappregistry
       newVersion: 2.23.16-SNAPSHOT
@@ -1159,7 +1171,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-applicationdiscovery
+      oldArtifactId: aws-java-sdk-discovery
       newGroupId: software.amazon.awssdk
       newArtifactId: applicationdiscovery
       newVersion: 2.23.16-SNAPSHOT
@@ -1189,7 +1201,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-cloudcontrol
+      oldArtifactId: aws-java-sdk-cloudcontrolapi
       newGroupId: software.amazon.awssdk
       newArtifactId: cloudcontrol
       newVersion: 2.23.16-SNAPSHOT
@@ -1255,7 +1267,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-evidently
+      oldArtifactId: aws-java-sdk-cloudwatchevidently
       newGroupId: software.amazon.awssdk
       newArtifactId: evidently
       newVersion: 2.23.16-SNAPSHOT
@@ -1387,7 +1399,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-redshiftdata
+      oldArtifactId: aws-java-sdk-redshiftdataapi
       newGroupId: software.amazon.awssdk
       newArtifactId: redshiftdata
       newVersion: 2.23.16-SNAPSHOT
@@ -1405,7 +1417,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-wisdom
+      oldArtifactId: aws-java-sdk-connectwisdom
       newGroupId: software.amazon.awssdk
       newArtifactId: wisdom
       newVersion: 2.23.16-SNAPSHOT
@@ -1429,7 +1441,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-kinesisanalytics
+      oldArtifactId: aws-java-sdk-kinesis
       newGroupId: software.amazon.awssdk
       newArtifactId: kinesisanalytics
       newVersion: 2.23.16-SNAPSHOT
@@ -1453,7 +1465,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-connectcampaigns
+      oldArtifactId: aws-java-sdk-connectcampaign
       newGroupId: software.amazon.awssdk
       newArtifactId: connectcampaigns
       newVersion: 2.23.16-SNAPSHOT
@@ -1483,7 +1495,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-mturk
+      oldArtifactId: aws-java-sdk-mechanicalturkrequester
       newGroupId: software.amazon.awssdk
       newArtifactId: mturk
       newVersion: 2.23.16-SNAPSHOT
@@ -1501,7 +1513,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-amp
+      oldArtifactId: aws-java-sdk-prometheus
       newGroupId: software.amazon.awssdk
       newArtifactId: amp
       newVersion: 2.23.16-SNAPSHOT
@@ -1531,7 +1543,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-databrew
+      oldArtifactId: aws-java-sdk-gluedatabrew
       newGroupId: software.amazon.awssdk
       newArtifactId: databrew
       newVersion: 2.23.16-SNAPSHOT
@@ -1573,7 +1585,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-migrationhubstrategy
+      oldArtifactId: aws-java-sdk-migrationhubstrategyrecommendations
       newGroupId: software.amazon.awssdk
       newArtifactId: migrationhubstrategy
       newVersion: 2.23.16-SNAPSHOT
@@ -1603,7 +1615,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-datazone
+      oldArtifactId: aws-java-sdk-datazoneexternal
       newGroupId: software.amazon.awssdk
       newArtifactId: datazone
       newVersion: 2.23.16-SNAPSHOT
@@ -1633,7 +1645,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-m2
+      oldArtifactId: aws-java-sdk-mainframemodernization
       newGroupId: software.amazon.awssdk
       newArtifactId: m2
       newVersion: 2.23.16-SNAPSHOT
@@ -1849,7 +1861,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-firehose
+      oldArtifactId: aws-java-sdk-kinesis
       newGroupId: software.amazon.awssdk
       newArtifactId: firehose
       newVersion: 2.23.16-SNAPSHOT
@@ -1909,7 +1921,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-lexruntime
+      oldArtifactId: aws-java-sdk-lex
       newGroupId: software.amazon.awssdk
       newArtifactId: lexruntime
       newVersion: 2.23.16-SNAPSHOT
@@ -1921,7 +1933,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-nimble
+      oldArtifactId: aws-java-sdk-nimblestudio
       newGroupId: software.amazon.awssdk
       newArtifactId: nimble
       newVersion: 2.23.16-SNAPSHOT
@@ -1993,13 +2005,13 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-sfn
+      oldArtifactId: aws-java-sdk-stepfunctions
       newGroupId: software.amazon.awssdk
       newArtifactId: sfn
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-cognitoidentityprovider
+      oldArtifactId: aws-java-sdk-cognitoidp
       newGroupId: software.amazon.awssdk
       newArtifactId: cognitoidentityprovider
       newVersion: 2.23.16-SNAPSHOT
@@ -2023,7 +2035,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-marketplacemetering
+      oldArtifactId: aws-java-sdk-marketplacemeteringservice
       newGroupId: software.amazon.awssdk
       newArtifactId: marketplacemetering
       newVersion: 2.23.16-SNAPSHOT
@@ -2065,13 +2077,13 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-swf
+      oldArtifactId: aws-java-sdk-simpleworkflow
       newGroupId: software.amazon.awssdk
       newArtifactId: swf
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-cloudwatchevents
+      oldArtifactId: aws-java-sdk-events
       newGroupId: software.amazon.awssdk
       newArtifactId: cloudwatchevents
       newVersion: 2.23.16-SNAPSHOT
@@ -2137,7 +2149,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-rolesanywhere
+      oldArtifactId: aws-java-sdk-iamrolesanywhere
       newGroupId: software.amazon.awssdk
       newArtifactId: rolesanywhere
       newVersion: 2.23.16-SNAPSHOT
@@ -2173,7 +2185,7 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-apigateway
+      oldArtifactId: aws-java-sdk-api-gateway
       newGroupId: software.amazon.awssdk
       newArtifactId: apigateway
       newVersion: 2.23.16-SNAPSHOT
@@ -2194,6 +2206,12 @@ recipeList:
       oldArtifactId: aws-java-sdk-ram
       newGroupId: software.amazon.awssdk
       newArtifactId: ram
+      newVersion: 2.23.16-SNAPSHOT
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: com.amazonaws
+      oldArtifactId: aws-java-sdk-codeconnections
+      newGroupId: software.amazon.awssdk
+      newArtifactId: codeconnections
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
