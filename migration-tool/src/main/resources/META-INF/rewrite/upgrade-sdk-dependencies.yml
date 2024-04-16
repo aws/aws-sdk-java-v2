@@ -655,12 +655,6 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-codecatalyst
-      newGroupId: software.amazon.awssdk
-      newArtifactId: codecatalyst
-      newVersion: 2.23.16-SNAPSHOT
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-costexplorer
       newGroupId: software.amazon.awssdk
       newArtifactId: costexplorer

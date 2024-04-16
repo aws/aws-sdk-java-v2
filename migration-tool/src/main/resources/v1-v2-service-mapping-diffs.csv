@@ -49,6 +49,7 @@
 "swf","simpleworkflow","simpleworkflow"
 "sfn","stepfunctions","stepfunctions"
 "cloudfrontkeyvaluestore","",""
+"codecatalyst","",""
 "kinesisvideoarchivedmedia","",""
 "kinesisvideomedia","",""
 "neptunegraph","",""
