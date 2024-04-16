@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaPackage v2",
+    "contributor": "",
+    "description": "Dash v2 is a MediaPackage V2 feature to support egressing on DASH manifest format."
+}
