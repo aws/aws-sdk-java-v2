@@ -92,8 +92,8 @@ public class ChangeSdkType extends Recipe {
         }
 
         @Override
-        public J visitImport(J.Import import_, ExecutionContext ctx) {
-            String currentFqcn = currentFqcn(import_);
+        public J visitImport(J.Import anImport, ExecutionContext ctx) {
+            String currentFqcn = currentFqcn(anImport);
             if (isV1Import(currentFqcn)) {
                 JavaType.ShallowClass originalType = JavaType.ShallowClass.build(currentFqcn);
                 String v2Equivalent = getV2Equivalent(currentFqcn);
@@ -101,12 +101,12 @@ public class ChangeSdkType extends Recipe {
                 JavaType targetType = JavaType.buildType(v2Equivalent);
 
                 oldTypeToNewType.put(currentFqcn, Pair.of(originalType, targetType));
-                if (import_.getAlias() != null) {
-                    importAlias = import_.getAlias();
+                if (anImport.getAlias() != null) {
+                    importAlias = anImport.getAlias();
                 }
             }
 
-            return import_;
+            return anImport;
         }
 
         @Override
@@ -144,14 +144,14 @@ public class ChangeSdkType extends Recipe {
                 J.MethodDeclaration method = (J.MethodDeclaration) currentTree;
                 JavaType.Method mt = updateType(method.getMethodType());
                 currentTree = method.withMethodType(mt)
-                          .withName(method.getName().withType(mt));
+                                    .withName(method.getName().withType(mt));
 
             } else if (currentTree instanceof J.MethodInvocation) {
 
                 J.MethodInvocation method = (J.MethodInvocation) currentTree;
                 JavaType.Method mt = updateType(method.getMethodType());
                 currentTree = method.withMethodType(mt)
-                          .withName(method.getName().withType(mt));
+                                    .withName(method.getName().withType(mt));
 
             } else if (currentTree instanceof J.NewClass) {
 
@@ -184,12 +184,17 @@ public class ChangeSdkType extends Recipe {
                         JavaType maybeType = anImport.getQualid().getType();
                         if (maybeType instanceof JavaType.FullyQualified) {
                             JavaType.FullyQualified type = (JavaType.FullyQualified) maybeType;
-                            if (originalType.getFullyQualifiedName().equals(type.getFullyQualifiedName())) {
+                            String fullyQualifiedName = originalType.getFullyQualifiedName();
+                            if (fullyQualifiedName.equals(type.getFullyQualifiedName())) {
+                                sourceFile = (JavaSourceFile) new RemoveImport<ExecutionContext>(fullyQualifiedName)
+                                    .visit(sourceFile, ctx, getCursor().getParentOrThrow());
+                            } else if (originalType.getOwningClass() != null &&
+                                       originalType.getOwningClass().getFullyQualifiedName()
+                                                   .equals(type.getFullyQualifiedName())) {
                                 sourceFile =
-                                    (JavaSourceFile) new RemoveImport<ExecutionContext>(originalType.getFullyQualifiedName()).visit(sourceFile, ctx, getCursor().getParentOrThrow());
-                            } else if (originalType.getOwningClass() != null && originalType.getOwningClass().getFullyQualifiedName().equals(type.getFullyQualifiedName())) {
-                                sourceFile =
-                                    (JavaSourceFile) new RemoveImport<ExecutionContext>(originalType.getOwningClass().getFullyQualifiedName()).visit(sourceFile, ctx, getCursor().getParentOrThrow());
+                                    (JavaSourceFile) new RemoveImport<ExecutionContext>(
+                                        originalType.getOwningClass().getFullyQualifiedName())
+                                        .visit(sourceFile, ctx, getCursor().getParentOrThrow());
                             }
                         }
                     }
@@ -207,7 +212,9 @@ public class ChangeSdkType extends Recipe {
                 }
 
                 if (sourceFile != null) {
-                    sourceFile = sourceFile.withImports(ListUtils.map(sourceFile.getImports(), i -> visitAndCast(i, ctx, super::visitImport)));
+                    sourceFile = sourceFile.withImports(
+                        ListUtils.map(sourceFile.getImports(), i -> visitAndCast(i, ctx,
+                                                                                 super::visitImport)));
                 }
 
                 currentTree = sourceFile;
@@ -222,8 +229,9 @@ public class ChangeSdkType extends Recipe {
                 JavaType targetType = entry.right();
                 if (fieldAccess.isFullyQualifiedClassReference(originalType.getFullyQualifiedName())) {
                     if (targetType instanceof JavaType.FullyQualified) {
-                        return updateOuterClassTypes(TypeTree.build(((JavaType.FullyQualified) targetType).getFullyQualifiedName())
-                                                             .withPrefix(fieldAccess.getPrefix()), targetType);
+                        return updateOuterClassTypes(
+                            TypeTree.build(((JavaType.FullyQualified) targetType).getFullyQualifiedName())
+                                    .withPrefix(fieldAccess.getPrefix()), targetType);
                     }
                 } else {
                     StringBuilder maybeClass = new StringBuilder();
@@ -465,9 +473,9 @@ public class ChangeSdkType extends Recipe {
         return false;
     }
 
-    private static String currentFqcn(J.Import import_) {
+    private static String currentFqcn(J.Import anImport) {
         JavaType.FullyQualified currentFqcn =
-            TypeUtils.asFullyQualified(Optional.ofNullable(import_.getQualid()).map(J.FieldAccess::getType).orElse(null));
+            TypeUtils.asFullyQualified(Optional.ofNullable(anImport.getQualid()).map(J.FieldAccess::getType).orElse(null));
         String curFqn = currentFqcn != null ? currentFqcn.getFullyQualifiedName() : null;
         return curFqn;
     }
