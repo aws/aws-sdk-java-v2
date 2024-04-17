@@ -46,10 +46,10 @@ public final class NamingConversionUtils {
     }
 
     private static String getV2ClientEquivalent(String className) {
-        if (className.startsWith("Abstract") ) {
+        if (className.startsWith("Abstract")) {
             className = className.substring(8);
         }
-        if (className.startsWith("Amazon") ) {
+        if (className.startsWith("Amazon")) {
             className = className.substring(6);
         } else if (className.startsWith("AWS")) {
             className = className.substring(3);
