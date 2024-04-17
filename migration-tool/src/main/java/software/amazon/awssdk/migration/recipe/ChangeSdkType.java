@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.migration.recipe;
 
-import static software.amazon.awssdk.migration.recipe.utils.NamingConversionUtils.getV2Equivalent;
+import static software.amazon.awssdk.migration.internal.utils.NamingConversionUtils.getV2Equivalent;
 
 import java.util.HashMap;
 import java.util.HashSet;
