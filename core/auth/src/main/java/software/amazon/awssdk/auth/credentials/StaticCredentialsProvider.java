@@ -24,10 +24,22 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public final class StaticCredentialsProvider implements AwsCredentialsProvider {
+    private static final String PROVIDER_NAME = "StaticCredentialsProvider";
     private final AwsCredentials credentials;
 
     private StaticCredentialsProvider(AwsCredentials credentials) {
-        this.credentials = Validate.notNull(credentials, "Credentials must not be null.");
+        Validate.notNull(credentials, "Credentials must not be null.");
+        this.credentials = withProviderName(credentials);
+    }
+
+    private AwsCredentials withProviderName(AwsCredentials credentials) {
+        if (credentials instanceof AwsBasicCredentials) {
+            return ((AwsBasicCredentials) credentials).copy(c -> c.providerName(PROVIDER_NAME));
+        }
+        if (credentials instanceof AwsSessionCredentials) {
+            return ((AwsSessionCredentials) credentials).copy(c -> c.providerName(PROVIDER_NAME));
+        }
+        return credentials;
     }
 
     /**
@@ -44,7 +56,7 @@ public final class StaticCredentialsProvider implements AwsCredentialsProvider {
 
     @Override
     public String toString() {
-        return ToString.builder("StaticCredentialsProvider")
+        return ToString.builder(PROVIDER_NAME)
                        .add("credentials", credentials)
                        .build();
     }
