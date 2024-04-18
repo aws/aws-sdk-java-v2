@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon WorkSpaces",
-    "contributor": "",
-    "description": "Adds new APIs for managing and sharing WorkSpaces BYOL configuration across accounts."
-}
