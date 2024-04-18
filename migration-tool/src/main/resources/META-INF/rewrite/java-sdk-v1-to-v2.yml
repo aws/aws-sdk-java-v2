@@ -22,4 +22,5 @@ tags:
   - sdk
 recipeList:
   - software.amazon.awssdk.UpgradeSdkDependencies
+  - software.amazon.awssdk.migration.recipe.NewV1ModelClassToV2
   - software.amazon.awssdk.migration.recipe.ChangeSdkType
