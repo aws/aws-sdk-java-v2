@@ -14,14 +14,7 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: software.amazon.awssdk.UpgradeJavaSdk2
-displayName: Migrate to the AWS SDK for Java v2
-description: Migrate applications to the AWS SDK for Java v2.
-tags:
-  - aws
-  - sdk
+name: software.amazon.awssdk.ChangeSdkCoreTypes
+displayName: Change Maven dependency groupId, artifactId and/or the version example
 recipeList:
-  - software.amazon.awssdk.UpgradeSdkDependencies
-  - software.amazon.awssdk.migration.recipe.NewV1ModelClassToV2
-  - software.amazon.awssdk.migration.recipe.ChangeSdkType
-  - software.amazon.awssdk.ChangeSdkCoreTypes
+  - software.amazon.awssdk.ChangeRegionTypes

@@ -14,14 +14,17 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: software.amazon.awssdk.UpgradeJavaSdk2
-displayName: Migrate to the AWS SDK for Java v2
-description: Migrate applications to the AWS SDK for Java v2.
-tags:
-  - aws
-  - sdk
+name: software.amazon.awssdk.ChangeRegionTypes
+displayName: Change region related classes
 recipeList:
-  - software.amazon.awssdk.UpgradeSdkDependencies
-  - software.amazon.awssdk.migration.recipe.NewV1ModelClassToV2
-  - software.amazon.awssdk.migration.recipe.ChangeSdkType
-  - software.amazon.awssdk.ChangeSdkCoreTypes
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.regions.Regions fromName(String)
+      newMethodName: of
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.regions.Regions getName()
+      newMethodName: id
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.regions.Regions
+      newFullyQualifiedTypeName: software.amazon.awssdk.regions.Region
+
+## TODO: handle RegionUtils, Region
