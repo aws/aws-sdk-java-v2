@@ -74,6 +74,7 @@ public class NewV1ModelClassToV2Test implements RewriteTest {
     }
 
     @Test
+    @EnabledOnJre({JRE.JAVA_8})
     public void request_createdInline_isRewritten() {
         rewriteRun(
             java(
@@ -108,6 +109,7 @@ public class NewV1ModelClassToV2Test implements RewriteTest {
     }
 
     @Test
+    @EnabledOnJre({JRE.JAVA_8})
     public void request_returnedFromMethod_isRewritten() {
         rewriteRun(
             java(
