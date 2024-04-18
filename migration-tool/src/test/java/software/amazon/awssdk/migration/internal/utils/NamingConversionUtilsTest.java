@@ -13,11 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.migration.recipe.utils;
+package software.amazon.awssdk.migration.internal.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.migration.internal.utils.NamingConversionUtils;
 
 public class NamingConversionUtilsTest {
     @Test

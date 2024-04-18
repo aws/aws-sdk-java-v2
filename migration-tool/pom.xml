@@ -89,6 +89,11 @@
             <version>${junit5.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- Used in UpgradeSdkDependenciesTest -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

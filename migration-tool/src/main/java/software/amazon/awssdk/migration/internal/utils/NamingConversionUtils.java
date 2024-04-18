@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.migration.recipe.utils;
+package software.amazon.awssdk.migration.internal.utils;
 
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;

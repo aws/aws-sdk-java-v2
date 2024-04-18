@@ -28,7 +28,10 @@ public class Application {
 
     public static void main(String... args) {
         AmazonSQS sqs = AmazonSQSClient.builder().build();
-        ListQueuesRequest request = new ListQueuesRequest();
+        ListQueuesRequest request = new ListQueuesRequest()
+            .withMaxResults(5)
+            .withQueueNamePrefix("MyQueue-")
+            .withNextToken("token");
         ListQueuesResult listQueuesResult = sqs.listQueues(request);
         System.out.println(listQueuesResult);
     }

@@ -28,7 +28,10 @@ public class Application {
 
     public static void main(String... args) {
         SqsClient sqs = SqsClient.builder().build();
-        ListQueuesRequest request = new ListQueuesRequest();
+        ListQueuesRequest request = ListQueuesRequest.builder()
+            .maxResults(5)
+            .queueNamePrefix("MyQueue-")
+            .nextToken("token").build();
         ListQueuesResponse listQueuesResult = sqs.listQueues(request);
         System.out.println(listQueuesResult);
     }
