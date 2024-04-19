@@ -87,6 +87,8 @@ public enum RetryMode {
      */
     ADAPTIVE,
 
+    ADAPTIVE2,
+
     ;
 
     /**

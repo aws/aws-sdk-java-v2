@@ -42,25 +42,26 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public final class RetryPolicyAdapter implements RetryStrategy<RetryPolicyAdapter.Builder, RetryPolicyAdapter> {
-
     private final RetryPolicy retryPolicy;
     private final RetryPolicyContext retryPolicyContext;
     private final RateLimitingTokenBucket rateLimitingTokenBucket;
 
     private RetryPolicyAdapter(Builder builder) {
         this.retryPolicy = Validate.paramNotNull(builder.retryPolicy, "retryPolicy");
-        this.retryPolicyContext = Validate.paramNotNull(builder.retryPolicyContext, "retryPolicyContext");
+        this.retryPolicyContext = builder.retryPolicyContext;
         this.rateLimitingTokenBucket = builder.rateLimitingTokenBucket;
     }
 
     @Override
     public AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request) {
+        validateState();
         RetryPolicyAdapterToken token = new RetryPolicyAdapterToken(request.scope());
         return AcquireInitialTokenResponse.create(token, rateLimitingTokenAcquire());
     }
 
     @Override
     public RefreshRetryTokenResponse refreshRetryToken(RefreshRetryTokenRequest request) {
+        validateState();
         RetryPolicyAdapterToken token = getToken(request.token());
         boolean willRetry = retryPolicy.aggregateRetryCondition().shouldRetry(retryPolicyContext);
         if (!willRetry) {
@@ -73,6 +74,7 @@ public final class RetryPolicyAdapter implements RetryStrategy<RetryPolicyAdapte
 
     @Override
     public RecordSuccessResponse recordSuccess(RecordSuccessRequest request) {
+        validateState();
         RetryPolicyAdapterToken token = getToken(request.token());
         retryPolicy.aggregateRetryCondition().requestSucceeded(retryPolicyContext);
         return RecordSuccessResponse.create(token);
@@ -86,6 +88,16 @@ public final class RetryPolicyAdapter implements RetryStrategy<RetryPolicyAdapte
     @Override
     public Builder toBuilder() {
         return new Builder(this);
+    }
+
+    public boolean isInitialized() {
+        return retryPolicyContext != null;
+    }
+
+    void validateState() {
+        if (retryPolicyContext == null) {
+            throw new IllegalStateException("This RetryPolicyAdapter instance has not been initialized.");
+        }
     }
 
     RetryPolicyAdapterToken getToken(RetryToken token) {
@@ -146,7 +158,6 @@ public final class RetryPolicyAdapter implements RetryStrategy<RetryPolicyAdapte
         private RateLimitingTokenBucket rateLimitingTokenBucket;
 
         private Builder() {
-            rateLimitingTokenBucket = new RateLimitingTokenBucket();
         }
 
         private Builder(RetryPolicyAdapter adapter) {
@@ -175,13 +186,14 @@ public final class RetryPolicyAdapter implements RetryStrategy<RetryPolicyAdapte
             return this;
         }
 
-        public Builder rateLimitingTokenBucket(RateLimitingTokenBucket rateLimitingTokenBucket) {
-            this.rateLimitingTokenBucket = rateLimitingTokenBucket;
+        public Builder retryPolicyContext(RetryPolicyContext retryPolicyContext) {
+            this.retryPolicyContext = retryPolicyContext;
             return this;
         }
 
-        public Builder retryPolicyContext(RetryPolicyContext retryPolicyContext) {
+        public Builder initialize(RetryPolicyContext retryPolicyContext) {
             this.retryPolicyContext = retryPolicyContext;
+            this.rateLimitingTokenBucket = new RateLimitingTokenBucket();
             return this;
         }
 

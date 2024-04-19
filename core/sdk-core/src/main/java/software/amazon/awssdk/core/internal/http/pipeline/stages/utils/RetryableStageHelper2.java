@@ -60,7 +60,6 @@ public final class RetryableStageHelper2 {
     public static final String SDK_RETRY_INFO_HEADER = "amz-sdk-request";
     private final SdkHttpFullRequest request;
     private final RequestExecutionContext context;
-    private final RetryPolicy retryPolicy;
     private RetryPolicyAdapter retryPolicyAdapter;
     private final RetryStrategy<?, ?> retryStrategy;
     private final HttpClientDependencies dependencies;
@@ -74,8 +73,16 @@ public final class RetryableStageHelper2 {
                                  HttpClientDependencies dependencies) {
         this.request = request;
         this.context = context;
-        this.retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
-        this.retryStrategy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_STRATEGY);
+        RetryPolicy retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
+        RetryStrategy<?, ?> retryStrategy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_STRATEGY);
+        if (retryPolicy != null) {
+            retryPolicyAdapter = RetryPolicyAdapter.builder()
+                                                   .retryPolicy(retryPolicy)
+                                                   .build();
+        } else if (retryStrategy instanceof RetryPolicyAdapter) {
+            retryPolicyAdapter = (RetryPolicyAdapter) retryStrategy;
+        }
+        this.retryStrategy = retryStrategy;
         this.dependencies = dependencies;
     }
 
@@ -256,15 +263,14 @@ public final class RetryableStageHelper2 {
      * calling code.
      */
     private RetryStrategy<?, ?> retryStrategy() {
-        if (retryPolicy != null) {
-            if (retryPolicyAdapter == null) {
-                retryPolicyAdapter = RetryPolicyAdapter.builder()
-                                                       .retryPolicy(this.retryPolicy)
+        if (retryPolicyAdapter != null) {
+            if (retryPolicyAdapter.isInitialized()) {
+                retryPolicyAdapter = retryPolicyAdapter.toBuilder()
                                                        .retryPolicyContext(retryPolicyContext())
                                                        .build();
             } else {
                 retryPolicyAdapter = retryPolicyAdapter.toBuilder()
-                                                       .retryPolicyContext(retryPolicyContext())
+                                                       .initialize(retryPolicyContext())
                                                        .build();
             }
             return retryPolicyAdapter;

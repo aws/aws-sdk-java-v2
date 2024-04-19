@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
 import software.amazon.awssdk.retries.DefaultRetryStrategy;
@@ -55,6 +56,8 @@ public final class SdkDefaultRetryStrategy {
             case STANDARD:
                 return standardRetryStrategy();
             case ADAPTIVE:
+                return legacyAdaptiveRetryStrategy();
+            case ADAPTIVE2:
                 return adaptiveRetryStrategy();
             case LEGACY:
                 return legacyRetryStrategy();
@@ -74,10 +77,13 @@ public final class SdkDefaultRetryStrategy {
             return RetryMode.STANDARD;
         }
         if (retryStrategy instanceof AdaptiveRetryStrategy) {
-            return RetryMode.ADAPTIVE;
+            return RetryMode.ADAPTIVE2;
         }
         if (retryStrategy instanceof LegacyRetryStrategy) {
             return RetryMode.LEGACY;
+        }
+        if (retryStrategy instanceof RetryPolicyAdapter) {
+            return RetryMode.ADAPTIVE;
         }
         throw new IllegalArgumentException("unknown retry strategy class: " + retryStrategy.getClass().getName());
     }
@@ -193,4 +199,16 @@ public final class SdkDefaultRetryStrategy {
         }
         return false;
     }
+
+    /**
+     * Returns a {@link RetryStrategy<?, ?>} that implements the legacy {@link RetryMode#ADAPTIVE} mode.
+     *
+     * @return a {@link RetryStrategy<?, ?>} that implements the legacy {@link RetryMode#ADAPTIVE} mode.
+     */
+    private static RetryStrategy<?, ?> legacyAdaptiveRetryStrategy() {
+        return RetryPolicyAdapter.builder()
+                                 .retryPolicy(RetryPolicy.forRetryMode(RetryMode.ADAPTIVE))
+                                 .build();
+    }
 }
+
