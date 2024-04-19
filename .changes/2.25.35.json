@@ -1,0 +1,24 @@
+{
+    "version": "2.25.35",
+    "date": "2024-04-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Adding RowFilter in the response for GetUnfilteredTableMetadata API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Internet Monitor",
+            "contributor": "",
+            "description": "This update introduces the GetInternetEvent and ListInternetEvents APIs, which provide access to internet events displayed on the Amazon CloudWatch Internet Weather Map."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize",
+            "contributor": "",
+            "description": "This releases auto training capability while creating a solution and automatically syncing latest solution versions when creating/updating a campaign"
+        }
+    ]
+}
