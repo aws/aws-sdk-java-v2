@@ -167,7 +167,7 @@ public final class CompletableFutureUtils {
             DestT result = null;
             try {
                 result = function.apply(r);
-            } catch (Exception functionException) {
+            } catch (Throwable functionException) {
                 dst.completeExceptionally(functionException);
                 return;
             }
