@@ -77,7 +77,7 @@ class DynamoDbRetryPolicyTest {
     void resolve_retryModeSetWithSupplier_resolvesFromSupplier() {
         ProfileFile profileFile = ProfileFile.builder()
                                              .content(new StringInputStream("[profile default]\n"
-                                                                            + "retry_mode = adaptive"))
+                                                                            + "retry_mode = adaptive2"))
                                              .type(ProfileFile.Type.CONFIGURATION)
                                              .build();
         SdkClientConfiguration sdkClientConfiguration = SdkClientConfiguration
@@ -88,7 +88,7 @@ class DynamoDbRetryPolicyTest {
         RetryStrategy<?, ?> retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
         RetryMode retryMode = SdkDefaultRetryStrategy.retryMode(retryStrategy);
 
-        assertThat(retryMode).isEqualTo(RetryMode.ADAPTIVE);
+        assertThat(retryMode).isEqualTo(RetryMode.ADAPTIVE2);
     }
 
     @Test
