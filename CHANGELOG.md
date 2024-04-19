@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.35__ __2024-04-19__
+## __AWS Glue__
+  - ### Features
+    - Adding RowFilter in the response for GetUnfilteredTableMetadata API
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - This update introduces the GetInternetEvent and ListInternetEvents APIs, which provide access to internet events displayed on the Amazon CloudWatch Internet Weather Map.
+
+## __Amazon Personalize__
+  - ### Features
+    - This releases auto training capability while creating a solution and automatically syncing latest solution versions when creating/updating a campaign
+
 # __2.25.34__ __2024-04-18__
 ## __AWS SDK for Java v2__
   - ### Features

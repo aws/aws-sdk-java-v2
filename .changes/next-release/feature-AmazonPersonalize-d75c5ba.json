@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Personalize",
-    "contributor": "",
-    "description": "This releases auto training capability while creating a solution and automatically syncing latest solution versions when creating/updating a campaign"
-}
