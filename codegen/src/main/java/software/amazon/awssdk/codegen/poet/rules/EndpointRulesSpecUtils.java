@@ -16,8 +16,10 @@
 package software.amazon.awssdk.codegen.poet.rules;
 
 import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.jr.stree.JrsArray;
 import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsString;
+import com.fasterxml.jackson.jr.stree.JrsValue;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -28,6 +30,8 @@ import com.squareup.javapoet.TypeName;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -124,6 +128,8 @@ public class EndpointRulesSpecUtils {
                 return TypeName.get(Boolean.class);
             case "string":
                 return TypeName.get(String.class);
+            case "stringarray":
+                return ParameterizedTypeName.get(ClassName.get(List.class), TypeName.get(String.class));
             default:
                 throw new RuntimeException("Unknown type: " + type);
         }
@@ -137,6 +143,9 @@ public class EndpointRulesSpecUtils {
                 break;
             case "string":
                 methodName = "fromStr";
+                break;
+            case "stringarray":
+                methodName = "fromArray";
                 break;
             default:
                 throw new RuntimeException("Don't know how to create a Value instance from type " + type);
@@ -397,6 +406,10 @@ public class EndpointRulesSpecUtils {
             case VALUE_FALSE:
                 b.add("$L", ((JrsBoolean) defaultValue).booleanValue());
                 break;
+            case START_ARRAY:
+                handleArrayDefaultValue(b, parameterModel.getType(), (JrsArray) defaultValue);
+                break;
+
             default:
                 throw new RuntimeException("Don't know how to set default value for parameter of type "
                                            + defaultValue.asToken());
@@ -409,5 +422,20 @@ public class EndpointRulesSpecUtils {
      */
     public String variableName(String name) {
         return intermediateModel.getNamingStrategy().getVariableName(name);
+    }
+
+    private void handleArrayDefaultValue(CodeBlock.Builder b, String parameterType, JrsArray defaultValue) {
+        if ("stringarray".equalsIgnoreCase(parameterType)) {
+            Iterator<JrsValue> elementValuesIter = defaultValue.elements();
+            b.add("$T.asList(", Arrays.class);
+            while (elementValuesIter.hasNext()) {
+                JrsValue v = elementValuesIter.next();
+                b.add("\"" + v.asText() + "\"");
+                if (elementValuesIter.hasNext()) {
+                    b.add(",");
+                }
+            }
+            b.add(")");
+        }
     }
 }

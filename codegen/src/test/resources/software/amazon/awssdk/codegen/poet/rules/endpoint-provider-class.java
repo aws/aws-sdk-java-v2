@@ -54,6 +54,12 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         if (params.useFipsEndpoint() != null) {
             paramsMap.put(Identifier.of("useFIPSEndpoint"), Value.fromBool(params.useFipsEndpoint()));
         }
+        if (params.listOfStrings() != null) {
+            paramsMap.put(Identifier.of("listOfStrings"), Value.fromArray(params.listOfStrings()));
+        }
+        if (params.defaultListOfStrings() != null) {
+            paramsMap.put(Identifier.of("defaultListOfStrings"), Value.fromArray(params.defaultListOfStrings()));
+        }
         if (params.endpointId() != null) {
             paramsMap.put(Identifier.of("endpointId"), Value.fromStr(params.endpointId()));
         }
@@ -339,6 +345,13 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                 .addParameter(
                                         Parameter.builder().name("useFIPSEndpoint").type(ParameterType.fromValue("boolean"))
                                                 .required(false).builtIn("AWS::UseFIPS").build())
+                                .addParameter(
+                                    Parameter.builder().name("listOfStrings").type(ParameterType.fromValue("StringArray"))
+                                             .required(false).build())
+                                .addParameter(
+                                    Parameter.builder().name("defaultListOfStrings")
+                                             .type(ParameterType.fromValue("stringarray")).required(false)
+                                             .defaultValue(Value.fromArray(Arrays.asList("item1", "item2", "item3"))).build())
                                 .addParameter(
                                         Parameter.builder().name("endpointId").type(ParameterType.fromValue("string"))
                                                 .required(false).build())
