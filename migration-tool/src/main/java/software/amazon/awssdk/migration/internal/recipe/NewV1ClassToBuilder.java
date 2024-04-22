@@ -150,7 +150,7 @@ public class NewV1ClassToBuilder extends Recipe {
 
             J.MethodInvocation buildInvoke = new J.MethodInvocation(
                 Tree.randomId(),
-                Space.EMPTY,
+                newClass.getPrefix(),
                 Markers.EMPTY,
                 JRightPadded.build(builderInvoke),
                 null,
