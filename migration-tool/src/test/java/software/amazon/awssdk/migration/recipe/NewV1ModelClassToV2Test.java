@@ -150,4 +150,29 @@ public class NewV1ModelClassToV2Test implements RewriteTest {
             )
         );
     }
+
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
+    public void request_assignedToVariable_newOnly_isRewritten() {
+        rewriteRun(
+            java(
+                "import com.amazonaws.services.sqs.AmazonSQS;\n"
+                + "import com.amazonaws.services.sqs.model.SendMessageRequest;\n"
+                + "\n"
+                + "public class SqsExample {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        SendMessageRequest sendMessage = new SendMessageRequest();\n"
+                + "    }\n"
+                + "}\n",
+                "import com.amazonaws.services.sqs.AmazonSQS;\n"
+                + "import com.amazonaws.services.sqs.model.SendMessageRequest;\n"
+                + "\n"
+                + "public class SqsExample {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        SendMessageRequest sendMessage = SendMessageRequest.builder().build();\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
 }
