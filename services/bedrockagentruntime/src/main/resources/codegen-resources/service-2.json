@@ -32,7 +32,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ServiceQuotaExceededException"}
       ],
-      "documentation":"<p>Sends a prompt for the agent to process and respond to.</p> <note> <p>The CLI doesn't support <code>InvokeAgent</code>.</p> </note> <ul> <li> <p>To continue the same conversation with an agent, use the same <code>sessionId</code> value in the request.</p> </li> <li> <p>To activate trace enablement, turn <code>enableTrace</code> to <code>true</code>. Trace enablement helps you follow the agent's reasoning process that led it to the information it processed, the actions it took, and the final result it yielded. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/agents-test.html#trace-events\">Trace enablement</a>.</p> </li> <li> <p>End a conversation by setting <code>endSession</code> to <code>true</code>.</p> </li> <li> <p>Include attributes for the session or prompt in the <code>sessionState</code> object.</p> </li> </ul> <p>The response is returned in the <code>bytes</code> field of the <code>chunk</code> object.</p> <ul> <li> <p>The <code>attribution</code> object contains citations for parts of the response.</p> </li> <li> <p>If you set <code>enableTrace</code> to <code>true</code> in the request, you can trace the agent's steps and reasoning process that led it to the response.</p> </li> <li> <p>Errors are also surfaced in the response.</p> </li> </ul>"
+      "documentation":"<p>Sends a prompt for the agent to process and respond to. Use return control event type for function calling.</p> <note> <p>The CLI doesn't support <code>InvokeAgent</code>.</p> </note> <ul> <li> <p>To continue the same conversation with an agent, use the same <code>sessionId</code> value in the request.</p> </li> <li> <p>To activate trace enablement, turn <code>enableTrace</code> to <code>true</code>. Trace enablement helps you follow the agent's reasoning process that led it to the information it processed, the actions it took, and the final result it yielded. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/agents-test.html#trace-events\">Trace enablement</a>.</p> </li> <li> <p>End a conversation by setting <code>endSession</code> to <code>true</code>.</p> </li> <li> <p>In the <code>sessionState</code> object, you can include attributes for the session or prompt or parameters returned from the action group.</p> </li> <li> <p>Use return control event type for function calling.</p> </li> </ul> <p>The response is returned in the <code>bytes</code> field of the <code>chunk</code> object.</p> <ul> <li> <p>The <code>attribution</code> object contains citations for parts of the response.</p> </li> <li> <p>If you set <code>enableTrace</code> to <code>true</code> in the request, you can trace the agent's steps and reasoning process that led it to the response.</p> </li> <li> <p>Errors are also surfaced in the response.</p> </li> </ul>"
     },
     "Retrieve":{
       "name":"Retrieve",
@@ -76,7 +76,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ServiceQuotaExceededException"}
       ],
-      "documentation":"<p>Queries a knowledge base and generates responses based on the retrieved results. The response cites up to five sources but only selects the ones that are relevant to the query.</p> <note> <p>The <code>numberOfResults</code> field is currently unsupported for <code>RetrieveAndGenerate</code>. Don't include it in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_KnowledgeBaseVectorSearchConfiguration.html\">vectorSearchConfiguration</a> object.</p> </note>"
+      "documentation":"<p>Queries a knowledge base and generates responses based on the retrieved results. The response only cites sources that are relevant to the query.</p>"
     }
   },
   "shapes":{
@@ -103,6 +103,10 @@
           "shape":"ApiPath",
           "documentation":"<p>The path to the API to call, based off the action group.</p>"
         },
+        "function":{
+          "shape":"Function",
+          "documentation":"<p>The function in the action group to call.</p>"
+        },
         "parameters":{
           "shape":"Parameters",
           "documentation":"<p>The parameters in the Lambda input event.</p>"
@@ -116,7 +120,7 @@
           "documentation":"<p>The API method being used, based off the action group.</p>"
         }
       },
-      "documentation":"<p>Contains information about the action group being invoked.</p>"
+      "documentation":"<p>Contains information about the action group being invoked. For more information about the possible structures, see the InvocationInput tab in <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/trace-orchestration.html\">OrchestrationTrace</a> in the Amazon Bedrock User Guide.</p>"
     },
     "ActionGroupInvocationOutput":{
       "type":"structure",
@@ -148,9 +152,110 @@
       "min":0,
       "pattern":"^[0-9a-zA-Z]+$"
     },
+    "AgentVersion":{
+      "type":"string",
+      "max":5,
+      "min":1,
+      "pattern":"^(DRAFT|[0-9]{0,4}[1-9][0-9]{0,4})$"
+    },
+    "ApiContentMap":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"PropertyParameters"}
+    },
+    "ApiInvocationInput":{
+      "type":"structure",
+      "required":["actionGroup"],
+      "members":{
+        "actionGroup":{
+          "shape":"String",
+          "documentation":"<p>The action group that the API operation belongs to.</p>"
+        },
+        "apiPath":{
+          "shape":"ApiPath",
+          "documentation":"<p>The path to the API operation.</p>"
+        },
+        "httpMethod":{
+          "shape":"String",
+          "documentation":"<p>The HTTP method of the API operation.</p>"
+        },
+        "parameters":{
+          "shape":"ApiParameters",
+          "documentation":"<p>The parameters to provide for the API request, as the agent elicited from the user.</p>"
+        },
+        "requestBody":{
+          "shape":"ApiRequestBody",
+          "documentation":"<p>The request body to provide for the API request, as the agent elicited from the user.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about the API operation that the agent predicts should be called.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p>In the <code>returnControl</code> field of the <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> </p> </li> </ul>"
+    },
+    "ApiParameter":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the parameter.</p>"
+        },
+        "type":{
+          "shape":"String",
+          "documentation":"<p>The data type for the parameter.</p>"
+        },
+        "value":{
+          "shape":"String",
+          "documentation":"<p>The value of the parameter.</p>"
+        }
+      },
+      "documentation":"<p>Information about a parameter to provide to the API request.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> </p> </li> </ul>"
+    },
+    "ApiParameters":{
+      "type":"list",
+      "member":{"shape":"ApiParameter"}
+    },
     "ApiPath":{
       "type":"string",
       "sensitive":true
+    },
+    "ApiRequestBody":{
+      "type":"structure",
+      "members":{
+        "content":{
+          "shape":"ApiContentMap",
+          "documentation":"<p>The content of the request body. The key of the object in this field is a media type defining the format of the request body.</p>"
+        }
+      },
+      "documentation":"<p>The request body to provide for the API request, as the agent elicited from the user.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> </p> </li> </ul>"
+    },
+    "ApiResult":{
+      "type":"structure",
+      "required":["actionGroup"],
+      "members":{
+        "actionGroup":{
+          "shape":"String",
+          "documentation":"<p>The action group that the API operation belongs to.</p>"
+        },
+        "apiPath":{
+          "shape":"ApiPath",
+          "documentation":"<p>The path to the API operation.</p>"
+        },
+        "httpMethod":{
+          "shape":"String",
+          "documentation":"<p>The HTTP method for the API operation.</p>"
+        },
+        "httpStatusCode":{
+          "shape":"Integer",
+          "documentation":"<p>http status code from API execution response (for example: 200, 400, 500).</p>"
+        },
+        "responseBody":{
+          "shape":"ResponseBody",
+          "documentation":"<p>The response body from the API operation. The key of the object is the content type. The response may be returned directly or from the Lambda function.</p>"
+        },
+        "responseState":{
+          "shape":"ResponseState",
+          "documentation":"<p>Controls the final response state returned to end user when API/Function execution failed. When this state is FAILURE, the request would fail with dependency failure exception. When this state is REPROMPT, the API/function response will be sent to model for re-prompt</p>"
+        }
+      },
+      "documentation":"<p>Contains information about the API operation that was called from the action group and the response body that was returned.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p>In the <code>returnControlInvocationResults</code> of the <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_RequestSyntax\">Retrieve request</a> </p> </li> </ul>"
     },
     "Attribution":{
       "type":"structure",
@@ -198,7 +303,7 @@
           "documentation":"<p>Contains metadata about the sources cited for the generated response.</p>"
         }
       },
-      "documentation":"<p>An object containing a segment of the generated response that is based on a source in the knowledge base, alongside information about the source.</p>"
+      "documentation":"<p>An object containing a segment of the generated response that is based on a source in the knowledge base, alongside information about the source.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>citations</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>citations</code> field</p> </li> </ul>"
     },
     "Citations":{
       "type":"list",
@@ -215,6 +320,16 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "ContentBody":{
+      "type":"structure",
+      "members":{
+        "body":{
+          "shape":"String",
+          "documentation":"<p>The body of the API response.</p>"
+        }
+      },
+      "documentation":"<p>Contains the body of the API response.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p>In the <code>returnControlInvocationResults</code> field of the <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_RequestSyntax\">Retrieve request</a> </p> </li> </ul>"
     },
     "ContentMap":{
       "type":"map",
@@ -267,6 +382,35 @@
       "documentation":"<p>Contains information about the failure of the interaction.</p>",
       "sensitive":true
     },
+    "FilterAttribute":{
+      "type":"structure",
+      "required":[
+        "key",
+        "value"
+      ],
+      "members":{
+        "key":{
+          "shape":"FilterKey",
+          "documentation":"<p>The name that the metadata attribute must match.</p>"
+        },
+        "value":{
+          "shape":"FilterValue",
+          "documentation":"<p>The value to whcih to compare the value of the metadata attribute.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the name that the metadata attribute must match and the value to which to compare the value of the metadata attribute. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html\">Query configurations</a>.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax\">RetrieveAndGenerate request</a> </p> </li> </ul>"
+    },
+    "FilterKey":{
+      "type":"string",
+      "max":100,
+      "min":1
+    },
+    "FilterValue":{
+      "type":"structure",
+      "members":{
+      },
+      "document":true
+    },
     "FinalResponse":{
       "type":"structure",
       "members":{
@@ -281,6 +425,74 @@
       "type":"string",
       "sensitive":true
     },
+    "Function":{
+      "type":"string",
+      "sensitive":true
+    },
+    "FunctionInvocationInput":{
+      "type":"structure",
+      "required":["actionGroup"],
+      "members":{
+        "actionGroup":{
+          "shape":"String",
+          "documentation":"<p>The action group that the function belongs to.</p>"
+        },
+        "function":{
+          "shape":"String",
+          "documentation":"<p>The name of the function.</p>"
+        },
+        "parameters":{
+          "shape":"FunctionParameters",
+          "documentation":"<p>A list of parameters of the function.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about the function that the agent predicts should be called.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p>In the <code>returnControl</code> field of the <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> </p> </li> </ul>"
+    },
+    "FunctionParameter":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the parameter.</p>"
+        },
+        "type":{
+          "shape":"String",
+          "documentation":"<p>The data type of the parameter.</p>"
+        },
+        "value":{
+          "shape":"String",
+          "documentation":"<p>The value of the parameter.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a parameter of the function.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p>In the <code>returnControl</code> field of the <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> </p> </li> </ul>"
+    },
+    "FunctionParameters":{
+      "type":"list",
+      "member":{"shape":"FunctionParameter"}
+    },
+    "FunctionResult":{
+      "type":"structure",
+      "required":["actionGroup"],
+      "members":{
+        "actionGroup":{
+          "shape":"String",
+          "documentation":"<p>The action group that the function belongs to.</p>"
+        },
+        "function":{
+          "shape":"String",
+          "documentation":"<p>The name of the function that was called.</p>"
+        },
+        "responseBody":{
+          "shape":"ResponseBody",
+          "documentation":"<p>The response from the function call using the parameters. The response may be returned directly or from the Lambda function.</p>"
+        },
+        "responseState":{
+          "shape":"ResponseState",
+          "documentation":"<p>Controls the final response state returned to end user when API/Function execution failed. When this state is FAILURE, the request would fail with dependency failure exception. When this state is REPROMPT, the API/function response will be sent to model for re-prompt</p>"
+        }
+      },
+      "documentation":"<p>Contains information about the function that was called from the action group and the response that was returned.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p>In the <code>returnControlInvocationResults</code> of the <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_RequestSyntax\">Retrieve request</a> </p> </li> </ul>"
+    },
     "GeneratedResponsePart":{
       "type":"structure",
       "members":{
@@ -289,7 +501,17 @@
           "documentation":"<p>Contains metadata about a textual part of the generated response that is accompanied by a citation.</p>"
         }
       },
-      "documentation":"<p>Contains metadata about a part of the generated response that is accompanied by a citation.</p>"
+      "documentation":"<p>Contains metadata about a part of the generated response that is accompanied by a citation.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>generatedResponsePart</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>generatedResponsePart</code> field</p> </li> </ul>"
+    },
+    "GenerationConfiguration":{
+      "type":"structure",
+      "members":{
+        "promptTemplate":{
+          "shape":"PromptTemplate",
+          "documentation":"<p>Contains the template for the prompt that's sent to the model for response generation.</p>"
+        }
+      },
+      "documentation":"<p>Contains configurations for response generation based on the knowledge base query results.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax\">RetrieveAndGenerate request</a> </p> </li> </ul>"
     },
     "InferenceConfiguration":{
       "type":"structure",
@@ -322,6 +544,10 @@
       "max":25000000,
       "min":0,
       "sensitive":true
+    },
+    "Integer":{
+      "type":"integer",
+      "box":true
     },
     "InternalServerException":{
       "type":"structure",
@@ -356,6 +582,42 @@
       "documentation":"<p>Contains information pertaining to the action group or knowledge base that is being invoked.</p>",
       "sensitive":true
     },
+    "InvocationInputMember":{
+      "type":"structure",
+      "members":{
+        "apiInvocationInput":{
+          "shape":"ApiInvocationInput",
+          "documentation":"<p>Contains information about the API operation that the agent predicts should be called.</p>"
+        },
+        "functionInvocationInput":{
+          "shape":"FunctionInvocationInput",
+          "documentation":"<p>Contains information about the function that the agent predicts should be called.</p>"
+        }
+      },
+      "documentation":"<p>Contains details about the API operation or function that the agent predicts should be called.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p>In the <code>returnControl</code> field of the <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> </p> </li> </ul>",
+      "union":true
+    },
+    "InvocationInputs":{
+      "type":"list",
+      "member":{"shape":"InvocationInputMember"},
+      "max":5,
+      "min":1
+    },
+    "InvocationResultMember":{
+      "type":"structure",
+      "members":{
+        "apiResult":{
+          "shape":"ApiResult",
+          "documentation":"<p>The result from the API response from the action group invocation.</p>"
+        },
+        "functionResult":{
+          "shape":"FunctionResult",
+          "documentation":"<p>The result from the function from the action group invocation.</p>"
+        }
+      },
+      "documentation":"<p>A result from the action group invocation.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_RequestSyntax\">Retrieve request</a> </p> </li> </ul>",
+      "union":true
+    },
     "InvocationType":{
       "type":"string",
       "enum":[
@@ -369,7 +631,6 @@
       "required":[
         "agentAliasId",
         "agentId",
-        "inputText",
         "sessionId"
       ],
       "members":{
@@ -405,7 +666,7 @@
         },
         "sessionState":{
           "shape":"SessionState",
-          "documentation":"<p>Contains parameters that specify various attributes of the session.</p>"
+          "documentation":"<p>Contains parameters that specify various attributes of the session. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/agents-session-state.html\">Control session context</a>.</p>"
         }
       }
     },
@@ -485,7 +746,7 @@
           "documentation":"<p>The text of the query made to the knowledge base.</p>"
         }
       },
-      "documentation":"<p>Contains the query made to the knowledge base.</p>",
+      "documentation":"<p>Contains the query made to the knowledge base.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_RequestSyntax\">Retrieve request</a> – in the <code>retrievalQuery</code> field</p> </li> </ul>",
       "sensitive":true
     },
     "KnowledgeBaseQueryTextString":{
@@ -499,10 +760,10 @@
       "members":{
         "vectorSearchConfiguration":{
           "shape":"KnowledgeBaseVectorSearchConfiguration",
-          "documentation":"<p>Contains details about how the results from the vector search should be returned.</p>"
+          "documentation":"<p>Contains details about how the results from the vector search should be returned. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html\">Query configurations</a>.</p>"
         }
       },
-      "documentation":"<p>Contains details about how the results should be returned.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_RequestSyntax\">Retrieve request body</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax\">RetrieveAndGenerate request body</a> </p> </li> </ul>"
+      "documentation":"<p>Contains configurations for the knowledge base query and retrieval process. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html\">Query configurations</a>.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_RequestSyntax\">Retrieve request</a> – in the <code>retrievalConfiguration</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax\">RetrieveAndGenerate request</a> – in the <code>retrievalConfiguration</code> field</p> </li> </ul>"
     },
     "KnowledgeBaseRetrievalResult":{
       "type":"structure",
@@ -516,12 +777,16 @@
           "shape":"RetrievalResultLocation",
           "documentation":"<p>Contains information about the location of the data source.</p>"
         },
+        "metadata":{
+          "shape":"RetrievalResultMetadata",
+          "documentation":"<p>Contains metadata attributes and their values for the file in the data source. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base-ds.html#kb-ds-metadata\">Metadata and filtering</a>.</p>"
+        },
         "score":{
           "shape":"Double",
           "documentation":"<p>The level of relevance of the result to the query.</p>"
         }
       },
-      "documentation":"<p>Details about a result from querying the knowledge base.</p>"
+      "documentation":"<p>Details about a result from querying the knowledge base.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>retrievalResults</code> field</p> </li> </ul>"
     },
     "KnowledgeBaseRetrievalResults":{
       "type":"list",
@@ -535,6 +800,10 @@
         "modelArn"
       ],
       "members":{
+        "generationConfiguration":{
+          "shape":"GenerationConfiguration",
+          "documentation":"<p>Contains configurations for response generation based on the knowwledge base query results.</p>"
+        },
         "knowledgeBaseId":{
           "shape":"KnowledgeBaseId",
           "documentation":"<p>The unique identifier of the knowledge base that is queried and the foundation model used for generation.</p>"
@@ -548,14 +817,18 @@
           "documentation":"<p>Contains configurations for how to retrieve and return the knowledge base query.</p>"
         }
       },
-      "documentation":"<p>Contains details about the resource being queried.</p>"
+      "documentation":"<p>Contains details about the resource being queried.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_RequestSyntax\">Retrieve request</a> – in the <code>knowledgeBaseConfiguration</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax\">RetrieveAndGenerate request</a> – in the <code>knowledgeBaseConfiguration</code> field</p> </li> </ul>"
     },
     "KnowledgeBaseVectorSearchConfiguration":{
       "type":"structure",
       "members":{
+        "filter":{
+          "shape":"RetrievalFilter",
+          "documentation":"<p>Specifies the filters to use on the metadata in the knowledge base data sources before returning results. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html\">Query configurations</a>.</p>"
+        },
         "numberOfResults":{
           "shape":"KnowledgeBaseVectorSearchConfigurationNumberOfResultsInteger",
-          "documentation":"<p>The number of results to return.</p> <note> <p>The <code>numberOfResults</code> field is currently unsupported for <code>RetrieveAndGenerate</code>. Don't include it in this field if you are sending a <code>RetrieveAndGenerate</code> request.</p> </note>",
+          "documentation":"<p>The number of source chunks to retrieve.</p>",
           "box":true
         },
         "overrideSearchType":{
@@ -563,12 +836,12 @@
           "documentation":"<p>By default, Amazon Bedrock decides a search strategy for you. If you're using an Amazon OpenSearch Serverless vector store that contains a filterable text field, you can specify whether to query the knowledge base with a <code>HYBRID</code> search using both vector embeddings and raw text, or <code>SEMANTIC</code> search using only vector embeddings. For other vector store configurations, only <code>SEMANTIC</code> search is available. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base-test.html\">Test a knowledge base</a>.</p>"
         }
       },
-      "documentation":"<p>Configurations for how to carry out the search.</p>"
+      "documentation":"<p>Configurations for how to perform the search query and return results. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html\">Query configurations</a>.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_RequestSyntax\">Retrieve request</a> – in the <code>vectorSearchConfiguration</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax\">RetrieveAndGenerate request</a> – in the <code>vectorSearchConfiguration</code> field</p> </li> </ul>"
     },
     "KnowledgeBaseVectorSearchConfigurationNumberOfResultsInteger":{
       "type":"integer",
       "box":true,
-      "max":25,
+      "max":100,
       "min":1
     },
     "LambdaArn":{"type":"string"},
@@ -699,7 +972,11 @@
           "documentation":"<p>The value of the parameter.</p>"
         }
       },
-      "documentation":"<p>A parameter in the Lambda input event.</p>"
+      "documentation":"<p>A parameter for the API request or function.</p>"
+    },
+    "ParameterList":{
+      "type":"list",
+      "member":{"shape":"Parameter"}
     },
     "Parameters":{
       "type":"list",
@@ -820,6 +1097,16 @@
       "key":{"shape":"String"},
       "value":{"shape":"String"}
     },
+    "PromptTemplate":{
+      "type":"structure",
+      "members":{
+        "textPromptTemplate":{
+          "shape":"TextPromptTemplate",
+          "documentation":"<p>The template for the prompt that's sent to the model for response generation. You can include prompt placeholders, which become replaced before the prompt is sent to the model to provide instructions and context to the model. In addition, you can include XML tags to delineate meaningful sections of the prompt template.</p> <p>For more information, see the following resources:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html#kb-test-config-sysprompt\">Knowledge base prompt templates</a> </p> </li> <li> <p> <a href=\"https://docs.anthropic.com/claude/docs/use-xml-tags\">Use XML tags with Anthropic Claude models</a> </p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Contains the template for the prompt that's sent to the model for response generation. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html#kb-test-config-sysprompt\">Knowledge base prompt templates</a>.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax\">RetrieveAndGenerate request</a> – in the <code>filter</code> field</p> </li> </ul>"
+    },
     "PromptText":{
       "type":"string",
       "sensitive":true
@@ -832,6 +1119,16 @@
         "KNOWLEDGE_BASE_RESPONSE_GENERATION",
         "POST_PROCESSING"
       ]
+    },
+    "PropertyParameters":{
+      "type":"structure",
+      "members":{
+        "properties":{
+          "shape":"ParameterList",
+          "documentation":"<p>A list of parameters in the request body.</p>"
+        }
+      },
+      "documentation":"<p>Contains the parameters in the request body.</p>"
     },
     "Rationale":{
       "type":"structure",
@@ -875,19 +1172,31 @@
           "documentation":"<p>The content in the request body.</p>"
         }
       },
-      "documentation":"<p>The parameters in the request body for the Lambda input event.</p>"
+      "documentation":"<p>The parameters in the API request body.</p>"
     },
     "ResourceNotFoundException":{
       "type":"structure",
       "members":{
         "message":{"shape":"NonBlankString"}
       },
-      "documentation":"<p>The specified resource ARN was not found. Check the ARN and try your request again.</p>",
+      "documentation":"<p>The specified resource Amazon Resource Name (ARN) was not found. Check the Amazon Resource Name (ARN) and try your request again.</p>",
       "error":{
         "httpStatusCode":404,
         "senderFault":true
       },
       "exception":true
+    },
+    "ResponseBody":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"ContentBody"}
+    },
+    "ResponseState":{
+      "type":"string",
+      "enum":[
+        "FAILURE",
+        "REPROMPT"
+      ]
     },
     "ResponseStream":{
       "type":"structure",
@@ -918,7 +1227,11 @@
         },
         "resourceNotFoundException":{
           "shape":"ResourceNotFoundException",
-          "documentation":"<p>The specified resource ARN was not found. Check the ARN and try your request again.</p>"
+          "documentation":"<p>The specified resource Amazon Resource Name (ARN) was not found. Check the Amazon Resource Name (ARN) and try your request again.</p>"
+        },
+        "returnControl":{
+          "shape":"ReturnControlPayload",
+          "documentation":"<p>Contains the parameters and information that the agent elicited from the customer to carry out an action. This information is returned to the system and can be used in your own setup for fulfilling the action.</p>"
         },
         "serviceQuotaExceededException":{
           "shape":"ServiceQuotaExceededException",
@@ -930,7 +1243,7 @@
         },
         "trace":{
           "shape":"TracePart",
-          "documentation":"<p>Contains information about the agent and session, alongside the agent's reasoning process and results from calling API actions and querying knowledge bases and metadata about the trace. You can use the trace to understand how the agent arrived at the response it provided the customer. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/trace-events.html\">Trace events</a>.</p>"
+          "documentation":"<p>Contains information about the agent and session, alongside the agent's reasoning process and results from calling actions and querying knowledge bases and metadata about the trace. You can use the trace to understand how the agent arrived at the response it provided the customer. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/trace-events.html\">Trace events</a>.</p>"
         },
         "validationException":{
           "shape":"ValidationException",
@@ -939,6 +1252,64 @@
       },
       "documentation":"<p>The response from invoking the agent and associated citations and trace information.</p>",
       "eventstream":true
+    },
+    "RetrievalFilter":{
+      "type":"structure",
+      "members":{
+        "andAll":{
+          "shape":"RetrievalFilterList",
+          "documentation":"<p>Knowledge base data sources whose metadata attributes fulfill all the filter conditions inside this list are returned.</p>"
+        },
+        "equals":{
+          "shape":"FilterAttribute",
+          "documentation":"<p>Knowledge base data sources that contain a metadata attribute whose name matches the <code>key</code> and whose value matches the <code>value</code> in this object are returned.</p>"
+        },
+        "greaterThan":{
+          "shape":"FilterAttribute",
+          "documentation":"<p>Knowledge base data sources that contain a metadata attribute whose name matches the <code>key</code> and whose value is greater than the <code>value</code> in this object are returned.</p>"
+        },
+        "greaterThanOrEquals":{
+          "shape":"FilterAttribute",
+          "documentation":"<p>Knowledge base data sources that contain a metadata attribute whose name matches the <code>key</code> and whose value is greater than or equal to the <code>value</code> in this object are returned.</p>"
+        },
+        "in":{
+          "shape":"FilterAttribute",
+          "documentation":"<p>Knowledge base data sources that contain a metadata attribute whose name matches the <code>key</code> and whose value is in the list specified in the <code>value</code> in this object are returned.</p>"
+        },
+        "lessThan":{
+          "shape":"FilterAttribute",
+          "documentation":"<p>Knowledge base data sources that contain a metadata attribute whose name matches the <code>key</code> and whose value is less than the <code>value</code> in this object are returned.</p>"
+        },
+        "lessThanOrEquals":{
+          "shape":"FilterAttribute",
+          "documentation":"<p>Knowledge base data sources that contain a metadata attribute whose name matches the <code>key</code> and whose value is less than or equal to the <code>value</code> in this object are returned.</p>"
+        },
+        "notEquals":{
+          "shape":"FilterAttribute",
+          "documentation":"<p>Knowledge base data sources that contain a metadata attribute whose name matches the <code>key</code> and whose value doesn't match the <code>value</code> in this object are returned.</p>"
+        },
+        "notIn":{
+          "shape":"FilterAttribute",
+          "documentation":"<p>Knowledge base data sources that contain a metadata attribute whose name matches the <code>key</code> and whose value isn't in the list specified in the <code>value</code> in this object are returned.</p>"
+        },
+        "orAll":{
+          "shape":"RetrievalFilterList",
+          "documentation":"<p>Knowledge base data sources whose metadata attributes fulfill at least one of the filter conditions inside this list are returned.</p>"
+        },
+        "startsWith":{
+          "shape":"FilterAttribute",
+          "documentation":"<p>Knowledge base data sources that contain a metadata attribute whose name matches the <code>key</code> and whose value starts with the <code>value</code> in this object are returned. This filter is currently only supported for Amazon OpenSearch Serverless vector stores.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the filters to use on the metadata attributes in the knowledge base data sources before returning results. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html\">Query configurations</a>.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_RequestSyntax\">Retrieve request</a> – in the <code>filter</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax\">RetrieveAndGenerate request</a> – in the <code>filter</code> field</p> </li> </ul>",
+      "sensitive":true,
+      "union":true
+    },
+    "RetrievalFilterList":{
+      "type":"list",
+      "member":{"shape":"RetrievalFilter"},
+      "max":5,
+      "min":2
     },
     "RetrievalResultContent":{
       "type":"structure",
@@ -949,7 +1320,7 @@
           "documentation":"<p>The cited text from the data source.</p>"
         }
       },
-      "documentation":"<p>Contains the cited text from the data source.</p>",
+      "documentation":"<p>Contains the cited text from the data source.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>content</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>content</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>content</code> field</p> </li> </ul>",
       "sensitive":true
     },
     "RetrievalResultLocation":{
@@ -965,12 +1336,30 @@
           "documentation":"<p>The type of the location of the data source.</p>"
         }
       },
-      "documentation":"<p>Contains information about the location of the data source.</p>",
+      "documentation":"<p>Contains information about the location of the data source.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>location</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>location</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>locatino</code> field</p> </li> </ul>",
       "sensitive":true
     },
     "RetrievalResultLocationType":{
       "type":"string",
       "enum":["S3"]
+    },
+    "RetrievalResultMetadata":{
+      "type":"map",
+      "key":{"shape":"RetrievalResultMetadataKey"},
+      "value":{"shape":"RetrievalResultMetadataValue"},
+      "min":1,
+      "sensitive":true
+    },
+    "RetrievalResultMetadataKey":{
+      "type":"string",
+      "max":100,
+      "min":1
+    },
+    "RetrievalResultMetadataValue":{
+      "type":"structure",
+      "members":{
+      },
+      "document":true
     },
     "RetrievalResultS3Location":{
       "type":"structure",
@@ -980,7 +1369,7 @@
           "documentation":"<p>The S3 URI of the data source.</p>"
         }
       },
-      "documentation":"<p>Contains the S3 location of the data source.</p>"
+      "documentation":"<p>Contains the S3 location of the data source.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>s3Location</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>s3Location</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>s3Location</code> field</p> </li> </ul>"
     },
     "RetrieveAndGenerateConfiguration":{
       "type":"structure",
@@ -995,7 +1384,7 @@
           "documentation":"<p>The type of resource that is queried by the request.</p>"
         }
       },
-      "documentation":"<p>Contains details about the resource being queried.</p>"
+      "documentation":"<p>Contains details about the resource being queried.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax\">RetrieveAndGenerate request</a> – in the <code>retrieveAndGenerateConfiguration</code> field</p> </li> </ul>"
     },
     "RetrieveAndGenerateInput":{
       "type":"structure",
@@ -1006,7 +1395,7 @@
           "documentation":"<p>The query made to the knowledge base.</p>"
         }
       },
-      "documentation":"<p>Contains the query made to the knowledge base.</p>",
+      "documentation":"<p>Contains the query made to the knowledge base.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax\">RetrieveAndGenerate request</a> – in the <code>input</code> field</p> </li> </ul>",
       "sensitive":true
     },
     "RetrieveAndGenerateInputTextString":{
@@ -1023,7 +1412,7 @@
           "documentation":"<p>The response generated from querying the knowledge base.</p>"
         }
       },
-      "documentation":"<p>Contains the response generated from querying the knowledge base.</p>",
+      "documentation":"<p>Contains the response generated from querying the knowledge base.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>output</code> field</p> </li> </ul>",
       "sensitive":true
     },
     "RetrieveAndGenerateRequest":{
@@ -1032,11 +1421,11 @@
       "members":{
         "input":{
           "shape":"RetrieveAndGenerateInput",
-          "documentation":"<p>Contains the query made to the knowledge base.</p>"
+          "documentation":"<p>Contains the query to be made to the knowledge base.</p>"
         },
         "retrieveAndGenerateConfiguration":{
           "shape":"RetrieveAndGenerateConfiguration",
-          "documentation":"<p>Contains details about the resource being queried and the foundation model used for generation.</p>"
+          "documentation":"<p>Contains configurations for the knowledge base query and retrieval process. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html\">Query configurations</a>.</p>"
         },
         "sessionConfiguration":{
           "shape":"RetrieveAndGenerateSessionConfiguration",
@@ -1078,7 +1467,7 @@
           "documentation":"<p>The ARN of the KMS key encrypting the session.</p>"
         }
       },
-      "documentation":"<p>Contains configuration about the session with the knowledge base.</p>"
+      "documentation":"<p>Contains configuration about the session with the knowledge base.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax\">RetrieveAndGenerate request</a> – in the <code>sessionConfiguration</code> field</p> </li> </ul>"
     },
     "RetrieveAndGenerateType":{
       "type":"string",
@@ -1103,11 +1492,11 @@
         },
         "retrievalConfiguration":{
           "shape":"KnowledgeBaseRetrievalConfiguration",
-          "documentation":"<p>Contains details about how the results should be returned.</p>"
+          "documentation":"<p>Contains configurations for the knowledge base query and retrieval process. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html\">Query configurations</a>.</p>"
         },
         "retrievalQuery":{
           "shape":"KnowledgeBaseQuery",
-          "documentation":"<p>The query to send the knowledge base.</p>"
+          "documentation":"<p>Contains the query to send the knowledge base.</p>"
         }
       }
     },
@@ -1135,13 +1524,39 @@
         "location":{
           "shape":"RetrievalResultLocation",
           "documentation":"<p>Contains information about the location of the data source.</p>"
+        },
+        "metadata":{
+          "shape":"RetrievalResultMetadata",
+          "documentation":"<p>Contains metadata attributes and their values for the file in the data source. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base-ds.html#kb-ds-metadata\">Metadata and filtering</a>.</p>"
         }
       },
-      "documentation":"<p>Contains metadata about a sources cited for the generated response.</p>"
+      "documentation":"<p>Contains metadata about a source cited for the generated response.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>retrievedReferences</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>retrievedReferences</code> field</p> </li> </ul>"
     },
     "RetrievedReferences":{
       "type":"list",
       "member":{"shape":"RetrievedReference"}
+    },
+    "ReturnControlInvocationResults":{
+      "type":"list",
+      "member":{"shape":"InvocationResultMember"},
+      "max":5,
+      "min":1
+    },
+    "ReturnControlPayload":{
+      "type":"structure",
+      "members":{
+        "invocationId":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the action group invocation.</p>"
+        },
+        "invocationInputs":{
+          "shape":"InvocationInputs",
+          "documentation":"<p>A list of objects that contain information about the parameters and inputs that need to be sent into the API operation or function, based on what the agent determines from its session with the user.</p>"
+        }
+      },
+      "documentation":"<p>Contains information to return from the action group that the agent has predicted to invoke.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> </p> </li> </ul>",
+      "event":true,
+      "sensitive":true
     },
     "SearchType":{
       "type":"string",
@@ -1176,16 +1591,24 @@
     "SessionState":{
       "type":"structure",
       "members":{
+        "invocationId":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the invocation.</p>"
+        },
         "promptSessionAttributes":{
           "shape":"PromptSessionAttributesMap",
           "documentation":"<p>Contains attributes that persist across a prompt and the values of those attributes. These attributes replace the $prompt_session_attributes$ placeholder variable in the orchestration prompt template. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-placeholders.html\">Prompt template placeholder variables</a>.</p>"
+        },
+        "returnControlInvocationResults":{
+          "shape":"ReturnControlInvocationResults",
+          "documentation":"<p>Contains information about the results from the action group invocation.</p>"
         },
         "sessionAttributes":{
           "shape":"SessionAttributesMap",
           "documentation":"<p>Contains attributes that persist across a session and the values of those attributes.</p>"
         }
       },
-      "documentation":"<p>Contains parameters that specify various attributes that persist across a session or prompt. You can define session state attributes as key-value pairs when writing a <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/agents-lambda.html\">Lambda function</a> for an action group or pass them when making an <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeAgent.html\">InvokeAgent</a> request. Use session state attributes to control and provide conversational context for your agent and to help customize your agent's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/sessionstate.html\">Session context</a>.</p>"
+      "documentation":"<p>Contains parameters that specify various attributes that persist across a session or prompt. You can define session state attributes as key-value pairs when writing a <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/agents-lambda.html\">Lambda function</a> for an action group or pass them when making an <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeAgent.html\">InvokeAgent</a> request. Use session state attributes to control and provide conversational context for your agent and to help customize your agent's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/agents-session-state.html\">Control session context</a>.</p>"
     },
     "Source":{
       "type":"string",
@@ -1208,7 +1631,7 @@
           "documentation":"<p>Where the text with a citation starts in the generated output.</p>"
         }
       },
-      "documentation":"<p>Contains information about where the text with a citation begins and ends in the generated output.</p>"
+      "documentation":"<p>Contains information about where the text with a citation begins and ends in the generated output.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>span</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>span</code> field</p> </li> </ul>"
     },
     "SpanEndInteger":{
       "type":"integer",
@@ -1233,6 +1656,12 @@
       "max":1,
       "min":0
     },
+    "TextPromptTemplate":{
+      "type":"string",
+      "max":4000,
+      "min":1,
+      "sensitive":true
+    },
     "TextResponsePart":{
       "type":"structure",
       "members":{
@@ -1245,7 +1674,7 @@
           "documentation":"<p>The part of the generated text that contains a citation.</p>"
         }
       },
-      "documentation":"<p>Contains the part of the generated text that contains a citation, alongside where it begins and ends.</p>",
+      "documentation":"<p>Contains the part of the generated text that contains a citation, alongside where it begins and ends.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>textResponsePart</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>textResponsePart</code> field</p> </li> </ul>",
       "sensitive":true
     },
     "ThrottlingException":{
@@ -1315,6 +1744,10 @@
         "agentId":{
           "shape":"AgentId",
           "documentation":"<p>The unique identifier of the agent.</p>"
+        },
+        "agentVersion":{
+          "shape":"AgentVersion",
+          "documentation":"<p>The version of the agent.</p>"
         },
         "sessionId":{
           "shape":"SessionId",

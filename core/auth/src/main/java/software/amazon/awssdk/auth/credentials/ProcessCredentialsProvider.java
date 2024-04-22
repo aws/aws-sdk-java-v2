@@ -64,6 +64,7 @@ public final class ProcessCredentialsProvider
     implements AwsCredentialsProvider,
                SdkAutoCloseable,
                ToCopyableBuilder<ProcessCredentialsProvider.Builder, ProcessCredentialsProvider> {
+    private static final String PROVIDER_NAME = "ProcessCredentialsProvider";
     private static final JsonNodeParser PARSER = JsonNodeParser.builder()
                                                                .removeErrorLocations(true)
                                                                .build();
@@ -76,30 +77,19 @@ public final class ProcessCredentialsProvider
 
     private final String commandFromBuilder;
 
+    private final List<String> commandAsListOfStringsFromBuilder;
+
     private final Boolean asyncCredentialUpdateEnabled;
 
     /**
      * @see #builder()
      */
     private ProcessCredentialsProvider(Builder builder) {
-        List<String> cmd = new ArrayList<>();
-
-        if (Platform.isWindows()) {
-            cmd.add("cmd.exe");
-            cmd.add("/C");
-        } else {
-            cmd.add("sh");
-            cmd.add("-c");
-        }
-
-        String builderCommand = Validate.paramNotNull(builder.command, "command");
-
-        cmd.add(builderCommand);
-
-        this.executableCommand = Collections.unmodifiableList(cmd);
+        this.executableCommand = executableCommand(builder);
         this.processOutputLimit = Validate.isPositive(builder.processOutputLimit, "processOutputLimit");
         this.credentialRefreshThreshold = Validate.isPositive(builder.credentialRefreshThreshold, "expirationBuffer");
         this.commandFromBuilder = builder.command;
+        this.commandAsListOfStringsFromBuilder = builder.commandAsListOfStrings;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
@@ -109,6 +99,26 @@ public final class ProcessCredentialsProvider
         }
 
         this.processCredentialCache = cacheBuilder.build();
+    }
+
+    private List<String> executableCommand(Builder builder) {
+        if (builder.commandAsListOfStrings != null) {
+            return Collections.unmodifiableList(builder.commandAsListOfStrings);
+        } else {
+            List<String> cmd = new ArrayList<>();
+
+            if (Platform.isWindows()) {
+                cmd.add("cmd.exe");
+                cmd.add("/C");
+            } else {
+                cmd.add("sh");
+                cmd.add("-c");
+            }
+
+            String builderCommand = Validate.paramNotNull(builder.command, "command");
+            cmd.add(builderCommand);
+            return Collections.unmodifiableList(cmd);
+        }
     }
 
     /**
@@ -170,11 +180,18 @@ public final class ProcessCredentialsProvider
         Validate.notEmpty(accessKeyId, "AccessKeyId cannot be empty.");
         Validate.notEmpty(secretAccessKey, "SecretAccessKey cannot be empty.");
 
-        if (sessionToken != null) {
-            return AwsSessionCredentials.create(accessKeyId, secretAccessKey, sessionToken);
-        } else {
-            return AwsBasicCredentials.create(accessKeyId, secretAccessKey);
-        }
+        return sessionToken != null ?
+               AwsSessionCredentials.builder()
+                                    .accessKeyId(accessKeyId)
+                                    .secretAccessKey(secretAccessKey)
+                                    .sessionToken(sessionToken)
+                                    .providerName(PROVIDER_NAME)
+                                    .build() :
+               AwsBasicCredentials.builder()
+                                  .accessKeyId(accessKeyId)
+                                  .secretAccessKey(secretAccessKey)
+                                  .providerName(PROVIDER_NAME)
+                                  .build();
     }
 
     /**
@@ -241,6 +258,7 @@ public final class ProcessCredentialsProvider
     public static class Builder implements CopyableBuilder<Builder, ProcessCredentialsProvider> {
         private Boolean asyncCredentialUpdateEnabled = false;
         private String command;
+        private List<String> commandAsListOfStrings;
         private Duration credentialRefreshThreshold = Duration.ofSeconds(15);
         private long processOutputLimit = 64000;
 
@@ -253,6 +271,7 @@ public final class ProcessCredentialsProvider
         private Builder(ProcessCredentialsProvider provider) {
             this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
             this.command = provider.commandFromBuilder;
+            this.commandAsListOfStrings = provider.commandAsListOfStringsFromBuilder;
             this.credentialRefreshThreshold = provider.credentialRefreshThreshold;
             this.processOutputLimit = provider.processOutputLimit;
         }
@@ -272,9 +291,24 @@ public final class ProcessCredentialsProvider
 
         /**
          * Configure the command that should be executed to retrieve credentials.
+         * See {@link ProcessBuilder} for details on how this command is used.
+         *
+         * @deprecated The recommended approach is to specify the command as a list of Strings, using {@link #command(List)}
+         * instead, which makes it easier to programmatically add parameters to commands without needing to escape those
+         * parameters to protect against command injection.
          */
+        @Deprecated
         public Builder command(String command) {
             this.command = command;
+            return this;
+        }
+
+        /**
+         * Configure the command that should be executed to retrieve credentials, as a list of strings.
+         * See {@link ProcessBuilder} for details on how this command is used.
+         */
+        public Builder command(List<String> commandAsListOfStrings) {
+            this.commandAsListOfStrings = commandAsListOfStrings;
             return this;
         }
 
@@ -307,7 +341,7 @@ public final class ProcessCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.builder("ProcessCredentialsProvider")
+        return ToString.builder(PROVIDER_NAME)
                        .add("cmd", executableCommand)
                        .build();
     }
