@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.36__ __2024-04-22__
+## __AWS Cloud Map__
+  - ### Features
+    - This release adds examples to several Cloud Map actions.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Adding new API to support remote directory listing using SFTP connector
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Releasing the support for simplified configuration and return of control
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Releasing the support for simplified configuration and return of control
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for Real-Time Collaboration and Shared Space for JupyterLab App on SageMaker Studio.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Adding support to TR-31/TR-34 exports for optional headers, allowing customers to add additional metadata (such as key version and KSN) when exporting keys from the service.
+
+## __Redshift Serverless__
+  - ### Features
+    - Updates description of schedule field for scheduled actions.
+
+## __Route 53 Profiles__
+  - ### Features
+    - Route 53 Profiles allows you to apply a central DNS configuration across many VPCs regardless of account.
+
 # __2.25.35__ __2024-04-19__
 ## __AWS Glue__
   - ### Features
