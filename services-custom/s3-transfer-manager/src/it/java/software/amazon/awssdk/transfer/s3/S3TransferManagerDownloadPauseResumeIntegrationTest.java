@@ -28,7 +28,8 @@ import java.util.Optional;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -68,8 +69,9 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         sourceFile.delete();
     }
 
-    @Test
-    void pauseAndResume_ObjectNotChanged_shouldResumeDownload() {
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void pauseAndResume_ObjectNotChanged_shouldResumeDownload(S3TransferManager tm) {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         TestDownloadListener testDownloadListener = new TestDownloadListener();
         DownloadFileRequest request = DownloadFileRequest.builder()
@@ -77,7 +79,7 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
                                                          .destination(path)
                                                          .addTransferListener(testDownloadListener)
                                                          .build();
-        FileDownload download = tmCrt.downloadFile(request);
+        FileDownload download = tm.downloadFile(request);
         waitUntilFirstByteBufferDelivered(download);
 
         ResumableFileDownload resumableFileDownload = download.pause();
@@ -93,18 +95,19 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         assertThat(download.completionFuture()).isCancelled();
 
         log.debug(() -> "Resuming download ");
-        verifyFileDownload(path, resumableFileDownload, OBJ_SIZE - bytesTransferred);
+        verifyFileDownload(path, resumableFileDownload, OBJ_SIZE - bytesTransferred, tm);
     }
 
-    @Test
-    void pauseAndResume_objectChanged_shouldStartFromBeginning() {
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void pauseAndResume_objectChanged_shouldStartFromBeginning(S3TransferManager tm) {
         try {
             Path path = RandomTempFile.randomUncreatedFile().toPath();
             DownloadFileRequest request = DownloadFileRequest.builder()
                                                              .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                              .destination(path)
                                                              .build();
-            FileDownload download = tmCrt.downloadFile(request);
+            FileDownload download = tm.downloadFile(request);
             waitUntilFirstByteBufferDelivered(download);
 
             ResumableFileDownload resumableFileDownload = download.pause();
@@ -118,7 +121,7 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
                                          .build(), RequestBody.fromString(newObject));
 
             log.debug(() -> "Resuming download ");
-            FileDownload resumedFileDownload = tmCrt.resumeDownloadFile(resumableFileDownload);
+            FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
             resumedFileDownload.progress().snapshot();
             resumedFileDownload.completionFuture().join();
             assertThat(path.toFile()).hasContent(newObject);
@@ -131,24 +134,26 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         }
     }
 
-    @Test
-    void pauseAndResume_fileChanged_shouldStartFromBeginning() throws Exception {
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void pauseAndResume_fileChanged_shouldStartFromBeginning(S3TransferManager tm) throws Exception {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         DownloadFileRequest request = DownloadFileRequest.builder()
                                                          .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                          .destination(path)
                                                          .build();
-        FileDownload download = tmCrt.downloadFile(request);
+        FileDownload download = tm.downloadFile(request);
         waitUntilFirstByteBufferDelivered(download);
 
         ResumableFileDownload resumableFileDownload = download.pause();
         Files.write(path, "helloworld".getBytes(StandardCharsets.UTF_8));
 
-        verifyFileDownload(path, resumableFileDownload, OBJ_SIZE);
+        verifyFileDownload(path, resumableFileDownload, OBJ_SIZE, tm);
     }
 
-    private static void verifyFileDownload(Path path, ResumableFileDownload resumableFileDownload, long expectedBytesTransferred) {
-        FileDownload resumedFileDownload = tmCrt.resumeDownloadFile(resumableFileDownload);
+    private static void verifyFileDownload(Path path, ResumableFileDownload resumableFileDownload,
+                                           long expectedBytesTransferred, S3TransferManager tm) {
+        FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
         resumedFileDownload.completionFuture().join();
         assertThat(resumedFileDownload.progress().snapshot().totalBytes()).hasValue(expectedBytesTransferred);
         assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);

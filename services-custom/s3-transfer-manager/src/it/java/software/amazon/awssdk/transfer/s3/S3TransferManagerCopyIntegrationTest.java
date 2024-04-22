@@ -23,7 +23,8 @@ import static software.amazon.awssdk.transfer.s3.util.ChecksumUtils.computeCheck
 import java.util.concurrent.ThreadLocalRandom;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -50,19 +51,21 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
         deleteBucketAndAllContents(BUCKET);
     }
 
-    @Test
-    void copy_copiedObject_hasSameContent() {
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void copy_copiedObject_hasSameContent(S3TransferManager tm) {
         byte[] originalContent = randomBytes(OBJ_SIZE);
         createOriginalObject(originalContent, ORIGINAL_OBJ);
-        copyObject(ORIGINAL_OBJ, COPIED_OBJ);
+        copyObject(ORIGINAL_OBJ, COPIED_OBJ, tm);
         validateCopiedObject(originalContent, ORIGINAL_OBJ);
     }
 
-    @Test
-    void copy_specialCharacters_hasSameContent() {
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void copy_specialCharacters_hasSameContent(S3TransferManager tm) {
         byte[] originalContent = randomBytes(OBJ_SIZE);
         createOriginalObject(originalContent, ORIGINAL_OBJ_SPECIAL_CHARACTER);
-        copyObject(ORIGINAL_OBJ_SPECIAL_CHARACTER, COPIED_OBJ_SPECIAL_CHARACTER);
+        copyObject(ORIGINAL_OBJ_SPECIAL_CHARACTER, COPIED_OBJ_SPECIAL_CHARACTER, tm);
         validateCopiedObject(originalContent, COPIED_OBJ_SPECIAL_CHARACTER);
     }
 
@@ -72,8 +75,8 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
                      RequestBody.fromBytes(originalContent));
     }
 
-    private void copyObject(String original, String destination) {
-        Copy copy = tmCrt.copy(c -> c
+    private void copyObject(String original, String destination, S3TransferManager tm) {
+        Copy copy = tm.copy(c -> c
             .copyObjectRequest(r -> r
                 .sourceBucket(BUCKET)
                 .sourceKey(original)

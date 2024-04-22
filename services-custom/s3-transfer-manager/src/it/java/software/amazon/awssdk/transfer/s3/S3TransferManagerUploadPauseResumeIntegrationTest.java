@@ -57,9 +57,6 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
     private static File smallFile;
     private static ScheduledExecutorService executorService;
 
-    // TODO - switch to tmJava from TestBase once TransferListener fixed for MultipartClient
-    protected static S3TransferManager tmJavaMpu;
-
     @BeforeAll
     public static void setup() throws Exception {
         createBucket(BUCKET);
@@ -67,9 +64,6 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         smallFile = new RandomTempFile(SMALL_OBJ_SIZE);
         executorService = Executors.newScheduledThreadPool(3);
 
-        // TODO - switch to tmJava from TestBase once TransferListener fixed for MultipartClient
-        S3AsyncClient s3AsyncMpu = s3AsyncClientBuilder().multipartEnabled(true).build();
-        tmJavaMpu = S3TransferManager.builder().s3Client(s3AsyncMpu).build();
     }
 
     @AfterAll
@@ -80,17 +74,17 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         executorService.shutdown();
     }
 
-    private static Stream<Arguments> transferManagers() {
+    private static Stream<Arguments> transferManagersArguments() {
         return Stream.of(
-            Arguments.of(tmJavaMpu, tmJavaMpu),
+            Arguments.of(tmJava, tmJava),
             Arguments.of(tmCrt, tmCrt),
-            Arguments.of(tmCrt, tmJavaMpu),
-            Arguments.of(tmJavaMpu, tmCrt)
+            Arguments.of(tmCrt, tmJava),
+            Arguments.of(tmJava, tmCrt)
         );
     }
 
     @ParameterizedTest
-    @MethodSource("transferManagers")
+    @MethodSource("transferManagersArguments")
     void pause_singlePart_shouldResume(S3TransferManager uploadTm, S3TransferManager resumeTm) {
         UploadFileRequest request = UploadFileRequest.builder()
                                                      .putObjectRequest(b -> b.bucket(BUCKET).key(KEY))
@@ -108,7 +102,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
     }
 
     @ParameterizedTest
-    @MethodSource("transferManagers")
+    @MethodSource("transferManagersArguments")
     void pause_fileNotChanged_shouldResume(S3TransferManager uploadTm, S3TransferManager resumeTm) throws Exception {
         UploadFileRequest request = UploadFileRequest.builder()
                                                      .putObjectRequest(b -> b.bucket(BUCKET).key(KEY))
@@ -132,7 +126,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
     }
 
     @ParameterizedTest
-    @MethodSource("transferManagers")
+    @MethodSource("transferManagersArguments")
     void pauseImmediately_resume_shouldStartFromBeginning(S3TransferManager uploadTm, S3TransferManager resumeTm) {
         UploadFileRequest request = UploadFileRequest.builder()
                                                      .putObjectRequest(b -> b.bucket(BUCKET).key(KEY))
@@ -150,7 +144,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
     }
 
     @ParameterizedTest
-    @MethodSource("transferManagers")
+    @MethodSource("transferManagersArguments")
     void pause_fileChanged_resumeShouldStartFromBeginning(S3TransferManager uploadTm, S3TransferManager resumeTm) throws Exception {
         UploadFileRequest request = UploadFileRequest.builder()
                                                      .putObjectRequest(b -> b.bucket(BUCKET).key(KEY))
@@ -199,13 +193,14 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
     }
 
     private static void waitUntilMultipartUploadExists() {
-        Waiter<ListMultipartUploadsResponse> waiter = Waiter.builder(ListMultipartUploadsResponse.class)
-                                                        .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(ListMultipartUploadsResponse::hasUploads))
-                                                        .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(r -> true))
-                                                        .overrideConfiguration(o -> o.waitTimeout(Duration.ofMinutes(1))
-                                                                                     .maxAttempts(10)
-                                                                                     .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(100))))
-                                                        .build();
+        Waiter<ListMultipartUploadsResponse> waiter =
+            Waiter.builder(ListMultipartUploadsResponse.class)
+                  .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(ListMultipartUploadsResponse::hasUploads))
+                  .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(r -> true))
+                  .overrideConfiguration(o -> o.waitTimeout(Duration.ofMinutes(1))
+                                               .maxAttempts(10)
+                                               .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(100))))
+                  .build();
         waiter.run(() -> s3.listMultipartUploads(l -> l.bucket(BUCKET)));
     }
 
