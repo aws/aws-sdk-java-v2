@@ -1,4 +1,96 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.36__ __2024-04-22__
+## __AWS Cloud Map__
+  - ### Features
+    - This release adds examples to several Cloud Map actions.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Adding new API to support remote directory listing using SFTP connector
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Releasing the support for simplified configuration and return of control
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Releasing the support for simplified configuration and return of control
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for Real-Time Collaboration and Shared Space for JupyterLab App on SageMaker Studio.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Adding support to TR-31/TR-34 exports for optional headers, allowing customers to add additional metadata (such as key version and KSN) when exporting keys from the service.
+
+## __Redshift Serverless__
+  - ### Features
+    - Updates description of schedule field for scheduled actions.
+
+## __Route 53 Profiles__
+  - ### Features
+    - Route 53 Profiles allows you to apply a central DNS configuration across many VPCs regardless of account.
+
+# __2.25.35__ __2024-04-19__
+## __AWS Glue__
+  - ### Features
+    - Adding RowFilter in the response for GetUnfilteredTableMetadata API
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - This update introduces the GetInternetEvent and ListInternetEvents APIs, which provide access to internet events displayed on the Amazon CloudWatch Internet Weather Map.
+
+## __Amazon Personalize__
+  - ### Features
+    - This releases auto training capability while creating a solution and automatically syncing latest solution versions when creating/updating a campaign
+
+# __2.25.34__ __2024-04-18__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added IPv6Address fields for local and remote IP addresses
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds support for the Cross Sheet Filter and Control features, and support for warnings in asset imports for any permitted errors encountered during execution
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Removed deprecated enum values and updated API documentation.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Adds new APIs for managing and sharing WorkSpaces BYOL configuration across accounts.
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds the capability to publish detailed Spark engine metrics to Amazon Managed Service for Prometheus (AMP) for enhanced monitoring for Spark jobs.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Outpost ARN added to Source Server and Recovery Instance
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - This release introduces the PutAttributeMapping and DeleteAttributeMapping APIs. IAM Roles Anywhere now provides the capability to define a set of mapping rules, allowing customers to specify which data is extracted from their X.509 end-entity certificates.
+
+# __2.25.33__ __2024-04-17__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Elastic Compute Cloud (EC2).
+
+## __QBusiness__
+  - ### Features
+    - This release adds support for IAM Identity Center (IDC) as the identity gateway for Q Business. It also allows users to provide an explicit intent for Q Business to identify how the Chat request should be handled.
+
 # __2.25.32__ __2024-04-16__
 ## __AWS Elemental MediaPackage v2__
   - ### Features
