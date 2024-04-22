@@ -5,6 +5,7 @@ import filecmp
 import os
 import shutil, errno
 import argparse
+import difflib
 
 RESOURCE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "resources")
 BEFORE_DIR = os.path.join(RESOURCE_DIR, "before")
@@ -29,11 +30,19 @@ def run_test(version):
     comparison = filecmp.dircmp(TARGET_DIR, AFTER_DIR)
     is_same = compare_directory(filecmp.dircmp(TARGET_DIR, AFTER_DIR))
     if not is_same:
-        comparison.report_full_closure()
         raise Exception("The transformed directory('target/generated-test-sources/project') does not match with the expected one('src/test/resources/after')")
 
 def compare_directory(dcmp):
     if dcmp.diff_files or dcmp.left_only or dcmp.right_only:
+        for diff_file in dcmp.diff_files:
+            file1 = open(dcmp.right + "/" + diff_file, 'r')
+            file2 = open(dcmp.left + "/" + diff_file, 'r')
+            diff = difflib.ndiff(file1.readlines(), file2.readlines())
+            changes = [l for l in diff if l.startswith('+ ') or l.startswith('- ')]
+            print("Diff found in file: " + diff_file)
+            for change in changes:
+                print(change)
+
         return False
     for sub_dcmp in dcmp.subdirs.values():
         if not compare_directory(sub_dcmp):
