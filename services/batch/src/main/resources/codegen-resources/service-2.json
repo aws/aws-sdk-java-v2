@@ -459,6 +459,10 @@
         "statusReason":{
           "shape":"String",
           "documentation":"<p>A short, human-readable string to provide additional details for the current status of the job attempt.</p>"
+        },
+        "taskProperties":{
+          "shape":"ListAttemptEcsTaskDetails",
+          "documentation":"<p>The properties for a task definition that describes the container and volume definitions of an Amazon ECS task.</p>"
         }
       },
       "documentation":"<p>An object that represents a job attempt.</p>"
@@ -466,6 +470,50 @@
     "AttemptDetails":{
       "type":"list",
       "member":{"shape":"AttemptDetail"}
+    },
+    "AttemptEcsTaskDetails":{
+      "type":"structure",
+      "members":{
+        "containerInstanceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the container instance that hosts the task.</p>"
+        },
+        "taskArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the Amazon ECS task.</p>"
+        },
+        "containers":{
+          "shape":"ListAttemptTaskContainerDetails",
+          "documentation":"<p>A list of containers that are included in the <code>taskProperties</code> list.</p>"
+        }
+      },
+      "documentation":"<p>An object that represents the details of a task.</p>"
+    },
+    "AttemptTaskContainerDetails":{
+      "type":"structure",
+      "members":{
+        "exitCode":{
+          "shape":"Integer",
+          "documentation":"<p>The exit code for the container’s attempt. A non-zero exit code is considered failed.</p>"
+        },
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of a container.</p>"
+        },
+        "reason":{
+          "shape":"String",
+          "documentation":"<p>A short (255 max characters) string that's easy to understand and provides additional details for a running or stopped container.</p>"
+        },
+        "logStreamName":{
+          "shape":"String",
+          "documentation":"<p>The name of the Amazon CloudWatch Logs log stream that's associated with the container. The log group for Batch jobs is <code>/aws/batch/job</code>. Each container attempt receives a log stream name when they reach the <code>RUNNING</code> status.</p>"
+        },
+        "networkInterfaces":{
+          "shape":"NetworkInterfaceList",
+          "documentation":"<p>The network interfaces that are associated with the job attempt.</p>"
+        }
+      },
+      "documentation":"<p>An object that represents the details of a container that's part of a job attempt.</p>"
     },
     "Boolean":{"type":"boolean"},
     "CEState":{
@@ -1673,6 +1721,10 @@
     "EksAttemptContainerDetail":{
       "type":"structure",
       "members":{
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of a container.</p>"
+        },
         "exitCode":{
           "shape":"Integer",
           "documentation":"<p>The exit code returned for the job attempt. A non-zero exit code is considered failed.</p>"
@@ -1923,6 +1975,10 @@
           "shape":"Boolean",
           "documentation":"<p>When this parameter is <code>true</code>, the container is given elevated permissions on the host container instance. The level of permissions are similar to the <code>root</code> user permissions. The default value is <code>false</code>. This parameter maps to <code>privileged</code> policy in the <a href=\"https://kubernetes.io/docs/concepts/security/pod-security-policy/#privileged\">Privileged pod security policies</a> in the <i>Kubernetes documentation</i>.</p>"
         },
+        "allowPrivilegeEscalation":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether or not a container or a Kubernetes pod is allowed to gain more privileges than its parent process. The default value is <code>false</code>.</p>"
+        },
         "readOnlyRootFilesystem":{
           "shape":"Boolean",
           "documentation":"<p>When this parameter is <code>true</code>, the container is given read-only access to its root file system. The default value is <code>false</code>. This parameter maps to <code>ReadOnlyRootFilesystem</code> policy in the <a href=\"https://kubernetes.io/docs/concepts/security/pod-security-policy/#volumes-and-file-systems\">Volumes and file systems pod security policies</a> in the <i>Kubernetes documentation</i>.</p>"
@@ -2019,6 +2075,10 @@
           "shape":"String",
           "documentation":"<p>The DNS policy for the pod. The default value is <code>ClusterFirst</code>. If the <code>hostNetwork</code> parameter is not specified, the default is <code>ClusterFirstWithHostNet</code>. <code>ClusterFirst</code> indicates that any DNS query that does not match the configured cluster domain suffix is forwarded to the upstream nameserver inherited from the node. For more information, see <a href=\"https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy\">Pod's DNS policy</a> in the <i>Kubernetes documentation</i>.</p> <p>Valid values: <code>Default</code> | <code>ClusterFirst</code> | <code>ClusterFirstWithHostNet</code> </p>"
         },
+        "imagePullSecrets":{
+          "shape":"ImagePullSecrets",
+          "documentation":"<p>References a Kubernetes secret resource. It holds a list of secrets. These secrets help to gain access to pull an images from a private registry.</p> <p> <code>ImagePullSecret$name</code> is required when this object is used.</p>"
+        },
         "containers":{
           "shape":"EksContainers",
           "documentation":"<p>The properties of the container that's used on the Amazon EKS pod.</p>"
@@ -2056,6 +2116,10 @@
         "dnsPolicy":{
           "shape":"String",
           "documentation":"<p>The DNS policy for the pod. The default value is <code>ClusterFirst</code>. If the <code>hostNetwork</code> parameter is not specified, the default is <code>ClusterFirstWithHostNet</code>. <code>ClusterFirst</code> indicates that any DNS query that does not match the configured cluster domain suffix is forwarded to the upstream nameserver inherited from the node. If no value was specified for <code>dnsPolicy</code> in the <a href=\"https://docs.aws.amazon.com/batch/latest/APIReference/API_RegisterJobDefinition.html\">RegisterJobDefinition</a> API operation, then no value will be returned for <code>dnsPolicy</code> by either of <a href=\"https://docs.aws.amazon.com/batch/latest/APIReference/API_DescribeJobDefinitions.html\">DescribeJobDefinitions</a> or <a href=\"https://docs.aws.amazon.com/batch/latest/APIReference/API_DescribeJobs.html\">DescribeJobs</a> API operations. The pod spec setting will contain either <code>ClusterFirst</code> or <code>ClusterFirstWithHostNet</code>, depending on the value of the <code>hostNetwork</code> parameter. For more information, see <a href=\"https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy\">Pod's DNS policy</a> in the <i>Kubernetes documentation</i>.</p> <p>Valid values: <code>Default</code> | <code>ClusterFirst</code> | <code>ClusterFirstWithHostNet</code> </p>"
+        },
+        "imagePullSecrets":{
+          "shape":"ImagePullSecrets",
+          "documentation":"<p>Displays the reference pointer to the Kubernetes secret resource. These secrets help to gain access to pull an images from a private registry.</p>"
         },
         "containers":{
           "shape":"EksContainerDetails",
@@ -2268,6 +2332,21 @@
       "type":"string",
       "max":256,
       "min":1
+    },
+    "ImagePullSecret":{
+      "type":"structure",
+      "required":["name"],
+      "members":{
+        "name":{
+          "shape":"String",
+          "documentation":"<p>Provides a unique identifier for the <code>ImagePullSecret</code>. This object is required when <code>EksPodProperties$imagePullSecrets</code> is used.</p>"
+        }
+      },
+      "documentation":"<p>References a Kubernetes secret resource. This name of the secret must start and end with an alphanumeric character, is required to be lowercase, can include periods (.) and hyphens (-), and can't contain more than 253 characters.</p>"
+    },
+    "ImagePullSecrets":{
+      "type":"list",
+      "member":{"shape":"ImagePullSecret"}
     },
     "ImageType":{
       "type":"string",
@@ -2613,7 +2692,7 @@
         },
         "state":{
           "shape":"JobStateTimeLimitActionsState",
-          "documentation":"<p>The state of the job needed to trigger the action. The only supported value is \"<code>RUNNABLE</code>\".</p>"
+          "documentation":"<p>The state of the job needed to trigger the action. The only supported value is <code>RUNNABLE</code>.</p>"
         },
         "maxTimeSeconds":{
           "shape":"Integer",
@@ -2621,7 +2700,7 @@
         },
         "action":{
           "shape":"JobStateTimeLimitActionsAction",
-          "documentation":"<p>The action to take when a job is at the head of the job queue in the specified state for the specified period of time. The only supported value is \"<code>CANCEL</code>\", which will cancel the job.</p>"
+          "documentation":"<p>The action to take when a job is at the head of the job queue in the specified state for the specified period of time. The only supported value is <code>CANCEL</code>, which will cancel the job.</p>"
         }
       },
       "documentation":"<p>Specifies an action that Batch will take after the job has remained at the head of the queue in the specified state for longer than the specified time.</p>"
@@ -2802,6 +2881,14 @@
         }
       },
       "documentation":"<p>Linux-specific modifications that are applied to the container, such as details for device mappings.</p>"
+    },
+    "ListAttemptEcsTaskDetails":{
+      "type":"list",
+      "member":{"shape":"AttemptEcsTaskDetails"}
+    },
+    "ListAttemptTaskContainerDetails":{
+      "type":"list",
+      "member":{"shape":"AttemptTaskContainerDetails"}
     },
     "ListEcsTaskDetails":{
       "type":"list",
@@ -4034,5 +4121,5 @@
       "member":{"shape":"Volume"}
     }
   },
-  "documentation":"<fullname>Batch</fullname> <p>Using Batch, you can run batch computing workloads on the Amazon Web Services Cloud. Batch computing is a common means for developers, scientists, and engineers to access large amounts of compute resources. Batch uses the advantages of the batch computing to remove the undifferentiated heavy lifting of configuring and managing required infrastructure. At the same time, it also adopts a familiar batch computing software approach. You can use Batch to efficiently provision resources d, and work toward eliminating capacity constraints, reducing your overall compute costs, and delivering results more quickly.</p> <p>As a fully managed service, Batch can run batch computing workloads of any scale. Batch automatically provisions compute resources and optimizes workload distribution based on the quantity and scale of your specific workloads. With Batch, there's no need to install or manage batch computing software. This means that you can focus on analyzing results and solving your specific problems instead.</p>"
+  "documentation":"<fullname>Batch</fullname> <p>Using Batch, you can run batch computing workloads on the Amazon Web Services Cloud. Batch computing is a common means for developers, scientists, and engineers to access large amounts of compute resources. Batch uses the advantages of the batch computing to remove the undifferentiated heavy lifting of configuring and managing required infrastructure. At the same time, it also adopts a familiar batch computing software approach. You can use Batch to efficiently provision resources, and work toward eliminating capacity constraints, reducing your overall compute costs, and delivering results more quickly.</p> <p>As a fully managed service, Batch can run batch computing workloads of any scale. Batch automatically provisions compute resources and optimizes workload distribution based on the quantity and scale of your specific workloads. With Batch, there's no need to install or manage batch computing software. This means that you can focus on analyzing results and solving your specific problems instead.</p>"
 }

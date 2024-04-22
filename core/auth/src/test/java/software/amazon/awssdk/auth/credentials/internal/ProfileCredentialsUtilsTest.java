@@ -17,9 +17,9 @@ package software.amazon.awssdk.auth.credentials.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.auth.credentials.internal.ProcessCredentialsTestUtils.copyHappyCaseProcessCredentialsScript;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
@@ -32,9 +32,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.auth.credentials.ProcessCredentialsProviderTest;
-import software.amazon.awssdk.core.checksums.Algorithm;
-import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.StringInputStream;
@@ -44,7 +41,7 @@ public class ProfileCredentialsUtilsTest {
 
     @BeforeAll
     public static void setup()  {
-        scriptLocation = ProcessCredentialsProviderTest.copyHappyCaseProcessCredentialsScript();
+        scriptLocation = copyHappyCaseProcessCredentialsScript();
     }
 
     @AfterAll

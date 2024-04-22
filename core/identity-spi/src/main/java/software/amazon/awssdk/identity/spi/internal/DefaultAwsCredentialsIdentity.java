@@ -16,6 +16,7 @@
 package software.amazon.awssdk.identity.spi.internal;
 
 import java.util.Objects;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.ToString;
@@ -26,10 +27,12 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
 
     private final String accessKeyId;
     private final String secretAccessKey;
+    private final String providerName;
 
     private DefaultAwsCredentialsIdentity(Builder builder) {
         this.accessKeyId = builder.accessKeyId;
         this.secretAccessKey = builder.secretAccessKey;
+        this.providerName = builder.providerName;
 
         Validate.paramNotNull(accessKeyId, "accessKeyId");
         Validate.paramNotNull(secretAccessKey, "secretAccessKey");
@@ -50,9 +53,15 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
     }
 
     @Override
+    public Optional<String> providerName() {
+        return Optional.ofNullable(providerName);
+    }
+
+    @Override
     public String toString() {
         return ToString.builder("AwsCredentialsIdentity")
                        .add("accessKeyId", accessKeyId)
+                       .add("providerName", providerName)
                        .build();
     }
 
@@ -80,6 +89,7 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
     private static final class Builder implements AwsCredentialsIdentity.Builder {
         private String accessKeyId;
         private String secretAccessKey;
+        private String providerName;
 
         private Builder() {
         }
@@ -93,6 +103,12 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
         @Override
         public Builder secretAccessKey(String secretAccessKey) {
             this.secretAccessKey = secretAccessKey;
+            return this;
+        }
+
+        @Override
+        public Builder providerName(String providerName) {
+            this.providerName = providerName;
             return this;
         }
 

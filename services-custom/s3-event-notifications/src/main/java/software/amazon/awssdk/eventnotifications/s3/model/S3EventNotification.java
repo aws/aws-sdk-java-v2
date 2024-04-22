@@ -25,7 +25,11 @@ import software.amazon.awssdk.eventnotifications.s3.internal.S3EventNotification
 import software.amazon.awssdk.utils.ToString;
 
 /**
- * A helper class that represents a strongly typed S3 EventNotification item sent to SQS, SNS, or Lambda.
+ * A helper class that represents a strongly typed S3 Event Notification item sent to SQS, SNS, or Lambda. For more information
+ * about Amazon S3 Event Notifications, visit the
+ * <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/EventNotifications.html">S3 User Guide</a>.
+ * This class can be used to parse notification messages in the json format or to serialize a S3EventNotification instance to
+ * json.
  */
 @SdkPublicApi
 public class S3EventNotification {
@@ -40,23 +44,58 @@ public class S3EventNotification {
         return records;
     }
 
+    /**
+     * Converts a json representation of the notification message to an instance of S3EventNotification. Any missing fields
+     * of the json will be null in the resulting object.
+     * Any extra fields will be ignored.
+     * @param json the notification message in json format
+     * @return an instance of notification message S3EventNotification
+     */
     public static S3EventNotification fromJson(String json) {
         return S3EventNotificationReader.create().read(json);
     }
 
-
+    /**
+     * Converts a json representation of the notification message to an instance of S3EventNotification. Any missing fields
+     * of the json will be null in the resulting object.
+     * Any extra fields will be ignored.
+     * @param json the notification message in json format
+     * @return an instance of notification message S3EventNotification
+     */
     public static S3EventNotification fromJson(byte[] json) {
         return S3EventNotificationReader.create().read(json);
     }
 
+    /**
+     * Converts a json representation of the notification message to an instance of S3EventNotification. Any missing fields
+     * of the json will be null in the resulting object.
+     * Any extra fields will be ignored.
+     * @param json the notification message in json format
+     * @return an instance of notification message S3EventNotification
+     */
     public S3EventNotification fromJson(InputStream json) {
         return S3EventNotificationReader.create().read(json);
     }
 
+    /**
+     * Serialize this instance to json format. {@link GlacierEventData}, {@link ReplicationEventData},
+     * {@link IntelligentTieringEventData} and {@link LifecycleEventData} keys
+     * will be excluded from the json if {@code null}. Any other null fields of the object will be serialized as
+     * json {@code null}.
+     * @return the json representation of this class.
+     */
     public String toJson() {
         return S3EventNotificationWriter.create().writeToString(this);
     }
 
+    /**
+     * Serialize this instance to json format, with new line and correct indentation levels. {@link GlacierEventData},
+     * {@link ReplicationEventData},
+     * {@link IntelligentTieringEventData} and {@link LifecycleEventData} keys
+     * will be excluded from the json if {@code null}. Any other null fields of the object will be serialized as
+     * json {@code null}.
+     * @return the json representation of this class.
+     */
     public String toJsonPretty() {
         S3EventNotificationWriter writer = S3EventNotificationWriter.builder()
                                                                     .prettyPrint(true)

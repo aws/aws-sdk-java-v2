@@ -41,6 +41,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public final class SsoOidcToken implements SdkToken {
+    public static final String PROVIDER_NAME = "SsoOidcTokenProvider";
     private final String accessToken;
     private final Instant expiresAt;
     private final String refreshToken;
@@ -49,6 +50,7 @@ public final class SsoOidcToken implements SdkToken {
     private final Instant registrationExpiresAt;
     private final String region;
     private final String startUrl;
+    private final String providerName;
 
     private SsoOidcToken(BuilderImpl builder) {
         Validate.paramNotNull(builder.accessToken, "accessToken");
@@ -61,6 +63,7 @@ public final class SsoOidcToken implements SdkToken {
         this.registrationExpiresAt = builder.registrationExpiresAt;
         this.region = builder.region;
         this.startUrl = builder.startUrl;
+        this.providerName = builder.providerName;
     }
 
     @Override
@@ -71,6 +74,11 @@ public final class SsoOidcToken implements SdkToken {
     @Override
     public Optional<Instant> expirationTime() {
         return Optional.of(expiresAt);
+    }
+
+    @Override
+    public Optional<String> providerName() {
+        return Optional.of(providerName);
     }
 
     public String refreshToken() {
@@ -166,6 +174,8 @@ public final class SsoOidcToken implements SdkToken {
 
         Builder startUrl(String startUrl);
 
+        Builder providerName(String providerName);
+
         SsoOidcToken build();
     }
 
@@ -178,6 +188,7 @@ public final class SsoOidcToken implements SdkToken {
         private Instant registrationExpiresAt;
         private String region;
         private String startUrl;
+        private String providerName;
 
         @Override
         public Builder accessToken(String accessToken) {
@@ -224,6 +235,12 @@ public final class SsoOidcToken implements SdkToken {
         @Override
         public Builder startUrl(String startUrl) {
             this.startUrl = startUrl;
+            return this;
+        }
+
+        @Override
+        public Builder providerName(String providerName) {
+            this.providerName = providerName;
             return this;
         }
 

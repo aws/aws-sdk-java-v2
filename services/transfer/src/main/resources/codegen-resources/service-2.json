@@ -418,7 +418,7 @@
         {"shape":"InternalServiceError"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Describes the security policy that is attached to your file transfer protocol-enabled server. The response contains a description of the security policy's properties. For more information about security policies, see <a href=\"https://docs.aws.amazon.com/transfer/latest/userguide/security-policies.html\">Working with security policies</a>.</p>"
+      "documentation":"<p>Describes the security policy that is attached to your server or SFTP connector. The response contains a description of the security policy's properties. For more information about security policies, see <a href=\"https://docs.aws.amazon.com/transfer/latest/userguide/security-policies.html\">Working with security policies for servers</a> or <a href=\"https://docs.aws.amazon.com/transfer/latest/userguide/security-policies-connectors.html\">Working with security policies for SFTP connectors</a>.</p>"
     },
     "DescribeServer":{
       "name":"DescribeServer",
@@ -653,7 +653,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"InvalidNextTokenException"}
       ],
-      "documentation":"<p>Lists the security policies that are attached to your file transfer protocol-enabled servers.</p>"
+      "documentation":"<p>Lists the security policies that are attached to your servers and SFTP connectors. For more information about security policies, see <a href=\"https://docs.aws.amazon.com/transfer/latest/userguide/security-policies.html\">Working with security policies for servers</a> or <a href=\"https://docs.aws.amazon.com/transfer/latest/userguide/security-policies-connectors.html\">Working with security policies for SFTP connectors</a>.</p>"
     },
     "ListServers":{
       "name":"ListServers",
@@ -738,6 +738,23 @@
       ],
       "documentation":"<p>Sends a callback for asynchronous custom steps.</p> <p> The <code>ExecutionId</code>, <code>WorkflowId</code>, and <code>Token</code> are passed to the target resource during execution of a custom step of a workflow. You must include those with their callback as well as providing a status. </p>"
     },
+    "StartDirectoryListing":{
+      "name":"StartDirectoryListing",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StartDirectoryListingRequest"},
+      "output":{"shape":"StartDirectoryListingResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidRequestException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServiceError"},
+        {"shape":"ServiceUnavailableException"}
+      ],
+      "documentation":"<p>Retrieves a list of the contents of a directory from a remote SFTP server. You specify the connector ID, the output path, and the remote directory path. You can also specify the optional <code>MaxItems</code> value to control the maximum number of items that are listed from the remote directory. This API returns a list of all files and directories in the remote directory (up to the maximum value), but does not return files or folders in sub-directories. That is, it only returns a list of files and directories one-level deep.</p> <p>After you receive the listing file, you can provide the files that you want to transfer to the <code>RetrieveFilePaths</code> parameter of the <code>StartFileTransfer</code> API call.</p> <p>The naming convention for the output file is <code> <i>connector-ID</i>-<i>listing-ID</i>.json</code>. The output file contains the following information:</p> <ul> <li> <p> <code>filePath</code>: the complete path of a remote file, relative to the directory of the listing request for your SFTP connector on the remote server.</p> </li> <li> <p> <code>modifiedTimestamp</code>: the last time the file was modified, in UTC time format. This field is optional. If the remote file attributes don't contain a timestamp, it is omitted from the file listing.</p> </li> <li> <p> <code>size</code>: the size of the file, in bytes. This field is optional. If the remote file attributes don't contain a file size, it is omitted from the file listing.</p> </li> <li> <p> <code>path</code>: the complete path of a remote directory, relative to the directory of the listing request for your SFTP connector on the remote server.</p> </li> <li> <p> <code>truncated</code>: a flag indicating whether the list output contains all of the items contained in the remote directory or not. If your <code>Truncated</code> output value is true, you can increase the value provided in the optional <code>max-items</code> input attribute to be able to list more items (up to the maximum allowed list size of 10,000 items).</p> </li> </ul>"
+    },
     "StartFileTransfer":{
       "name":"StartFileTransfer",
       "http":{
@@ -753,7 +770,7 @@
         {"shape":"InternalServiceError"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Begins a file transfer between local Amazon Web Services storage and a remote AS2 or SFTP server.</p> <ul> <li> <p>For an AS2 connector, you specify the <code>ConnectorId</code> and one or more <code>SendFilePaths</code> to identify the files you want to transfer.</p> </li> <li> <p>For an SFTP connector, the file transfer can be either outbound or inbound. In both cases, you specify the <code>ConnectorId</code>. Depending on the direction of the transfer, you also specify the following items:</p> <ul> <li> <p>If you are transferring file from a partner's SFTP server to Amazon Web Services storage, you specify one or more <code>RetreiveFilePaths</code> to identify the files you want to transfer, and a <code>LocalDirectoryPath</code> to specify the destination folder.</p> </li> <li> <p>If you are transferring file to a partner's SFTP server from Amazon Web Services storage, you specify one or more <code>SendFilePaths</code> to identify the files you want to transfer, and a <code>RemoteDirectoryPath</code> to specify the destination folder.</p> </li> </ul> </li> </ul>"
+      "documentation":"<p>Begins a file transfer between local Amazon Web Services storage and a remote AS2 or SFTP server.</p> <ul> <li> <p>For an AS2 connector, you specify the <code>ConnectorId</code> and one or more <code>SendFilePaths</code> to identify the files you want to transfer.</p> </li> <li> <p>For an SFTP connector, the file transfer can be either outbound or inbound. In both cases, you specify the <code>ConnectorId</code>. Depending on the direction of the transfer, you also specify the following items:</p> <ul> <li> <p>If you are transferring file from a partner's SFTP server to Amazon Web Services storage, you specify one or more <code>RetrieveFilePaths</code> to identify the files you want to transfer, and a <code>LocalDirectoryPath</code> to specify the destination folder.</p> </li> <li> <p>If you are transferring file to a partner's SFTP server from Amazon Web Services storage, you specify one or more <code>SendFilePaths</code> to identify the files you want to transfer, and a <code>RemoteDirectoryPath</code> to specify the destination folder.</p> </li> </ul> </li> </ul>"
     },
     "StartServer":{
       "name":"StartServer",
@@ -1149,7 +1166,8 @@
       "type":"string",
       "enum":[
         "SIGNING",
-        "ENCRYPTION"
+        "ENCRYPTION",
+        "TLS"
       ]
     },
     "CompressionEnum":{
@@ -1173,6 +1191,12 @@
       "max":19,
       "min":19,
       "pattern":"c-([0-9a-f]{17})"
+    },
+    "ConnectorSecurityPolicyName":{
+      "type":"string",
+      "max":100,
+      "min":0,
+      "pattern":"TransferSFTPConnectorSecurityPolicy-[A-Za-z0-9-]+"
     },
     "CopyStepDetails":{
       "type":"structure",
@@ -1336,6 +1360,10 @@
         "SftpConfig":{
           "shape":"SftpConnectorConfig",
           "documentation":"<p>A structure that contains the parameters for an SFTP connector object.</p>"
+        },
+        "SecurityPolicyName":{
+          "shape":"ConnectorSecurityPolicyName",
+          "documentation":"<p>Specifies the name of the security policy for the connector.</p>"
         }
       }
     },
@@ -1437,7 +1465,7 @@
         },
         "SecurityPolicyName":{
           "shape":"SecurityPolicyName",
-          "documentation":"<p>Specifies the name of the security policy that is attached to the server.</p>"
+          "documentation":"<p>Specifies the name of the security policy for the server.</p>"
         },
         "Tags":{
           "shape":"Tags",
@@ -1980,7 +2008,7 @@
       "members":{
         "SecurityPolicyName":{
           "shape":"SecurityPolicyName",
-          "documentation":"<p>Specifies the name of the security policy that is attached to the server.</p>"
+          "documentation":"<p>Specify the text name of the security policy for which you want the details.</p>"
         }
       }
     },
@@ -2248,6 +2276,10 @@
         "ServiceManagedEgressIpAddresses":{
           "shape":"ServiceManagedEgressIpAddresses",
           "documentation":"<p>The list of egress IP addresses of this connector. These IP addresses are assigned automatically when you create the connector.</p>"
+        },
+        "SecurityPolicyName":{
+          "shape":"ConnectorSecurityPolicyName",
+          "documentation":"<p>The text name of the security policy for the specified connector.</p>"
         }
       },
       "documentation":"<p>Describes the parameters for the connector, as identified by the <code>ConnectorId</code>.</p>"
@@ -2359,30 +2391,42 @@
       "members":{
         "Fips":{
           "shape":"Fips",
-          "documentation":"<p>Specifies whether this policy enables Federal Information Processing Standards (FIPS).</p>"
+          "documentation":"<p>Specifies whether this policy enables Federal Information Processing Standards (FIPS). This parameter applies to both server and connector security policies.</p>"
         },
         "SecurityPolicyName":{
           "shape":"SecurityPolicyName",
-          "documentation":"<p>Specifies the name of the security policy that is attached to the server.</p>"
+          "documentation":"<p>The text name of the specified security policy.</p>"
         },
         "SshCiphers":{
           "shape":"SecurityPolicyOptions",
-          "documentation":"<p>Specifies the enabled Secure Shell (SSH) cipher encryption algorithms in the security policy that is attached to the server.</p>"
+          "documentation":"<p>Lists the enabled Secure Shell (SSH) cipher encryption algorithms in the security policy that is attached to the server or connector. This parameter applies to both server and connector security policies.</p>"
         },
         "SshKexs":{
           "shape":"SecurityPolicyOptions",
-          "documentation":"<p>Specifies the enabled SSH key exchange (KEX) encryption algorithms in the security policy that is attached to the server.</p>"
+          "documentation":"<p>Lists the enabled SSH key exchange (KEX) encryption algorithms in the security policy that is attached to the server or connector. This parameter applies to both server and connector security policies.</p>"
         },
         "SshMacs":{
           "shape":"SecurityPolicyOptions",
-          "documentation":"<p>Specifies the enabled SSH message authentication code (MAC) encryption algorithms in the security policy that is attached to the server.</p>"
+          "documentation":"<p>Lists the enabled SSH message authentication code (MAC) encryption algorithms in the security policy that is attached to the server or connector. This parameter applies to both server and connector security policies.</p>"
         },
         "TlsCiphers":{
           "shape":"SecurityPolicyOptions",
-          "documentation":"<p>Specifies the enabled Transport Layer Security (TLS) cipher encryption algorithms in the security policy that is attached to the server.</p>"
+          "documentation":"<p>Lists the enabled Transport Layer Security (TLS) cipher encryption algorithms in the security policy that is attached to the server.</p> <note> <p>This parameter only applies to security policies for servers.</p> </note>"
+        },
+        "SshHostKeyAlgorithms":{
+          "shape":"SecurityPolicyOptions",
+          "documentation":"<p>Lists the host key algorithms for the security policy.</p> <note> <p>This parameter only applies to security policies for connectors.</p> </note>"
+        },
+        "Type":{
+          "shape":"SecurityPolicyResourceType",
+          "documentation":"<p>The resource type to which the security policy applies, either server or connector.</p>"
+        },
+        "Protocols":{
+          "shape":"SecurityPolicyProtocols",
+          "documentation":"<p>Lists the file transfer protocols that the security policy applies to.</p>"
         }
       },
-      "documentation":"<p>Describes the properties of a security policy that was specified. For more information about security policies, see <a href=\"https://docs.aws.amazon.com/transfer/latest/userguide/security-policies.html\">Working with security policies</a>.</p>"
+      "documentation":"<p>Describes the properties of a security policy that you specify. For more information about security policies, see <a href=\"https://docs.aws.amazon.com/transfer/latest/userguide/security-policies.html\">Working with security policies for servers</a> or <a href=\"https://docs.aws.amazon.com/transfer/latest/userguide/security-policies-connectors.html\">Working with security policies for SFTP connectors</a>.</p>"
     },
     "DescribedServer":{
       "type":"structure",
@@ -2442,7 +2486,7 @@
         },
         "SecurityPolicyName":{
           "shape":"SecurityPolicyName",
-          "documentation":"<p>Specifies the name of the security policy that is attached to the server.</p>"
+          "documentation":"<p>Specifies the name of the security policy for the server.</p>"
         },
         "ServerId":{
           "shape":"ServerId",
@@ -3766,6 +3810,12 @@
       "type":"list",
       "member":{"shape":"ListedWorkflow"}
     },
+    "ListingId":{
+      "type":"string",
+      "max":512,
+      "min":1,
+      "pattern":"[0-9a-zA-Z./-]+"
+    },
     "LogGroupName":{
       "type":"string",
       "max":512,
@@ -3804,6 +3854,12 @@
         "FILE",
         "DIRECTORY"
       ]
+    },
+    "MaxItems":{
+      "type":"integer",
+      "box":true,
+      "max":10000,
+      "min":1
     },
     "MaxResults":{
       "type":"integer",
@@ -3858,6 +3914,12 @@
       "member":{"shape":"WorkflowDetail"},
       "max":1,
       "min":0
+    },
+    "OutputFileName":{
+      "type":"string",
+      "max":537,
+      "min":26,
+      "pattern":"c-([0-9a-f]{17})-[0-9a-zA-Z./-]+.json"
     },
     "OverwriteExisting":{
       "type":"string",
@@ -4144,7 +4206,7 @@
       "type":"string",
       "max":100,
       "min":0,
-      "pattern":"TransferSecurityPolicy-.+"
+      "pattern":"Transfer[A-Za-z0-9]*SecurityPolicy-[A-Za-z0-9-]+"
     },
     "SecurityPolicyNames":{
       "type":"list",
@@ -4158,6 +4220,26 @@
     "SecurityPolicyOptions":{
       "type":"list",
       "member":{"shape":"SecurityPolicyOption"}
+    },
+    "SecurityPolicyProtocol":{
+      "type":"string",
+      "enum":[
+        "SFTP",
+        "FTPS"
+      ]
+    },
+    "SecurityPolicyProtocols":{
+      "type":"list",
+      "member":{"shape":"SecurityPolicyProtocol"},
+      "max":5,
+      "min":1
+    },
+    "SecurityPolicyResourceType":{
+      "type":"string",
+      "enum":[
+        "SERVER",
+        "CONNECTOR"
+      ]
     },
     "SendWorkflowStepStateRequest":{
       "type":"structure",
@@ -4338,6 +4420,49 @@
       "member":{"shape":"SshPublicKey"},
       "max":5,
       "min":0
+    },
+    "StartDirectoryListingRequest":{
+      "type":"structure",
+      "required":[
+        "ConnectorId",
+        "RemoteDirectoryPath",
+        "OutputDirectoryPath"
+      ],
+      "members":{
+        "ConnectorId":{
+          "shape":"ConnectorId",
+          "documentation":"<p>The unique identifier for the connector.</p>"
+        },
+        "RemoteDirectoryPath":{
+          "shape":"FilePath",
+          "documentation":"<p>Specifies the directory on the remote SFTP server for which you want to list its contents.</p>"
+        },
+        "MaxItems":{
+          "shape":"MaxItems",
+          "documentation":"<p>An optional parameter where you can specify the maximum number of file/directory names to retrieve. The default value is 1,000.</p>"
+        },
+        "OutputDirectoryPath":{
+          "shape":"FilePath",
+          "documentation":"<p>Specifies the path (bucket and prefix) in Amazon S3 storage to store the results of the directory listing.</p>"
+        }
+      }
+    },
+    "StartDirectoryListingResponse":{
+      "type":"structure",
+      "required":[
+        "ListingId",
+        "OutputFileName"
+      ],
+      "members":{
+        "ListingId":{
+          "shape":"ListingId",
+          "documentation":"<p>Returns a unique identifier for the directory listing call.</p>"
+        },
+        "OutputFileName":{
+          "shape":"OutputFileName",
+          "documentation":"<p>Returns the file name where the results are stored. This is a combination of the connector ID and the listing ID: <code>&lt;connector-id&gt;-&lt;listing-id&gt;.json</code>.</p>"
+        }
+      }
     },
     "StartFileTransferRequest":{
       "type":"structure",
@@ -4785,6 +4910,10 @@
         "SftpConfig":{
           "shape":"SftpConnectorConfig",
           "documentation":"<p>A structure that contains the parameters for an SFTP connector object.</p>"
+        },
+        "SecurityPolicyName":{
+          "shape":"ConnectorSecurityPolicyName",
+          "documentation":"<p>Specifies the name of the security policy for the connector.</p>"
         }
       }
     },
@@ -4907,7 +5036,7 @@
         },
         "SecurityPolicyName":{
           "shape":"SecurityPolicyName",
-          "documentation":"<p>Specifies the name of the security policy that is attached to the server.</p>"
+          "documentation":"<p>Specifies the name of the security policy for the server.</p>"
         },
         "ServerId":{
           "shape":"ServerId",

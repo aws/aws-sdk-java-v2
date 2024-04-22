@@ -1,0 +1,60 @@
+{
+    "version": "2.25.25",
+    "date": "2024-04-04",
+    "entries": [
+        {
+            "type": "documentation",
+            "category": "S3",
+            "contributor": "",
+            "description": "improve javadoc for S3 Event Notification module."
+        },
+        {
+            "type": "feature",
+            "category": "AWS B2B Data Interchange",
+            "contributor": "",
+            "description": "Adding support for X12 5010 HIPAA EDI version and associated transaction sets."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "Feature: New schemaStatusDetails field to the existing Schema object that displays a status on Schema API responses to show whether a schema is queryable or not. New BatchGetSchemaAnalysisRule API to retrieve multiple schemaAnalysisRules using a single API call."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR Containers",
+            "contributor": "",
+            "description": "This release adds support for integration with EKS AccessEntry APIs to enable automatic Cluster Access for EMR on EKS."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Amazon EC2 G6 instances powered by NVIDIA L4 Tensor Core GPUs can be used for a wide range of graphics-intensive and machine learning use cases. Gr6 instances also feature NVIDIA L4 GPUs and can be used for graphics workloads with higher memory requirements."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "contributor": "",
+            "description": "API update to include an SRT ingest endpoint and passphrase for all channels."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Implement TransferListener for copy operations when using TransferManager with Java-based S3Client with multipart enabled"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Verified Permissions",
+            "contributor": "",
+            "description": "Adds GroupConfiguration field to Identity Source API's"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
