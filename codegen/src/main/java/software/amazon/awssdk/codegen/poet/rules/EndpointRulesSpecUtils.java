@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -428,13 +429,11 @@ public class EndpointRulesSpecUtils {
         if ("stringarray".equalsIgnoreCase(parameterType)) {
             Iterator<JrsValue> elementValuesIter = defaultValue.elements();
             b.add("$T.asList(", Arrays.class);
+            StringJoiner joinerStr = new StringJoiner(",");
             while (elementValuesIter.hasNext()) {
-                JrsValue v = elementValuesIter.next();
-                b.add("\"" + v.asText() + "\"");
-                if (elementValuesIter.hasNext()) {
-                    b.add(",");
-                }
+                joinerStr.add("\"" + elementValuesIter.next().asText() + "\"");
             }
+            b.add(joinerStr.toString());
             b.add(")");
         }
     }
