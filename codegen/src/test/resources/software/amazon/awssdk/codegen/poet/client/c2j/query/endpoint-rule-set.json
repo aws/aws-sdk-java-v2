@@ -16,6 +16,18 @@
       "type": "boolean",
       "builtIn": "AWS::UseFIPS"
     },
+    "listOfStrings": {
+      "type": "StringArray",
+      "required": false
+    },
+    "defaultListOfStrings": {
+      "type": "stringarray",
+      "default": [
+        "item1",
+        "item2",
+        "item3"
+      ]
+    },
     "endpointId": {
       "type": "string"
     },
