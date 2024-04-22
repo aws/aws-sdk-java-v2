@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.query.auth.scheme;
 
+import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.regions.Region;
@@ -49,6 +50,9 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
 
     Boolean useFipsEndpoint();
 
+    List<String> listOfStrings();
+
+    List<String> defaultListOfStrings();
     String endpointId();
 
     /**
@@ -89,6 +93,10 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
         Builder useDualStackEndpoint(Boolean useDualStackEndpoint);
 
         Builder useFipsEndpoint(Boolean useFIPSEndpoint);
+
+        Builder listOfStrings(List<String> listOfStrings);
+
+        Builder defaultListOfStrings(List<String> defaultListOfStrings);
 
         Builder endpointId(String endpointId);
 
