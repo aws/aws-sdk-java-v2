@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.traits.PayloadTrait;
@@ -317,6 +318,12 @@ public class CustomizationConfig {
      * TODO(multi-auth): full multi-auth support is not implemented
      */
     private boolean useMultiAuth;
+
+    /**
+     * Special case for a service where model changes for endpoint params were not updated .
+     * This should be removed once the service updates its models
+     */
+    private Map<String, ParameterModel> endpointParameters;
 
     private CustomizationConfig() {
     }
@@ -842,5 +849,13 @@ public class CustomizationConfig {
 
     public boolean useMultiAuth() {
         return useMultiAuth;
+    }
+
+    public Map<String, ParameterModel> getEndpointParameters() {
+        return endpointParameters;
+    }
+
+    public void setEndpointParameters(Map<String, ParameterModel> endpointParameters) {
+        this.endpointParameters = endpointParameters;
     }
 }

@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.rules;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -33,5 +34,13 @@ public class EndpointProviderInterfaceSpecTest {
     public void endpointParameters() {
         ClassSpec endpointParametersClassSpec = new EndpointParametersClassSpec(ClientTestModels.queryServiceModels());
         assertThat(endpointParametersClassSpec, generatesTo("endpoint-parameters.java"));
+    }
+
+    @Test
+    public void endpointParametersWithDuplicatesInCustomizationConfig() {
+        assertThatIllegalStateException()
+            .isThrownBy(() -> new EndpointParametersClassSpec(
+                ClientTestModels.queryServiceModelWithSpecialCustomization("customization-with-duplicate-endpointparameter.config")))
+            .withMessageContaining("Duplicate parameters found in customizationConfig");
     }
 }
