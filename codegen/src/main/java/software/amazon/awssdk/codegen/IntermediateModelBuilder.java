@@ -167,8 +167,19 @@ public class IntermediateModelBuilder {
         setSimpleMethods(trimmedModel);
 
         namingStrategy.validateCustomerVisibleNaming(trimmedModel);
-
+        customizeEndpointParameters(fullModel, endpointRuleSet);
         return trimmedModel;
+    }
+
+    private void customizeEndpointParameters(IntermediateModel fullModel, EndpointRuleSetModel endpointRuleSet) {
+        if (fullModel.getCustomizationConfig().getEndpointParameters() != null) {
+            fullModel.getCustomizationConfig().getEndpointParameters().keySet().forEach(key -> {
+                if (endpointRuleSet.getParameters().containsKey(key)) {
+                    throw new IllegalStateException("Duplicate parameters found in customizationConfig");
+                }
+            });
+            fullModel.getCustomizationConfig().getEndpointParameters().forEach(endpointRuleSet.getParameters()::put);
+        }
     }
 
     /**
