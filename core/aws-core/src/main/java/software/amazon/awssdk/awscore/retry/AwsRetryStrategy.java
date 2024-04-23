@@ -137,6 +137,9 @@ public final class AwsRetryStrategy {
      * @return The given builder
      */
     public static RetryStrategy.Builder<?, ?> configureStrategy(RetryStrategy.Builder<?, ?> builder) {
+        if (builder instanceof RetryPolicyAdapter.Builder) {
+            return builder;
+        }
         return builder.retryOnException(AwsRetryStrategy::retryOnAwsRetryableErrors);
     }
 

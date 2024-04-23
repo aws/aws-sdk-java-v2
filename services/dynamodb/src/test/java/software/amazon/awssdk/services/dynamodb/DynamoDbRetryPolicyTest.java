@@ -77,7 +77,7 @@ class DynamoDbRetryPolicyTest {
     void resolve_retryModeSetWithSupplier_resolvesFromSupplier() {
         ProfileFile profileFile = ProfileFile.builder()
                                              .content(new StringInputStream("[profile default]\n"
-                                                                            + "retry_mode = adaptive2"))
+                                                                            + "retry_mode = adaptive"))
                                              .type(ProfileFile.Type.CONFIGURATION)
                                              .build();
         SdkClientConfiguration sdkClientConfiguration = SdkClientConfiguration
