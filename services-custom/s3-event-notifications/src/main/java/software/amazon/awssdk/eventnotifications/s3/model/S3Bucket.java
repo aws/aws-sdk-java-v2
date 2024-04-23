@@ -20,6 +20,9 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 
+/**
+ * Bucket information.
+ */
 @SdkPublicApi
 public class S3Bucket {
 
@@ -33,14 +36,23 @@ public class S3Bucket {
         this.arn = arn;
     }
 
+    /**
+     * @return the bucket name.
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * @return the user identity containing the Amazon customer ID of the bucket owner.
+     */
     public UserIdentity getOwnerIdentity() {
         return ownerIdentity;
     }
 
+    /**
+     * @return The bucket ARN.
+     */
     public String getArn() {
         return arn;
     }

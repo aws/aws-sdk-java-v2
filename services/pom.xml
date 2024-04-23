@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.25.22-SNAPSHOT</version>
+        <version>2.25.37-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -400,6 +400,9 @@
         <module>chatbot</module>
         <module>timestreaminfluxdb</module>
         <module>codeconnections</module>
+        <module>deadline</module>
+        <module>controlcatalog</module>
+        <module>route53profiles</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

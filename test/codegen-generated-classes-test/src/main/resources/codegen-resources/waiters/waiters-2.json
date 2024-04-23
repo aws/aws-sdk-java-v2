@@ -27,6 +27,105 @@
           "expected": 500
         }
       ]
+    },
+    "ErrorMatcherWithExpectedTrueFails": {
+      "delay": 1,
+      "operation": "AllTypes",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "matcher": "error",
+          "expected": true,
+          "state": "failure"
+        }
+      ]
+    },
+    "ErrorMatcherWithExpectedTrueAndStateAsSuccess": {
+      "delay": 1,
+      "operation": "AllTypes",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "matcher" : "error",
+          "state" : "success",
+          "expected" : true
+        }
+      ]
+    },
+    "ErrorMatcherWithExpectedFalseSuccess": {
+      "delay": 1,
+      "operation": "AllTypes",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "matcher" : "error",
+          "state" : "success",
+          "expected" : false
+        }
+      ]
+    },
+    "ErrorMatcherWithExpectedFalseFails": {
+      "delay": 1,
+      "operation": "AllTypes",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "expected": false,
+          "matcher": "error",
+          "state": "failure"
+        }
+      ]
+    },
+    "ErrorMatcherWithExpectedFalseRetries": {
+      "delay": 1,
+      "operation": "AllTypes",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "matcher" : "error",
+          "state" : "retry",
+          "expected" : false
+        },
+        {
+          "matcher": "error",
+          "expected": "EmptyModeledException",
+          "state": "success"
+        }
+      ]
+    },
+    "SuccessMatcherWith200Pass404RetryErrorMatcherWithExpectedTrueFails": {
+      "delay": 1,
+      "operation": "AllTypes",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "expected": 200,
+          "matcher": "status",
+          "state": "success"
+        },
+        {
+          "state": "retry",
+          "matcher": "status",
+          "expected": 404
+        },
+        {
+          "matcher": "error",
+          "expected": true,
+          "state": "failure"
+        }
+      ]
+    },
+    "ErrorMatcherWithExpectedFalseRetriesAndSuccessMatcherWith200Success": {
+      "delay": 1,
+      "operation": "AllTypes",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "matcher" : "error",
+          "state" : "retry",
+          "expected" : true
+        }
+      ]
     }
   }
 }

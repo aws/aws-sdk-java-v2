@@ -1,0 +1,30 @@
+{
+    "version": "2.25.27",
+    "date": "2024-04-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Control Catalog",
+            "contributor": "",
+            "description": "This is the initial SDK release for AWS Control Catalog, a central catalog for AWS managed controls. This release includes 3 new APIs - ListDomains, ListObjectives, and ListCommonControls - that vend high-level data to categorize controls across the AWS platform."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Network Monitor",
+            "contributor": "",
+            "description": "Updated the allowed monitorName length for CloudWatch Network Monitor."
+        },
+        {
+            "type": "feature",
+            "category": "Application Migration Service",
+            "contributor": "",
+            "description": "Added USE_SOURCE as default option to LaunchConfigurationTemplate bootMode parameter."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
