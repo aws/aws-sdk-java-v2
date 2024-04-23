@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock",
+    "contributor": "",
+    "description": "This release introduces Model Evaluation and Guardrails for Amazon Bedrock."
+}
