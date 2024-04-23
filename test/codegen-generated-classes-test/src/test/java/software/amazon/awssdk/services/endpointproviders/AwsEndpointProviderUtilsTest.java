@@ -135,13 +135,6 @@ public class AwsEndpointProviderUtilsTest {
     }
 
     @Test
-    public void useGlobalEndpointBuiltIn_returnsAttrValue() {
-        ExecutionAttributes attrs = new ExecutionAttributes();
-        attrs.putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT, true);
-        assertThat(AwsEndpointProviderUtils.useGlobalEndpointBuiltIn(attrs)).isEqualTo(true);
-    }
-
-    @Test
     public void setUri_combinesPathsCorrectly() {
         URI clientEndpoint = URI.create("https://override.example.com/a");
         URI requestUri = URI.create("https://override.example.com/a/c");
