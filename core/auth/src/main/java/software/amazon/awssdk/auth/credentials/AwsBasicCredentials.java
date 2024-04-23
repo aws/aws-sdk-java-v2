@@ -44,6 +44,8 @@ public final class AwsBasicCredentials implements AwsCredentials,
                                                   ToCopyableBuilder<AwsBasicCredentials.Builder, AwsBasicCredentials> {
     /**
      * A set of AWS credentials without an access key or secret access key, indicating that anonymous access should be used.
+     * <p>
+     * This should be accessed via {@link AnonymousCredentialsProvider#resolveCredentials()}.
      */
     // TODO(sra-identity-and-auth): Check if this static member can be removed after cleanup
     @SdkInternalApi
@@ -53,12 +55,14 @@ public final class AwsBasicCredentials implements AwsCredentials,
     private final String secretAccessKey;
     private final boolean validateCredentials;
     private final String providerName;
+    private final String accountId;
 
     private AwsBasicCredentials(Builder builder) {
         this.accessKeyId = trimToNull(builder.accessKeyId);
         this.secretAccessKey = trimToNull(builder.secretAccessKey);
         this.validateCredentials = builder.validateCredentials;
         this.providerName = builder.providerName;
+        this.accountId = builder.accountId;
 
         if (builder.validateCredentials) {
             Validate.notNull(this.accessKeyId, "Access key ID cannot be blank.");
@@ -77,6 +81,7 @@ public final class AwsBasicCredentials implements AwsCredentials,
         this.secretAccessKey = trimToNull(secretAccessKey);
         this.validateCredentials = false;
         this.providerName = null;
+        this.accountId = null;
     }
 
     public static Builder builder() {
@@ -88,7 +93,7 @@ public final class AwsBasicCredentials implements AwsCredentials,
      *
      * @param accessKeyId The AWS access key, used to identify the user interacting with AWS.
      * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with AWS.
-     * */
+     */
     public static AwsBasicCredentials create(String accessKeyId, String secretAccessKey) {
         return builder().accessKeyId(accessKeyId)
                         .secretAccessKey(secretAccessKey)
@@ -119,11 +124,20 @@ public final class AwsBasicCredentials implements AwsCredentials,
         return Optional.ofNullable(providerName);
     }
 
+    /**
+     * Retrieve the AWS account id associated with this credentials identity, if found.
+     */
+    @Override
+    public Optional<String> accountId() {
+        return Optional.ofNullable(accountId);
+    }
+
     @Override
     public String toString() {
         return ToString.builder("AwsCredentials")
                        .add("accessKeyId", accessKeyId)
                        .add("providerName", providerName)
+                       .add("accountId", accountId)
                        .build();
     }
 
@@ -137,7 +151,8 @@ public final class AwsBasicCredentials implements AwsCredentials,
         }
         AwsBasicCredentials that = (AwsBasicCredentials) o;
         return Objects.equals(accessKeyId, that.accessKeyId) &&
-               Objects.equals(secretAccessKey, that.secretAccessKey);
+               Objects.equals(secretAccessKey, that.secretAccessKey) &&
+               Objects.equals(accountId, that.accountId().orElse(null));
     }
 
     @Override
@@ -145,6 +160,7 @@ public final class AwsBasicCredentials implements AwsCredentials,
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(accessKeyId());
         hashCode = 31 * hashCode + Objects.hashCode(secretAccessKey());
+        hashCode = 31 * hashCode + Objects.hashCode(accountId);
         return hashCode;
     }
 
@@ -152,6 +168,7 @@ public final class AwsBasicCredentials implements AwsCredentials,
     public Builder toBuilder() {
         return builder().accessKeyId(accessKeyId)
                         .secretAccessKey(secretAccessKey)
+                        .accountId(accountId)
                         .validateCredentials(validateCredentials)
                         .providerName(providerName);
     }
@@ -169,6 +186,7 @@ public final class AwsBasicCredentials implements AwsCredentials,
         private String accessKeyId;
         private String secretAccessKey;
         private String providerName;
+        private String accountId;
         private boolean validateCredentials = true;
 
         private Builder() {
@@ -187,6 +205,14 @@ public final class AwsBasicCredentials implements AwsCredentials,
          */
         public Builder secretAccessKey(String secretAccessKey) {
             this.secretAccessKey = secretAccessKey;
+            return this;
+        }
+
+        /**
+         * The AWS account id associated with this credentials identity.
+         */
+        public Builder accountId(String accountId) {
+            this.accountId = accountId;
             return this;
         }
 
