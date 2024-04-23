@@ -19,6 +19,7 @@ import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithWebIdentityCredentialsProvider.Builder;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityResponse;
+import software.amazon.awssdk.services.sts.model.AssumedRoleUser;
 import software.amazon.awssdk.services.sts.model.Credentials;
 
 /**
@@ -34,7 +35,10 @@ public class StsAssumeRoleWithWebIdentityCredentialsProviderTest
 
     @Override
     protected AssumeRoleWithWebIdentityResponse getResponse(Credentials credentials) {
-        return AssumeRoleWithWebIdentityResponse.builder().credentials(credentials).build();
+        return AssumeRoleWithWebIdentityResponse.builder()
+                                                .credentials(credentials)
+                                                .assumedRoleUser(AssumedRoleUser.builder().arn(ARN).build())
+                                                .build();
     }
 
     @Override

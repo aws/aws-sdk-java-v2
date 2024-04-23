@@ -36,6 +36,7 @@ import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointParamsKnowledgeIndex;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -53,12 +54,15 @@ public class BaseClientBuilderInterface implements ClassSpec {
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
 
+    private final EndpointParamsKnowledgeIndex endpointParamsKnowledgeIndex;
+
     public BaseClientBuilderInterface(IntermediateModel model) {
         this.model = model;
         this.basePackage = model.getMetadata().getFullClientPackageName();
         this.builderInterfaceName = ClassName.get(basePackage, model.getMetadata().getBaseBuilderInterface());
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
+        this.endpointParamsKnowledgeIndex = EndpointParamsKnowledgeIndex.of(model);
     }
 
     @Override
@@ -87,16 +91,15 @@ public class BaseClientBuilderInterface implements ClassSpec {
         builder.addMethod(authSchemeProviderMethod());
 
         if (hasClientContextParams()) {
-            model.getClientContextParams().forEach((n, m) -> {
-                builder.addMethod(clientContextParamSetter(n, m));
-            });
+            model.getClientContextParams().forEach((n, m) -> builder.addMethod(clientContextParamSetter(n, m)));
         }
 
         if (hasSdkClientContextParams()) {
-            model.getCustomizationConfig().getCustomClientContextParams().forEach((n, m) -> {
-                builder.addMethod(clientContextParamSetter(n, m));
-            });
+            model.getCustomizationConfig().getCustomClientContextParams()
+                 .forEach((n, m) -> builder.addMethod(clientContextParamSetter(n, m)));
         }
+
+        endpointParamsKnowledgeIndex.accountIdEndpointModeInterfaceMethodSpec().ifPresent(builder::addMethod);
 
         if (generateTokenProviderMethod()) {
             builder.addMethod(tokenProviderMethod());
@@ -185,9 +188,9 @@ public class BaseClientBuilderInterface implements ClassSpec {
         TypeName type = endpointRulesSpecUtils.toJavaType(param.getType());
 
         MethodSpec.Builder b = MethodSpec.methodBuilder(setterName)
-            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-            .addParameter(type, setterName)
-            .returns(TypeVariableName.get("B"));
+                                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                                         .addParameter(type, setterName)
+                                         .returns(TypeVariableName.get("B"));
 
         PoetUtils.addJavadoc(b::addJavadoc, param.getDocumentation());
 
