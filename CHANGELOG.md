@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.37__ __2024-04-23__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Added additional metadata that might be applicable to your reservation recommendations.
+
+## __AWS Performance Insights__
+  - ### Features
+    - Clarifies how aggregation works for GetResourceMetrics in the Performance Insights API.
+
+## __AWS SDK for Java V2__
+  - ### Features
+    - Source account Id from credentials to use in endpoint construction
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Introducing the ability to create multiple data sources per knowledge base, specify S3 buckets as data sources from external accounts, and exposing levers to define the deletion behavior of the underlying vector store data.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces zero-setup file upload support for the RetrieveAndGenerate API. This allows you to chat with your data without setting up a Knowledge Base.
+
+## __Amazon Bedrock__
+  - ### Features
+    - This release introduces Model Evaluation and Guardrails for Amazon Bedrock.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces Guardrails for Amazon Bedrock.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release introduces EC2 AMI Deregistration Protection, a new AMI property that can be enabled by customers to protect an AMI against an unintended deregistration. This release also enables the AMI owners to view the AMI 'LastLaunchedTime' in DescribeImages API.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Fix the example ARN for ModifyActivityStreamRequest
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Added InstanceType and MaxConcurrentSessions parameters on CreatePortal and UpdatePortal Operations as well as the ability to read Customer Managed Key & Additional Encryption Context parameters on supported resources (Portal, BrowserSettings, UserSettings, IPAccessSettings)
+
 # __2.25.36__ __2024-04-22__
 ## __AWS Cloud Map__
   - ### Features
