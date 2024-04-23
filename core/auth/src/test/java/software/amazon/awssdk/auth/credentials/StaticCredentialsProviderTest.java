@@ -31,12 +31,36 @@ class StaticCredentialsProviderTest {
     }
 
     @Test
+    void getAwsCredentialsWithAccountId_ReturnsSameCredentials() {
+        AwsCredentials credentials = AwsBasicCredentials.builder()
+                                                        .accessKeyId("akid")
+                                                        .secretAccessKey("skid")
+                                                        .accountId("acctid")
+                                                        .build();
+        AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
+        assertThat(actualCredentials).isEqualTo(credentials);
+    }
+
+
+    @Test
     void getSessionAwsCredentials_ReturnsSameCredentials() {
         AwsSessionCredentials credentials = AwsSessionCredentials.create("akid", "skid", "token");
         AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
         assertThat(credentials).isEqualTo(actualCredentials);
         assertThat(credentials.providerName()).isNotPresent();
         assertThat(actualCredentials.providerName()).isPresent();
+    }
+
+    @Test
+    void getSessionAwsCredentialsWithAccountId_ReturnsSameCredentials() {
+        AwsSessionCredentials credentials = AwsSessionCredentials.builder()
+                                                                 .accessKeyId("akid")
+                                                                 .secretAccessKey("skid")
+                                                                 .sessionToken("token")
+                                                                 .accountId("acctid")
+                                                                 .build();
+        AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
+        assertThat(actualCredentials).isEqualTo(credentials);
     }
 
     @Test
