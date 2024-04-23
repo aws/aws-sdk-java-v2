@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.migrationtool;
-
-import software.amazon.awssdk.services.sqs.SqsClient;
+package foo.bar;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.ListQueuesRequest;
+import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;
 
 public class Application {
@@ -27,7 +27,10 @@ public class Application {
     }
 
     public static void main(String... args) {
-        SqsClient sqs = SqsClient.builder().build();
+        SqsClient sqs = SqsClient.builder()
+                                       .region(Region.US_WEST_2)
+                                       .credentials(CredentialsDependencyFactory.defaultCredentialsProviderChain())
+                                       .build();
         ListQueuesRequest request = ListQueuesRequest.builder()
             .maxResults(5)
             .queueNamePrefix("MyQueue-")

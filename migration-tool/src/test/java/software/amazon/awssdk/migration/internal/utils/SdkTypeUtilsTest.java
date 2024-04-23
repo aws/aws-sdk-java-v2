@@ -20,11 +20,56 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.SqsClientBuilder;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
+import software.amazon.awssdk.services.sqs.model.ListMessageMoveTasksRequest;
 
 public class SdkTypeUtilsTest {
+
+    public static Stream<Arguments> isEligibleToConvertToBuilderTestCase() {
+        return Stream.of(
+            Arguments.of(SqsClient.class.getCanonicalName(), true),
+            Arguments.of(ListMessageMoveTasksRequest.class.getCanonicalName(), true),
+            Arguments.of(AmazonSQS.class.getCanonicalName(), false),
+            Arguments.of(EnvironmentVariableCredentialsProvider.class.getCanonicalName(), false)
+        );
+    }
+
+    public static Stream<Arguments> v2BuilderTestCase() {
+        return Stream.of(
+            Arguments.of(software.amazon.awssdk.services.sqs.model.SendMessageRequest.class.getCanonicalName(),
+                         software.amazon.awssdk.services.sqs.model.SendMessageRequest.Builder.class.getCanonicalName()),
+            Arguments.of(SqsClient.class.getCanonicalName(),
+                         SqsClientBuilder.class.getCanonicalName())
+        );
+    }
+
+    public static Stream<Arguments> isV2ClientClassTestCase() {
+        return Stream.of(
+            Arguments.of(SqsAsyncClient.class.getCanonicalName(), true),
+            Arguments.of(CreateQueueRequest.class.getCanonicalName(), false),
+            Arguments.of(SqsClient.class.getCanonicalName(), true)
+        );
+    }
+
+    public static Stream<Arguments> isV2ClientBuilderTestCase() {
+        return Stream.of(
+            Arguments.of(SqsAsyncClient.class.getCanonicalName(), false),
+            Arguments.of(CreateQueueRequest.class.getCanonicalName(), false),
+            Arguments.of(SqsAsyncClientBuilder.class.getCanonicalName(), true)
+        );
+    }
 
     @Test
     public void isV1ModelClass_v1Request_returnsTrue() {
@@ -84,36 +129,44 @@ public class SdkTypeUtilsTest {
     }
 
     @Test
-    public void asV2Type_convertsClassCorrectly() {
-        JavaType.FullyQualified v1Type = TypeUtils.asFullyQualified(JavaType.buildType(SendMessageRequest.class.getCanonicalName()));
-        assertThat(SdkTypeUtils.asV2Type(v1Type).getFullyQualifiedName()).isEqualTo(software.amazon.awssdk.services.sqs.model.SendMessageRequest.class.getCanonicalName());
-    }
-
-    @Test
-    public void asV2Type_typeIsNotV1_throws() {
-        JavaType.FullyQualified v2Type =
-            TypeUtils.asFullyQualified(JavaType.buildType(software.amazon.awssdk.services.sqs.model.SendMessageRequest.class.getCanonicalName()));
-
-        assertThatThrownBy(() -> SdkTypeUtils.asV2Type(v2Type))
-            .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
     public void v2ModelBuilder_typeIsNotV2_throws() {
         JavaType.FullyQualified v1Type =
             TypeUtils.asFullyQualified(JavaType.buildType(SendMessageRequest.class.getCanonicalName()));
 
-        assertThatThrownBy(() -> SdkTypeUtils.v2ModelBuilder(v1Type))
+        assertThatThrownBy(() -> SdkTypeUtils.v2Builder(v1Type))
             .isInstanceOf(IllegalArgumentException.class);
 
     }
 
-    @Test
-    public void v2ModelBuilder_typeIsV2_convertsClassCorrectly() {
+    @ParameterizedTest
+    @MethodSource("v2BuilderTestCase")
+    public void v2Builder_typeIsV2_convertsClassCorrectly(String fqcn, String expectedFqcn) {
         JavaType.FullyQualified sendMessageRequest =
             TypeUtils.asFullyQualified(JavaType.buildType(software.amazon.awssdk.services.sqs.model.SendMessageRequest.class.getCanonicalName()));
 
-        assertThat(SdkTypeUtils.v2ModelBuilder(sendMessageRequest).getFullyQualifiedName())
+        assertThat(SdkTypeUtils.v2Builder(sendMessageRequest).getFullyQualifiedName())
             .isEqualTo(software.amazon.awssdk.services.sqs.model.SendMessageRequest.Builder.class.getCanonicalName());
+    }
+
+    @ParameterizedTest
+    @MethodSource("isV2ClientBuilderTestCase")
+    public void isV2ClientBuilderClass_v2ClientBuilderClass_returnsTrue() {
+        JavaType sqs = JavaType.buildType(SqsClientBuilder.class.getCanonicalName());
+        assertThat(SdkTypeUtils.isV2ClientBuilder(sqs)).isTrue();
+    }
+
+    @ParameterizedTest
+    @MethodSource("isEligibleToConvertToBuilderTestCase")
+    public void isEligibleToConvertToBuilder_shouldConvert(String fqcn, boolean expected) {
+        JavaType.FullyQualified type =
+            TypeUtils.asFullyQualified(JavaType.buildType(fqcn));
+        assertThat(SdkTypeUtils.isEligibleToConvertToBuilder(type)).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("isV2ClientClassTestCase")
+    public void isV2ClientClass_shouldReturnCorrectly(String fqcn, boolean expected) {
+        JavaType sqs = JavaType.buildType(fqcn);
+        assertThat(SdkTypeUtils.isV2ClientClass(sqs)).isEqualTo(expected);
     }
 }

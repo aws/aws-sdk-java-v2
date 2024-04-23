@@ -19,11 +19,11 @@ import java.util.Arrays;
 import java.util.List;
 import org.openrewrite.Recipe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.migration.internal.recipe.NewV1ClassToBuilder;
+import software.amazon.awssdk.migration.internal.recipe.NewClassToBuilder;
 import software.amazon.awssdk.migration.internal.recipe.V1SetterToV2;
 
 /**
- * Recipe that converts V1 model creation using {@code new} such as
+ * Recipe that converts objects creation using {@code new} such as
  *
  * {@snippet :
  *     SendMessageRequest sendMessage = new SendMessageRequest()
@@ -34,7 +34,7 @@ import software.amazon.awssdk.migration.internal.recipe.V1SetterToV2;
  *     sqs.sendMessage(sendMessage);
  * }
  *
- * to the V2 equivalent of
+ * to builder pattern:
  *
  * {@snippet :
  *     SendMessageRequest sendMessage = SendMessageRequest.builder()
@@ -46,21 +46,21 @@ import software.amazon.awssdk.migration.internal.recipe.V1SetterToV2;
  * }
  */
 @SdkPublicApi
-public class NewV1ModelClassToV2 extends Recipe {
+public class NewClassToBuilderPattern extends Recipe {
     @Override
     public String getDisplayName() {
-        return "Change new V1 Model to Builder";
+        return "Change new objects creation to Builder pattern";
     }
 
     @Override
     public String getDescription() {
-        return "Transform the creation of a V1 model class using 'new' to builder pattern.";
+        return "Transform the creation of a class using 'new' to builder pattern.";
     }
 
     @Override
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
-                new NewV1ClassToBuilder(),
+                new NewClassToBuilder(),
                 new V1SetterToV2()
         );
     }

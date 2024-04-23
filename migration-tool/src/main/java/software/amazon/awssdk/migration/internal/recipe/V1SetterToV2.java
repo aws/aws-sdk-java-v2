@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.migration.internal.recipe;
 
+import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isV2ClientClass;
+import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isV2ModelClass;
+
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -25,13 +28,12 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.migration.internal.utils.NamingUtils;
-import software.amazon.awssdk.migration.internal.utils.SdkTypeUtils;
-import software.amazon.awssdk.migration.recipe.NewV1ModelClassToV2;
+import software.amazon.awssdk.migration.recipe.NewClassToBuilderPattern;
 
 /**
  * Internal recipe that renames fluent V1 setters (withers), to V2 equivalents.
  *
- * @see NewV1ModelClassToV2
+ * @see NewClassToBuilderPattern
  */
 @SdkInternalApi
 public class V1SetterToV2 extends Recipe {
@@ -42,7 +44,7 @@ public class V1SetterToV2 extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Transforms a setter on a V1 model object to the equivalent in V2.";
+        return "Transforms V1 setter to fluent setter in V2.";
     }
 
     @Override
@@ -67,7 +69,7 @@ public class V1SetterToV2 extends Recipe {
                 return method;
             }
 
-            if (SdkTypeUtils.isV2ModelBuilder(selectType) && !SdkTypeUtils.isV2ModelBuilder(method.getType())) {
+            if (shouldChangeSetter(method, selectType)) {
                 String methodName = method.getSimpleName();
 
                 if (NamingUtils.isWither(methodName)) {
@@ -96,6 +98,10 @@ public class V1SetterToV2 extends Recipe {
             }
 
             return method;
+        }
+
+        private static boolean shouldChangeSetter(J.MethodInvocation method, JavaType selectType) {
+            return isV2ModelClass(selectType) || isV2ClientClass(selectType);
         }
     }
 }

@@ -18,3 +18,4 @@ name: software.amazon.awssdk.ChangeSdkCoreTypes
 displayName: Change Maven dependency groupId, artifactId and/or the version example
 recipeList:
   - software.amazon.awssdk.ChangeRegionTypes
+  - software.amazon.awssdk.ChangeAuthTypes

@@ -27,7 +27,7 @@ import org.openrewrite.test.RewriteTest;
 public class NewV1ModelClassToV2Test implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new NewV1ModelClassToV2());
+        spec.recipes(new ChangeSdkType(), new NewClassToBuilderPattern());
         spec.parser(Java8Parser.builder().classpath(
             "aws-java-sdk-sqs",
             "sqs",
@@ -54,12 +54,12 @@ public class NewV1ModelClassToV2Test implements RewriteTest {
                 + "        sqs.sendMessage(sendMessage);\n"
                 + "    }\n"
                 + "}\n",
-                "import com.amazonaws.services.sqs.AmazonSQS;\n"
-                + "import com.amazonaws.services.sqs.model.SendMessageRequest;\n"
+                "import software.amazon.awssdk.services.sqs.SqsClient;\n"
+                + "import software.amazon.awssdk.services.sqs.model.SendMessageRequest;\n"
                 + "\n"
                 + "public class SqsExample {\n"
                 + "    public static void main(String[] args) {\n"
-                + "        AmazonSQS sqs = null;\n"
+                + "        SqsClient sqs = null;\n"
                 + "\n"
                 + "        SendMessageRequest sendMessage = SendMessageRequest.builder()\n"
                 + "                .queueUrl(\"url\")\n"
@@ -91,12 +91,12 @@ public class NewV1ModelClassToV2Test implements RewriteTest {
                 + "                .withMessageGroupId(\"my-group\"));\n"
                 + "    }\n"
                 + "}\n",
-                "import com.amazonaws.services.sqs.AmazonSQS;\n"
-                + "import com.amazonaws.services.sqs.model.SendMessageRequest;\n"
+                "import software.amazon.awssdk.services.sqs.SqsClient;\n"
+                + "import software.amazon.awssdk.services.sqs.model.SendMessageRequest;\n"
                 + "\n"
                 + "public class SqsExample {\n"
                 + "    public static void main(String[] args) {\n"
-                + "        AmazonSQS sqs = null;\n"
+                + "        SqsClient sqs = null;\n"
                 + "\n"
                 + "        sqs.sendMessage(SendMessageRequest.builder()\n"
                 + "                .queueUrl(\"url\")\n"
@@ -130,12 +130,12 @@ public class NewV1ModelClassToV2Test implements RewriteTest {
                 + "                .withMessageGroupId(\"my-group\");\n"
                 + "    }\n"
                 + "}\n",
-                "import com.amazonaws.services.sqs.AmazonSQS;\n"
-                + "import com.amazonaws.services.sqs.model.SendMessageRequest;\n"
+                "import software.amazon.awssdk.services.sqs.SqsClient;\n"
+                + "import software.amazon.awssdk.services.sqs.model.SendMessageRequest;\n"
                 + "\n"
                 + "public class SqsExample {\n"
                 + "    public static void main(String[] args) {\n"
-                + "        AmazonSQS sqs = null;\n"
+                + "        SqsClient sqs = null;\n"
                 + "\n"
                 + "        sqs.sendMessage(createRequest());\n"
                 + "    }\n"
@@ -155,17 +155,14 @@ public class NewV1ModelClassToV2Test implements RewriteTest {
     @EnabledOnJre({JRE.JAVA_8})
     public void request_assignedToVariable_newOnly_isRewritten() {
         rewriteRun(
-            java(
-                "import com.amazonaws.services.sqs.AmazonSQS;\n"
-                + "import com.amazonaws.services.sqs.model.SendMessageRequest;\n"
+            java("import com.amazonaws.services.sqs.model.SendMessageRequest;\n"
                 + "\n"
                 + "public class SqsExample {\n"
                 + "    public static void main(String[] args) {\n"
                 + "        SendMessageRequest sendMessage = new SendMessageRequest();\n"
                 + "    }\n"
                 + "}\n",
-                "import com.amazonaws.services.sqs.AmazonSQS;\n"
-                + "import com.amazonaws.services.sqs.model.SendMessageRequest;\n"
+                 "import software.amazon.awssdk.services.sqs.model.SendMessageRequest;\n"
                 + "\n"
                 + "public class SqsExample {\n"
                 + "    public static void main(String[] args) {\n"
