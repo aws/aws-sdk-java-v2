@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Performance Insights",
+    "contributor": "",
+    "description": "Clarifies how aggregation works for GetResourceMetrics in the Performance Insights API."
+}
