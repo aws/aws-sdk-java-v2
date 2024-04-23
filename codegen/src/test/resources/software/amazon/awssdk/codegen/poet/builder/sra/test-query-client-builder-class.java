@@ -11,6 +11,8 @@ import software.amazon.awssdk.auth.credentials.TokenUtils;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
+import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointModeResolver;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -89,8 +91,9 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
             }
             return result.build();
         });
-        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).option(SdkClientOption.CLIENT_CONTEXT_PARAMS,
-                                                                                    clientContextParams.build());
+        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
+               .option(SdkClientOption.CLIENT_CONTEXT_PARAMS, clientContextParams.build())
+               .option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE, resolveAccountIdEndpointMode(config));
         return builder.build();
     }
 
@@ -140,6 +143,11 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         return thisBuilder();
     }
 
+    public B accountIdEndpointMode(AccountIdEndpointMode accountIdEndpointMode) {
+        clientConfiguration.option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE, accountIdEndpointMode);
+        return thisBuilder();
+    }
+
     private IdentityProvider<? extends TokenIdentity> defaultTokenProvider() {
         return DefaultAwsTokenProvider.create();
     }
@@ -162,6 +170,17 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
     private List<SdkPlugin> internalPlugins(SdkClientConfiguration config) {
         return Collections.emptyList();
+    }
+
+    private AccountIdEndpointMode resolveAccountIdEndpointMode(SdkClientConfiguration config) {
+        AccountIdEndpointMode configuredMode = config.option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE);
+        if (configuredMode == null) {
+            configuredMode = AccountIdEndpointModeResolver.create()
+                                                          .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                          .profileName(config.option(SdkClientOption.PROFILE_NAME)).defaultMode(AccountIdEndpointMode.PREFERRED)
+                                                          .resolve();
+        }
+        return configuredMode;
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
