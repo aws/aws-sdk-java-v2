@@ -16,6 +16,14 @@
       "type": "boolean",
       "builtIn": "AWS::UseFIPS"
     },
+    "awsAccountId": {
+      "type": "String",
+      "builtIn": "AWS::Auth::AccountId"
+    },
+    "awsAccountIdEndpointMode": {
+      "type": "String",
+      "builtIn": "AWS::Auth::AccountIdEndpointMode"
+    },
     "listOfStrings": {
       "type": "StringArray",
       "required": false

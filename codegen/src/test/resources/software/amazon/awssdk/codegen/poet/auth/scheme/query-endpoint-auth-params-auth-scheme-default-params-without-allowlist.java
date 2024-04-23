@@ -35,6 +35,11 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
 
     private final Boolean useFIPSEndpoint;
 
+    private final String awsAccountId;
+
+
+    private final String awsAccountIdEndpointMode;
+
     private final List<String> listOfStrings;
 
     private final List<String> defaultListOfStrings;
@@ -60,6 +65,8 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         this.region = builder.region;
         this.useDualStackEndpoint = builder.useDualStackEndpoint;
         this.useFIPSEndpoint = builder.useFIPSEndpoint;
+        this.awsAccountId = builder.awsAccountId;
+        this.awsAccountIdEndpointMode = builder.awsAccountIdEndpointMode;
         this.listOfStrings = builder.listOfStrings;
         this.defaultListOfStrings = Validate.paramNotNull(builder.defaultListOfStrings, "defaultListOfStrings");
         this.endpointId = builder.endpointId;
@@ -94,6 +101,16 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     @Override
     public Boolean useFipsEndpoint() {
         return useFIPSEndpoint;
+    }
+
+    @Override
+    public String awsAccountId() {
+        return awsAccountId;
+    }
+
+    @Override
+    public String awsAccountIdEndpointMode() {
+        return awsAccountIdEndpointMode;
     }
 
     @Override
@@ -161,6 +178,10 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
 
         private Boolean useFIPSEndpoint;
 
+        private String awsAccountId;
+
+        private String awsAccountIdEndpointMode;
+
         private List<String> listOfStrings;
 
         private List<String> defaultListOfStrings = Arrays.asList("item1", "item2", "item3");
@@ -189,6 +210,8 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
             this.region = params.region;
             this.useDualStackEndpoint = params.useDualStackEndpoint;
             this.useFIPSEndpoint = params.useFIPSEndpoint;
+            this.awsAccountId = params.awsAccountId;
+            this.awsAccountIdEndpointMode = params.awsAccountIdEndpointMode;
             this.listOfStrings = params.listOfStrings;
             this.defaultListOfStrings = params.defaultListOfStrings;
             this.endpointId = params.endpointId;
@@ -222,6 +245,18 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         @Override
         public Builder useFipsEndpoint(Boolean useFIPSEndpoint) {
             this.useFIPSEndpoint = useFIPSEndpoint;
+            return this;
+        }
+
+        @Override
+        public Builder awsAccountId(String awsAccountId) {
+            this.awsAccountId = awsAccountId;
+            return this;
+        }
+
+        @Override
+        public Builder awsAccountIdEndpointMode(String awsAccountIdEndpointMode) {
+            this.awsAccountIdEndpointMode = awsAccountIdEndpointMode;
             return this;
         }
 

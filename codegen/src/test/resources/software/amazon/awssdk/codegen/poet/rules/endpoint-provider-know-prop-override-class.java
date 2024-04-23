@@ -53,6 +53,12 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         if (params.useFipsEndpoint() != null) {
             paramsMap.put(Identifier.of("useFIPSEndpoint"), Value.fromBool(params.useFipsEndpoint()));
         }
+        if (params.awsAccountId() != null) {
+            paramsMap.put(Identifier.of("awsAccountId"), Value.fromStr(params.awsAccountId()));
+        }
+        if (params.awsAccountIdEndpointMode() != null) {
+            paramsMap.put(Identifier.of("awsAccountIdEndpointMode"), Value.fromStr(params.awsAccountIdEndpointMode()));
+        }
         if (params.listOfStrings() != null) {
             paramsMap.put(Identifier.of("listOfStrings"), Value.fromArray(params.listOfStrings()));
         }
@@ -344,6 +350,13 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                 .addParameter(
                                         Parameter.builder().name("useFIPSEndpoint").type(ParameterType.fromValue("boolean"))
                                                 .required(false).builtIn("AWS::UseFIPS").build())
+                                .addParameter(
+                                    Parameter.builder().name("awsAccountId").type(ParameterType.fromValue("String"))
+                                             .required(false).builtIn("AWS::Auth::AccountId").build())
+                                .addParameter(
+                                    Parameter.builder().name("awsAccountIdEndpointMode")
+                                             .type(ParameterType.fromValue("String")).required(false)
+                                             .builtIn("AWS::Auth::AccountIdEndpointMode").build())
                                 .addParameter(
                                     Parameter.builder().name("listOfStrings").type(ParameterType.fromValue("StringArray"))
                                              .required(false).build())

@@ -20,6 +20,11 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
     private final Boolean useFIPSEndpoint;
 
+    private final String awsAccountId;
+
+
+    private final String awsAccountIdEndpointMode;
+
     private final List<String> listOfStrings;
 
     private final List<String> defaultListOfStrings;
@@ -42,6 +47,8 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         this.region = builder.region;
         this.useDualStackEndpoint = builder.useDualStackEndpoint;
         this.useFIPSEndpoint = builder.useFIPSEndpoint;
+        this.awsAccountId = builder.awsAccountId;
+        this.awsAccountIdEndpointMode = builder.awsAccountIdEndpointMode;
         this.listOfStrings = builder.listOfStrings;
         this.defaultListOfStrings = builder.defaultListOfStrings;
         this.endpointId = builder.endpointId;
@@ -67,6 +74,14 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
     public Boolean useFipsEndpoint() {
         return useFIPSEndpoint;
+    }
+
+    public String awsAccountId() {
+        return awsAccountId;
+    }
+
+    public String awsAccountIdEndpointMode() {
+        return awsAccountIdEndpointMode;
     }
 
     public List<String> listOfStrings() {
@@ -117,6 +132,10 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
         Builder useFipsEndpoint(Boolean useFIPSEndpoint);
 
+        Builder awsAccountId(String awsAccountId);
+
+        Builder awsAccountIdEndpointMode(String awsAccountIdEndpointMode);
+
         Builder listOfStrings(List<String> listOfStrings);
 
         Builder defaultListOfStrings(List<String> defaultListOfStrings);
@@ -146,10 +165,13 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
         private Boolean useFIPSEndpoint;
 
+        private String awsAccountId;
+
+        private String awsAccountIdEndpointMode;
+
         private List<String> listOfStrings;
 
         private List<String> defaultListOfStrings = Arrays.asList("item1", "item2", "item3");
-
         private String endpointId;
 
         private Boolean defaultTrueParam = true;
@@ -171,6 +193,8 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
             this.region = builder.region;
             this.useDualStackEndpoint = builder.useDualStackEndpoint;
             this.useFIPSEndpoint = builder.useFIPSEndpoint;
+            this.awsAccountId = builder.awsAccountId;
+            this.awsAccountIdEndpointMode = builder.awsAccountIdEndpointMode;
             this.listOfStrings = builder.listOfStrings;
             this.defaultListOfStrings = builder.defaultListOfStrings;
             this.endpointId = builder.endpointId;
@@ -197,6 +221,18 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         @Override
         public Builder useFipsEndpoint(Boolean useFIPSEndpoint) {
             this.useFIPSEndpoint = useFIPSEndpoint;
+            return this;
+        }
+
+        @Override
+        public Builder awsAccountId(String awsAccountId) {
+            this.awsAccountId = awsAccountId;
+            return this;
+        }
+
+        @Override
+        public Builder awsAccountIdEndpointMode(String awsAccountIdEndpointMode) {
+            this.awsAccountIdEndpointMode = awsAccountIdEndpointMode;
             return this;
         }
 

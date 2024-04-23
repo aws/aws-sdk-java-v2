@@ -52,10 +52,6 @@ public final class AwsEndpointProviderUtils {
         return null;
     }
 
-    public static Boolean useGlobalEndpointBuiltIn(ExecutionAttributes executionAttributes) {
-        return executionAttributes.getAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT);
-    }
-
     /**
      * True if the the {@link SdkExecutionAttribute#ENDPOINT_OVERRIDDEN} attribute is present and its value is
      * {@code true}, {@code false} otherwise.
