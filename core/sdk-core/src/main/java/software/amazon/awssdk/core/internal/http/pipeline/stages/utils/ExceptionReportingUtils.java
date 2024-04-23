@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages.utils;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.interceptor.DefaultFailedExecutionContext;
+import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
@@ -28,7 +29,8 @@ public final class ExceptionReportingUtils {
     }
 
     /**
-     * Report the failure to the execution interceptors. Swallow any exceptions thrown from the interceptor since
+     * Report the failure to the execution interceptors and progress listeners if present.
+     * Swallow any exceptions thrown from the interceptor since
      * we don't want to replace the execution failure.
      *
      * @param context The execution context.
@@ -44,6 +46,21 @@ public final class ExceptionReportingUtils {
         }
 
         return modifiedContext.exception();
+    }
+
+    /**
+     * Report the failure to the Progress Listeners if they are present
+     *
+     * @param context The execution context.
+     * @param failure The execution failure.
+     */
+    public static void reportFailureToProgressListeners(ProgressUpdater progressUpdater, Throwable failure) {
+
+        try {
+            progressUpdater.attemptFailure(failure);
+        } catch (Exception exception) {
+            log.warn(() -> "Progess Listener update threw an error while invoking attemptFailure().", exception);
+        }
     }
 
     private static DefaultFailedExecutionContext runModifyException(RequestExecutionContext context, Throwable e) {

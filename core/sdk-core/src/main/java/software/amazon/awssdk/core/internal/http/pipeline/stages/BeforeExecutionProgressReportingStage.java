@@ -16,40 +16,28 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
+import software.amazon.awssdk.core.internal.util.ProgressListenerUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 @SdkInternalApi
-public class PreExecutionUpdateProgressStage implements RequestToRequestPipeline {
+public class BeforeExecutionProgressReportingStage implements RequestToRequestPipeline {
 
     @Override
     public SdkHttpFullRequest execute(SdkHttpFullRequest input, RequestExecutionContext context) throws Exception {
 
-        if (progressListenerAttached(context.originalRequest())) {
+        if (ProgressListenerUtils.progressListenerAttached(context.originalRequest())) {
             Long requestContentLength =
                 context.requestProvider() != null && context.requestProvider().contentLength().isPresent() ?
                 context.requestProvider().contentLength().get() : null;
 
-            if (context.executionContext().progressUpdater().isPresent()) {
-                context.executionContext().progressUpdater().get().requestPrepared(input);
-            } else {
-                ProgressUpdater progressUpdater = new ProgressUpdater(context.originalRequest(), requestContentLength);
-                progressUpdater.requestPrepared(input);
-                context.executionContext().toBuilder().progressUpdater(progressUpdater);
-            }
+            ProgressUpdater progressUpdater = new ProgressUpdater(context.originalRequest(), requestContentLength);
+            progressUpdater.requestPrepared(input);
+            context.progressUpdater(progressUpdater);
         }
 
         return input;
-    }
-
-    public boolean progressListenerAttached(SdkRequest request) {
-        if (request.overrideConfiguration().isPresent() &&
-            !request.overrideConfiguration().get().progressListeners().isEmpty()) {
-            return true;
-        }
-        return false;
     }
 }

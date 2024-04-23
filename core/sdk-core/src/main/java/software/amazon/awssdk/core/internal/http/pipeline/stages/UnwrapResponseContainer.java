@@ -32,9 +32,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 public class UnwrapResponseContainer<OutputT> implements RequestPipeline<Response<OutputT>, OutputT> {
     @Override
     public OutputT execute(Response<OutputT> input, RequestExecutionContext context) throws Exception {
-        context.executionContext().progressUpdater().ifPresent(progressUpdater -> {
-            progressUpdater.executionSuccess((SdkResponse) input.response());
-        });
         return input.response();
     }
 }

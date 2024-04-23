@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
+import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.Validate;
@@ -44,6 +46,7 @@ public final class RequestExecutionContext {
     private TimeoutTracker apiCallTimeoutTracker;
     private TimeoutTracker apiCallAttemptTimeoutTracker;
     private MetricCollector attemptMetricCollector;
+    private ProgressUpdater progressUpdater;
 
     private RequestExecutionContext(Builder builder) {
         this.requestProvider = builder.requestProvider;
@@ -125,6 +128,14 @@ public final class RequestExecutionContext {
     public void attemptMetricCollector(MetricCollector metricCollector) {
         executionAttributes().putAttribute(SdkExecutionAttribute.API_CALL_ATTEMPT_METRIC_COLLECTOR, metricCollector);
         this.attemptMetricCollector = metricCollector;
+    }
+
+    public Optional<ProgressUpdater> progressUpdater() {
+        return progressUpdater != null ? Optional.of(progressUpdater) : Optional.empty();
+    }
+
+    public void progressUpdater(ProgressUpdater progressUpdater) {
+        this.progressUpdater = progressUpdater;
     }
 
     /**

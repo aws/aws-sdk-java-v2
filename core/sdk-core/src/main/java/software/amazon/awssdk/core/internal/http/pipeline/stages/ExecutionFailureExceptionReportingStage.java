@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static software.amazon.awssdk.core.internal.http.pipeline.stages.utils.ExceptionReportingUtils.reportFailureToInterceptors;
+import static software.amazon.awssdk.core.internal.http.pipeline.stages.utils.ExceptionReportingUtils.reportFailureToProgressListeners;
 import static software.amazon.awssdk.core.internal.util.ThrowableUtils.failure;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -38,8 +39,8 @@ public final class ExecutionFailureExceptionReportingStage<OutputT> implements R
         } catch (Exception e) {
             Throwable throwable = reportFailureToInterceptors(context, e);
 
-            context.executionContext().progressUpdater().ifPresent(progressUpdater -> {
-                progressUpdater.attemptFailure(e);
+            context.progressUpdater().ifPresent(progressUpdater -> {
+                reportFailureToProgressListeners(progressUpdater, throwable);
             });
             throw failure(throwable);
         }

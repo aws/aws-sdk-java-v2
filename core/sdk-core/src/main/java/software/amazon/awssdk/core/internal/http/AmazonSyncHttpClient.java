@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionInterceptorsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionProgressReportingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptTimeoutTrackingStage;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallMetricCo
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallTimeoutTrackingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeExecutionProgressReportingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeUnmarshallingExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.CompressRequestStage;
@@ -46,8 +48,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmu
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomHeadersStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQueryParamsStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.PostExecutionUpdateProgressStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.PreExecutionUpdateProgressStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.QueryParametersToBodyStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
@@ -206,7 +206,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                .then(MakeRequestImmutableStage::new)
                                // End of mutating request
                                .then(RequestPipelineBuilder
-                                         .first(PreExecutionUpdateProgressStage::new)
+                                         .first(BeforeExecutionProgressReportingStage::new)
                                          .then(SigningStage::new)
                                          .then(BeforeTransmissionExecutionInterceptorsStage::new)
                                          .then(MakeHttpRequestStage::new)
@@ -221,8 +221,8 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                .wrappedWith(ApiCallTimeoutTrackingStage::new)::build)
                                .wrappedWith((deps, wrapped) -> new ApiCallMetricCollectionStage<>(wrapped))
                     .then(() -> new UnwrapResponseContainer<>())
+                    .then(() -> new AfterExecutionProgressReportingStage<>())
                     .then(() -> new AfterExecutionInterceptorsStage<>())
-                    .then(() -> new PostExecutionUpdateProgressStage<>())
                     .wrappedWith(ExecutionFailureExceptionReportingStage::new)
                     .build(httpClientDependencies)
                     .execute(request, createRequestExecutionDependencies());

@@ -122,22 +122,6 @@ public class ClientExecutionAndRequestTimerTestUtils {
                                .build();
     }
 
-    public static ExecutionContext executionContextWithProgressUpdater(SdkHttpFullRequest request, ProgressUpdater progressUpdater) {
-        InterceptorContext incerceptorContext =
-            InterceptorContext.builder()
-                              .request(NoopTestRequest.builder().build())
-                              .httpRequest(request)
-                              .build();
-        return ExecutionContext.builder()
-                               .signer(new NoOpSigner())
-                               .interceptorChain(new ExecutionInterceptorChain(Collections.emptyList()))
-                               .executionAttributes(new ExecutionAttributes())
-                               .progressUpdater(progressUpdater)
-                               .interceptorContext(incerceptorContext)
-                               .metricCollector(MetricCollector.create("ApiCall"))
-                               .build();
-    }
-
     private static void waitBeforeAssertOnExecutor() {
         try {
             Thread.sleep(WAIT_BEFORE_ASSERT_ON_EXECUTOR);

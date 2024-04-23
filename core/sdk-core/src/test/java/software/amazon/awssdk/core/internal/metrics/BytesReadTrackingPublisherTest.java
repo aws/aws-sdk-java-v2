@@ -40,7 +40,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 public class BytesReadTrackingPublisherTest {
 
     @Test
-    public void test_requestAll_calculatesCorrectTotal() {
+    public void requestAll_calculatesCorrectTotal() {
         long nElements = 1024;
         int elementSize = 4;
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
@@ -51,7 +51,7 @@ public class BytesReadTrackingPublisherTest {
     }
 
     @Test
-    public void test_requestAll_updatesInputCount() {
+    public void requestAll_updatesInputCount() {
         long nElements = 8;
         int elementSize = 2;
 
@@ -68,7 +68,7 @@ public class BytesReadTrackingPublisherTest {
     }
 
     @Test
-    public void test_progressUpdater_invokes_incrementBytesReceived() {
+    public void progressUpdater_invokes_incrementBytesReceived() {
         int nElements = 8;
         int elementSize = 2;
 
