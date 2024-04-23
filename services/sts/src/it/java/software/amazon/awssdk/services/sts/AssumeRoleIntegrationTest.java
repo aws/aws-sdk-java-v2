@@ -178,6 +178,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
         assertThat(awsCredentials.accessKeyId()).isNotBlank();
         assertThat(awsCredentials.secretAccessKey()).isNotBlank();
+        assertThat(awsCredentials.accountId()).isPresent();
         ((SdkAutoCloseable) awsCredentialsProvider).close();
     }
 
@@ -210,6 +211,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
             assertThat(awsCredentials.accessKeyId()).isNotBlank();
             assertThat(awsCredentials.secretAccessKey()).isNotBlank();
+            assertThat(awsCredentials.accountId()).isPresent();
             ((SdkAutoCloseable) awsCredentialsProvider).close();
         });
     }
@@ -247,6 +249,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
                 assertThat(awsCredentials.accessKeyId()).isNotBlank();
                 assertThat(awsCredentials.secretAccessKey()).isNotBlank();
+                assertThat(awsCredentials.accountId()).isPresent();
                 ((SdkAutoCloseable) awsCredentialsProvider).close();
             });
         } finally {
