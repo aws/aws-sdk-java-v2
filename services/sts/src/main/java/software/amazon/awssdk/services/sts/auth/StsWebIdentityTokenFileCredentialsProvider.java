@@ -15,7 +15,8 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
-import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.toAwsSessionCredentials;
+import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.accountIdFromArn;
+import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.fromStsCredentials;
 import static software.amazon.awssdk.utils.StringUtils.trim;
 import static software.amazon.awssdk.utils.Validate.notNull;
 
@@ -32,6 +33,7 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.internal.AssumeRoleWithWebIdentityRequestSupplier;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
+import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityResponse;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
@@ -137,7 +139,10 @@ public final class StsWebIdentityTokenFileCredentialsProvider
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
         AssumeRoleWithWebIdentityRequest request = assumeRoleWithWebIdentityRequest.get();
         notNull(request, "AssumeRoleWithWebIdentityRequest can't be null");
-        return toAwsSessionCredentials(stsClient.assumeRoleWithWebIdentity(request).credentials(), PROVIDER_NAME);
+        AssumeRoleWithWebIdentityResponse assumeRoleWithWebIdentityResponse = stsClient.assumeRoleWithWebIdentity(request);
+        return fromStsCredentials(assumeRoleWithWebIdentityResponse.credentials(),
+                                  PROVIDER_NAME,
+                                  accountIdFromArn(assumeRoleWithWebIdentityResponse.assumedRoleUser()));
     }
 
     @Override
@@ -149,7 +154,7 @@ public final class StsWebIdentityTokenFileCredentialsProvider
     String providerName() {
         return PROVIDER_NAME;
     }
-    
+
     public static final class Builder extends BaseBuilder<Builder, StsWebIdentityTokenFileCredentialsProvider> {
         private String roleArn;
         private String roleSessionName;

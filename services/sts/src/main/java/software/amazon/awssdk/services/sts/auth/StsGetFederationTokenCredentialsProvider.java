@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
-import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.toAwsSessionCredentials;
+import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.fromStsCredentials;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -24,7 +24,10 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.endpoints.internal.Arn;
+import software.amazon.awssdk.services.sts.model.FederatedUser;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenRequest;
+import software.amazon.awssdk.services.sts.model.GetFederationTokenResponse;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -68,7 +71,19 @@ public class StsGetFederationTokenCredentialsProvider
 
     @Override
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
-        return toAwsSessionCredentials(stsClient.getFederationToken(getFederationTokenRequest).credentials(), PROVIDER_NAME);
+        GetFederationTokenResponse federationToken = stsClient.getFederationToken(getFederationTokenRequest);
+        return fromStsCredentials(federationToken.credentials(),
+                                  PROVIDER_NAME,
+                                  accountIdFromArn(federationToken.federatedUser()));
+    }
+
+    private String accountIdFromArn(FederatedUser federatedUser) {
+        if (federatedUser == null) {
+            return null;
+        }
+        return Arn.parse(federatedUser.arn())
+                  .map(Arn::accountId)
+                  .orElse(null);
     }
 
     @Override
@@ -80,7 +95,7 @@ public class StsGetFederationTokenCredentialsProvider
     String providerName() {
         return PROVIDER_NAME;
     }
-    
+
     /**
      * A builder (created by {@link StsGetFederationTokenCredentialsProvider#builder()}) for creating a
      * {@link StsGetFederationTokenCredentialsProvider}.

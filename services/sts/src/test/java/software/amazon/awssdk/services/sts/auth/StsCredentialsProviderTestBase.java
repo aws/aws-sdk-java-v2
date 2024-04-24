@@ -29,6 +29,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.endpoints.internal.Arn;
 import software.amazon.awssdk.services.sts.model.Credentials;
 
 /**
@@ -36,6 +37,8 @@ import software.amazon.awssdk.services.sts.model.Credentials;
  */
 @ExtendWith(MockitoExtension.class)
 public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
+
+    protected static final String ARN = "arn:aws:ec2:us-east-1:123456789012:vpc/vpc-0e9801d129EXAMPLE";
     @Mock
     protected StsClient stsClient;
 
@@ -102,7 +105,6 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
         Credentials credentials = Credentials.builder().accessKeyId("a").secretAccessKey("b").sessionToken("c").expiration(credentialsExpirationDate).build();
         RequestT request = getRequest();
         ResponseT response = getResponse(credentials);
-
         when(callClient(stsClient, request)).thenReturn(response);
 
         StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider> credentialsProviderBuilder = createCredentialsProviderBuilder(request);
@@ -130,6 +132,10 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
                 assertThat(providedCredentials.secretAccessKey()).isEqualTo("b");
                 assertThat(providedCredentials.sessionToken()).isEqualTo("c");
                 assertThat(providedCredentials.providerName()).isPresent().contains(providerName());
+                if (!(credentialsProvider instanceof StsGetSessionTokenCredentialsProvider)) {
+                    assertThat(providedCredentials.accountId().isPresent());
+                    assertThat(providedCredentials.accountId().get()).isEqualTo("123456789012");
+                }
             }
         }
     }

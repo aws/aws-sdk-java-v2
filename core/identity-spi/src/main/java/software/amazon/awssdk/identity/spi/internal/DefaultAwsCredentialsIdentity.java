@@ -28,11 +28,13 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
     private final String accessKeyId;
     private final String secretAccessKey;
     private final String providerName;
+    private final String accountId;
 
     private DefaultAwsCredentialsIdentity(Builder builder) {
         this.accessKeyId = builder.accessKeyId;
         this.secretAccessKey = builder.secretAccessKey;
         this.providerName = builder.providerName;
+        this.accountId = builder.accountId;
 
         Validate.paramNotNull(accessKeyId, "accessKeyId");
         Validate.paramNotNull(secretAccessKey, "secretAccessKey");
@@ -58,10 +60,16 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
     }
 
     @Override
+    public Optional<String> accountId() {
+        return Optional.ofNullable(accountId);
+    }
+
+    @Override
     public String toString() {
         return ToString.builder("AwsCredentialsIdentity")
                        .add("accessKeyId", accessKeyId)
                        .add("providerName", providerName)
+                       .add("accountId", accountId)
                        .build();
     }
 
@@ -75,7 +83,8 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
         }
         AwsCredentialsIdentity that = (AwsCredentialsIdentity) o;
         return Objects.equals(accessKeyId, that.accessKeyId()) &&
-               Objects.equals(secretAccessKey, that.secretAccessKey());
+               Objects.equals(secretAccessKey, that.secretAccessKey()) &&
+               Objects.equals(accountId, that.accountId().orElse(null));
     }
 
     @Override
@@ -83,6 +92,7 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(accessKeyId);
         hashCode = 31 * hashCode + Objects.hashCode(secretAccessKey);
+        hashCode = 31 * hashCode + Objects.hashCode(accountId);
         return hashCode;
     }
 
@@ -90,6 +100,7 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
         private String accessKeyId;
         private String secretAccessKey;
         private String providerName;
+        private String accountId;
 
         private Builder() {
         }
@@ -109,6 +120,12 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
         @Override
         public Builder providerName(String providerName) {
             this.providerName = providerName;
+            return this;
+        }
+
+        @Override
+        public Builder accountId(String accountId) {
+            this.accountId = accountId;
             return this;
         }
 
