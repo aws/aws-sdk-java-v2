@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "Launching capability for customers to enable or disable automatic assignment of public IPv4 addresses to their network interface"
+}
