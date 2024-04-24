@@ -73,7 +73,7 @@ public enum RetryMode {
     STANDARD,
 
     /**
-     * Adaptive retry mode builds on {@code STANDARD} mode.
+     * Adaptive retry mode builds on {@link #STANDARD} mode.
      * <p>
      * Adaptive retry mode dynamically limits the rate of AWS requests to maximize success rate. This may be at the
      * expense of request latency. Adaptive retry mode is not recommended when predictable latency is important.
@@ -93,7 +93,7 @@ public enum RetryMode {
     ADAPTIVE,
 
     /**
-     * Adaptive V2 retry mode builds on {@code STANDARD} mode.
+     * Adaptive V2 retry mode builds on {@link #STANDARD} mode.
      * <p>
      * Adaptive retry mode dynamically limits the rate of AWS requests to maximize success rate. This may be at the
      * expense of request latency. Adaptive V2 retry mode is not recommended when predictable latency is important.
@@ -199,7 +199,7 @@ public enum RetryMode {
                     return Optional.of(STANDARD);
                 case "adaptive":
                     return Optional.of(ADAPTIVE);
-                case "adaptive2":
+                case "adaptive_v2":
                     return Optional.of(ADAPTIVE_V2);
                 default:
                     throw new IllegalStateException("Unsupported retry policy mode configured: " + string);

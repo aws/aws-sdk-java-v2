@@ -114,7 +114,8 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
                                     + " please use the other builder method without setting retry mode, and the default retry"
                                     + " mode will be used.");
         if (retryMode == RetryMode.ADAPTIVE_V2) {
-            throw new UnsupportedOperationException("ADAPTIVE2 is not supported by retry policies, use a RetryStrategy instead");
+            throw new UnsupportedOperationException("ADAPTIVE_V2 is not supported by retry policies, use a RetryStrategy "
+                                                    + "instead");
         }
         return new BuilderImpl(retryMode);
     }
