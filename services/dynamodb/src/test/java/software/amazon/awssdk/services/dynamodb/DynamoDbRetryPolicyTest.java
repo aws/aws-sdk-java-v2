@@ -88,7 +88,7 @@ class DynamoDbRetryPolicyTest {
         RetryStrategy<?, ?> retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
         RetryMode retryMode = SdkDefaultRetryStrategy.retryMode(retryStrategy);
 
-        assertThat(retryMode).isEqualTo(RetryMode.ADAPTIVE2);
+        assertThat(retryMode).isEqualTo(RetryMode.ADAPTIVE_V2);
     }
 
     @Test

@@ -55,7 +55,7 @@ public final class AwsRetryStrategy {
         switch (mode) {
             case STANDARD:
                 return standardRetryStrategy();
-            case ADAPTIVE2:
+            case ADAPTIVE_V2:
                 return adaptiveRetryStrategy();
             case LEGACY:
                 return legacyRetryStrategy();

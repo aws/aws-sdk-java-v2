@@ -184,7 +184,7 @@ public abstract class BaseRetrySetupTest<ClientT, BuilderT extends AwsClientBuil
     private static int expectedCount(RetryMode mode) {
         switch (mode) {
             case ADAPTIVE:
-            case ADAPTIVE2:
+            case ADAPTIVE_V2:
             case STANDARD:
                 return 3;
             case LEGACY:
@@ -239,7 +239,7 @@ public abstract class BaseRetrySetupTest<ClientT, BuilderT extends AwsClientBuil
 
         // Retry policies only support the legacy ADAPTIVE mode.
         if (scenario.retryImplementation() == RetryImplementation.POLICY
-            && scenario.mode() == RetryMode.ADAPTIVE2) {
+            && scenario.mode() == RetryMode.ADAPTIVE_V2) {
             return false;
         }
 
@@ -284,7 +284,7 @@ public abstract class BaseRetrySetupTest<ClientT, BuilderT extends AwsClientBuil
                            .expectedClass(RetryPolicyAdapter.class)
                            .build()
             , RetryScenario.builder()
-                           .mode(RetryMode.ADAPTIVE2)
+                           .mode(RetryMode.ADAPTIVE_V2)
                            .retryImplementation(RetryImplementation.STRATEGY)
                            .expectedClass(AdaptiveRetryStrategy.class)
                            .build()

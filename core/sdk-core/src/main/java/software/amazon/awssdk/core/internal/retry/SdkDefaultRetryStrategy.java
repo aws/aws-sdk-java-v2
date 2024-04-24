@@ -57,7 +57,7 @@ public final class SdkDefaultRetryStrategy {
                 return standardRetryStrategy();
             case ADAPTIVE:
                 return legacyAdaptiveRetryStrategy();
-            case ADAPTIVE2:
+            case ADAPTIVE_V2:
                 return adaptiveRetryStrategy();
             case LEGACY:
                 return legacyRetryStrategy();
@@ -77,7 +77,7 @@ public final class SdkDefaultRetryStrategy {
             return RetryMode.STANDARD;
         }
         if (retryStrategy instanceof AdaptiveRetryStrategy) {
-            return RetryMode.ADAPTIVE2;
+            return RetryMode.ADAPTIVE_V2;
         }
         if (retryStrategy instanceof LegacyRetryStrategy) {
             return RetryMode.LEGACY;

@@ -68,7 +68,7 @@ public class Adaptive2ModeCorrectnessTest {
         CapturingInterceptor interceptor = new CapturingInterceptor();
         ProtocolRestJsonClient client = clientBuilder()
             .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor)
-                                         .retryStrategy(RetryMode.ADAPTIVE2))
+                                         .retryStrategy(RetryMode.ADAPTIVE_V2))
             .build();
 
         int totalRequests = 250;
