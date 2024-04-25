@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
+from difflib import unified_diff
 import subprocess
 import filecmp
 import os
 import shutil, errno
 import argparse
-import difflib
+import sys
 
 RESOURCE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "resources")
 BEFORE_DIR = os.path.join(RESOURCE_DIR, "before")
@@ -34,14 +35,13 @@ def run_test(version):
 
 def compare_directory(dcmp):
     if dcmp.diff_files or dcmp.left_only or dcmp.right_only:
+        print("Unexpected diffs found!")
         for diff_file in dcmp.diff_files:
-            file1 = open(dcmp.right + "/" + diff_file, 'r')
-            file2 = open(dcmp.left + "/" + diff_file, 'r')
-            diff = difflib.ndiff(file1.readlines(), file2.readlines())
-            changes = [l for l in diff if l.startswith('+ ') or l.startswith('- ')]
-            print("Diff found in file: " + diff_file)
-            for change in changes:
-                print(change)
+            a = dcmp.right + "/" + diff_file
+            a_contents = open(a, 'r').readlines()
+            b = dcmp.left + "/" + diff_file
+            b_contents = open(b, 'r').readlines()
+            sys.stdout.writelines(unified_diff(a_contents, b_contents, fromfile=a, tofile=b))
 
         return False
     for sub_dcmp in dcmp.subdirs.values():
