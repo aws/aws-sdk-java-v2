@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS AppSync",
+    "contributor": "",
+    "description": "UpdateGraphQLAPI documentation update and datasource introspection secret arn update"
+}
