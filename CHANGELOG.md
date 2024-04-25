@@ -1,4 +1,107 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.39__ __2024-04-25__
+## __AWS AppSync__
+  - ### Features
+    - UpdateGraphQLAPI documentation update and datasource introspection secret arn update
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Step Functions__
+  - ### Features
+    - Add new ValidateStateMachineDefinition operation, which performs syntax checking on the definition of a Amazon States Language (ASL) state machine.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Bug Fix: IVS does not support arns with the `svs` prefix
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Bug Fix: IVS Real Time does not support ARNs using the `svs` prefix.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for setting local time zones for RDS for Db2 DB instances.
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager adds support for network ACL policies to manage Amazon Virtual Private Cloud (VPC) network access control lists (ACLs) for accounts in your organization.
+
+# __2.25.38__ __2024-04-24__
+## __AWS DataSync__
+  - ### Features
+    - This change allows users to disable and enable the schedules associated with their tasks.
+
+## __AWS EntityResolution__
+  - ### Features
+    - Support Batch Unique IDs Deletion.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - EMRonEKS Service support for SecurityConfiguration enforcement for Spark Jobs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Launching capability for customers to enable or disable automatic assignment of public IPv4 addresses to their network interface
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift releases container fleets support for public preview. Deploy Linux-based containerized game server software for hosting on Amazon GameLift.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Add SSM DescribeInstanceProperties API to public AWS SDK.
+
+# __2.25.37__ __2024-04-23__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Added additional metadata that might be applicable to your reservation recommendations.
+
+## __AWS Performance Insights__
+  - ### Features
+    - Clarifies how aggregation works for GetResourceMetrics in the Performance Insights API.
+
+## __AWS SDK for Java V2__
+  - ### Features
+    - Source account Id from credentials to use in endpoint construction
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Introducing the ability to create multiple data sources per knowledge base, specify S3 buckets as data sources from external accounts, and exposing levers to define the deletion behavior of the underlying vector store data.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces zero-setup file upload support for the RetrieveAndGenerate API. This allows you to chat with your data without setting up a Knowledge Base.
+
+## __Amazon Bedrock__
+  - ### Features
+    - This release introduces Model Evaluation and Guardrails for Amazon Bedrock.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces Guardrails for Amazon Bedrock.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release introduces EC2 AMI Deregistration Protection, a new AMI property that can be enabled by customers to protect an AMI against an unintended deregistration. This release also enables the AMI owners to view the AMI 'LastLaunchedTime' in DescribeImages API.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Fix the example ARN for ModifyActivityStreamRequest
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Added InstanceType and MaxConcurrentSessions parameters on CreatePortal and UpdatePortal Operations as well as the ability to read Customer Managed Key & Additional Encryption Context parameters on supported resources (Portal, BrowserSettings, UserSettings, IPAccessSettings)
+
 # __2.25.36__ __2024-04-22__
 ## __AWS Cloud Map__
   - ### Features
