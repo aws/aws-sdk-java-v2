@@ -31,7 +31,13 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.amazonaws.auth.BasicAWSCredentials
       newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.BasicSessionCredentials
+      newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.AwsSessionCredentials
 
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.AWSCredentialsProvider
+      newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.amazonaws.auth.AWSStaticCredentialsProvider
       newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.StaticCredentialsProvider

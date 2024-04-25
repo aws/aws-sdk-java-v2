@@ -83,6 +83,14 @@ public class NewClassToStaticFactory extends Recipe {
                                        .build()
                                        .apply(getCursor(), newClass.getCoordinates().replace(), newClass.getArguments().get(0),
                                               newClass.getArguments().get(1));
+                case 3:
+                    return JavaTemplate.builder(String.format("%s.create(#{any()}, #{any()}, #{any()})",
+                                                              classType.getClassName()))
+                                       .build()
+                                       .apply(getCursor(), newClass.getCoordinates().replace(),
+                                              newClass.getArguments().get(0),
+                                              newClass.getArguments().get(1),
+                                              newClass.getArguments().get(2));
                 default:
                     throw new UnsupportedOperationException("Unsupported number of parameters: " + numOfParams);
             }

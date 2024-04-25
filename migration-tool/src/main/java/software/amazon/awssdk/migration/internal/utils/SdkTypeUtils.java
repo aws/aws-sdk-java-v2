@@ -61,7 +61,6 @@ public final class SdkTypeUtils {
      */
     private static final Set<String> V2_CORE_CLASSES_WITH_BUILDER =
         new HashSet<>(Arrays.asList("software.amazon.awssdk.core.client.ClientOverrideConfiguration",
-                                    "software.amazon.awssdk.auth.credentials.AwsSessionCredentials",
                                     "software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider",
                                     "software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider",
                                     "software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider",

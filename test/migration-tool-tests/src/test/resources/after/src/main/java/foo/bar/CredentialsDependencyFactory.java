@@ -15,10 +15,10 @@
 
 package foo.bar;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.BasicSessionCredentials;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
@@ -30,29 +30,29 @@ public final class CredentialsDependencyFactory {
     private CredentialsDependencyFactory() {
     }
 
-    public static AWSCredentialsProvider defaultCredentialsProviderChain() {
+    public static AwsCredentialsProvider defaultCredentialsProviderChain() {
         return DefaultCredentialsProvider.builder().build();
     }
 
-    public static AWSCredentialsProvider environmentCredentialsProvider() {
+    public static AwsCredentialsProvider environmentCredentialsProvider() {
         return EnvironmentVariableCredentialsProvider.create();
     }
 
-    public static AWSCredentialsProvider instanceProfileCredentialsProvider() {
+    public static AwsCredentialsProvider instanceProfileCredentialsProvider() {
         return InstanceProfileCredentialsProvider.create();
     }
 
-    public static AWSCredentialsProvider profileCredentialsProvider() {
+    public static AwsCredentialsProvider profileCredentialsProvider() {
         return ProfileCredentialsProvider.builder().build();
     }
 
-    public static AWSCredentialsProvider staticCredentialsProvider() {
+    public static AwsCredentialsProvider staticCredentialsProvider() {
         AwsCredentials credentials  = AwsBasicCredentials.create("accessKey", "secretKey");
         return StaticCredentialsProvider.create(credentials);
     }
 
-    public static AWSCredentialsProvider staticSessionCredentialsProvider() {
-        AwsCredentials credentials = new BasicSessionCredentials("accessKey", "secretKey", "session");
+    public static AwsCredentialsProvider staticSessionCredentialsProvider() {
+        AwsCredentials credentials = AwsSessionCredentials.create("accessKey", "secretKey", "session");
         return StaticCredentialsProvider.create(credentials);
     }
 }

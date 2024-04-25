@@ -29,7 +29,6 @@ public class Application {
     public static void main(String... args) {
         SqsClient sqs = SqsClient.builder()
                                        .region(Region.US_WEST_2)
-                                       .credentials(CredentialsDependencyFactory.defaultCredentialsProviderChain())
                                        .build();
         ListQueuesRequest request = ListQueuesRequest.builder()
             .maxResults(5)

@@ -29,7 +29,6 @@ public class Application {
     public static void main(String... args) {
         AmazonSQS sqs = AmazonSQSClient.builder()
                                        .withRegion(Regions.US_WEST_2)
-                                       .withCredentials(CredentialsDependencyFactory.defaultCredentialsProviderChain())
                                        .build();
         ListQueuesRequest request = new ListQueuesRequest()
             .withMaxResults(5)
