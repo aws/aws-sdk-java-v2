@@ -166,8 +166,6 @@ public abstract class BaseRetrySetupTest<ClientT, BuilderT extends AwsClientBuil
     private void setupScenarioBefore(RetryScenario scenario) {
         if (scenario.setup() == RetryModeSetup.SYSTEM_PROPERTY_USING_MODE) {
             System.setProperty("aws.retryMode", scenario.mode().name().toLowerCase(Locale.ROOT));
-        } else {
-            System.setProperty("aws.retryMode", "");
         }
     }
 
@@ -178,6 +176,7 @@ public abstract class BaseRetrySetupTest<ClientT, BuilderT extends AwsClientBuil
 
     @AfterEach
     private void afterEach() {
+        System.clearProperty("aws.retryMode");
         wireMock.stop();
     }
 
