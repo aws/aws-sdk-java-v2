@@ -57,7 +57,6 @@ import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.ContextParam;
 import software.amazon.awssdk.codegen.model.service.EndpointTrait;
 import software.amazon.awssdk.codegen.model.service.HostPrefixProcessor;
-import software.amazon.awssdk.codegen.model.service.OperationContextParam;
 import software.amazon.awssdk.codegen.model.service.StaticContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
@@ -85,6 +84,7 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
@@ -386,8 +386,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
     }
 
     private boolean hasOperationContextParams(OperationModel opModel) {
-        Map<String, OperationContextParam> operationContextParams = opModel.getOperationContextParams();
-        return operationContextParams != null && !operationContextParams.isEmpty();
+        return CollectionUtils.isNotEmpty(opModel.getOperationContextParams());
     }
 
     private void addStaticContextParamMethods(TypeSpec.Builder classBuilder) {
@@ -559,7 +558,8 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
             if (Objects.requireNonNull(value.getValue().asToken()) == JsonToken.VALUE_STRING) {
                 b.addComment("TODO: Add JMESPathRuntime for $L", ((JrsString) value.getValue()).getValue());
             } else {
-                throw new RuntimeException("Don't know how to set parameter of type " + value.getValue().asToken());
+                throw new RuntimeException("Invalid operation context parameter path for " + opModel.getOperationName() +
+                                           ". Expected VALUE_STRING, but got " + value.getValue().asToken());
             }
 
             b.addStatement("params.$N(new $T<>())", setterName, ArrayList.class);
