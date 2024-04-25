@@ -22,6 +22,8 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
@@ -61,6 +63,8 @@ public final class HeaderUnmarshaller {
 
     private static class SimpleHeaderUnmarshaller<T> implements XmlUnmarshaller<T> {
 
+        private static final Logger log = LoggerFactory.getLogger(SimpleHeaderUnmarshaller.class);
+
         private final StringToValueConverter.StringToValue<T> stringToValue;
 
         private SimpleHeaderUnmarshaller(StringToValueConverter.StringToValue<T> stringToValue) {
@@ -69,9 +73,17 @@ public final class HeaderUnmarshaller {
 
         @Override
         public T unmarshall(XmlUnmarshallerContext context, List<XmlElement> content, SdkField<T> field) {
-            return context.response().firstMatchingHeader(field.locationName())
-                          .map(s -> stringToValue.convert(s, field))
-                          .orElse(null);
+            try {
+                return context.response().firstMatchingHeader(field.locationName())
+                              .map(s -> stringToValue.convert(s, field))
+                              .orElse(null);
+            } catch (RuntimeException e) {
+                log.warn("Exception found while parsing response header {}", e.getMessage());
+                if(field.ignoreDataTypeConversionFailures()) {
+                    return null;
+                }
+                throw e;
+            }
         }
     }
 }

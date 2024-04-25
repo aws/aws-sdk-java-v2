@@ -25,6 +25,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.traits.DataTypeConversionFailureHandlingTrait;
 import software.amazon.awssdk.core.traits.DefaultValueTrait;
 import software.amazon.awssdk.core.traits.LocationTrait;
 import software.amazon.awssdk.core.traits.Trait;
@@ -84,6 +85,16 @@ public final class SdkField<TypeT> {
      */
     public String locationName() {
         return locationName;
+    }
+
+    /**
+     * @return whether data-type conversion errors are to be ignored
+     */
+    public boolean ignoreDataTypeConversionFailures() {
+        DataTypeConversionFailureHandlingTrait dataTypeConversionFailureHandlingTrait =
+            getTrait(DataTypeConversionFailureHandlingTrait.class);
+
+        return dataTypeConversionFailureHandlingTrait != null;
     }
 
     /**

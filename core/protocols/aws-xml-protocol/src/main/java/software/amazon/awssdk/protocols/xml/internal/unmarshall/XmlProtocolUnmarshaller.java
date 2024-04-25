@@ -20,13 +20,10 @@ import static java.util.Collections.singletonList;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.time.Instant;
-import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
@@ -51,7 +48,6 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
     public static final StringToValueConverter.StringToValue<Instant> INSTANT_STRING_TO_VALUE
         = StringToInstant.create(getDefaultTimestampFormats());
     private static final XmlUnmarshallerRegistry REGISTRY = createUnmarshallerRegistry();
-    private static final Logger log = LoggerFactory.getLogger(XmlProtocolUnmarshaller.class);
 
     private XmlProtocolUnmarshaller() {
     }
@@ -86,12 +82,8 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
             XmlUnmarshaller<Object> unmarshaller = REGISTRY.getUnmarshaller(field.location(), field.marshallingType());
 
             if (field.location() != MarshallLocation.PAYLOAD) {
-                try {
-                    Object unmarshalled = unmarshaller.unmarshall(context, null, (SdkField<Object>) field);
-                    field.set(sdkPojo, unmarshalled);
-                } catch (DateTimeParseException e) {
-                    log.warn("Invalid datetime format provided in the Expires field {}", e.getParsedString());
-                }
+                Object unmarshalled = unmarshaller.unmarshall(context, null, (SdkField<Object>) field);
+                field.set(sdkPojo, unmarshalled);
                 continue;
             }
 
