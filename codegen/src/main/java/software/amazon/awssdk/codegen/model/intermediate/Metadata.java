@@ -75,6 +75,8 @@ public class Metadata {
 
     private String authSchemePackageName;
 
+    private String jPathPackageName;
+
     private String serviceAbbreviation;
 
     private String serviceFullName;
@@ -764,4 +766,27 @@ public class Metadata {
     public String getFullInternalPackageName() {
         return joinPackageNames(getFullClientPackageName(), "internal");
     }
+
+    public Metadata setJPathPackageName(String jPathPackageName) {
+        this.jPathPackageName = jPathPackageName;
+        return this;
+    }
+
+    public Metadata withJPathPackageName(String jPathPackageName) {
+        setJPathPackageName(jPathPackageName);
+        return this;
+    }
+
+    public String getJPathPackageName() {
+        return jPathPackageName;
+    }
+
+    public String getFullJPathPackageName() {
+        return joinPackageNames(rootPackageName, getJPathPackageName());
+    }
+
+    public String getFullInternalJPathPackageName() {
+        return joinPackageNames(getFullJPathPackageName(), "internal");
+    }
+
 }

@@ -19,11 +19,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.rules.ClientContextParamsClassSpec;
 import software.amazon.awssdk.codegen.poet.rules.DefaultPartitionDataProviderSpec;
@@ -56,6 +58,9 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         } else {
             tasks.add(generateDefaultProvider());
             tasks.add(new RulesEngineRuntimeGeneratorTask(generatorTaskParams));
+        }
+        if (shouldGenerateJPathRuntime()) {
+            tasks.add(new JPathRuntimeGeneratorTask(generatorTaskParams));
         }
         tasks.addAll(generateInterceptors());
         if (shouldGenerateEndpointTests()) {
@@ -149,4 +154,27 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
                (customClientContextParams != null && !customClientContextParams.isEmpty());
     }
 
+    private boolean shouldGenerateJPathRuntime() {
+        boolean isAlreadyGenerated = model.hasWaiters();
+        if (isAlreadyGenerated) {
+            return true;
+        }
+
+        Map<String, ParameterModel> endpointParameters = model.getCustomizationConfig().getEndpointParameters();
+        if (endpointParameters == null) {
+            return false;
+        }
+
+        return endpointParameters.values().stream().anyMatch(this::paramRequiresPathParserRuntime);
+    }
+
+    private boolean paramRequiresPathParserRuntime(ParameterModel parameterModel) {
+        return paramIsOperationalContextParam(parameterModel) &&
+               "stringarray".equals(parameterModel.getType().toLowerCase(Locale.US));
+    }
+
+    //TODO (string-array-params): resolve this logical test before finalizing coding
+    private boolean paramIsOperationalContextParam(ParameterModel parameterModel) {
+        return true;
+    }
 }

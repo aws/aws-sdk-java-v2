@@ -104,7 +104,8 @@ final class AddMetadata {
                 .withPaginatorsPackageName(namingStrategy.getPaginatorsPackageName(service))
                 .withWaitersPackageName(namingStrategy.getWaitersPackageName(service))
                 .withEndpointRulesPackageName(namingStrategy.getEndpointRulesPackageName(service))
-                .withAuthSchemePackageName(namingStrategy.getAuthSchemePackageName(service));
+                .withAuthSchemePackageName(namingStrategy.getAuthSchemePackageName(service))
+                .withJPathPackageName(namingStrategy.getJPathPackageName(service));
     }
 
     /**

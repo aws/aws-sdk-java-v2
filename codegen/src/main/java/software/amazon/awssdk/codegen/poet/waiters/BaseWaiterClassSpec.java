@@ -47,6 +47,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.codegen.emitters.tasks.JPathRuntimeGeneratorTask;
 import software.amazon.awssdk.codegen.emitters.tasks.WaitersRuntimeGeneratorTask;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -524,7 +525,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         String expectedType = acceptor.getExpected() instanceof JrsString ? "$S" : "$L";
         return CodeBlock.builder()
                         .add("response -> {")
-                        .add("$1T input = new $1T(response);", waitersRuntimeClass().nestedClass("Value"))
+                        .add("$1T input = new $1T(response);", jPathRuntimeClass().nestedClass("Value"))
                         .add("return $T.equals(", Objects.class)
                         .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
                         .add(".value(), " + expectedType + ");", expected)
@@ -537,7 +538,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         String expectedType = acceptor.getExpected() instanceof JrsString ? "$S" : "$L";
         return CodeBlock.builder()
                         .add("response -> {")
-                        .add("$1T input = new $1T(response);", waitersRuntimeClass().nestedClass("Value"))
+                        .add("$1T input = new $1T(response);", jPathRuntimeClass().nestedClass("Value"))
                         .add("$T<$T> resultValues = ", List.class, Object.class)
                         .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
                         .add(".values();")
@@ -553,7 +554,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         String expectedType = acceptor.getExpected() instanceof JrsString ? "$S" : "$L";
         return CodeBlock.builder()
                         .add("response -> {")
-                        .add("$1T input = new $1T(response);", waitersRuntimeClass().nestedClass("Value"))
+                        .add("$1T input = new $1T(response);", jPathRuntimeClass().nestedClass("Value"))
                         .add("$T<$T> resultValues = ", List.class, Object.class)
                         .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
                         .add(".values();")
@@ -591,5 +592,10 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
     private ClassName waitersRuntimeClass() {
         return ClassName.get(model.getMetadata().getFullWaitersInternalPackageName(),
                              WaitersRuntimeGeneratorTask.RUNTIME_CLASS_NAME);
+    }
+
+    private ClassName jPathRuntimeClass() {
+        return ClassName.get(model.getMetadata().getFullInternalJPathPackageName(),
+                             JPathRuntimeGeneratorTask.RUNTIME_CLASS_NAME);
     }
 }
