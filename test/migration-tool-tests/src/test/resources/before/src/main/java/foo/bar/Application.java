@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.migrationtool;
-
-import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.ListQueuesRequest;
-import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;
+package foo.bar;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClient;
+import com.amazonaws.services.sqs.model.ListQueuesRequest;
+import com.amazonaws.services.sqs.model.ListQueuesResult;
 
 public class Application {
 
@@ -27,12 +27,14 @@ public class Application {
     }
 
     public static void main(String... args) {
-        SqsClient sqs = SqsClient.builder().build();
-        ListQueuesRequest request = ListQueuesRequest.builder()
-            .maxResults(5)
-            .queueNamePrefix("MyQueue-")
-            .nextToken("token").build();
-        ListQueuesResponse listQueuesResult = sqs.listQueues(request);
+        AmazonSQS sqs = AmazonSQSClient.builder()
+                                       .withRegion(Regions.US_WEST_2)
+                                       .build();
+        ListQueuesRequest request = new ListQueuesRequest()
+            .withMaxResults(5)
+            .withQueueNamePrefix("MyQueue-")
+            .withNextToken("token");
+        ListQueuesResult listQueuesResult = sqs.listQueues(request);
         System.out.println(listQueuesResult);
     }
 }

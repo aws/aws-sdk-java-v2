@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.migration.internal.recipe;
 
+import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isEligibleToConvertToBuilder;
+
 import java.util.Collections;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
@@ -31,15 +33,15 @@ import org.openrewrite.marker.Markers;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.migration.internal.utils.NamingUtils;
 import software.amazon.awssdk.migration.internal.utils.SdkTypeUtils;
-import software.amazon.awssdk.migration.recipe.NewV1ModelClassToV2;
+import software.amazon.awssdk.migration.recipe.NewClassToBuilderPattern;
 
 /**
- * Internal recipe that converts V1 model creation to the builder pattern.
+ * Internal recipe that converts new class creation to the builder pattern.
  *
- * @see NewV1ModelClassToV2
+ * @see NewClassToBuilderPattern
  */
 @SdkInternalApi
-public class NewV1ClassToBuilder extends Recipe {
+public class NewClassToBuilder extends Recipe {
     @Override
     public String getDisplayName() {
         return "Transform 'new' expressions to builders";
@@ -47,7 +49,8 @@ public class NewV1ClassToBuilder extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Transforms 'new' expression for V1 model objects to the equivalent builder()..build() expression in V2.";
+        return "Transforms 'new' expression for generated model, client objects and client config related objects to the "
+               + "equivalent builder()..build() expression in V2.";
     }
 
     @Override
@@ -96,21 +99,25 @@ public class NewV1ClassToBuilder extends Recipe {
         public J visitNewClass(J.NewClass newClass, ExecutionContext executionContext) {
             newClass = super.visitNewClass(newClass, executionContext).cast();
 
-            JavaType classType = newClass.getType();
-            if (!SdkTypeUtils.isV1ModelClass(classType)) {
+            if (!(newClass.getType() instanceof JavaType.FullyQualified)) {
                 return newClass;
             }
 
-            JavaType.FullyQualified v2Type = SdkTypeUtils.asV2Type((JavaType.FullyQualified) classType);
-            JavaType.FullyQualified v2TypeBuilder = SdkTypeUtils.v2ModelBuilder(v2Type);
+            JavaType.FullyQualified classType = (JavaType.FullyQualified) newClass.getType();
+
+            if (!isEligibleToConvertToBuilder(classType)) {
+                return newClass;
+            }
+
+            JavaType.FullyQualified builderType = SdkTypeUtils.v2Builder(classType);
 
             J.Identifier modelId = new J.Identifier(
                 Tree.randomId(),
                 Space.EMPTY,
                 Markers.EMPTY,
                 Collections.emptyList(),
-                v2Type.getClassName(),
-                v2Type,
+                classType.getClassName(),
+                classType,
                 null
             );
 
@@ -127,9 +134,9 @@ public class NewV1ClassToBuilder extends Recipe {
             JavaType.Method methodType = new JavaType.Method(
                 null,
                 0L,
-                v2Type,
+                classType,
                 "builder",
-                v2TypeBuilder,
+                builderType,
                 Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList(),
@@ -145,7 +152,28 @@ public class NewV1ClassToBuilder extends Recipe {
                 builderMethod,
                 JContainer.empty(),
                 methodType
+            );
 
+            J.Identifier buildName = new J.Identifier(
+                Tree.randomId(),
+                Space.EMPTY,
+                Markers.EMPTY,
+                Collections.emptyList(),
+                "build",
+                null,
+                null
+            );
+
+            JavaType.Method buildMethodType = new JavaType.Method(
+                null,
+                0L,
+                builderType,
+                "build",
+                classType,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList()
             );
 
             J.MethodInvocation buildInvoke = new J.MethodInvocation(
@@ -154,27 +182,9 @@ public class NewV1ClassToBuilder extends Recipe {
                 Markers.EMPTY,
                 JRightPadded.build(builderInvoke),
                 null,
-                new J.Identifier(
-                    Tree.randomId(),
-                    Space.EMPTY,
-                    Markers.EMPTY,
-                    Collections.emptyList(),
-                    "build",
-                    v2Type,
-                    null
-                ),
+                buildName,
                 JContainer.empty(),
-                new JavaType.Method(
-                    null,
-                    0L,
-                    v2TypeBuilder,
-                    "build",
-                    v2Type,
-                    Collections.emptyList(),
-                    Collections.emptyList(),
-                    Collections.emptyList(),
-                    Collections.emptyList()
-                )
+                buildMethodType
             );
 
             return buildInvoke;

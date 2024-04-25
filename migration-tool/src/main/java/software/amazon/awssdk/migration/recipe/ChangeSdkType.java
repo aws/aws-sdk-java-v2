@@ -16,6 +16,8 @@
 package software.amazon.awssdk.migration.recipe;
 
 import static software.amazon.awssdk.migration.internal.utils.NamingConversionUtils.getV2Equivalent;
+import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isV1ClientClass;
+import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isV1ModelClass;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -93,8 +95,19 @@ public class ChangeSdkType extends Recipe {
 
         @Override
         public J visitImport(J.Import anImport, ExecutionContext ctx) {
-            String currentFqcn = currentFqcn(anImport);
-            if (isV1Import(currentFqcn)) {
+            JavaType.FullyQualified fullyQualified =
+                Optional.ofNullable(anImport.getQualid())
+                        .map(J.FieldAccess::getType)
+                        .map(TypeUtils::asFullyQualified)
+                        .orElse(null);
+
+            if (fullyQualified == null)  {
+                return anImport;
+            }
+
+            String currentFqcn = fullyQualified.getFullyQualifiedName();
+
+            if (isV1ModelClass(fullyQualified) || isV1ClientClass(fullyQualified)) {
                 JavaType.ShallowClass originalType = JavaType.ShallowClass.build(currentFqcn);
                 String v2Equivalent = getV2Equivalent(currentFqcn);
 
@@ -463,20 +476,5 @@ public class ChangeSdkType extends Recipe {
             }
             classType = classType.getOwningClass();
         }
-    }
-
-    private static boolean isV1Import(String currentFqcn) {
-        if (currentFqcn != null) {
-            return currentFqcn.startsWith(V1_PATTERN);
-        }
-
-        return false;
-    }
-
-    private static String currentFqcn(J.Import anImport) {
-        JavaType.FullyQualified currentFqcn =
-            TypeUtils.asFullyQualified(Optional.ofNullable(anImport.getQualid()).map(J.FieldAccess::getType).orElse(null));
-        String curFqn = currentFqcn != null ? currentFqcn.getFullyQualifiedName() : null;
-        return curFqn;
     }
 }
