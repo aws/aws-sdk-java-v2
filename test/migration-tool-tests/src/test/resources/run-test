@@ -43,6 +43,7 @@ def compare_directory(dcmp):
             b = dcmp.left + "/" + diff_file
             b_contents = open(b, 'r').readlines()
             sys.stdout.writelines(unified_diff(a_contents, b_contents, fromfile=a, tofile=b))
+            sys.stdout.flush()
 
         return False
     for sub_dcmp in dcmp.subdirs.values():
