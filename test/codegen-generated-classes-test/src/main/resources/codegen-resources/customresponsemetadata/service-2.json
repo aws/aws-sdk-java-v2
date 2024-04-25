@@ -166,6 +166,20 @@
       },
       "documentation": "Some paginated operation with result_key in paginators.json file"
     },
+    "PaginatedOperationWithMoreResults": {
+      "name": "PaginatedOperationWithMoreResults",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "PaginatedOperationWithMoreResultsRequest"
+      },
+      "output": {
+        "shape": "PaginatedOperationWithMoreResultsResponse"
+      },
+      "documentation": "Some paginated operation with more_results in paginators.json file"
+    },
     "QueryParamWithoutValue":{
       "name":"QueryParamWithoutValue",
       "http":{
@@ -775,6 +789,36 @@
         }
       },
       "documentation": "<p>Response type of a single page</p>"
+    },
+    "PaginatedOperationWithMoreResultsRequest": {
+      "type": "structure",
+      "required": [
+        "NextToken"
+      ],
+      "members": {
+        "NextToken": {
+          "shape": "String",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "MaxResults": {
+          "shape": "String",
+          "documentation": "<p>Maximum number of results in a single page</p>"
+        }
+      }
+    },
+    "PaginatedOperationWithMoreResultsResponse": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "String",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "Truncated":{
+          "shape":"Boolean",
+          "documentation":"<p>A flag that indicates whether there are more results in the list. When this value is true, the list in this response is truncated.</p>"
+        }
+      },
+      "documentation": "<p>Response type of multiple pages</p>"
     },
     "PayloadStructType":{
       "type":"structure",

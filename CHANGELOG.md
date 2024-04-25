@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.39__ __2024-04-25__
+## __AWS AppSync__
+  - ### Features
+    - UpdateGraphQLAPI documentation update and datasource introspection secret arn update
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Step Functions__
+  - ### Features
+    - Add new ValidateStateMachineDefinition operation, which performs syntax checking on the definition of a Amazon States Language (ASL) state machine.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Bug Fix: IVS does not support arns with the `svs` prefix
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Bug Fix: IVS Real Time does not support ARNs using the `svs` prefix.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for setting local time zones for RDS for Db2 DB instances.
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager adds support for network ACL policies to manage Amazon Virtual Private Cloud (VPC) network access control lists (ACLs) for accounts in your organization.
+
 # __2.25.38__ __2024-04-24__
 ## __AWS DataSync__
   - ### Features
