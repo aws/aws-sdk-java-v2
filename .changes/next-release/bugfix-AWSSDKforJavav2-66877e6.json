@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Log `AWS4 Canonical Request` in signer if DEBUG level is enabled."
+}
