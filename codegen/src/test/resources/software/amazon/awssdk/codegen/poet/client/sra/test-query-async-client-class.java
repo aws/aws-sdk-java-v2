@@ -53,6 +53,8 @@ import software.amazon.awssdk.services.query.model.OperationWithContextParamRequ
 import software.amazon.awssdk.services.query.model.OperationWithContextParamResponse;
 import software.amazon.awssdk.services.query.model.OperationWithNoneAuthTypeRequest;
 import software.amazon.awssdk.services.query.model.OperationWithNoneAuthTypeResponse;
+import software.amazon.awssdk.services.query.model.OperationWithOperationContextParamRequest;
+import software.amazon.awssdk.services.query.model.OperationWithOperationContextParamResponse;
 import software.amazon.awssdk.services.query.model.OperationWithRequestCompressionRequest;
 import software.amazon.awssdk.services.query.model.OperationWithRequestCompressionResponse;
 import software.amazon.awssdk.services.query.model.OperationWithStaticContextParamsRequest;
@@ -71,6 +73,7 @@ import software.amazon.awssdk.services.query.transform.GetOperationWithChecksumR
 import software.amazon.awssdk.services.query.transform.OperationWithChecksumRequiredRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithContextParamRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithNoneAuthTypeRequestMarshaller;
+import software.amazon.awssdk.services.query.transform.OperationWithOperationContextParamRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithRequestCompressionRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithStaticContextParamsRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.PutOperationWithChecksumRequestMarshaller;
@@ -510,6 +513,64 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
                              .withInput(operationWithNoneAuthTypeRequest));
             CompletableFuture<OperationWithNoneAuthTypeResponse> whenCompleteFuture = null;
+            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
+                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            });
+            return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
+        } catch (Throwable t) {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            return CompletableFutureUtils.failedFuture(t);
+        }
+    }
+
+    /**
+     * Invokes the OperationWithOperationContextParam operation asynchronously.
+     *
+     * @param operationWithOperationContextParamRequest
+     * @return A Java Future containing the result of the OperationWithOperationContextParam operation returned by the
+     *         service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>QueryException Base class for all service exceptions. Unknown exceptions will be thrown as an
+     *         instance of this type.</li>
+     *         </ul>
+     * @sample QueryAsyncClient.OperationWithOperationContextParam
+     * @see <a
+     *      href="https://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/OperationWithOperationContextParam"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public CompletableFuture<OperationWithOperationContextParamResponse> operationWithOperationContextParam(
+        OperationWithOperationContextParamRequest operationWithOperationContextParamRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithOperationContextParamRequest,
+                                                                                  this.clientConfiguration);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                                                                         operationWithOperationContextParamRequest.overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithOperationContextParam");
+
+            HttpResponseHandler<OperationWithOperationContextParamResponse> responseHandler = protocolFactory
+                .createResponseHandler(OperationWithOperationContextParamResponse::builder);
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+
+            CompletableFuture<OperationWithOperationContextParamResponse> executeFuture = clientHandler
+                .execute(new ClientExecutionParams<OperationWithOperationContextParamRequest, OperationWithOperationContextParamResponse>()
+                             .withOperationName("OperationWithOperationContextParam").withProtocolMetadata(protocolMetadata)
+                             .withMarshaller(new OperationWithOperationContextParamRequestMarshaller(protocolFactory))
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                             .withInput(operationWithOperationContextParamRequest));
+            CompletableFuture<OperationWithOperationContextParamResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
