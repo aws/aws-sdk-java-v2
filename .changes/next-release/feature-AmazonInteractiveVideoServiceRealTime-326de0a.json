@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Interactive Video Service RealTime",
-    "contributor": "",
-    "description": "Bug Fix: IVS Real Time does not support ARNs using the `svs` prefix."
-}
