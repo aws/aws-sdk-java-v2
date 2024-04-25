@@ -23,6 +23,7 @@ import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.internal.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -76,18 +77,8 @@ final class DynamoDbRetryPolicy {
             return configuredRetryPolicy;
         }
 
-        RetryMode retryMode = RetryMode.resolver()
-                                       .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                                       .profileName(config.option(SdkClientOption.PROFILE_NAME))
-                                       .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
-                                       .resolve();
-
-        return AwsRetryPolicy.forRetryMode(retryMode)
-                             .toBuilder()
-                             .additionalRetryConditionsAllowed(false)
-                             .numRetries(MAX_ERROR_RETRY)
-                             .backoffStrategy(BACKOFF_STRATEGY)
-                             .build();
+        RetryMode retryMode = resolveRetryMode(config);
+        return retryPolicyFor(retryMode);
     }
 
     public static RetryStrategy<?, ?> resolveRetryStrategy(SdkClientConfiguration config) {
@@ -96,16 +87,35 @@ final class DynamoDbRetryPolicy {
             return configuredRetryStrategy;
         }
 
-        RetryMode retryMode = RetryMode.resolver()
-                                       .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                                       .profileName(config.option(SdkClientOption.PROFILE_NAME))
-                                       .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
-                                       .resolve();
+        RetryMode retryMode = resolveRetryMode(config);
+
+        if (retryMode == RetryMode.ADAPTIVE) {
+            return RetryPolicyAdapter.builder()
+                                     .retryPolicy(retryPolicyFor(retryMode))
+                                     .build();
+        }
 
         return AwsRetryStrategy.forRetryMode(retryMode)
             .toBuilder()
             .maxAttempts(MAX_ATTEMPTS)
             .backoffStrategy(exponentialDelay(BASE_DELAY, SdkDefaultRetrySetting.MAX_BACKOFF))
             .build();
+    }
+
+    private static RetryPolicy retryPolicyFor(RetryMode retryMode) {
+        return AwsRetryPolicy.forRetryMode(retryMode)
+                             .toBuilder()
+                             .additionalRetryConditionsAllowed(false)
+                             .numRetries(MAX_ERROR_RETRY)
+                             .backoffStrategy(BACKOFF_STRATEGY)
+                             .build();
+    }
+
+    private static RetryMode resolveRetryMode(SdkClientConfiguration config) {
+        return RetryMode.resolver()
+                        .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                        .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                        .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
+                        .resolve();
     }
 }

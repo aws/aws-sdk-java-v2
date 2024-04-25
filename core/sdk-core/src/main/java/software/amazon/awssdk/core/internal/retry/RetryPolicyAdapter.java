@@ -173,7 +173,7 @@ public final class RetryPolicyAdapter implements RetryStrategy<RetryPolicyAdapte
 
         @Override
         public Builder maxAttempts(int maxAttempts) {
-            throw new UnsupportedOperationException("RetryPolicyAdapter does not support calling retryOnException");
+            throw new UnsupportedOperationException("RetryPolicyAdapter does not support calling maxAttempts");
         }
 
         @Override
