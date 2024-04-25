@@ -1,0 +1,36 @@
+{
+    "version": "2.25.28",
+    "date": "2024-04-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "Add new webhook filter types for GitHub webhooks"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release includes support for bringing your own fonts to use for burn-in or DVB-Sub captioning workflows."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint",
+            "contributor": "",
+            "description": "The OrchestrationSendingRoleArn has been added to the email channel and is used to send emails from campaigns or journeys."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release adds support for specifying the CA certificate to use for the new db instance when restoring from db snapshot, restoring from s3, restoring to point in time, and creating a db instance read replica."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

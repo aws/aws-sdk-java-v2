@@ -82,10 +82,10 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
 
     private static Stream<Arguments> transferManagers() {
         return Stream.of(
-            Arguments.of(tmJavaMpu, tmJavaMpu),
+            Arguments.of(tmJava, tmJava),
             Arguments.of(tmCrt, tmCrt),
-            Arguments.of(tmCrt, tmJavaMpu),
-            Arguments.of(tmJavaMpu, tmCrt)
+            Arguments.of(tmCrt, tmJava),
+            Arguments.of(tmJava, tmCrt)
         );
     }
 

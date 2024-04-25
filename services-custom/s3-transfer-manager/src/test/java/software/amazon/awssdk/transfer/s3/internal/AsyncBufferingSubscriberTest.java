@@ -36,7 +36,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.reactivestreams.Subscription;
+import software.amazon.awssdk.utils.async.SimplePublisher;
 
 class AsyncBufferingSubscriberTest {
     private static final int MAX_CONCURRENT_EXECUTIONS = 5;
@@ -96,20 +96,16 @@ class AsyncBufferingSubscriberTest {
     }
 
     @Test
-    void onErrorInvoked_shouldCompleteFutureExceptionally() {
-        subscriber.onSubscribe(new Subscription() {
-            @Override
-            public void request(long n) {
-
-            }
-
-            @Override
-            public void cancel() {
-
-            }
-        });
+    void onErrorInvoked_shouldCompleteFutureExceptionallyAndCancelRequestsFuture() {
         RuntimeException exception = new RuntimeException("test");
-        subscriber.onError(exception);
+        SimplePublisher<String> simplePublisher = new SimplePublisher<>();
+        simplePublisher.subscribe(subscriber);
+        simplePublisher.send("test");
+        simplePublisher.send("test");
+
+        simplePublisher.error(exception);
         assertThat(returnFuture).isCompletedExceptionally();
+        assertThat(futures.get(0)).isCancelled();
+        assertThat(futures.get(1)).isCancelled();
     }
 }
