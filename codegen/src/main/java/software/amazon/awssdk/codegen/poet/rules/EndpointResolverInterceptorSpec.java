@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.poet.rules;
 
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsString;
@@ -27,9 +28,11 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
@@ -54,6 +57,7 @@ import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.ContextParam;
 import software.amazon.awssdk.codegen.model.service.EndpointTrait;
 import software.amazon.awssdk.codegen.model.service.HostPrefixProcessor;
+import software.amazon.awssdk.codegen.model.service.OperationContextParam;
 import software.amazon.awssdk.codegen.model.service.StaticContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
@@ -136,6 +140,9 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         if (hasClientContextParams()) {
             b.addMethod(setClientContextParamsMethod());
         }
+
+        b.addMethod(setOperationContextParams());
+        addOperationContextParamMethods(b);
 
         b.addMethod(hostPrefixMethod());
 
@@ -326,6 +333,8 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                        AwsExecutionAttribute.class);
         b.addStatement("setStaticContextParams(builder, executionAttributes.getAttribute($T.OPERATION_NAME))",
                        AwsExecutionAttribute.class);
+        b.addStatement("setOperationContextParams(builder, executionAttributes.getAttribute($T.OPERATION_NAME), request)",
+                       AwsExecutionAttribute.class);
 
         b.addStatement("return builder.build()");
         return b.build();
@@ -376,6 +385,11 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         return staticContextParams != null && !staticContextParams.isEmpty();
     }
 
+    private boolean hasOperationContextParams(OperationModel opModel) {
+        Map<String, OperationContextParam> operationContextParams = opModel.getOperationContextParams();
+        return operationContextParams != null && !operationContextParams.isEmpty();
+    }
+
     private void addStaticContextParamMethods(TypeSpec.Builder classBuilder) {
         Map<String, OperationModel> operations = model.getOperations();
 
@@ -392,6 +406,15 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         operations.forEach((n, m) -> {
             if (hasContextParams(m)) {
                 classBuilder.addMethod(setContextParamsMethod(m));
+            }
+        });
+    }
+
+    private void addOperationContextParamMethods(TypeSpec.Builder classBuilder) {
+        Map<String, OperationModel> operations = model.getOperations();
+        operations.forEach((n, m) -> {
+            if (hasOperationContextParams(m)) {
+                classBuilder.addMethod(setOperationContextParamsMethod(m));
             }
         });
     }
@@ -460,6 +483,40 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         return b.build();
     }
 
+    private MethodSpec setOperationContextParams() {
+        Map<String, OperationModel> operations = model.getOperations();
+
+        MethodSpec.Builder b = MethodSpec.methodBuilder("setOperationContextParams")
+                                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                                         .addParameter(paramsBuilderClass(), "params")
+                                         .addParameter(String.class, "operationName")
+                                         .addParameter(SdkRequest.class, "request")
+                                         .returns(void.class);
+
+        boolean generateSwitch = operations.values().stream().anyMatch(this::hasOperationContextParams);
+        if (generateSwitch) {
+            b.beginControlFlow("switch (operationName)");
+
+            operations.forEach((n, m) -> {
+                if (!hasOperationContextParams(m)) {
+                    return;
+                }
+
+                String requestClassName = model.getNamingStrategy().getRequestClassName(m.getOperationName());
+                ClassName requestClass = poetExtension.getModelClass(requestClassName);
+
+                b.addCode("case $S:", n);
+                b.addStatement("setOperationContextParams(params, ($T) request)", requestClass);
+                b.addStatement("break");
+            });
+            b.addCode("default:");
+            b.addStatement("break");
+            b.endControlFlow();
+        }
+
+        return b.build();
+    }
+
     private MethodSpec setContextParamsMethod(OperationModel opModel) {
         String requestClassName = model.getNamingStrategy().getRequestClassName(opModel.getOperationName());
         ClassName requestClass = poetExtension.getModelClass(requestClassName);
@@ -479,6 +536,33 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
             String setterName = endpointRulesSpecUtils.paramMethodName(param.getName());
 
             b.addStatement("params.$N(request.$N())", setterName, m.getFluentGetterMethodName());
+        });
+
+        return b.build();
+    }
+
+    private MethodSpec setOperationContextParamsMethod(OperationModel opModel) {
+        String requestClassName = model.getNamingStrategy().getRequestClassName(opModel.getOperationName());
+        ClassName requestClass = poetExtension.getModelClass(requestClassName);
+
+        MethodSpec.Builder b = MethodSpec.methodBuilder("setOperationContextParams")
+                                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                                         .addParameter(paramsBuilderClass(), "params")
+                                         .addParameter(requestClass, "request")
+                                         .returns(void.class);
+
+        opModel.getOperationContextParams().forEach((key, value) -> {
+            String setterName = endpointRulesSpecUtils.paramMethodName(key);
+
+            //TODO: JMESPathRunTime PR for OperationContextParam will change this to extract List based on JMESPath expression
+            // instead of the new ArrayList().
+            if (Objects.requireNonNull(value.getValue().asToken()) == JsonToken.VALUE_STRING) {
+                b.addComment("TODO: Add JMESPathRuntime for $L", ((JrsString) value.getValue()).getValue());
+            } else {
+                throw new RuntimeException("Don't know how to set parameter of type " + value.getValue().asToken());
+            }
+
+            b.addStatement("params.$N(new $T<>())", setterName, ArrayList.class);
         });
 
         return b.build();

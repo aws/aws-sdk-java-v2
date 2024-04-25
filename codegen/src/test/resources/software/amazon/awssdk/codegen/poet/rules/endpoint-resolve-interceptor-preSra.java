@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.query.endpoints.internal;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
+import software.amazon.awssdk.services.query.model.OperationWithOperationContextParamRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -123,6 +125,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         setClientContextParams(builder, executionAttributes);
         setContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), request);
         setStaticContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME));
+        setOperationContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), request);
         return builder.build();
     }
 
@@ -197,6 +200,22 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             params::booleanContextParam);
         Optional.ofNullable(clientContextParams.get(QueryClientContextParams.STRING_CONTEXT_PARAM)).ifPresent(
             params::stringContextParam);
+    }
+
+    private static void setOperationContextParams(QueryEndpointParams.Builder params, String operationName, SdkRequest request) {
+        switch (operationName) {
+            case "OperationWithOperationContextParam":
+                setOperationContextParams(params, (OperationWithOperationContextParamRequest) request);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private static void setOperationContextParams(QueryEndpointParams.Builder params,
+                                                  OperationWithOperationContextParamRequest request) {
+        // TODO: Add JMESPathRuntime for ListMember.StringList[*].LeafString
+        params.deleteKeys(new ArrayList<>());
     }
 
     private static Optional<String> hostPrefix(String operationName, SdkRequest request) {

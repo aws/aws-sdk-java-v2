@@ -31,6 +31,17 @@
       },
       "input":{"shape":"WithContextParam"}
     },
+    "OperationWithOperationContextParam": {
+      "name": "OperationWithOperationContextParam",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "operationContextParams":{
+        "deleteKeys":{"value":"ListMember.StringList[*].LeafString"}
+      },
+      "input":{"shape":"WithOperationContextParam"}
+    },
     "OperationWithStaticContextParams": {
       "name": "OperationWithStaticContextParams",
       "http": {
@@ -182,6 +193,43 @@
           "shape": "ChecksumStructure"
         }
       }
+    },
+    "WithOperationContextParam": {
+      "type": "structure",
+      "members": {
+        "ListMember":{
+          "shape":"ListMember"
+        }
+      }
+    },
+    "ListMember":{
+      "type":"structure",
+      "members":{
+        "Strings":{
+          "shape":"StringList"
+        },
+        "StringParam":{
+          "shape":"String"
+        }
+      },
+      "documentation":"<p>Container for the objects to delete.</p>"
+    },
+    "StringList":{
+      "type":"list",
+      "member":{"shape":"LeafNode"},
+      "flattened":true
+    },
+    "LeafNode":{
+      "type":"structure",
+      "members":{
+        "LeafString":{
+          "shape":"LeafString"
+        }
+      },
+      "documentation":""
+    },
+    "LeafString":{
+      "type":"string"
     },
     "APostOperationRequest": {
       "type": "structure",
