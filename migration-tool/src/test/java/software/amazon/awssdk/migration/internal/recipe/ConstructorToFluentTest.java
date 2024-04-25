@@ -115,4 +115,43 @@ public class ConstructorToFluentTest implements RewriteTest {
             )
         );
     }
+
+    // RequesterPays is a boolean primitive type, test to ensure the type matching can handle this
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
+    public void getObjectRequest_bucketKeyRequesterPays_convertedToFluent() {
+        rewriteRun(
+            spec -> spec.recipe(new ConstructorToFluent("com.amazonaws.services.s3.model.GetObjectRequest",
+                                                        Arrays.asList("java.lang.String", "java.lang.String", "boolean"),
+                                                        Arrays.asList("withBucketName", "withKey", "withRequesterPays"))),
+            java(
+                "import com.amazonaws.services.s3.AmazonS3;\n"
+                + "import com.amazonaws.services.s3.model.GetObjectRequest;\n"
+                + "import com.amazonaws.services.s3.model.S3Object;\n"
+                + "\n"
+                + "public class S3Example {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        AmazonS3 s3 = null;\n"
+                + "\n"
+                + "        GetObjectRequest getObject = new GetObjectRequest(\"bucket\", \"key\", false);\n"
+                + "\n"
+                + "        S3Object object = s3.getObject(getObject);\n"
+                + "    }\n"
+                + "}\n",
+                "import com.amazonaws.services.s3.AmazonS3;\n"
+                + "import com.amazonaws.services.s3.model.GetObjectRequest;\n"
+                + "import com.amazonaws.services.s3.model.S3Object;\n"
+                + "\n"
+                + "public class S3Example {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        AmazonS3 s3 = null;\n"
+                + "\n"
+                + "        GetObjectRequest getObject = new GetObjectRequest().withBucketName(\"bucket\").withKey(\"key\").withRequesterPays(false);\n"
+                + "\n"
+                + "        S3Object object = s3.getObject(getObject);\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
 }

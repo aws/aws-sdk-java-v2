@@ -66,19 +66,18 @@ public class ConstructorToFluent extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        List<JavaType.FullyQualified> paramJavaTypes = parameterTypes.stream()
+        List<JavaType> paramJavaTypes = parameterTypes.stream()
             .map(JavaType::buildType)
-            .map(TypeUtils::asFullyQualified)
             .collect(Collectors.toList());
         return new Visitor(clzzFqcn, paramJavaTypes, fluentNames);
     }
 
     private static class Visitor extends JavaVisitor<ExecutionContext> {
         private final JavaType.FullyQualified clzz;
-        private final List<JavaType.FullyQualified> parameterTypes;
+        private final List<JavaType> parameterTypes;
         private final List<String> fluentNames;
 
-        Visitor(String clzz, List<JavaType.FullyQualified> parameterTypes, List<String> fluentNames) {
+        Visitor(String clzz, List<JavaType> parameterTypes, List<String> fluentNames) {
             this.clzz = TypeUtils.asFullyQualified(JavaType.buildType(clzz));
             this.parameterTypes = parameterTypes;
             this.fluentNames = fluentNames;
@@ -103,8 +102,8 @@ public class ConstructorToFluent extends Recipe {
             }
 
             for (int i = 0; i < parameterTypes.size(); ++i) {
-                JavaType.FullyQualified expected = this.parameterTypes.get(i);
-                if (!expected.isAssignableFrom(paramTypes.get(i))) {
+                JavaType expected = this.parameterTypes.get(i);
+                if (!TypeUtils.isAssignableTo(expected, paramTypes.get(i))) {
                     return newClass;
                 }
             }
@@ -121,7 +120,7 @@ public class ConstructorToFluent extends Recipe {
             JavaType.FullyQualified declaringType = ctorType.getDeclaringType();
             Expression select = newClass;
             for (int i = 0; i < parameterTypes.size(); ++i) {
-                JavaType.FullyQualified paramType = parameterTypes.get(i);
+                JavaType paramType = parameterTypes.get(i);
                 String name = fluentNames.get(i);
                 // Note we don't preserve prefix so we don't end up with
                 // extra spaces after the opening paren like 'withFoo(  arg)'
@@ -134,7 +133,7 @@ public class ConstructorToFluent extends Recipe {
         }
 
         private static J.MethodInvocation addWither(Expression select, String simpleName,
-                                                    JavaType.FullyQualified parameterType,
+                                                    JavaType parameterType,
                                                     Expression paramExpr,
                                                     JavaType.FullyQualified declaringType) {
             JavaType.Method methodType = new JavaType.Method(
