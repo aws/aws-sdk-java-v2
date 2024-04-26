@@ -51,6 +51,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 @SdkPublicApi
 public final class SsoCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable,
                                                      ToCopyableBuilder<SsoCredentialsProvider.Builder, SsoCredentialsProvider> {
+    private static final String PROVIDER_NAME = "SsoCredentialsProvider";
 
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
     private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
@@ -106,9 +107,12 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         GetRoleCredentialsRequest request = getRoleCredentialsRequestSupplier.get();
         notNull(request, "GetRoleCredentialsRequest can't be null.");
         RoleCredentials roleCredentials = ssoClient.getRoleCredentials(request).roleCredentials();
-        AwsSessionCredentials sessionCredentials = AwsSessionCredentials.create(roleCredentials.accessKeyId(),
-                                                                                roleCredentials.secretAccessKey(),
-                                                                                roleCredentials.sessionToken());
+        AwsSessionCredentials sessionCredentials = AwsSessionCredentials.builder()
+                                                                        .accessKeyId(roleCredentials.accessKeyId())
+                                                                        .secretAccessKey(roleCredentials.secretAccessKey())
+                                                                        .sessionToken(roleCredentials.sessionToken())
+                                                                        .providerName(PROVIDER_NAME)
+                                                                        .build();
         return new SessionCredentialsHolder(sessionCredentials, Instant.ofEpochMilli(roleCredentials.expiration()));
     }
 

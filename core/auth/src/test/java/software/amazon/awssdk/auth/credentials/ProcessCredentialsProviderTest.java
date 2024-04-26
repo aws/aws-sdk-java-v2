@@ -16,39 +16,33 @@ package software.amazon.awssdk.auth.credentials;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertNotNull;
+import static software.amazon.awssdk.auth.credentials.internal.ProcessCredentialsTestUtils.copyErrorCaseProcessCredentialsScript;
+import static software.amazon.awssdk.auth.credentials.internal.ProcessCredentialsTestUtils.copyHappyCaseProcessCredentialsScript;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.Instant;
-import org.assertj.core.api.Assertions;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import java.util.Arrays;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.utils.DateUtils;
-import software.amazon.awssdk.utils.IoUtils;
-import software.amazon.awssdk.utils.Platform;
 
-public class ProcessCredentialsProviderTest {
+class ProcessCredentialsProviderTest {
 
     private static final String PROCESS_RESOURCE_PATH = "/resources/process/";
     private static final String RANDOM_SESSION_TOKEN = "RANDOM_TOKEN";
     private static String scriptLocation;
     private static String errorScriptLocation;
  
-    @BeforeClass
+    @BeforeAll
     public static void setup()  {
         scriptLocation = copyHappyCaseProcessCredentialsScript();
         errorScriptLocation = copyErrorCaseProcessCredentialsScript();
     }
  
-    @AfterClass
+    @AfterAll
     public static void teardown() {
         if (scriptLocation != null && !new File(scriptLocation).delete()) {
             throw new IllegalStateException("Failed to delete file: " + scriptLocation);
@@ -60,20 +54,35 @@ public class ProcessCredentialsProviderTest {
     }
  
     @Test
-    public void staticCredentialsCanBeLoaded() {
+    void staticCredentialsCanBeLoaded() {
         AwsCredentials credentials =
                 ProcessCredentialsProvider.builder()
                                           .command(scriptLocation + " accessKeyId secretAccessKey")
                                           .build()
                                           .resolveCredentials();
  
-        Assert.assertFalse(credentials instanceof AwsSessionCredentials);
-        Assert.assertEquals("accessKeyId", credentials.accessKeyId());
-        Assert.assertEquals("secretAccessKey", credentials.secretAccessKey());
+        assertThat(credentials).isInstanceOf(AwsBasicCredentials.class);
+        assertThat(credentials.accessKeyId()).isEqualTo("accessKeyId");
+        assertThat(credentials.secretAccessKey()).isEqualTo("secretAccessKey");
+        assertThat(credentials.providerName()).isPresent().contains("ProcessCredentialsProvider");
+    }
+
+    @Test
+    public void staticCredentials_commandAsListOfStrings_CanBeLoaded() {
+        AwsCredentials credentials =
+            ProcessCredentialsProvider.builder()
+                                      .command(Arrays.asList(scriptLocation, "accessKeyId", "secretAccessKey"))
+                                      .build()
+                                      .resolveCredentials();
+
+        assertThat(credentials).isInstanceOf(AwsBasicCredentials.class);
+        assertThat(credentials.accessKeyId()).isEqualTo("accessKeyId");
+        assertThat(credentials.secretAccessKey()).isEqualTo("secretAccessKey");
+        assertThat(credentials.providerName()).isPresent().contains("ProcessCredentialsProvider");
     }
  
     @Test
-    public void sessionCredentialsCanBeLoaded() {
+    void sessionCredentialsCanBeLoaded() {
         ProcessCredentialsProvider credentialsProvider =
                 ProcessCredentialsProvider.builder()
                                           .command(scriptLocation + " accessKeyId secretAccessKey sessionToken " +
@@ -83,17 +92,17 @@ public class ProcessCredentialsProviderTest {
 
         AwsCredentials credentials = credentialsProvider.resolveCredentials();
 
-        Assert.assertTrue(credentials instanceof AwsSessionCredentials);
+        assertThat(credentials).isInstanceOf(AwsSessionCredentials.class);
 
         AwsSessionCredentials sessionCredentials = (AwsSessionCredentials) credentials;
 
-        Assert.assertEquals("accessKeyId", sessionCredentials.accessKeyId());
-        Assert.assertEquals("secretAccessKey", sessionCredentials.secretAccessKey());
-        assertNotNull(sessionCredentials.sessionToken());
+        assertThat(credentials.accessKeyId()).isEqualTo("accessKeyId");
+        assertThat(credentials.secretAccessKey()).isEqualTo("secretAccessKey");
+        assertThat(sessionCredentials.sessionToken()).isNotNull();
     }
 
     @Test
-    public void resultsAreCached() {
+    void resultsAreCached() {
         ProcessCredentialsProvider credentialsProvider =
             ProcessCredentialsProvider.builder()
                                       .command(scriptLocation + " accessKeyId secretAccessKey sessionToken " +
@@ -103,11 +112,11 @@ public class ProcessCredentialsProviderTest {
         AwsCredentials request1 = credentialsProvider.resolveCredentials();
         AwsCredentials request2 = credentialsProvider.resolveCredentials();
 
-        Assert.assertEquals(request1, request2);
+        assertThat(request1).isEqualTo(request2);
     }
 
     @Test
-    public void expirationBufferOverrideIsApplied() {
+    void expirationBufferOverrideIsApplied() {
         ProcessCredentialsProvider credentialsProvider =
                 ProcessCredentialsProvider.builder()
                                           .command(String.format("%s accessKeyId secretAccessKey %s %s",
@@ -120,11 +129,11 @@ public class ProcessCredentialsProviderTest {
         AwsCredentials request1 = credentialsProvider.resolveCredentials();
         AwsCredentials request2 = credentialsProvider.resolveCredentials();
 
-        Assert.assertNotEquals(request1, request2);
+        assertThat(request1).isNotEqualTo(request2);
     }
 
     @Test
-    public void processFailed_shouldContainErrorMessage() {
+    void processFailed_shouldContainErrorMessage() {
         ProcessCredentialsProvider credentialsProvider =
             ProcessCredentialsProvider.builder()
                                       .command(errorScriptLocation)
@@ -137,7 +146,7 @@ public class ProcessCredentialsProviderTest {
     }
 
     @Test
-    public void lackOfExpirationIsCachedForever() {
+    void lackOfExpirationIsCachedForever() {
         ProcessCredentialsProvider credentialsProvider =
             ProcessCredentialsProvider.builder()
                                       .command(scriptLocation + " accessKeyId secretAccessKey sessionToken")
@@ -147,20 +156,21 @@ public class ProcessCredentialsProviderTest {
         AwsCredentials request1 = credentialsProvider.resolveCredentials();
         AwsCredentials request2 = credentialsProvider.resolveCredentials();
 
-        Assert.assertEquals(request1, request2);
+        assertThat(request1).isEqualTo(request2);
     }
  
-    @Test(expected = IllegalStateException.class)
-    public void processOutputLimitIsEnforced() {
-        ProcessCredentialsProvider.builder()
-                                  .command(scriptLocation + " accessKeyId secretAccessKey")
-                                  .processOutputLimit(1)
-                                  .build()
-                                  .resolveCredentials();
+    @Test
+    void processOutputLimitIsEnforced() {
+        ProcessCredentialsProvider credentialsProvider =
+            ProcessCredentialsProvider.builder()
+                                      .command(scriptLocation + " accessKeyId secretAccessKey")
+                                      .processOutputLimit(1)
+                                      .build();
+        assertThatThrownBy(credentialsProvider::resolveCredentials).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
-    public void processOutputLimitDefaultPassesLargeInput() {
+    void processOutputLimitDefaultPassesLargeInput() {
 
         String LONG_SESSION_TOKEN = "lYzvmByqdS1E69QQVEavDDHabQ2GuYKYABKRA4xLbAXpdnFtV030UH4" +
                 "bQoZWCDcfADFvBwBm3ixEFTYMjn5XQozpFV2QAsWHirCVcEJ5DC60KPCNBcDi4KLNJfbsp3r6kKTOmYOeqhEyiC4emDX33X2ppZsa5" +
@@ -181,12 +191,12 @@ public class ProcessCredentialsProviderTest {
 
         AwsSessionCredentials sessionCredentials = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
 
-        Assertions.assertThat(sessionCredentials.accessKeyId()).isEqualTo("accessKeyId");
-        Assertions.assertThat(sessionCredentials.sessionToken()).isNotNull();
+        assertThat(sessionCredentials.accessKeyId()).isEqualTo("accessKeyId");
+        assertThat(sessionCredentials.sessionToken()).isNotNull();
     }
     
     @Test
-    public void closeDoesNotRaise() {
+    void closeDoesNotRaise() {
         ProcessCredentialsProvider credentialsProvider =
             ProcessCredentialsProvider.builder()
                                       .command(scriptLocation + " accessKeyId secretAccessKey sessionToken")
@@ -195,46 +205,34 @@ public class ProcessCredentialsProviderTest {
         credentialsProvider.close();
     }
 
-    public static String copyHappyCaseProcessCredentialsScript() {
-        String scriptClasspathFilename = Platform.isWindows() ? "windows-credentials-script.bat"
-                                                              : "linux-credentials-script.sh";
-
-        return copyProcessCredentialsScript(scriptClasspathFilename);
-    }
-
-    public static String copyErrorCaseProcessCredentialsScript() {
-        String scriptClasspathFilename = Platform.isWindows() ? "windows-credentials-error-script.bat"
-                                                              : "linux-credentials-error-script.sh";
-
-        return copyProcessCredentialsScript(scriptClasspathFilename);
-    }
-
-    public static String copyProcessCredentialsScript(String scriptClasspathFilename) {
-        String scriptClasspathLocation = PROCESS_RESOURCE_PATH + scriptClasspathFilename;
-
-        InputStream scriptInputStream = null;
-        OutputStream scriptOutputStream = null;
+    @Test
+    void commandAsListOfStrings_isNotExecutedInAShell() {
+        ProcessCredentialsProvider providerWithSingleStringCommand =
+            ProcessCredentialsProvider.builder()
+                                      .command("echo \"Hello, World!\" > output.txt; rm output.txt")
+                                      .build();
 
         try {
-            scriptInputStream = ProcessCredentialsProviderTest.class.getResourceAsStream(scriptClasspathLocation);
+            providerWithSingleStringCommand.resolveCredentials();
+        } catch (IllegalStateException e) {
+            // executed in a shell
+            assertThat(e.getCause()).isInstanceOf(NullPointerException.class);
+            assertThat(e.getMessage()).isEqualTo("Failed to refresh process-based credentials.");
+        }
 
-            File scriptFileOnDisk = File.createTempFile("ProcessCredentialsProviderTest", scriptClasspathFilename);
-            scriptFileOnDisk.deleteOnExit();
+        ProcessCredentialsProvider providerWithCommandAsListOfStrings =
+            ProcessCredentialsProvider.builder()
+                                      .command(Arrays.asList("echo \"Hello, World!\" > output.txt; rm output.txt"))
+                                      .build();
 
-            if (!scriptFileOnDisk.setExecutable(true)) {
-                throw new IllegalStateException("Could not make " + scriptFileOnDisk + " executable.");
-            }
-
-            scriptOutputStream = new FileOutputStream(scriptFileOnDisk);
-
-            IoUtils.copy(scriptInputStream, scriptOutputStream);
-
-            return scriptFileOnDisk.getAbsolutePath();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } finally {
-            IoUtils.closeQuietly(scriptInputStream, null);
-            IoUtils.closeQuietly(scriptOutputStream, null);
+        try {
+            providerWithCommandAsListOfStrings.resolveCredentials();
+        } catch (IllegalStateException e) {
+            // executed not in a shell
+            assertThat(e.getCause()).isInstanceOf(IOException.class);
+            assertThat(e.getCause().getMessage())
+                .isEqualTo("Cannot run program \"echo \"Hello, World!\" > output.txt; rm output.txt\": error=2, "
+                           + "No such file or directory");
         }
     }
 }

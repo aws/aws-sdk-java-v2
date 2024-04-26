@@ -15,8 +15,9 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
-import static software.amazon.awssdk.services.s3.multipart.S3PauseResumeExecutionAttribute.PAUSE_OBSERVABLE;
-import static software.amazon.awssdk.services.s3.multipart.S3PauseResumeExecutionAttribute.RESUME_TOKEN;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.PAUSE_OBSERVABLE;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.RESUME_TOKEN;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
@@ -38,6 +39,7 @@ import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncCli
 import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -122,7 +124,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @Override
-    public Upload upload(UploadRequest uploadRequest) {
+    public final Upload upload(UploadRequest uploadRequest) {
         Validate.paramNotNull(uploadRequest, "uploadRequest");
 
         AsyncRequestBody requestBody = uploadRequest.requestBody();
@@ -135,11 +137,18 @@ class GenericS3TransferManager implements S3TransferManager {
         requestBody = progressUpdater.wrapRequestBody(requestBody);
         progressUpdater.registerCompletion(returnFuture);
 
+        PutObjectRequest putObjectRequest = uploadRequest.putObjectRequest();
+        if (isS3ClientMultipartEnabled()) {
+            Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressListener =
+                b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());
+            putObjectRequest = attachSdkAttribute(uploadRequest.putObjectRequest(), attachProgressListener);
+        }
+
         try {
             assertNotUnsupportedArn(uploadRequest.putObjectRequest().bucket(), "upload");
 
             CompletableFuture<PutObjectResponse> future =
-                s3AsyncClient.putObject(uploadRequest.putObjectRequest(), requestBody);
+                s3AsyncClient.putObject(putObjectRequest, requestBody);
 
             // Forward upload cancellation to future
             CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
@@ -155,6 +164,9 @@ class GenericS3TransferManager implements S3TransferManager {
         return new DefaultUpload(returnFuture, progressUpdater.progress());
     }
 
+    /**
+     * May be overridden by subclasses to provide customized behavior
+     */
     @Override
     public FileUpload uploadFile(UploadFileRequest uploadFileRequest) {
         Validate.paramNotNull(uploadFileRequest, "uploadFileRequest");
@@ -165,17 +177,6 @@ class GenericS3TransferManager implements S3TransferManager {
                                 .chunkSizeInBytes(DEFAULT_FILE_UPLOAD_CHUNK_SIZE)
                                 .build();
 
-        PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
-        PauseObservable pauseObservable;
-        if (isS3ClientMultipartEnabled()) {
-            pauseObservable = new PauseObservable();
-            Consumer<AwsRequestOverrideConfiguration.Builder> attachPauseObservable =
-                b -> b.putExecutionAttribute(PAUSE_OBSERVABLE, pauseObservable);
-            putObjectRequest = attachSdkAttribute(uploadFileRequest.putObjectRequest(), attachPauseObservable);
-        } else {
-            pauseObservable = null;
-        }
-
         CompletableFuture<CompletedFileUpload> returnFuture = new CompletableFuture<>();
 
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadFileRequest,
@@ -183,6 +184,18 @@ class GenericS3TransferManager implements S3TransferManager {
         progressUpdater.transferInitiated();
         requestBody = progressUpdater.wrapRequestBody(requestBody);
         progressUpdater.registerCompletion(returnFuture);
+
+        PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
+        PauseObservable pauseObservable;
+        if (isS3ClientMultipartEnabled()) {
+            pauseObservable = new PauseObservable();
+            Consumer<AwsRequestOverrideConfiguration.Builder> attachObservableAndListener =
+                b -> b.putExecutionAttribute(PAUSE_OBSERVABLE, pauseObservable)
+                      .putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());
+            putObjectRequest = attachSdkAttribute(uploadFileRequest.putObjectRequest(), attachObservableAndListener);
+        } else {
+            pauseObservable = null;
+        }
 
         try {
             assertNotUnsupportedArn(putObjectRequest.bucket(), "upload");
@@ -204,7 +217,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @Override
-    public FileUpload resumeUploadFile(ResumableFileUpload resumableFileUpload) {
+    public final FileUpload resumeUploadFile(ResumableFileUpload resumableFileUpload) {
         Validate.paramNotNull(resumableFileUpload, "resumableFileUpload");
 
         boolean fileModified = PAUSE_RESUME_HELPER.fileModified(resumableFileUpload, s3AsyncClient);
@@ -222,7 +235,11 @@ class GenericS3TransferManager implements S3TransferManager {
         return s3AsyncClient instanceof MultipartS3AsyncClient;
     }
 
-    private FileUpload doResumeUpload(ResumableFileUpload resumableFileUpload) {
+
+    /**
+     * Can be overridden by subclasses to provide different implementation
+     */
+    FileUpload doResumeUpload(ResumableFileUpload resumableFileUpload) {
         UploadFileRequest uploadFileRequest = resumableFileUpload.uploadFileRequest();
         PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
         S3ResumeToken s3ResumeToken = s3ResumeToken(resumableFileUpload);
@@ -268,8 +285,22 @@ class GenericS3TransferManager implements S3TransferManager {
                                .build();
     }
 
+    private CopyObjectRequest attachSdkAttribute(CopyObjectRequest copyObjectRequest,
+                                                 Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
+        AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
+            copyObjectRequest.overrideConfiguration()
+                            .map(o -> o.toBuilder().applyMutation(builderMutation).build())
+                            .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
+                                                                            .applyMutation(builderMutation)
+                                                                            .build());
+
+        return copyObjectRequest.toBuilder()
+                               .overrideConfiguration(modifiedRequestOverrideConfig)
+                               .build();
+    }
+
     @Override
-    public DirectoryUpload uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
+    public final DirectoryUpload uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
         Validate.paramNotNull(uploadDirectoryRequest, "uploadDirectoryRequest");
 
         try {
@@ -282,7 +313,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @Override
-    public <ResultT> Download<ResultT> download(DownloadRequest<ResultT> downloadRequest) {
+    public final <ResultT> Download<ResultT> download(DownloadRequest<ResultT> downloadRequest) {
         Validate.paramNotNull(downloadRequest, "downloadRequest");
 
         AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer =
@@ -317,7 +348,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @Override
-    public FileDownload downloadFile(DownloadFileRequest downloadRequest) {
+    public final FileDownload downloadFile(DownloadFileRequest downloadRequest) {
         Validate.paramNotNull(downloadRequest, "downloadFileRequest");
 
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
@@ -361,7 +392,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @Override
-    public FileDownload resumeDownloadFile(ResumableFileDownload resumableFileDownload) {
+    public final FileDownload resumeDownloadFile(ResumableFileDownload resumableFileDownload) {
         Validate.paramNotNull(resumableFileDownload, "resumableFileDownload");
         CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
         DownloadFileRequest originalDownloadRequest = resumableFileDownload.downloadFileRequest();
@@ -426,7 +457,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @Override
-    public DirectoryDownload downloadDirectory(DownloadDirectoryRequest downloadDirectoryRequest) {
+    public final DirectoryDownload downloadDirectory(DownloadDirectoryRequest downloadDirectoryRequest) {
         Validate.paramNotNull(downloadDirectoryRequest, "downloadDirectoryRequest");
 
         try {
@@ -439,14 +470,25 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @Override
-    public Copy copy(CopyRequest copyRequest) {
+    public final Copy copy(CopyRequest copyRequest) {
         Validate.paramNotNull(copyRequest, "copyRequest");
 
         CompletableFuture<CompletedCopy> returnFuture = new CompletableFuture<>();
 
-        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(copyRequest, null);
-        progressUpdater.transferInitiated();
-        progressUpdater.registerCompletion(returnFuture);
+        // set length to 10000 as reference value, since we don't make HeadObject call yet
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(copyRequest, 10000L);
+
+        // TransferListener is not supported for CRT-based client, so we'll only initiate and register completion when using
+        // the Java-based client with multipart enabled
+        if (isS3ClientMultipartEnabled()) {
+            Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressListener =
+                b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());
+            CopyObjectRequest copyObjectRequest = attachSdkAttribute(copyRequest.copyObjectRequest(), attachProgressListener);
+            copyRequest = copyRequest.toBuilder().copyObjectRequest(copyObjectRequest).build();
+
+            progressUpdater.transferInitiated();
+            progressUpdater.registerCompletion(returnFuture);
+        }
 
         try {
             assertNotUnsupportedArn(copyRequest.copyObjectRequest().sourceBucket(), "copy sourceBucket");
@@ -470,7 +512,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @Override
-    public void close() {
+    public final void close() {
         if (isDefaultS3AsyncClient) {
             IoUtils.closeQuietly(s3AsyncClient, log.logger());
         }

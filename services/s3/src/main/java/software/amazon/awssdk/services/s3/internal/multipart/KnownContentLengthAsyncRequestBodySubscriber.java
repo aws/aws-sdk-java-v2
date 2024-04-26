@@ -15,18 +15,23 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
+
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -56,11 +61,16 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     private final Collection<CompletableFuture<CompletedPart>> futures = new ConcurrentLinkedQueue<>();
     private final PutObjectRequest putObjectRequest;
     private final CompletableFuture<PutObjectResponse> returnFuture;
-    private final Map<Integer, CompletedPart> completedParts;
+    private final AtomicReferenceArray<CompletedPart> completedParts;
     private final Map<Integer, CompletedPart> existingParts;
+    private final PublisherListener<Long> progressListener;
     private Subscription subscription;
     private volatile boolean isDone;
     private volatile boolean isPaused;
+    /**
+     * Indicates whether CompleteMultipart has been initiated or not.
+     */
+    private final AtomicBoolean completedMultipartInitiated = new AtomicBoolean(false);
     private volatile CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture;
 
     KnownContentLengthAsyncRequestBodySubscriber(MpuRequestContext mpuRequestContext,
@@ -71,10 +81,13 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         this.putObjectRequest = mpuRequestContext.request().left();
         this.returnFuture = returnFuture;
         this.uploadId = mpuRequestContext.uploadId();
-        this.existingParts = mpuRequestContext.existingParts();
+        this.existingParts = mpuRequestContext.existingParts() == null ? new HashMap<>() : mpuRequestContext.existingParts();
         this.numExistingParts = NumericUtils.saturatedCast(mpuRequestContext.numPartsCompleted());
-        this.completedParts = new ConcurrentHashMap<>();
+        this.completedParts = new AtomicReferenceArray<>(partCount);
         this.multipartUploadHelper = multipartUploadHelper;
+        this.progressListener = putObjectRequest.overrideConfiguration().map(c -> c.executionAttributes()
+                                                                                   .getAttribute(JAVA_PROGRESS_LISTENER))
+                                                .orElseGet(PublisherListener::noOp);
     }
 
     private int determinePartCount(long contentLength, long partSize) {
@@ -138,6 +151,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
             partNumber.getAndIncrement();
             asyncRequestBody.subscribe(new CancelledSubscriber<>());
             subscription.request(1);
+            asyncRequestBody.contentLength().ifPresent(progressListener::subscriberOnNext);
             return;
         }
 
@@ -146,10 +160,10 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
                                                                                      partNumber.getAndIncrement(),
                                                                                      uploadId);
 
-        Consumer<CompletedPart> completedPartConsumer =
-            completedPart -> completedParts.put(completedPart.partNumber(), completedPart);
+        Consumer<CompletedPart> completedPartConsumer = completedPart -> completedParts.set(completedPart.partNumber() - 1,
+                                                                                            completedPart);
         multipartUploadHelper.sendIndividualUploadPartRequest(uploadId, completedPartConsumer, futures,
-                                                              Pair.of(uploadRequest, asyncRequestBody))
+                                                              Pair.of(uploadRequest, asyncRequestBody), progressListener)
                              .whenComplete((r, t) -> {
                                  if (t != null) {
                                      if (shouldFailRequest()) {
@@ -185,18 +199,18 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     }
 
     private void completeMultipartUploadIfFinished(int requestsInFlight) {
-        if (isDone && requestsInFlight == 0) {
+        if (isDone && requestsInFlight == 0 && completedMultipartInitiated.compareAndSet(false, true)) {
             CompletedPart[] parts;
             if (existingParts.isEmpty()) {
-                parts = completedParts.values().toArray(new CompletedPart[0]);
-            } else if (!completedParts.isEmpty()) {
+                parts =
+                    IntStream.range(0, completedParts.length())
+                             .mapToObj(completedParts::get)
+                             .toArray(CompletedPart[]::new);
+            } else {
                 // List of CompletedParts needs to be in ascending order
                 parts = mergeCompletedParts();
-            } else {
-                parts = existingParts.values().toArray(new CompletedPart[0]);
             }
-            completeMpuFuture = multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts,
-                                                                              putObjectRequest);
+            completeMpuFuture = multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest);
         }
     }
 
@@ -205,7 +219,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         int currPart = 1;
         while (currPart < partCount + 1) {
             CompletedPart completedPart = existingParts.containsKey(currPart) ? existingParts.get(currPart) :
-                                          completedParts.get(currPart);
+                                          completedParts.get(currPart - 1);
             merged[currPart - 1] = completedPart;
             currPart++;
         }

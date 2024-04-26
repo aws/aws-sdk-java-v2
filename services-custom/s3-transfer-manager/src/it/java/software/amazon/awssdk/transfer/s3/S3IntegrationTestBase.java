@@ -43,7 +43,8 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
- * Base class for S3 integration tests. Loads AWS credentials from a properties file and creates an S3 client for callers to use.
+ * Base class for S3 integration tests. Loads AWS credentials from a properties
+ * file and creates an S3 client for callers to use.
  */
 public class S3IntegrationTestBase extends AwsTestBase {
 
@@ -61,7 +62,8 @@ public class S3IntegrationTestBase extends AwsTestBase {
     protected static S3TransferManager tmJava;
 
     /**
-     * Loads the AWS account info for the integration tests and creates an S3 client for tests to use.
+     * Loads the AWS account info for the integration tests and creates an S3
+     * client for tests to use.
      */
     @BeforeAll
     public static void setUpForAllIntegTests() throws Exception {

@@ -33,7 +33,9 @@ public final class DocumentationBuilder {
     // TODO This prefix is not suitable for paginated operations. Either remove it for paginated operations
     // or change the statement to something generic
     private static final String ASYNC_THROWS_PREFIX = "The CompletableFuture returned by this method can be completed " +
-                                                      "exceptionally with the following exceptions.";
+                                                      "exceptionally with the following exceptions. The exception returned is "
+                                                      + "wrapped with CompletionException, so you need to invoke {@link "
+                                                      + "Throwable#getCause} to retrieve the underlying exception.";
 
     private String desc;
     private List<Pair<String, String>> params = new ArrayList<>();

@@ -1,0 +1,24 @@
+{
+    "version": "2.25.7",
+    "date": "2024-03-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodeStar connections",
+            "contributor": "",
+            "description": "Added a sync configuration enum to disable publishing of deployment status to source providers (PublishDeploymentStatus). Added a sync configuration enum (TriggerStackUpdateOn) to only trigger changes."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage v2",
+            "contributor": "",
+            "description": "This release enables customers to safely update their MediaPackage v2 channel groups, channels and origin endpoints using entity tags."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "Revisions to API text that are now to be carried over to SDK text, changing usages of \"SFO\" in code examples to \"us-west-1\", and some other typos."
+        }
+    ]
+}

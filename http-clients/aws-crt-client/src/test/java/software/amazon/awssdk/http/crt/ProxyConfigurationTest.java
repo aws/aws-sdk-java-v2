@@ -19,7 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -181,6 +185,8 @@ public class ProxyConfigurationTest {
             setter.invoke(o, RNG.nextInt());
         } else if (Boolean.class.equals(paramClass)) {
             setter.invoke(o, RNG.nextBoolean());
+        } else if (Set.class.equals(paramClass)) {
+            setter.invoke(o, IntStream.range(0, 5).mapToObj(i -> randomString()).collect(Collectors.toSet()));
         } else {
             throw new RuntimeException("Don't know how create random value for type " + paramClass);
         }
