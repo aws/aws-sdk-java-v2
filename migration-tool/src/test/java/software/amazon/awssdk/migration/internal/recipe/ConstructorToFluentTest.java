@@ -27,6 +27,10 @@ import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
+/**
+ * Recipe that remaps invocations of model constructors that take some members as constructor parameters, so that the
+ * parameters are specified using the fluent setter for the member instead.
+ */
 public class ConstructorToFluentTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
