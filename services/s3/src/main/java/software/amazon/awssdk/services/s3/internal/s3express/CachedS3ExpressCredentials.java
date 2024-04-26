@@ -53,7 +53,7 @@ public final class CachedS3ExpressCredentials implements SdkAutoCloseable {
     //Credentials currently have a max expiration time of 5 minutes
     private static final Duration DEFAULT_EXPIRATION_TIME = Duration.ofMinutes(5);
     private static final Duration DEFAULT_STALE_TIME = Duration.ofSeconds(15);
-    private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofSeconds(60);
+    private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofSeconds(120);
     private final Duration staleTime;
     private final Duration prefetchTime;
     private final Function<S3ExpressIdentityKey, SessionCredentials> credentialsSupplier;
