@@ -49,8 +49,6 @@ import software.amazon.awssdk.services.query.model.OperationWithChecksumRequired
 import software.amazon.awssdk.services.query.model.OperationWithChecksumRequiredResponse;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamResponse;
-import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperationContextParamRequest;
-import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperationContextParamResponse;
 import software.amazon.awssdk.services.query.model.OperationWithNoneAuthTypeRequest;
 import software.amazon.awssdk.services.query.model.OperationWithNoneAuthTypeResponse;
 import software.amazon.awssdk.services.query.model.OperationWithOperationContextParamRequest;
@@ -73,7 +71,6 @@ import software.amazon.awssdk.services.query.transform.BearerAuthOperationReques
 import software.amazon.awssdk.services.query.transform.GetOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithChecksumRequiredRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithContextParamRequestMarshaller;
-import software.amazon.awssdk.services.query.transform.OperationWithCustomizedOperationContextParamRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithNoneAuthTypeRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithOperationContextParamRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithRequestCompressionRequestMarshaller;
@@ -405,55 +402,6 @@ final class DefaultQueryClient implements QueryClient {
                              .withRequestConfiguration(clientConfiguration).withInput(operationWithContextParamRequest)
                              .withMetricCollector(apiCallMetricCollector)
                              .withMarshaller(new OperationWithContextParamRequestMarshaller(protocolFactory)));
-        } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-        }
-    }
-
-    /**
-     * Invokes the OperationWithCustomizedOperationContextParam operation.
-     *
-     * @param operationWithCustomizedOperationContextParamRequest
-     * @return Result of the OperationWithCustomizedOperationContextParam operation returned by the service.
-     * @throws SdkException
-     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
-     *         catch all scenarios.
-     * @throws SdkClientException
-     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
-     * @throws QueryException
-     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
-     * @sample QueryClient.OperationWithCustomizedOperationContextParam
-     * @see <a
-     *      href="https://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/OperationWithCustomizedOperationContextParam"
-     *      target="_top">AWS API Documentation</a>
-     */
-    @Override
-    public OperationWithCustomizedOperationContextParamResponse operationWithCustomizedOperationContextParam(
-        OperationWithCustomizedOperationContextParamRequest operationWithCustomizedOperationContextParamRequest)
-        throws AwsServiceException, SdkClientException, QueryException {
-
-        HttpResponseHandler<OperationWithCustomizedOperationContextParamResponse> responseHandler = protocolFactory
-            .createResponseHandler(OperationWithCustomizedOperationContextParamResponse::builder);
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
-        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(
-            operationWithCustomizedOperationContextParamRequest, this.clientConfiguration);
-        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                                                                         operationWithCustomizedOperationContextParamRequest.overrideConfiguration().orElse(null));
-        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
-        try {
-            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
-            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithCustomizedOperationContextParam");
-
-            return clientHandler
-                .execute(new ClientExecutionParams<OperationWithCustomizedOperationContextParamRequest, OperationWithCustomizedOperationContextParamResponse>()
-                             .withOperationName("OperationWithCustomizedOperationContextParam")
-                             .withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
-                             .withInput(operationWithCustomizedOperationContextParamRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withMarshaller(new OperationWithCustomizedOperationContextParamRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
