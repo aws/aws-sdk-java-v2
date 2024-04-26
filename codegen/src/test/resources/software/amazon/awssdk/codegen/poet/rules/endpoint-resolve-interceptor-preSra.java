@@ -39,6 +39,7 @@ import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
+import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperationContextParamRequest;
 import software.amazon.awssdk.services.query.model.OperationWithOperationContextParamRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -204,6 +205,9 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
 
     private static void setOperationContextParams(QueryEndpointParams.Builder params, String operationName, SdkRequest request) {
         switch (operationName) {
+            case "OperationWithCustomizedOperationContextParam":
+                setOperationContextParams(params, (OperationWithCustomizedOperationContextParamRequest) request);
+                break;
             case "OperationWithOperationContextParam":
                 setOperationContextParams(params, (OperationWithOperationContextParamRequest) request);
                 break;
@@ -211,11 +215,16 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 break;
         }
     }
+    private static void setOperationContextParams(QueryEndpointParams.Builder params,
+                                                  OperationWithCustomizedOperationContextParamRequest request) {
+        // TODO: Add JMESPathRuntime for ListMember.StringList[*].LeafString
+        params.customEndpointArray(new ArrayList<>());
+    }
 
     private static void setOperationContextParams(QueryEndpointParams.Builder params,
                                                   OperationWithOperationContextParamRequest request) {
         // TODO: Add JMESPathRuntime for ListMember.StringList[*].LeafString
-        params.deleteKeys(new ArrayList<>());
+        params.customEndpointArray(new ArrayList<>());
     }
 
     private static Optional<String> hostPrefix(String operationName, SdkRequest request) {

@@ -168,7 +168,25 @@ public class IntermediateModelBuilder {
 
         namingStrategy.validateCustomerVisibleNaming(trimmedModel);
         customizeEndpointParameters(fullModel, endpointRuleSet);
+        customizeOperationContextParams(fullModel, trimmedModel);
         return trimmedModel;
+    }
+
+    private static void customizeOperationContextParams(IntermediateModel fullModel, IntermediateModel trimmedModel) {
+        if (!CollectionUtils.isNullOrEmpty(fullModel.getCustomizationConfig().getOperationContextParams())) {
+            fullModel.getCustomizationConfig().getOperationContextParams().forEach((operationName, operationContextParamMap) -> {
+                OperationModel operation = trimmedModel.getOperation(operationName);
+                if (operation == null) {
+                    throw new IllegalStateException(
+                        "Could not find operation " + operationName + " to customize Operation Context Params.");
+                }
+                if (operation.getOperationContextParams() != null) {
+                    throw new IllegalStateException(
+                        "Cannot customize operation " + operationName + " which already has OperationContextParams.");
+                }
+                operation.setOperationContextParams(operationContextParamMap);
+            });
+        }
     }
 
     private void customizeEndpointParameters(IntermediateModel fullModel, EndpointRuleSetModel endpointRuleSet) {

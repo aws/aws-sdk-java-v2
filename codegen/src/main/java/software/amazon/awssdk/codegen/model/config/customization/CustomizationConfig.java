@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
+import software.amazon.awssdk.codegen.model.service.OperationContextParam;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -324,6 +325,7 @@ public class CustomizationConfig {
      * This should be removed once the service updates its models
      */
     private Map<String, ParameterModel> endpointParameters;
+    private Map<String, Map<String, OperationContextParam>> operationContextParams;
 
     private CustomizationConfig() {
     }
@@ -857,5 +859,13 @@ public class CustomizationConfig {
 
     public void setEndpointParameters(Map<String, ParameterModel> endpointParameters) {
         this.endpointParameters = endpointParameters;
+    }
+
+    public Map<String, Map<String, OperationContextParam>> getOperationContextParams() {
+        return operationContextParams;
+    }
+
+    public void setOperationContextParams(Map<String, Map<String, OperationContextParam>> operationContextParams) {
+        this.operationContextParams = operationContextParams;
     }
 }
