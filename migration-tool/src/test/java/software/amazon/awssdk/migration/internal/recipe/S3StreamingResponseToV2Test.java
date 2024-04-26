@@ -22,10 +22,10 @@ import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-public class V1StreamingResponseToV2Test implements RewriteTest {
+public class S3StreamingResponseToV2Test implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new V1StreamingResponseToV2());
+        spec.recipe(new S3StreamingResponseToV2());
         spec.parser(Java8Parser.builder().classpath(
             "aws-java-sdk-s3",
             "aws-java-sdk-core",
@@ -34,7 +34,7 @@ public class V1StreamingResponseToV2Test implements RewriteTest {
     }
 
     @Test
-    public void foo() {
+    public void testS3ObjectRewrite() {
         rewriteRun(
             java(
                 "import com.amazonaws.services.s3.AmazonS3;\n"
@@ -47,8 +47,38 @@ public class V1StreamingResponseToV2Test implements RewriteTest {
                 + "        S3Object object = s3.getObject(\"bucket\", \"key\");\n"
                 + "    }\n"
                 + "}\n",
-                "import com.amazonaws.services.s3.model.GetObjectResponse;\n"
+                "import com.amazonaws.services.s3.AmazonS3;\n"
+                + "import com.amazonaws.services.s3.model.S3Object;\n"
+                + "import software.amazon.awssdk.core.ResponseInputStream;\n"
+                + "import software.amazon.awssdk.services.s3.model.GetObjectResponse;\n"
                 + "\n"
+                + "public class S3Example {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        AmazonS3 s3 = null;\n"
+                + "\n"
+                + "        ResponseInputStream<GetObjectResponse> object = s3.getObject(\"bucket\", \"key\");\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
+
+    @Test
+    public void getObjectContent() {
+        rewriteRun(
+            java(
+                "import com.amazonaws.services.s3.AmazonS3;\n"
+                + "import com.amazonaws.services.s3.model.S3Object;\n"
+                + "\n"
+                + "public class S3Example {\n"
+                + "    public static void main(String[] args) throws Exception {\n"
+                + "        AmazonS3 s3 = null;\n"
+                + "\n"
+                + "        S3Object object = s3.getObject(\"bucket\", \"key\");\n"
+                + "        object.getObjectContent().close();\n"
+                + "    }\n"
+                + "}\n",
+                ""
             )
         );
     }
