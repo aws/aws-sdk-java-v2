@@ -38,7 +38,15 @@
         "requestUri": "/"
       },
       "operationContextParams":{
-        "deleteKeys":{"value":"ListMember.StringList[*].LeafString"}
+        "customEndpointArray":{"value":"ListMember.StringList[*].LeafString"}
+      },
+      "input":{"shape":"WithOperationContextParam"}
+    },
+    "OperationWithCustomizedOperationContextParam": {
+      "name": "OperationWithCustomizedOperationContextParam",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
       },
       "input":{"shape":"WithOperationContextParam"}
     },
