@@ -187,12 +187,6 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-timestreaminfluxdb
-      newGroupId: software.amazon.awssdk
-      newArtifactId: timestreaminfluxdb
-      newVersion: 2.23.16-SNAPSHOT
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-lakeformation
       newGroupId: software.amazon.awssdk
       newArtifactId: lakeformation
@@ -595,12 +589,6 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-chatbot
-      newGroupId: software.amazon.awssdk
-      newArtifactId: chatbot
-      newVersion: 2.23.16-SNAPSHOT
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-fms
       newGroupId: software.amazon.awssdk
       newArtifactId: fms
@@ -844,12 +832,6 @@ recipeList:
       oldArtifactId: aws-java-sdk-transfer
       newGroupId: software.amazon.awssdk
       newArtifactId: transfer
-      newVersion: 2.23.16-SNAPSHOT
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-deadline
-      newGroupId: software.amazon.awssdk
-      newArtifactId: deadline
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
@@ -1711,12 +1693,6 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-artifact
-      newGroupId: software.amazon.awssdk
-      newArtifactId: artifact
-      newVersion: 2.23.16-SNAPSHOT
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-iotsitewise
       newGroupId: software.amazon.awssdk
       newArtifactId: iotsitewise
@@ -2176,12 +2152,6 @@ recipeList:
       oldArtifactId: aws-java-sdk-ram
       newGroupId: software.amazon.awssdk
       newArtifactId: ram
-      newVersion: 2.23.16-SNAPSHOT
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-codeconnections
-      newGroupId: software.amazon.awssdk
-      newArtifactId: codeconnections
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws

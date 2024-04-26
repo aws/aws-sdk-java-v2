@@ -18,6 +18,7 @@ package software.amazon.awssdk.migration.internal.recipe;
 import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isV2ClientClass;
 import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isV2ModelClass;
 
+import java.util.Map;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -29,14 +30,23 @@ import org.openrewrite.java.tree.TypeUtils;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.migration.internal.utils.NamingUtils;
 import software.amazon.awssdk.migration.recipe.NewClassToBuilderPattern;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 /**
- * Internal recipe that renames fluent V1 setters (withers), to V2 equivalents.
+ * Internal recipe that renames fluent V1 setters (withers), to V2 equivalents
+ * for generated model classes and client classes.
  *
  * @see NewClassToBuilderPattern
  */
 @SdkInternalApi
 public class V1SetterToV2 extends Recipe {
+    private static final Map<String, String> CLIENT_CONFIG_NAMING_MAPPING =
+        ImmutableMap.<String, String>builder()
+                    .put("credentials", "credentialsProvider")
+                    .put("clientConfiguration", "overrideConfiguration")
+                    .put("endpointConfiguration", "endpointOverride")
+                    .build();
+
     @Override
     public String getDisplayName() {
         return "V1 Setter to V2";
@@ -65,42 +75,44 @@ public class V1SetterToV2 extends Recipe {
                 selectType = select.getType();
             }
 
-            if (selectType == null) {
+            if (selectType == null || !shouldChangeSetter(selectType)) {
                 return method;
             }
 
-            if (shouldChangeSetter(method, selectType)) {
-                String methodName = method.getSimpleName();
+            String methodName = method.getSimpleName();
 
-                if (NamingUtils.isWither(methodName)) {
-                    methodName = NamingUtils.removeWith(methodName);
-                } else if (NamingUtils.isSetter(methodName)) {
-                    methodName = NamingUtils.removeSet(methodName);
+            if (NamingUtils.isWither(methodName)) {
+                methodName = NamingUtils.removeWith(methodName);
+            } else if (NamingUtils.isSetter(methodName)) {
+                methodName = NamingUtils.removeSet(methodName);
+            }
+
+            if (isV2ClientClass(selectType)) {
+                methodName = CLIENT_CONFIG_NAMING_MAPPING.getOrDefault(methodName, methodName);
+            }
+
+            JavaType.Method mt = method.getMethodType();
+
+            if (mt != null) {
+                mt = mt.withName(methodName)
+                       .withReturnType(selectType);
+
+                JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(selectType);
+
+                if (fullyQualified != null) {
+                    mt = mt.withDeclaringType(fullyQualified);
                 }
 
-                JavaType.Method mt = method.getMethodType();
-
-                if (mt != null) {
-                    mt = mt.withName(methodName)
-                           .withReturnType(selectType);
-
-                    JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(selectType);
-
-                    if (fullyQualified != null) {
-                        mt = mt.withDeclaringType(fullyQualified);
-                    }
-
-                    method = method.withName(method.getName()
-                                                   .withSimpleName(methodName)
-                                                   .withType(mt))
-                                   .withMethodType(mt);
-                }
+                method = method.withName(method.getName()
+                                               .withSimpleName(methodName)
+                                               .withType(mt))
+                               .withMethodType(mt);
             }
 
             return method;
         }
 
-        private static boolean shouldChangeSetter(J.MethodInvocation method, JavaType selectType) {
+        private static boolean shouldChangeSetter(JavaType selectType) {
             return isV2ModelClass(selectType) || isV2ClientClass(selectType);
         }
     }
