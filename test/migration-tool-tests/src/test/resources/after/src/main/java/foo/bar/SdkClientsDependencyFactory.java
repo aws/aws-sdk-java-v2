@@ -15,9 +15,13 @@
 
 package foo.bar;
 
-import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+
+import java.time.Duration;
 import software.amazon.awssdk.services.sqs.SqsClient;
 
 public final class SdkClientsDependencyFactory {
@@ -30,8 +34,15 @@ public final class SdkClientsDependencyFactory {
     }
 
     public static SqsClient sqsClientWithAllSettings() {
+        ClientOverrideConfiguration clientConfiguration = ClientOverrideConfiguration.builder()
+            .retryPolicy(RetryMode.STANDARD)
+            .apiCallTimeout(Duration.ofMillis(5000))
+            .apiCallAttemptTimeout(Duration.ofMillis(1000))
+            .putHeader("foo", "bar").build();
+
         return SqsClient.builder()
                               .region(Region.US_WEST_2)
+                              .overrideConfiguration(clientConfiguration)
                               .credentialsProvider(CredentialsDependencyFactory.defaultCredentialsProviderChain())
                               .build();
     }

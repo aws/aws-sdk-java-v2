@@ -72,7 +72,7 @@ public class AddCommentToMethod extends Recipe {
 
         Visitor(String methodPattern, String comment) {
             this.methodMatcher = new MethodMatcher(methodPattern, false);
-            this.comment = COMMENT_PREFIX + comment;
+            this.comment = COMMENT_PREFIX + comment + "\n";
         }
 
         @Override

@@ -16,6 +16,8 @@
 package foo.bar;
 
 import com.amazonaws.regions.Regions;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.retry.RetryMode;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
@@ -31,8 +33,15 @@ public final class SdkClientsDependencyFactory {
     }
 
     public static AmazonSQS sqsClientWithAllSettings() {
+        ClientConfiguration clientConfiguration = new ClientConfiguration()
+            .withRetryMode(RetryMode.STANDARD)
+            .withClientExecutionTimeout(5000)
+            .withRequestTimeout(1000)
+            .withHeader("foo", "bar");
+
         return AmazonSQSClient.builder()
                               .withRegion(Regions.US_WEST_2)
+                              .withClientConfiguration(clientConfiguration)
                               .withCredentials(CredentialsDependencyFactory.defaultCredentialsProviderChain())
                               .build();
     }

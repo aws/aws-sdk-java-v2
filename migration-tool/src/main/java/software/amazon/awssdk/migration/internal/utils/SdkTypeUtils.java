@@ -23,6 +23,19 @@ import java.util.regex.Pattern;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ProcessCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
+import software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithWebIdentityCredentialsProvider;
+import software.amazon.awssdk.services.sts.auth.StsGetSessionTokenCredentialsProvider;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 /**
@@ -35,11 +48,11 @@ public final class SdkTypeUtils {
      */
     public static final Map<String, Integer> V2_CORE_CLASSES_WITH_STATIC_FACTORY =
         ImmutableMap.<String, Integer>builder()
-                    .put("software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider", 0)
-                    .put("software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider", 0)
-                    .put("software.amazon.awssdk.auth.credentials.AwsBasicCredentials", 2)
-                    .put("software.amazon.awssdk.auth.credentials.AwsSessionCredentials", 3)
-                    .put("software.amazon.awssdk.auth.credentials.StaticCredentialsProvider", 1)
+                    .put(EnvironmentVariableCredentialsProvider.class.getCanonicalName(), 0)
+                    .put(InstanceProfileCredentialsProvider.class.getCanonicalName(), 0)
+                    .put(AwsBasicCredentials.class.getCanonicalName(), 2)
+                    .put(AwsSessionCredentials.class.getCanonicalName(), 3)
+                    .put(StaticCredentialsProvider.class.getCanonicalName(), 1)
                     .build();
 
     private static final Pattern V1_SERVICE_CLASS_PATTERN =
@@ -66,15 +79,15 @@ public final class SdkTypeUtils {
      * V2 core classes with a builder
      */
     private static final Set<String> V2_CORE_CLASSES_WITH_BUILDER =
-        new HashSet<>(Arrays.asList("software.amazon.awssdk.core.client.ClientOverrideConfiguration",
-                                    "software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider",
-                                    "software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider",
-                                    "software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider",
-                                    "software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider",
-                                    "software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider",
-                                    "software.amazon.awssdk.services.sts.auth.StsGetSessionTokenCredentialsProvider",
-                                    "software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithWebIdentityCredentialsProvider",
-                                    "software.amazon.awssdk.auth.credentials.ProcessCredentialsProvider"));
+        new HashSet<>(Arrays.asList(ClientOverrideConfiguration.class.getCanonicalName(),
+                                    DefaultCredentialsProvider.class.getCanonicalName(),
+                                    ProfileCredentialsProvider.class.getCanonicalName(),
+                                    ContainerCredentialsProvider.class.getCanonicalName(),
+                                    InstanceProfileCredentialsProvider.class.getCanonicalName(),
+                                    StsAssumeRoleCredentialsProvider.class.getCanonicalName(),
+                                    StsGetSessionTokenCredentialsProvider.class.getCanonicalName(),
+                                    StsAssumeRoleWithWebIdentityCredentialsProvider.class.getCanonicalName(),
+                                    ProcessCredentialsProvider.class.getCanonicalName()));
 
     private static final Pattern V2_CLIENT_BUILDER_PATTERN = Pattern.compile(
         "software\\.amazon\\.awssdk\\.services\\.[a-zA-Z0-9]+\\.[a-zA-Z0-9]+Builder");
