@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.waiters;
+package software.amazon.awssdk.services.jpath;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -31,10 +31,10 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.LocationTrait;
-import software.amazon.awssdk.services.restjsonwithwaiters.waiters.internal.WaitersRuntime.Value;
+import software.amazon.awssdk.services.restjsonwithwaiters.jmespath.internal.JmesPathRuntime.Value;
 import software.amazon.awssdk.utils.Pair;
 
-public class WaitersRuntimeValueTest {
+public class JPathRuntimeValueTest {
     @Test
     public void valueReturnsConstructorInput() {
         assertThat(new Value(null).value()).isEqualTo(null);
