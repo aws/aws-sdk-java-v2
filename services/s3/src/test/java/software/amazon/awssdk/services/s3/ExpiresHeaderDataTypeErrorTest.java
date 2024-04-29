@@ -19,44 +19,37 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
-import org.apache.logging.log4j.core.LogEvent;
 import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
-import software.amazon.awssdk.testutils.LogCaptor;
 
+@WireMockTest
 public class ExpiresHeaderDataTypeErrorTest {
 
-    @Rule
-    public WireMockRule wireMock = new WireMockRule();
-
-    private S3Client s3Client;
-
     private final String TEST_DATE = "2034-02-01T00:00:00Z";
-    @Before
-    public void setup() {
-        s3Client = S3Client.builder().endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+
+    public S3Client getS3Client(WireMockRuntimeInfo wm) {
+        return S3Client.builder().endpointOverride(URI.create(wm.getHttpBaseUrl()))
                                   .credentialsProvider(AnonymousCredentialsProvider.create())
                                   .build();
     }
 
     @Test
-    public void headObjectRequestWithInvalidDate_doesNotThrowException() throws IOException {
+    public void headObjectRequestWithInvalidDate_doesNotThrowException(WireMockRuntimeInfo wm) throws IOException {
 
         stubFor(any(anyUrl())
                     .willReturn(aResponse()
                                     .withHeader("Expires", TEST_DATE)
                                     .withBody("Hello world!")));
+
+        S3Client s3Client = getS3Client(wm);
 
         Assertions.assertThatCode(() -> s3Client.headObject(r -> {
                       r.bucket("s3_expires_test_dummy_bucket")
@@ -73,12 +66,14 @@ public class ExpiresHeaderDataTypeErrorTest {
     }
 
     @Test
-    public void getObjectRequestWithInvalidDate_doesNotThrowException() throws IOException {
+    public void getObjectRequestWithInvalidDate_doesNotThrowException(WireMockRuntimeInfo wm) throws IOException {
 
         stubFor(any(anyUrl())
                     .willReturn(aResponse()
                                     .withHeader("Expires", TEST_DATE)
                                     .withBody("Hello world!")));
+
+        S3Client s3Client = getS3Client(wm);
 
         Assertions.assertThatCode(() -> s3Client.headObject(r -> {
                       r.bucket("s3_expires_test_dummy_bucket")
