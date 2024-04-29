@@ -22,12 +22,11 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class HeaderUnmarshaller {
@@ -61,13 +60,13 @@ public final class HeaderUnmarshaller {
     private HeaderUnmarshaller() {
     }
 
-    private static class SimpleHeaderUnmarshaller<T> implements XmlUnmarshaller<T> {
+   private static class SimpleHeaderUnmarshaller<T> implements XmlUnmarshaller<T> {
 
-        private static final Logger log = LoggerFactory.getLogger(SimpleHeaderUnmarshaller.class);
+        private static final Logger log = Logger.loggerFor(SimpleHeaderUnmarshaller.class);
 
         private final StringToValueConverter.StringToValue<T> stringToValue;
 
-        private SimpleHeaderUnmarshaller(StringToValueConverter.StringToValue<T> stringToValue) {
+       private SimpleHeaderUnmarshaller(StringToValueConverter.StringToValue<T> stringToValue) {
             this.stringToValue = stringToValue;
         }
 
@@ -78,8 +77,8 @@ public final class HeaderUnmarshaller {
                               .map(s -> stringToValue.convert(s, field))
                               .orElse(null);
             } catch (RuntimeException e) {
-                log.warn("Exception found while parsing response header {}", e.getMessage());
-                if(field.ignoreDataTypeConversionFailures()) {
+                log.warn(() -> (String.format("Exception found while parsing response header {}", e.getMessage())));
+                if (field.ignoreDataTypeConversionFailures()) {
                     return null;
                 }
                 throw e;
