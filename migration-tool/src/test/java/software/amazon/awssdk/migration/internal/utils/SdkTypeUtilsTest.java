@@ -55,7 +55,7 @@ public class SdkTypeUtilsTest {
         );
     }
 
-    public static Stream<Arguments> isV2ClientClassTestCase() {
+    public static Stream<Arguments> isV2ClientFromClientBuilderClassTestCase() {
         return Stream.of(
             Arguments.of(SqsAsyncClient.class.getCanonicalName(), true),
             Arguments.of(CreateQueueRequest.class.getCanonicalName(), false),
@@ -63,11 +63,28 @@ public class SdkTypeUtilsTest {
         );
     }
 
-    public static Stream<Arguments> isV2ClientBuilderTestCase() {
+    public static Stream<Arguments> isV2ClientFromClientBuilderBuilderTestCase() {
         return Stream.of(
             Arguments.of(SqsAsyncClient.class.getCanonicalName(), false),
             Arguments.of(CreateQueueRequest.class.getCanonicalName(), false),
             Arguments.of(SqsAsyncClientBuilder.class.getCanonicalName(), true)
+        );
+    }
+
+    public static Stream<Arguments> isV2AsyncClientClassTestCase() {
+        return Stream.of(
+            Arguments.of(SqsAsyncClient.class.getCanonicalName(), true),
+            Arguments.of(SqsClient.class.getCanonicalName(), false),
+            Arguments.of(SqsAsyncClientBuilder.class.getCanonicalName(), false)
+        );
+    }
+
+    public static Stream<Arguments> v2ClientFromClientBuilderTestCase() {
+        return Stream.of(
+            Arguments.of(SqsAsyncClientBuilder.class.getCanonicalName(),
+                         SqsAsyncClient.class.getCanonicalName()),
+            Arguments.of(SqsClientBuilder.class.getCanonicalName(),
+                         SqsClient.class.getCanonicalName())
         );
     }
 
@@ -140,17 +157,27 @@ public class SdkTypeUtilsTest {
 
     @ParameterizedTest
     @MethodSource("v2BuilderTestCase")
-    public void v2Builder_typeIsV2_convertsClassCorrectly(String fqcn, String expectedFqcn) {
+    public void v2Builder_convertsClassCorrectly(String fqcn, String expectedFqcn) {
         JavaType.FullyQualified sendMessageRequest =
-            TypeUtils.asFullyQualified(JavaType.buildType(software.amazon.awssdk.services.sqs.model.SendMessageRequest.class.getCanonicalName()));
+            TypeUtils.asFullyQualified(JavaType.buildType(fqcn));
 
         assertThat(SdkTypeUtils.v2Builder(sendMessageRequest).getFullyQualifiedName())
-            .isEqualTo(software.amazon.awssdk.services.sqs.model.SendMessageRequest.Builder.class.getCanonicalName());
+            .isEqualTo(expectedFqcn);
     }
 
     @ParameterizedTest
-    @MethodSource("isV2ClientBuilderTestCase")
-    public void isV2ClientBuilderClass_v2ClientBuilderClass_returnsTrue() {
+    @MethodSource("v2ClientFromClientBuilderTestCase")
+    public void v2ClientFromClientBuilder_convertsClassCorrectly(String fqcn, String expectedFqcn) {
+        JavaType.FullyQualified clientBuilder =
+            TypeUtils.asFullyQualified(JavaType.buildType(fqcn));
+
+        assertThat(SdkTypeUtils.v2ClientFromClientBuilder(clientBuilder).getFullyQualifiedName())
+            .isEqualTo(expectedFqcn);
+    }
+
+    @ParameterizedTest
+    @MethodSource("isV2ClientFromClientBuilderBuilderTestCase")
+    public void isV2ClientBuilderClass_v2ClientFromClientBuilderBuilderClass_returnsTrue() {
         JavaType sqs = JavaType.buildType(SqsClientBuilder.class.getCanonicalName());
         assertThat(SdkTypeUtils.isV2ClientBuilder(sqs)).isTrue();
     }
@@ -164,9 +191,16 @@ public class SdkTypeUtilsTest {
     }
 
     @ParameterizedTest
-    @MethodSource("isV2ClientClassTestCase")
-    public void isV2ClientClass_shouldReturnCorrectly(String fqcn, boolean expected) {
+    @MethodSource("isV2ClientFromClientBuilderClassTestCase")
+    public void isV2ClientFromClientBuilderClass_shouldReturnCorrectly(String fqcn, boolean expected) {
         JavaType sqs = JavaType.buildType(fqcn);
         assertThat(SdkTypeUtils.isV2ClientClass(sqs)).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("isV2AsyncClientClassTestCase")
+    public void isV2AsyncClientClass_shouldReturnCorrectly(String fqcn, boolean expected) {
+        JavaType sqs = JavaType.buildType(fqcn);
+        assertThat(SdkTypeUtils.isV2AsyncClientClass(sqs)).isEqualTo(expected);
     }
 }

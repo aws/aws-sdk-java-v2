@@ -25,5 +25,6 @@ recipeList:
   - software.amazon.awssdk.UpgradeSdkDependencies
   - software.amazon.awssdk.migration.recipe.ChangeSdkType
   - software.amazon.awssdk.ChangeSdkCoreTypes
+  - software.amazon.awssdk.migration.recipe.V1BuilderVariationsToV2Builder
   - software.amazon.awssdk.migration.recipe.NewClassToBuilderPattern
   - software.amazon.awssdk.migration.recipe.NewClassToStaticFactory

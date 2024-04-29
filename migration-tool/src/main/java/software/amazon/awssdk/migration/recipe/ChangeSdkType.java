@@ -27,13 +27,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.ListUtils;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.RemoveImport;
-import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.Flag;
 import org.openrewrite.java.tree.J;
@@ -72,7 +70,7 @@ public class ChangeSdkType extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("com.amazonaws.*", true), new ChangeTypeVisitor());
+        return new ChangeTypeVisitor();
     }
 
     private static class ChangeTypeVisitor extends JavaVisitor<ExecutionContext> {

@@ -17,6 +17,7 @@ package foo.bar;
 
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 
@@ -36,7 +37,14 @@ public final class SdkClientsDependencyFactory {
                               .build();
     }
 
-    public static AmazonSQS defaultAsyncSqsClient() {
+    public static AmazonSQSAsync defaultSqsAsyncClient() {
         return new AmazonSQSAsyncClient();
+    }
+
+    public static AmazonSQSAsync defaultSqsAsyncClientWithAllSettings() {
+        return AmazonSQSAsyncClient.asyncBuilder()
+                                   .withRegion(Regions.US_WEST_2)
+                                   .withCredentials(CredentialsDependencyFactory.defaultCredentialsProviderChain())
+                                   .build();
     }
 }
