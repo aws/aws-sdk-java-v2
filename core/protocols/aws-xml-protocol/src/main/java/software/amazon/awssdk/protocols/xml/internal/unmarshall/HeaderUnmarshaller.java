@@ -60,13 +60,12 @@ public final class HeaderUnmarshaller {
     private HeaderUnmarshaller() {
     }
 
-   private static class SimpleHeaderUnmarshaller<T> implements XmlUnmarshaller<T> {
-
+    private static class SimpleHeaderUnmarshaller<T> implements XmlUnmarshaller<T> {
         private static final Logger log = Logger.loggerFor(SimpleHeaderUnmarshaller.class);
 
         private final StringToValueConverter.StringToValue<T> stringToValue;
 
-       private SimpleHeaderUnmarshaller(StringToValueConverter.StringToValue<T> stringToValue) {
+        private SimpleHeaderUnmarshaller(StringToValueConverter.StringToValue<T> stringToValue) {
             this.stringToValue = stringToValue;
         }
 
