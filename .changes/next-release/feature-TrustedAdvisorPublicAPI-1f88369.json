@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "TrustedAdvisor Public API",
-    "contributor": "",
-    "description": "This release adds the BatchUpdateRecommendationResourceExclusion API to support batch updates of Recommendation Resource exclusion statuses and introduces a new exclusion status filter to the ListRecommendationResources and ListOrganizationRecommendationResources APIs."
-}
