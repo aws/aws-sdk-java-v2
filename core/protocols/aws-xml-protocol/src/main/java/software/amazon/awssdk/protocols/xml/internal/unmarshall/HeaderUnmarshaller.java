@@ -76,7 +76,7 @@ public final class HeaderUnmarshaller {
                               .map(s -> stringToValue.convert(s, field))
                               .orElse(null);
             } catch (RuntimeException e) {
-                log.warn(() -> (String.format("Exception found while parsing response header {}", e.getMessage())));
+                log.warn(() -> (String.format("Exception found while parsing response header {} ", e)));
                 if (field.ignoreDataTypeConversionFailures()) {
                     return null;
                 }

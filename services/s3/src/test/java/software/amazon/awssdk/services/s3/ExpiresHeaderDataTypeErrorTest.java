@@ -19,15 +19,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.io.IOException;
 import java.net.URI;
 import org.assertj.core.api.Assertions;
-import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
@@ -53,17 +52,17 @@ public class ExpiresHeaderDataTypeErrorTest {
                                     .withHeader("Expires", TEST_DATE)
                                     .withBody("Hello world!")));
 
-        Assertions.assertThatCode(() -> s3Client.headObject(r -> {
+        assertThatCode(() -> s3Client.headObject(r -> {
                       r.bucket("s3_expires_test_dummy_bucket")
                        .key("s3_expires_test_dummy_key");
                   }))
                   .doesNotThrowAnyException();
 
-        assertTrue(s3Client.headObject(r -> {r.bucket("s3_expires_test_dummy_bucket")
-                                              .key("s3_expires_test_dummy_key");}).expires() == null);
+        assertThat(s3Client.headObject(r -> {r.bucket("s3_expires_test_dummy_bucket")
+                                              .key("s3_expires_test_dummy_key");}).expires()).isNull();
 
-        assertEquals(s3Client.headObject(r -> {r.bucket("s3_expires_test_dummy_bucket")
-                                                .key("s3_expires_test_dummy_key");}).expiresString(), TEST_DATE);
+        assertThat(s3Client.headObject(r -> {r.bucket("s3_expires_test_dummy_bucket")
+                                                .key("s3_expires_test_dummy_key");}).expiresString()).isEqualTo(TEST_DATE);
 
     }
 
@@ -81,11 +80,11 @@ public class ExpiresHeaderDataTypeErrorTest {
                   }))
                   .doesNotThrowAnyException();
 
-        assertTrue(s3Client.getObject(r -> {r.bucket("s3_expires_test_dummy_bucket")
-                                              .key("s3_expires_test_dummy_key");}).response().expires() == null);
+        assertThat(s3Client.getObject(r -> {r.bucket("s3_expires_test_dummy_bucket")
+                                              .key("s3_expires_test_dummy_key");}).response().expires()).isNull();
 
-        assertEquals(s3Client.getObject(r -> {r.bucket("s3_expires_test_dummy_bucket")
-                                                .key("s3_expires_test_dummy_key");}).response().expiresString(), TEST_DATE);
+        assertThat(s3Client.getObject(r -> {r.bucket("s3_expires_test_dummy_bucket")
+                                              .key("s3_expires_test_dummy_key");}).response().expiresString()).isEqualTo(TEST_DATE);
 
     }
 }
