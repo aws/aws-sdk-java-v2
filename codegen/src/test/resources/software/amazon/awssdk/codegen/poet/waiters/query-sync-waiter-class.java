@@ -21,7 +21,7 @@ import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.core.waiters.WaiterState;
 import software.amazon.awssdk.services.query.QueryClient;
-import software.amazon.awssdk.services.query.jpath.internal.JPathRuntime;
+import software.amazon.awssdk.services.query.jmespath.internal.JmesPathRuntime;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
 import software.amazon.awssdk.services.query.model.QueryRequest;
@@ -79,7 +79,7 @@ final class DefaultQueryWaiter implements QueryWaiter {
         result.add(new WaitersRuntime.ResponseStatusAcceptor(200, WaiterState.SUCCESS));
         result.add(new WaitersRuntime.ResponseStatusAcceptor(404, WaiterState.RETRY));
         result.add(WaiterAcceptor.successOnResponseAcceptor(response -> {
-            JPathRuntime.Value input = new JPathRuntime.Value(response);
+            JmesPathRuntime.Value input = new JmesPathRuntime.Value(response);
             List<Object> resultValues = input.field("foo").field("bar").values();
             return !resultValues.isEmpty() && resultValues.stream().anyMatch(v -> Objects.equals(v, "baz"));
         }));

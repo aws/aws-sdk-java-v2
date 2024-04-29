@@ -59,8 +59,8 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
             tasks.add(generateDefaultProvider());
             tasks.add(new RulesEngineRuntimeGeneratorTask(generatorTaskParams));
         }
-        if (shouldGenerateJPathRuntime()) {
-            tasks.add(new JPathRuntimeGeneratorTask(generatorTaskParams));
+        if (shouldGenerateJmesPathRuntime()) {
+            tasks.add(new JmesPathRuntimeGeneratorTask(generatorTaskParams));
         }
         tasks.addAll(generateInterceptors());
         if (shouldGenerateEndpointTests()) {
@@ -154,7 +154,7 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
                (customClientContextParams != null && !customClientContextParams.isEmpty());
     }
 
-    private boolean shouldGenerateJPathRuntime() {
+    private boolean shouldGenerateJmesPathRuntime() {
         boolean isAlreadyGenerated = model.hasWaiters();
         if (isAlreadyGenerated) {
             return true;

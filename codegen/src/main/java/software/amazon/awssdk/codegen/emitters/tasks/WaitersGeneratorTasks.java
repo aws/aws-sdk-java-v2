@@ -46,7 +46,7 @@ public class WaitersGeneratorTasks extends BaseGeneratorTasks {
         generatorTasks.addAll(createSyncTasks());
         generatorTasks.addAll(createAsyncTasks());
         generatorTasks.add(new WaitersRuntimeGeneratorTask(generatorTaskParams));
-        generatorTasks.add(new JPathRuntimeGeneratorTask(generatorTaskParams));
+        generatorTasks.add(new JmesPathRuntimeGeneratorTask(generatorTaskParams));
         return generatorTasks;
     }
 

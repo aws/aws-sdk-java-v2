@@ -25,18 +25,18 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.SimpleGeneratorTask;
 import software.amazon.awssdk.utils.IoUtils;
 
-public final class JPathRuntimeGeneratorTask extends BaseGeneratorTasks {
-    public static final String RUNTIME_CLASS_NAME = "JPathRuntime";
+public final class JmesPathRuntimeGeneratorTask extends BaseGeneratorTasks {
+    public static final String RUNTIME_CLASS_NAME = "JmesPathRuntime";
 
     private final String runtimeClassDir;
     private final String runtimePackageName;
     private final String fileHeader;
     private final String runtimeClassCode;
 
-    public JPathRuntimeGeneratorTask(GeneratorTaskParams generatorTaskParams) {
+    public JmesPathRuntimeGeneratorTask(GeneratorTaskParams generatorTaskParams) {
         super(generatorTaskParams);
-        this.runtimeClassDir = generatorTaskParams.getPathProvider().getJPathInternalDirectory();
-        this.runtimePackageName = generatorTaskParams.getModel().getMetadata().getFullInternalJPathPackageName();
+        this.runtimeClassDir = generatorTaskParams.getPathProvider().getJmesPathInternalDirectory();
+        this.runtimePackageName = generatorTaskParams.getModel().getMetadata().getFullInternalJmesPathPackageName();
         this.fileHeader = generatorTaskParams.getModel().getFileHeader();
         this.runtimeClassCode = loadRuntimeCode();
     }
@@ -55,8 +55,8 @@ public final class JPathRuntimeGeneratorTask extends BaseGeneratorTasks {
 
     private static String loadRuntimeCode() {
         try {
-            InputStream is = JPathRuntimeGeneratorTask.class.getResourceAsStream(
-                String.format("/software/amazon/awssdk/codegen/jpath/%s.java.resource", RUNTIME_CLASS_NAME));
+            InputStream is = JmesPathRuntimeGeneratorTask.class.getResourceAsStream(
+                String.format("/software/amazon/awssdk/codegen/jmespath/%s.java.resource", RUNTIME_CLASS_NAME));
             return IoUtils.toUtf8String(is);
         } catch (IOException ioe) {
             throw new UncheckedIOException(ioe);

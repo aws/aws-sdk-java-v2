@@ -72,7 +72,7 @@ public interface NamingStrategy {
     /**
      * Retrieve the path runtime package name that should be used based on the service name.
      */
-    String getJPathPackageName(String serviceName);
+    String getJmesPathPackageName(String serviceName);
 
     /**
      * Retrieve the smote test package name that should be used based on the service name.

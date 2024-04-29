@@ -11,9 +11,9 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
-public final class JPathRuntime {
+public final class JmesPathRuntime {
 
-    private JPathRuntime() {
+    private JmesPathRuntime() {
     }
 
     /**

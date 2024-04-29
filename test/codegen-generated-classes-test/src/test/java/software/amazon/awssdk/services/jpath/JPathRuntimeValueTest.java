@@ -31,7 +31,7 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.LocationTrait;
-import software.amazon.awssdk.services.restjsonwithwaiters.jpath.internal.JPathRuntime.Value;
+import software.amazon.awssdk.services.restjsonwithwaiters.jmespath.internal.JmesPathRuntime.Value;
 import software.amazon.awssdk.utils.Pair;
 
 public class JPathRuntimeValueTest {

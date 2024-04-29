@@ -72,7 +72,7 @@ public final class Constant {
 
     public static final String PACKAGE_NAME_AUTH_SCHEME_PATTERN = "%s.auth.scheme";
 
-    public static final String PACKAGE_NAME_JPATH_PATTERN = "%s.jpath";
+    public static final String PACKAGE_NAME_JMESPATH_PATTERN = "%s.jmespath";
 
     public static final String PACKAGE_NAME_SMOKE_TEST_PATTERN = "%s.smoketests";
 

@@ -105,7 +105,7 @@ final class AddMetadata {
                 .withWaitersPackageName(namingStrategy.getWaitersPackageName(service))
                 .withEndpointRulesPackageName(namingStrategy.getEndpointRulesPackageName(service))
                 .withAuthSchemePackageName(namingStrategy.getAuthSchemePackageName(service))
-                .withJPathPackageName(namingStrategy.getJPathPackageName(service));
+                .withJmesPathPackageName(namingStrategy.getJmesPathPackageName(service));
     }
 
     /**
