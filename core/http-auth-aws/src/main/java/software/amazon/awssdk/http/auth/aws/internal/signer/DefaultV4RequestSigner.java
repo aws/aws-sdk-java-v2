@@ -52,8 +52,11 @@ public final class DefaultV4RequestSigner implements V4RequestSigner {
         // Step 1: Create a canonical request
         V4CanonicalRequest canonicalRequest = createCanonicalRequest(requestBuilder.build(), contentHash);
 
+        String canonicalRequestString = canonicalRequest.getCanonicalRequestString();
+        LOG.debug(() -> "AWS4 Canonical Request: " + canonicalRequestString);
+
         // Step 2: Create a hash of the canonical request
-        String canonicalRequestHash = hashCanonicalRequest(canonicalRequest.getCanonicalRequestString());
+        String canonicalRequestHash = hashCanonicalRequest(canonicalRequestString);
 
         // Step 2: Create a hash of the canonical request
         String stringToSign = createSignString(canonicalRequestHash);
