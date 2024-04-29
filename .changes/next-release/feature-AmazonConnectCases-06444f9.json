@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Cases",
+    "contributor": "",
+    "description": "This feature releases DeleteField, DeletedLayout, and DeleteTemplate API's"
+}
