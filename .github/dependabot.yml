@@ -14,6 +14,12 @@ updates:
         patterns:
           - "com.fasterxml.jackson*"
     ignore:
+      # We don't want to update from 1.x.x unless necessary because it will
+      # require extra verification to ensure customers aren't broken by the
+      # update.
+      - dependency-name: "org.slf4j:*"
+        update-types: ["version-update:semver-major"]
+
       # Ignore test dependencies to reduce PR noisiness. We don't need to stay
       # on top of them as much as compile/runtime dependencies
       - dependency-name: "com.amazonaws:aws-java-sdk*"
@@ -32,6 +38,7 @@ updates:
       - dependency-name: "org.eclipse.jetty:*"
       - dependency-name: "javax.servlet:*"
       - dependency-name: "io.reactivex.rxjava3:rxjava"
+      - dependency-name: "xmlunit:xmlunit"
 
       # Non runtime dependencies
       # Eclipse JDT deps used at codegen time
@@ -46,3 +53,5 @@ updates:
       - dependency-name: "org.codehaus.mojo:exec-maven-plugin"
       - dependency-name: "org.apache.maven.plugin-tools:maven-plugin-annotations"
       - dependency-name: "org.graalvm.buildtools:*"
+      - dependency-name: "org.jacoco:jacoco-maven-plugin"
+      - dependency-name: "org.apache.commons:commons-lang3"
