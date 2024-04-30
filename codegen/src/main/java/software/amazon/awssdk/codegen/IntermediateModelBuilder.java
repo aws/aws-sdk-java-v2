@@ -38,6 +38,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
+import software.amazon.awssdk.codegen.model.service.CustomOperationContextParam;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.Paginators;
@@ -168,7 +169,29 @@ public class IntermediateModelBuilder {
 
         namingStrategy.validateCustomerVisibleNaming(trimmedModel);
         customizeEndpointParameters(fullModel, endpointRuleSet);
+        customizeOperationContextParams(trimmedModel, fullModel.getCustomizationConfig().getCustomOperationContextParams());
         return trimmedModel;
+    }
+
+    private static void customizeOperationContextParams(IntermediateModel trimmedModel,
+                                                        List<CustomOperationContextParam> customOperationContextParams) {
+
+        if (CollectionUtils.isNullOrEmpty(customOperationContextParams)) {
+            return;
+        }
+        customOperationContextParams.forEach(customOperationContextParam -> {
+            String operationName = customOperationContextParam.getOperationName();
+            OperationModel operation = trimmedModel.getOperation(operationName);
+            if (operation == null) {
+                throw new IllegalStateException(
+                    "Could not find operation " + operationName + " to customize Operation Context Params.");
+            }
+            if (operation.getOperationContextParams() != null) {
+                throw new IllegalStateException(
+                    "Cannot customize operation " + operationName + " which already has OperationContextParams.");
+            }
+            operation.setOperationContextParams(customOperationContextParam.getOperationContextParamsMap());
+        });
     }
 
     private void customizeEndpointParameters(IntermediateModel fullModel, EndpointRuleSetModel endpointRuleSet) {

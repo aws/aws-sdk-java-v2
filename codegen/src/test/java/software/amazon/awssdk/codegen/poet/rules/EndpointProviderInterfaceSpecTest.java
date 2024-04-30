@@ -43,4 +43,23 @@ public class EndpointProviderInterfaceSpecTest {
                 ClientTestModels.queryServiceModelWithSpecialCustomization("customization-with-duplicate-endpointparameter.config")))
             .withMessageContaining("Duplicate parameters found in customizationConfig");
     }
+
+    @Test
+    public void endpointParametersWithDuplicatesOperationContextInCustomizationConfig() {
+        assertThatIllegalStateException()
+            .isThrownBy(() -> new EndpointParametersClassSpec(
+                ClientTestModels.queryServiceModelWithSpecialCustomization("customization-with-duplicate-operationcontextparams.config")))
+            .withMessageContaining("Cannot customize operation OperationWithOperationContextParam which already has OperationContextParams.");
+    }
+
+    @Test
+    public void endpointParametersWithIncorrectNameOperationContextInCustomizationConfig() {
+        assertThatIllegalStateException()
+            .isThrownBy(() -> new EndpointParametersClassSpec(
+                ClientTestModels.queryServiceModelWithSpecialCustomization("customization-with-incorrectName-operationcontextparams.config")))
+            .withMessageContaining("Could not find operation RandomOperationName to customize Operation Context Params.");
+    }
 }
+
+
+
