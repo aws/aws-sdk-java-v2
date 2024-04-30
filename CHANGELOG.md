@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.42__ __2024-04-30__
+## __AWS Signer__
+  - ### Features
+    - Documentation updates for AWS Signer. Adds cross-account signing constraint and definitions for cross-account actions.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Due to changes made by the Amazon Alexa service, GetSipMediaApplicationAlexaSkillConfiguration and PutSipMediaApplicationAlexaSkillConfiguration APIs are no longer available for use. For more information, refer to the Alexa Smart Properties page.
+
+## __Amazon Omics__
+  - ### Features
+    - Add support for workflow sharing and dynamic run storage
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release enables customers to create Route53 A and AAAA alias record types to point custom endpoint domain to OpenSearch domain's dualstack search endpoint.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - Amazon Pinpoint has added two new features Multimedia services (MMS) and protect configurations. Use the three new MMS APIs to send media messages to a mobile phone which includes image, audio, text, or video files. Use the ten new protect configurations APIs to block messages to specific countries.
+
+## __Amazon QuickSight__
+  - ### Features
+    - New Q embedding supporting Generative Q&A
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Release of FirewallDomainRedirectionAction parameter on the Route 53 DNS Firewall Rule. This allows customers to configure a DNS Firewall rule to inspect all the domains in the DNS redirection chain (default) , such as CNAME, ALIAS, DNAME, etc., or just the first domain and trust the rest.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Training now supports the use of attribute-based access control (ABAC) roles for training job execution roles. Amazon SageMaker Inference now supports G6 instance types.
+
+## __CodeArtifact__
+  - ### Features
+    - Add support for the Ruby package format.
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager now supports the network firewall service stream exception policy feature for accounts within your organization.
+
+## __QBusiness__
+  - ### Features
+    - This is a general availability (GA) release of Amazon Q Business. Q Business enables employees in an enterprise to get comprehensive answers to complex questions and take actions through a unified, intuitive web-based chat experience - using an enterprise's existing content, data, and systems.
+
 # __2.25.41__ __2024-04-29__
 ## __AWS Amplify__
   - ### Features
