@@ -66,12 +66,10 @@ public class AddCommentToMethod extends Recipe {
     }
 
     private static final class Visitor extends JavaIsoVisitor<ExecutionContext> {
-        private final String methodPattern;
         private final MethodMatcher methodMatcher;
         private final String comment;
 
         Visitor(String methodPattern, String comment) {
-            this.methodPattern = methodPattern;
             this.methodMatcher = new MethodMatcher(methodPattern, false);
             this.comment = comment;
         }
