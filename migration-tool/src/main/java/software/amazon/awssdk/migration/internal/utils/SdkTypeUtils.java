@@ -49,12 +49,18 @@ public final class SdkTypeUtils {
 
     private static final Pattern V1_SERVICE_CLIENT_CLASS_PATTERN =
         Pattern.compile("com\\.amazonaws\\.services\\.[a-zA-Z0-9]+\\.[a-zA-Z0-9]+");
+    private static final Pattern V1_SERVICE_CLIENT_BUILDER_CLASS_PATTERN =
+        Pattern.compile("com\\.amazonaws\\.services\\.[a-zA-Z0-9]+\\.[a-zA-Z0-9]+Builder");
+
     private static final Pattern V2_MODEL_BUILDER_PATTERN =
         Pattern.compile("software\\.amazon\\.awssdk\\.services\\.[a-zA-Z0-9]+\\.model\\.[a-zA-Z0-9]+\\.Builder");
     private static final Pattern V2_MODEL_CLASS_PATTERN = Pattern.compile(
         "software\\.amazon\\.awssdk\\.services\\.[a-zA-Z0-9]+\\.model\\..[a-zA-Z0-9]+");
     private static final Pattern V2_CLIENT_CLASS_PATTERN = Pattern.compile(
         "software\\.amazon\\.awssdk\\.services\\.[a-zA-Z0-9]+\\.[a-zA-Z0-9]+");
+
+    private static final Pattern V2_ASYNC_CLIENT_CLASS_PATTERN = Pattern.compile(
+        "software\\.amazon\\.awssdk\\.services\\.[a-zA-Z0-9]+\\.[a-zA-Z0-9]+AsyncClient");
 
     /**
      * V2 core classes with a builder
@@ -107,6 +113,11 @@ public final class SdkTypeUtils {
                && type.isAssignableFrom(V2_CLIENT_CLASS_PATTERN);
     }
 
+    public static boolean isV2AsyncClientClass(JavaType type) {
+        return type != null
+               && type.isAssignableFrom(V2_ASYNC_CLIENT_CLASS_PATTERN);
+    }
+
     public static boolean isV2ClientBuilder(JavaType type) {
         return type != null
                && type.isAssignableFrom(V2_CLIENT_BUILDER_PATTERN);
@@ -136,5 +147,14 @@ public final class SdkTypeUtils {
         }
         
         return TypeUtils.asFullyQualified(JavaType.buildType(fqcn));
+    }
+
+    public static JavaType.FullyQualified v2ClientFromClientBuilder(JavaType.FullyQualified type) {
+        if (!isV2ClientBuilder(type)) {
+            throw new IllegalArgumentException(String.format("%s is not a client builder", type));
+        }
+
+        String builder = type.getFullyQualifiedName().replace("Builder", "");
+        return TypeUtils.asFullyQualified(JavaType.buildType(builder));
     }
 }

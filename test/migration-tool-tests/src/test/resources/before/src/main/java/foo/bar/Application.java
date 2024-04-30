@@ -14,9 +14,8 @@
  */
 
 package foo.bar;
-import com.amazonaws.regions.Regions;
+
 import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.ListQueuesRequest;
 import com.amazonaws.services.sqs.model.ListQueuesResult;
 
@@ -27,9 +26,7 @@ public class Application {
     }
 
     public static void main(String... args) {
-        AmazonSQS sqs = AmazonSQSClient.builder()
-                                       .withRegion(Regions.US_WEST_2)
-                                       .build();
+        AmazonSQS sqs = SdkClientsDependencyFactory.sqsClientWithAllSettings();
         ListQueuesRequest request = new ListQueuesRequest()
             .withMaxResults(5)
             .withQueueNamePrefix("MyQueue-")

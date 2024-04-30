@@ -26,13 +26,13 @@ def run_test(version):
 
     subprocess.run(["mvn", "org.openrewrite.maven:rewrite-maven-plugin:5.21.0:run",
                     "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:migration-tool:"+ version,
-                    "-Drewrite.activeRecipes=software.amazon.awssdk.UpgradeJavaSdk2"], cwd=TARGET_DIR)
+                    "-Drewrite.activeRecipes=software.amazon.awssdk.UpgradeJavaSdk2"], cwd=TARGET_DIR, check=True)
     shutil.rmtree(os.path.join(TARGET_DIR, "target"))
     comparison = filecmp.dircmp(TARGET_DIR, AFTER_DIR)
     is_same = compare_directory(filecmp.dircmp(TARGET_DIR, AFTER_DIR))
     if not is_same:
         raise Exception("The transformed directory('target/generated-test-sources/project') does not match with the expected one('src/test/resources/after')")
-    result = subprocess.run(["mvn", "package"], cwd=TARGET_DIR, capture_output=True, check=True)
+    result = subprocess.run(["mvn", "package"], cwd=TARGET_DIR, check=True, stdout = subprocess.DEVNULL)
 
 def compare_directory(dcmp):
     if dcmp.diff_files or dcmp.left_only or dcmp.right_only:
