@@ -147,6 +147,10 @@ public class EndpointRulesSpecUtils {
                 break;
             case "stringarray":
                 methodName = "fromArray";
+                param = CodeBlock.of("$N.stream().map($T::fromStr).collect($T.toList())",
+                                     param,
+                                     rulesRuntimeClassName("Value"),
+                                     Collectors.class);
                 break;
             default:
                 throw new RuntimeException("Don't know how to create a Value instance from type " + type);

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -60,10 +61,12 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
             paramsMap.put(Identifier.of("awsAccountIdEndpointMode"), Value.fromStr(params.awsAccountIdEndpointMode()));
         }
         if (params.listOfStrings() != null) {
-            paramsMap.put(Identifier.of("listOfStrings"), Value.fromArray(params.listOfStrings()));
+            paramsMap.put(Identifier.of("listOfStrings"),
+                          Value.fromArray(params.listOfStrings().stream().map(Value::fromStr).collect(Collectors.toList())));
         }
         if (params.defaultListOfStrings() != null) {
-            paramsMap.put(Identifier.of("defaultListOfStrings"), Value.fromArray(params.defaultListOfStrings()));
+            paramsMap.put(Identifier.of("defaultListOfStrings"),
+                          Value.fromArray(params.defaultListOfStrings().stream().map(Value::fromStr).collect(Collectors.toList())));
         }
         if (params.endpointId() != null) {
             paramsMap.put(Identifier.of("endpointId"), Value.fromStr(params.endpointId()));
@@ -361,9 +364,14 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                     Parameter.builder().name("listOfStrings").type(ParameterType.fromValue("StringArray"))
                                              .required(false).build())
                                 .addParameter(
-                                    Parameter.builder().name("defaultListOfStrings")
-                                             .type(ParameterType.fromValue("stringarray")).required(false)
-                                             .defaultValue(Value.fromArray(Arrays.asList("item1", "item2", "item3"))).build())
+                                    Parameter
+                                        .builder()
+                                        .name("defaultListOfStrings")
+                                        .type(ParameterType.fromValue("stringarray"))
+                                        .required(false)
+                                        .defaultValue(
+                                            Value.fromArray(Arrays.asList("item1", "item2", "item3").stream()
+                                                                  .map(Value::fromStr).collect(Collectors.toList()))).build())
                                 .addParameter(
                                         Parameter.builder().name("endpointId").type(ParameterType.fromValue("string"))
                                                 .required(false).build())
