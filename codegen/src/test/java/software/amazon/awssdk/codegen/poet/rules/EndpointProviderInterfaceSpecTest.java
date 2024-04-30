@@ -57,7 +57,7 @@ public class EndpointProviderInterfaceSpecTest {
         assertThatIllegalStateException()
             .isThrownBy(() -> new EndpointParametersClassSpec(
                 ClientTestModels.queryServiceModelWithSpecialCustomization("customization-with-incorrectName-operationcontextparams.config")))
-            .withMessageContaining("Could not find operation randomOperatoinName to customize Operation Context Params.");
+            .withMessageContaining("Could not find operation RandomOperationName to customize Operation Context Params.");
     }
 }
 
