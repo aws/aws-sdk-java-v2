@@ -59,6 +59,11 @@ public class ModifyModelShapeModifier {
 
     private String unmarshallLocationName;
 
+    /**
+     * Indicates whether data type conversion failures are to be ignored
+     */
+    private boolean ignoreDataTypeConversionFailures;
+
     public String getDeprecatedMessage() {
         return deprecatedMessage;
     }
@@ -129,5 +134,13 @@ public class ModifyModelShapeModifier {
 
     public void setEmitAsType(String emitAsType) {
         this.emitAsType = emitAsType;
+    }
+
+    public void setIgnoreDataTypeConversionFailures(boolean ignoreDataTypeConversionFailures) {
+        this.ignoreDataTypeConversionFailures = ignoreDataTypeConversionFailures;
+    }
+
+    public boolean isIgnoreDataTypeConversionFailures() {
+        return ignoreDataTypeConversionFailures;
     }
 }
