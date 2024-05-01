@@ -372,6 +372,10 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
         private Boolean fastFailRateLimiting;
 
         private BuilderImpl(RetryMode retryMode) {
+            if (retryMode == RetryMode.ADAPTIVE_V2) {
+                throw new UnsupportedOperationException("ADAPTIVE_V2 is not supported by retry policies, use a RetryStrategy "
+                                                        + "instead");
+            }
             this.retryMode = retryMode;
             this.numRetries = SdkDefaultRetrySetting.maxAttempts(retryMode) - 1;
             this.additionalRetryConditionsAllowed = true;
