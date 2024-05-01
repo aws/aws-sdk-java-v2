@@ -31,7 +31,7 @@ public class NumberToDurationTest implements RewriteTest {
     void timeUnitNotSpecified_shouldUseMilliSeconds() {
         rewriteRun(
             spec -> spec.recipe(new NumberToDuration("com.amazonaws.ClientConfiguration setRequestTimeout(int)",
-                                                     TimeUnit.MILLISECONDS))
+                                                     null))
                         .parser(Java8Parser.builder().classpath("sqs", "aws-core", "sdk-core", "aws-java-sdk-sqs")),
             java(
                 "import com.amazonaws.ClientConfiguration;\n"
