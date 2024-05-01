@@ -21,16 +21,23 @@ import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_SYSTE
 
 import java.time.Duration;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
 
 class AwsCrtConfigurationUtilsTest {
+
+    @AfterAll
+    public static void tearDown() {
+        CrtResource.waitForNoResources();
+    }
 
     @ParameterizedTest
     @MethodSource("cipherPreferences")
@@ -57,13 +64,16 @@ class AwsCrtConfigurationUtilsTest {
     @ParameterizedTest
     @MethodSource("tcpKeepAliveConfiguration")
     void tcpKeepAliveConfiguration(TcpKeepAliveConfiguration tcpKeepAliveConfiguration, Duration connectionTimeout, SocketOptions expected) {
-        assertThat(AwsCrtConfigurationUtils.buildSocketOptions(tcpKeepAliveConfiguration, connectionTimeout))
-            .satisfies(socketOptions -> {
-                assertThat(socketOptions.connectTimeoutMs).isEqualTo(expected.connectTimeoutMs);
-                assertThat(socketOptions.keepAlive).isEqualTo(expected.keepAlive);
-                assertThat(socketOptions.keepAliveIntervalSecs).isEqualTo(expected.keepAliveIntervalSecs);
-                assertThat(socketOptions.keepAliveTimeoutSecs).isEqualTo(expected.keepAliveTimeoutSecs);
-            });
+        try (SocketOptions socketOptions = AwsCrtConfigurationUtils.buildSocketOptions(tcpKeepAliveConfiguration,
+            connectionTimeout)) {
+            assertThat(socketOptions)
+                .satisfies(options -> {
+                    assertThat(options.connectTimeoutMs).isEqualTo(expected.connectTimeoutMs);
+                    assertThat(options.keepAlive).isEqualTo(expected.keepAlive);
+                    assertThat(options.keepAliveIntervalSecs).isEqualTo(expected.keepAliveIntervalSecs);
+                    assertThat(options.keepAliveTimeoutSecs).isEqualTo(expected.keepAliveTimeoutSecs);
+                });
+        }
     }
 
     private static Stream<Arguments> tcpKeepAliveConfiguration() {

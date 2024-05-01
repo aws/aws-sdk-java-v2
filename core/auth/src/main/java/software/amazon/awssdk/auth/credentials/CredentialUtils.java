@@ -71,15 +71,21 @@ public final class CredentialUtils {
         // identity-spi defines 2 known types - AwsCredentialsIdentity and a sub-type AwsSessionCredentialsIdentity
         if (awsCredentialsIdentity instanceof AwsSessionCredentialsIdentity) {
             AwsSessionCredentialsIdentity awsSessionCredentialsIdentity = (AwsSessionCredentialsIdentity) awsCredentialsIdentity;
-            return AwsSessionCredentials.create(awsSessionCredentialsIdentity.accessKeyId(),
-                                                awsSessionCredentialsIdentity.secretAccessKey(),
-                                                awsSessionCredentialsIdentity.sessionToken());
+            return AwsSessionCredentials.builder()
+                                        .accessKeyId(awsSessionCredentialsIdentity.accessKeyId())
+                                        .secretAccessKey(awsSessionCredentialsIdentity.secretAccessKey())
+                                        .sessionToken(awsSessionCredentialsIdentity.sessionToken())
+                                        .accountId(awsSessionCredentialsIdentity.accountId().orElse(null))
+                                        .build();
         }
         if (isAnonymous(awsCredentialsIdentity)) {
             return AwsBasicCredentials.ANONYMOUS_CREDENTIALS;
         }
-        return AwsBasicCredentials.create(awsCredentialsIdentity.accessKeyId(),
-                                          awsCredentialsIdentity.secretAccessKey());
+        return AwsBasicCredentials.builder()
+                                  .accessKeyId(awsCredentialsIdentity.accessKeyId())
+                                  .secretAccessKey(awsCredentialsIdentity.secretAccessKey())
+                                  .accountId(awsCredentialsIdentity.accountId().orElse(null))
+                                  .build();
     }
 
     /**

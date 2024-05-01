@@ -23,6 +23,8 @@ public enum BuiltInParameter {
     AWS_USE_DUAL_STACK,
     AWS_USE_FIPS,
     SDK_ENDPOINT,
+    AWS_AUTH_ACCOUNT_ID,
+    AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE,
     AWS_STS_USE_GLOBAL_ENDPOINT,
     AWS_S3_FORCE_PATH_STYLE,
     AWS_S3_ACCELERATE,
@@ -43,6 +45,10 @@ public enum BuiltInParameter {
                 return AWS_USE_FIPS;
             case "sdk::endpoint":
                 return SDK_ENDPOINT;
+            case "aws::auth::accountid":
+                return AWS_AUTH_ACCOUNT_ID;
+            case "aws::auth::accountidendpointmode":
+                return AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE;
             case "aws::sts::useglobalendpoint":
                 return AWS_STS_USE_GLOBAL_ENDPOINT;
             case "aws::s3::forcepathstyle":
