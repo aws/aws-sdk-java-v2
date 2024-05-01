@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Email Service",
+    "contributor": "",
+    "description": "Fixes ListContacts and ListImportJobs APIs to use POST instead of GET."
+}
