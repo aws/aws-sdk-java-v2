@@ -57,13 +57,6 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
         JAVA, CRT
     }
 
-    private static Stream<Arguments> transferManagers() {
-        return Stream.of(
-            Arguments.of(TmType.JAVA),
-            Arguments.of(TmType.CRT)
-        );
-    }
-
     @ParameterizedTest
     @MethodSource("transferManagers")
     void copy_copiedObject_hasSameContent(TmType tmType) throws Exception {
