@@ -95,7 +95,7 @@ public enum RetryMode {
     /**
      * Adaptive V2 retry mode builds on {@link #STANDARD} mode.
      * <p>
-     * Adaptive retry mode qdynamically limits the rate of AWS requests to maximize success rate. This may be at the
+     * Adaptive retry mode dynamically limits the rate of AWS requests to maximize success rate. This may be at the
      * expense of request latency. Adaptive V2 retry mode is not recommended when predictable latency is important.
      * <p>
      * {@code ADAPTIVE_V2} mode differs from {@link #ADAPTIVE} mode in the computed delays between calls, including the first 
