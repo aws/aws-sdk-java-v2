@@ -49,7 +49,8 @@ public class AddCommentToMethodTest implements RewriteTest {
                 + "    \n"
                 + "    void test() {\n"
                 + "        ClientConfiguration clientConfiguration = new ClientConfiguration();\n"
-                + "        /*~~(a comment)~~>*/clientConfiguration.setCacheResponseMetadata(false);\n"
+                + "        /*~~(AWS SDK for Java v2 migration: a comment)~~>*/clientConfiguration.setCacheResponseMetadata"
+                + "(false);\n"
                 + "    }\n"
                 + "}"
             )
@@ -81,7 +82,8 @@ public class AddCommentToMethodTest implements RewriteTest {
                 + "    void test() {\n"
                 + "        ClientConfiguration clientConfiguration = new ClientConfiguration();\n"
                 + "        // Existing comment \n"
-                + "        /*existing comment*/ /*~~(a comment)~~>*/clientConfiguration.setCacheResponseMetadata(false);\n"
+                + "        /*existing comment*/ /*~~(AWS SDK for Java v2 migration: a comment)~~>*/clientConfiguration"
+                + ".setCacheResponseMetadata(false);\n"
                 + "    }\n"
                 + "}"
             )

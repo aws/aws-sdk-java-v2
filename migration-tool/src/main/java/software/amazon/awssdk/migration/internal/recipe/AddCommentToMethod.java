@@ -32,6 +32,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @SdkInternalApi
 public class AddCommentToMethod extends Recipe {
+    private static final String COMMENT_PREFIX = "AWS SDK for Java v2 migration: ";
 
     @Option(displayName = "Method pattern",
         description = "A method pattern that is used to find matching method invocations.",
@@ -71,7 +72,7 @@ public class AddCommentToMethod extends Recipe {
 
         Visitor(String methodPattern, String comment) {
             this.methodMatcher = new MethodMatcher(methodPattern, false);
-            this.comment = comment;
+            this.comment = COMMENT_PREFIX + comment;
         }
 
         @Override
