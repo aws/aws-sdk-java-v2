@@ -113,10 +113,6 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
         Validate.paramNotNull(retryMode, "The retry mode cannot be set as null. If you don't want to set the retry mode,"
                                     + " please use the other builder method without setting retry mode, and the default retry"
                                     + " mode will be used.");
-        if (retryMode == RetryMode.ADAPTIVE_V2) {
-            throw new UnsupportedOperationException("ADAPTIVE_V2 is not supported by retry policies, use a RetryStrategy "
-                                                    + "instead");
-        }
         return new BuilderImpl(retryMode);
     }
 
@@ -376,6 +372,10 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
         private Boolean fastFailRateLimiting;
 
         private BuilderImpl(RetryMode retryMode) {
+            if (retryMode == RetryMode.ADAPTIVE_V2) {
+                throw new UnsupportedOperationException("ADAPTIVE_V2 is not supported by retry policies, use a RetryStrategy "
+                                                        + "instead");
+            }
             this.retryMode = retryMode;
             this.numRetries = SdkDefaultRetrySetting.maxAttempts(retryMode) - 1;
             this.additionalRetryConditionsAllowed = true;

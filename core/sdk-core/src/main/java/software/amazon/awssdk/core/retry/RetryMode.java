@@ -85,9 +85,9 @@ public enum RetryMode {
      *
      * @see RetryPolicy#isFastFailRateLimiting()
      * @deprecated As of 2.25.xx, replaced by {@link #ADAPTIVE_V2}. The ADAPTIVE implementation has a bug that prevents it
-     * from remembering its state across requests which is needed to correctly estimate its sending rate. Given that the
+     * from remembering its state across requests which is needed to correctly estimate its sending rate. Given that
      * this bug has been present since its introduction and that correct version might change the traffic patterns of the SDK we
-     * deemed too risky to fix this implementation..
+     * deemed too risky to fix this implementation.
      */
     @Deprecated
     ADAPTIVE,
@@ -95,13 +95,12 @@ public enum RetryMode {
     /**
      * Adaptive V2 retry mode builds on {@link #STANDARD} mode.
      * <p>
-     * Adaptive retry mode dynamically limits the rate of AWS requests to maximize success rate. This may be at the
+     * Adaptive retry mode qdynamically limits the rate of AWS requests to maximize success rate. This may be at the
      * expense of request latency. Adaptive V2 retry mode is not recommended when predictable latency is important.
      * <p>
-     * Adaptive V2 mode differs from {@link #ADAPTIVE} mode in the computed delays between calls, including the fist attempt
-     * that might be delayed if the algorithm considers that it's needed to increase the odds of a successful response. The
-     * previous Adaptive mode is also designed to work like so but a bug present since its introduction prevents it from
-     * preserving its internal state across requests.
+     * {@code ADAPTIVE_V2} mode differs from {@link #ADAPTIVE} mode in the computed delays between calls, including the first 
+     * attempt
+     * that might be delayed if the algorithm considers that it's needed to increase the odds of a successful response.
      * <p>
      * <b>Warning:</b> Adaptive V2 retry mode assumes that the client is working against a single resource (e.g. one
      * DynamoDB Table or one S3 Bucket). If you use a single client for multiple resources, throttling or outages
