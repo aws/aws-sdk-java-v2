@@ -53,6 +53,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.ModelAuthSchemeClassesKnowledgeIndex;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointParamsKnowledgeIndex;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.SdkPlugin;
@@ -87,6 +88,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
     private final ServiceClientConfigurationUtils configurationUtils;
+    private final EndpointParamsKnowledgeIndex endpointParamsKnowledgeIndex;
 
     public BaseClientBuilderClass(IntermediateModel model) {
         this.model = model;
@@ -96,6 +98,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
         this.configurationUtils = new ServiceClientConfigurationUtils(model);
+        this.endpointParamsKnowledgeIndex = EndpointParamsKnowledgeIndex.of(model);
     }
 
     @Override
@@ -162,6 +165,8 @@ public class BaseClientBuilderClass implements ClassSpec {
             });
         }
 
+        endpointParamsKnowledgeIndex.accountIdEndpointModeClassMethodSpec().ifPresent(builder::addMethod);
+
         if (model.getCustomizationConfig().getServiceConfig().getClassName() != null) {
             builder.addMethod(setServiceConfigurationMethod())
                    .addMethod(beanStyleSetServiceConfigurationMethod());
@@ -176,8 +181,10 @@ public class BaseClientBuilderClass implements ClassSpec {
         addServiceHttpConfigIfNeeded(builder, model);
         builder.addMethod(invokePluginsMethod());
         builder.addMethod(internalPluginsMethod());
-        builder.addMethod(validateClientOptionsMethod());
 
+        endpointParamsKnowledgeIndex.resolveAccountIdEndpointModeMethod().ifPresent(builder::addMethod);
+
+        builder.addMethod(validateClientOptionsMethod());
 
         return builder.build();
     }
@@ -434,6 +441,11 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         if (hasClientContextParams() || endpointRulesSpecUtils.useS3Express()) {
             builder.addCode(".option($T.CLIENT_CONTEXT_PARAMS, clientContextParams.build())", SdkClientOption.class);
+        }
+
+        if (endpointParamsKnowledgeIndex.hasAccountIdEndpointModeBuiltIn()) {
+            builder.addCode(".option($T.$L, resolveAccountIdEndpointMode(config))",
+                            AwsClientOption.class, model.getNamingStrategy().getEnumValueName("accountIdEndpointMode"));
         }
 
         builder.addCode(";\n");

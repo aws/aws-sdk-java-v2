@@ -47,7 +47,7 @@ class SystemSettingsCredentialsProviderTest {
         AwsCredentials credentials = SystemPropertyCredentialsProvider.create().resolveCredentials();
         assertThat(credentials.accessKeyId()).isEqualTo("akid1");
         assertThat(credentials.secretAccessKey()).isEqualTo("skid1");
-        assertThat(credentials.providerName()).isPresent().contains("SystemSettingsCredentialsProvider");
+        assertThat(credentials.providerName()).isPresent().contains("SystemPropertyCredentialsProvider");
     }
 
     @Test

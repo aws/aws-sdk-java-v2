@@ -17,7 +17,9 @@ package software.amazon.awssdk.services.sts.auth;
 
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsGetFederationTokenCredentialsProvider.Builder;
+import software.amazon.awssdk.services.sts.model.AssumedRoleUser;
 import software.amazon.awssdk.services.sts.model.Credentials;
+import software.amazon.awssdk.services.sts.model.FederatedUser;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenRequest;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenResponse;
 
@@ -34,7 +36,10 @@ public class StsGetFederationTokenCredentialsProviderTest
 
     @Override
     protected GetFederationTokenResponse getResponse(Credentials credentials) {
-        return GetFederationTokenResponse.builder().credentials(credentials).build();
+        return GetFederationTokenResponse.builder()
+                                         .credentials(credentials)
+                                         .federatedUser(FederatedUser.builder().arn(ARN).build())
+                                         .build();
     }
 
     @Override
