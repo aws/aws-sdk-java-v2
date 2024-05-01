@@ -123,7 +123,7 @@ public final class JmesPathRuntime {
         }
 
         /**
-         * Retrieve the actual value that this represents, as a list.
+         * Retrieve the actual value that this represents, as a list of object.
          */
         public List<Object> values() {
             if (type == Type.NULL) {
@@ -135,6 +135,68 @@ public final class JmesPathRuntime {
             }
 
             return Collections.singletonList(value());
+        }
+
+       /**
+         * Retrieve the actual value that this represents, as a Boolean.
+         * Note that only null, boolean and string types are supported.
+         */
+        public Boolean booleanValue() {
+            switch (type) {
+                case NULL:
+                    return null;
+                case STRING:
+                    return Boolean.parseBoolean(stringValue);
+                case BOOLEAN:
+                    return booleanValue;
+                default:
+                    throw new IllegalStateException();
+            }
+        }
+
+       /**
+         * Retrieve the actual value that this represents, as a String.
+         * Note that collection types are not supported.
+         */
+        public String stringValue() {
+            switch (type) {
+                case NULL:
+                    return null;
+                case INTEGER:
+                    return integerValue.toString();
+                case STRING:
+                    return stringValue;
+                case BOOLEAN:
+                    return booleanValue.toString();
+                default:
+                    throw new IllegalStateException();
+            }
+        }
+
+       /**
+         * Retrieve the actual value that this represents, as a list of String.
+         * Note that if the contents of the list is not String, a value is thrown.
+         * If the value has a different type, the code makes a best effort to return a single element
+         * list of String. See {@code stringValue}.
+         */
+        public List<String> stringValues() {
+            if (type == Type.NULL) {
+                return Collections.emptyList();
+            }
+
+            if (type == Type.LIST) {
+                List<String> result = new ArrayList<>();
+                for (Object listEntry : listValue) {
+                    Value listValue = new Value(listEntry);
+                    if (listValue.type != Type.STRING) {
+                        throw new IllegalStateException("Expected list elements to be of type String, but were " + listValue.type);
+                    }
+                    result.add(listValue.stringValue);
+                }
+                return result;
+            }
+
+            return Collections.singletonList(stringValue());
         }
 
         /**
