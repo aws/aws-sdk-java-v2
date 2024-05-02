@@ -76,7 +76,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
         }
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("transferManagers")
     void uploadDirectory_filesSentCorrectly(S3TransferManager tm) {
         String prefix = "yolo";
@@ -95,7 +95,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
         keys.forEach(k -> verifyContent(k, k.substring(prefix.length() + 1) + randomString));
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("transferManagers")
     void uploadDirectory_nonExistsBucket_shouldAddFailedRequest(S3TransferManager tm) {
         String prefix = "yolo";
@@ -107,7 +107,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
                                                                                          assertThat(f.exception()).isInstanceOf(NoSuchBucketException.class));
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("transferManagers")
     void uploadDirectory_withDelimiter_filesSentCorrectly(S3TransferManager tm) {
         String prefix = "hello";
@@ -130,7 +130,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
         });
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("transferManagers")
     void uploadDirectory_withRequestTransformer_usesRequestTransformer(S3TransferManager tm) throws Exception {
         String prefix = "requestTransformerTest";
@@ -169,7 +169,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
      * Tests the behavior of traversing local directories with special Unicode characters in their path name. These characters
      * have known to be problematic when using Java's old File API or with Windows (which uses UTF-16 for file-name encoding).
      */
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("prefix")
     void uploadDirectory_fileNameWithUnicode_traversedCorrectly(String directoryPrefix, S3TransferManager tm)
         throws IOException {

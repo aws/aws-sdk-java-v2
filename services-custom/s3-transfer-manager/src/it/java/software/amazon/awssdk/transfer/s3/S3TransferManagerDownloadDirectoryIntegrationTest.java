@@ -117,7 +117,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      *   }
      * </pre>
      */
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("transferManagers")
     public void downloadDirectory(S3TransferManager tm) throws Exception {
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destination(directory)
@@ -127,7 +127,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         assertTwoDirectoriesHaveSameStructure(sourceDirectory, directory);
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("prefixTestArguments")
     void downloadDirectory_withPrefix(S3TransferManager tm, String prefix) throws Exception {
         DirectoryDownload downloadDirectory =
@@ -155,7 +155,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      *   }
      * </pre>
      */
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("transferManagers")
     void downloadDirectory_containsObjectWithPrefixInTheKey_shouldResolveCorrectly(S3TransferManager tm)
         throws Exception {
@@ -187,7 +187,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      *   }
      * </pre>
      */
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("transferManagers")
     public void downloadDirectory_withPrefixAndDelimiter(S3TransferManager tm) throws Exception {
         String prefix = "notes-2021";
@@ -212,7 +212,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      *   }
      * </pre>
      */
-    @ParameterizedTest
+    @ParameterizedTest(autoCloseArguments = false)
     @MethodSource("transferManagers")
     public void downloadDirectory_withFilter(S3TransferManager tm) throws Exception {
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u
