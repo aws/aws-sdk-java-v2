@@ -128,11 +128,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 return;
             }
             if (isCancelled.compareAndSet(false, true)) {
-                // SdkClientException sdkClientException = SdkClientException.create("exception occurred ", e);
-                publisherToUpstream.error(e);
-                if (downstreamSubscriber != null) {
-                    downstreamSubscriber.onError(e);
-                }
+                handleFutureCancel(e);
             }
         });
     }
@@ -236,6 +232,16 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         }
     }
 
+    private void handleFutureCancel(Throwable e) {
+        synchronized (cancelLock) {
+            publisherToUpstream.error(e);
+            if (downstreamSubscriber != null) {
+                downstreamSubscriber.onError(e);
+                downstreamSubscriber = null;
+            }
+        }
+    }
+
     /**
      * The AsyncResponseTransformer for each of the individual requests that is sent back to the downstreamSubscriber when
      * requested. A future is created per request that is completed when onComplete is called on the subscriber for that request
@@ -258,7 +264,6 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 if (e == null) {
                     return;
                 }
-                System.out.println("!!! cancel received in splitting Transformer");
                 isCancelled.set(true);
                 individualFuture.cancel(true);
             });
