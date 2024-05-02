@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.async.listener.AsyncRequestBodyListener;
 import software.amazon.awssdk.core.async.listener.AsyncResponseTransformerListener;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.model.CompletedObjectTransfer;
 import software.amazon.awssdk.transfer.s3.model.TransferObjectRequest;
@@ -165,14 +166,21 @@ public class TransferProgressUpdater {
     }
 
     public <ResultT> AsyncResponseTransformer<GetObjectResponse, ResultT> wrapResponseTransformerForMultipartDownload(
-        AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer) {
+        AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer, GetObjectRequest request) {
         return AsyncResponseTransformerListener.wrap(
             responseTransformer,
             new BaseAsyncResponseTransformerListener() {
                 @Override
                 public void transformerOnResponse(GetObjectResponse response) {
-                    ContentRangeParser.totalBytes(response.contentRange())
-                        .ifPresent(totalBytes -> progress.updateAndGet(b -> b.totalBytes(totalBytes).sdkResponse(response)));
+                    if (request.range() != null) {
+                        if (response.contentLength() != null) {
+                            progress.updateAndGet(b -> b.totalBytes(response.contentLength()).sdkResponse(response));
+                        }
+                    } else {
+                        ContentRangeParser
+                            .totalBytes(response.contentRange())
+                            .ifPresent(totalBytes -> progress.updateAndGet(b -> b.totalBytes(totalBytes).sdkResponse(response)));
+                    }
                 }
             }
         );

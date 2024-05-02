@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.async;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -70,7 +71,8 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     private final AtomicBoolean onStreamCalled = new AtomicBoolean(false);
 
     /**
-     * Set to true once {@code .concel()} is called in the subscription of the downstream subscriber
+     * Set to true once {@code .concel()} is called in the subscription of the downstream subscriber, or if the
+     * {@code resultFuture} is cancelled.
      */
     private final AtomicBoolean isCancelled = new AtomicBoolean(false);
 
@@ -108,6 +110,8 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
      */
     private final AtomicBoolean emitting = new AtomicBoolean(false);
 
+    private final Object cancelLock = new Object();
+
     private SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
                                  Long maximumBufferSizeInBytes,
                                  CompletableFuture<ResultT> resultFuture) {
@@ -118,6 +122,19 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         Validate.notNull(maximumBufferSizeInBytes, "maximumBufferSizeInBytes");
         this.maximumBufferInBytes = Validate.isPositive(
             maximumBufferSizeInBytes, "maximumBufferSizeInBytes");
+
+        this.resultFuture.whenComplete((r, e) -> {
+            if (e == null) {
+                return;
+            }
+            if (isCancelled.compareAndSet(false, true)) {
+                // SdkClientException sdkClientException = SdkClientException.create("exception occurred ", e);
+                publisherToUpstream.error(e);
+                if (downstreamSubscriber != null) {
+                    downstreamSubscriber.onError(e);
+                }
+            }
+        });
     }
 
     /**
@@ -196,7 +213,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     }
 
     private void handleCancelState() {
-        synchronized (this) {
+        synchronized (cancelLock) {
             if (downstreamSubscriber == null) {
                 return;
             }
@@ -237,6 +254,14 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                     CompletableFutureUtils.forwardResultTo(upstreamFuture, resultFuture);
                 }
             }
+            resultFuture.whenComplete((r, e) -> {
+                if (e == null) {
+                    return;
+                }
+                System.out.println("!!! cancel received in splitting Transformer");
+                isCancelled.set(true);
+                individualFuture.cancel(true);
+            });
             individualFuture.whenComplete((r, e) -> {
                 if (isCancelled.get()) {
                     handleCancelState();
@@ -307,12 +332,17 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             if (byteBuffer == null) {
                 throw new NullPointerException("onNext must not be called with null byteBuffer");
             }
+            if (isCancelled.get()) {
+                return;
+            }
             publisherToUpstream.send(byteBuffer).whenComplete((r, t) -> {
                 if (t != null) {
                     handleError(t);
                     return;
                 }
-                subscription.request(1);
+                if (!isCancelled.get()) {
+                    subscription.request(1);
+                }
             });
         }
 
