@@ -70,7 +70,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     private final AtomicBoolean onStreamCalled = new AtomicBoolean(false);
 
     /**
-     * Set to true once {@code .concel()} is called in the subscription of the downstream subscriber, or if the
+     * Set to true once {@code .cancel()} is called in the subscription of the downstream subscriber, or if the
      * {@code resultFuture} is cancelled.
      */
     private final AtomicBoolean isCancelled = new AtomicBoolean(false);
