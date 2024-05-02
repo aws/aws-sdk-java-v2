@@ -19,7 +19,9 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +40,6 @@ class JmesPathRuntimeValueTest {
     @Test
     void valueReturnsConstructorInput() {
         assertThat(new Value(null).value()).isEqualTo(null);
-        assertThat(new Value(sdkPojo()).value()).isEqualTo(sdkPojo());
         assertThat(new Value(5).value()).isEqualTo(5);
         assertThat(new Value("").value()).isEqualTo("");
         assertThat(new Value(true).value()).isEqualTo(true);
@@ -53,6 +54,36 @@ class JmesPathRuntimeValueTest {
         assertThat(new Value(true).values()).isEqualTo(singletonList(true));
         assertThat(new Value(singletonList("a")).values()).isEqualTo(singletonList("a"));
         assertThat(new Value(sdkPojo()).values()).isEqualTo(singletonList(sdkPojo()));
+    }
+
+    @Test
+    void booleanValueReturnsConstructorInput() {
+        assertThat(new Value(null).booleanValue()).isEqualTo(null);
+        assertThatThrownBy(() -> new Value(sdkPojo()).booleanValue()).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> new Value(5).booleanValue()).isInstanceOf(IllegalStateException.class);
+        assertThat(new Value("").booleanValue()).isEqualTo(false);
+        assertThat(new Value(true).booleanValue()).isEqualTo(true);
+        assertThatThrownBy(() -> new Value(emptyList()).booleanValue()).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void stringValueReturnsConstructorInput() {
+        assertThat(new Value(null).stringValue()).isEqualTo(null);
+        assertThatThrownBy(() -> new Value(sdkPojo()).stringValue()).isInstanceOf(IllegalStateException.class);
+        assertThat(new Value(5).stringValue()).isEqualTo("5");
+        assertThat(new Value("").stringValue()).isEqualTo("");
+        assertThat(new Value(true).stringValue()).isEqualTo("true");
+        assertThatThrownBy(() -> new Value(emptyList()).stringValue()).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void stringValuesReturnsListForm() {
+        assertThat(new Value(null).stringValues()).isEqualTo(emptyList());
+        assertThat(new Value(5).stringValues()).isEqualTo(singletonList("5"));
+        assertThat(new Value("").stringValues()).isEqualTo(singletonList(""));
+        assertThat(new Value(true).stringValues()).isEqualTo(singletonList("true"));
+        assertThat(new Value(singletonList("a")).stringValues()).isEqualTo(singletonList("a"));
+        assertThatThrownBy(() -> new Value(sdkPojo()).stringValues()).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
