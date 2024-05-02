@@ -596,7 +596,8 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
             case "stringarray":
                 return CodeBlock.of(".stringValues()");
             default:
-                return CodeBlock.of("");
+                throw new UnsupportedOperationException(
+                    "Supported types are boolean, string and stringarray. Given type was " + parameterModel.getType());
         }
     }
 

@@ -59,21 +59,26 @@ class JmesPathRuntimeValueTest {
     @Test
     void booleanValueReturnsConstructorInput() {
         assertThat(new Value(null).booleanValue()).isEqualTo(null);
-        assertThatThrownBy(() -> new Value(sdkPojo()).booleanValue()).isInstanceOf(IllegalStateException.class);
-        assertThatThrownBy(() -> new Value(5).booleanValue()).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> new Value(sdkPojo()).booleanValue()).isInstanceOf(IllegalStateException.class)
+                                                                     .hasMessageContaining("Cannot convert type POJO");
+        assertThatThrownBy(() -> new Value(5).booleanValue()).isInstanceOf(IllegalStateException.class)
+                                                             .hasMessageContaining("Cannot convert type INTEGER");
         assertThat(new Value("").booleanValue()).isEqualTo(false);
         assertThat(new Value(true).booleanValue()).isEqualTo(true);
-        assertThatThrownBy(() -> new Value(emptyList()).booleanValue()).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> new Value(emptyList()).booleanValue()).isInstanceOf(IllegalStateException.class)
+                                                                       .hasMessageContaining("Cannot convert type LIST");
     }
 
     @Test
     void stringValueReturnsConstructorInput() {
         assertThat(new Value(null).stringValue()).isEqualTo(null);
-        assertThatThrownBy(() -> new Value(sdkPojo()).stringValue()).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> new Value(sdkPojo()).stringValue()).isInstanceOf(IllegalStateException.class)
+                                                                    .hasMessageContaining("Cannot convert type POJO");
         assertThat(new Value(5).stringValue()).isEqualTo("5");
         assertThat(new Value("").stringValue()).isEqualTo("");
         assertThat(new Value(true).stringValue()).isEqualTo("true");
-        assertThatThrownBy(() -> new Value(emptyList()).stringValue()).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> new Value(emptyList()).stringValue()).isInstanceOf(IllegalStateException.class)
+                                                                      .hasMessageContaining("Cannot convert type LIST");
     }
 
     @Test
@@ -83,7 +88,8 @@ class JmesPathRuntimeValueTest {
         assertThat(new Value("").stringValues()).isEqualTo(singletonList(""));
         assertThat(new Value(true).stringValues()).isEqualTo(singletonList("true"));
         assertThat(new Value(singletonList("a")).stringValues()).isEqualTo(singletonList("a"));
-        assertThatThrownBy(() -> new Value(sdkPojo()).stringValues()).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> new Value(sdkPojo()).stringValues()).isInstanceOf(IllegalStateException.class)
+                                                                     .hasMessageContaining("Cannot convert type POJO");
     }
 
     @Test

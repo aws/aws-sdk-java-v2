@@ -150,7 +150,7 @@ public final class JmesPathRuntime {
                 case BOOLEAN:
                     return booleanValue;
                 default:
-                    throw new IllegalStateException();
+                    throw new IllegalStateException(String.format("Cannot convert type %s to Boolean.", type));
             }
         }
 
@@ -169,7 +169,7 @@ public final class JmesPathRuntime {
                 case BOOLEAN:
                     return booleanValue.toString();
                 default:
-                    throw new IllegalStateException();
+                    throw new IllegalStateException(String.format("Cannot convert type %s to String.", type));
             }
         }
 
@@ -189,7 +189,8 @@ public final class JmesPathRuntime {
                 for (Object listEntry : listValue) {
                     Value listValue = new Value(listEntry);
                     if (listValue.type != Type.STRING) {
-                        throw new IllegalStateException("Expected list elements to be of type String, but were " + listValue.type);
+                        throw new IllegalStateException("Expected list elements to be of type String, but were "
+                        + listValue.type);
                     }
                     result.add(listValue.stringValue);
                 }
