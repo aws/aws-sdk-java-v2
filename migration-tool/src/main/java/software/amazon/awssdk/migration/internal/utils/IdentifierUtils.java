@@ -51,7 +51,7 @@ public final class IdentifierUtils {
      * parameterized types.
      */
     public static String simpleName(JavaType.Parameterized parameterized) {
-        StringBuffer sb = new StringBuffer(parameterized.getClassName())
+        StringBuilder sb = new StringBuilder(parameterized.getClassName())
             .append('<');
 
         List<JavaType> typeParams = parameterized.getTypeParameters();
@@ -68,6 +68,6 @@ public final class IdentifierUtils {
             }
         }
 
-        return sb.append(">").toString();
+        return sb.append('>').toString();
     }
 }
