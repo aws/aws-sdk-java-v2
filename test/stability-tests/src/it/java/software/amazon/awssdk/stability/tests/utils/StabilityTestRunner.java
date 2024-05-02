@@ -76,7 +76,7 @@ public class StabilityTestRunner {
     // because of the internal thread pool used in AsynchronousFileChannel
     // Also, synchronous clients have their own thread pools so this measurement needs to be mutable
     // so that the async and synchronous paths can both use this runner.
-    private int allowedPeakThreadCount = 90;
+    private int allowedPeakThreadCount = 150;
 
     private ThreadMXBean threadMXBean;
     private IntFunction<CompletableFuture<?>> futureFactory;

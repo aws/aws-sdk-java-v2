@@ -42,13 +42,7 @@ public class S3MultipartJavaBasedStabilityTest extends S3AsyncBaseStabilityTest 
 
     @AfterAll
     public static void cleanup() {
-        try (S3AsyncClient s3NettyClient = S3AsyncClient.builder()
-                                                        .httpClientBuilder(NettyNioAsyncHttpClient.builder()
-                                                                                                  .maxConcurrency(CONCURRENCY))
-                                                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                        .build()) {
-            deleteBucketAndAllContents(s3NettyClient, BUCKET_NAME);
-        }
+        deleteBucketAndAllContents(multipartJavaBasedClient, BUCKET_NAME);
         multipartJavaBasedClient.close();
         s3ApacheClient.close();
     }
