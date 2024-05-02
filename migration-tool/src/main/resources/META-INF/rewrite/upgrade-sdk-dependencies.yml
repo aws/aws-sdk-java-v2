@@ -847,12 +847,6 @@ recipeList:
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-deadline
-      newGroupId: software.amazon.awssdk
-      newArtifactId: deadline
-      newVersion: 2.23.16-SNAPSHOT
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-braket
       newGroupId: software.amazon.awssdk
       newArtifactId: braket
@@ -2176,12 +2170,6 @@ recipeList:
       oldArtifactId: aws-java-sdk-ram
       newGroupId: software.amazon.awssdk
       newArtifactId: ram
-      newVersion: 2.23.16-SNAPSHOT
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
-      oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-codeconnections
-      newGroupId: software.amazon.awssdk
-      newArtifactId: codeconnections
       newVersion: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
