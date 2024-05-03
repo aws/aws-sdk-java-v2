@@ -15,9 +15,19 @@
 
 package foo.bar;
 
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.ListQueuesRequest;
 import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 public class Application {
 
@@ -33,5 +43,19 @@ public class Application {
             .nextToken("token").build();
         ListQueuesResponse listQueuesResult = sqs.listQueues(request);
         System.out.println(listQueuesResult);
+    }
+
+    private static Path downloadFile(S3Client s3, String bucket, String key, Path dst) throws IOException {
+        GetObjectRequest getObject = GetObjectRequest.builder().bucket(bucket).key(key).build();
+
+        ResponseInputStream<GetObjectResponse> s3Object = s3.getObject(getObject);
+
+        InputStream content = s3Object;
+
+        Files.copy(content, dst, StandardCopyOption.REPLACE_EXISTING);
+
+        s3Object.close();
+
+        return dst;
     }
 }
