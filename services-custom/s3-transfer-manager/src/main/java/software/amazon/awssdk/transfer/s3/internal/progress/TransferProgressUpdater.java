@@ -172,11 +172,16 @@ public class TransferProgressUpdater {
             new BaseAsyncResponseTransformerListener() {
                 @Override
                 public void transformerOnResponse(GetObjectResponse response) {
+                    // if the GetObjectRequest is a range-get, the Content-Length headers of the response needs to be used
+                    // to update progress since the Content-Range would incorrectly upgrade progress with the whole object
+                    // size.
                     if (request.range() != null) {
                         if (response.contentLength() != null) {
                             progress.updateAndGet(b -> b.totalBytes(response.contentLength()).sdkResponse(response));
                         }
                     } else {
+                        // if the GetObjectRequest is not a range-get, it might be a part-get. In that case, we need to parse
+                        // the Content-Range header to get the correct totalByte amount.
                         ContentRangeParser
                             .totalBytes(response.contentRange())
                             .ifPresent(totalBytes -> progress.updateAndGet(b -> b.totalBytes(totalBytes).sdkResponse(response)));

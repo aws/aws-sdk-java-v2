@@ -172,7 +172,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         public void cancel() {
             if (isCancelled.compareAndSet(false, true)) {
                 log.trace(() -> "Cancelling splitting transformer");
-                handleCancelState();
+                handleSubscriptionCancel();
             }
         }
     }
@@ -207,7 +207,13 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         return false;
     }
 
-    private void handleCancelState() {
+    /**
+     * Handle the {@code .cancel()} signal received from the downstream subscription. Data that is being sent to the upstream
+     * transformer need to finish processing before we complete. One typical use case for this is completing the multipart
+     * download, the subscriber having reached the final part will signal that it doesn't need more parts by calling {@code
+     * .cancel()} on the subscription.
+     */
+    private void handleSubscriptionCancel() {
         synchronized (cancelLock) {
             if (downstreamSubscriber == null) {
                 return;
@@ -231,6 +237,13 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         }
     }
 
+    /**
+     * Handle when the {@link SplittingTransformer#resultFuture} is cancelled or completed exceptionally from the outside. Data
+     * need to stop being sent to the upstream transformer immediately. One typical use case for this is transfer manager
+     * needing to pause download by calling {@code .cancel(true)} on the future.
+     *
+     * @param e The exception the future was complete exceptionally with.
+     */
     private void handleFutureCancel(Throwable e) {
         synchronized (cancelLock) {
             publisherToUpstream.error(e);
@@ -254,6 +267,9 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         public CompletableFuture<ResponseT> prepare() {
             this.individualFuture = new CompletableFuture<>();
             if (preparedCalled.compareAndSet(false, true)) {
+                if (isCancelled.get()) {
+                    return individualFuture;
+                }
                 CompletableFuture<ResultT> upstreamFuture = upstreamResponseTransformer.prepare();
                 if (!resultFuture.isDone()) {
                     CompletableFutureUtils.forwardResultTo(upstreamFuture, resultFuture);
@@ -263,12 +279,11 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 if (e == null) {
                     return;
                 }
-                isCancelled.set(true);
-                individualFuture.cancel(true);
+                individualFuture.completeExceptionally(e);
             });
             individualFuture.whenComplete((r, e) -> {
                 if (isCancelled.get()) {
-                    handleCancelState();
+                    handleSubscriptionCancel();
                 }
             });
             return this.individualFuture;
@@ -288,14 +303,16 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             if (downstreamSubscriber == null) {
                 return;
             }
-            if (onStreamCalled.compareAndSet(false, true)) {
-                log.trace(() -> "calling onStream on the upstream transformer");
-                upstreamResponseTransformer.onStream(upstreamSubscriber -> publisherToUpstream.subscribe(
-                    DelegatingBufferingSubscriber.builder()
-                                                 .maximumBufferInBytes(maximumBufferInBytes)
-                                                 .delegate(upstreamSubscriber)
-                                                 .build()
-                ));
+            synchronized (cancelLock) {
+                if (onStreamCalled.compareAndSet(false, true)) {
+                    log.trace(() -> "calling onStream on the upstream transformer");
+                    upstreamResponseTransformer.onStream(upstreamSubscriber -> publisherToUpstream.subscribe(
+                        DelegatingBufferingSubscriber.builder()
+                                                     .maximumBufferInBytes(maximumBufferInBytes)
+                                                     .delegate(upstreamSubscriber)
+                                                     .build()
+                    ));
+                }
             }
             publisher.subscribe(new IndividualPartSubscriber<>(this.individualFuture, response));
         }
@@ -335,9 +352,6 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         public void onNext(ByteBuffer byteBuffer) {
             if (byteBuffer == null) {
                 throw new NullPointerException("onNext must not be called with null byteBuffer");
-            }
-            if (isCancelled.get()) {
-                return;
             }
             publisherToUpstream.send(byteBuffer).whenComplete((r, t) -> {
                 if (t != null) {
