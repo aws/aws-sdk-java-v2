@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.stability.tests.s3;
 
+import java.time.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
@@ -27,24 +29,31 @@ public class S3MultipartJavaBasedStabilityTest extends S3AsyncBaseStabilityTest 
     static {
         multipartJavaBasedClient = S3AsyncClient.builder()
                                                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                .httpClientBuilder(NettyNioAsyncHttpClient.builder()
+                                                                                          .maxConcurrency(CONCURRENCY))
                                                 .multipartEnabled(true)
+                                                .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(5))
+                                                                             // Retry at test level
+                                                                             .retryPolicy(RetryPolicy.none()))
                                                 .build();
     }
 
     public S3MultipartJavaBasedStabilityTest() {
-        super(multipartJavaBasedClient);
+        // S3 multipart client uses more threads because for large file uploads, it reads from different positions of the files
+        // at the same time, which will trigger more Java I/O threads to spin up
+        super(multipartJavaBasedClient, 250);
     }
 
     @BeforeAll
     public static void setup() {
-        s3ApacheClient.createBucket(b -> b.bucket(BUCKET_NAME));
+        multipartJavaBasedClient.createBucket(b -> b.bucket(BUCKET_NAME)).join();
+        multipartJavaBasedClient.waiter().waitUntilBucketExists(b -> b.bucket(BUCKET_NAME)).join();
     }
 
     @AfterAll
     public static void cleanup() {
         deleteBucketAndAllContents(multipartJavaBasedClient, BUCKET_NAME);
         multipartJavaBasedClient.close();
-        s3ApacheClient.close();
     }
 
     @Override
