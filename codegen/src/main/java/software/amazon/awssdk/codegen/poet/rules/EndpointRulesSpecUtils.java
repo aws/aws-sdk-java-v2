@@ -147,7 +147,7 @@ public class EndpointRulesSpecUtils {
                 break;
             case "stringarray":
                 methodName = "fromArray";
-                param = CodeBlock.of("$N.stream().map($T::fromStr).collect($T.toList())",
+                param = CodeBlock.of("$L.stream().map($T::fromStr).collect($T.toList())",
                                      param,
                                      rulesRuntimeClassName("Value"),
                                      Collectors.class);

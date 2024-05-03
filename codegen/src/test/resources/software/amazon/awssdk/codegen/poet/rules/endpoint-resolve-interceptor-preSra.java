@@ -1,7 +1,6 @@
 package software.amazon.awssdk.services.query.endpoints.internal;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
@@ -38,6 +37,7 @@ import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
+import software.amazon.awssdk.services.query.jmespath.internal.JmesPathRuntime;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
 import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperationContextParamRequest;
 import software.amazon.awssdk.services.query.model.OperationWithOperationContextParamRequest;
@@ -217,14 +217,15 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     }
     private static void setOperationContextParams(QueryEndpointParams.Builder params,
                                                   OperationWithCustomizedOperationContextParamRequest request) {
-        // TODO: Add JMESPathRuntime for ListMember.StringList[*].LeafString
-        params.customEndpointArray(new ArrayList<>());
+        JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
+        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString").stringValues());
+
     }
 
     private static void setOperationContextParams(QueryEndpointParams.Builder params,
                                                   OperationWithOperationContextParamRequest request) {
-        // TODO: Add JMESPathRuntime for ListMember.StringList[*].LeafString
-        params.customEndpointArray(new ArrayList<>());
+        JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
+        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString").stringValues());
     }
 
     private static Optional<String> hostPrefix(String operationName, SdkRequest request) {
