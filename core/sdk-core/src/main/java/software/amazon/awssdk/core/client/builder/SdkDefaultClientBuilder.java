@@ -91,6 +91,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -252,7 +253,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * Apply global default configuration
      */
     private SdkClientConfiguration mergeGlobalDefaults(SdkClientConfiguration configuration) {
-        Supplier<ProfileFile> defaultProfileFileSupplier = new Lazy<>(ProfileFile::defaultProfileFile)::getValue;
+        Supplier<ProfileFileSupplier> profileFileSupplierSupplier = new Lazy<>(ProfileFileSupplier::defaultSupplier)::getValue;
+        Supplier<ProfileFile> defaultProfileFileSupplier = profileFileSupplierSupplier.get();
 
         configuration = configuration.merge(c -> c.option(EXECUTION_INTERCEPTORS, new ArrayList<>())
                                                   .option(METRIC_PUBLISHERS, new ArrayList<>())

@@ -17,15 +17,33 @@ package software.amazon.awssdk.auth.credentials;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
+import software.amazon.awssdk.profiles.internal.ProfileFileRefresher;
 import software.amazon.awssdk.utils.StringInputStream;
+import software.amazon.awssdk.utils.internal.SystemSettingUtilsTestBackdoor;
 
 class DefaultCredentialsProviderTest {
+
+    @TempDir
+    private Path testDirectory;
 
     @Test
     void resolveCredentials_ProfileCredentialsProviderWithProfileFile_returnsCredentials() {
@@ -95,6 +113,44 @@ class DefaultCredentialsProviderTest {
             assertThat(awsCredentials.accessKeyId()).isEqualTo("access");
             assertThat(awsCredentials.secretAccessKey()).isEqualTo("secret");
         });
+    }
+
+    @Test
+    void resolveCredentials_DefaultCredentialProviderWithReloadWhenModified() throws Exception {
+        Path credentialsFilePath = generateTestCredentialsFile("customAccess", "customSecret");
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(ProfileFileSystemSetting.AWS_SHARED_CREDENTIALS_FILE.environmentVariable(),
+                                                                      credentialsFilePath.toString());
+        DefaultCredentialsProvider provider = DefaultCredentialsProvider.create();
+
+        assertThat(provider.resolveCredentials()).satisfies(awsCredentials -> {
+            assertThat(awsCredentials.accessKeyId()).isEqualTo("customAccess");
+            assertThat(awsCredentials.secretAccessKey()).isEqualTo("customSecret");
+        });
+
+        generateTestCredentialsFile("modifiedAccess", "modifiedSecret");
+
+        // without sleep the assertion fails, as there is delay in config reload
+        Thread.sleep(2000);
+        assertThat(provider.resolveCredentials()).satisfies(awsCredentials -> {
+            assertThat(awsCredentials.accessKeyId()).isEqualTo("modifiedAccess");
+            assertThat(awsCredentials.secretAccessKey()).isEqualTo("modifiedSecret");
+        });
+        SystemSettingUtilsTestBackdoor.clearEnvironmentVariableOverrides();
+    }
+
+    private Path generateTestFile(String contents, String filename) {
+        try {
+            Files.createDirectories(testDirectory);
+            return Files.write(testDirectory.resolve(filename), contents.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Path generateTestCredentialsFile(String accessKeyId, String secretAccessKey) {
+        String contents = String.format("[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n",
+                                        accessKeyId, secretAccessKey);
+        return generateTestFile(contents, "credentials.txt");
     }
 
     private ProfileFile credentialFile(String credentialFile) {
