@@ -31,9 +31,9 @@ public enum IdentityProviderNameMapping {
 
     SYS("SystemPropertyCredentialsProvider"),
     ENV("EnvironmentVariableCredentialsProvider"),
-    STSWEB("StsAssumeRoleWithWebIdentity"),
+    STSWEB("StsAssumeRoleWithWebIdentityCredentialsProvider"),
     STSROLE("StsAssumeRoleCredentialsProvider"),
-    STSSAML("StsAssumeRoleWithWebIdentityCredentialsProvider"),
+    STSSAML("StsAssumeRoleWithSamlCredentialsProvider"),
     STSFED("StsGetFederationTokenCredentialsProvider"),
     STSSESS("StsGetSessionTokenCredentialsProvider"),
     SSO("SsoCredentialsProvider"),

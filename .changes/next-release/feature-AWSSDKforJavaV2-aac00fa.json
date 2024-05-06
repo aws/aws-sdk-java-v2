@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java V2",
-    "contributor": "",
-    "description": "Source account Id from credentials to use in endpoint construction"
-}
