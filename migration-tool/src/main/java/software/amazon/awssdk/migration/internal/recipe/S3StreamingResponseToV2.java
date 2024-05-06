@@ -118,7 +118,7 @@ public class S3StreamingResponseToV2 extends Recipe {
             }
 
             if (GET_OBJECT_CONTENT.matches(method)) {
-                return select;
+                return select.withPrefix(method.getPrefix());
             }
 
             JavaType.Method methodType = method.getMethodType();

@@ -23,6 +23,8 @@ tags:
 recipeList:
   # TODO: update recipe naming to be consistent
   - software.amazon.awssdk.UpgradeSdkDependencies
+  - software.amazon.awssdk.S3GetObjectConstructorToFluent
+  - software.amazon.awssdk.migration.internal.recipe.S3StreamingResponseToV2
   - software.amazon.awssdk.migration.recipe.ChangeSdkType
   - software.amazon.awssdk.ChangeSdkCoreTypes
   - software.amazon.awssdk.migration.recipe.V1BuilderVariationsToV2Builder
