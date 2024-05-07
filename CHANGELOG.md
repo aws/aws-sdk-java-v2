@@ -1,4 +1,30 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.47__ __2024-05-07__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Documentation update to clarify the MappingTemplate definition.
+
+## __AWS Budgets__
+  - ### Features
+    - This release adds tag support for budgets and budget actions.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - AWS Resilience Hub has expanded its drift detection capabilities by introducing a new type of drift detection - application resource drift. This new enhancement detects changes, such as the addition or deletion of resources within the application's input sources.
+
+## __Route 53 Profiles__
+  - ### Features
+    - Doc only update for Route 53 profiles that fixes some link issues
+
+## __s3-transfer-manager__
+  - ### Bugfixes
+    - Added reflect-config.json for ApplyUserAgentInterceptor in s3-transfer-manager for native builds
+        - Contributed by: [@klopfdreh](https://github.com/klopfdreh)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@klopfdreh](https://github.com/klopfdreh)
 # __2.25.46__ __2024-05-06__
 ## __AWS Elemental MediaLive__
   - ### Features
