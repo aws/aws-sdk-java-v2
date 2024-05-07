@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "s3-transfer-manager",
-    "contributor": "klopfdreh",
-    "description": "Added reflect-config.json for ApplyUserAgentInterceptor in s3-transfer-manager for native builds"
-}
