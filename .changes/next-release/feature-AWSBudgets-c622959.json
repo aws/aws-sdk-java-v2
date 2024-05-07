@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Budgets",
+    "contributor": "",
+    "description": "This release adds tag support for budgets and budget actions."
+}
