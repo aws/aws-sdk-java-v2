@@ -32,7 +32,7 @@
     </description>
 
     <properties>
-        <maven.archetype.version>3.2.0</maven.archetype.version>
+        <maven.archetype.version>3.2.1</maven.archetype.version>
         <maven.resource.plugin.version>3.2.0</maven.resource.plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
     </properties>
