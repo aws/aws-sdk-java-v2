@@ -15,13 +15,12 @@
 
 package foo.bar;
 
+import java.time.Duration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-
-import java.time.Duration;
 import software.amazon.awssdk.services.sqs.SqsClient;
 
 public final class SdkClientsDependencyFactory {
