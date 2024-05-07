@@ -181,8 +181,8 @@
                                 <include>software.amazon.awssdk:*</include>
                                 <include>software.amazon:*</include>
                                 <include>software.amazon.s3.accessgrants:*</include>
-                                <inlcude>com.github.ben-manes.caffeine:caffeine</inlcude>
-                                <inlcude>com.google.errorprone:error_prone_annotations</inlcude>
+                                <include>com.github.ben-manes.caffeine:caffeine</include>
+                                <include>com.google.errorprone:error_prone_annotations</include>
                                 <inlcude>org.checkerframework:checker-qual</inlcude>
                                 <include>commons-logging:*</include>
                                 <include>software.amazon.eventstream:eventstream</include>
