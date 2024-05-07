@@ -967,6 +967,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "klopfdreh",
+      "name": "Tobias Soloschenko",
+      "avatar_url": "https://avatars.githubusercontent.com/u/980773?v=4",
+      "profile": "http://wicket.apache.org",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
