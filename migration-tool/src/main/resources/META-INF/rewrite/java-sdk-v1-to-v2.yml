@@ -23,8 +23,10 @@ tags:
 recipeList:
   # TODO: update recipe naming to be consistent
   - software.amazon.awssdk.UpgradeSdkDependencies
-  - software.amazon.awssdk.S3GetObjectConstructorToFluent
   - software.amazon.awssdk.migration.internal.recipe.S3StreamingResponseToV2
+  - software.amazon.awssdk.migration.internal.recipe.S3StreamingRequestToV2
+  - software.amazon.awssdk.S3GetObjectConstructorToFluent
+  - software.amazon.awssdk.S3PutObjectConstructorToFluent
   - software.amazon.awssdk.migration.recipe.ChangeSdkType
   - software.amazon.awssdk.ChangeSdkCoreTypes
   # At this point, all classes should be changed to v2 equivalents
