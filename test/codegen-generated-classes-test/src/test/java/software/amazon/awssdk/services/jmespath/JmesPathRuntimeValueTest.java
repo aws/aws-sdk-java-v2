@@ -216,6 +216,54 @@ class JmesPathRuntimeValueTest {
     }
 
     @Test
+    void wildcardBehavesWithNested() {
+        assertThat(nestedConstruct().field("foo2").wildcard())
+            .isEqualTo(new Value(asList(sdkPojo(Pair.of("baz", asList(sdkPojo(Pair.of("key", "value1"))))),
+                                        sdkPojo(Pair.of("baz", asList(sdkPojo(Pair.of("key", "value2"))))))));
+    }
+
+    @Test
+    void wildcardBehavesWithNested2() {
+        assertThat(nestedConstruct().field("foo2").wildcard().field("baz"))
+            .isEqualTo(new Value(asList(asList(sdkPojo(Pair.of("key", "value1"))),
+                                        asList(sdkPojo(Pair.of("key", "value2"))))));
+    }
+
+    @Test
+    void wildcardBehavesWithNested3() {
+        assertThat(nestedConstruct().field("foo2").wildcard().field("baz").wildcard())
+            .isEqualTo(new Value(asList(asList(sdkPojo(Pair.of("key", "value1"))),
+                                        asList(sdkPojo(Pair.of("key", "value2"))))));
+    }
+
+    @Test
+    void flattenBehavesWithNested() {
+        assertThat(nestedConstruct().field("foo2").flatten())
+            .isEqualTo(new Value(asList(sdkPojo(Pair.of("baz", asList(sdkPojo(Pair.of("key", "value1"))))),
+                                        sdkPojo(Pair.of("baz", asList(sdkPojo(Pair.of("key", "value2"))))))));
+    }
+
+    @Test
+    void flattenBehavesWithNested2() {
+        assertThat(nestedConstruct().field("foo2").flatten().field("baz"))
+            .isEqualTo(new Value(asList(asList(sdkPojo(Pair.of("key", "value1"))),
+                                        asList(sdkPojo(Pair.of("key", "value2"))))));
+    }
+
+    @Test
+    void flattenBehavesWithNested3() {
+        assertThat(nestedConstruct().field("foo2").flatten().field("baz").flatten())
+            .isEqualTo(new Value(asList(sdkPojo(Pair.of("key", "value1")),
+                                        sdkPojo(Pair.of("key", "value2")))));
+    }
+
+    @Test
+    void flattenBehavesWithNested4() {
+        assertThat(nestedConstruct().field("foo2").flatten().field("baz").flatten().field("key"))
+            .isEqualTo(new Value(asList("value1","value2")));
+    }
+
+    @Test
     void flattenBehavesWithNull() {
         assertThat(new Value(null).flatten()).isEqualTo(new Value(null));
     }
@@ -255,17 +303,20 @@ class JmesPathRuntimeValueTest {
         assertThat(new Value(singletonList("a")).length()).isEqualTo(new Value(1));
     }
 
-    // @Test
-    // void keysBehaves() {
-    //     assertThat(new Value(null).keys()).isEqualTo(emptyList());
-    //     assertThat(new Value("a").length()).isEqualTo(new Value(1));
-    //     assertThat(sdkPojoValue(Pair.of("a", "b")).length()).isEqualTo(new Value(1));
-    //     assertThat(new Value(singletonList("a")).length()).isEqualTo(new Value(1));
-    // }
+    @Test
+    void keysBehaves() {
+        assertThat(new Value(null).keys()).isEqualTo(new Value(emptyList()));
+        assertThatThrownBy(() -> new Value("a").keys()).isInstanceOf(IllegalArgumentException.class)
+                                                       .hasMessageContaining("Unsupported type for keys function");
+        assertThatThrownBy(() -> new Value(asList("a", "b")).keys()).isInstanceOf(IllegalArgumentException.class)
+                                                                    .hasMessageContaining("Unsupported type for keys function");
+        assertThat(sdkPojoValue(Pair.of("a", "b"), Pair.of("c", "d")).keys()).isEqualTo(new Value(asList("a", "c")));
+    }
+
 
     @Test
     void containsBehaves() {
-        assertThat(new Value(null).length()).isEqualTo(new Value(null));
+        assertThat(new Value(null).contains(null)).isEqualTo(new Value(null));
         assertThat(new Value("abcde").contains(new Value("bcd"))).isEqualTo(new Value(true));
         assertThat(new Value("abcde").contains(new Value("f"))).isEqualTo(new Value(false));
         assertThat(new Value(asList("a", "b")).contains(new Value("a"))).isEqualTo(new Value(true));
@@ -301,6 +352,15 @@ class JmesPathRuntimeValueTest {
 
     private Value booleanFalse() {
         return new Value(false);
+    }
+
+    private Value nestedConstruct() {
+        return sdkPojoValue(Pair.of("foo", "bar"),
+                            Pair.of("foo2", asList(
+                                sdkPojo(Pair.of("baz", asList(sdkPojo(Pair.of("key", "value1"))))),
+                                sdkPojo(Pair.of("baz", asList(sdkPojo(Pair.of("key", "value2")))))
+                            )),
+                            Pair.of("foo3", sdkPojo(Pair.of("x", "y"))));
     }
 
     @SafeVarargs

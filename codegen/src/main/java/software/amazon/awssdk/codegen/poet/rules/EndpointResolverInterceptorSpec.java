@@ -87,10 +87,13 @@ import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.HostnameValidator;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public class EndpointResolverInterceptorSpec implements ClassSpec {
+
+    private static final String LOGGER_FIELD_NAME = "LOG";
     private final IntermediateModel model;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private final EndpointParamsKnowledgeIndex endpointParamsKnowledgeIndex;
@@ -124,6 +127,8 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                                       .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                                       .addAnnotation(SdkInternalApi.class)
                                       .addSuperinterface(ExecutionInterceptor.class);
+
+        b.addField(logger());
 
         if (!useSraAuth) {
             b.addField(endpointAuthSchemeStrategyFieldSpec);
@@ -559,6 +564,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         opModel.getOperationContextParams().forEach((key, value) -> {
             if (Objects.requireNonNull(value.getValue().asToken()) == JsonToken.VALUE_STRING) {
                 String setterName = endpointRulesSpecUtils.paramMethodName(key);
+
                 String jmesPathString = ((JrsString) value.getValue()).getValue();
                 CodeBlock addParam = CodeBlock.builder()
                                               .add("params.$N(", setterName)
@@ -566,7 +572,14 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                                               .add(matchToParameterType(key))
                                               .add(")")
                                               .build();
+
+                b.beginControlFlow("try");
                 b.addStatement(addParam);
+                b.endControlFlow();
+                b.beginControlFlow("catch ($T e)", Exception.class);
+                b.addStatement("$N.warn(() -> \"Error resolving operation context parameter '$L'; will set param to null."
+                               + " \\nError message: \" + e.getMessage())", LOGGER_FIELD_NAME, setterName);
+                b.endControlFlow();
             } else {
                 throw new RuntimeException("Invalid operation context parameter path for " + opModel.getOperationName() +
                                            ". Expected VALUE_STRING, but got " + value.getValue().asToken());
@@ -880,5 +893,12 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         }
         b.addStatement("this.$N = $N.endpointAuthSchemeStrategy()", endpointAuthSchemeFieldName, factoryLocalVarName);
         return b.build();
+    }
+
+    private FieldSpec logger() {
+        return FieldSpec.builder(Logger.class, LOGGER_FIELD_NAME)
+                        .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                        .initializer("$T.loggerFor($T.class)", Logger.class, className())
+                        .build();
     }
 }
