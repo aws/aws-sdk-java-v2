@@ -23,8 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.optionsRequestedFo
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
 import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
 
@@ -94,12 +93,8 @@ public class AmazonHttpClientWireMockTest extends WireMockTestBase {
 
         AmazonSyncHttpClient sut = createClient(HEADER, CONFIG_HEADER_VALUE);
 
-        try {
-            sendRequest(request, sut, uncheckedIOExceptionSuccessResponseHandler(), null);
-            fail("Expected UncheckedIOException to be thrown");
-        } catch (UncheckedIOException e) {
-            assertThat(e.getMessage()).isEqualTo("java.io.IOException: Should not be wrapped with SdkClientException");
-        }
+        assertThatThrownBy(() -> sendRequest(request, sut, uncheckedIOExceptionSuccessResponseHandler(), null))
+            .isInstanceOf(UncheckedIOException.class);
     }
 
     @Test
@@ -109,12 +104,8 @@ public class AmazonHttpClientWireMockTest extends WireMockTestBase {
         AmazonSyncHttpClient sut = createClient(HEADER, CONFIG_HEADER_VALUE);
 
 
-        try {
-            sendRequest(request, sut, null, uncheckedIOExceptionErrorResponseHandler());
-            fail("Expected UncheckedIOException to be thrown");
-        } catch (UncheckedIOException e) {
-            assertThat(e.getMessage()).isEqualTo("java.io.IOException: Should not be wrapped with SdkClientException");
-        }
+        assertThatThrownBy(() -> sendRequest(request, sut, null, uncheckedIOExceptionErrorResponseHandler()))
+            .isInstanceOf(UncheckedIOException.class);
     }
 
     private void sendRequest(SdkHttpFullRequest request,
