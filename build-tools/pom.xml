@@ -20,6 +20,12 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <properties>
+        <!-- Specify the Java version -->
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>build-tools</artifactId>
     <version>1.0</version>
