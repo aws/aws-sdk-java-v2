@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
