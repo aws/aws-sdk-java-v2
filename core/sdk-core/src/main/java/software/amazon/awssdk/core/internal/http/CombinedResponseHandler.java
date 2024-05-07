@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.http;
 import static software.amazon.awssdk.core.SdkStandardLogger.logRequestId;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,7 +98,7 @@ public class CombinedResponseHandler<OutputT> implements HttpResponseHandler<Res
             throws IOException, InterruptedException {
         try {
             return successResponseHandler.handle(httpResponse, executionAttributes);
-        } catch (IOException | InterruptedException | RetryableException e) {
+        } catch (IOException | UncheckedIOException | InterruptedException | RetryableException e) {
             throw e;
         } catch (Exception e) {
             if (e instanceof SdkException && ((SdkException) e).retryable()) {
@@ -124,7 +125,7 @@ public class CombinedResponseHandler<OutputT> implements HttpResponseHandler<Res
             SdkException exception = errorResponseHandler.handle(httpResponse, executionAttributes);
             exception.fillInStackTrace();
             return exception;
-        } catch (InterruptedException | IOException e) {
+        } catch (InterruptedException | IOException | UncheckedIOException e) {
             throw e;
         } catch (Exception e) {
             String errorMessage = String.format("Unable to unmarshall error response (%s). " +

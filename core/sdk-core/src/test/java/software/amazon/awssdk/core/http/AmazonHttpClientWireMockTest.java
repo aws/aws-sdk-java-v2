@@ -23,11 +23,17 @@ import static com.github.tomakehurst.wiremock.client.WireMock.optionsRequestedFo
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
 import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -37,6 +43,7 @@ import utils.http.WireMockTestBase;
 
 public class AmazonHttpClientWireMockTest extends WireMockTestBase {
     private static final String OPERATION = "/some-operation";
+    private static final String OPERATION_WITH_ERROR = "/some-operation-with-error";
     private static final String HEADER = "Some-Header";
     private static final String CONFIG_HEADER_VALUE = "client config header value";
     private static final String REQUEST_HEADER_VALUE = "request header value";
@@ -44,6 +51,7 @@ public class AmazonHttpClientWireMockTest extends WireMockTestBase {
     @Before
     public void setUp() {
         stubFor(any(urlPathEqualTo(OPERATION)).willReturn(aResponse()));
+        stubFor(any(urlPathEqualTo(OPERATION_WITH_ERROR)).willReturn(aResponse().withStatus(500)));
     }
 
     @Test
@@ -51,7 +59,7 @@ public class AmazonHttpClientWireMockTest extends WireMockTestBase {
         SdkHttpFullRequest request = newGetRequest(OPERATION).build();
 
         AmazonSyncHttpClient sut = createClient(HEADER, CONFIG_HEADER_VALUE);
-        sendRequest(request, sut);
+        sendRequest(request, sut, null, new NullErrorResponseHandler());
 
         verify(getRequestedFor(urlPathEqualTo(OPERATION)).withHeader(HEADER, matching(CONFIG_HEADER_VALUE)));
     }
@@ -63,7 +71,7 @@ public class AmazonHttpClientWireMockTest extends WireMockTestBase {
             .build();
 
         AmazonSyncHttpClient sut = createClient(HEADER, CONFIG_HEADER_VALUE);
-        sendRequest(request, sut);
+        sendRequest(request, sut, null, new NullErrorResponseHandler());
 
         verify(getRequestedFor(urlPathEqualTo(OPERATION)).withHeader(HEADER, matching(REQUEST_HEADER_VALUE)));
     }
@@ -75,20 +83,64 @@ public class AmazonHttpClientWireMockTest extends WireMockTestBase {
             .build();
 
         AmazonSyncHttpClient sut = HttpTestUtils.testAmazonHttpClient();
-        sendRequest(request, sut);
+        sendRequest(request, sut, null, new NullErrorResponseHandler());
 
         verify(optionsRequestedFor(urlPathEqualTo(OPERATION)));
     }
 
-    private void sendRequest(SdkHttpFullRequest request, AmazonSyncHttpClient sut) {
+    @Test
+    public void handleSuccessResponse_uncheckedIOException_shouldNotBeWrappedWithSdkClientException() {
+        SdkHttpFullRequest request = newGetRequest(OPERATION).build();
+
+        AmazonSyncHttpClient sut = createClient(HEADER, CONFIG_HEADER_VALUE);
+
+        try {
+            sendRequest(request, sut, uncheckedIOExceptionSuccessResponseHandler(), null);
+            fail("Expected UncheckedIOException to be thrown");
+        } catch (UncheckedIOException e) {
+            assertThat(e.getMessage()).isEqualTo("java.io.IOException: Should not be wrapped with SdkClientException");
+        }
+    }
+
+    @Test
+    public void handleErrorResponse_uncheckedIOException_shouldNotBeWrappedWithSdkClientException() {
+        SdkHttpFullRequest request = newGetRequest(OPERATION_WITH_ERROR).build();
+
+        AmazonSyncHttpClient sut = createClient(HEADER, CONFIG_HEADER_VALUE);
+
+
+        try {
+            sendRequest(request, sut, null, uncheckedIOExceptionErrorResponseHandler());
+            fail("Expected UncheckedIOException to be thrown");
+        } catch (UncheckedIOException e) {
+            assertThat(e.getMessage()).isEqualTo("java.io.IOException: Should not be wrapped with SdkClientException");
+        }
+    }
+
+    private void sendRequest(SdkHttpFullRequest request,
+                             AmazonSyncHttpClient sut,
+                             HttpResponseHandler<Response<?>> successResponseHandler,
+                             HttpResponseHandler<? extends SdkException> failureResponseHandler) {
         sut.requestExecutionBuilder()
            .request(request)
            .originalRequest(NoopTestRequest.builder().build())
            .executionContext(executionContext(request))
-           .execute(combinedSyncResponseHandler(null, new NullErrorResponseHandler()));
+           .execute(combinedSyncResponseHandler(successResponseHandler, failureResponseHandler));
     }
 
     private AmazonSyncHttpClient createClient(String headerName, String headerValue) {
         return HttpTestUtils.testClientBuilder().additionalHeader(headerName, headerValue).build();
+    }
+
+    private static <T> HttpResponseHandler<T> uncheckedIOExceptionSuccessResponseHandler() {
+        return (response, executionAttributes) -> {
+            throw new UncheckedIOException(new IOException("Should not be wrapped with SdkClientException"));
+        };
+    }
+
+    private static HttpResponseHandler<? extends SdkException> uncheckedIOExceptionErrorResponseHandler() {
+        return (response, executionAttributes) -> {
+            throw new UncheckedIOException(new IOException("Should not be wrapped with SdkClientException"));
+        };
     }
 }
