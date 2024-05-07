@@ -43,6 +43,7 @@
 
         "dynamodb": { "packageName": "AwsJavaSdk-DynamoDb" },
         "waf": { "packageName": "AwsJavaSdk-Waf" },
+        "migration-tool": { "packageName":  "AwsJavaSdk-MigrationTool"},
 
         "third-party-jackson-core": {
             "packageName": "AwsJavaSdk-ThirdParty-JacksonCore",
