@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.migration.internal.recipe;
 
+import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isEligibleToConvertToBuilder;
 import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isV2ClientClass;
-import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isV2ModelClass;
 
 import java.util.Map;
 import org.openrewrite.ExecutionContext;
@@ -37,10 +37,13 @@ import software.amazon.awssdk.utils.ImmutableMap;
  * for generated model classes and client classes.
  *
  * @see NewClassToBuilderPattern
+ * TODO: separate model classes and client classes
  */
 @SdkInternalApi
 public class V1SetterToV2 extends Recipe {
     private static final Map<String, String> CLIENT_CONFIG_NAMING_MAPPING =
+        // TODO: handle other settings on the builder such as withEndpointConfiguration,
+        //  withMonitoringListener and withMetricsCollector
         ImmutableMap.<String, String>builder()
                     .put("credentials", "credentialsProvider")
                     .put("clientConfiguration", "overrideConfiguration")
@@ -75,11 +78,16 @@ public class V1SetterToV2 extends Recipe {
                 selectType = select.getType();
             }
 
-            if (selectType == null || !shouldChangeSetter(selectType)) {
+            if (selectType == null) {
                 return method;
             }
 
             String methodName = method.getSimpleName();
+            JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(selectType);
+
+            if (!shouldChangeSetter(fullyQualified)) {
+                return method;
+            }
 
             if (NamingUtils.isWither(methodName)) {
                 methodName = NamingUtils.removeWith(methodName);
@@ -97,8 +105,6 @@ public class V1SetterToV2 extends Recipe {
                 mt = mt.withName(methodName)
                        .withReturnType(selectType);
 
-                JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(selectType);
-
                 if (fullyQualified != null) {
                     mt = mt.withDeclaringType(fullyQualified);
                 }
@@ -112,8 +118,8 @@ public class V1SetterToV2 extends Recipe {
             return method;
         }
 
-        private static boolean shouldChangeSetter(JavaType selectType) {
-            return isV2ModelClass(selectType) || isV2ClientClass(selectType);
+        private static boolean shouldChangeSetter(JavaType.FullyQualified selectType) {
+            return isEligibleToConvertToBuilder(selectType);
         }
     }
 }

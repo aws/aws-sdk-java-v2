@@ -19,3 +19,4 @@ displayName: Change Maven dependency groupId, artifactId and/or the version exam
 recipeList:
   - software.amazon.awssdk.ChangeRegionTypes
   - software.amazon.awssdk.ChangeAuthTypes
+  - software.amazon.awssdk.ChangeConfigTypes

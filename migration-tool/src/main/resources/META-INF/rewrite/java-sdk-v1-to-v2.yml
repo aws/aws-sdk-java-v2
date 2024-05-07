@@ -27,6 +27,7 @@ recipeList:
   - software.amazon.awssdk.migration.internal.recipe.S3StreamingResponseToV2
   - software.amazon.awssdk.migration.recipe.ChangeSdkType
   - software.amazon.awssdk.ChangeSdkCoreTypes
+  # At this point, all classes should be changed to v2 equivalents
   - software.amazon.awssdk.migration.recipe.V1BuilderVariationsToV2Builder
   - software.amazon.awssdk.migration.recipe.NewClassToBuilderPattern
   - software.amazon.awssdk.migration.recipe.NewClassToStaticFactory
