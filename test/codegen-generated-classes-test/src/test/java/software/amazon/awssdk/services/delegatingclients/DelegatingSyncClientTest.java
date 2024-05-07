@@ -45,7 +45,7 @@ public class DelegatingSyncClientTest {
 
     private static final String INTERCEPTED_HEADER = "intercepted-header";
     private static final String INTERCEPTED_HEADER_VALUE = "intercepted-value";
-    private static final String RESPONSE = "response";
+    private static final String RESPONSE = "{\"key\":\"value\"}";
 
     MockSyncHttpClient mockSyncHttpClient = new MockSyncHttpClient();
     ProtocolRestJsonClient defaultClient = ProtocolRestJsonClient.builder()

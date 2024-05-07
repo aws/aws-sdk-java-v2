@@ -80,7 +80,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
             try {
                 retryableStageHelper.logSendingRequest();
                 response = requestPipeline.execute(retryableStageHelper.requestToSend(), context);
-            } catch (SdkException | IOException | UncheckedIOException e) {
+            } catch (SdkException | IOException e) {
                 retryableStageHelper.setLastException(e);
                 retryableStageHelper.updateClientSendingRateForErrorResponse();
                 continue;
