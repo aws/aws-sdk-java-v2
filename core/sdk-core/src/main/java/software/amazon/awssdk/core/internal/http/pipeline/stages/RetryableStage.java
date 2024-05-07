@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -79,7 +80,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
             try {
                 retryableStageHelper.logSendingRequest();
                 response = requestPipeline.execute(retryableStageHelper.requestToSend(), context);
-            } catch (SdkException | IOException e) {
+            } catch (SdkException | IOException | UncheckedIOException e) {
                 retryableStageHelper.setLastException(e);
                 retryableStageHelper.updateClientSendingRateForErrorResponse();
                 continue;
