@@ -31,7 +31,6 @@ import java.util.zip.ZipInputStream;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.SdkClient;
 
 public class BundleShadedCorrectlyTest {
     private static final Set<String> ALLOWED_FILES;
@@ -51,10 +50,14 @@ public class BundleShadedCorrectlyTest {
 
     @BeforeAll
     public static void setup() {
-        URL jarLocation = SdkClient.class.getProtectionDomain().getCodeSource().getLocation();
-        Path sdkClientJar = Paths.get(jarLocation.getFile());
-        if (isBundleJar(sdkClientJar.getFileName().toString())) {
-            bundlePath = sdkClientJar;
+        try {
+            Class<?> sdkClientClss = Class.forName("import software.amazon.awssdk.core.SdkClient");
+            URL jarLocation = sdkClientClss.getProtectionDomain().getCodeSource().getLocation();
+            Path sdkClientJar = Paths.get(jarLocation.getFile());
+            if (isBundleJar(sdkClientJar.getFileName().toString())) {
+                bundlePath = sdkClientJar;
+            }
+        } catch (ClassNotFoundException ignored) {
         }
     }
     @Test
