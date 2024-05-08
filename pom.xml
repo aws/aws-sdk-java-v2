@@ -650,7 +650,8 @@
                             <includeModule>netty-nio-client</includeModule>
                             <includeModule>url-connection-client</includeModule>
                             <includeModule>cloudwatch-metric-publisher</includeModule>
-                            <includeModule>utils</includeModule>
+                            <!-- TODO revert - Temporarily disable utils to add throws IOException to InputStreamSubscriber.read() -->
+                            <!-- <includeModule>utils</includeModule> -->
                             <includeModule>imds</includeModule>
 
                             <!-- High level libraries -->
