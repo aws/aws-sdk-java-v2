@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.25.47-SNAPSHOT</version>
+        <version>2.25.48-SNAPSHOT</version>
     </parent>
     <artifactId>bundle-sdk</artifactId>
     <packaging>jar</packaging>
@@ -60,6 +60,105 @@
             <groupId>software.amazon.s3.accessgrants</groupId>
             <artifactId>aws-s3-accessgrants-java-plugin</artifactId>
             <version>${s3accessgrants.version}</version>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>http-auth-spi</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>identity-spi</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>s3control</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>s3</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>iam</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>sts</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>cloudwatch-metric-publisher</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.eventstream</groupId>
+                    <artifactId>eventstream</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec-http</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec-http2</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-transport</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-common</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-buffer</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-handler</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-transport-classes-epoll</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-resolver</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-resolver-dns</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpcomponents-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpcore</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-codec</groupId>
+                    <artifactId>commons-codec</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.reactivestreams</groupId>
+                    <artifactId>reactive-streams</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -82,8 +181,11 @@
                                 <include>software.amazon.awssdk:*</include>
                                 <include>software.amazon:*</include>
                                 <include>software.amazon.s3.accessgrants:*</include>
-                                <inlcude>com.github.ben-manes.caffeine:*</inlcude>
+                                <include>com.github.ben-manes.caffeine:caffeine</include>
+                                <include>com.google.errorprone:error_prone_annotations</include>
+                                <inlcude>org.checkerframework:checker-qual</inlcude>
                                 <include>commons-logging:*</include>
+                                <include>software.amazon.eventstream:eventstream</include>
                             </includes>
                         </artifactSet>
                         <relocations>
@@ -101,6 +203,18 @@
                             <relocation>
                                 <pattern>org.slf4j</pattern>
                                 <shadedPattern>software.amazon.awssdk.thirdparty.org.slf4j</shadedPattern>
+                            </relocation>
+                            <relocation>
+                                <pattern>com.github.benmanes.caffeine</pattern>
+                                <shadedPattern>software.amazon.awssdk.thirdparty.com.github.benmanes.caffeine</shadedPattern>
+                            </relocation>
+                            <relocation>
+                                <pattern>org.checkerframework</pattern>
+                                <shadedPattern>software.amazon.awssdk.thirdparty.org.checkerframework</shadedPattern>
+                            </relocation>
+                            <relocation>
+                                <pattern>com.google.errorprone</pattern>
+                                <shadedPattern>software.amazon.awssdk.thirdparty.com.google.errorprone</shadedPattern>
                             </relocation>
                         </relocations>
                         <shadedArtifactAttached>false</shadedArtifactAttached>
