@@ -32,7 +32,8 @@ def run_test(version):
     is_same = compare_directory(filecmp.dircmp(TARGET_DIR, AFTER_DIR))
     if not is_same:
         raise Exception("The transformed directory('target/generated-test-sources/project') does not match with the expected one('src/test/resources/after')")
-    result = subprocess.run(["mvn", "package"], cwd=TARGET_DIR, check=True, stdout = subprocess.DEVNULL)
+    result = subprocess.run(["mvn", "package"], cwd=TARGET_DIR, capture_output=True, check=True)
+    print(result)
 
 def compare_directory(dcmp):
     if dcmp.diff_files or dcmp.left_only or dcmp.right_only:
