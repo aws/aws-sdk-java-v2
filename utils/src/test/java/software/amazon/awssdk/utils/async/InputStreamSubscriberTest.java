@@ -45,6 +45,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 public class InputStreamSubscriberTest {
@@ -240,23 +241,11 @@ public class InputStreamSubscriberTest {
     }
 
     public static Consumer<InputStreamSubscriber> subscriberRead1() {
-        return s -> {
-            try {
-                s.read();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        };
+        return s -> FunctionalUtils.invokeSafely(() -> s.read());
     }
 
     public static Consumer<InputStreamSubscriber> subscriberReadArray() {
-        return s -> {
-            try {
-                s.read(new byte[4]);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        };
+        return s -> FunctionalUtils.invokeSafely(() -> s.read(new byte[4]));
     }
 
     public static Consumer<InputStreamSubscriber> subscriberClose() {
