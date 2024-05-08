@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "Adding Precision Hardware Clock (PHC) to public API DescribeInstanceTypes"
-}
