@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Queue Service",
+    "contributor": "",
+    "description": "This release adds MessageSystemAttributeNames to ReceiveMessageRequest to replace AttributeNames."
+}
