@@ -87,7 +87,7 @@ public class NumberToDuration extends Recipe {
             String durationStr = durationCreationStr();
 
             JavaTemplate template = JavaTemplate
-                .builder(durationStr + "(#{})")
+                .builder(durationStr + "(#{any()})")
                 .contextSensitive()
                 .imports("java.time.Duration")
                 .build();

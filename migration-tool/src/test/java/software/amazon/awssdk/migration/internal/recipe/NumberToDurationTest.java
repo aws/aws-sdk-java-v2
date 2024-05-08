@@ -87,4 +87,37 @@ public class NumberToDurationTest implements RewriteTest {
             )
         );
     }
+
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
+    void variableProvided_shouldRewrite() {
+        rewriteRun(
+            spec -> spec.recipe(new NumberToDuration("com.amazonaws.ClientConfiguration setRequestTimeout(int)",
+                                                     TimeUnit.SECONDS))
+                        .parser(Java8Parser.builder().classpath("sqs", "aws-core", "sdk-core", "aws-java-sdk-sqs")),
+            java(
+                "import com.amazonaws.ClientConfiguration;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "    \n"
+                + "    void test() {\n"
+                + "        int timeout = 1000;\n"
+                + "        ClientConfiguration clientConfiguration = new ClientConfiguration();\n"
+                + "        clientConfiguration.setRequestTimeout(timeout);\n"
+                + "    }\n"
+                + "}\n",
+                "import com.amazonaws.ClientConfiguration;\n\n"
+                + "import java.time.Duration;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "    \n"
+                + "    void test() {\n"
+                + "        int timeout = 1000;\n"
+                + "        ClientConfiguration clientConfiguration = new ClientConfiguration();\n"
+                + "        clientConfiguration.setRequestTimeout(Duration.ofSeconds(timeout));\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
 }
