@@ -51,7 +51,7 @@ public class BundleShadedCorrectlyTest {
     @BeforeAll
     public static void setup() {
         try {
-            Class<?> sdkClientClss = Class.forName("import software.amazon.awssdk.core.SdkClient");
+            Class<?> sdkClientClss = Class.forName("software.amazon.awssdk.core.SdkClient");
             URL jarLocation = sdkClientClss.getProtectionDomain().getCodeSource().getLocation();
             Path sdkClientJar = Paths.get(jarLocation.getFile());
             if (isBundleJar(sdkClientJar.getFileName().toString())) {
@@ -60,6 +60,7 @@ public class BundleShadedCorrectlyTest {
         } catch (ClassNotFoundException ignored) {
         }
     }
+
     @Test
     public void testBundlePathsAreShaded() throws IOException {
         Assumptions.assumeTrue(bundlePath != null, "SDK classes are not loaded from the bundle.");
