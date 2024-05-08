@@ -1,4 +1,59 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.48__ __2024-05-08__
+## __AWS SDK for Java v2 Bundle__
+  - ### Bugfixes
+    - Fix unshaded classes in the AWS SDK for Java v2 bundle. See [#5108](https://github.com/aws/aws-sdk-java-v2/issues/5108)
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add EXTERNAL_PROVIDER enum value to UserStatusType.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release adds pull through cache rules support for GitLab container registry in Amazon ECR.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding Precision Hardware Clock (PHC) to public API DescribeInstanceTypes
+
+## __Amazon Polly__
+  - ### Features
+    - Add new engine - generative - that builds the most expressive conversational voices.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - This release adds MessageSystemAttributeNames to ReceiveMessageRequest to replace AttributeNames.
+
+## __Firewall Management Service__
+  - ### Features
+    - The policy scope resource tag is always a string value, either a non-empty string or an empty string.
+
+# __2.25.47__ __2024-05-07__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Documentation update to clarify the MappingTemplate definition.
+
+## __AWS Budgets__
+  - ### Features
+    - This release adds tag support for budgets and budget actions.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - AWS Resilience Hub has expanded its drift detection capabilities by introducing a new type of drift detection - application resource drift. This new enhancement detects changes, such as the addition or deletion of resources within the application's input sources.
+
+## __Route 53 Profiles__
+  - ### Features
+    - Doc only update for Route 53 profiles that fixes some link issues
+
+## __s3-transfer-manager__
+  - ### Bugfixes
+    - Added reflect-config.json for ApplyUserAgentInterceptor in s3-transfer-manager for native builds
+        - Contributed by: [@klopfdreh](https://github.com/klopfdreh)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@klopfdreh](https://github.com/klopfdreh)
 # __2.25.46__ __2024-05-06__
 ## __AWS Elemental MediaLive__
   - ### Features
