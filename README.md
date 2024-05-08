@@ -4,7 +4,7 @@
 [![Gitter](https://badges.gitter.im/aws/aws-sdk-java-v2.svg)](https://gitter.im/aws/aws-sdk-java-v2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) 
 [![codecov](https://codecov.io/gh/aws/aws-sdk-java-v2/branch/master/graph/badge.svg)](https://codecov.io/gh/aws/aws-sdk-java-v2)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-107-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-108-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The **AWS SDK for Java 2.0** is a rewrite of 1.0 with some great new features. As with version 1.0,
@@ -52,7 +52,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.25.43</version>
+      <version>2.25.47</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -86,12 +86,12 @@ Alternatively you can add dependencies for the specific services you use only:
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>ec2</artifactId>
-  <version>2.25.43</version>
+  <version>2.25.47</version>
 </dependency>
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3</artifactId>
-  <version>2.25.43</version>
+  <version>2.25.47</version>
 </dependency>
 ```
 
@@ -103,7 +103,7 @@ You can import the whole SDK into your project (includes *ALL* services). Please
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>aws-sdk-java</artifactId>
-  <version>2.25.43</version>
+  <version>2.25.47</version>
 </dependency>
 ```
 
@@ -329,6 +329,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/mgrundie-r7"><img src="https://avatars.githubusercontent.com/u/103498312?v=4?s=100" width="100px;" alt="Michael Grundie"/><br /><sub><b>Michael Grundie</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=mgrundie-r7" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/eckardnet"><img src="https://avatars.githubusercontent.com/u/13320705?v=4?s=100" width="100px;" alt="Eckard Mühlich"/><br /><sub><b>Eckard Mühlich</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=eckardnet" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://wicket.apache.org"><img src="https://avatars.githubusercontent.com/u/980773?v=4?s=100" width="100px;" alt="Tobias Soloschenko"/><br /><sub><b>Tobias Soloschenko</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=klopfdreh" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

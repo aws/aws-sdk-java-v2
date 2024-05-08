@@ -1,4 +1,89 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.47__ __2024-05-07__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Documentation update to clarify the MappingTemplate definition.
+
+## __AWS Budgets__
+  - ### Features
+    - This release adds tag support for budgets and budget actions.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - AWS Resilience Hub has expanded its drift detection capabilities by introducing a new type of drift detection - application resource drift. This new enhancement detects changes, such as the addition or deletion of resources within the application's input sources.
+
+## __Route 53 Profiles__
+  - ### Features
+    - Doc only update for Route 53 profiles that fixes some link issues
+
+## __s3-transfer-manager__
+  - ### Bugfixes
+    - Added reflect-config.json for ApplyUserAgentInterceptor in s3-transfer-manager for native builds
+        - Contributed by: [@klopfdreh](https://github.com/klopfdreh)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@klopfdreh](https://github.com/klopfdreh)
+# __2.25.46__ __2024-05-06__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports configuring how SCTE 35 passthrough triggers segment breaks in HLS and MediaPackage output groups. Previously, messages triggered breaks in all these output groups. The new option is to trigger segment breaks only in groups that have SCTE 35 passthrough enabled.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+# __2.25.45__ __2024-05-03__
+## __AWS DataSync__
+  - ### Features
+    - Updated guidance on using private or self-signed certificate authorities (CAs) with AWS DataSync object storage locations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release adds support for using Provisioned Throughput with Bedrock Agents.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This feature supports the release of Files related items
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds 5 new APIs for managing attachments: StartAttachedFileUpload, CompleteAttachedFileUpload, GetAttachedFile, BatchGetAttachedFileMetadata, DeleteAttachedFile. These APIs can be used to programmatically upload and download attachments to Connect resources, like cases.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Inference now supports m6i, c6i, r6i, m7i, c7i, r7i and g5 instance types for Batch Transform Jobs
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Adds support for specifying replacement headers per BulkEmailEntry in SendBulkEmail in SESv2.
+
+## __Inspector2__
+  - ### Features
+    - This release adds CSV format to GetCisScanReport for Inspector v2
+
+# __2.25.44__ __2024-05-02__
+## __Amazon DynamoDB__
+  - ### Features
+    - This release adds support to specify an optional, maximum OnDemandThroughput for DynamoDB tables and global secondary indexes in the CreateTable or UpdateTable APIs. You can also override the OnDemandThroughput settings by calling the ImportTable, RestoreFromPointInTime, or RestoreFromBackup APIs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release includes a new API for retrieving the public endorsement key of the EC2 instance's Nitro Trusted Platform Module (NitroTPM).
+
+## __Amazon Personalize__
+  - ### Features
+    - This releases ability to delete users and their data, including their metadata and interactions data, from a dataset group.
+
+## __Redshift Serverless__
+  - ### Features
+    - Update Redshift Serverless List Scheduled Actions Output Response to include Namespace Name.
+
 # __2.25.43__ __2024-05-01__
 ## __AWS SDK for Java v2__
   - ### Features
