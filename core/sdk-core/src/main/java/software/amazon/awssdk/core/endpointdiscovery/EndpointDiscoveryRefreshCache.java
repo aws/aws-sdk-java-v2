@@ -64,21 +64,22 @@ public final class EndpointDiscoveryRefreshCache {
         if (endpoint == null) {
             if (request.required()) {
                 return cache.computeIfAbsent(key, k -> getAndJoin(request)).endpoint();
-            }
-            EndpointDiscoveryEndpoint tempEndpoint = EndpointDiscoveryEndpoint.builder()
-                                                                              .endpoint(request.defaultEndpoint())
-                                                                              .expirationTime(Instant.now().plusSeconds(60))
-                                                                              .build();
-
-            EndpointDiscoveryEndpoint previousValue = cache.putIfAbsent(key, tempEndpoint);
-            if (previousValue != null) {
-                // Someone else primed the cache. Use that endpoint (which may be temporary).
-                return previousValue.endpoint();
             } else {
-                // We primed the cache with the temporary endpoint. Kick off discovery in the background.
-                refreshCacheAsync(request, key);
+                EndpointDiscoveryEndpoint tempEndpoint = EndpointDiscoveryEndpoint.builder()
+                                                                                  .endpoint(request.defaultEndpoint())
+                                                                                  .expirationTime(Instant.now().plusSeconds(60))
+                                                                                  .build();
+
+                EndpointDiscoveryEndpoint previousValue = cache.putIfAbsent(key, tempEndpoint);
+                if (previousValue != null) {
+                    // Someone else primed the cache. Use that endpoint (which may be temporary).
+                    return previousValue.endpoint();
+                } else {
+                    // We primed the cache with the temporary endpoint. Kick off discovery in the background.
+                    refreshCacheAsync(request, key);
+                }
+                return tempEndpoint.endpoint();
             }
-            return tempEndpoint.endpoint();
         }
 
         if (endpoint.expirationTime().isBefore(Instant.now())) {
