@@ -88,6 +88,7 @@
         <module>test/ruleset-testing-core</module>
         <module>test/old-client-version-compatibility-test</module>
         <module>test/bundle-logging-bridge-binding-test</module>
+        <module>test/bundle-shading-tests</module>
         <module>test/crt-unavailable-tests</module>
     </modules>
     <scm>
@@ -650,7 +651,8 @@
                             <includeModule>netty-nio-client</includeModule>
                             <includeModule>url-connection-client</includeModule>
                             <includeModule>cloudwatch-metric-publisher</includeModule>
-                            <includeModule>utils</includeModule>
+                            <!-- TODO revert - Temporarily disable utils to add throws IOException to InputStreamSubscriber.read() -->
+                            <!-- <includeModule>utils</includeModule> -->
                             <includeModule>imds</includeModule>
 
                             <!-- High level libraries -->
@@ -671,8 +673,6 @@
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
-                            <exclude>software.amazon.awssdk.services.sqs.model.ListMessageMoveTasksResultEntry</exclude>
-                            <exclude>software.amazon.awssdk.services.sqs.model.TaskStatus</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
