@@ -29,6 +29,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.internal.MessageMD5ChecksumInterceptor;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
@@ -43,6 +44,7 @@ import software.amazon.awssdk.utils.StringInputStream;
  */
 public class MessageMD5ChecksumValidationDisableTest {
     private static final AwsBasicCredentials CLIENT_CREDENTIALS = AwsBasicCredentials.create("ca", "cs");
+    private static final Region CLIENT_REGION = Region.US_WEST_2;
     private static final String MESSAGE_ID = "0f433476-621e-4638-811a-112d2c2e41d7";
 
     private MockAsyncHttpClient asyncHttpClient;
@@ -65,6 +67,7 @@ public class MessageMD5ChecksumValidationDisableTest {
         asyncHttpClient.stubResponses(responseWithMd5());
         SqsAsyncClient client = SqsAsyncClient.builder()
                                               .credentialsProvider(StaticCredentialsProvider.create(CLIENT_CREDENTIALS))
+                                              .region(CLIENT_REGION)
                                               .httpClient(asyncHttpClient)
                                               .build();
 
@@ -79,6 +82,7 @@ public class MessageMD5ChecksumValidationDisableTest {
         asyncHttpClient.stubResponses(responseWithoutMd5());
         SqsAsyncClient client = SqsAsyncClient.builder()
                                               .credentialsProvider(StaticCredentialsProvider.create(CLIENT_CREDENTIALS))
+                                              .region(CLIENT_REGION)
                                               .httpClient(asyncHttpClient)
                                               .build();
 
@@ -93,6 +97,7 @@ public class MessageMD5ChecksumValidationDisableTest {
         asyncHttpClient.stubResponses(responseWithMd5());
         SqsAsyncClient client = SqsAsyncClient.builder()
                                               .credentialsProvider(StaticCredentialsProvider.create(CLIENT_CREDENTIALS))
+                                              .region(CLIENT_REGION)
                                               .httpClient(asyncHttpClient)
                                               .checksumValidationEnabled(false)
                                               .build();
@@ -108,6 +113,7 @@ public class MessageMD5ChecksumValidationDisableTest {
         asyncHttpClient.stubResponses(responseWithoutMd5());
         SqsAsyncClient client = SqsAsyncClient.builder()
                                               .credentialsProvider(StaticCredentialsProvider.create(CLIENT_CREDENTIALS))
+                                              .region(CLIENT_REGION)
                                               .httpClient(asyncHttpClient)
                                               .checksumValidationEnabled(false)
                                               .build();
@@ -123,6 +129,7 @@ public class MessageMD5ChecksumValidationDisableTest {
         syncHttpClient.stubResponses(responseWithoutMd5());
         SqsClient client = SqsClient.builder()
                                     .credentialsProvider(StaticCredentialsProvider.create(CLIENT_CREDENTIALS))
+                                    .region(CLIENT_REGION)
                                     .httpClient(syncHttpClient)
                                     .checksumValidationEnabled(false)
                                     .build();
@@ -154,7 +161,7 @@ public class MessageMD5ChecksumValidationDisableTest {
     }
 
     protected static Map<String, MessageAttributeValue> createAttributeValues() {
-        Map<String, MessageAttributeValue> attrs = new HashMap();
+        Map<String, MessageAttributeValue> attrs = new HashMap<>();
         attrs.put("attribute-1", MessageAttributeValue.builder().dataType("String").stringValue("tmp").build());
         return Collections.unmodifiableMap(attrs);
     }
