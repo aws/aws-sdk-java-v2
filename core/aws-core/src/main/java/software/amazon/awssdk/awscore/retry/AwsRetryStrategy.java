@@ -70,7 +70,7 @@ public final class AwsRetryStrategy {
      * Update the provided {@link RetryStrategy} to add AWS-specific conditions.
      *
      * @param strategy The strategy to update
-     * @return The updated strategy
+     * @return The updated strategy.
      */
     public static RetryStrategy<?, ?> addRetryConditions(RetryStrategy<?, ?> strategy) {
         return strategy.toBuilder()
