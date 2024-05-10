@@ -188,12 +188,15 @@ public final class JmesPathRuntime {
             if (type == Type.LIST) {
                 List<String> result = new ArrayList<>();
                 for (Object listEntry : listValue) {
-                    Value listValue = new Value(listEntry);
-                    if (listValue.type != Type.STRING) {
-                        throw new IllegalStateException("Expected list elements to be of type String, but were "
-                        + listValue.type);
+                    Value entryAsValue = new Value(listEntry);
+                    if (entryAsValue.type == Type.NULL) {
+                        continue;
                     }
-                    result.add(listValue.stringValue);
+                    if (entryAsValue.type != Type.STRING) {
+                        throw new IllegalStateException("Expected list elements to be of type String, but were "
+                        + entryAsValue.type);
+                    }
+                    result.add(entryAsValue.stringValue);
                 }
                 return result;
             }
@@ -478,6 +481,7 @@ public final class JmesPathRuntime {
                                       .map(Value::new)
                                       .map(functionToApply)
                                       .map(Value::value)
+                                      .filter(Objects::nonNull)
                                       .collect(toList()),
                              true);
         }

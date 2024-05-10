@@ -43,13 +43,10 @@ import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperat
 import software.amazon.awssdk.services.query.model.OperationWithOperationContextParamRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
-import software.amazon.awssdk.utils.Logger;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public final class QueryResolveEndpointInterceptor implements ExecutionInterceptor {
-    private static final Logger LOG = Logger.loggerFor(QueryResolveEndpointInterceptor.class);
-
     private final EndpointAuthSchemeStrategy endpointAuthSchemeStrategy;
 
     public QueryResolveEndpointInterceptor() {
@@ -220,25 +217,15 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     private static void setOperationContextParams(QueryEndpointParams.Builder params,
                                                   OperationWithCustomizedOperationContextParamRequest request) {
         JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
-        try {
-            params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString")
+        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString")
                                             .stringValues());
-        } catch (Exception e) {
-            LOG.warn(() -> "Error resolving operation context parameter 'customEndpointArray'; will set param to null. \nError message: "
-                           + e.getMessage());
-        }
     }
 
     private static void setOperationContextParams(QueryEndpointParams.Builder params,
                                                   OperationWithOperationContextParamRequest request) {
         JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
-        try {
-            params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString")
+        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString")
                                             .stringValues());
-        } catch (Exception e) {
-            LOG.warn(() -> "Error resolving operation context parameter 'customEndpointArray'; will set param to null. \nError message: "
-                           + e.getMessage());
-        }
     }
 
     private static Optional<String> hostPrefix(String operationName, SdkRequest request) {

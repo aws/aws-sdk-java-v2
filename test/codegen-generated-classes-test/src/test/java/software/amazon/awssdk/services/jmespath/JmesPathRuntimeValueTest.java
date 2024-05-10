@@ -21,7 +21,6 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +33,7 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.LocationTrait;
 import software.amazon.awssdk.services.restjsonwithwaiters.jmespath.internal.JmesPathRuntime.Value;
+import software.amazon.awssdk.services.restjsonwithwaiters.model.PayloadStructType;
 import software.amazon.awssdk.utils.Pair;
 
 class JmesPathRuntimeValueTest {
@@ -53,14 +53,14 @@ class JmesPathRuntimeValueTest {
         assertThat(new Value("").values()).isEqualTo(singletonList(""));
         assertThat(new Value(true).values()).isEqualTo(singletonList(true));
         assertThat(new Value(singletonList("a")).values()).isEqualTo(singletonList("a"));
-        assertThat(new Value(sdkPojo()).values()).isEqualTo(singletonList(sdkPojo()));
+        assertThat(new Value(simpleSdkPojo()).values()).isEqualTo(singletonList(simpleSdkPojo()));
     }
 
     @Test
     void booleanValueReturnsConstructorInput() {
         assertThat(new Value(null).booleanValue()).isEqualTo(null);
-        assertThatThrownBy(() -> new Value(sdkPojo()).booleanValue()).isInstanceOf(IllegalStateException.class)
-                                                                     .hasMessageContaining("Cannot convert type POJO");
+        assertThatThrownBy(() -> new Value(simpleSdkPojo()).booleanValue()).isInstanceOf(IllegalStateException.class)
+                                                                           .hasMessageContaining("Cannot convert type POJO");
         assertThatThrownBy(() -> new Value(5).booleanValue()).isInstanceOf(IllegalStateException.class)
                                                              .hasMessageContaining("Cannot convert type INTEGER");
         assertThat(new Value("").booleanValue()).isEqualTo(false);
@@ -72,8 +72,8 @@ class JmesPathRuntimeValueTest {
     @Test
     void stringValueReturnsConstructorInput() {
         assertThat(new Value(null).stringValue()).isEqualTo(null);
-        assertThatThrownBy(() -> new Value(sdkPojo()).stringValue()).isInstanceOf(IllegalStateException.class)
-                                                                    .hasMessageContaining("Cannot convert type POJO");
+        assertThatThrownBy(() -> new Value(simpleSdkPojo()).stringValue()).isInstanceOf(IllegalStateException.class)
+                                                                          .hasMessageContaining("Cannot convert type POJO");
         assertThat(new Value(5).stringValue()).isEqualTo("5");
         assertThat(new Value("").stringValue()).isEqualTo("");
         assertThat(new Value(true).stringValue()).isEqualTo("true");
@@ -88,8 +88,8 @@ class JmesPathRuntimeValueTest {
         assertThat(new Value("").stringValues()).isEqualTo(singletonList(""));
         assertThat(new Value(true).stringValues()).isEqualTo(singletonList("true"));
         assertThat(new Value(singletonList("a")).stringValues()).isEqualTo(singletonList("a"));
-        assertThatThrownBy(() -> new Value(sdkPojo()).stringValues()).isInstanceOf(IllegalStateException.class)
-                                                                     .hasMessageContaining("Cannot convert type POJO");
+        assertThatThrownBy(() -> new Value(simpleSdkPojo()).stringValues()).isInstanceOf(IllegalStateException.class)
+                                                                           .hasMessageContaining("Cannot convert type POJO");
     }
 
     @Test
@@ -102,10 +102,10 @@ class JmesPathRuntimeValueTest {
 
     @Test
     void andBehavesWithPojos() {
-        Value truePojo1 = sdkPojoValue(Pair.of("foo", "bar"));
-        Value truePojo2 = sdkPojoValue(Pair.of("foo", "bar"));
-        Value falsePojo1 = sdkPojoValue();
-        Value falsePojo2 = sdkPojoValue();
+        Value truePojo1 = simpleSdkPojoValue(Pair.of("foo", "bar"));
+        Value truePojo2 = simpleSdkPojoValue(Pair.of("foo", "bar"));
+        Value falsePojo1 = simpleSdkPojoValue();
+        Value falsePojo2 = simpleSdkPojoValue();
 
         assertThat(truePojo1.and(truePojo2)).isSameAs(truePojo2);
         assertThat(falsePojo1.and(truePojo1)).isSameAs(falsePojo1);
@@ -149,10 +149,10 @@ class JmesPathRuntimeValueTest {
 
     @Test
     void orBehavesWithPojos() {
-        Value truePojo1 = sdkPojoValue(Pair.of("foo", "bar"));
-        Value truePojo2 = sdkPojoValue(Pair.of("foo", "bar"));
-        Value falsePojo1 = sdkPojoValue();
-        Value falsePojo2 = sdkPojoValue();
+        Value truePojo1 = simpleSdkPojoValue(Pair.of("foo", "bar"));
+        Value truePojo2 = simpleSdkPojoValue(Pair.of("foo", "bar"));
+        Value falsePojo1 = simpleSdkPojoValue();
+        Value falsePojo2 = simpleSdkPojoValue();
 
         assertThat(truePojo1.or(truePojo2)).isSameAs(truePojo1);
         assertThat(falsePojo1.or(truePojo1)).isSameAs(truePojo1);
@@ -205,62 +205,27 @@ class JmesPathRuntimeValueTest {
     }
 
     @Test
-    void wildcardBehavesWithPojos() {
-        assertThat(sdkPojoValue(Pair.of("foo", "bar"),
-                                Pair.of("foo2", singletonList("bar")),
-                                Pair.of("foo3", sdkPojo(Pair.of("x", "y"))))
+    void wildcardBehavesWithPojosAndDoesNotFlatten() {
+        assertThat(simpleSdkPojoValue(Pair.of("foo", "bar"),
+                                      Pair.of("foo2", singletonList("bar")),
+                                      Pair.of("foo3", simpleSdkPojo(Pair.of("x", "y"))))
                        .wildcard())
             .isEqualTo(new Value(asList("bar",
                                         singletonList("bar"),
-                                        sdkPojo(Pair.of("x", "y")))));
+                                        simpleSdkPojo(Pair.of("x", "y")))));
     }
 
     @Test
-    void wildcardBehavesWithNested() {
-        assertThat(nestedConstruct().field("foo2").wildcard())
-            .isEqualTo(new Value(asList(sdkPojo(Pair.of("baz", asList(sdkPojo(Pair.of("key", "value1"))))),
-                                        sdkPojo(Pair.of("baz", asList(sdkPojo(Pair.of("key", "value2"))))))));
+    void wildcardBehavesWithLists() {
+        assertThat(nestedConstruct().field("foo2").field("baz").wildcard())
+            .isEqualTo(new Value(asList(PayloadStructType.builder().payloadMemberTwo("2a").build(),
+                                        PayloadStructType.builder().payloadMemberOne("1b").payloadMemberTwo("2b").build())));
     }
 
     @Test
-    void wildcardBehavesWithNested2() {
-        assertThat(nestedConstruct().field("foo2").wildcard().field("baz"))
-            .isEqualTo(new Value(asList(asList(sdkPojo(Pair.of("key", "value1"))),
-                                        asList(sdkPojo(Pair.of("key", "value2"))))));
-    }
-
-    @Test
-    void wildcardBehavesWithNested3() {
-        assertThat(nestedConstruct().field("foo2").wildcard().field("baz").wildcard())
-            .isEqualTo(new Value(asList(asList(sdkPojo(Pair.of("key", "value1"))),
-                                        asList(sdkPojo(Pair.of("key", "value2"))))));
-    }
-
-    @Test
-    void flattenBehavesWithNested() {
-        assertThat(nestedConstruct().field("foo2").flatten())
-            .isEqualTo(new Value(asList(sdkPojo(Pair.of("baz", asList(sdkPojo(Pair.of("key", "value1"))))),
-                                        sdkPojo(Pair.of("baz", asList(sdkPojo(Pair.of("key", "value2"))))))));
-    }
-
-    @Test
-    void flattenBehavesWithNested2() {
-        assertThat(nestedConstruct().field("foo2").flatten().field("baz"))
-            .isEqualTo(new Value(asList(asList(sdkPojo(Pair.of("key", "value1"))),
-                                        asList(sdkPojo(Pair.of("key", "value2"))))));
-    }
-
-    @Test
-    void flattenBehavesWithNested3() {
-        assertThat(nestedConstruct().field("foo2").flatten().field("baz").flatten())
-            .isEqualTo(new Value(asList(sdkPojo(Pair.of("key", "value1")),
-                                        sdkPojo(Pair.of("key", "value2")))));
-    }
-
-    @Test
-    void flattenBehavesWithNested4() {
-        assertThat(nestedConstruct().field("foo2").flatten().field("baz").flatten().field("key"))
-            .isEqualTo(new Value(asList("value1","value2")));
+    void wildcardBehavesWithProjectionAndFiltersNullElements() {
+        assertThat(nestedConstruct().field("foo2").field("baz").wildcard().field("PayloadMemberOne"))
+            .isEqualTo(new Value(asList("1b")));
     }
 
     @Test
@@ -272,17 +237,23 @@ class JmesPathRuntimeValueTest {
     void flattenBehavesWithLists() {
         assertThat(new Value(asList("bar",
                                     singletonList("bar"),
-                                    sdkPojo(Pair.of("x", "y"))))
+                                    simpleSdkPojo(Pair.of("x", "y"))))
                        .flatten())
             .isEqualTo(new Value(asList("bar",
                                         "bar",
-                                        sdkPojo(Pair.of("x", "y")))));
+                                        simpleSdkPojo(Pair.of("x", "y")))));
+    }
+
+    @Test
+    void flattenBehavesWithProjectionAndFiltersNullElements() {
+        assertThat(nestedConstruct().field("foo2").field("baz").flatten().field("PayloadMemberOne"))
+            .isEqualTo(new Value(asList("1b")));
     }
 
     @Test
     void fieldBehaves() {
         assertThat(new Value(null).field("foo")).isEqualTo(new Value(null));
-        assertThat(sdkPojoValue(Pair.of("foo", "bar")).field("foo")).isEqualTo(new Value("bar"));
+        assertThat(simpleSdkPojoValue(Pair.of("foo", "bar")).field("foo")).isEqualTo(new Value("bar"));
     }
 
     @Test
@@ -299,7 +270,7 @@ class JmesPathRuntimeValueTest {
     void lengthBehaves() {
         assertThat(new Value(null).length()).isEqualTo(new Value(null));
         assertThat(new Value("a").length()).isEqualTo(new Value(1));
-        assertThat(sdkPojoValue(Pair.of("a", "b")).length()).isEqualTo(new Value(1));
+        assertThat(simpleSdkPojoValue(Pair.of("a", "b")).length()).isEqualTo(new Value(1));
         assertThat(new Value(singletonList("a")).length()).isEqualTo(new Value(1));
     }
 
@@ -310,7 +281,7 @@ class JmesPathRuntimeValueTest {
                                                        .hasMessageContaining("Unsupported type for keys function");
         assertThatThrownBy(() -> new Value(asList("a", "b")).keys()).isInstanceOf(IllegalArgumentException.class)
                                                                     .hasMessageContaining("Unsupported type for keys function");
-        assertThat(sdkPojoValue(Pair.of("a", "b"), Pair.of("c", "d")).keys()).isEqualTo(new Value(asList("a", "c")));
+        assertThat(simpleSdkPojoValue(Pair.of("a", "b"), Pair.of("c", "d")).keys()).isEqualTo(new Value(asList("a", "c")));
     }
 
 
@@ -354,31 +325,47 @@ class JmesPathRuntimeValueTest {
         return new Value(false);
     }
 
+    //This construct is useful for testing projections as it contains elements with incomplete data
     private Value nestedConstruct() {
-        return sdkPojoValue(Pair.of("foo", "bar"),
-                            Pair.of("foo2", asList(
-                                sdkPojo(Pair.of("baz", asList(sdkPojo(Pair.of("key", "value1"))))),
-                                sdkPojo(Pair.of("baz", asList(sdkPojo(Pair.of("key", "value2")))))
-                            )),
-                            Pair.of("foo3", sdkPojo(Pair.of("x", "y"))));
+        return simpleSdkPojoValue(Pair.of("foo", "bar"),
+                                  Pair.of("foo2", simpleSdkPojo(
+                                      Pair.of("baz", asList(
+                                          PayloadStructType.builder().payloadMemberTwo("2a").build(),
+                                          PayloadStructType.builder().payloadMemberOne("1b").payloadMemberTwo("2b").build()
+                                      )))),
+                                  Pair.of("foo3", simpleSdkPojo(Pair.of("x", "y"))));
     }
 
+    /**
+     * Do not use for projections. See {@code SimpleSdkPojo}.
+     */
     @SafeVarargs
-    private final Value sdkPojoValue(Pair<String, Object>... entry) {
-        return new Value(sdkPojo(entry));
+    private final Value simpleSdkPojoValue(Pair<String, Object>... entry) {
+        return new Value(simpleSdkPojo(entry));
     }
 
+    /**
+     * Do not use for projections. See {@code SimpleSdkPojo}.
+     */
     @SafeVarargs
-    private final SdkPojo sdkPojo(Pair<String, Object>... entry) {
+    private final SdkPojo simpleSdkPojo(Pair<String, Object>... entry) {
         Map<String, Object> result = new HashMap<>();
         Stream.of(entry).forEach(e -> result.put(e.left(), e.right()));
-        return new MockSdkPojo(result);
+        return new SimpleSdkPojo(result);
     }
 
-    private static class MockSdkPojo implements SdkPojo {
+    /**
+     * The SimpleSdkPojo is useful to quickly construct test objects for most test cases.
+     * It is NOT a true SdkPojo because there is no typing and cannot be used to test
+     * complex nesting cases. Consider an SdkPojo that contains a typed list of two
+     * SdkPojo of a different kind - SimpleSdkPojo cannot reliably be used, because if
+     * a field referenced in the expression is null, JmesPathRuntime will assume it doesn't
+     * exist and throw an error.
+     */
+    private static class SimpleSdkPojo implements SdkPojo {
         private final Map<String, Object> map;
 
-        private MockSdkPojo(Map<String, Object> map) {
+        private SimpleSdkPojo(Map<String, Object> map) {
             this.map = map;
         }
 
@@ -405,7 +392,7 @@ class JmesPathRuntimeValueTest {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            MockSdkPojo that = (MockSdkPojo) o;
+            SimpleSdkPojo that = (SimpleSdkPojo) o;
             return Objects.equals(map, that.map);
         }
 
