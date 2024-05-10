@@ -41,6 +41,8 @@
         "http-auth-aws": { "packageName": "AwsJavaSdk-Core-HttpAuthAws" },
         "http-auth-aws-crt": { "packageName": "AwsJavaSdk-Core-HttpAuthAwsCrt" },
         "http-auth-aws-eventstream": { "packageName": "AwsJavaSdk-Core-HttpAuthAwsEventStream" },
+        "retries-spi": { "packageName": "AwsJavaSdk-Core-RetriesSpi" },
+        "retries": { "packageName": "AwsJavaSdk-Core-Retries" },
 
         "dynamodb": { "packageName": "AwsJavaSdk-DynamoDb" },
         "waf": { "packageName": "AwsJavaSdk-Waf" },

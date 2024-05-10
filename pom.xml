@@ -652,6 +652,8 @@
                             <includeModule>cloudwatch-metric-publisher</includeModule>
                             <includeModule>utils</includeModule>
                             <includeModule>imds</includeModule>
+                            <includeModule>retries</includeModule>
+                            <includeModule>retries-spi</includeModule>
 
                             <!-- High level libraries -->
                             <includeModule>dynamodb-enhanced</includeModule>
