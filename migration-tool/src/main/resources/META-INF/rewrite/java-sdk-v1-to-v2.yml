@@ -32,3 +32,4 @@ recipeList:
   - software.amazon.awssdk.migration.recipe.NewClassToBuilderPattern
   - software.amazon.awssdk.migration.recipe.NewClassToStaticFactory
   - software.amazon.awssdk.migration.internal.recipe.V1GetterToV2
+  - software.amazon.awssdk.migration.internal.recipe.HttpSettingsToHttpClient

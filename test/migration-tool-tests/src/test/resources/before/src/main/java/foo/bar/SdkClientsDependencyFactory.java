@@ -32,16 +32,26 @@ public final class SdkClientsDependencyFactory {
         return new AmazonSQSClient();
     }
 
-    public static AmazonSQS sqsClientWithAllSettings() {
+    public static ClientConfiguration customClientConfiguration() {
         ClientConfiguration clientConfiguration = new ClientConfiguration()
             .withRetryMode(RetryMode.STANDARD)
-            .withClientExecutionTimeout(5000)
-            .withRequestTimeout(1000)
+            .withClientExecutionTimeout(1000)
+            .withRequestTimeout(1001)
+            .withMaxConnections(1002)
+            .withConnectionTimeout(1003)
+            .withTcpKeepAlive(true)
+            .withSocketTimeout(1004)
+            .withConnectionTTL(1005)
+            .withConnectionMaxIdleMillis(1006)
             .withHeader("foo", "bar");
 
+        return clientConfiguration;
+    }
+
+    public static AmazonSQS sqsClientWithAllSettings() {
         return AmazonSQSClient.builder()
                               .withRegion(Regions.US_WEST_2)
-                              .withClientConfiguration(clientConfiguration)
+                              .withClientConfiguration(customClientConfiguration())
                               .withCredentials(CredentialsDependencyFactory.defaultCredentialsProviderChain())
                               .build();
     }
@@ -50,10 +60,19 @@ public final class SdkClientsDependencyFactory {
         return new AmazonSQSAsyncClient();
     }
 
-    public static AmazonSQSAsync defaultSqsAsyncClientWithAllSettings() {
+    public static AmazonSQSAsync sqsAsyncClientWithAllSettings() {
+
+        ClientConfiguration clientConfiguration = new ClientConfiguration()
+            .withRetryMode(RetryMode.STANDARD)
+            .withClientExecutionTimeout(2001)
+            .withRequestTimeout(2002)
+            .withConnectionTimeout(2004)
+            .withHeader("hello", "world");
+
         return AmazonSQSAsyncClient.asyncBuilder()
                                    .withRegion(Regions.US_WEST_2)
                                    .withCredentials(CredentialsDependencyFactory.defaultCredentialsProviderChain())
+                                   .withClientConfiguration(clientConfiguration)
                                    .build();
     }
 }

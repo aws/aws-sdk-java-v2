@@ -17,6 +17,14 @@ name: software.amazon.awssdk.UpgradeSdkDependencies
 displayName: Change Maven dependency groupId, artifactId and/or the version example
 recipeList:
 
+  - org.openrewrite.maven.AddDependency:
+      groupId: software.amazon.awssdk
+      artifactId: apache-client
+      version: 2.23.16-SNAPSHOT
+  - org.openrewrite.maven.AddDependency:
+      groupId: software.amazon.awssdk
+      artifactId: netty-nio-client
+      version: 2.23.16-SNAPSHOT
   - org.openrewrite.maven.ChangeManagedDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-bom

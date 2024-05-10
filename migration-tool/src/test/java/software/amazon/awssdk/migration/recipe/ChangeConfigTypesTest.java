@@ -29,6 +29,7 @@ import org.openrewrite.config.YamlResourceLoader;
 import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import software.amazon.awssdk.migration.internal.recipe.HttpSettingsToHttpClient;
 
 public class ChangeConfigTypesTest implements RewriteTest {
 
@@ -39,7 +40,9 @@ public class ChangeConfigTypesTest implements RewriteTest {
                                     .load(new YamlResourceLoader(stream, URI.create("rewrite.yml"), new Properties()))
                                     .build()
                                     .activateRecipes("software.amazon.awssdk.ChangeConfigTypes"),
-                         new NewClassToBuilderPattern());
+                         new ChangeSdkType(),
+                         new NewClassToBuilderPattern(),
+                         new HttpSettingsToHttpClient());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -74,7 +77,7 @@ public class ChangeConfigTypesTest implements RewriteTest {
 
     @Test
     @EnabledOnJre({JRE.JAVA_8})
-    void defaultConfigurationWithSupportedNonConnectionSettings_shouldConvert() {
+    void configurationWithSupportedNonConnectionSettings_shouldConvert() {
         rewriteRun(
             java(
                 "import com.amazonaws.ClientConfiguration;\n"
@@ -111,7 +114,230 @@ public class ChangeConfigTypesTest implements RewriteTest {
 
     @Test
     @EnabledOnJre({JRE.JAVA_8})
-    void defaultConfigurationWithUnsupportedSettings_shouldAddComment() {
+    void configurationWithHttpSettings_localVariable_shouldRemoveAndSetOnSdkClient() {
+
+        rewriteRun(
+            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
+            java(
+                "import com.amazonaws.ClientConfiguration;\n"
+                + "import com.amazonaws.services.sqs.AmazonSQS;\n"
+                + "import com.amazonaws.services.sqs.AmazonSQSClient;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "\n"
+                + "    public void test() {\n"
+                + "        ClientConfiguration clientConfiguration = new ClientConfiguration()\n"
+                + "            .withRequestTimeout(1000)\n"
+                + "            .withMaxConnections(1000)\n"
+                + "            .withConnectionTimeout(1000)\n"
+                + "            .withTcpKeepAlive(true)\n"
+                + "            .withSocketTimeout(1000)\n"
+                + "            .withConnectionTTL(1000)\n"
+                + "            .withConnectionMaxIdleMillis(1000);\n"
+                + "\n"
+                + "        AmazonSQS sqs = AmazonSQSClient.builder()\n"
+                + "                                       .withClientConfiguration(clientConfiguration)\n"
+                + "                                       .build();\n"
+                + "    }\n"
+                + "}",
+                "import software.amazon.awssdk.http.apache.ApacheHttpClient;\n"
+                + "import software.amazon.awssdk.services.sqs.SqsClient;\n"
+                + "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
+                + "\n"
+                + "import java.time.Duration;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "\n"
+                + "    public void test() {\n"
+                + "        ClientOverrideConfiguration clientConfiguration =ClientOverrideConfiguration.builder()\n"
+                + "                .apiCallAttemptTimeout(Duration.ofMillis(1000)).build();\n"
+                + "\n"
+                + "        SqsClient sqs = SqsClient.builder()\n"
+                + "                .overrideConfiguration(clientConfiguration)\n"
+                + "                .httpClientBuilder(ApacheHttpClient.builder()\n"
+                + "                        .connectionMaxIdleTime(Duration.ofMillis(1000))\n"
+                + "                        .tcpKeepAlive(true)\n"
+                + "                        .socketTimeout(Duration.ofMillis(1000))\n"
+                + "                        .connectionTimeToLive(Duration.ofMillis(1000))\n"
+                + "                        .connectionTimeout(Duration.ofMillis(1000))\n"
+                + "                        .maxConnections(1000))\n"
+                + "                .build();\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
+
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
+    void configurationWithHttpSettings_methodReference_shouldRemoveAndSetOnSdkClient() {
+
+        rewriteRun(
+            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
+            java(
+                "import com.amazonaws.ClientConfiguration;\n"
+                + "import com.amazonaws.services.sqs.AmazonSQS;\n"
+                + "import com.amazonaws.services.sqs.AmazonSQSClient;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "    public ClientConfiguration configuration() {\n"
+                + "        return new ClientConfiguration()\n"
+                + "            .withRequestTimeout(1000)\n"
+                + "            .withTcpKeepAlive(true)\n"
+                + "            .withMaxConnections(1000);\n"
+                + "    }\n"
+                + "\n"
+                + "    public void test() {\n"
+                + "        AmazonSQS sqs = AmazonSQSClient.builder()\n"
+                + "                                       .withClientConfiguration(configuration())\n"
+                + "                                       .build();\n"
+                + "    }\n"
+                + "}",
+                "import software.amazon.awssdk.http.apache.ApacheHttpClient;\n"
+                + "import software.amazon.awssdk.services.sqs.SqsClient;\n"
+                + "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
+                + "\n"
+                + "import java.time.Duration;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "    public ClientOverrideConfiguration configuration() {\n"
+                + "        returnClientOverrideConfiguration.builder()\n"
+                + "                .apiCallAttemptTimeout(Duration.ofMillis(1000)).build();\n"
+                + "    }\n"
+                + "\n"
+                + "    public void test() {\n"
+                + "        SqsClient sqs = SqsClient.builder()\n"
+                + "                .overrideConfiguration(configuration())\n"
+                + "                .httpClientBuilder(ApacheHttpClient.builder()\n"
+                + "                        .tcpKeepAlive(true)\n"
+                + "                        .maxConnections(1000))\n"
+                + "                .build();\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
+
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
+    void configurationWithHttpSettings_asyncSdkClient_shouldRemoveAndSetOnSdkClient() {
+
+        rewriteRun(
+            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
+            java(
+                "import com.amazonaws.ClientConfiguration;\n"
+                + "import com.amazonaws.services.sqs.AmazonSQSAsync;\n"
+                + "import com.amazonaws.services.sqs.AmazonSQSAsyncClient;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "\n"
+                + "    public void test() {\n"
+                + "        ClientConfiguration clientConfiguration = new ClientConfiguration()\n"
+                + "            .withConnectionTimeout(1000)\n"
+                + "            .withTcpKeepAlive(true)\n"
+                + "            .withConnectionTTL(1000)\n"
+                + "            .withRequestTimeout(1000)\n"
+                + "            .withConnectionMaxIdleMillis(1000);\n"
+                + "\n"
+                + "        AmazonSQSAsync sqs = AmazonSQSAsyncClient.asyncBuilder()\n"
+                + "                                                 .withClientConfiguration(clientConfiguration)\n"
+                + "                                                 .build();\n"
+                + "\n"
+                + "\n"
+                + "    }\n"
+                + "}",
+                "import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;\n"
+                + "import software.amazon.awssdk.services.sqs.SqsAsyncClient;\n"
+                + "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
+                + "\n"
+                + "import java.time.Duration;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "\n"
+                + "    public void test() {\n"
+                + "        ClientOverrideConfiguration clientConfiguration = ClientOverrideConfiguration.builder()\n"
+                + "                .apiCallAttemptTimeout(Duration.ofMillis(1000)).build();\n"
+                + "\n"
+                + "        SqsAsyncClient sqs = SqsAsyncClient.asyncBuilder()\n"
+                + "                .overrideConfiguration(clientConfiguration)\n"
+                + "                .httpClientBuilder(NettyNioAsyncHttpClient.builder()\n"
+                + "                        .connectionMaxIdleTime(Duration.ofMillis(1000))\n"
+                + "                        .tcpKeepAlive(true)\n"
+                + "                        .connectionTimeToLive(Duration.ofMillis(1000))\n"
+                + "                        .connectionTimeout(Duration.ofMillis(1000)))\n"
+                + "                .build();\n"
+                + "\n"
+                + "\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
+
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
+    void multipleSdkClients_shouldSetHttpClientCorrectly() {
+
+        rewriteRun(
+            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
+            java(
+                "import com.amazonaws.ClientConfiguration;\n"
+                + "import com.amazonaws.services.sqs.AmazonSQS;\n"
+                + "import com.amazonaws.services.sqs.AmazonSQSClient;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "\n"
+                + "    public void test() {\n"
+                + "        ClientConfiguration clientConfiguration1 = new ClientConfiguration()\n"
+                + "            .withSocketTimeout(1000).withMaxConnections(100);\n"
+                + "\n"
+                + "        ClientConfiguration clientConfiguration2 = new ClientConfiguration()\n"
+                + "            .withConnectionTimeout(2000);\n"
+                + "\n"
+                + "        AmazonSQS sqs1 = AmazonSQSClient.builder()\n"
+                + "                                       .withClientConfiguration(clientConfiguration1)\n"
+                + "                                       .build();\n"
+                + "\n"
+                + "        AmazonSQS sqs2 = AmazonSQSClient.builder()\n"
+                + "                                       .withClientConfiguration(clientConfiguration2)\n"
+                + "                                       .build();\n"
+                + "    }\n"
+                + "}",
+                "import software.amazon.awssdk.http.apache.ApacheHttpClient;\n"
+                + "import software.amazon.awssdk.services.sqs.SqsClient;\n"
+                + "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
+                + "\n"
+                + "import java.time.Duration;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "\n"
+                + "    public void test() {\n"
+                + "        ClientOverrideConfiguration clientConfiguration1 =ClientOverrideConfiguration.builder().build();\n"
+                + "\n"
+                + "        ClientOverrideConfiguration clientConfiguration2 = ClientOverrideConfiguration.builder().build();\n"
+                + "\n"
+                + "        SqsClient sqs1 = SqsClient.builder()\n"
+                + "                .overrideConfiguration(clientConfiguration1)\n"
+                + "                .httpClientBuilder(ApacheHttpClient.builder()\n"
+                + "                        .socketTimeout(Duration.ofMillis(1000))\n"
+                + "                        .maxConnections(100))\n"
+                + "                .build();\n"
+                + "\n"
+                + "        SqsClient sqs2 = SqsClient.builder()\n"
+                + "                .overrideConfiguration(clientConfiguration2)\n"
+                + "                .httpClientBuilder(ApacheHttpClient.builder()\n"
+                + "                        .connectionTimeout(Duration.ofMillis(2000)))\n"
+                + "                .build();\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
+
+
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
+    void configurationWithUnsupportedSettings_shouldAddComment() {
         rewriteRun(
             java(
                 "import com.amazonaws.ClientConfiguration;\n"

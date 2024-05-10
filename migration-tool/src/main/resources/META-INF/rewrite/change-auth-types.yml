@@ -98,6 +98,9 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider getCredentials
       newMethodName: resolveCredentials
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.auth.WebIdentityTokenCredentialsProvider
+      newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider
 
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.auth.InstanceProfileCredentialsProvider getInstance
@@ -124,7 +127,7 @@ recipeList:
       newMethodName: resolveCredentials
 
   - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: com.amazonaws.auth.WebIdentityFederationSessionCredentialsProvider
+      oldFullyQualifiedTypeName: com.amazonaws.auth.STSAssumeRoleWithWebIdentitySessionCredentialsProvider
       newFullyQualifiedTypeName: software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithWebIdentityCredentialsProvider
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: software.amazon.awssdk.auth.credentials.StsAssumeRoleWithWebIdentityCredentialsProvider getCredentials
