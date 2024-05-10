@@ -142,7 +142,7 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>retries-api</artifactId>
+            <artifactId>retries-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>

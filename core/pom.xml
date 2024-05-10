@@ -53,7 +53,7 @@
         <module>endpoints-spi</module>
         <module>imds</module>
         <module>crt-core</module>
-        <module>retries-api</module>
+        <module>retries-spi</module>
         <module>retries</module>
         <module>checksums-spi</module>
         <module>checksums</module>
