@@ -976,6 +976,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "Madrigal",
+      "name": "Luis Madrigal",
+      "avatar_url": "https://avatars.githubusercontent.com/u/599908?v=4",
+      "profile": "https://github.com/Madrigal",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
