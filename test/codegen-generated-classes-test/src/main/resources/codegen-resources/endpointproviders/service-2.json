@@ -386,7 +386,8 @@
       "members":{
         "Nested": {"shape":"NestedContainersStructure"},
         "ListOfString":{"shape":"ListOfStrings"},
-        "ListOfNested":{"shape":"ListOfNested"}
+        "ListOfNested":{"shape":"ListOfNested"},
+        "PojoKeys":{"shape":"PayloadStructType"}
       }
     },
     "GetOperationWithBodyInput":{
@@ -691,6 +692,7 @@
       "type":"structure",
       "members":{
         "ListOfNested":{"shape":"ListOfNested"},
+        "ListOfString":{"shape":"ListOfStrings"},
         "ListOfListsOfStrings":{"shape":"ListOfListsOfStrings"},
         "ListOfListsOfStructs":{"shape":"ListOfListsOfStructs"},
         "ListOfListsOfAllTypesStructs":{"shape":"ListOfListsOfAllTypesStructs"},

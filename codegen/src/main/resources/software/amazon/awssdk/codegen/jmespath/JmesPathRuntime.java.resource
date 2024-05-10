@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.utils.ToString;
 
@@ -187,12 +188,15 @@ public final class JmesPathRuntime {
             if (type == Type.LIST) {
                 List<String> result = new ArrayList<>();
                 for (Object listEntry : listValue) {
-                    Value listValue = new Value(listEntry);
-                    if (listValue.type != Type.STRING) {
-                        throw new IllegalStateException("Expected list elements to be of type String, but were "
-                        + listValue.type);
+                    Value entryAsValue = new Value(listEntry);
+                    if (entryAsValue.type == Type.NULL) {
+                        continue;
                     }
-                    result.add(listValue.stringValue);
+                    if (entryAsValue.type != Type.STRING) {
+                        throw new IllegalStateException("Expected list elements to be of type String, but were "
+                        + entryAsValue.type);
+                    }
+                    result.add(entryAsValue.stringValue);
                 }
                 return result;
             }
@@ -222,14 +226,16 @@ public final class JmesPathRuntime {
                 return NULL_VALUE;
             }
 
-            if (type != Type.POJO) {
-                throw new IllegalArgumentException("Cannot flatten a " + type);
+            if (type == Value.Type.LIST) {
+                return newProjection(listValue);
             }
 
-            return Value.newProjection(pojoValue.sdkFields().stream()
-                                                .map(f -> f.getValueOrDefault(pojoValue))
-                                                .filter(Objects::nonNull)
-                                                .collect(toList()));
+            if (type == Value.Type.POJO) {
+                return newProjection(pojoValue.sdkFields().stream().map(f -> f.getValueOrDefault(pojoValue))
+                                              .filter(Objects::nonNull).collect(toList()));
+            }
+
+            throw new IllegalArgumentException("Cannot use a wildcard expression on a " + type);
         }
 
         /**
@@ -330,6 +336,18 @@ public final class JmesPathRuntime {
             }
 
             throw new IllegalArgumentException("Unsupported type for length function: " + type);
+        }
+
+        public Value keys() {
+            if (type == Type.NULL) {
+                return new Value(Collections.emptyList(), false);
+            }
+
+            if (type == Type.POJO) {
+                return new Value(pojoValue.sdkFields().stream().map(SdkField::memberName).collect(toList()));
+            }
+
+            throw new IllegalArgumentException("Unsupported type for keys function: " + type);
         }
 
         /**
@@ -463,6 +481,7 @@ public final class JmesPathRuntime {
                                       .map(Value::new)
                                       .map(functionToApply)
                                       .map(Value::value)
+                                      .filter(Objects::nonNull)
                                       .collect(toList()),
                              true);
         }

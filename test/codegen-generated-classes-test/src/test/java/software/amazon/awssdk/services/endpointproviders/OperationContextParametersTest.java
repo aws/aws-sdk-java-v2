@@ -22,13 +22,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -38,10 +36,13 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpointProvidersClient;
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.RestJsonEndpointProvidersEndpointParams;
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.RestJsonEndpointProvidersEndpointProvider;
+import software.amazon.awssdk.services.restjsonendpointproviders.model.NestedContainersOperationRequest;
 import software.amazon.awssdk.services.restjsonendpointproviders.model.NestedContainersOperationResponse;
 import software.amazon.awssdk.services.restjsonendpointproviders.model.NestedContainersStructure;
+import software.amazon.awssdk.services.restjsonendpointproviders.model.PayloadStructType;
+import software.amazon.awssdk.testutils.LogCaptor;
 
-class OperationContextParametersTest {
+class OperationContextParametersTest extends LogCaptor.LogCaptorTestBase {
     private static final AwsCredentialsProvider CREDENTIALS = StaticCredentialsProvider.create(
         AwsBasicCredentials.create("akid", "skid"));
 
@@ -56,9 +57,30 @@ class OperationContextParametersTest {
             .thenThrow(new RuntimeException("boom"));
     }
 
-    @ParameterizedTest
-    @MethodSource("testCases")
-    void operationContextParams_customization_resolvedCorrectly(TestCase tc) {
+    static Stream<Arguments> paramAssertions() {
+        return Stream.of(
+            Arguments.of("Single String parameter", new TestAssertion(
+                p -> assertThat(p.pojoString()).isEqualTo("StringMemberA"))),
+
+            Arguments.of("List of String parameter", new TestAssertion(
+                p -> assertThat(p.basicListOfString()).isNotEmpty().hasSize(2).containsExactly("StringA", "StringB"))),
+
+            Arguments.of("List of String parameter from wildcard with null members", new TestAssertion(
+                p -> assertThat(p.wildcardKeyListOfString()).isNotEmpty().hasSize(1)
+                                                            .containsExactly("StringMemberS2"))),
+
+            Arguments.of("List of String parameter from 'keys' function", new TestAssertion(
+                p -> assertThat(p.keysListOfString()).isNotEmpty().hasSize(2)
+                                                     .containsExactly("PayloadMemberOne", "PayloadMemberTwo"))),
+
+            Arguments.of("List of String parameter is empty if request does not have list elements", new TestAssertion(
+                p -> assertThat(p.missingRequestValuesListOfString()).isEmpty()))
+        );
+    }
+
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("paramAssertions")
+    void operationContextParams_customization_resolvedCorrectly(String description, TestAssertion assertion) {
         assertThatThrownBy(this::createClientAndCallApi).isInstanceOf(RuntimeException.class);
 
         ArgumentCaptor<RestJsonEndpointProvidersEndpointParams> paramsCaptor =
@@ -67,23 +89,7 @@ class OperationContextParametersTest {
         verify(mockEndpointProvider).resolveEndpoint(paramsCaptor.capture());
         RestJsonEndpointProvidersEndpointParams params = paramsCaptor.getValue();
 
-        tc.verify.accept(params);
-    }
-
-    static List<TestCase> testCases() {
-        List<TestCase> testCases = new ArrayList<>();
-
-        testCases.add(new TestCase(p -> {
-            String listOfPojoKeysArray = p.pojoString();
-            assertThat(listOfPojoKeysArray).isEqualTo("StringMemberA");
-        }));
-
-        testCases.add(new TestCase(p -> {
-            List<String> listOfPojoKeysArray = p.basicListOfString();
-            assertThat(listOfPojoKeysArray).isNotEmpty().hasSize(2).containsExactly("StringA", "StringB");
-        }));
-
-        return testCases;
+        assertion.verify.accept(params);
     }
 
     private NestedContainersOperationResponse createClientAndCallApi() {
@@ -92,26 +98,33 @@ class OperationContextParametersTest {
                                                                                 .credentialsProvider(CREDENTIALS)
                                                                                 .endpointProvider(mockEndpointProvider)
                                                                                 .build();
-
-        NestedContainersStructure nestedShallow1 = NestedContainersStructure.builder()
-                                                                            .stringMember("StringMemberS1")
-                                                                            .build();
-        NestedContainersStructure nestedShallow2 = NestedContainersStructure.builder()
-                                                                            .stringMember("StringMemberS2")
-                                                                            .build();
-        NestedContainersStructure nested = NestedContainersStructure.builder()
-                                                                    .stringMember("StringMemberA")
-                                                                    .listOfNested(nestedShallow1, nestedShallow2)
-                                                                    .build();
-        return client.nestedContainersOperation(r -> r.nested(nested)
-                                                      .listOfString("StringA", "StringB")
-                                                      .listOfNested(nestedShallow1, nestedShallow2));
+        return client.nestedContainersOperation(createRequestObject());
     }
 
-    private static class TestCase {
+    private static NestedContainersOperationRequest createRequestObject() {
+        NestedContainersStructure pojoInListWithoutProjectionMember = NestedContainersStructure.builder().build();
+        NestedContainersStructure pojoInListWithProjectionMember = NestedContainersStructure.builder()
+                                                                                            .stringMember("StringMemberS2")
+                                                                                            .build();
+        NestedContainersStructure nested = NestedContainersStructure.builder()
+                                                                    .stringMember("StringMemberA")
+                                                                    .listOfNested(pojoInListWithoutProjectionMember,
+                                                                                  pojoInListWithProjectionMember)
+                                                                    .build();
+        PayloadStructType pojoKeys = PayloadStructType.builder().payloadMemberOne("p1").payloadMemberTwo("p2").build();
+
+        return NestedContainersOperationRequest.builder()
+                                               .nested(nested)
+                                               .listOfString("StringA", "StringB")
+                                               .listOfNested(pojoInListWithoutProjectionMember, pojoInListWithProjectionMember)
+                                               .pojoKeys(pojoKeys)
+                                               .build();
+    }
+
+    private static class TestAssertion {
         private final Consumer<RestJsonEndpointProvidersEndpointParams> verify;
 
-        TestCase(Consumer<RestJsonEndpointProvidersEndpointParams> verify) {
+        TestAssertion(Consumer<RestJsonEndpointProvidersEndpointParams> verify) {
             this.verify = verify;
         }
     }

@@ -42,6 +42,7 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public final class QueryResolveEndpointInterceptor implements ExecutionInterceptor {
+
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
         SdkRequest result = context.request();
@@ -204,14 +205,15 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     private static void setOperationContextParams(QueryEndpointParams.Builder params,
                                                   OperationWithCustomizedOperationContextParamRequest request) {
         JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
-        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString").stringValues());
-
+        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString")
+                                            .stringValues());
     }
 
     private static void setOperationContextParams(QueryEndpointParams.Builder params,
                                                   OperationWithOperationContextParamRequest request) {
         JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
-        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString").stringValues());
+        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString")
+                                            .stringValues());
     }
 
     private static Optional<String> hostPrefix(String operationName, SdkRequest request) {

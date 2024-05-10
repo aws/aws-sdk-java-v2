@@ -91,6 +91,7 @@ import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public class EndpointResolverInterceptorSpec implements ClassSpec {
+
     private final IntermediateModel model;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private final EndpointParamsKnowledgeIndex endpointParamsKnowledgeIndex;
@@ -559,6 +560,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         opModel.getOperationContextParams().forEach((key, value) -> {
             if (Objects.requireNonNull(value.getValue().asToken()) == JsonToken.VALUE_STRING) {
                 String setterName = endpointRulesSpecUtils.paramMethodName(key);
+
                 String jmesPathString = ((JrsString) value.getValue()).getValue();
                 CodeBlock addParam = CodeBlock.builder()
                                               .add("params.$N(", setterName)
@@ -566,6 +568,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                                               .add(matchToParameterType(key))
                                               .add(")")
                                               .build();
+
                 b.addStatement(addParam);
             } else {
                 throw new RuntimeException("Invalid operation context parameter path for " + opModel.getOperationName() +
@@ -881,4 +884,5 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.addStatement("this.$N = $N.endpointAuthSchemeStrategy()", endpointAuthSchemeFieldName, factoryLocalVarName);
         return b.build();
     }
+
 }
