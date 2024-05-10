@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SSO OIDC",
-    "contributor": "",
-    "description": "Updated request parameters for PKCE support."
-}
