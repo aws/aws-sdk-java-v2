@@ -61,7 +61,7 @@ public class HttpSettingsToHttpClient extends Recipe {
             method = super.visitMethodInvocation(method, executionContext).cast();
 
             if (!Optional.ofNullable(method.getMethodType()).map(mt -> mt.getDeclaringType())
-                        .filter(t -> t.isAssignableTo(ClientOverrideConfiguration.class.getCanonicalName()))
+                         .filter(t -> t.isAssignableTo(ClientOverrideConfiguration.class.getCanonicalName()))
                          .isPresent()) {
                 return method;
             }
