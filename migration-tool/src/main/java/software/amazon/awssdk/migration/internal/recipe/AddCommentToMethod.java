@@ -17,14 +17,21 @@ package software.amazon.awssdk.migration.internal.recipe;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.List;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Option;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.tree.Comment;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.marker.SearchResult;
+import org.openrewrite.java.tree.JRightPadded;
+import org.openrewrite.java.tree.Space;
+import org.openrewrite.java.tree.TextComment;
+import org.openrewrite.marker.Markers;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
@@ -69,10 +76,12 @@ public class AddCommentToMethod extends Recipe {
     private static final class Visitor extends JavaIsoVisitor<ExecutionContext> {
         private final MethodMatcher methodMatcher;
         private final String comment;
+        private final Comment commentToAdd;
 
         Visitor(String methodPattern, String comment) {
             this.methodMatcher = new MethodMatcher(methodPattern, false);
-            this.comment = COMMENT_PREFIX + comment + "\n";
+            this.comment = COMMENT_PREFIX + comment;
+            this.commentToAdd = new TextComment(true, this.comment, "", Markers.EMPTY);
         }
 
         @Override
@@ -83,7 +92,33 @@ public class AddCommentToMethod extends Recipe {
                 return method;
             }
 
-            return SearchResult.found(method, comment);
+
+            J.MethodInvocation.Padding padding = method.getPadding();
+            JRightPadded<Expression> select = padding.getSelect();
+
+            if (select == null) {
+                return method;
+            }
+
+            Space after = select.getAfter();
+            List<Comment> comments = new ArrayList<>(after.getComments());
+
+            if (comments.contains(commentToAdd)) {
+                return method;
+            }
+            comments.add(commentToAdd);
+            after = after.withComments(comments);
+
+            return new J.MethodInvocation(
+                method.getId(),
+                method.getPrefix(),
+                method.getMarkers(),
+                select.withAfter(after),
+                padding.getTypeParameters(),
+                method.getName(),
+                padding.getArguments(),
+                method.getMethodType()
+            );
         }
     }
 }
