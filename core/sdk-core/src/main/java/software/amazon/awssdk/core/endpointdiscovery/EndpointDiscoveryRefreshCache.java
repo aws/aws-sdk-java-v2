@@ -45,17 +45,8 @@ public final class EndpointDiscoveryRefreshCache {
      * @return The endpoint to use for this request
      */
     public URI get(String accessKey, EndpointDiscoveryRequest request) {
-        String key = accessKey;
 
-        // Support null (anonymous credentials) by mapping to empty-string. The backing cache does not support null.
-        if (key == null) {
-            key = "";
-        }
-
-        if (request.cacheKey().isPresent()) {
-            key = key + ":" + request.cacheKey().get();
-        }
-
+        String key = getKey(accessKey, request);
         EndpointDiscoveryEndpoint endpoint = cache.get(key);
 
         if (endpoint == null) {
