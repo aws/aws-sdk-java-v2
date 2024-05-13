@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "bugfix",
+    "contributor": "",
+    "description": "Fixed a bug in file-based AsyncResponseTransformer that could cause a streaming request to hang if an exception was thrown from `onStream`"
+}

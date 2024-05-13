@@ -246,6 +246,15 @@ class FileAsyncResponseTransformerTest {
         }
     }
 
+    @Test
+    void onStreamFailed_shouldCompleteFutureExceptionally() {
+        Path testPath = testFs.getPath("test_file.txt");
+        FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath);
+        CompletableFuture<String> future = transformer.prepare();
+        transformer.onStream(null);
+        assertThat(future).isCompletedExceptionally();
+    }
+
     private static void stubSuccessfulStreaming(String newContent, FileAsyncResponseTransformer<String> transformer) throws Exception {
         CompletableFuture<String> future = transformer.prepare();
         transformer.onResponse("foobar");
