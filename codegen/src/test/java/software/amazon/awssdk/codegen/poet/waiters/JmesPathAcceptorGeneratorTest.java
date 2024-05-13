@@ -17,21 +17,22 @@ package software.amazon.awssdk.codegen.poet.waiters;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.squareup.javapoet.ClassName;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class JmesPathAcceptorGeneratorTest {
+class JmesPathAcceptorGeneratorTest {
     private JmesPathAcceptorGenerator acceptorGenerator;
 
-    @Before
+    @BeforeEach
     public void setup() {
-        acceptorGenerator = new JmesPathAcceptorGenerator(ClassName.get("software.amazon.awssdk.codegen", "WaitersRuntime"));
+        acceptorGenerator = new JmesPathAcceptorGenerator(ClassName.get("software.amazon.awssdk.codegen", "JmesPathRuntime"));
     }
 
     @Test
-    public void testAutoScalingComplexExpression() {
+    void testAutoScalingComplexExpression() {
         testConversion("contains(AutoScalingGroups[].[length(Instances[?LifecycleState=='InService']) >= MinSize][], `false`)",
                        "input.field(\"AutoScalingGroups\").flatten().multiSelectList(x0 -> x0.field(\"Instances\").filter(x1 -> "
                        + "x1.field(\"LifecycleState\").compare(\"==\", x1.constant(\"InService\"))).length().compare(\">=\", "
@@ -39,7 +40,7 @@ public class JmesPathAcceptorGeneratorTest {
     }
 
     @Test
-    public void testEcsComplexExpression() {
+    void testEcsComplexExpression() {
         testConversion("length(services[?!(length(deployments) == `1` && runningCount == desiredCount)]) == `0`",
                        "input.field(\"services\").filter(x0 -> x0.constant(x0.field(\"deployments\").length().compare(\"==\", "
                        + "x0.constant(1)).and(x0.field(\"runningCount\").compare(\"==\", x0.field(\"desiredCount\"))).not()))"
@@ -47,120 +48,127 @@ public class JmesPathAcceptorGeneratorTest {
     }
 
     @Test
-    public void testSubExpressionWithIdentifier() {
+    void testSubExpressionWithIdentifier() {
         testConversion("foo.bar", "input.field(\"foo\").field(\"bar\")");
     }
 
     @Test
-    public void testSubExpressionWithMultiSelectList() {
+    void testSubExpressionWithMultiSelectList() {
         testConversion("foo.[bar]", "input.field(\"foo\").multiSelectList(x0 -> x0.field(\"bar\"))");
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testSubExpressionWithMultiSelectHash() {
-        testConversion("foo.{bar : baz}", "");
+    @Test
+    void testSubExpressionWithMultiSelectHash() {
+        assertThatThrownBy(() -> testConversion("foo.{bar : baz}", ""))
+            .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
-    public void testSubExpressionWithFunction() {
+    void testSubExpressionWithFunction() {
         testConversion("length(foo)", "input.field(\"foo\").length()");
     }
 
     @Test
-    public void testSubExpressionWithStar() {
+    void testSubExpressionWithStar() {
         testConversion("foo.*", "input.field(\"foo\").wildcard()");
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testPipeExpression() {
-        testConversion("foo | bar", "");
+    @Test
+    void testPipeExpression() {
+        assertThatThrownBy(() -> testConversion("foo | bar", ""))
+            .isInstanceOf(UnsupportedOperationException.class);;
     }
 
     @Test
-    public void testOrExpression() {
+    void testOrExpression() {
         testConversion("foo || bar", "input.field(\"foo\").or(input.field(\"bar\"))");
     }
 
     @Test
-    public void testAndExpression() {
+    void testAndExpression() {
         testConversion("foo && bar", "input.field(\"foo\").and(input.field(\"bar\"))");
     }
 
     @Test
-    public void testNotExpression() {
+    void testNotExpression() {
         testConversion("!foo", "input.constant(input.field(\"foo\").not())");
     }
 
     @Test
-    public void testParenExpression() {
+    void testParenExpression() {
         testConversion("(foo)", "input.field(\"foo\")");
     }
 
     @Test
-    public void testWildcardExpression() {
+    void testWildcardExpression() {
         testConversion("*", "input.wildcard()");
     }
 
     @Test
-    public void testIndexedExpressionWithoutLeftExpressionWithoutContents() {
+    void testIndexedExpressionWithoutLeftExpressionWithoutContents() {
         testConversion("[]", "input.flatten()");
     }
 
     @Test
-    public void testIndexedExpressionWithoutLeftExpressionWithNumberContents() {
+    void testIndexedExpressionWithoutLeftExpressionWithNumberContents() {
         testConversion("[10]", "input.index(10)");
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testIndexedExpressionWithoutLeftExpressionWithStarContents() {
-        testConversion("[*]", "");
+    @Test
+    void testIndexedExpressionWithoutLeftExpressionWithStarContents() {
+        testConversion("[*]", "input.wildcard()");
     }
 
     @Test
-    public void testIndexedExpressionWithoutLeftExpressionWithQuestionMark() {
+    void testIndexedExpressionWithoutLeftExpressionWithQuestionMark() {
         testConversion("[?foo]", "input.filter(x0 -> x0.field(\"foo\"))");
     }
 
     @Test
-    public void testIndexedExpressionWithLeftExpressionWithoutContents() {
+    void testIndexedExpressionWithLeftExpressionWithoutContents() {
         testConversion("foo[]", "input.field(\"foo\").flatten()");
     }
 
     @Test
-    public void testIndexedExpressionWithLeftExpressionWithContents() {
+    void testIndexedExpressionWithLeftExpressionWithContents() {
         testConversion("foo[10]", "input.field(\"foo\").index(10)");
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testIndexedExpressionWithLeftExpressionWithStarContents() {
-        testConversion("foo[*]", "");
+    @Test
+    void testIndexedExpressionWithLeftExpressionWithStarContents() {
+        testConversion("foo[*]", "input.field(\"foo\").wildcard()");
     }
 
     @Test
-    public void testIndexedExpressionWithLeftExpressionWithQuestionMark() {
+    void testIndexedExpressionWithLeftExpressionWithStarContents_sub() {
+        testConversion("foo[*].bar", "input.field(\"foo\").wildcard().field(\"bar\")");
+    }
+
+    @Test
+    void testIndexedExpressionWithLeftExpressionWithQuestionMark() {
         testConversion("foo[?bar]", "input.field(\"foo\").filter(x0 -> x0.field(\"bar\"))");
     }
 
     @Test
-    public void testMultiSelectList2() {
+    void testMultiSelectList2() {
         testConversion("[foo, bar]", "input.multiSelectList(x0 -> x0.field(\"foo\"), x1 -> x1.field(\"bar\"))");
     }
 
     @Test
-    public void testMultiSelectList3() {
+    void testMultiSelectList3() {
         testConversion("[foo, bar, baz]",
                        "input.multiSelectList(x0 -> x0.field(\"foo\"), x1 -> x1.field(\"bar\"), x2 -> x2.field(\"baz\"))");
     }
 
     @Test
-    public void testNestedMultiSelectListsRight() {
+    void testNestedMultiSelectListsRight() {
         testConversion("[foo, [bar, baz]]",
                        "input.multiSelectList(x0 -> x0.field(\"foo\"), "
                        + "x1 -> x1.multiSelectList(x2 -> x2.field(\"bar\"), x3 -> x3.field(\"baz\")))");
     }
 
     @Test
-    public void testNestedMultiSelectListsCenter() {
+    void testNestedMultiSelectListsCenter() {
         testConversion("[foo, [bar, baz], bam]",
                        "input.multiSelectList(x0 -> x0.field(\"foo\"), "
                        + "x1 -> x1.multiSelectList(x2 -> x2.field(\"bar\"), x3 -> x3.field(\"baz\")), "
@@ -168,135 +176,153 @@ public class JmesPathAcceptorGeneratorTest {
     }
 
     @Test
-    public void testNestedMultiSelectListsLeft() {
+    void testNestedMultiSelectListsLeft() {
         testConversion("[[foo, bar], baz]", "input.multiSelectList(x0 -> x0.multiSelectList(x1 -> x1.field(\"foo\"), "
                                             + "x2 -> x2.field(\"bar\")), "
                                             + "x3 -> x3.field(\"baz\"))");
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testMultiSelectHash2() {
-        testConversion("{fooK : fooV, barK : barV}", "");
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testMultiSelectHash3() {
-        testConversion("{fooK : fooV, barK : barV, bazK : bazV}", "");
+    @Test
+    void testMultiSelectHash2() {
+        assertThatThrownBy(() -> testConversion("{fooK : fooV, barK : barV}", ""))
+            .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
-    public void testComparatorExpressionLT() {
+    void testMultiSelectHash3() {
+        assertThatThrownBy(() -> testConversion("{fooK : fooV, barK : barV, bazK : bazV}", ""))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void testComparatorExpressionLT() {
         testConversion("foo < bar", "input.field(\"foo\").compare(\"<\", input.field(\"bar\"))");
     }
 
     @Test
-    public void testComparatorExpressionGT() {
+    void testComparatorExpressionGT() {
         testConversion("foo > bar", "input.field(\"foo\").compare(\">\", input.field(\"bar\"))");
     }
 
     @Test
-    public void testComparatorExpressionLTE() {
+    void testComparatorExpressionLTE() {
         testConversion("foo <= bar", "input.field(\"foo\").compare(\"<=\", input.field(\"bar\"))");
     }
 
     @Test
-    public void testComparatorExpressionGTE() {
+    void testComparatorExpressionGTE() {
         testConversion("foo >= bar", "input.field(\"foo\").compare(\">=\", input.field(\"bar\"))");
     }
 
     @Test
-    public void testComparatorExpressionEQ() {
+    void testComparatorExpressionEQ() {
         testConversion("foo == bar", "input.field(\"foo\").compare(\"==\", input.field(\"bar\"))");
     }
 
     @Test
-    public void testComparatorExpressionNEQ() {
+    void testComparatorExpressionNEQ() {
         testConversion("foo != bar", "input.field(\"foo\").compare(\"!=\", input.field(\"bar\"))");
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testSliceExpressionWithNoNumbers2() {
-        testConversion("[:]", "");
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testSliceExpressionWithNoNumbers3() {
-        testConversion("[::]", "");
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testSliceExpressionWithStartNumber2() {
-        testConversion("[10:]", "");
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testSliceExpressionWithStopNumber2() {
-        testConversion("[:10]", "");
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testSliceExpressionWithStartStopNumber2() {
-        testConversion("[10:20]", "");
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testSliceExpressionWithStartNumber3() {
-        testConversion("[10::]", "");
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testSliceExpressionWithStopNumber3() {
-        testConversion("[:10:]", "");
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testSliceExpressionWithStartStopNumber3() {
-        testConversion("[10:20:]", "");
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testSliceExpressionWithStartStopStepNumber3() {
-        testConversion("[10:20:30]", "");
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testSliceExpressionWithStepNumber3() {
-        testConversion("[::30]", "");
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testCurrentNode() {
-        testConversion("@", "");
+    @Test
+    void testKeysExpression() {
+        testConversion("keys(foo)", "input.field(\"foo\").keys()");
     }
 
     @Test
-    public void testEmptyIdentifierUnquoted() {
+    void testSliceExpressionWithNoNumbers2() {
+        assertThatThrownBy(() -> testConversion("[:]", ""))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void testSliceExpressionWithNoNumbers3() {
+        assertThatThrownBy(() -> testConversion("[::]", ""))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void testSliceExpressionWithStartNumber2() {
+        assertThatThrownBy(() -> testConversion("[10:]", ""))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void testSliceExpressionWithStopNumber2() {
+        assertThatThrownBy(() -> testConversion("[:10]", ""))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void testSliceExpressionWithStartStopNumber2() {
+        assertThatThrownBy(() -> testConversion("[10:20]", ""))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void testSliceExpressionWithStartNumber3() {
+        assertThatThrownBy(() -> testConversion("[10::]", ""))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void testSliceExpressionWithStopNumber3() {
+        assertThatThrownBy(() -> testConversion("[:10:]", ""))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void testSliceExpressionWithStartStopNumber3() {
+        assertThatThrownBy(() -> testConversion("[10:20:]", ""))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void testSliceExpressionWithStartStopStepNumber3() {
+        assertThatThrownBy(() -> testConversion("[10:20:30]", ""))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void testSliceExpressionWithStepNumber3() {
+        assertThatThrownBy(() -> testConversion("[::30]", ""))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void testCurrentNode() {
+        assertThatThrownBy(() -> testConversion("@", ""))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void testEmptyIdentifierUnquoted() {
         testConversion("foo_bar", "input.field(\"foo_bar\")");
     }
 
     @Test
-    public void testIdentifierUnquoted() {
+    void testIdentifierUnquoted() {
         testConversion("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_",
                        "input.field(\"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_\")");
     }
 
     @Test
-    public void testIdentifierQuoted() {
+    void testIdentifierQuoted() {
         testConversion("\"foo bar\"", "input.field(\"foo bar\")");
     }
 
     @Test
-    public void testRawStringEmpty() {
+    void testRawStringEmpty() {
         testConversion("''", "input.constant(\"\")");
     }
 
     @Test
-    public void testRawStringWithValue() {
+    void testRawStringWithValue() {
         testConversion("'foo bar'", "input.constant(\"foo bar\")");
     }
 
     @Test
-    public void testNegativeNumber() {
+    void testNegativeNumber() {
         testConversion("foo[-10]", "input.field(\"foo\").index(-10)");
     }
 

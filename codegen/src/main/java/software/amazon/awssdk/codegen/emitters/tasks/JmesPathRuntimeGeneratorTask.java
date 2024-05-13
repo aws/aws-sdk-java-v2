@@ -25,38 +25,38 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.SimpleGeneratorTask;
 import software.amazon.awssdk.utils.IoUtils;
 
-public final class WaitersRuntimeGeneratorTask extends BaseGeneratorTasks {
-    public static final String RUNTIME_CLASS_NAME = "WaitersRuntime";
+public final class JmesPathRuntimeGeneratorTask extends BaseGeneratorTasks {
+    public static final String RUNTIME_CLASS_NAME = "JmesPathRuntime";
 
-    private final String waitersInternalClassDir;
-    private final String waitersInternalPackageName;
+    private final String runtimeClassDir;
+    private final String runtimePackageName;
     private final String fileHeader;
     private final String runtimeClassCode;
 
-    public WaitersRuntimeGeneratorTask(GeneratorTaskParams generatorTaskParams) {
+    public JmesPathRuntimeGeneratorTask(GeneratorTaskParams generatorTaskParams) {
         super(generatorTaskParams);
-        this.waitersInternalClassDir = generatorTaskParams.getPathProvider().getWaitersInternalDirectory();
-        this.waitersInternalPackageName = generatorTaskParams.getModel().getMetadata().getFullWaitersInternalPackageName();
+        this.runtimeClassDir = generatorTaskParams.getPathProvider().getJmesPathInternalDirectory();
+        this.runtimePackageName = generatorTaskParams.getModel().getMetadata().getFullInternalJmesPathPackageName();
         this.fileHeader = generatorTaskParams.getModel().getFileHeader();
-        this.runtimeClassCode = loadWaitersRuntimeCode();
+        this.runtimeClassCode = loadRuntimeCode();
     }
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
         String codeContents =
-                "package " + waitersInternalPackageName + ";\n" +
-                "\n"
-                + runtimeClassCode;
+            "package " + runtimePackageName + ";\n" +
+            "\n"
+            + runtimeClassCode;
 
         String fileName = RUNTIME_CLASS_NAME + ".java";
-        return Collections.singletonList(new SimpleGeneratorTask(waitersInternalClassDir, fileName, fileHeader,
+        return Collections.singletonList(new SimpleGeneratorTask(runtimeClassDir, fileName, fileHeader,
                                                                  () -> codeContents));
     }
 
-    private static String loadWaitersRuntimeCode() {
+    private static String loadRuntimeCode() {
         try {
-            InputStream is = WaitersRuntimeGeneratorTask.class.getResourceAsStream(
-                "/software/amazon/awssdk/codegen/waiters/WaitersRuntime.java.resource");
+            InputStream is = JmesPathRuntimeGeneratorTask.class.getResourceAsStream(
+                String.format("/software/amazon/awssdk/codegen/jmespath/%s.java.resource", RUNTIME_CLASS_NAME));
             return IoUtils.toUtf8String(is);
         } catch (IOException ioe) {
             throw new UncheckedIOException(ioe);
