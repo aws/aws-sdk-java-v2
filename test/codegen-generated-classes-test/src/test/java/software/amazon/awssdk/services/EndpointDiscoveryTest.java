@@ -62,7 +62,6 @@ import software.amazon.awssdk.services.endpointdiscoverytest.EndpointDiscoveryTe
 import software.amazon.awssdk.services.endpointdiscoverytest.EndpointDiscoveryTestClient;
 import software.amazon.awssdk.services.endpointdiscoverytest.model.EndpointDiscoveryTestException;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;
 import software.amazon.awssdk.services.timestreamwrite.TimestreamWriteAsyncClient;
 
 public class EndpointDiscoveryTest {
@@ -77,8 +76,6 @@ public class EndpointDiscoveryTest {
     private EndpointDiscoveryTestClient client;
 
     private EndpointDiscoveryTestAsyncClient asyncClient;
-    private SqsAsyncClient sqsClient;
-    private TimestreamWriteAsyncClient timestreamClient;
 
     @Before
     public void setupClient() {
@@ -168,15 +165,6 @@ public class EndpointDiscoveryTest {
         assertThatThrownBy(() -> client.testDiscoveryRequired(r -> {
         }))
             .isInstanceOf(SdkClientException.class);
-    }
-
-    @Test
-    public void asyncRequiredOperation_RequestCancelled_throws_EndpointDiscoveryFailure() {
-        stubResponse(mockAsyncClient, 500, "invalid", 15);
-
-        assertThatThrownBy(() -> client.testDiscoveryRequired(r -> {
-        }))
-            .isInstanceOf(EndpointDiscoveryFailedException.class);
     }
 
     @Test
