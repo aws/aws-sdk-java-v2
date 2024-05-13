@@ -38,7 +38,7 @@ public class S3StreamingRequestToV2Test implements RewriteTest {
 
     @Test
     @EnabledOnJre({JRE.JAVA_8})
-    public void foo() {
+    public void testS3PutObjectOverrideRewrite() {
         rewriteRun(
             java(
                 "import com.amazonaws.services.s3.AmazonS3Client;\n"
