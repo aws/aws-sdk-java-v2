@@ -180,6 +180,7 @@ final class AddOperations {
             operationModel.setHttpChecksum(op.getHttpChecksum());
             operationModel.setRequestcompression(op.getRequestcompression());
             operationModel.setStaticContextParams(op.getStaticContextParams());
+            operationModel.setOperationContextParams(op.getOperationContextParams());
             operationModel.setAuth(getAuthFromOperation(op));
 
             Input input = op.getInput();

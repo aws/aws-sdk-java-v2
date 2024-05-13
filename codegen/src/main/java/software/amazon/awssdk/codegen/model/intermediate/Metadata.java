@@ -75,6 +75,8 @@ public class Metadata {
 
     private String authSchemePackageName;
 
+    private String jmesPathPackageName;
+
     private String serviceAbbreviation;
 
     private String serviceFullName;
@@ -764,4 +766,27 @@ public class Metadata {
     public String getFullInternalPackageName() {
         return joinPackageNames(getFullClientPackageName(), "internal");
     }
+
+    public Metadata setJmesPathPackageName(String jmesPathPackageName) {
+        this.jmesPathPackageName = jmesPathPackageName;
+        return this;
+    }
+
+    public Metadata withJmesPathPackageName(String jmesPathPackageName) {
+        setJmesPathPackageName(jmesPathPackageName);
+        return this;
+    }
+
+    public String getJmesPathPackageName() {
+        return jmesPathPackageName;
+    }
+
+    public String getFullJmesPathPackageName() {
+        return joinPackageNames(rootPackageName, getJmesPathPackageName());
+    }
+
+    public String getFullInternalJmesPathPackageName() {
+        return joinPackageNames(getFullJmesPathPackageName(), "internal");
+    }
+
 }
