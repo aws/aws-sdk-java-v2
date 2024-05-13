@@ -45,27 +45,38 @@ public final class EndpointDiscoveryRefreshCache {
      * @return The endpoint to use for this request
      */
     public URI get(String accessKey, EndpointDiscoveryRequest request) {
+        String key = accessKey;
 
-        String key = getKey(accessKey, request);
+        // Support null (anonymous credentials) by mapping to empty-string. The backing cache does not support null.
+        if (key == null) {
+            key = "";
+        }
+
+        if (request.cacheKey().isPresent()) {
+            key = key + ":" + request.cacheKey().get();
+        }
+
         EndpointDiscoveryEndpoint endpoint = cache.get(key);
 
         if (endpoint == null) {
             if (request.required()) {
                 return cache.computeIfAbsent(key, k -> getAndJoin(request)).endpoint();
-            }
-            EndpointDiscoveryEndpoint tempEndpoint = EndpointDiscoveryEndpoint.builder()
-                                                                              .endpoint(request.defaultEndpoint())
-                                                                              .expirationTime(Instant.now().plusSeconds(60))
-                                                                              .build();
+            } else {
+                EndpointDiscoveryEndpoint tempEndpoint = EndpointDiscoveryEndpoint.builder()
+                                                                                  .endpoint(request.defaultEndpoint())
+                                                                                  .expirationTime(Instant.now().plusSeconds(60))
+                                                                                  .build();
 
-            EndpointDiscoveryEndpoint previousValue = cache.putIfAbsent(key, tempEndpoint);
-            if (previousValue != null) {
-                // Someone else primed the cache. Use that endpoint (which may be temporary).
-                return previousValue.endpoint();
+                EndpointDiscoveryEndpoint previousValue = cache.putIfAbsent(key, tempEndpoint);
+                if (previousValue != null) {
+                    // Someone else primed the cache. Use that endpoint (which may be temporary).
+                    return previousValue.endpoint();
+                } else {
+                    // We primed the cache with the temporary endpoint. Kick off discovery in the background.
+                    refreshCacheAsync(request, key);
+                }
+                return tempEndpoint.endpoint();
             }
-            // We primed the cache with the temporary endpoint. Kick off discovery in the background.
-            refreshCacheAsync(request, key);
-            return tempEndpoint.endpoint();
         }
 
         if (endpoint.expirationTime().isBefore(Instant.now())) {
