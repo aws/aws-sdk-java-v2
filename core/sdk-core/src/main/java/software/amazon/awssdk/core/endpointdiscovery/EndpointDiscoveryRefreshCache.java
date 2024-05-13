@@ -115,7 +115,7 @@ public final class EndpointDiscoveryRefreshCache {
         cache.remove(key);
     }
 
-    private String getKey(String accessKey, EndpointDiscoveryRequest request) {
+    String getKey(String accessKey, EndpointDiscoveryRequest request) {
         String key = accessKey;
 
         // Support null (anonymous credentials) by mapping to empty-string. The backing cache does not support null.

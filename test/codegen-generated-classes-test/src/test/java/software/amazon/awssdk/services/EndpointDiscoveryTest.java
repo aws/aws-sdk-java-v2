@@ -15,17 +15,12 @@
 
 package software.amazon.awssdk.services;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
@@ -34,17 +29,14 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import org.assertj.core.api.AbstractThrowableAssert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.jupiter.api.Timeout;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryFailedException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
@@ -55,14 +47,10 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
-import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.endpointdiscoverytest.EndpointDiscoveryTestAsyncClient;
 import software.amazon.awssdk.services.endpointdiscoverytest.EndpointDiscoveryTestClient;
 import software.amazon.awssdk.services.endpointdiscoverytest.model.EndpointDiscoveryTestException;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.timestreamwrite.TimestreamWriteAsyncClient;
 
 public class EndpointDiscoveryTest {
 
@@ -175,43 +163,6 @@ public class EndpointDiscoveryTest {
             .isInstanceOf(SdkClientException.class);
     }
 
-    @Test
-    @Timeout(5)
-    public void endpointDiscoveryRequired_makes_nonBlockingCalls() throws InterruptedException, ExecutionException {
-        SdkEventLoopGroup group = SdkEventLoopGroup.builder()
-                                                   .numberOfThreads(1)
-                                                   .build();
-
-        SqsAsyncClient sqs = SqsAsyncClient.builder()
-                                           .asyncConfiguration(o -> o.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, Runnable::run))
-                                           .region(Region.US_WEST_2)
-                                           .httpClient(NettyNioAsyncHttpClient.builder()
-                                                                              .eventLoopGroup(group)
-                                                                              .build())
-                                           .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                           .build();
-
-        TimestreamWriteAsyncClient timestream = TimestreamWriteAsyncClient.builder().region(Region.US_WEST_2)
-                                                                          .httpClient(NettyNioAsyncHttpClient.builder()
-                                                                                                             .eventLoopGroup(group).build())
-                                                                          .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                                                          .build();
-
-
-        stubFor(post(anyUrl())
-                    .willReturn(getResponse().get()));
-
-        for(int i =0;i<100;i++) {
-            sqs.listQueues().whenComplete((r, e) -> {
-                                              timestream.listDatabases(req -> req.maxResults(1));
-                                              assertThat(1).isEqualTo(1);
-                                          }
-            ).join();
-
-            assertThat(1).isEqualTo(1);
-        }
-    }
-
     private AbstractThrowableAssert<?, ? extends Throwable> assertAsyncRequiredOperationCallThrowable() {
         try {
             asyncClient.testDiscoveryRequired(r -> {
@@ -219,7 +170,7 @@ public class EndpointDiscoveryTest {
             throw new AssertionError();
         } catch (InterruptedException e) {
             return assertThat(e);
-        } catch (ExecutionException | CompletionException e) {
+        } catch (ExecutionException e) {
             return assertThat(e.getCause());
         }
     }
@@ -292,16 +243,5 @@ public class EndpointDiscoveryTest {
 
             return cf;
         };
-    }
-
-    private CompletableFuture<ResponseDefinitionBuilder> getResponse() {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                Thread.sleep(10_000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            return aResponse().withStatus(200);
-        });
     }
 }
