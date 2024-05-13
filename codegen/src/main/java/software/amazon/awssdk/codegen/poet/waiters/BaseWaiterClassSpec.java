@@ -74,7 +74,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
     private final String modelPackage;
     private final Map<String, WaiterDefinition> waiters;
     private final ClassName waiterClassName;
-    private final JmesPathAcceptorGenerator jmesPathAcceptorGenerator;
+    private final JmesPathExpressionConverter jmesPathAcceptorGenerator;
     private final PoetExtension poetExtensions;
 
     public BaseWaiterClassSpec(IntermediateModel model, ClassName waiterClassName) {
@@ -83,7 +83,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         this.waiters = model.getWaiters();
         this.waiterClassName = waiterClassName;
         this.poetExtensions = new PoetExtension(model);
-        this.jmesPathAcceptorGenerator = new JmesPathAcceptorGenerator(poetExtensions.jmesPathRuntimeClass());
+        this.jmesPathAcceptorGenerator = new JmesPathExpressionConverter(poetExtensions.jmesPathRuntimeClass());
     }
 
     @Override

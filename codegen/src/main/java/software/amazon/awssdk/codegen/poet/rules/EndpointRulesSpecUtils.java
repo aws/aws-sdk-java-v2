@@ -105,6 +105,10 @@ public class EndpointRulesSpecUtils {
                              md.getServiceName() + "EndpointProviderTests");
     }
 
+    public ClassName paramsBuilderClass() {
+        return parametersClassName().nestedClass("Builder");
+    }
+
     public ClassName clientContextParamsName() {
         Metadata md = intermediateModel.getMetadata();
         return ClassName.get(md.getFullEndpointRulesPackageName(),

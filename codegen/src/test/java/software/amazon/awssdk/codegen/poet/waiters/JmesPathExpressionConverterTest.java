@@ -23,12 +23,12 @@ import com.squareup.javapoet.ClassName;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class JmesPathAcceptorGeneratorTest {
-    private JmesPathAcceptorGenerator acceptorGenerator;
+class JmesPathExpressionConverterTest {
+    private JmesPathExpressionConverter converter;
 
     @BeforeEach
     public void setup() {
-        acceptorGenerator = new JmesPathAcceptorGenerator(ClassName.get("software.amazon.awssdk.codegen", "JmesPathRuntime"));
+        converter = new JmesPathExpressionConverter(ClassName.get("software.amazon.awssdk.codegen", "JmesPathRuntime"));
     }
 
     @Test
@@ -327,7 +327,7 @@ class JmesPathAcceptorGeneratorTest {
     }
 
     private void testConversion(String jmesPathString, String expectedCode) {
-        assertThat(acceptorGenerator.interpret(jmesPathString, "input").toString()).isEqualTo((expectedCode));
+        assertThat(converter.interpret(jmesPathString, "input").toString()).isEqualTo((expectedCode));
     }
 
 }
