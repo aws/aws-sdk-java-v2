@@ -39,6 +39,7 @@ import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.traits.DataTypeConversionFailureHandlingTrait;
 import software.amazon.awssdk.core.traits.DefaultValueTrait;
 import software.amazon.awssdk.core.traits.JsonValueTrait;
 import software.amazon.awssdk.core.traits.ListTrait;
@@ -186,6 +187,10 @@ class ShapeModelSpec {
         if (m.isXmlAttribute()) {
             traits.add(createXmlAttributeTrait());
         }
+
+        if (m.ignoreDataTypeConversionFailures()) {
+            traits.add(createDataTypeConversionFailureHandlingTrait());
+        }
         if (customizationConfig.isRequiredTraitValidationEnabled() && m.isRequired()) {
             traits.add(createRequiredTrait());
         }
@@ -204,6 +209,12 @@ class ShapeModelSpec {
         return customizationConfig.getAttachPayloadTraitToMember()
                                   .getOrDefault(shapeModel.getC2jName(), "")
                                   .equals(m.getC2jName());
+    }
+
+    private CodeBlock createDataTypeConversionFailureHandlingTrait() {
+        return CodeBlock.builder()
+                        .add("new $T()", ClassName.get(DataTypeConversionFailureHandlingTrait.class))
+                        .build();
     }
 
     private CodeBlock createTimestampFormatTrait(MemberModel m) {

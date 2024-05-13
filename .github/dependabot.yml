@@ -38,6 +38,7 @@ updates:
       - dependency-name: "org.eclipse.jetty:*"
       - dependency-name: "javax.servlet:*"
       - dependency-name: "io.reactivex.rxjava3:rxjava"
+      - dependency-name: "xmlunit:xmlunit"
 
       # Non runtime dependencies
       # Eclipse JDT deps used at codegen time

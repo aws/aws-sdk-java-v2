@@ -1,4 +1,299 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.50__ __2024-05-10__
+## __AWS Application Discovery Service__
+  - ### Features
+    - add v2 smoke tests and smithy smokeTests trait for SDK testing
+
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - Mark ComponentVersion in ComponentDeploymentSpecification as required.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SSO OIDC__
+  - ### Features
+    - Updated request parameters for PKCE support.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introduced support for G6 instance types on Sagemaker Notebook Instances and on SageMaker Studio for JupyterLab and CodeEditor applications.
+
+# __2.25.49__ __2024-05-09__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - Added support for application-aware start/stop of SAP applications running on EC2 instances, with SSM for SAP
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds support to provide guardrail configuration and modify inference parameters that are then used in RetrieveAndGenerate API in Agents for Amazon Bedrock.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This release adds support for specifying email message headers for Email Templates, Campaigns, Journeys and Send Messages.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Update the DNS Firewall settings to correct a spelling issue.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adds policy effect and actions fields to Policy API's.
+
+# __2.25.48__ __2024-05-08__
+## __AWS SDK for Java v2 Bundle__
+  - ### Bugfixes
+    - Fix unshaded classes in the AWS SDK for Java v2 bundle. See [#5108](https://github.com/aws/aws-sdk-java-v2/issues/5108)
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add EXTERNAL_PROVIDER enum value to UserStatusType.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release adds pull through cache rules support for GitLab container registry in Amazon ECR.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding Precision Hardware Clock (PHC) to public API DescribeInstanceTypes
+
+## __Amazon Polly__
+  - ### Features
+    - Add new engine - generative - that builds the most expressive conversational voices.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - This release adds MessageSystemAttributeNames to ReceiveMessageRequest to replace AttributeNames.
+
+## __Firewall Management Service__
+  - ### Features
+    - The policy scope resource tag is always a string value, either a non-empty string or an empty string.
+
+# __2.25.47__ __2024-05-07__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Documentation update to clarify the MappingTemplate definition.
+
+## __AWS Budgets__
+  - ### Features
+    - This release adds tag support for budgets and budget actions.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - AWS Resilience Hub has expanded its drift detection capabilities by introducing a new type of drift detection - application resource drift. This new enhancement detects changes, such as the addition or deletion of resources within the application's input sources.
+
+## __Route 53 Profiles__
+  - ### Features
+    - Doc only update for Route 53 profiles that fixes some link issues
+
+## __s3-transfer-manager__
+  - ### Bugfixes
+    - Added reflect-config.json for ApplyUserAgentInterceptor in s3-transfer-manager for native builds
+        - Contributed by: [@klopfdreh](https://github.com/klopfdreh)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@klopfdreh](https://github.com/klopfdreh)
+# __2.25.46__ __2024-05-06__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports configuring how SCTE 35 passthrough triggers segment breaks in HLS and MediaPackage output groups. Previously, messages triggered breaks in all these output groups. The new option is to trigger segment breaks only in groups that have SCTE 35 passthrough enabled.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+# __2.25.45__ __2024-05-03__
+## __AWS DataSync__
+  - ### Features
+    - Updated guidance on using private or self-signed certificate authorities (CAs) with AWS DataSync object storage locations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release adds support for using Provisioned Throughput with Bedrock Agents.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This feature supports the release of Files related items
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds 5 new APIs for managing attachments: StartAttachedFileUpload, CompleteAttachedFileUpload, GetAttachedFile, BatchGetAttachedFileMetadata, DeleteAttachedFile. These APIs can be used to programmatically upload and download attachments to Connect resources, like cases.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Inference now supports m6i, c6i, r6i, m7i, c7i, r7i and g5 instance types for Batch Transform Jobs
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Adds support for specifying replacement headers per BulkEmailEntry in SendBulkEmail in SESv2.
+
+## __Inspector2__
+  - ### Features
+    - This release adds CSV format to GetCisScanReport for Inspector v2
+
+# __2.25.44__ __2024-05-02__
+## __Amazon DynamoDB__
+  - ### Features
+    - This release adds support to specify an optional, maximum OnDemandThroughput for DynamoDB tables and global secondary indexes in the CreateTable or UpdateTable APIs. You can also override the OnDemandThroughput settings by calling the ImportTable, RestoreFromPointInTime, or RestoreFromBackup APIs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release includes a new API for retrieving the public endorsement key of the EC2 instance's Nitro Trusted Platform Module (NitroTPM).
+
+## __Amazon Personalize__
+  - ### Features
+    - This releases ability to delete users and their data, including their metadata and interactions data, from a dataset group.
+
+## __Redshift Serverless__
+  - ### Features
+    - Update Redshift Serverless List Scheduled Actions Output Response to include Namespace Name.
+
+# __2.25.43__ __2024-05-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Updated CreateMembers API request with limits.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release adds support for using MongoDB Atlas as a vector store when creating a knowledge base.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Amazon EC2.
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - This release adds support for a Reason attribute for predicted items generated by User-Personalization-v2.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Fixes ListContacts and ListImportJobs APIs to use POST instead of GET.
+
+# __2.25.42__ __2024-04-30__
+## __AWS Signer__
+  - ### Features
+    - Documentation updates for AWS Signer. Adds cross-account signing constraint and definitions for cross-account actions.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Due to changes made by the Amazon Alexa service, GetSipMediaApplicationAlexaSkillConfiguration and PutSipMediaApplicationAlexaSkillConfiguration APIs are no longer available for use. For more information, refer to the Alexa Smart Properties page.
+
+## __Amazon Omics__
+  - ### Features
+    - Add support for workflow sharing and dynamic run storage
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release enables customers to create Route53 A and AAAA alias record types to point custom endpoint domain to OpenSearch domain's dualstack search endpoint.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - Amazon Pinpoint has added two new features Multimedia services (MMS) and protect configurations. Use the three new MMS APIs to send media messages to a mobile phone which includes image, audio, text, or video files. Use the ten new protect configurations APIs to block messages to specific countries.
+
+## __Amazon QuickSight__
+  - ### Features
+    - New Q embedding supporting Generative Q&A
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Release of FirewallDomainRedirectionAction parameter on the Route 53 DNS Firewall Rule. This allows customers to configure a DNS Firewall rule to inspect all the domains in the DNS redirection chain (default) , such as CNAME, ALIAS, DNAME, etc., or just the first domain and trust the rest.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Training now supports the use of attribute-based access control (ABAC) roles for training job execution roles. Amazon SageMaker Inference now supports G6 instance types.
+
+## __CodeArtifact__
+  - ### Features
+    - Add support for the Ruby package format.
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager now supports the network firewall service stream exception policy feature for accounts within your organization.
+
+## __QBusiness__
+  - ### Features
+    - This is a general availability (GA) release of Amazon Q Business. Q Business enables employees in an enterprise to get comprehensive answers to complex questions and take actions through a unified, intuitive web-based chat experience - using an enterprise's existing content, data, and systems.
+
+# __2.25.41__ __2024-04-29__
+## __AWS Amplify__
+  - ### Features
+    - Updating max results limit for listing any resources (Job, Artifacts, Branch, BackendResources, DomainAssociation) to 50 with the exception of list apps that where max results can be up to 100.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Log `AWS4 Canonical Request` in signer if DEBUG level is enabled.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This feature releases DeleteField, DeletedLayout, and DeleteTemplate API's
+
+## __Amazon Timestream Query__
+  - ### Features
+    - This change allows users to update and describe account settings associated with their accounts.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This update provides error messaging for generative call summarization in Transcribe Call Analytics
+
+## __Inspector2__
+  - ### Features
+    - Update Inspector2 to include new Agentless API parameters.
+
+## __TrustedAdvisor Public API__
+  - ### Features
+    - This release adds the BatchUpdateRecommendationResourceExclusion API to support batch updates of Recommendation Resource exclusion statuses and introduces a new exclusion status filter to the ListRecommendationResources and ListOrganizationRecommendationResources APIs.
+
+# __2.25.40__ __2024-04-26__
+## __AWS CodePipeline__
+  - ### Features
+    - Add ability to manually and automatically roll back a pipeline stage to a previously successful execution.
+
+## __AWS Marketplace Entitlement Service__
+  - ### Features
+    - Releasing minor endpoint updates.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Support__
+  - ### Features
+    - Releasing minor endpoint updates.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add LimitExceededException to SignUp errors
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - SupportsLimitlessDatabase field added to describe-db-engine-versions to indicate whether the DB engine version supports Aurora Limitless Database.
+
+## __AmazonConnectCampaignService__
+  - ### Features
+    - This release adds support for specifying if Answering Machine should wait for prompt sound.
+
+## __CloudWatch Observability Access Manager__
+  - ### Features
+    - This release introduces support for Source Accounts to define which Metrics and Logs to share with the Monitoring Account
+
 # __2.25.39__ __2024-04-25__
 ## __AWS AppSync__
   - ### Features
