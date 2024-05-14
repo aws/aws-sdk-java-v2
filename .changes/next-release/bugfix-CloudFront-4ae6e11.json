@@ -1,5 +1,5 @@
 {
-    "category": "CloudFront", 
+    "category": "Amazon CloudFront",
     "contributor": "", 
     "type": "bugfix", 
     "description": "Fixes bug where SignedUrl strips the port number from the url."
