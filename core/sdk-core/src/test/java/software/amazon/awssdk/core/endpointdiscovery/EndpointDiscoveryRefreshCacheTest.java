@@ -16,11 +16,13 @@
 package software.amazon.awssdk.core.endpointdiscovery;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.net.URI;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,11 +69,27 @@ public class EndpointDiscoveryRefreshCacheTest {
 
         assertThat(future.isDone()).isEqualTo(true);
         assertThat(future.get()).isEqualTo(testURI);
+    }
+
+    @Test
+    public void getAsync_future_cancelled() {
+
+        when(mockClient.discoverEndpoint(any())).thenReturn(new CompletableFuture<>());
+        EndpointDiscoveryRequest request = EndpointDiscoveryRequest.builder()
+                                                                   .required(true)
+                                                                   .defaultEndpoint(testURI)
+                                                                   .build();
+        CompletableFuture<URI> future = endpointDiscoveryRefreshCache.getAsync("key", request);
+        assertThat(future.isDone()).isEqualTo(false);
+
+        future.cancel(true);
+        assertThat(future.isCancelled()).isEqualTo(true);
+        assertThrows(CancellationException.class, () -> future.get());
 
     }
 
     @Test
-    public void getKeyWithCacheKey() {
+    public void getKeyWithCacheKeyAndCacheKey() {
 
         EndpointDiscoveryRequest request = EndpointDiscoveryRequest.builder()
                                                                    .required(true)
@@ -79,6 +97,19 @@ public class EndpointDiscoveryRefreshCacheTest {
                                                                    .build();
 
         assertThat(endpointDiscoveryRefreshCache.getKey(accessKey, request)).isEqualTo(accessKey + ":" + requestCacheKey);
+
+
+    }
+
+    @Test
+    public void getKeyWithNullKey() {
+
+        EndpointDiscoveryRequest request = EndpointDiscoveryRequest.builder()
+                                                                   .required(true)
+                                                                   .cacheKey(requestCacheKey)
+                                                                   .build();
+
+        assertThat(endpointDiscoveryRefreshCache.getKey(null, request)).isEqualTo(":" + requestCacheKey);
 
 
     }
