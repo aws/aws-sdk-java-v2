@@ -37,6 +37,7 @@ import software.amazon.awssdk.codegen.poet.rules.EndpointResolverInterceptorSpec
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesClientTestSpec;
 import software.amazon.awssdk.codegen.poet.rules.RequestEndpointInterceptorSpec;
 import software.amazon.awssdk.codegen.poet.rules2.EndpointProviderSpec2;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 public final class EndpointProviderTasks extends BaseGeneratorTasks {
     private final GeneratorTaskParams generatorTaskParams;
@@ -160,21 +161,7 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
             return true;
         }
 
-        Map<String, ParameterModel> endpointParameters = model.getCustomizationConfig().getEndpointParameters();
-        if (endpointParameters == null) {
-            return false;
-        }
-
-        return endpointParameters.values().stream().anyMatch(this::paramRequiresPathParserRuntime);
-    }
-
-    private boolean paramRequiresPathParserRuntime(ParameterModel parameterModel) {
-        return paramIsOperationalContextParam(parameterModel) &&
-               "stringarray".equals(parameterModel.getType().toLowerCase(Locale.US));
-    }
-
-    //TODO (string-array-params): resolve this logical test before finalizing coding
-    private boolean paramIsOperationalContextParam(ParameterModel parameterModel) {
-        return true;
+        return model.getOperations().values().stream()
+                    .anyMatch(op -> !CollectionUtils.isNullOrEmpty(op.getOperationContextParams()));
     }
 }
