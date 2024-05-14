@@ -1,6 +1,6 @@
 {
     "type": "bugfix",
-    "category": "bugfix",
+    "category": "AWS SDK for Java v2",
     "contributor": "",
     "description": "Fixed a bug in file-based AsyncResponseTransformer that could cause a streaming request to hang if an exception was thrown from `onStream`"
 }
