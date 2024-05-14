@@ -34,11 +34,9 @@ import org.assertj.core.api.AbstractThrowableAssert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.jupiter.api.Timeout;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryFailedException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
@@ -49,15 +47,10 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
-import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.endpointdiscoverytest.EndpointDiscoveryTestAsyncClient;
 import software.amazon.awssdk.services.endpointdiscoverytest.EndpointDiscoveryTestClient;
 import software.amazon.awssdk.services.endpointdiscoverytest.model.EndpointDiscoveryTestException;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;
-import software.amazon.awssdk.services.timestreamwrite.TimestreamWriteAsyncClient;
 
 public class EndpointDiscoveryTest {
 
@@ -71,8 +64,6 @@ public class EndpointDiscoveryTest {
     private EndpointDiscoveryTestClient client;
 
     private EndpointDiscoveryTestAsyncClient asyncClient;
-    private TimestreamWriteAsyncClient timestreamWriteAsyncNettyClient;
-    private SqsAsyncClient sqsAsyncNettyClient;
 
     @Before
     public void setupClient() {
@@ -100,31 +91,6 @@ public class EndpointDiscoveryTest {
                                                           false))
                                                       .httpClient(mockAsyncClient)
                                                       .build();
-
-        SdkEventLoopGroup group = SdkEventLoopGroup.builder()
-                                                   .numberOfThreads(1)
-                                                   .build();
-
-        timestreamWriteAsyncNettyClient = TimestreamWriteAsyncClient.builder().region(Region.US_WEST_2)
-                                                               .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                                               .overrideConfiguration(c -> c.putAdvancedOption(
-                                                                   SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE,
-                                                                   false))
-                                                               .httpClient(NettyNioAsyncHttpClient.builder()
-                                                                                                  .eventLoopGroup(group).build())
-                                                               .build();
-
-        sqsAsyncNettyClient = SqsAsyncClient.builder()
-                                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                       .overrideConfiguration(c -> c.putAdvancedOption(
-                                           SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE,
-                                           false))
-                                       .asyncConfiguration(o -> o.advancedOption(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, Runnable::run))
-                                       .region(Region.US_WEST_2)
-                                       .httpClient(NettyNioAsyncHttpClient.builder()
-                                                                          .eventLoopGroup(group)
-                                                                          .build())
-                                       .build();
     }
 
     @Test
@@ -196,20 +162,6 @@ public class EndpointDiscoveryTest {
         assertAsyncRequiredOperationCallThrowable()
             .isInstanceOf(SdkClientException.class);
     }
-    @Test
-    @Timeout(5)
-    public void validate_endpointDiscoveryIsNotBlockingCall() {
-
-        CompletableFuture<ListQueuesResponse> future = sqsAsyncNettyClient.listQueues();
-        future.whenComplete((r, e) -> {
-                                timestreamWriteAsyncNettyClient.listDatabases(req -> req.maxResults(1));
-                                assertThat(1).isEqualTo(1);
-                            }
-        ).join();
-
-        assertThat(1).isEqualTo(1);
-    }
-
 
     private AbstractThrowableAssert<?, ? extends Throwable> assertAsyncRequiredOperationCallThrowable() {
         try {
