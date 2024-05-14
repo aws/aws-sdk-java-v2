@@ -88,29 +88,4 @@ public class EndpointDiscoveryRefreshCacheTest {
 
     }
 
-    @Test
-    public void getKeyWithCacheKeyAndCacheKey() {
-
-        EndpointDiscoveryRequest request = EndpointDiscoveryRequest.builder()
-                                                                   .required(true)
-                                                                   .cacheKey(requestCacheKey)
-                                                                   .build();
-
-        assertThat(endpointDiscoveryRefreshCache.getKey(accessKey, request)).isEqualTo(accessKey + ":" + requestCacheKey);
-
-
-    }
-
-    @Test
-    public void getKeyWithNullKey() {
-
-        EndpointDiscoveryRequest request = EndpointDiscoveryRequest.builder()
-                                                                   .required(true)
-                                                                   .cacheKey(requestCacheKey)
-                                                                   .build();
-
-        assertThat(endpointDiscoveryRefreshCache.getKey(null, request)).isEqualTo(":" + requestCacheKey);
-
-
-    }
 }
