@@ -125,7 +125,10 @@ class FileAsyncResponseTransformerTest {
 
         CompletableFuture<String> future = transformer.prepare();
         transformer.onResponse("foobar");
-        assertThatThrownBy(() -> transformer.onStream(testPublisher(content))).hasRootCauseInstanceOf(FileAlreadyExistsException.class);
+        transformer.onStream(testPublisher(content));
+
+
+        assertThatThrownBy(() -> future.join()).hasRootCauseInstanceOf(FileAlreadyExistsException.class);
     }
 
     @Test
