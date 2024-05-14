@@ -1,0 +1,36 @@
+{
+    "version": "2.25.47",
+    "date": "2024-05-07",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "s3-transfer-manager",
+            "contributor": "klopfdreh",
+            "description": "Added reflect-config.json for ApplyUserAgentInterceptor in s3-transfer-manager for native builds"
+        },
+        {
+            "type": "feature",
+            "category": "AWS B2B Data Interchange",
+            "contributor": "",
+            "description": "Documentation update to clarify the MappingTemplate definition."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Budgets",
+            "contributor": "",
+            "description": "This release adds tag support for budgets and budget actions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resilience Hub",
+            "contributor": "",
+            "description": "AWS Resilience Hub has expanded its drift detection capabilities by introducing a new type of drift detection - application resource drift. This new enhancement detects changes, such as the addition or deletion of resources within the application's input sources."
+        },
+        {
+            "type": "feature",
+            "category": "Route 53 Profiles",
+            "contributor": "",
+            "description": "Doc only update for Route 53 profiles that fixes some link issues"
+        }
+    ]
+}

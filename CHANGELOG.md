@@ -1,4 +1,174 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.52__ __2024-05-14__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect provides enhanced search capabilities for flows & flow modules on the Connect admin website and programmatically using APIs. You can search for flows and flow modules by name, description, type, status, and tags, to filter and identify a specific flow in your Connect instances.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Updated a few x-id in the http uri traits
+
+# __2.25.51__ __2024-05-13__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds capability to resolve endpoint and auth scheme parameters of type list of string as well as new functions to JmesPath runtime (keys and wildcard)
+    - Updated endpoint and partition metadata.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Amazon EventBridge introduces KMS customer-managed key (CMK) encryption support for custom and partner events published on EventBridge Event Bus (including default bus) and UpdateEventBus API.
+
+## __Amazon VPC Lattice__
+  - ### Features
+    - This release adds TLS Passthrough support. It also increases max number of target group per rule to 10.
+
+# __2.25.50__ __2024-05-10__
+## __AWS Application Discovery Service__
+  - ### Features
+    - add v2 smoke tests and smithy smokeTests trait for SDK testing
+
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - Mark ComponentVersion in ComponentDeploymentSpecification as required.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SSO OIDC__
+  - ### Features
+    - Updated request parameters for PKCE support.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introduced support for G6 instance types on Sagemaker Notebook Instances and on SageMaker Studio for JupyterLab and CodeEditor applications.
+
+# __2.25.49__ __2024-05-09__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - Added support for application-aware start/stop of SAP applications running on EC2 instances, with SSM for SAP
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds support to provide guardrail configuration and modify inference parameters that are then used in RetrieveAndGenerate API in Agents for Amazon Bedrock.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - This release adds support for specifying email message headers for Email Templates, Campaigns, Journeys and Send Messages.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Update the DNS Firewall settings to correct a spelling issue.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adds policy effect and actions fields to Policy API's.
+
+# __2.25.48__ __2024-05-08__
+## __AWS SDK for Java v2 Bundle__
+  - ### Bugfixes
+    - Fix unshaded classes in the AWS SDK for Java v2 bundle. See [#5108](https://github.com/aws/aws-sdk-java-v2/issues/5108)
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add EXTERNAL_PROVIDER enum value to UserStatusType.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release adds pull through cache rules support for GitLab container registry in Amazon ECR.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding Precision Hardware Clock (PHC) to public API DescribeInstanceTypes
+
+## __Amazon Polly__
+  - ### Features
+    - Add new engine - generative - that builds the most expressive conversational voices.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - This release adds MessageSystemAttributeNames to ReceiveMessageRequest to replace AttributeNames.
+
+## __Firewall Management Service__
+  - ### Features
+    - The policy scope resource tag is always a string value, either a non-empty string or an empty string.
+
+# __2.25.47__ __2024-05-07__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Documentation update to clarify the MappingTemplate definition.
+
+## __AWS Budgets__
+  - ### Features
+    - This release adds tag support for budgets and budget actions.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - AWS Resilience Hub has expanded its drift detection capabilities by introducing a new type of drift detection - application resource drift. This new enhancement detects changes, such as the addition or deletion of resources within the application's input sources.
+
+## __Route 53 Profiles__
+  - ### Features
+    - Doc only update for Route 53 profiles that fixes some link issues
+
+## __s3-transfer-manager__
+  - ### Bugfixes
+    - Added reflect-config.json for ApplyUserAgentInterceptor in s3-transfer-manager for native builds
+        - Contributed by: [@klopfdreh](https://github.com/klopfdreh)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@klopfdreh](https://github.com/klopfdreh)
+# __2.25.46__ __2024-05-06__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports configuring how SCTE 35 passthrough triggers segment breaks in HLS and MediaPackage output groups. Previously, messages triggered breaks in all these output groups. The new option is to trigger segment breaks only in groups that have SCTE 35 passthrough enabled.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+# __2.25.45__ __2024-05-03__
+## __AWS DataSync__
+  - ### Features
+    - Updated guidance on using private or self-signed certificate authorities (CAs) with AWS DataSync object storage locations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release adds support for using Provisioned Throughput with Bedrock Agents.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This feature supports the release of Files related items
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds 5 new APIs for managing attachments: StartAttachedFileUpload, CompleteAttachedFileUpload, GetAttachedFile, BatchGetAttachedFileMetadata, DeleteAttachedFile. These APIs can be used to programmatically upload and download attachments to Connect resources, like cases.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Inference now supports m6i, c6i, r6i, m7i, c7i, r7i and g5 instance types for Batch Transform Jobs
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Adds support for specifying replacement headers per BulkEmailEntry in SendBulkEmail in SESv2.
+
+## __Inspector2__
+  - ### Features
+    - This release adds CSV format to GetCisScanReport for Inspector v2
+
 # __2.25.44__ __2024-05-02__
 ## __Amazon DynamoDB__
   - ### Features
