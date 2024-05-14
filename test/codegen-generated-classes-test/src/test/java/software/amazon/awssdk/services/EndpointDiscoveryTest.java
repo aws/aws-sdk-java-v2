@@ -34,6 +34,7 @@ import org.assertj.core.api.AbstractThrowableAssert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.Timeout;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -196,6 +197,7 @@ public class EndpointDiscoveryTest {
             .isInstanceOf(SdkClientException.class);
     }
     @Test
+    @Timeout(5)
     public void validate_endpointDiscoveryIsNotBlockingCall() {
 
         CompletableFuture<ListQueuesResponse> future = sqsAsyncNettyClient.listQueues();
