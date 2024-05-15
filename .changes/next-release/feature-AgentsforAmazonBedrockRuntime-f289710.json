@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Agents for Amazon Bedrock Runtime",
+    "contributor": "",
+    "description": "Updating Bedrock Knowledge Base Metadata & Filters feature with two new filters listContains and stringContains"
+}
