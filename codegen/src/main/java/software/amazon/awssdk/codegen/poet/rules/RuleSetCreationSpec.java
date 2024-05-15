@@ -119,6 +119,10 @@ public class RuleSetCreationSpec {
                                                                  CodeBlock.builder()
                                                                           .add("$S", ((JrsString) defaultValue).getValue())
                                                                           .build());
+            } else if (token == JsonToken.START_ARRAY) {
+                validateStringArrayType(model);
+                value = endpointRulesSpecUtils.valueCreationCode("stringarray",
+                                                                 buildStringArrayDefaultValue((JrsArray) defaultValue));
             } else {
                 throw new RuntimeException("Can't set default value type " + token.name());
             }
@@ -399,5 +403,29 @@ public class RuleSetCreationSpec {
         String n = String.format("%s%d", RULE_METHOD_PREFIX, ruleCounter);
         ruleCounter += 1;
         return n;
+    }
+
+    private static void validateStringArrayType(ParameterModel model) {
+        if (!"stringarray".equalsIgnoreCase(model.getType())) {
+            throw new RuntimeException(String.format("Only String array is supported but the type received is %s",
+                                                     model.getType()));
+        }
+    }
+
+    private CodeBlock buildStringArrayDefaultValue(JrsArray defaultValue) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        Iterator<JrsValue> elementValuesIter = defaultValue.elements();
+        if (elementValuesIter.hasNext()) {
+            builder.add("$T.asList(", Arrays.class);
+        }
+        while (elementValuesIter.hasNext()) {
+            JrsValue v = elementValuesIter.next();
+            builder.add("\"" + v.asText() + "\"");
+            if (elementValuesIter.hasNext()) {
+                builder.add(",");
+            }
+        }
+        builder.add(")");
+        return builder.build();
     }
 }
