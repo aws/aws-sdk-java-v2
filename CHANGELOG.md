@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.53__ __2024-05-15__
+## __AWS CodeBuild__
+  - ### Features
+    - CodeBuild Reserved Capacity VPC Support
+
+## __AWS DataSync__
+  - ### Features
+    - Task executions now display a CANCELLING status when an execution is in the process of being cancelled.
+
+## __AWS Health Imaging__
+  - ### Features
+    - Added support for importing medical imaging data from Amazon S3 buckets across accounts and regions.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed a bug in file-based AsyncResponseTransformer that could cause a streaming request to hang if an exception was thrown from `onStream`
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation-only update for AWS Security Hub
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Updating Bedrock Knowledge Base Metadata & Filters feature with two new filters listContains and stringContains
+
+## __Amazon CloudFront__
+  - ### Bugfixes
+    - Fixes bug where SignedUrl strips the port number from the url.
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - This release adds new ServiceAccount and ServiceAccountToken APIs.
+
 # __2.25.52__ __2024-05-14__
 ## __AWS SDK for Java v2__
   - ### Features
