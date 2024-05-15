@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.endpointdiscovery;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -84,7 +85,7 @@ public class EndpointDiscoveryRefreshCacheTest {
 
         future.cancel(true);
         assertThat(future.isCancelled()).isEqualTo(true);
-        assertThrows(CancellationException.class, () -> future.get());
+        assertThatThrownBy(future::get).isInstanceOf(CancellationException.class);
 
     }
 
