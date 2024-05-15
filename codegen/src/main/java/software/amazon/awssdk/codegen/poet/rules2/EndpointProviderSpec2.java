@@ -67,6 +67,8 @@ public class EndpointProviderSpec2 implements ClassSpec {
                 return RuleRuntimeTypeMirror.BOOLEAN;
             case "string":
                 return RuleRuntimeTypeMirror.STRING;
+            case "stringarray":
+                return RuleRuntimeTypeMirror.LIST_OF_STRING;
             default:
                 throw new IllegalStateException("Cannot find rule type for: " + model.getType());
         }

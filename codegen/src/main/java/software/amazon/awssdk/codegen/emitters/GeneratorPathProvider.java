@@ -104,4 +104,7 @@ public class GeneratorPathProvider {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullInternalAuthSchemePackageName());
     }
 
+    public String getJmesPathInternalDirectory() {
+        return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullInternalJmesPathPackageName());
+    }
 }
