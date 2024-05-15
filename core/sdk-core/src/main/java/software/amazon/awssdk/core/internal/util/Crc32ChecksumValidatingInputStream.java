@@ -30,6 +30,8 @@ public class Crc32ChecksumValidatingInputStream extends SdkFilterInputStream {
 
     private final long expectedChecksum;
 
+    private boolean shouldValidateChecksum = true;
+
     /**
      * @param in               Input stream to content.
      * @param expectedChecksum Expected CRC32 checksum returned by the service.
@@ -53,7 +55,30 @@ public class Crc32ChecksumValidatingInputStream extends SdkFilterInputStream {
         }
     }
 
+    @Override
+    public int read() throws IOException {
+        try {
+            return super.read();
+        } catch (Throwable e) {
+            shouldValidateChecksum = false;
+            throw e;
+        }
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+        try {
+            return super.read(b, off, len);
+        } catch (Throwable e) {
+            shouldValidateChecksum = false;
+            throw e;
+        }
+    }
+
     private void validateChecksum() throws Crc32MismatchException {
+        if (!shouldValidateChecksum) {
+            return;
+        }
         long actualChecksum = ((Crc32ChecksumCalculatingInputStream) in).getCrc32Checksum();
         if (expectedChecksum != actualChecksum) {
             throw Crc32MismatchException.builder()
