@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Managed Grafana",
-    "contributor": "",
-    "description": "This release adds new ServiceAccount and ServiceAccountToken APIs."
-}
