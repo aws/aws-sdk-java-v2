@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "S3 Transfer Manager",
-    "contributor": "",
-    "description": "Skip downloading S3 folders (0-content-length folders created in the S3 console) in downloadDirectory in the S3 Transfer Manager."
-}
