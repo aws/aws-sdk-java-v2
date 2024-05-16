@@ -31,8 +31,6 @@ public final class Aws4SignerRequestParams {
 
     private final long requestSigningDateTimeMilli;
 
-    private final int requestSigningDateTimeNanos;
-
     /**
      * The scope of the signature.
      */
@@ -71,7 +69,6 @@ public final class Aws4SignerRequestParams {
         this.regionName = getRegion(signerParams.signingRegion());
         this.scope = generateScope(formattedRequestSigningDate, this.serviceSigningName, regionName);
         this.formattedRequestSigningDateTime = Aws4SignerUtils.formatTimestamp(requestSigningDateTimeMilli);
-        this.requestSigningDateTimeNanos = signingClock.instant() != null ? signingClock.instant().getNano() : 0;
     }
 
     /**
@@ -102,13 +99,6 @@ public final class Aws4SignerRequestParams {
      */
     public long getRequestSigningDateTimeMilli() {
         return requestSigningDateTimeMilli;
-    }
-
-    /**
-     * Returns the request signing date time nanoseconds.
-     */
-    public int getRequestSigningDateTimeNanos() {
-        return requestSigningDateTimeNanos;
     }
 
     /**
