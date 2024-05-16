@@ -372,8 +372,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                                                U signingParams) {
 
         long expirationInSeconds = signingParams.expirationTime()
-                                                .map(t -> t.getEpochSecond() -
-                                                          (requestParams.getRequestSigningDateTimeMilli() / 1000))
+                                                .map(t -> calculateExpirationInSeconds(t, requestParams))
                                                 .orElse(SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS);
 
         if (expirationInSeconds > SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS) {
@@ -385,6 +384,16 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                                     .build();
         }
         return expirationInSeconds;
+    }
+
+    private static long calculateExpirationInSeconds(Instant expirationTime, Aws4SignerRequestParams requestParams) {
+        long expirationTimeInNanos = expirationTime.getEpochSecond() * 1_000_000_000L + expirationTime.getNano();
+
+        long requestSigningInNanos = requestParams.getRequestSigningDateTimeMilli() * 1_000_000L
+                                     + requestParams.getRequestSigningDateTimeNanos();
+
+        long differenceInNanos = expirationTimeInNanos - requestSigningInNanos;
+        return (differenceInNanos + 999_999_999L) / 1_000_000_000L;
     }
 
     /**

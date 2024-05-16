@@ -77,6 +77,8 @@ public class Aws4EventStreamSignerTest {
     private static final List<Instant> SIGNING_INSTANTS = Stream.of(
             // Note: This first Instant is used for signing the request not an event
             OffsetDateTime.of(1981, 1, 16, 6, 30, 0, 0, ZoneOffset.UTC).toInstant(),
+            OffsetDateTime.of(1981, 1, 16, 6, 30, 0, 0, ZoneOffset.UTC).toInstant(),
+            OffsetDateTime.of(1981, 1, 16, 6, 30, 0, 0, ZoneOffset.UTC).toInstant(),
             OffsetDateTime.of(1981, 1, 16, 6, 30, 1, 0, ZoneOffset.UTC).toInstant(),
             OffsetDateTime.of(1981, 1, 16, 6, 30, 2, 0, ZoneOffset.UTC).toInstant(),
             OffsetDateTime.of(1981, 1, 16, 6, 30, 3, 0, ZoneOffset.UTC).toInstant(),
@@ -234,8 +236,8 @@ public class Aws4EventStreamSignerTest {
                 Flowable<String> payloads = Flowable.fromIterable(requestBody).concatWith(Flowable.just(""));
 
                 return sigsHex.zipWith(payloads, new BiFunction<String, String, Message>() {
-                            // The first Instant was used to sign the request
-                            private int idx = 1;
+                            // The first 3 Instants were used to sign the request
+                            private int idx = 3;
 
                             @Override
                             public Message apply(String sig, String payload) throws Exception {
