@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Certificate Manager Private Certificate Authority",
+    "contributor": "",
+    "description": "This release adds support for waiters to fail on AccessDeniedException when having insufficient permissions"
+}
