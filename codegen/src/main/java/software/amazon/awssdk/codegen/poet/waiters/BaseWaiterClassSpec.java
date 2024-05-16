@@ -70,11 +70,12 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  */
 public abstract class BaseWaiterClassSpec implements ClassSpec {
 
-    public static final String FAILURE_MESSAGE_FORMAT_FOR_PATH_MATCHER = "A waiter acceptor with the matcher %s matched the "
-                                                                         + "expected value %s for the argument %s "
-                                                                         + "and transitioned the waiter to failure state";
-    public static final String FAILURE_MESSAGE_FORMAT_FOR_ERROR_MATCHER = "A waiter acceptor was matched to error condition "
-                                                                          + "%s and transitioned the waiter to failure state";
+    public static final String FAILURE_MESSAGE_FORMAT_FOR_PATH_MATCHER = "A waiter acceptor with the matcher (%s) "
+                                                                         + "was matched on parameter (%s=%s) and "
+                                                                         + "transitioned the waiter to failure state";
+    public static final String FAILURE_MESSAGE_FORMAT_FOR_ERROR_MATCHER = "A waiter acceptor was matched on error "
+                                                                          + "condition (%s) and transitioned the waiter to "
+                                                                          + "failure state";
     private static final String WAITERS_USER_AGENT = "waiter";
     private final IntermediateModel model;
     private final String modelPackage;
@@ -483,7 +484,6 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
             case "status":
                 // Note: Ignores the result we've built so far because this uses a special acceptor implementation.
                 int expected = Integer.parseInt(acceptor.getExpected().asText());
-                // Need test case here
                 return CodeBlock.of("new $T($L, $T.$L)", poetExtensions.waitersRuntimeClass()
                                                                        .nestedClass("ResponseStatusAcceptor"),
                                     expected, WaiterState.class, waiterState(acceptor));
@@ -509,8 +509,8 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         addAcceptorFailureMessage(result, acceptor,
                                   () -> String.format(FAILURE_MESSAGE_FORMAT_FOR_PATH_MATCHER,
                                                       acceptor.getMatcher(),
-                                                      expectedValue(acceptor),
-                                                      acceptor.getArgument()));
+                                                      acceptor.getArgument(),
+                                                      expectedValue(acceptor)));
     }
 
     private void addAcceptorFailureMessage(CodeBlock.Builder result, Acceptor acceptor, Supplier<String> messageSupplier) {

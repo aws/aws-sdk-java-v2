@@ -151,7 +151,8 @@ public class WaitersSyncFunctionalTest {
                                                                                                                          .build())
                                                                                          .build());
         assertThatThrownBy(() -> waiter.waitUntilAllTypesSuccess(SdkBuilder::build))
-            .hasMessageContaining("transitioned the waiter to failure state")
+            .hasMessageContaining("A waiter acceptor was matched on error condition"
+                                  + " (EmptyModeledException) and transitioned the waiter to failure state")
             .isInstanceOf(SdkClientException.class);
     }
 
@@ -184,7 +185,8 @@ public class WaitersSyncFunctionalTest {
                                                                        .build();
         when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
         assertThatThrownBy(() -> waiter.waitUntilAllTypesSuccess(SdkBuilder::build))
-            .hasMessageContaining("A waiter acceptor was matched to response status 500 and transitioned the waiter to failure state")
+            .hasMessageContaining("A waiter acceptor was matched to response status 500 "
+                                  + "and transitioned the waiter to failure state")
             .isInstanceOf(SdkClientException.class);
     }
 
@@ -217,7 +219,8 @@ public class WaitersSyncFunctionalTest {
                                                                                          .build());
 
         assertThatThrownBy(() -> waiter.waitUntilErrorMatcherWithExpectedTrueFails(SdkBuilder::build))
-            .hasMessageContaining("A waiter acceptor was matched to error condition true and transitioned the waiter to failure state")
+            .hasMessageContaining("A waiter acceptor was matched on error condition (true) "
+                                  + "and transitioned the waiter to failure state")
             .isInstanceOf(SdkClientException.class);
     }
 
@@ -324,7 +327,8 @@ public class WaitersSyncFunctionalTest {
 
         when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
         assertThatThrownBy(() -> waiter.waitUntilErrorMatcherWithExpectedFalseFails(SdkBuilder::build))
-            .hasMessageContaining("A waiter acceptor was matched to error condition false and transitioned the waiter to failure state")
+            .hasMessageContaining("A waiter acceptor was matched on error condition (false) "
+                                  + "and transitioned the waiter to failure state")
             .isInstanceOf(SdkClientException.class);
 
     }
@@ -398,7 +402,8 @@ public class WaitersSyncFunctionalTest {
                                                                        .build();
         when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
         assertThatThrownBy(() -> waiter.waitUntilFailureForSpecificMatchers(SdkBuilder::build))
-            .hasMessageContaining("A waiter acceptor with the matcher path matched the expected value UNEXPECTED_VALUE for the argument StringMember and transitioned the waiter to failure state")
+            .hasMessageContaining("A waiter acceptor with the matcher (path) was matched on parameter "
+                                  + "(StringMember=UNEXPECTED_VALUE) and transitioned the waiter to failure state")
             .isInstanceOf(SdkClientException.class);
     }
 
@@ -412,8 +417,8 @@ public class WaitersSyncFunctionalTest {
                                                                        .build();
         when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
         assertThatThrownBy(() -> waiter.waitUntilFailureForSpecificMatchers(SdkBuilder::build))
-            .hasMessageContaining("A waiter acceptor with the matcher path matched the expected value false "
-                                  + "for the argument BooleanMember and transitioned the waiter to failure state")
+            .hasMessageContaining("A waiter acceptor with the matcher (path) was matched on parameter "
+                                  + "(BooleanMember=false) and transitioned the waiter to failure state")
             .isInstanceOf(SdkClientException.class);
     }
 
@@ -427,11 +432,9 @@ public class WaitersSyncFunctionalTest {
                                                                        .build();
         when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
         assertThatThrownBy(() -> waiter.waitUntilFailureForSpecificMatchers(SdkBuilder::build))
-            .hasMessageContaining("A waiter acceptor with the matcher pathAny matched the expected value 99 for the "
-                                  + "argument IntegerMember and transitioned the waiter to failure state")
+            .hasMessageContaining("A waiter acceptor with the matcher (pathAny) was matched on parameter "
+                                  + "(IntegerMember=99) and transitioned the waiter to failure state")
             .isInstanceOf(SdkClientException.class);
     }
-
-
 
 }

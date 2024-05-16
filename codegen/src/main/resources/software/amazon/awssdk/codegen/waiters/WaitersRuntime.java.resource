@@ -26,8 +26,9 @@ import software.amazon.awssdk.utils.ToString;
 @SdkInternalApi
 public final class WaitersRuntime {
 
-    public static final String FAILURE_MESSAGE_FORMAT_FOR_STATUS_MATCHER = "A waiter acceptor was matched to response status %d"
-                                                                           + " and transitioned the waiter to failure state";
+    private static final String FAILURE_MESSAGE_FORMAT_FOR_STATUS_MATCHER = "A waiter acceptor was matched to response "
+                                                                            + "status %d and transitioned the waiter to failure"
+                                                                            + " state";
 
     /**
      * The default acceptors that should be matched *last* in the list of acceptors used by the SDK client waiters.
