@@ -16,7 +16,6 @@
 package software.amazon.awssdk.transfer.s3.config;
 
 import java.util.function.Predicate;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
@@ -28,7 +27,6 @@ import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
  * {@link #or(Predicate)} methods.
  */
 @SdkPublicApi
-@SdkPreviewApi
 public interface DownloadFilter extends Predicate<S3Object> {
 
     /**
@@ -41,10 +39,18 @@ public interface DownloadFilter extends Predicate<S3Object> {
     boolean test(S3Object s3Object);
 
     /**
-     * A {@link DownloadFilter} that downloads all objects. This is the default behavior if no filter is provided.
+     * A {@link DownloadFilter} that downloads all non-folder objects. A folder is a 0-byte object created when a customer
+     * uses S3 console to create a folder, and it always ends with "/".
+     *
+     * <p>
+     * This is the default behavior if no filter is provided.
      */
-    @SdkPreviewApi
     static DownloadFilter allObjects() {
-        return ctx -> true;
+        return s3Object -> {
+            boolean isFolder = s3Object.key().endsWith("/") &&
+                               s3Object.size() != null &&
+                               s3Object.size() == 0;
+            return !isFolder;
+        };
     }
 }
