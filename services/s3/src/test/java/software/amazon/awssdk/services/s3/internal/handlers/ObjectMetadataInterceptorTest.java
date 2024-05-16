@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,15 +38,20 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class ObjectMetadataInterceptorTest {
     private static final ObjectMetadataInterceptor INTERCEPTOR = new ObjectMetadataInterceptor();
 
-
-
     public static List<TestCase> testCases() {
+        List<String> listWithNulls = new ArrayList<>();
+        listWithNulls.add("\tc\r\n");
+        listWithNulls.add(null);
+
+        List<String> listWithNullsTrimmed = new ArrayList<>();
+        listWithNullsTrimmed.add("c");
+        listWithNullsTrimmed.add(null);
         return asList(
             tc(asList("a", "b", "c"), asList("a", "b", "c")),
             tc(asList(" a ", "b", "c"), asList("a", "b", "c")),
             tc(asList("   a", "\tb", "\tc"), asList("a", "b", "c")),
-            tc(asList("a\n", "\tb", "\tc\r\n"), asList("a", "b", "c"))
-
+            tc(asList("a\n", "\tb", "\tc\r\n"), asList("a", "b", "c")),
+            tc(listWithNulls, listWithNullsTrimmed)
         );
     }
 
@@ -68,7 +74,7 @@ public class ObjectMetadataInterceptorTest {
 
         PutObjectRequest modified = (PutObjectRequest) INTERCEPTOR.modifyRequest(ctx, attrs);
 
-        assertThat(modified.metadata().keySet()).containsExactlyElementsOf(tc.expectedKeys);
+        assertThat(modified.metadata().keySet()).containsOnlyOnceElementsOf(tc.expectedKeys);
     }
 
     @ParameterizedTest
@@ -90,7 +96,7 @@ public class ObjectMetadataInterceptorTest {
 
         CreateMultipartUploadRequest modified = (CreateMultipartUploadRequest) INTERCEPTOR.modifyRequest(ctx, attrs);
 
-        assertThat(modified.metadata().keySet()).containsExactlyElementsOf(tc.expectedKeys);
+        assertThat(modified.metadata().keySet()).containsOnlyOnceElementsOf(tc.expectedKeys);
     }
 
     @Test

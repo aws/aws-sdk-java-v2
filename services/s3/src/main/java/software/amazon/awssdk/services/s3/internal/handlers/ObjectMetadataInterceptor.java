@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.handlers;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -69,6 +69,6 @@ public final class ObjectMetadataInterceptor implements ExecutionInterceptor {
 
     private Map<String, String> trimKeys(Map<String, String> map) {
         return map.entrySet().stream()
-            .collect(Collectors.toMap(e -> StringUtils.trim(e.getKey()), Map.Entry::getValue));
+            .collect(HashMap::new, (hm, entry) -> hm.put(StringUtils.trim(entry.getKey()), entry.getValue()), HashMap::putAll);
     }
 }

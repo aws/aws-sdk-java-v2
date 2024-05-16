@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "dropofwill",
+    "description": "Fixes issue 4990 allowing null values in S3 object metadata"
+}
