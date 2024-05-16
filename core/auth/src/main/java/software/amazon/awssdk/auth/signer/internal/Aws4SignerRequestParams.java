@@ -71,8 +71,6 @@ public final class Aws4SignerRequestParams {
         this.regionName = getRegion(signerParams.signingRegion());
         this.scope = generateScope(formattedRequestSigningDate, this.serviceSigningName, regionName);
         this.formattedRequestSigningDateTime = Aws4SignerUtils.formatTimestamp(requestSigningDateTimeMilli);
-        //Instant instant = signingClock.instant();
-        //this.requestSigningDateTimeNanos = instant != null ? instant.getNano() : 0;
         this.requestSigningDateTimeNanos = signingClock.instant() != null ? signingClock.instant().getNano() : 0;
     }
 
