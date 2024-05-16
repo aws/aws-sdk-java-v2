@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
@@ -69,6 +70,11 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  */
 public abstract class BaseWaiterClassSpec implements ClassSpec {
 
+    public static final String FAILURE_MESSAGE_FORMAT_FOR_PATH_MATCHER = "A waiter acceptor with the matcher %s matched the "
+                                                                         + "expected value %s for the argument %s "
+                                                                         + "and transitioned the waiter to failure state";
+    public static final String FAILURE_MESSAGE_FORMAT_FOR_ERROR_MATCHER = "A waiter acceptor was matched to error condition "
+                                                                          + "%s and transitioned the waiter to failure state";
     private static final String WAITERS_USER_AGENT = "waiter";
     private final IntermediateModel model;
     private final String modelPackage;
@@ -459,21 +465,25 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
             case "path":
                 result.add("OnResponseAcceptor(");
                 result.add(pathAcceptorBody(acceptor));
+                addFailureMessageForPathMatcher(acceptor, result);
                 result.add(")");
                 break;
             case "pathAll":
                 result.add("OnResponseAcceptor(");
                 result.add(pathAllAcceptorBody(acceptor));
+                addFailureMessageForPathMatcher(acceptor, result);
                 result.add(")");
                 break;
             case "pathAny":
                 result.add("OnResponseAcceptor(");
                 result.add(pathAnyAcceptorBody(acceptor));
+                addFailureMessageForPathMatcher(acceptor, result);
                 result.add(")");
                 break;
             case "status":
                 // Note: Ignores the result we've built so far because this uses a special acceptor implementation.
                 int expected = Integer.parseInt(acceptor.getExpected().asText());
+                // Need test case here
                 return CodeBlock.of("new $T($L, $T.$L)", poetExtensions.waitersRuntimeClass()
                                                                        .nestedClass("ResponseStatusAcceptor"),
                                     expected, WaiterState.class, waiterState(acceptor));
@@ -483,6 +493,8 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                 } else {
                     result.add("OnExceptionAcceptor(");
                     result.add(errorAcceptorBody(acceptor));
+                    addAcceptorFailureMessage(result, acceptor, () -> String.format(FAILURE_MESSAGE_FORMAT_FOR_ERROR_MATCHER,
+                                                                                    expectedValue(acceptor)));
                     result.add(")");
                 }
                 break;
@@ -491,6 +503,27 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         }
 
         return result.build();
+    }
+
+    private void addFailureMessageForPathMatcher(Acceptor acceptor, CodeBlock.Builder result) {
+        addAcceptorFailureMessage(result, acceptor,
+                                  () -> String.format(FAILURE_MESSAGE_FORMAT_FOR_PATH_MATCHER,
+                                                      acceptor.getMatcher(),
+                                                      expectedValue(acceptor),
+                                                      acceptor.getArgument()));
+    }
+
+    private void addAcceptorFailureMessage(CodeBlock.Builder result, Acceptor acceptor, Supplier<String> messageSupplier) {
+        if ("failure".equals(acceptor.getState())) {
+            result.add(", ");
+            result.add("$S", messageSupplier.get());
+        }
+    }
+
+    private static String expectedValue(Acceptor acceptor) {
+        return acceptor.getExpected() instanceof JrsBoolean
+               ? String.valueOf(((JrsBoolean) acceptor.getExpected()).booleanValue())
+               : acceptor.getExpected().asText();
     }
 
     private CodeBlock.Builder booleanValueErrorBlock(Acceptor acceptor, Boolean expectedBoolean) {
@@ -502,6 +535,8 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
             codeBlock.add("OnExceptionAcceptor(");
             codeBlock.add("error -> errorCode(error) != null");
         }
+        addAcceptorFailureMessage(codeBlock, acceptor, () -> String.format(FAILURE_MESSAGE_FORMAT_FOR_ERROR_MATCHER,
+                                                                           expectedValue(acceptor)));
         codeBlock.add(")");
         return codeBlock;
     }

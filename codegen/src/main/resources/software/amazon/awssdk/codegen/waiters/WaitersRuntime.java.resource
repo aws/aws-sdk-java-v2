@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Objects;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
@@ -24,6 +25,10 @@ import software.amazon.awssdk.utils.ToString;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public final class WaitersRuntime {
+
+    public static final String FAILURE_MESSAGE_FORMAT_FOR_STATUS_MATCHER = "A waiter acceptor was matched to response status %d"
+                                                                           + " and transitioned the waiter to failure state";
+
     /**
      * The default acceptors that should be matched *last* in the list of acceptors used by the SDK client waiters.
      */
@@ -71,6 +76,12 @@ public final class WaitersRuntime {
             }
 
             return false;
+        }
+
+        @Override
+        public Optional<String> message() {
+            return waiterState == WaiterState.FAILURE ? Optional.of(String.format(FAILURE_MESSAGE_FORMAT_FOR_STATUS_MATCHER,
+                    statusCode)) : Optional.empty();
         }
     }
 }

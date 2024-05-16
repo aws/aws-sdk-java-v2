@@ -126,6 +126,31 @@
           "expected" : true
         }
       ]
+    },
+    "FailureForSpecificMatchers": {
+      "delay": 1,
+      "operation": "AllTypes",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "state": "failure",
+          "matcher": "path",
+          "argument": "StringMember",
+          "expected": "UNEXPECTED_VALUE"
+        },
+        {
+          "state": "failure",
+          "matcher": "path",
+          "argument": "BooleanMember",
+          "expected": false
+        },
+        {
+          "state": "failure",
+          "matcher": "pathAny",
+          "argument": "IntegerMember",
+          "expected": 99
+        }
+      ]
     }
   }
 }
