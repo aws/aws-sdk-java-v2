@@ -1,6 +1,6 @@
 {
-    "category": "AWS SDK for Java v2", 
+    "category": "Amazon S3",
     "contributor": "", 
     "type": "bugfix", 
-    "description": "Fixes bug where pre-signed URL expiration duration may get rounded down 1 second"
+    "description": "Fixes bug where pre-signed URL expiration duration using old signer may get rounded down 1 second"
 }
