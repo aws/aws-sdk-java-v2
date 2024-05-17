@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon Simple Storage Service (S3)",
+    "contributor": "",
+    "description": "Decoded encoded keys in the ListObjectVersions.DeleteMarker field"
+}
