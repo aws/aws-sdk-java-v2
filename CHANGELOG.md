@@ -1,4 +1,40 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.55__ __2024-05-17__
+## __AWS CodeBuild__
+  - ### Features
+    - Aws CodeBuild now supports 36 hours build timeout
+
+## __AWS Lake Formation__
+  - ### Features
+    - Introduces a new API, GetDataLakePrincipal, that returns the identity of the invoking principal
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Prevent calculating crc32 checksum on an incomplete response, due to error
+
+## __AWS Transfer Family__
+  - ### Features
+    - Enable use of CloudFormation traits in Smithy model to improve generated CloudFormation schema from the Smithy API model.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixes bug where pre-signed URL expiration duration using AwsS3V4Signer may get rounded down 1 second
+
+## __Amazon Simple Storage Service (S3)__
+  - ### Bugfixes
+    - Decoded encoded keys in the ListObjectVersions.DeleteMarker field
+
+## __Application Auto Scaling__
+  - ### Features
+    - add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds dualstack-without-public-ipv4 IP address type for ALB.
+
 # __2.25.54__ __2024-05-16__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features
