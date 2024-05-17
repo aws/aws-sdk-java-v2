@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Transfer Family",
+    "contributor": "",
+    "description": "Enable use of CloudFormation traits in Smithy model to improve generated CloudFormation schema from the Smithy API model."
+}
