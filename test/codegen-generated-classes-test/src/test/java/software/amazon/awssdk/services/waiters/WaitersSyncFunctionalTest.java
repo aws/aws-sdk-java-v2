@@ -185,8 +185,8 @@ public class WaitersSyncFunctionalTest {
                                                                        .build();
         when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
         assertThatThrownBy(() -> waiter.waitUntilAllTypesSuccess(SdkBuilder::build))
-            .hasMessageContaining("A waiter acceptor was matched to response status 500 "
-                                  + "and transitioned the waiter to failure state")
+            .hasMessageContaining("A waiter acceptor was matched on HTTP response status code (500)"
+                                  + " and transitioned the waiter to failure state")
             .isInstanceOf(SdkClientException.class);
     }
 
