@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lake Formation",
-    "contributor": "",
-    "description": "Introduces a new API, GetDataLakePrincipal, that returns the identity of the invoking principal"
-}

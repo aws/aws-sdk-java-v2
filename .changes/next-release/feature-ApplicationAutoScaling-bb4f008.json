@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Application Auto Scaling",
-    "contributor": "",
-    "description": "add v2 smoke tests and smithy smokeTests trait for SDK testing."
-}
