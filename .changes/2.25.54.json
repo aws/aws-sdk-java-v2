@@ -1,0 +1,60 @@
+{
+    "version": "2.25.54",
+    "date": "2024-05-16",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Skip downloading S3 folders (0-content-length folders created in the S3 console) in downloadDirectory in the S3 Transfer Manager."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager Private Certificate Authority",
+            "contributor": "",
+            "description": "This release adds support for waiters to fail on AccessDeniedException when having insufficient permissions"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Secrets Manager",
+            "contributor": "",
+            "description": "Documentation updates for AWS Secrets Manager"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Adding Contact Flow metrics to the GetMetricDataV2 API"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonMWAA",
+            "contributor": "",
+            "description": "Amazon MWAA now supports Airflow web server auto scaling to automatically handle increased demand from REST APIs, Command Line Interface (CLI), or more Airflow User Interface (UI) users. Customers can specify maximum and minimum web server instances during environment creation and update workflow."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "This release adds DescribeKeyRegistration and UpdateKeyRegistration APIs to manage QuickSight Customer Managed Keys (CMK)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Introduced WorkerAccessConfiguration to SageMaker Workteam. This allows customers to configure resource access for workers in a workteam."
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "contributor": "",
+            "description": "AWS MSK support for Broker Removal."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
