@@ -54,7 +54,6 @@ class Crc32ChecksumValidatingInputStreamTest {
         InputStreamUtils.drainInputStream(is);
 
         assertThatThrownBy(is::close).isInstanceOf(Crc32MismatchException.class);
-
     }
 
     @Test
@@ -63,6 +62,20 @@ class Crc32ChecksumValidatingInputStreamTest {
             new FailAfterNInputStream(128, new IOException("test io exception")), 123);
         assertThatThrownBy(() -> InputStreamUtils.drainInputStream(is))
             .hasCauseInstanceOf(IOException.class)
+            .hasMessageContaining("test io exception");
+
+        assertThatCode(is::close).doesNotThrowAnyException();
+    }
+
+    @Test
+    void exception_readMethodCall_shouldNotValidateChecksum() {
+        Crc32ChecksumValidatingInputStream is = new Crc32ChecksumValidatingInputStream(
+            new FailAfterNInputStream(2, new IOException("test io exception")), 123);
+        assertThatThrownBy(() -> {
+            is.read();
+            is.read();
+        })
+            .isInstanceOf(IOException.class)
             .hasMessageContaining("test io exception");
 
         assertThatCode(is::close).doesNotThrowAnyException();
