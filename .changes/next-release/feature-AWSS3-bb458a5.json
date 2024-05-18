@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS S3",
+    "contributor": "chaykin",
+    "description": "allow user to configure content type for input stream"
+}
