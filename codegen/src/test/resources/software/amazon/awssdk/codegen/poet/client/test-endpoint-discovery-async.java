@@ -214,6 +214,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(executeFuture, endpointFuture);
             return executeFuture;
         } catch (Throwable t) {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -287,6 +288,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(executeFuture, endpointFuture);
             return executeFuture;
         } catch (Throwable t) {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -368,6 +370,7 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
+            executeFuture = CompletableFutureUtils.forwardExceptionTo(executeFuture, endpointFuture);
             return executeFuture;
         } catch (Throwable t) {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));

@@ -294,6 +294,10 @@ public class JsonProtocolSpec implements ProtocolSpec {
                     whenCompletedFutureName, "executeFuture", whenComplete);
             builder.addStatement("executeFuture = $T.forwardExceptionTo($N, executeFuture)",
                     CompletableFutureUtils.class, whenCompletedFutureName);
+            if (opModel.getEndpointDiscovery() != null) {
+                builder.addStatement("executeFuture = $T.forwardExceptionTo(executeFuture, endpointFuture)",
+                                     CompletableFutureUtils.class);
+            }
         }
         if (opModel.hasEventStreamOutput()) {
             builder.addStatement("return $T.forwardExceptionTo(future, executeFuture)", CompletableFutureUtils.class);
