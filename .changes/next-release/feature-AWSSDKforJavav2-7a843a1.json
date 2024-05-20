@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Add the reason for failure in the exception thrown whenever a waiter transitions to a failure state."
-}
