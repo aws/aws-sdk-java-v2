@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -160,6 +161,58 @@ class SplittingTransformerTest {
             .hasMessageContaining("resultFuture");
     }
 
+    @Test
+    void resultFutureCancelled_shouldSignalErrorToSubscriberAndCancelTransformerFuture() {
+        CompletableFuture<Object> future = new CompletableFuture<>();
+        UpstreamTestTransformer transformer = new UpstreamTestTransformer();
+        SplittingTransformer<TestResultObject, Object> split =
+            SplittingTransformer.<TestResultObject, Object>builder()
+                                .upstreamResponseTransformer(transformer)
+                                .maximumBufferSizeInBytes(1024L)
+                                .resultFuture(future)
+                                .build();
+
+        ErrorCapturingSubscriber subscriber = new ErrorCapturingSubscriber();
+        split.subscribe(subscriber);
+
+        future.cancel(true);
+
+        assertThat(subscriber.error).isNotNull();
+        assertThat(subscriber.error).isInstanceOf(CancellationException.class);
+
+        CompletableFuture<Object> transformerFuture = transformer.future;
+        assertThat(transformerFuture).isCancelled();
+    }
+
+    private static class ErrorCapturingSubscriber
+        implements Subscriber<AsyncResponseTransformer<TestResultObject, TestResultObject>> {
+
+        private Subscription subscription;
+        private Throwable error;
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            this.subscription = s;
+            s.request(1);
+        }
+
+        @Override
+        public void onNext(AsyncResponseTransformer<TestResultObject, TestResultObject> transformer) {
+            transformer.prepare();
+            transformer.onResponse(new TestResultObject("test"));
+            transformer.onStream(AsyncRequestBody.fromString("test"));
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            this.error = t;
+        }
+
+        @Override
+        public void onComplete() {
+            /* do nothing, test only */
+        }
+    }
 
     private static class CancelAfterNTestSubscriber
         implements Subscriber<AsyncResponseTransformer<TestResultObject, TestResultObject>> {

@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.async.listener.AsyncRequestBodyListener;
 import software.amazon.awssdk.core.async.listener.AsyncResponseTransformerListener;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.model.CompletedObjectTransfer;
 import software.amazon.awssdk.transfer.s3.model.TransferObjectRequest;
@@ -165,14 +166,26 @@ public class TransferProgressUpdater {
     }
 
     public <ResultT> AsyncResponseTransformer<GetObjectResponse, ResultT> wrapResponseTransformerForMultipartDownload(
-        AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer) {
+        AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer, GetObjectRequest request) {
         return AsyncResponseTransformerListener.wrap(
             responseTransformer,
             new BaseAsyncResponseTransformerListener() {
                 @Override
                 public void transformerOnResponse(GetObjectResponse response) {
-                    ContentRangeParser.totalBytes(response.contentRange())
-                        .ifPresent(totalBytes -> progress.updateAndGet(b -> b.totalBytes(totalBytes).sdkResponse(response)));
+                    // if the GetObjectRequest is a range-get, the Content-Length headers of the response needs to be used
+                    // to update progress since the Content-Range would incorrectly upgrade progress with the whole object
+                    // size.
+                    if (request.range() != null) {
+                        if (response.contentLength() != null) {
+                            progress.updateAndGet(b -> b.totalBytes(response.contentLength()).sdkResponse(response));
+                        }
+                    } else {
+                        // if the GetObjectRequest is not a range-get, it might be a part-get. In that case, we need to parse
+                        // the Content-Range header to get the correct totalByte amount.
+                        ContentRangeParser
+                            .totalBytes(response.contentRange())
+                            .ifPresent(totalBytes -> progress.updateAndGet(b -> b.totalBytes(totalBytes).sdkResponse(response)));
+                    }
                 }
             }
         );

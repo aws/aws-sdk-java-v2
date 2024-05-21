@@ -48,6 +48,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -186,7 +187,7 @@ class TransferProgressUpdaterTest {
                     public void exceptionOccurred(Throwable error) {
                         // noop, test only
                     }
-                });
+                }, GetObjectRequest.builder().build());
         transformer.prepare();
         transformer.onResponse(GetObjectResponse.builder()
                                                 .contentRange("bytes 0-127/" + contentLength)
@@ -203,6 +204,53 @@ class TransferProgressUpdaterTest {
         publisher.send(ByteBuffer.wrap(new byte[] {0, 1, 2, 3, 4, 5, 6, 7})).join();
         assertThat(transferProgressUpdater.progress().snapshot().totalBytes().getAsLong()).isEqualTo(contentLength);
         assertThat(transferProgressUpdater.progress().snapshot().transferredBytes()).isEqualTo(8L);
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {8, 16, 31, 32, 33, 1024, Long.MAX_VALUE})
+    void transferProgressUpdater_useContentLengthWhenRangeGet(long contentLength) {
+        TransferObjectRequest unusedMockTransferRequest = Mockito.mock(TransferObjectRequest.class);
+        TransferProgressUpdater transferProgressUpdater = new TransferProgressUpdater(unusedMockTransferRequest, null);
+        AsyncResponseTransformer<GetObjectResponse, Void> transformer =
+            transferProgressUpdater.wrapResponseTransformerForMultipartDownload(
+                new AsyncResponseTransformer<GetObjectResponse, Void>() {
+                    @Override
+                    public CompletableFuture<Void> prepare() {
+                        return new CompletableFuture<>();
+                    }
+
+                    @Override
+                    public void onResponse(GetObjectResponse response) {
+                        // noop, test only
+                    }
+
+                    @Override
+                    public void onStream(SdkPublisher<ByteBuffer> publisher) {
+                        publisher.subscribe(b -> { /* do nothing, test only */ });
+                    }
+
+                    @Override
+                    public void exceptionOccurred(Throwable error) {
+                        // noop, test only
+                    }
+                }, GetObjectRequest.builder().range("bytes=0-" + contentLength).build());
+        transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder()
+                                                .contentLength(contentLength)
+                                                .build());
+        TransferProgressSnapshot snapshot = transferProgressUpdater.progress().snapshot();
+        assertThat(snapshot.totalBytes()).isPresent();
+        assertThat(snapshot.totalBytes().getAsLong()).isEqualTo(contentLength);
+
+        // simulate sending bytes
+        SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
+        transformer.onStream(SdkPublisher.adapt(publisher));
+        assertThat(transferProgressUpdater.progress().snapshot().transferredBytes()).isEqualTo(0L);
+
+        publisher.send(ByteBuffer.wrap(new byte[] {0, 1, 2, 3, 4, 5, 6, 7})).join();
+        assertThat(transferProgressUpdater.progress().snapshot().totalBytes().getAsLong()).isEqualTo(contentLength);
+        assertThat(transferProgressUpdater.progress().snapshot().transferredBytes()).isEqualTo(8L);
+
     }
 
 

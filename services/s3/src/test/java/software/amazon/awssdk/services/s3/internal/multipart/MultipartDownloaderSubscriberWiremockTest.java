@@ -74,7 +74,7 @@ class MultipartDownloaderSubscriberWiremockTest {
 
     @ParameterizedTest
     @MethodSource("argumentsProvider")
-    <T> void happyPath_shouldReceiveAllBodyPArtInCorrectOrder(AsyncResponseTransformerTestSupplier<T> supplier,
+    <T> void happyPath_shouldReceiveAllBodyPartInCorrectOrder(AsyncResponseTransformerTestSupplier<T> supplier,
                                                               int amountOfPartToTest,
                                                               int partSize) {
         byte[] expectedBody = util.stubAllParts(testBucket, testKey, amountOfPartToTest, partSize);
