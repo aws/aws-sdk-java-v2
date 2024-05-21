@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.57__ __2024-05-21__
+## __AWS Glue__
+  - ### Features
+    - Add Maintenance window to CreateJob and UpdateJob APIs and JobRun response. Add a new Job Run State for EXPIRED.
+
+## __AWS Performance Insights__
+  - ### Features
+    - Performance Insights added a new input parameter called AuthorizedActions to support the fine-grained access feature. Performance Insights also restricted the acceptable input characters.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Added new SMBSecurityStrategy enum named MandatoryEncryptionNoAes128, new mode enforces encryption and disables AES 128-bit algorithums.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Model update; no change to SDK functionality.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for Amazon Lightsail instances to switch between dual-stack or IPv4 only and IPv6-only public IP address types.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for Db2 license through AWS Marketplace.
+
+## __MailManager__
+  - ### Features
+    - This release includes a new Amazon SES feature called Mail Manager, which is a set of email gateway capabilities designed to help customers strengthen their organization's email infrastructure, simplify email workflow management, and streamline email compliance control.
+
 # __2.25.56__ __2024-05-20__
 ## __AWS Control Tower__
   - ### Features
