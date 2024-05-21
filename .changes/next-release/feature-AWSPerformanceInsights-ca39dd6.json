@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Performance Insights",
+    "contributor": "",
+    "description": "Performance Insights added a new input parameter called AuthorizedActions to support the fine-grained access feature. Performance Insights also restricted the acceptable input characters."
+}
