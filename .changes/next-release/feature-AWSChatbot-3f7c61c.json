@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Chatbot",
+    "contributor": "",
+    "description": "This change adds support for tagging Chatbot configurations."
+}
