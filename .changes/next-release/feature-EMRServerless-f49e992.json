@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "EMR Serverless",
-    "contributor": "",
-    "description": "This release adds the capability to run interactive workloads using Apache Livy Endpoint."
-}
