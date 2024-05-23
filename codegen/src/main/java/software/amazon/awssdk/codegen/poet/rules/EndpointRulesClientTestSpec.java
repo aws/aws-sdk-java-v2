@@ -326,7 +326,7 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
     }
 
     private void configureCredentialsProvider(CodeBlock.Builder b, Map<String, TreeNode> params) {
-        if (params.containsKey("AccountId")) {
+        if (params != null && params.containsKey("AccountId")) {
             CodeBlock valueLiteral = endpointRulesSpecUtils.treeNodeToLiteral(params.get("AccountId"));
             b.addStatement("builder.credentialsProvider($T.credentialsProviderWithAccountId($L))", BaseRuleSetClientTest.class,
                            valueLiteral);
