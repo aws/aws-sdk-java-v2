@@ -44,6 +44,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
+import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -275,7 +276,7 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
 
         b.beginControlFlow("() -> ");
         b.addStatement("$T builder = $T.builder()", syncClientBuilder(), syncClientClass());
-        b.addStatement("builder.credentialsProvider($T.CREDENTIALS_PROVIDER)", BaseRuleSetClientTest.class);
+        configureCredentialsProvider(b, params);
         if (AuthUtils.usesBearerAuth(model)) {
             b.addStatement("builder.tokenProvider($T.TOKEN_PROVIDER)", BaseRuleSetClientTest.class);
         }
@@ -302,7 +303,7 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
 
         b.beginControlFlow("() -> ");
         b.addStatement("$T builder = $T.builder()", asyncClientBuilder(), asyncClientClass());
-        b.addStatement("builder.credentialsProvider($T.CREDENTIALS_PROVIDER)", BaseRuleSetClientTest.class);
+        configureCredentialsProvider(b, params);
         if (AuthUtils.usesBearerAuth(model)) {
             b.addStatement("builder.tokenProvider($T.TOKEN_PROVIDER)", BaseRuleSetClientTest.class);
         }
@@ -322,6 +323,16 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         b.endControlFlow();
 
         return b.build();
+    }
+
+    private void configureCredentialsProvider(CodeBlock.Builder b, Map<String, TreeNode> params) {
+        if (params.containsKey("AccountId")) {
+            CodeBlock valueLiteral = endpointRulesSpecUtils.treeNodeToLiteral(params.get("AccountId"));
+            b.addStatement("builder.credentialsProvider($T.credentialsProviderWithAccountId($L))", BaseRuleSetClientTest.class,
+                           valueLiteral);
+        } else {
+            b.addStatement("builder.credentialsProvider($T.CREDENTIALS_PROVIDER)", BaseRuleSetClientTest.class);
+        }
     }
 
     private CodeBlock syncOperationInvocation(OperationModel opModel) {
@@ -597,6 +608,10 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                     case AWS_S3_USE_GLOBAL_ENDPOINT:
                         b.addStatement("$T.setProperty($L, $L ? \"global\" : \"regional\")", System.class,
                                        s3RegionalEndpointSystemPropertyCode(), valueLiteral);
+                        break;
+                    case AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE:
+                        b.addStatement("$N.accountIdEndpointMode($T.fromValue($L))", builderName, AccountIdEndpointMode.class,
+                                       valueLiteral);
                         break;
                     default:
                         break;
