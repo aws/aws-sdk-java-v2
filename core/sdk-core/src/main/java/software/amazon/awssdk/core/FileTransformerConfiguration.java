@@ -53,7 +53,7 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
             throw new IllegalArgumentException(String.format(
                 "'position' can only be used with 'WRITE_TO_POSITION' file write option, but was used with '%s'",
                 fileWriteOption
-                ));
+            ));
         }
     }
 
@@ -82,10 +82,10 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
     }
 
     /**
-     * Exclusively used with {@link FileWriteOption#WRITE_TO_POSITION}. Configures the position, where to start writing to the existing
-     * file. The location correspond to the first byte where new data will be written. For example, if {@code 128} is configured,
-     * bytes 0-127 of the existing file will remain untouched and data will be appended starting at byte 128. If not specified,
-     * defaults to 0.
+     * Exclusively used with {@link FileWriteOption#WRITE_TO_POSITION}. Configures the position, where to start writing to the
+     * existing file. The location correspond to the first byte where new data will be written. For example, if {@code 128} is
+     * configured, bytes 0-127 of the existing file will remain untouched and data will be appended starting at byte 128. If not
+     * specified, defaults to 0.
      *
      * @return The offset at which to start overwriting data in the file.
      */
@@ -103,8 +103,8 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
     /**
      * Returns the default {@link FileTransformerConfiguration} for {@link FileWriteOption#CREATE_NEW}
      * <p>
-     * Always create a new file. If the file already exists, {@link FileAlreadyExistsException} will be thrown. In the event of an
-     * error, the SDK will attempt to delete the file (whatever has been written to it so far).
+     * Always create a new file. If the file already exists, {@link FileAlreadyExistsException} will be thrown.
+     * In the event of an error, the SDK will attempt to delete the file (whatever has been written to it so far).
      */
     public static FileTransformerConfiguration defaultCreateNew() {
         return builder().fileWriteOption(FileWriteOption.CREATE_NEW)
@@ -115,8 +115,8 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
     /**
      * Returns the default {@link FileTransformerConfiguration} for {@link FileWriteOption#CREATE_OR_REPLACE_EXISTING}
      * <p>
-     * Create a new file if it doesn't exist, otherwise replace the existing file. In the event of an error, the SDK will NOT
-     * attempt to delete the file, leaving it as-is
+     * Create a new file if it doesn't exist, otherwise replace the existing file.
+     * In the event of an error, the SDK will NOT attempt to delete the file, leaving it as-is
      */
     public static FileTransformerConfiguration defaultCreateOrReplaceExisting() {
         return builder().fileWriteOption(FileWriteOption.CREATE_OR_REPLACE_EXISTING)
@@ -127,8 +127,8 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
     /**
      * Returns the default {@link FileTransformerConfiguration} for {@link FileWriteOption#CREATE_OR_APPEND_TO_EXISTING}
      * <p>
-     * Create a new file if it doesn't exist, otherwise append to the existing file. In the event of an error, the SDK will NOT
-     * attempt to delete the file, leaving it as-is
+     * Create a new file if it doesn't exist, otherwise append to the existing file.
+     * In the event of an error, the SDK will NOT attempt to delete the file, leaving it as-is
      */
     public static FileTransformerConfiguration defaultCreateOrAppend() {
         return builder().fileWriteOption(FileWriteOption.CREATE_OR_APPEND_TO_EXISTING)
@@ -193,10 +193,10 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         CREATE_OR_APPEND_TO_EXISTING,
 
         /**
-         * Write to an existing file at the specified position, defined by the
-         * {@link FileTransformerConfiguration#position()}. If the file does not exist, a
-         * {@link java.nio.file.NoSuchFileException} will be thrown. If {@link FileTransformerConfiguration#position()} is
-         * not configured, start overriding data at the beginning of the file (byte 0).
+         * Write to an existing file at the specified position, defined by the {@link FileTransformerConfiguration#position()}. If
+         * the file does not exist, a {@link java.nio.file.NoSuchFileException} will be thrown. If
+         * {@link FileTransformerConfiguration#position()} is not configured, start overriding data at the beginning of the file
+         * (byte 0).
          */
         WRITE_TO_POSITION
     }
@@ -244,8 +244,8 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         Builder executorService(ExecutorService executorService);
 
         /**
-         * Exclusively used with {@link FileWriteOption#WRITE_TO_POSITION}. Configures the position, where to start writing to the existing
-         * file. The location correspond to the first byte where new data will be written. For example, if {@code 128} is
+         * Exclusively used with {@link FileWriteOption#WRITE_TO_POSITION}. Configures the position, where to start writing to the
+         * existing file. The location correspond to the first byte where new data will be written. For example, if {@code 128} is
          * configured, bytes 0-127 of the existing file will remain untouched and data will be appended starting at byte 128. If
          * not specified, defaults to 0.
          *
