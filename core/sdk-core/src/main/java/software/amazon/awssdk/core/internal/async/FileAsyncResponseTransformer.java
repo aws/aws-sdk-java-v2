@@ -60,7 +60,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     private final FileTransformerConfiguration configuration;
 
     public FileAsyncResponseTransformer(Path path) {
-        this(path, FileTransformerConfiguration.defaultCreateNew());
+        this(path, FileTransformerConfiguration.defaultCreateNew(), 0L);
     }
 
     public FileAsyncResponseTransformer(Path path, FileTransformerConfiguration fileConfiguration) {
