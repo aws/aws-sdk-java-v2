@@ -84,7 +84,7 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
     /**
      * Exclusively used with {@link FileWriteOption#WRITE_TO_POSITION}. Configures the position, where to start writing to the
      * existing file. The location correspond to the first byte where new data will be written. For example, if {@code 128} is
-     * configured, bytes 0-127 of the existing file will remain untouched and data will be appended starting at byte 128. If not
+     * configured, bytes 0-127 of the existing file will remain untouched and data will be written starting at byte 128. If not
      * specified, defaults to 0.
      *
      * @return The offset at which to start overwriting data in the file.
@@ -195,7 +195,7 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         /**
          * Write to an existing file at the specified position, defined by the {@link FileTransformerConfiguration#position()}. If
          * the file does not exist, a {@link java.nio.file.NoSuchFileException} will be thrown. If
-         * {@link FileTransformerConfiguration#position()} is not configured, start overriding data at the beginning of the file
+         * {@link FileTransformerConfiguration#position()} is not configured, start overwriting data at the beginning of the file
          * (byte 0).
          */
         WRITE_TO_POSITION
@@ -246,7 +246,7 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         /**
          * Exclusively used with {@link FileWriteOption#WRITE_TO_POSITION}. Configures the position, where to start writing to the
          * existing file. The location correspond to the first byte where new data will be written. For example, if {@code 128} is
-         * configured, bytes 0-127 of the existing file will remain untouched and data will be appended starting at byte 128. If
+         * configured, bytes 0-127 of the existing file will remain untouched and data will be written starting at byte 128. If
          * not specified, defaults to 0.
          *
          * @param writePosition the position at where to start writing data to the file.
