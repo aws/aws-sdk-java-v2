@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.59__ __2024-05-23__
+## __AWS OpsWorks__
+  - ### Features
+    - Documentation-only update for OpsWorks Stacks.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds the capability to run interactive workloads using Apache Livy Endpoint.
+
 # __2.25.58__ __2024-05-22__
 ## __AWS Chatbot__
   - ### Features
