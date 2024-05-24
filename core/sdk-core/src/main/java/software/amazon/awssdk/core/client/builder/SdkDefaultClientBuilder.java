@@ -253,8 +253,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * Apply global default configuration
      */
     private SdkClientConfiguration mergeGlobalDefaults(SdkClientConfiguration configuration) {
-        Supplier<ProfileFileSupplier> profileFileSupplierSupplier = new Lazy<>(ProfileFileSupplier::defaultSupplier)::getValue;
-        Supplier<ProfileFile> defaultProfileFileSupplier = profileFileSupplierSupplier.get();
+        Supplier<ProfileFileSupplier> profileFileSupplierProvider = new Lazy<>(ProfileFileSupplier::defaultSupplier)::getValue;
+        Supplier<ProfileFile> defaultProfileFileSupplier = profileFileSupplierProvider.get();
 
         configuration = configuration.merge(c -> c.option(EXECUTION_INTERCEPTORS, new ArrayList<>())
                                                   .option(METRIC_PUBLISHERS, new ArrayList<>())
