@@ -48,11 +48,11 @@ import software.amazon.awssdk.services.protocolrestjson.auth.scheme.internal.Pro
 public class AuthSchemeInterceptorTest {
     private static final ProtocolRestJsonAuthSchemeInterceptor INTERCEPTOR = new ProtocolRestJsonAuthSchemeInterceptor();
 
-    private Context.BeforeExecution mockContext;
+    private Context.ModifyRequest mockContext;
 
     @BeforeEach
     public void setup() {
-        mockContext = mock(Context.BeforeExecution.class);
+        mockContext = mock(Context.ModifyRequest.class);
     }
 
     @Test
@@ -79,7 +79,7 @@ public class AuthSchemeInterceptorTest {
         attributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, mockIdentityProviders);
         attributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes);
 
-        INTERCEPTOR.beforeExecution(mockContext, attributes);
+        INTERCEPTOR.modifyRequest(mockContext, attributes);
 
         SelectedAuthScheme<?> selectedAuthScheme = attributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
 
