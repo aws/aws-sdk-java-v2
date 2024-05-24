@@ -32,7 +32,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.internal.handlers.CopySourceInterceptor;
+import software.amazon.awssdk.services.s3.internal.RequestModifierUtils;
 import software.amazon.awssdk.services.s3.model.BucketVersioningStatus;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -45,7 +45,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
  * {@link PutObjectRequest} key and the {@link CopyObjectRequest} source key (and not be required to manually URL encode the
  * COPY source key). This also effectively tests for parity with the SDK v1 behavior.
  *
- * @see CopySourceInterceptor
+ * @see RequestModifierUtils
  */
 @RunWith(Parameterized.class)
 public class CopySourceIntegrationTest extends S3IntegrationTestBase {

@@ -23,6 +23,7 @@ import java.util.Map;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.CustomOperationContextParam;
+import software.amazon.awssdk.codegen.model.service.RequestCustomizer;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -327,6 +328,11 @@ public class CustomizationConfig {
     private Map<String, ParameterModel> endpointParameters;
 
     private List<CustomOperationContextParam> customOperationContextParams;
+
+    /**
+     * Special case API where an api request needs customization before the service call is made.
+     */
+    private Map<String, RequestCustomizer> requestCustomizerMap;
 
     private CustomizationConfig() {
     }
@@ -869,4 +875,13 @@ public class CustomizationConfig {
     public void setCustomOperationContextParams(List<CustomOperationContextParam> customOperationContextParams) {
         this.customOperationContextParams = customOperationContextParams;
     }
+
+    public Map<String, RequestCustomizer> getRequestCustomizerMap() {
+        return requestCustomizerMap;
+    }
+
+    public void setRequestCustomizerMap(Map<String, RequestCustomizer> requestCustomizerMap) {
+        this.requestCustomizerMap = requestCustomizerMap;
+    }
+
 }
