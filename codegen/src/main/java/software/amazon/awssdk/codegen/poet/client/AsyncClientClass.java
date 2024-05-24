@@ -429,14 +429,14 @@ public final class AsyncClientClass extends AsyncClientInterface {
                             AwsClientOption.class)
                    .addCode("    .resolveIdentity();");
 
-            builder.addCode("endpointFuture = identityFuture.thenApply(credentials -> {")
+            builder.addCode("endpointFuture = identityFuture.thenCompose(credentials -> {")
                    .addCode("    $1T endpointDiscoveryRequest = $1T.builder()", EndpointDiscoveryRequest.class)
                    .addCode("        .required($L)", opModel.getInputShape().getEndpointDiscovery().isRequired())
                    .addCode("        .defaultEndpoint(clientConfiguration.option($T.ENDPOINT))", SdkClientOption.class)
                    .addCode("        .overrideConfiguration($N.overrideConfiguration().orElse(null))",
                             opModel.getInput().getVariableName())
                    .addCode("        .build();")
-                   .addCode("    return endpointDiscoveryCache.get(credentials.accessKeyId(), endpointDiscoveryRequest);")
+                   .addCode("    return endpointDiscoveryCache.getAsync(credentials.accessKeyId(), endpointDiscoveryRequest);")
                    .addCode("});");
 
             builder.endControlFlow();

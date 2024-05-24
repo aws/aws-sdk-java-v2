@@ -128,6 +128,34 @@ public interface WaiterAcceptor<T> {
     }
 
     /**
+     * Creates an error waiter acceptor which determines if the exception should transition the waiter to failure state
+     * Overloaded method with errorMessage.
+     *
+     * @param errorPredicate the {@link Throwable} predicate
+     * @param errorMessage Message with reason for failure.
+     * @return a {@link WaiterAcceptor}
+     */
+    static <T> WaiterAcceptor<T> errorOnExceptionAcceptor(Predicate<Throwable> errorPredicate, String errorMessage) {
+        Validate.paramNotNull(errorPredicate, "errorPredicate");
+        return new WaiterAcceptor<T>() {
+            @Override
+            public WaiterState waiterState() {
+                return WaiterState.FAILURE;
+            }
+
+            @Override
+            public boolean matches(Throwable t) {
+                return errorPredicate.test(t);
+            }
+
+            @Override
+            public Optional<String> message() {
+                return Optional.of(errorMessage);
+            }
+        };
+    }
+
+    /**
      * Creates a success waiter acceptor which determines if the exception should transition the waiter to success state
      *
      * @param responsePredicate the predicate of the response

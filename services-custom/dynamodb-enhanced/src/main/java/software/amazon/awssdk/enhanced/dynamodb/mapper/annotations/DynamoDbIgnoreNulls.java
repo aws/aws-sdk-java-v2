@@ -65,7 +65,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  * // innerBean1 w/ @DynamoDbIgnoreNulls does not have any attribute values because all the fields are null
  * assertThat(itemMap.get("innerBean1").m(), empty());
  *
- * // innerBean2 w/o @DynamoDbIgnoreNulls has a NULLL attribute.
+ * // innerBean2 w/o @DynamoDbIgnoreNulls has a NULL attribute.
  * assertThat(nestedBean.getInnerBean2(), hasEntry("attribute", nullAttributeValue()));
  * </code>
  * </pre>

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
@@ -60,6 +61,14 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         if (params.awsAccountIdEndpointMode() != null) {
             paramsMap.put(Identifier.of("awsAccountIdEndpointMode"), Value.fromStr(params.awsAccountIdEndpointMode()));
         }
+        if (params.listOfStrings() != null) {
+            paramsMap.put(Identifier.of("listOfStrings"),
+                          Value.fromArray(params.listOfStrings().stream().map(Value::fromStr).collect(Collectors.toList())));
+        }
+        if (params.defaultListOfStrings() != null) {
+            paramsMap.put(Identifier.of("defaultListOfStrings"),
+                          Value.fromArray(params.defaultListOfStrings().stream().map(Value::fromStr).collect(Collectors.toList())));
+        }
         if (params.endpointId() != null) {
             paramsMap.put(Identifier.of("endpointId"), Value.fromStr(params.endpointId()));
         }
@@ -80,6 +89,10 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         }
         if (params.operationContextParam() != null) {
             paramsMap.put(Identifier.of("operationContextParam"), Value.fromStr(params.operationContextParam()));
+        }
+        if (params.customEndpointArray() != null) {
+            paramsMap.put(Identifier.of("CustomEndpointArray"),
+                          Value.fromArray(params.customEndpointArray().stream().map(Value::fromStr).collect(Collectors.toList())));
         }
         return paramsMap;
     }
@@ -353,6 +366,18 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                              .type(ParameterType.fromValue("String")).required(false)
                                              .builtIn("AWS::Auth::AccountIdEndpointMode").build())
                                 .addParameter(
+                                    Parameter.builder().name("listOfStrings").type(ParameterType.fromValue("StringArray"))
+                                             .required(false).build())
+                                .addParameter(
+                                    Parameter
+                                        .builder()
+                                        .name("defaultListOfStrings")
+                                        .type(ParameterType.fromValue("stringarray"))
+                                        .required(false)
+                                        .defaultValue(
+                                            Value.fromArray(Arrays.asList("item1", "item2", "item3").stream()
+                                                                  .map(Value::fromStr).collect(Collectors.toList()))).build())
+                                .addParameter(
                                         Parameter.builder().name("endpointId").type(ParameterType.fromValue("string"))
                                                 .required(false).build())
                                 .addParameter(
@@ -373,8 +398,13 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                         Parameter.builder().name("stringContextParam").type(ParameterType.fromValue("string"))
                                                 .required(false).build())
                                 .addParameter(
-                                        Parameter.builder().name("operationContextParam").type(ParameterType.fromValue("string"))
-                                                .required(false).build()).build()).addRule(endpointRule_0()).build();
+                                    Parameter.builder().name("operationContextParam").type(ParameterType.fromValue("string"))
+                                             .required(false).build())
+                                .addParameter(
+                                    Parameter.builder().name("CustomEndpointArray")
+                                             .type(ParameterType.fromValue("StringArray")).required(false)
+                                             .documentation("Parameter from the customization config").build()).build())
+                .addRule(endpointRule_0()).build();
     }
 
     @Override
