@@ -122,6 +122,8 @@ public final class ApacheHttpClient implements SdkHttpClient {
     }
 
     private ApacheHttpClient(DefaultBuilder builder, AttributeMap resolvedOptions) {
+        System.setProperty("jdk.tls.client.protocols", "TLSv1.3,TLSv1.2");
+        System.setProperty("jdk.tls.acknowledgeCloseNotify", "true");
         this.httpClient = createClient(builder, resolvedOptions);
         this.requestConfig = createRequestConfig(builder, resolvedOptions);
         this.resolvedOptions = resolvedOptions;
