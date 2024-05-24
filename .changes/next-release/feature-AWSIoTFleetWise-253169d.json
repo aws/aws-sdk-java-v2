@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT FleetWise",
+    "contributor": "",
+    "description": "AWS IoT FleetWise now supports listing vehicles with attributes filter, ListVehicles API is updated to support additional attributes filter."
+}
