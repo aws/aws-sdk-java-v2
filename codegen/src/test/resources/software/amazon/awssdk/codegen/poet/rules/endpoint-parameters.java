@@ -20,10 +20,9 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
     private final Boolean useFIPSEndpoint;
 
-    private final String awsAccountId;
+    private final String accountId;
 
-
-    private final String awsAccountIdEndpointMode;
+    private final String accountIdEndpointMode;
 
     private final List<String> listOfStrings;
 
@@ -44,12 +43,13 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
     private final String operationContextParam;
 
     private final List<String> customEndpointArray;
+
     private QueryEndpointParams(BuilderImpl builder) {
         this.region = builder.region;
         this.useDualStackEndpoint = builder.useDualStackEndpoint;
         this.useFIPSEndpoint = builder.useFIPSEndpoint;
-        this.awsAccountId = builder.awsAccountId;
-        this.awsAccountIdEndpointMode = builder.awsAccountIdEndpointMode;
+        this.accountId = builder.accountId;
+        this.accountIdEndpointMode = builder.accountIdEndpointMode;
         this.listOfStrings = builder.listOfStrings;
         this.defaultListOfStrings = builder.defaultListOfStrings;
         this.endpointId = builder.endpointId;
@@ -78,12 +78,12 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         return useFIPSEndpoint;
     }
 
-    public String awsAccountId() {
-        return awsAccountId;
+    public String accountId() {
+        return accountId;
     }
 
-    public String awsAccountIdEndpointMode() {
-        return awsAccountIdEndpointMode;
+    public String accountIdEndpointMode() {
+        return accountIdEndpointMode;
     }
 
     public List<String> listOfStrings() {
@@ -138,9 +138,9 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
         Builder useFipsEndpoint(Boolean useFIPSEndpoint);
 
-        Builder awsAccountId(String awsAccountId);
+        Builder accountId(String accountId);
 
-        Builder awsAccountIdEndpointMode(String awsAccountIdEndpointMode);
+        Builder accountIdEndpointMode(String accountIdEndpointMode);
 
         Builder listOfStrings(List<String> listOfStrings);
 
@@ -173,9 +173,9 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
 
         private Boolean useFIPSEndpoint;
 
-        private String awsAccountId;
+        private String accountId;
 
-        private String awsAccountIdEndpointMode;
+        private String accountIdEndpointMode;
 
         private List<String> listOfStrings;
 
@@ -204,8 +204,8 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
             this.region = builder.region;
             this.useDualStackEndpoint = builder.useDualStackEndpoint;
             this.useFIPSEndpoint = builder.useFIPSEndpoint;
-            this.awsAccountId = builder.awsAccountId;
-            this.awsAccountIdEndpointMode = builder.awsAccountIdEndpointMode;
+            this.accountId = builder.accountId;
+            this.accountIdEndpointMode = builder.accountIdEndpointMode;
             this.listOfStrings = builder.listOfStrings;
             this.defaultListOfStrings = builder.defaultListOfStrings;
             this.endpointId = builder.endpointId;
@@ -216,7 +216,6 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
             this.stringContextParam = builder.stringContextParam;
             this.operationContextParam = builder.operationContextParam;
             this.customEndpointArray = builder.customEndpointArray;
-
         }
 
         @Override
@@ -238,14 +237,14 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         }
 
         @Override
-        public Builder awsAccountId(String awsAccountId) {
-            this.awsAccountId = awsAccountId;
+        public Builder accountId(String accountId) {
+            this.accountId = accountId;
             return this;
         }
 
         @Override
-        public Builder awsAccountIdEndpointMode(String awsAccountIdEndpointMode) {
-            this.awsAccountIdEndpointMode = awsAccountIdEndpointMode;
+        public Builder accountIdEndpointMode(String accountIdEndpointMode) {
+            this.accountIdEndpointMode = accountIdEndpointMode;
             return this;
         }
 

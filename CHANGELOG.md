@@ -1,4 +1,55 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.60__ __2024-05-24__
+## __AWS IoT FleetWise__
+  - ### Features
+    - AWS IoT FleetWise now supports listing vehicles with attributes filter, ListVehicles API is updated to support additional attributes filter.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation only updates for DynamoDB.
+
+## __Amazon Managed Blockchain__
+  - ### Features
+    - This is a minor documentation update to address the impact of the shut down of the Goerli and Polygon networks.
+
+# __2.25.59__ __2024-05-23__
+## __AWS OpsWorks__
+  - ### Features
+    - Documentation-only update for OpsWorks Stacks.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds the capability to run interactive workloads using Apache Livy Endpoint.
+
+# __2.25.58__ __2024-05-22__
+## __AWS Chatbot__
+  - ### Features
+    - This change adds support for tagging Chatbot configurations.
+
+## __AWS CloudFormation__
+  - ### Features
+    - Added DeletionMode FORCE_DELETE_STACK for deleting a stack that is stuck in DELETE_FAILED state due to resource deletion failure.
+
+## __AWS Key Management Service__
+  - ### Features
+    - This release includes feature to import customer's asymmetric (RSA, ECC and SM2) and HMAC keys into KMS in China.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - You can now use Security Lake to collect web ACL traffic data.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds support for enabling or disabling a data source configured as part of Zero-ETL integration with Amazon S3, by setting its status.
+
 # __2.25.57__ __2024-05-21__
 ## __AWS Glue__
   - ### Features
