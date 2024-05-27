@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Fixed NullPointerException in S3 thrown when null metadata value is provided."
+}
