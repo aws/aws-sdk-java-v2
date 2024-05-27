@@ -73,8 +73,8 @@ class AccountIdParameterTests {
         verify(mockEndpointProvider).resolveEndpoint(paramsCaptor.capture());
 
         RestJsonEndpointProvidersEndpointParams resolvedEndpointParams = paramsCaptor.getValue();
-        assertThat(resolvedEndpointParams.awsAccountId()).isNotNull().isEqualTo("accountId");
-        assertThat(resolvedEndpointParams.awsAccountEndpointMode()).isNotNull().isEqualTo(AccountIdEndpointMode.PREFERRED.name());
+        assertThat(resolvedEndpointParams.accountId()).isNotNull().isEqualTo("accountId");
+        assertThat(resolvedEndpointParams.accountEndpointMode()).isNotNull().isEqualTo(AccountIdEndpointMode.PREFERRED.name().toLowerCase());
     }
 
     @ParameterizedTest
@@ -96,8 +96,8 @@ class AccountIdParameterTests {
         verify(mockEndpointProvider).resolveEndpoint(paramsCaptor.capture());
 
         RestJsonEndpointProvidersEndpointParams resolvedEndpointParams = paramsCaptor.getValue();
-        assertThat(resolvedEndpointParams.awsAccountId()).isNotNull().isEqualTo("accountId");
-        assertThat(resolvedEndpointParams.awsAccountEndpointMode()).isNotNull().isEqualTo(accountIdEndpointMode.name());
+        assertThat(resolvedEndpointParams.accountId()).isNotNull().isEqualTo("accountId");
+        assertThat(resolvedEndpointParams.accountEndpointMode()).isNotNull().isEqualTo(accountIdEndpointMode.name().toLowerCase());
     }
 
     private static AwsCredentialsProvider credentialsWithAccountId() {
