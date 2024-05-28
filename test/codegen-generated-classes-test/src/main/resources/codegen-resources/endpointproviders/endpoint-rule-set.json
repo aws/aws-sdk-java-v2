@@ -27,12 +27,12 @@
             "documentation": "Override the endpoint used to send this request",
             "type": "String"
         },
-        "awsAccountId": {
+        "AccountId": {
             "type": "String",
             "builtIn": "AWS::Auth::AccountId",
             "required": false
         },
-        "awsAccountEndpointMode": {
+        "AccountEndpointMode": {
             "type": "String",
             "builtIn": "AWS::Auth::AccountIdEndpointMode",
             "required": false

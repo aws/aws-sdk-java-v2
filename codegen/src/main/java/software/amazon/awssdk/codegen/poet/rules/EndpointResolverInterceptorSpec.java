@@ -307,7 +307,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                                    setter, SdkInternalExecutionAttribute.class);
                     break;
                 case AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE:
-                    b.addStatement("builder.$N(executionAttributes.getAttribute($T.$N).name())",
+                    b.addStatement("builder.$N(executionAttributes.getAttribute($T.$N).name().toLowerCase())",
                                    setter, AwsExecutionAttribute.class,
                                    model.getNamingStrategy().getEnumValueName(m.getBuiltInEnum().name()));
                     break;

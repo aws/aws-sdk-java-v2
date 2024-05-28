@@ -42,7 +42,6 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public final class QueryResolveEndpointInterceptor implements ExecutionInterceptor {
-
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
         SdkRequest result = context.request();
@@ -102,10 +101,10 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         builder.region(AwsEndpointProviderUtils.regionBuiltIn(executionAttributes));
         builder.useDualStackEndpoint(AwsEndpointProviderUtils.dualStackEnabledBuiltIn(executionAttributes));
         builder.useFipsEndpoint(AwsEndpointProviderUtils.fipsEnabledBuiltIn(executionAttributes));
-        builder.awsAccountId(accountIdFromIdentity(executionAttributes
-                                                       .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)));
-        builder.awsAccountIdEndpointMode(executionAttributes
-                                             .getAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE).name());
+        builder.accountId(accountIdFromIdentity(executionAttributes
+                                                    .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)));
+        builder.accountIdEndpointMode(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE)
+                                                         .name().toLowerCase());
         setClientContextParams(builder, executionAttributes);
         setContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), request);
         setStaticContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME));
@@ -205,15 +204,13 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     private static void setOperationContextParams(QueryEndpointParams.Builder params,
                                                   OperationWithCustomizedOperationContextParamRequest request) {
         JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
-        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString")
-                                            .stringValues());
+        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString").stringValues());
     }
 
     private static void setOperationContextParams(QueryEndpointParams.Builder params,
                                                   OperationWithOperationContextParamRequest request) {
         JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
-        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString")
-                                            .stringValues());
+        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString").stringValues());
     }
 
     private static Optional<String> hostPrefix(String operationName, SdkRequest request) {
