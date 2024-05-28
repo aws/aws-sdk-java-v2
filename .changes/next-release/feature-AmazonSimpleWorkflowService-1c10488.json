@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Workflow Service",
-    "contributor": "",
-    "description": "This release adds new APIs for deleting activity type and workflow type resources."
-}

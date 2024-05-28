@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB",
-    "contributor": "",
-    "description": "Doc-only update for DynamoDB. Specified the IAM actions needed to authorize a user to create a table with a resource-based policy."
-}
