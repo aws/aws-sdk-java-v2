@@ -334,7 +334,7 @@ public class CustomizationConfig {
      * The {@link CustomRequestTransformer} allows for dynamic and specific handling of API requests, ensuring that each
      * request that requires custom handling can be appropriately transformed based on its corresponding API name.
      */
-    private Map<String, CustomRequestTransformer> customRequestTransformerMap;
+    private Map<String, CustomRequestTransformer> customRequestTransformer;
 
     private CustomizationConfig() {
     }
@@ -878,12 +878,12 @@ public class CustomizationConfig {
         this.customOperationContextParams = customOperationContextParams;
     }
 
-    public Map<String, CustomRequestTransformer> getCustomRequestTransformerMap() {
-        return customRequestTransformerMap;
+    public Map<String, CustomRequestTransformer> getCustomRequestTransformer() {
+        return customRequestTransformer;
     }
 
-    public void setCustomRequestTransformerMap(Map<String, CustomRequestTransformer> customRequestTransformerMap) {
-        this.customRequestTransformerMap = customRequestTransformerMap;
+    public void setCustomRequestTransformer(Map<String, CustomRequestTransformer> customRequestTransformer) {
+        this.customRequestTransformer = customRequestTransformer;
     }
 
 }

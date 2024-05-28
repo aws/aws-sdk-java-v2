@@ -349,11 +349,11 @@ public class SyncClientClass extends SyncClientInterface {
 
     public static Optional<CodeBlock> addRequestModifierCode(OperationModel opModel, IntermediateModel model) {
 
-        Map<String, CustomRequestTransformer> customRequestTransformerMap =
-            model.getCustomizationConfig().getCustomRequestTransformerMap();
+        Map<String, CustomRequestTransformer> customRequestTransformer =
+            model.getCustomizationConfig().getCustomRequestTransformer();
 
-        if (!CollectionUtils.isNullOrEmpty(customRequestTransformerMap)) {
-            CustomRequestTransformer requestCustomizer = customRequestTransformerMap.get(opModel.getOperationName());
+        if (!CollectionUtils.isNullOrEmpty(customRequestTransformer)) {
+            CustomRequestTransformer requestCustomizer = customRequestTransformer.get(opModel.getOperationName());
             if (requestCustomizer != null) {
                 CodeBlock.Builder builder = CodeBlock.builder();
                 ClassName instanceType = classNameFromFqcn(requestCustomizer.getClassName());
