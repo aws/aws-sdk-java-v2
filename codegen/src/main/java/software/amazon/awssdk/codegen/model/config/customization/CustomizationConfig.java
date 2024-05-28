@@ -23,6 +23,7 @@ import java.util.Map;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.CustomOperationContextParam;
+import software.amazon.awssdk.codegen.model.service.PreClientExecutionRequestCustomizer;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -327,6 +328,14 @@ public class CustomizationConfig {
     private Map<String, ParameterModel> endpointParameters;
 
     private List<CustomOperationContextParam> customOperationContextParams;
+
+    /**
+     * A map that associates API names with their respective custom request transformers.
+     * The {@link PreClientExecutionRequestCustomizer} allows for dynamic and specific handling of API requests,
+     * ensuring that each request that requires custom handling can be appropriately transformed based on its corresponding
+     * API name.
+     */
+    private Map<String, PreClientExecutionRequestCustomizer> preClientExecutionRequestCustomizer;
 
     private CustomizationConfig() {
     }
@@ -869,4 +878,14 @@ public class CustomizationConfig {
     public void setCustomOperationContextParams(List<CustomOperationContextParam> customOperationContextParams) {
         this.customOperationContextParams = customOperationContextParams;
     }
+
+    public Map<String, PreClientExecutionRequestCustomizer> getPreClientExecutionRequestCustomizer() {
+        return preClientExecutionRequestCustomizer;
+    }
+
+    public void setPreClientExecutionRequestCustomizer(Map<String, PreClientExecutionRequestCustomizer>
+                                                           preClientExecutionRequestCustomizer) {
+        this.preClientExecutionRequestCustomizer = preClientExecutionRequestCustomizer;
+    }
+
 }
