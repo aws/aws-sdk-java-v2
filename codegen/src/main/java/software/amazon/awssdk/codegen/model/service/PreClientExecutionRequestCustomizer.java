@@ -20,8 +20,8 @@ package software.amazon.awssdk.codegen.model.service;
  *
  * <p>This class allows for dynamic and specific transformation of API requests,
  * ensuring that each request is appropriately transformed based on the
- * transformation logic defined in the specified {@link CustomRequestTransformer#getClassName()} and
- * {@link CustomRequestTransformer#getMethodName()}.
+ * transformation logic defined in the specified {@link PreClientExecutionRequestCustomizer#getClassName()} and
+ * {@link PreClientExecutionRequestCustomizer#getMethodName()}.
  *
  * <p>Example:
  * <pre>
@@ -35,7 +35,7 @@ package software.amazon.awssdk.codegen.model.service;
  * that takes an input and returns an output of ApiRequest for which Customization is applied.
  */
 
-public class CustomRequestTransformer {
+public class PreClientExecutionRequestCustomizer {
 
     /**
      * The fully qualified name of the class that defines the transformation method. The {@code methodName} is the

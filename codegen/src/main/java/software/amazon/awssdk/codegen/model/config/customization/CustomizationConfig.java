@@ -23,7 +23,7 @@ import java.util.Map;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.CustomOperationContextParam;
-import software.amazon.awssdk.codegen.model.service.CustomRequestTransformer;
+import software.amazon.awssdk.codegen.model.service.PreClientExecutionRequestCustomizer;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -331,10 +331,11 @@ public class CustomizationConfig {
 
     /**
      * A map that associates API names with their respective custom request transformers.
-     * The {@link CustomRequestTransformer} allows for dynamic and specific handling of API requests, ensuring that each
-     * request that requires custom handling can be appropriately transformed based on its corresponding API name.
+     * The {@link PreClientExecutionRequestCustomizer} allows for dynamic and specific handling of API requests,
+     * ensuring that each request that requires custom handling can be appropriately transformed based on its corresponding
+     * API name.
      */
-    private Map<String, CustomRequestTransformer> customRequestTransformer;
+    private Map<String, PreClientExecutionRequestCustomizer> preClientExecutionRequestCustomizer;
 
     private CustomizationConfig() {
     }
@@ -878,12 +879,13 @@ public class CustomizationConfig {
         this.customOperationContextParams = customOperationContextParams;
     }
 
-    public Map<String, CustomRequestTransformer> getCustomRequestTransformer() {
-        return customRequestTransformer;
+    public Map<String, PreClientExecutionRequestCustomizer> getPreClientExecutionRequestCustomizer() {
+        return preClientExecutionRequestCustomizer;
     }
 
-    public void setCustomRequestTransformer(Map<String, CustomRequestTransformer> customRequestTransformer) {
-        this.customRequestTransformer = customRequestTransformer;
+    public void setPreClientExecutionRequestCustomizer(Map<String, PreClientExecutionRequestCustomizer>
+                                                           preClientExecutionRequestCustomizer) {
+        this.preClientExecutionRequestCustomizer = preClientExecutionRequestCustomizer;
     }
 
 }
