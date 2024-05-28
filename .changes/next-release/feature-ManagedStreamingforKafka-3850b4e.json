@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Managed Streaming for Kafka",
+    "contributor": "",
+    "description": "Adds ControllerNodeInfo in ListNodes response to support Raft mode for MSK"
+}
