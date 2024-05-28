@@ -15,17 +15,36 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
-
 /**
- * This class Customizes any request before the calling the service
+ * Represents a custom request transformer for API requests.
+ *
+ * <p>This class allows for dynamic and specific transformation of API requests,
+ * ensuring that each request is appropriately transformed based on the
+ * transformation logic defined in the specified {@link CustomRequestTransformer#getClassName()} and
+ * {@link CustomRequestTransformer#getMethodName()}.
+ *
+ * <p>Example:
+ * <pre>
+ * {
+ *     "methodName": "dummyRequestModifier",
+ *     "className": "software.amazon.awssdk.codegen.internal.UtilsTest"
+ * }
+ * </pre>
+ *
+ * <p>The class should have a public static method   dummyRequestModifier
+ * that takes an input and returns an output of ApiRequest for which Customization is applied.
  */
-public class RequestCustomizer {
 
-    // Fully qualified class name  of that has a static method which transforms the request.
+public class CustomRequestTransformer {
+
+    /**
+     * The fully qualified name of the class that defines the transformation method. The {@code methodName} is the
+     */
     private String className;
 
-    // MethodName that is static method pf class as specified in above className . This function takes the request as input.
-    // Modifies the input and returns the transformed request.
+    /**
+     * The name of the method within that class which will perform the transformation
+     */
     private String methodName;
 
     public String getClassName() {

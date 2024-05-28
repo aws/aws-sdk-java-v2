@@ -23,7 +23,7 @@ import java.util.Map;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.CustomOperationContextParam;
-import software.amazon.awssdk.codegen.model.service.RequestCustomizer;
+import software.amazon.awssdk.codegen.model.service.CustomRequestTransformer;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -330,9 +330,11 @@ public class CustomizationConfig {
     private List<CustomOperationContextParam> customOperationContextParams;
 
     /**
-     * Special case API where an api request needs customization before the service call is made.
+     * A map that associates API names with their respective custom request transformers.
+     * The {@link CustomRequestTransformer} allows for dynamic and specific handling of API requests, ensuring that each
+     * request that requires custom handling can be appropriately transformed based on its corresponding API name.
      */
-    private Map<String, RequestCustomizer> requestCustomizerMap;
+    private Map<String, CustomRequestTransformer> customRequestTransformerMap;
 
     private CustomizationConfig() {
     }
@@ -876,12 +878,12 @@ public class CustomizationConfig {
         this.customOperationContextParams = customOperationContextParams;
     }
 
-    public Map<String, RequestCustomizer> getRequestCustomizerMap() {
-        return requestCustomizerMap;
+    public Map<String, CustomRequestTransformer> getCustomRequestTransformerMap() {
+        return customRequestTransformerMap;
     }
 
-    public void setRequestCustomizerMap(Map<String, RequestCustomizer> requestCustomizerMap) {
-        this.requestCustomizerMap = requestCustomizerMap;
+    public void setCustomRequestTransformerMap(Map<String, CustomRequestTransformer> customRequestTransformerMap) {
+        this.customRequestTransformerMap = customRequestTransformerMap;
     }
 
 }

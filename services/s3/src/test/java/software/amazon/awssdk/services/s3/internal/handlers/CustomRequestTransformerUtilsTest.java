@@ -17,8 +17,8 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static software.amazon.awssdk.services.s3.internal.RequestModifierUtils.modifyCopyObjectRequest;
-import static software.amazon.awssdk.services.s3.internal.RequestModifierUtils.modifyUploadPartCopyRequest;
+import static software.amazon.awssdk.services.s3.internal.CustomRequestTransformerUtils.modifyCopyObjectRequest;
+import static software.amazon.awssdk.services.s3.internal.CustomRequestTransformerUtils.modifyUploadPartCopyRequest;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 
 @RunWith(Parameterized.class)
-public class RequestModifierUtilsTest {
+public class CustomRequestTransformerUtilsTest {
 
     @Parameters
     public static Collection<String[]> parameters() throws Exception {
@@ -78,7 +78,7 @@ public class RequestModifierUtilsTest {
     private final String sourceVersionId;
     private final String expectedCopySource;
 
-    public RequestModifierUtilsTest(String sourceBucket, String sourceKey, String sourceVersionId, String expectedCopySource) {
+    public CustomRequestTransformerUtilsTest(String sourceBucket, String sourceKey, String sourceVersionId, String expectedCopySource) {
         this.sourceBucket = sourceBucket;
         this.sourceKey = sourceKey;
         this.sourceVersionId = sourceVersionId;

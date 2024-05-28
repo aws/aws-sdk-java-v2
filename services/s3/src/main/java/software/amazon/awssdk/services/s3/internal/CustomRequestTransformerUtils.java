@@ -36,9 +36,9 @@ import software.amazon.awssdk.utils.Validate;
  * <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPartCopy.html#API_UploadPartCopy_RequestParameters">UploadPartCopy Request Parameters</a>
  */
 @SdkInternalApi
-public final class RequestModifierUtils  {
+public final class CustomRequestTransformerUtils {
 
-    private RequestModifierUtils() {
+    private CustomRequestTransformerUtils() {
     }
 
     public static CopyObjectRequest modifyCopyObjectRequest(CopyObjectRequest request) {

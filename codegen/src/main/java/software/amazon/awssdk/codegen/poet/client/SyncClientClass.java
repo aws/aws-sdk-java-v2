@@ -53,7 +53,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
-import software.amazon.awssdk.codegen.model.service.RequestCustomizer;
+import software.amazon.awssdk.codegen.model.service.CustomRequestTransformer;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
@@ -348,10 +348,12 @@ public class SyncClientClass extends SyncClientInterface {
     }
 
     public static Optional<CodeBlock> addRequestModifierCode(OperationModel opModel, IntermediateModel model) {
-        Map<String, RequestCustomizer> requestCustomizerMap = model.getCustomizationConfig().getRequestCustomizerMap();
-        if (!CollectionUtils.isNullOrEmpty(requestCustomizerMap)) {
-            RequestCustomizer requestCustomizer = requestCustomizerMap.get(opModel.getOperationName());
 
+        Map<String, CustomRequestTransformer> customRequestTransformerMap =
+            model.getCustomizationConfig().getCustomRequestTransformerMap();
+
+        if (!CollectionUtils.isNullOrEmpty(customRequestTransformerMap)) {
+            CustomRequestTransformer requestCustomizer = customRequestTransformerMap.get(opModel.getOperationName());
             if (requestCustomizer != null) {
                 CodeBlock.Builder builder = CodeBlock.builder();
                 ClassName instanceType = classNameFromFqcn(requestCustomizer.getClassName());
@@ -362,7 +364,6 @@ public class SyncClientClass extends SyncClientInterface {
                                      opModel.getInput().getVariableName());
                 return Optional.of(builder.build());
             }
-
         }
         return Optional.empty();
     }
