@@ -63,6 +63,32 @@
             }
         },
         {
+            "documentation": "test case 5",
+            "operationInputs": [
+                {
+                    "operationName": "OperationWithContextParam",
+                    "operationParams": {
+                        "StringMember": "this is a test with AccountId and AccountIdEndpointMode"
+                    },
+                    "builtInParams": {
+                        "AWS::Region": "us-east-5",
+                        "AWS::Auth::AccountId": "012345678901",
+                        "AWS::Auth::AccountIdEndpointMode": "required"
+                    }
+                }
+            ],
+            "params": {
+                "Region": "us-east-5",
+                "AccountId": "012345678901",
+                "AccountIdEndpointMode": "required"
+            },
+            "expect": {
+                "endpoint": {
+                    "url": "https://012345678901.myservice.aws"
+                }
+            }
+        },
+        {
             "documentation": "For region us-iso-west-1 with FIPS enabled and DualStack enabled",
             "expect": {
                 "error": "Should have been skipped!"
