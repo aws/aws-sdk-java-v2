@@ -88,6 +88,14 @@
         "encodings": ["gzip"]
       }
     },
+    "OperationWithCustomMember": {
+      "name": "OperationWithCustomMember",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input":{"shape":"WithCustomMember"}
+    },
     "APostOperation": {
       "name": "APostOperation",
       "http": {
@@ -199,6 +207,17 @@
         },
         "NestedMember": {
           "shape": "ChecksumStructure"
+        }
+      }
+    },
+    "WithCustomMember": {
+      "type": "structure",
+      "members": {
+        "StringMemberToBeUpdate" : {
+          "shape": "String"
+        },
+        "StringMember": {
+          "shape": "String"
         }
       }
     },

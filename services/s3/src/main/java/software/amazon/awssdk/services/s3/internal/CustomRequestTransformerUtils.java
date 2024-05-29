@@ -13,15 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.handlers;
+package software.amazon.awssdk.services.s3.internal;
 
 import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlEncodeIgnoreSlashes;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.interceptor.Context.ModifyRequest;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnUtils;
 import software.amazon.awssdk.services.s3.internal.resource.S3ResourceType;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
@@ -30,32 +26,22 @@ import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * This interceptor transforms the {@code sourceBucket}, {@code sourceKey}, and {@code sourceVersionId} parameters for
- * {@link CopyObjectRequest} and {@link UploadPartCopyRequest} into a {@code copySource} parameter. The logic needed to
- * construct a {@code copySource} can be considered non-trivial, so this interceptor facilitates allowing users to
- * use higher-level constructs that more closely match other APIs, like {@link PutObjectRequest}. Additionally, this
- * interceptor is responsible for URL encoding the relevant portions of the {@code copySource} value.
+ * This class transforms specific request parameter into a custom parameter. The logic needed to
+ * construct parameters like {@code copySource} which is non-trivial, so this class facilitates the use of
+ * higher-level constructs that more closely match other APIs, such as {@link PutObjectRequest}.
  * <p>
- * <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html#API_CopyObject_RequestParameters">API_CopyObject_RequestParameters</a>
+ * For more information, see:
+ * <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html#API_CopyObject_RequestParameters">CopyObject Request Parameters</a>
  * <p>
- * <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPartCopy.html#API_UploadPartCopy_RequestParameters">API_UploadPartCopy_RequestParameters</a>
+ * <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPartCopy.html#API_UploadPartCopy_RequestParameters">UploadPartCopy Request Parameters</a>
  */
 @SdkInternalApi
-public final class CopySourceInterceptor implements ExecutionInterceptor {
+public final class CustomRequestTransformerUtils {
 
-    @Override
-    public SdkRequest modifyRequest(ModifyRequest context, ExecutionAttributes executionAttributes) {
-        SdkRequest request = context.request();
-        if (request instanceof CopyObjectRequest) {
-            return modifyCopyObjectRequest((CopyObjectRequest) request);
-        }
-        if (request instanceof UploadPartCopyRequest) {
-            return modifyUploadPartCopyRequest((UploadPartCopyRequest) request);
-        }
-        return request;
+    private CustomRequestTransformerUtils() {
     }
 
-    private static SdkRequest modifyCopyObjectRequest(CopyObjectRequest request) {
+    public static CopyObjectRequest modifyCopyObjectRequest(CopyObjectRequest request) {
         if (request.copySource() != null) {
             requireNotSet(request.sourceBucket(), "sourceBucket");
             requireNotSet(request.sourceKey(), "sourceKey");
@@ -75,7 +61,7 @@ public final class CopySourceInterceptor implements ExecutionInterceptor {
                       .build();
     }
 
-    private static SdkRequest modifyUploadPartCopyRequest(UploadPartCopyRequest request) {
+    public static UploadPartCopyRequest modifyUploadPartCopyRequest(UploadPartCopyRequest request) {
         if (request.copySource() != null) {
             requireNotSet(request.sourceBucket(), "sourceBucket");
             requireNotSet(request.sourceKey(), "sourceKey");

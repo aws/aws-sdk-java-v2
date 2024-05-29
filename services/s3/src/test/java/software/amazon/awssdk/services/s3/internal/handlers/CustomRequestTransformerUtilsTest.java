@@ -17,6 +17,8 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static software.amazon.awssdk.services.s3.internal.CustomRequestTransformerUtils.modifyCopyObjectRequest;
+import static software.amazon.awssdk.services.s3.internal.CustomRequestTransformerUtils.modifyUploadPartCopyRequest;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -24,13 +26,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 
 @RunWith(Parameterized.class)
-public class CopySourceInterceptorTest {
-    private final CopySourceInterceptor interceptor = new CopySourceInterceptor();
+public class CustomRequestTransformerUtilsTest {
 
     @Parameters
     public static Collection<String[]> parameters() throws Exception {
@@ -78,7 +78,7 @@ public class CopySourceInterceptorTest {
     private final String sourceVersionId;
     private final String expectedCopySource;
 
-    public CopySourceInterceptorTest(String sourceBucket, String sourceKey, String sourceVersionId, String expectedCopySource) {
+    public CustomRequestTransformerUtilsTest(String sourceBucket, String sourceKey, String sourceVersionId, String expectedCopySource) {
         this.sourceBucket = sourceBucket;
         this.sourceKey = sourceKey;
         this.sourceVersionId = sourceVersionId;
@@ -92,9 +92,8 @@ public class CopySourceInterceptorTest {
                                                              .sourceKey(sourceKey)
                                                              .sourceVersionId(sourceVersionId)
                                                              .build();
-        CopyObjectRequest modifiedRequest = (CopyObjectRequest) interceptor
-            .modifyRequest(() -> originalRequest, new ExecutionAttributes());
 
+        CopyObjectRequest modifiedRequest = modifyCopyObjectRequest(originalRequest);
         assertThat(modifiedRequest.copySource()).isEqualTo(expectedCopySource);
     }
 
@@ -105,8 +104,8 @@ public class CopySourceInterceptorTest {
                                                                      .sourceKey(sourceKey)
                                                                      .sourceVersionId(sourceVersionId)
                                                                      .build();
-        UploadPartCopyRequest modifiedRequest = (UploadPartCopyRequest) interceptor
-            .modifyRequest(() -> originalRequest, new ExecutionAttributes());
+        UploadPartCopyRequest modifiedRequest = modifyUploadPartCopyRequest(originalRequest);
+
 
         assertThat(modifiedRequest.copySource()).isEqualTo(expectedCopySource);
     }
@@ -120,9 +119,9 @@ public class CopySourceInterceptorTest {
                                                              .copySource("copySource")
                                                              .build();
 
-        assertThatThrownBy(() -> {
-            interceptor.modifyRequest(() -> originalRequest, new ExecutionAttributes());
-        }).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() ->
+           modifyCopyObjectRequest(originalRequest)
+        ).isInstanceOf(IllegalArgumentException.class)
           .hasMessage("Parameter 'copySource' must not be used in conjunction with 'sourceBucket'");
     }
 
@@ -135,9 +134,7 @@ public class CopySourceInterceptorTest {
                                                                      .copySource("copySource")
                                                                      .build();
 
-        assertThatThrownBy(() -> {
-            interceptor.modifyRequest(() -> originalRequest, new ExecutionAttributes());
-        }).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> modifyUploadPartCopyRequest(originalRequest)).isInstanceOf(IllegalArgumentException.class)
           .hasMessage("Parameter 'copySource' must not be used in conjunction with 'sourceBucket'");
     }
 
@@ -148,9 +145,7 @@ public class CopySourceInterceptorTest {
                                                              .sourceVersionId(sourceVersionId)
                                                              .build();
 
-        assertThatThrownBy(() -> {
-            interceptor.modifyRequest(() -> originalRequest, new ExecutionAttributes());
-        }).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> modifyCopyObjectRequest(originalRequest)).isInstanceOf(IllegalArgumentException.class)
           .hasMessage("Parameter 'sourceBucket' must not be null");
     }
 
@@ -161,9 +156,7 @@ public class CopySourceInterceptorTest {
                                                                      .sourceVersionId(sourceVersionId)
                                                                      .build();
 
-        assertThatThrownBy(() -> {
-            interceptor.modifyRequest(() -> originalRequest, new ExecutionAttributes());
-        }).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> modifyUploadPartCopyRequest(originalRequest)).isInstanceOf(IllegalArgumentException.class)
           .hasMessage("Parameter 'sourceBucket' must not be null");
     }
 
@@ -174,9 +167,7 @@ public class CopySourceInterceptorTest {
                                                              .sourceVersionId(sourceVersionId)
                                                              .build();
 
-        assertThatThrownBy(() -> {
-            interceptor.modifyRequest(() -> originalRequest, new ExecutionAttributes());
-        }).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> modifyCopyObjectRequest(originalRequest)).isInstanceOf(IllegalArgumentException.class)
           .hasMessage("Parameter 'sourceKey' must not be null");
     }
 
@@ -187,9 +178,7 @@ public class CopySourceInterceptorTest {
                                                                      .sourceVersionId(sourceVersionId)
                                                                      .build();
 
-        assertThatThrownBy(() -> {
-            interceptor.modifyRequest(() -> originalRequest, new ExecutionAttributes());
-        }).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> modifyUploadPartCopyRequest(originalRequest)).isInstanceOf(IllegalArgumentException.class)
           .hasMessage("Parameter 'sourceKey' must not be null");
     }
 }
