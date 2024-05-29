@@ -122,7 +122,6 @@
         <module>workspaces</module>
         <module>xray</module>
         <module>appsync</module>
-        <module>alexaforbusiness</module>
         <module>migrationhub</module>
         <module>costexplorer</module>
         <module>cloud9</module>
@@ -242,7 +241,6 @@
         <module>iotsitewise</module>
         <module>macie2</module>
         <module>codeartifact</module>
-        <module>honeycode</module>
         <module>ivs</module>
         <module>braket</module>
         <module>identitystore</module>
