@@ -174,6 +174,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
                        .add("s3ObjectLastModified", s3ObjectLastModified)
                        .add("totalSizeInBytes", totalSizeInBytes)
                        .add("downloadFileRequest", downloadFileRequest)
+                       .add("completedParts", completedParts)
                        .build();
     }
 
