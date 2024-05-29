@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.RESUME_TOKEN;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
@@ -46,6 +47,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadResumeContext;
 import software.amazon.awssdk.services.s3.multipart.PauseObservable;
 import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -289,15 +291,31 @@ class GenericS3TransferManager implements S3TransferManager {
                                                  Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
         AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
             copyObjectRequest.overrideConfiguration()
-                            .map(o -> o.toBuilder().applyMutation(builderMutation).build())
-                            .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
-                                                                            .applyMutation(builderMutation)
-                                                                            .build());
+                             .map(o -> o.toBuilder().applyMutation(builderMutation).build())
+                             .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
+                                                                             .applyMutation(builderMutation)
+                                                                             .build());
 
         return copyObjectRequest.toBuilder()
-                               .overrideConfiguration(modifiedRequestOverrideConfig)
-                               .build();
+                                .overrideConfiguration(modifiedRequestOverrideConfig)
+                                .build();
     }
+
+    private GetObjectRequest attachSdkAttributes(GetObjectRequest request,
+                                                 Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
+        AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
+            request.overrideConfiguration()
+                   .map(o -> o.toBuilder().applyMutation(builderMutation).build())
+                   .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
+                                                                   .applyMutation(builderMutation)
+                                                                   .build());
+
+        return request.toBuilder()
+                      .overrideConfiguration(modifiedRequestOverrideConfig)
+                      .build();
+
+    }
+
 
     @Override
     public final DirectoryUpload uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
@@ -325,7 +343,7 @@ class GenericS3TransferManager implements S3TransferManager {
         progressUpdater.transferInitiated();
         responseTransformer = isS3ClientMultipartEnabled()
                               ? progressUpdater.wrapResponseTransformerForMultipartDownload(
-                                  responseTransformer, downloadRequest.getObjectRequest())
+            responseTransformer, downloadRequest.getObjectRequest())
                               : progressUpdater.wrapResponseTransformer(responseTransformer);
         progressUpdater.registerCompletion(returnFuture);
 
@@ -352,14 +370,21 @@ class GenericS3TransferManager implements S3TransferManager {
     public final FileDownload downloadFile(DownloadFileRequest downloadRequest) {
         Validate.paramNotNull(downloadRequest, "downloadFileRequest");
 
+        GetObjectRequest getObjectRequestWithAttributes = attachSdkAttributes(
+            downloadRequest.getObjectRequest(),
+            b -> b.putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext()));
+        DownloadFileRequest DownloadFileRequestWithAttributes =
+            downloadRequest.copy(downloadFileRequest -> downloadFileRequest.getObjectRequest(
+                getObjectRequestWithAttributes));
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
-            AsyncResponseTransformer.toFile(downloadRequest.destination(),
+            AsyncResponseTransformer.toFile(DownloadFileRequestWithAttributes.destination(),
                                             FileTransformerConfiguration.defaultCreateOrReplaceExisting());
 
         CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
-        TransferProgressUpdater progressUpdater = doDownloadFile(downloadRequest, responseTransformer, returnFuture);
+        TransferProgressUpdater progressUpdater = doDownloadFile(
+            DownloadFileRequestWithAttributes, responseTransformer, returnFuture);
 
-        return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> downloadRequest, null);
+        return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> DownloadFileRequestWithAttributes, null);
     }
 
     private TransferProgressUpdater doDownloadFile(

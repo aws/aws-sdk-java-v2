@@ -87,6 +87,7 @@ public final class DefaultFileDownload implements FileDownload {
                                     .fileLastModified(fileLastModified)
                                     .bytesTransferred(length)
                                     .totalSizeInBytes(totalSizeInBytes)
+                                    // todo add completedParts
                                     .build();
     }
 

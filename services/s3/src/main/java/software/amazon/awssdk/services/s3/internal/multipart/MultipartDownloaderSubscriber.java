@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.reactivestreams.Subscriber;
@@ -56,7 +58,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
      * The total number of completed parts. A part is considered complete once the completable future associated with its request
      * completes successfully.
      */
-    private final AtomicInteger completedParts = new AtomicInteger(0);
+    private final AtomicInteger completedParts;
 
     /**
      * The subscription received from the publisher this subscriber subscribes to.
@@ -77,8 +79,13 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
     private String eTag;
 
     public MultipartDownloaderSubscriber(S3AsyncClient s3, GetObjectRequest getObjectRequest) {
+        this (s3, getObjectRequest, 0);
+    }
+
+    public MultipartDownloaderSubscriber(S3AsyncClient s3, GetObjectRequest getObjectRequest, int completedParts) {
         this.s3 = s3;
         this.getObjectRequest = getObjectRequest;
+        this.completedParts = new AtomicInteger(completedParts);
     }
 
     @Override
@@ -113,36 +120,53 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
                 onError(error);
                 return;
             }
-            int totalComplete = completedParts.incrementAndGet();
-            log.trace(() -> String.format("completed part: %s", totalComplete));
-
-            if (eTag == null) {
-                this.eTag = response.eTag();
-                log.trace(() -> String.format("Multipart object ETag: %s", this.eTag));
-            }
-
-            Integer partCount = response.partsCount();
-            if (partCount != null && totalParts == null) {
-                log.trace(() -> String.format("total parts: %s", partCount));
-                totalParts = partCount;
-            }
-            synchronized (lock) {
-                if (totalParts != null && totalParts > 1 && totalComplete < totalParts) {
-                    subscription.request(1);
-                } else {
-                    subscription.cancel();
-                }
-            }
+            requestMoreIfNeeded(response);
         });
+    }
+
+    private void requestMoreIfNeeded(GetObjectResponse response) {
+        int totalComplete = completedParts.incrementAndGet();
+        getObjectRequest.overrideConfiguration().ifPresent(c -> {
+            System.out.println("[MultipartDownloaderSubscriber] MULTIPART_DOWNLOAD_RESUME_CONTEXT detected, "
+                               + "adding completed part " + completedParts); // todo(debug) remove
+            c.executionAttributes().getAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT).addCompletedPart(completedParts.get());
+        });
+        log.trace(() -> String.format("completed part: %d", totalComplete));
+
+        if (eTag == null) {
+            this.eTag = response.eTag();
+            log.trace(() -> String.format("Multipart object ETag: %s", this.eTag));
+        }
+
+        Integer partCount = response.partsCount();
+        if (partCount != null && totalParts == null) {
+            log.trace(() -> String.format("total parts: %d", partCount));
+            totalParts = partCount;
+        }
+        synchronized (lock) {
+            if (totalParts != null && totalParts > 1 && totalComplete < totalParts) {
+                subscription.request(1);
+            } else {
+                subscription.cancel();
+            }
+        }
     }
 
     @Override
     public void onError(Throwable t) {
+        getObjectRequest.overrideConfiguration().ifPresent(c -> {
+            MultipartDownloadResumeContext context = c.executionAttributes().getAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT);
+            System.out.println(context.toString()); // todo(debug) remove
+        });
         future.completeExceptionally(t);
     }
 
     @Override
     public void onComplete() {
+        getObjectRequest.overrideConfiguration().ifPresent(c -> {
+            MultipartDownloadResumeContext context = c.executionAttributes().getAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT);
+            System.out.println(context.toString()); // todo(debug) remove
+        });
         future.complete(null);
     }
 
