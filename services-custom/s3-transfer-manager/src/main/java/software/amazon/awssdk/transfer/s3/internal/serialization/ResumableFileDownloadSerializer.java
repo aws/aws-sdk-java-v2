@@ -63,6 +63,7 @@ public final class ResumableFileDownloadSerializer {
                                        "s3ObjectLastModified");
         }
         marshallDownloadFileRequest(download.downloadFileRequest(), jsonGenerator);
+        TransferManagerJsonMarshaller.LIST.marshall(download.completedParts(), jsonGenerator, "completedParts");
         jsonGenerator.writeEndObject();
 
         return jsonGenerator.getBytes();
@@ -138,7 +139,9 @@ public final class ResumableFileDownloadSerializer {
             builder.s3ObjectLastModified(instantUnmarshaller.unmarshall(downloadNodes.get("s3ObjectLastModified")));
         }
         builder.downloadFileRequest(parseDownloadFileRequest(downloadNodes.get("downloadFileRequest")));
-
+        if (downloadNodes.get("completedParts") != null) {
+            builder.completedParts(TransferManagerJsonUnmarshaller.LIST_INT.unmarshall(downloadNodes.get("completedParts")));
+        }
         return builder.build();
     }
 
