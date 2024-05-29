@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.61__ __2024-05-28__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Doc-only update for DynamoDB. Specified the IAM actions needed to authorize a user to create a table with a resource-based policy.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Providing support to accept BgpAsnExtended attribute
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed NullPointerException in S3 thrown when null metadata value is provided.
+
+## __Amazon Simple Workflow Service__
+  - ### Features
+    - This release adds new APIs for deleting activity type and workflow type resources.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Adds ControllerNodeInfo in ListNodes response to support Raft mode for MSK
+
 # __2.25.60__ __2024-05-24__
 ## __AWS IoT FleetWise__
   - ### Features

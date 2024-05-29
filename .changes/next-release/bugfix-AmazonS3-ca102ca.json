@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Remove CopySourceInterceptor and add the updation of \"copySource\" parameter in CopyObject and UploadPartCopy API via preClientExecutionRequestCustomizer Customization before client execution."
+}
