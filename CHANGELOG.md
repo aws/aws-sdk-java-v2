@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.63__ __2024-05-30__
+## __AWS Certificate Manager__
+  - ### Features
+    - add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS CloudTrail__
+  - ### Features
+    - CloudTrail Lake returns PartitionKeys in the GetEventDataStore API response. Events are grouped into partitions based on these keys for better query performance. For example, the calendarday key groups events by day, while combining the calendarday key with the hour key groups them by day and hour.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - With this release, Knowledge bases for Bedrock adds support for Titan Text Embedding v2.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds Converse and ConverseStream APIs to Bedrock Runtime
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adding associatedQueueIds as a SearchCriteria and response field to the SearchRoutingProfiles API
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for Aurora Postgres DBname.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds Model Card information as a new component to Model Package. Autopilot launches algorithm selection for TimeSeries modality to generate AutoML candidates per algorithm.
+
+## __EMR Serverless__
+  - ### Features
+    - The release adds support for spark structured streaming.
+
 # __2.25.62__ __2024-05-29__
 ## __AWS CodeBuild__
   - ### Features
