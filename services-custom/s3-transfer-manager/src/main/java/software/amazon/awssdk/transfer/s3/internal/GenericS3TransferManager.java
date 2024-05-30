@@ -313,7 +313,6 @@ class GenericS3TransferManager implements S3TransferManager {
         return request.toBuilder()
                       .overrideConfiguration(modifiedRequestOverrideConfig)
                       .build();
-
     }
 
 
