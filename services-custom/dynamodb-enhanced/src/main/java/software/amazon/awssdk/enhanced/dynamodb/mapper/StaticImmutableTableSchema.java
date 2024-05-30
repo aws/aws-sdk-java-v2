@@ -559,7 +559,12 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
                                             boolean ignoreNulls) {
         updateItemAttributeMap.forEach((mapKey, mapValue) -> {
             if (!ignoreNulls || !isNullAttributeValue(mapValue)) {
-                attributeValueMap.put(attributeKey + NESTED_OBJECT_UPDATE + mapKey, mapValue);
+                if (mapValue.hasM()) {
+                    nestedUpdateAttributeMapper(attributeValueMap, mapValue.m(), attributeKey + NESTED_OBJECT_UPDATE + mapKey,
+                                                ignoreNulls);
+                } else {
+                    attributeValueMap.put(attributeKey + NESTED_OBJECT_UPDATE + mapKey, mapValue);
+                }
             }
         });
     }

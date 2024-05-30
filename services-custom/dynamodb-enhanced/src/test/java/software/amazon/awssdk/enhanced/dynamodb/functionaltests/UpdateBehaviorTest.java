@@ -182,6 +182,51 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         assertThat(persistedRecord.getNestedRecord().getNestedTimeAttribute()).isEqualTo(INSTANT_1);
     }
 
+    @Test
+    public void updateBehaviors_multi_level_nested() {
+
+        NestedRecordWithUpdateBehavior nestedRecord1 = new NestedRecordWithUpdateBehavior();
+        nestedRecord1.setId("id789");
+        nestedRecord1.setNestedCounter(50L);
+        nestedRecord1.setNestedUpdateBehaviorAttribute("TEST_BEHAVIOUR_ATTRIBUTE");
+        nestedRecord1.setNestedTimeAttribute(INSTANT_1);
+
+        NestedRecordWithUpdateBehavior nestedRecord2 = new NestedRecordWithUpdateBehavior();
+        nestedRecord2.setId("id456");
+        nestedRecord2.setNestedCounter(5L);
+        nestedRecord2.setNestedUpdateBehaviorAttribute("TEST_BEHAVIOUR_ATTRIBUTE");
+        nestedRecord2.setNestedTimeAttribute(INSTANT_1);
+        nestedRecord2.setNestedRecord(nestedRecord1);
+
+        RecordWithUpdateBehaviors record = new RecordWithUpdateBehaviors();
+        record.setId("id123");
+        record.setNestedRecord(nestedRecord2);
+
+        mappedTable.putItem(record);
+
+        NestedRecordWithUpdateBehavior updatedNestedRecord2 = new NestedRecordWithUpdateBehavior();
+        updatedNestedRecord2.setNestedCounter(100L);
+
+        NestedRecordWithUpdateBehavior updatedNestedRecord1 = new NestedRecordWithUpdateBehavior();
+        updatedNestedRecord1.setNestedRecord(updatedNestedRecord2);
+
+        RecordWithUpdateBehaviors update_record = new RecordWithUpdateBehaviors();
+        update_record.setId("id123");
+        update_record.setVersion(1L);
+        update_record.setNestedRecord(updatedNestedRecord1);
+
+        mappedTable.updateItem(r -> r.item(update_record).ignoreNulls(true));
+
+        RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
+
+        assertThat(persistedRecord.getVersion()).isEqualTo(2L);
+        assertThat(persistedRecord.getNestedRecord()).isNotNull();
+        assertThat(persistedRecord.getNestedRecord().getNestedRecord()).isNotNull();
+        assertThat(persistedRecord.getNestedRecord().getNestedRecord().getNestedCounter()).isEqualTo(100L);
+        //assertThat(persistedRecord.getNestedRecord().getNestedRecord().getNestedUpdateBehaviorAttribute()).isEqualTo("TEST_BEHAVIOUR_ATTRIBUTE");
+        assertThat(persistedRecord.getNestedRecord().getNestedRecord().getNestedTimeAttribute()).isEqualTo(INSTANT_1);
+    }
+
     /**
      * Currently, nested records are not updated through extensions.
      */
