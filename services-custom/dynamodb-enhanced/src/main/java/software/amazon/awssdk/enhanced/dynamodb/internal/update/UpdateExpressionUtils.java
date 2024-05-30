@@ -18,13 +18,16 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.valueRef;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema.NESTED_OBJECT_UPDATE;
 import static software.amazon.awssdk.utils.CollectionUtils.filterMap;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
@@ -38,6 +41,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkInternalApi
 public final class UpdateExpressionUtils {
+
+    private static final Pattern PATTERN = Pattern.compile(NESTED_OBJECT_UPDATE);
 
     private UpdateExpressionUtils() {
     }
@@ -99,7 +104,7 @@ public final class UpdateExpressionUtils {
     private static RemoveAction remove(String attributeName) {
         return RemoveAction.builder()
                            .path(keyRef(attributeName))
-                           .expressionNames(Collections.singletonMap(keyRef(attributeName), attributeName))
+                           .expressionNames(expressionNamesFor(attributeName))
                            .build();
     }
 
@@ -137,8 +142,18 @@ public final class UpdateExpressionUtils {
      * Simple utility method that can create an ExpressionNames map based on a list of attribute names.
      */
     private static Map<String, String> expressionNamesFor(String... attributeNames) {
-        return Arrays.stream(attributeNames)
-                     .collect(Collectors.toMap(EnhancedClientUtils::keyRef, Function.identity()));
+        Map<String, String> map = new HashMap<>();
+        for (String attributeName : attributeNames) {
+            if (attributeName.contains(NESTED_OBJECT_UPDATE)) {
+                for (String attribute : PATTERN.split(attributeName)) {
+                    map.put(keyRef(attribute), attribute);
+                }
+            }
+        }
+        if (map.isEmpty()) {
+            return Arrays.stream(attributeNames)
+                         .collect(Collectors.toMap(EnhancedClientUtils::keyRef, Function.identity()));
+        }
+        return map;
     }
-
 }

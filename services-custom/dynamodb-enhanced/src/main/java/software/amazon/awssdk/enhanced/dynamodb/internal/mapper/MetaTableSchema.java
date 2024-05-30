@@ -55,6 +55,11 @@ public class MetaTableSchema<T> implements TableSchema<T> {
     }
 
     @Override
+    public Map<String, AttributeValue> updateItemToMap(T item, boolean ignoreNulls) {
+        return concreteTableSchema().updateItemToMap(item, ignoreNulls);
+    }
+
+    @Override
     public Map<String, AttributeValue> itemToMap(T item, Collection<String> attributes) {
         return concreteTableSchema().itemToMap(item, attributes);
     }

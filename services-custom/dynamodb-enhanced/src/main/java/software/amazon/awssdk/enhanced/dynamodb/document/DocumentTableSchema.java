@@ -113,6 +113,11 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
         return item.toBuilder().attributeConverterProviders(providers).build().toMap();
     }
 
+    @Override
+    public Map<String, AttributeValue> updateItemToMap(EnhancedDocument item, boolean ignoreNulls) {
+        return itemToMap(item, ignoreNulls);
+    }
+
     private List<AttributeConverterProvider> mergeAttributeConverterProviders(EnhancedDocument item) {
         if (item.attributeConverterProviders() != null && !item.attributeConverterProviders().isEmpty()) {
             Set<AttributeConverterProvider> providers = new LinkedHashSet<>();

@@ -244,6 +244,8 @@ public interface TableSchema<T> {
      */
     Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls);
 
+    Map<String, AttributeValue> updateItemToMap(T item, boolean ignoreNulls);
+
     /**
      * Takes a modelled object and extracts a specific set of attributes which are then returned as a map of
      * {@link AttributeValue} that the DynamoDb low-level SDK can work with. This method is typically used to extract

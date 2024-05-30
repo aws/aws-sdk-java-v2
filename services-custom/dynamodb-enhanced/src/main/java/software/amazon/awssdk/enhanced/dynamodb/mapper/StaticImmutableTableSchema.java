@@ -78,6 +78,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @SdkPublicApi
 @ThreadSafe
 public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
+    public static final String NESTED_OBJECT_UPDATE = "_NESTED_OBJECT_UPDATE_";
     private final List<ResolvedImmutableAttribute<T, B>> attributeMappers;
     private final Supplier<B> newBuilderSupplier;
     private final Function<B, T> buildItemFunction;
@@ -527,6 +528,40 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         });
 
         return unmodifiableMap(attributeValueMap);
+    }
+
+    @Override
+    public Map<String, AttributeValue> updateItemToMap(T item, boolean ignoreNulls) {
+        Map<String, AttributeValue> attributeValueMap = new HashMap<>();
+
+        attributeMappers.forEach(attributeMapper -> {
+            String attributeKey = attributeMapper.attributeName();
+            AttributeValue attributeValue = attributeMapper.attributeGetterMethod().apply(item);
+
+            if (!ignoreNulls || !isNullAttributeValue(attributeValue)) {
+                if (attributeValue.hasM()) {
+                    nestedUpdateAttributeMapper(attributeValueMap, attributeValue.m(), attributeKey, ignoreNulls);
+                } else {
+                    attributeValueMap.put(attributeKey, attributeValue);
+                }
+            }
+        });
+
+        indexedFlattenedMappers.forEach((name, flattenedMapper) -> {
+            attributeValueMap.putAll(flattenedMapper.itemToMap(item, ignoreNulls));
+        });
+
+        return unmodifiableMap(attributeValueMap);
+    }
+
+    public void nestedUpdateAttributeMapper(Map<String, AttributeValue> attributeValueMap,
+                                            Map<String, AttributeValue> updateItemAttributeMap, String attributeKey,
+                                            boolean ignoreNulls) {
+        updateItemAttributeMap.forEach((mapKey, mapValue) -> {
+            if (!ignoreNulls || !isNullAttributeValue(mapValue)) {
+                attributeValueMap.put(attributeKey + NESTED_OBJECT_UPDATE + mapKey, mapValue);
+            }
+        });
     }
 
     @Override

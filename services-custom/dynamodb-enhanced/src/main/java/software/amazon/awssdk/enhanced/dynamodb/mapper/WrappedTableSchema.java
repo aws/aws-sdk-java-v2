@@ -68,6 +68,11 @@ public abstract class WrappedTableSchema<T, R extends TableSchema<T>> implements
     }
 
     @Override
+    public Map<String, AttributeValue> updateItemToMap(T item, boolean ignoreNulls) {
+        return this.delegateTableSchema.updateItemToMap(item, ignoreNulls);
+    }
+
+    @Override
     public Map<String, AttributeValue> itemToMap(T item, Collection<String> attributes) {
         return this.delegateTableSchema.itemToMap(item, attributes);
     }

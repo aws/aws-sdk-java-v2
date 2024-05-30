@@ -90,7 +90,7 @@ public class UpdateItemOperation<T>
                                           r -> Optional.ofNullable(r.ignoreNulls()))
                                      .orElse(null);
 
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item, Boolean.TRUE.equals(ignoreNulls));
+        Map<String, AttributeValue> itemMap = tableSchema.updateItemToMap(item, Boolean.TRUE.equals(ignoreNulls));
         TableMetadata tableMetadata = tableSchema.tableMetadata();
 
         WriteModification transformation =
