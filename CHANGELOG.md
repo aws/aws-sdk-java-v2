@@ -1,4 +1,109 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.62__ __2024-05-29__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports manually creating GitHub webhooks
+
+## __AWS Glue__
+  - ### Features
+    - Add optional field JobMode to CreateJob and UpdateJob APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Add ROOT type for TargetType model
+
+## __Amazon Athena__
+  - ### Features
+    - Throwing validation errors on CreateNotebook with Name containing `/`,`:`,`\`
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release includes changes to DescribeContact API's response by including ConnectedToSystemTimestamp, RoutingCriteria, Customer, Campaign, AnsweringMachineDetectionStatus, CustomerVoiceActivity, QualityMetrics, DisconnectDetails, and SegmentAttributes information from a contact in Amazon Connect.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Remove CopySourceInterceptor and add the updation of "copySource" parameter in CopyObject and UploadPartCopy API via preClientExecutionRequestCustomizer Customization before client execution.
+
+# __2.25.61__ __2024-05-28__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Doc-only update for DynamoDB. Specified the IAM actions needed to authorize a user to create a table with a resource-based policy.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Providing support to accept BgpAsnExtended attribute
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed NullPointerException in S3 thrown when null metadata value is provided.
+
+## __Amazon Simple Workflow Service__
+  - ### Features
+    - This release adds new APIs for deleting activity type and workflow type resources.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Adds ControllerNodeInfo in ListNodes response to support Raft mode for MSK
+
+# __2.25.60__ __2024-05-24__
+## __AWS IoT FleetWise__
+  - ### Features
+    - AWS IoT FleetWise now supports listing vehicles with attributes filter, ListVehicles API is updated to support additional attributes filter.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation only updates for DynamoDB.
+
+## __Amazon Managed Blockchain__
+  - ### Features
+    - This is a minor documentation update to address the impact of the shut down of the Goerli and Polygon networks.
+
+# __2.25.59__ __2024-05-23__
+## __AWS OpsWorks__
+  - ### Features
+    - Documentation-only update for OpsWorks Stacks.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds the capability to run interactive workloads using Apache Livy Endpoint.
+
+# __2.25.58__ __2024-05-22__
+## __AWS Chatbot__
+  - ### Features
+    - This change adds support for tagging Chatbot configurations.
+
+## __AWS CloudFormation__
+  - ### Features
+    - Added DeletionMode FORCE_DELETE_STACK for deleting a stack that is stuck in DELETE_FAILED state due to resource deletion failure.
+
+## __AWS Key Management Service__
+  - ### Features
+    - This release includes feature to import customer's asymmetric (RSA, ECC and SM2) and HMAC keys into KMS in China.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - You can now use Security Lake to collect web ACL traffic data.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds support for enabling or disabling a data source configured as part of Zero-ETL integration with Amazon S3, by setting its status.
+
 # __2.25.57__ __2024-05-21__
 ## __AWS Glue__
   - ### Features

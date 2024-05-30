@@ -25,6 +25,7 @@ import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
+import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.addRequestModifierCode;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
 import com.squareup.javapoet.ClassName;
@@ -332,6 +333,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
     @Override
     protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {
 
+        addRequestModifierCode(opModel, model).ifPresent(builder::addCode);
         builder.addModifiers(PUBLIC)
                .addAnnotation(Override.class);
         builder.addStatement("$T clientConfiguration = updateSdkClientConfiguration($L, this.clientConfiguration)",

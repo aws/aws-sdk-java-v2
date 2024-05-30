@@ -8,6 +8,7 @@ import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
 import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
+import software.amazon.awssdk.codegen.internal.UtilsTest;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
@@ -45,6 +46,8 @@ import software.amazon.awssdk.services.query.model.OperationWithChecksumRequired
 import software.amazon.awssdk.services.query.model.OperationWithChecksumRequiredResponse;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamResponse;
+import software.amazon.awssdk.services.query.model.OperationWithCustomMemberRequest;
+import software.amazon.awssdk.services.query.model.OperationWithCustomMemberResponse;
 import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperationContextParamRequest;
 import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperationContextParamResponse;
 import software.amazon.awssdk.services.query.model.OperationWithNoneAuthTypeRequest;
@@ -68,6 +71,7 @@ import software.amazon.awssdk.services.query.transform.BearerAuthOperationReques
 import software.amazon.awssdk.services.query.transform.GetOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithChecksumRequiredRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithContextParamRequestMarshaller;
+import software.amazon.awssdk.services.query.transform.OperationWithCustomMemberRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithCustomizedOperationContextParamRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithNoneAuthTypeRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithOperationContextParamRequestMarshaller;
@@ -399,6 +403,54 @@ final class DefaultQueryClient implements QueryClient {
                              .withRequestConfiguration(clientConfiguration).withInput(operationWithContextParamRequest)
                              .withMetricCollector(apiCallMetricCollector)
                              .withMarshaller(new OperationWithContextParamRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
+    }
+
+    /**
+     * Invokes the OperationWithCustomMember operation.
+     *
+     * @param operationWithCustomMemberRequest
+     * @return Result of the OperationWithCustomMember operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws QueryException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample QueryClient.OperationWithCustomMember
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/OperationWithCustomMember"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public OperationWithCustomMemberResponse operationWithCustomMember(
+        OperationWithCustomMemberRequest operationWithCustomMemberRequest) throws AwsServiceException, SdkClientException,
+                                                                                  QueryException {
+        operationWithCustomMemberRequest = UtilsTest.dummyRequestModifier(operationWithCustomMemberRequest);
+
+        HttpResponseHandler<OperationWithCustomMemberResponse> responseHandler = protocolFactory
+            .createResponseHandler(OperationWithCustomMemberResponse::builder);
+
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithCustomMemberRequest,
+                                                                                  this.clientConfiguration);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithCustomMemberRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithCustomMember");
+
+            return clientHandler
+                .execute(new ClientExecutionParams<OperationWithCustomMemberRequest, OperationWithCustomMemberResponse>()
+                             .withOperationName("OperationWithCustomMember").withProtocolMetadata(protocolMetadata)
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withInput(operationWithCustomMemberRequest)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withMarshaller(new OperationWithCustomMemberRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
