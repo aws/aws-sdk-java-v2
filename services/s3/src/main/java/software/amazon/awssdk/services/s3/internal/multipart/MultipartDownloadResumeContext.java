@@ -16,19 +16,27 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.ToString;
 
+/**
+ * This class keep tracks of the state of a multipart dwnload across multipar part GET requests.
+ */
 @SdkInternalApi
 public class MultipartDownloadResumeContext {
 
+    /**
+     * Keeps track of complete parts in a list sorted in ascending order
+     */
     private final SortedSet<Integer> completedParts;
+
+    /**
+     * Keep track of the byte index to the last byte of the last completed part
+     */
+    private Long bytesToLastCompletedParts = 0L;
 
     public MultipartDownloadResumeContext() {
         this.completedParts = new TreeSet<>();
@@ -38,8 +46,16 @@ public class MultipartDownloadResumeContext {
         return Arrays.asList(completedParts.toArray(new Integer[0]));
     }
 
+    public Long bytesToLastCompletedParts() {
+        return bytesToLastCompletedParts;
+    }
+
     public void addCompletedPart(int partNumber) {
         completedParts.add(partNumber);
+    }
+
+    public void addToBytesToLastCompletedParts(long bytes) {
+        bytesToLastCompletedParts += bytes;
     }
 
     /**
@@ -68,6 +84,7 @@ public class MultipartDownloadResumeContext {
     public String toString() {
         return ToString.builder("MultipartDownloadContext")
                        .add("completedParts", completedParts)
+                       .add("bytesToLastCompletedParts", bytesToLastCompletedParts)
                        .build();
     }
 }

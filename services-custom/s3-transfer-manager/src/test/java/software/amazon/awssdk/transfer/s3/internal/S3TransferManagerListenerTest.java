@@ -186,7 +186,7 @@ public class S3TransferManagerListenerTest {
             ArgumentCaptor.forClass(TransferListener.Context.TransferInitiated.class);
         verify(listener, timeout(1000).times(1)).transferInitiated(captor1.capture());
         TransferListener.Context.TransferInitiated ctx1 = captor1.getValue();
-        assertThat(ctx1.request()).isSameAs(downloadRequest);
+        assertThat(ctx1.request()).isEqualTo(downloadRequest);
         // transferSize is not known until we receive GetObjectResponse header
         assertThat(ctx1.progressSnapshot().totalBytes()).isNotPresent();
         assertThat(ctx1.progressSnapshot().transferredBytes()).isZero();
@@ -195,7 +195,7 @@ public class S3TransferManagerListenerTest {
             ArgumentCaptor.forClass(TransferListener.Context.BytesTransferred.class);
         verify(listener, timeout(1000).times(1)).bytesTransferred(captor2.capture());
         TransferListener.Context.BytesTransferred ctx2 = captor2.getValue();
-        assertThat(ctx2.request()).isSameAs(downloadRequest);
+        assertThat(ctx2.request()).isEqualTo(downloadRequest);
         // transferSize should now be known
         assertThat(ctx2.progressSnapshot().totalBytes()).hasValue(contentLength);
         assertThat(ctx2.progressSnapshot().transferredBytes()).isPositive();

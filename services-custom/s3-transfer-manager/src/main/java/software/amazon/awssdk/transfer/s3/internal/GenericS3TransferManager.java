@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadResumeContext;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
@@ -47,7 +48,6 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadResumeContext;
 import software.amazon.awssdk.services.s3.multipart.PauseObservable;
 import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -373,18 +373,18 @@ class GenericS3TransferManager implements S3TransferManager {
         GetObjectRequest getObjectRequestWithAttributes = attachSdkAttributes(
             downloadRequest.getObjectRequest(),
             b -> b.putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext()));
-        DownloadFileRequest DownloadFileRequestWithAttributes =
-            downloadRequest.copy(downloadFileRequest -> downloadFileRequest.getObjectRequest(
-                getObjectRequestWithAttributes));
+        DownloadFileRequest downloadFileRequestWithAttributes =
+            downloadRequest.copy(downloadFileRequest -> downloadFileRequest.getObjectRequest(getObjectRequestWithAttributes));
+
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
-            AsyncResponseTransformer.toFile(DownloadFileRequestWithAttributes.destination(),
+            AsyncResponseTransformer.toFile(downloadFileRequestWithAttributes.destination(),
                                             FileTransformerConfiguration.defaultCreateOrReplaceExisting());
 
         CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
         TransferProgressUpdater progressUpdater = doDownloadFile(
-            DownloadFileRequestWithAttributes, responseTransformer, returnFuture);
+            downloadFileRequestWithAttributes, responseTransformer, returnFuture);
 
-        return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> DownloadFileRequestWithAttributes, null);
+        return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> downloadFileRequestWithAttributes, null);
     }
 
     private TransferProgressUpdater doDownloadFile(

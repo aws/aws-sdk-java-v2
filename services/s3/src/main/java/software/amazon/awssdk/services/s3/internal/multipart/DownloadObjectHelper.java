@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
-import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
-
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -53,14 +51,10 @@ public class DownloadObjectHelper {
     }
 
     private MultipartDownloaderSubscriber subscriber(GetObjectRequest getObjectRequest) {
-        Optional<MultipartDownloadResumeContext> multipartDownloadContext = getObjectRequest
-            .overrideConfiguration()
-            .flatMap(conf -> Optional.ofNullable(conf.executionAttributes().getAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT)));
-        if (!multipartDownloadContext.isPresent()) {
-            return new MultipartDownloaderSubscriber(s3AsyncClient, getObjectRequest);
-        }
-        int highestCompletedPart = multipartDownloadContext.map(MultipartDownloadResumeContext::highestSequentialCompletedPart)
-                                                           .orElse(0);
-        return new MultipartDownloaderSubscriber(s3AsyncClient, getObjectRequest, highestCompletedPart);
+        Optional<MultipartDownloadResumeContext> multipartDownloadContext =
+            MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest);
+        return multipartDownloadContext
+            .map(ctx -> new MultipartDownloaderSubscriber(s3AsyncClient, getObjectRequest, ctx.highestSequentialCompletedPart()))
+            .orElseGet(() -> new MultipartDownloaderSubscriber(s3AsyncClient, getObjectRequest));
     }
 }

@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
-import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.reactivestreams.Subscriber;
@@ -30,8 +28,8 @@ import software.amazon.awssdk.utils.Logger;
 
 /**
  * A subscriber implementation that will download all individual parts for a multipart get-object request. It receives the
- * individual {@link AsyncResponseTransformer} which will be used to perform the individual part requests.
- * This is a 'one-shot' class, it should <em>NOT</em> be reused for more than one multipart download
+ * individual {@link AsyncResponseTransformer} which will be used to perform the individual part requests. This is a 'one-shot'
+ * class, it should <em>NOT</em> be reused for more than one multipart download
  */
 @SdkInternalApi
 public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> {
@@ -66,8 +64,8 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
     private Subscription subscription;
 
     /**
-     * This future will be completed once this subscriber reaches a terminal state, failed or successfully, and will be
-     * completed accordingly.
+     * This future will be completed once this subscriber reaches a terminal state, failed or successfully, and will be completed
+     * accordingly.
      */
     private final CompletableFuture<Void> future = new CompletableFuture<>();
 
@@ -79,7 +77,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
     private String eTag;
 
     public MultipartDownloaderSubscriber(S3AsyncClient s3, GetObjectRequest getObjectRequest) {
-        this (s3, getObjectRequest, 0);
+        this(s3, getObjectRequest, 0);
     }
 
     public MultipartDownloaderSubscriber(S3AsyncClient s3, GetObjectRequest getObjectRequest, int completedParts) {
@@ -126,11 +124,12 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
 
     private void requestMoreIfNeeded(GetObjectResponse response) {
         int totalComplete = completedParts.incrementAndGet();
-        getObjectRequest.overrideConfiguration().ifPresent(c -> {
-            System.out.println("[MultipartDownloaderSubscriber] MULTIPART_DOWNLOAD_RESUME_CONTEXT detected, "
-                               + "adding completed part " + completedParts); // todo(debug) remove
-            c.executionAttributes().getAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT).addCompletedPart(completedParts.get());
-        });
+        MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
+                              .ifPresent(ctx -> {
+                                  ctx.addCompletedPart(totalComplete);
+                                  ctx.addToBytesToLastCompletedParts(response.contentLength());
+                              });
+        // System.out.println("[MultipartDownloaderSubscriber] Completed part: " + totalComplete);
         log.trace(() -> String.format("completed part: %d", totalComplete));
 
         if (eTag == null) {
@@ -154,19 +153,11 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
 
     @Override
     public void onError(Throwable t) {
-        getObjectRequest.overrideConfiguration().ifPresent(c -> {
-            MultipartDownloadResumeContext context = c.executionAttributes().getAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT);
-            System.out.println(context.toString()); // todo(debug) remove
-        });
         future.completeExceptionally(t);
     }
 
     @Override
     public void onComplete() {
-        getObjectRequest.overrideConfiguration().ifPresent(c -> {
-            MultipartDownloadResumeContext context = c.executionAttributes().getAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT);
-            System.out.println(context.toString()); // todo(debug) remove
-        });
         future.complete(null);
     }
 
