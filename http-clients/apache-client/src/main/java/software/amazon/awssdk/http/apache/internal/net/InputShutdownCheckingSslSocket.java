@@ -49,19 +49,19 @@ public final class InputShutdownCheckingSslSocket extends DelegateSslSocket {
         @Override
         public void write(int b) throws IOException {
             checkInputShutdown();
-            super.write(b);
+            out.write(b);
         }
 
         @Override
         public void write(byte[] b) throws IOException {
             checkInputShutdown();
-            super.write(b);
+            out.write(b);
         }
 
         @Override
         public void write(byte[] b, int off, int len) throws IOException {
             checkInputShutdown();
-            super.write(b, off, len);
+            out.write(b, off, len);
         }
 
         private void checkInputShutdown() throws IOException {
