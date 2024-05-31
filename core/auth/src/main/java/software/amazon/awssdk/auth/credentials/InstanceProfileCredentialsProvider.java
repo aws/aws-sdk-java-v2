@@ -99,7 +99,7 @@ public final class InstanceProfileCredentialsProvider
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.asyncThreadName = builder.asyncThreadName;
         this.profileFile = Optional.ofNullable(builder.profileFile)
-                                   .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
+                                   .orElseGet(ProfileFileSupplier::defaultSupplier);
         this.profileName = Optional.ofNullable(builder.profileName)
                                    .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
 
@@ -311,7 +311,7 @@ public final class InstanceProfileCredentialsProvider
          * Configure the profile file used for loading IMDS-related configuration, like the endpoint mode (IPv4 vs IPv6).
          *
          * <p>By default, {@link ProfileFile#defaultProfileFile()} is used.
-         * 
+         *
          * @see #profileFile(Supplier)
          */
         Builder profileFile(ProfileFile profileFile);

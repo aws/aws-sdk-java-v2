@@ -120,7 +120,7 @@ public final class S3Utilities {
         this.region = Validate.paramNotNull(builder.region, "Region");
         this.endpoint = builder.endpoint;
         this.profileFile = Optional.ofNullable(builder.profileFile)
-                                   .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
+                                   .orElseGet(ProfileFileSupplier::defaultSupplier);
         this.profileName = builder.profileName;
 
         if (builder.s3Configuration == null) {
@@ -177,10 +177,10 @@ public final class S3Utilities {
     @SdkInternalApi
     static S3Utilities create(SdkClientConfiguration clientConfiguration) {
         S3Utilities.Builder builder = builder()
-                          .region(clientConfiguration.option(AwsClientOption.AWS_REGION))
-                          .s3Configuration((S3Configuration) clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
-                          .profileFile(clientConfiguration.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                          .profileName(clientConfiguration.option(SdkClientOption.PROFILE_NAME));
+            .region(clientConfiguration.option(AwsClientOption.AWS_REGION))
+            .s3Configuration((S3Configuration) clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
+            .profileFile(clientConfiguration.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+            .profileName(clientConfiguration.option(SdkClientOption.PROFILE_NAME));
 
         if (Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
             builder.endpoint(clientConfiguration.option(SdkClientOption.ENDPOINT));
