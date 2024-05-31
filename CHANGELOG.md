@@ -1,4 +1,87 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.64__ __2024-05-31__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports Self-hosted GitHub Actions runners for Github Enterprise
+
+## __AWS Launch Wizard__
+  - ### Features
+    - This release adds support for describing workload deployment specifications, deploying additional workload types, and managing tags for Launch Wizard resources with API operations.
+
+## __Amazon CodeGuru Security__
+  - ### Features
+    - This release includes minor model updates and documentation updates.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Update to attributes of TestFailover and minor revisions.
+
+# __2.25.63__ __2024-05-30__
+## __AWS Certificate Manager__
+  - ### Features
+    - add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS CloudTrail__
+  - ### Features
+    - CloudTrail Lake returns PartitionKeys in the GetEventDataStore API response. Events are grouped into partitions based on these keys for better query performance. For example, the calendarday key groups events by day, while combining the calendarday key with the hour key groups them by day and hour.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - With this release, Knowledge bases for Bedrock adds support for Titan Text Embedding v2.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds Converse and ConverseStream APIs to Bedrock Runtime
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adding associatedQueueIds as a SearchCriteria and response field to the SearchRoutingProfiles API
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for Aurora Postgres DBname.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds Model Card information as a new component to Model Package. Autopilot launches algorithm selection for TimeSeries modality to generate AutoML candidates per algorithm.
+
+## __EMR Serverless__
+  - ### Features
+    - The release adds support for spark structured streaming.
+
+# __2.25.62__ __2024-05-29__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports manually creating GitHub webhooks
+
+## __AWS Glue__
+  - ### Features
+    - Add optional field JobMode to CreateJob and UpdateJob APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Add ROOT type for TargetType model
+
+## __Amazon Athena__
+  - ### Features
+    - Throwing validation errors on CreateNotebook with Name containing `/`,`:`,`\`
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release includes changes to DescribeContact API's response by including ConnectedToSystemTimestamp, RoutingCriteria, Customer, Campaign, AnsweringMachineDetectionStatus, CustomerVoiceActivity, QualityMetrics, DisconnectDetails, and SegmentAttributes information from a contact in Amazon Connect.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Remove CopySourceInterceptor and add the updation of "copySource" parameter in CopyObject and UploadPartCopy API via preClientExecutionRequestCustomizer Customization before client execution.
+
 # __2.25.61__ __2024-05-28__
 ## __AWS SDK for Java v2__
   - ### Features
