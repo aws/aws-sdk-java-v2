@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.reactivestreams.Subscriber;
@@ -100,7 +99,6 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
     @Override
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         log.trace(() -> "onNext " + completedParts.get());
-        System.out.println("onNext " + completedParts.get());
         if (asyncResponseTransformer == null) {
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
         }
@@ -134,7 +132,6 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
                                       ctx.response(response);
                                   }
                               });
-        System.out.println("completed part:" + totalComplete);
         log.trace(() -> String.format("completed part: %d", totalComplete));
 
         if (eTag == null) {
