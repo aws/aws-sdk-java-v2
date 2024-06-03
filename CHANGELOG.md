@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.65__ __2024-06-03__
+## __AWS Amplify__
+  - ### Features
+    - This doc-only update identifies fields that are specific to Gen 1 and Gen 2 applications.
+
+## __AWS Batch__
+  - ### Features
+    - This release adds support for the AWS Batch GetJobQueueSnapshot API operation.
+
+## __AWS IoT TwinMaker__
+  - ### Features
+    - Support RESET_VALUE UpdateType for PropertyUpdates to reset property value to default or null
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for EKS add-ons pod identity associations integration
+
 # __2.25.64__ __2024-05-31__
 ## __AWS CodeBuild__
   - ### Features
