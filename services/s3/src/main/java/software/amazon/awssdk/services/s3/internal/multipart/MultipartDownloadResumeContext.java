@@ -16,11 +16,14 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * This class keep tracks of the state of a multipart dwnload across multipar part GET requests.
@@ -36,10 +39,27 @@ public class MultipartDownloadResumeContext {
     /**
      * Keep track of the byte index to the last byte of the last completed part
      */
-    private Long bytesToLastCompletedParts = 0L;
+    private Long bytesToLastCompletedParts;
+
+    /**
+     * The total amount of part of the multipart download;
+     */
+    private Integer totalParts;
+
+    /**
+     * The GetObjectResponse to return to the user.
+     */
+    private GetObjectResponse response;
 
     public MultipartDownloadResumeContext() {
-        this.completedParts = new TreeSet<>();
+        this(new TreeSet<>(), 0L);
+    }
+
+    public MultipartDownloadResumeContext(Collection<Integer> completedParts, Long bytesToLastCompletedParts) {
+        this.completedParts = new TreeSet<>(Validate.notNull(
+            completedParts, "completedParts must not be null"));
+        this.bytesToLastCompletedParts = Validate.notNull(
+            bytesToLastCompletedParts, "bytesToLastCompletedParts must not be null");
     }
 
     public List<Integer> completedParts() {
@@ -58,8 +78,25 @@ public class MultipartDownloadResumeContext {
         bytesToLastCompletedParts += bytes;
     }
 
+    public void totalParts(int totalParts) {
+        this.totalParts = totalParts;
+    }
+
+    public Integer totalParts() {
+        return totalParts;
+    }
+
+    public GetObjectResponse response() {
+        return this.response;
+    }
+
+    public void response(GetObjectResponse response) {
+        this.response = response;
+    }
+
     /**
      * Return the highest sequentially completed part, 0 means no parts completed
+     *
      * @return
      */
     public int highestSequentialCompletedPart() {
@@ -78,6 +115,19 @@ public class MultipartDownloadResumeContext {
             previous = i;
         }
         return completedParts.last();
+    }
+
+    /**
+     * Check if the multipart download is complete or not by checking if the total amount of downloaded parts is equal to the
+     * total amount of parts.
+     *
+     * @return true if all parts were downloaded, false if not.
+     */
+    public boolean isComplete() {
+        if (totalParts == null) {
+            return false;
+        }
+        return completedParts.size() == totalParts;
     }
 
     @Override

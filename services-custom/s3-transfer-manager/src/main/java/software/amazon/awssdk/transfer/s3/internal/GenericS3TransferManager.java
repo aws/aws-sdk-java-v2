@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import static software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadUtils.multipartDownloadResumeContext;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.PAUSE_OBSERVABLE;
@@ -22,6 +23,7 @@ import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionA
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
@@ -37,6 +39,7 @@ import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadResumeContext;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadUtils;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.resource.S3AccessPointResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
@@ -58,6 +61,8 @@ import software.amazon.awssdk.transfer.s3.internal.model.DefaultDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultUpload;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
+import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.internal.progress.ResumeTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferProgressUpdater;
 import software.amazon.awssdk.transfer.s3.model.CompletedCopy;
@@ -395,7 +400,7 @@ class GenericS3TransferManager implements S3TransferManager {
             progressUpdater.transferInitiated();
             responseTransformer = isS3ClientMultipartEnabled()
                                   ? progressUpdater.wrapResponseTransformerForMultipartDownload(
-                                      responseTransformer, downloadRequest.getObjectRequest())
+                responseTransformer, downloadRequest.getObjectRequest())
                                   : progressUpdater.wrapResponseTransformer(responseTransformer);
             progressUpdater.registerCompletion(returnFuture);
 
@@ -420,6 +425,15 @@ class GenericS3TransferManager implements S3TransferManager {
     @Override
     public final FileDownload resumeDownloadFile(ResumableFileDownload resumableFileDownload) {
         Validate.paramNotNull(resumableFileDownload, "resumableFileDownload");
+
+        // check if the multipart-download was already completed and handle it gracefully.
+        // only
+        Optional<MultipartDownloadResumeContext> optCtx =
+            multipartDownloadResumeContext(resumableFileDownload.downloadFileRequest().getObjectRequest());
+        if (optCtx.map(MultipartDownloadResumeContext::isComplete).orElse(false)) {
+            return completedDownload(resumableFileDownload, optCtx.get());
+        }
+
         CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
         DownloadFileRequest originalDownloadRequest = resumableFileDownload.downloadFileRequest();
         GetObjectRequest getObjectRequest = originalDownloadRequest.getObjectRequest();
@@ -453,6 +467,23 @@ class GenericS3TransferManager implements S3TransferManager {
         return new DefaultFileDownload(returnFuture,
                                        new ResumeTransferProgress(progressFuture),
                                        () -> newOrOriginalRequestForPause(newDownloadFileRequestFuture, originalDownloadRequest),
+                                       resumableFileDownload);
+    }
+
+    private FileDownload completedDownload(ResumableFileDownload resumableFileDownload, MultipartDownloadResumeContext ctx) {
+        CompletedFileDownload completedFileDownload = CompletedFileDownload.builder().response(ctx.response()).build();
+        // Long totalBytes = resumableFileDownload.totalSizeInBytes().isPresent()
+        //                   ? resumableFileDownload.totalSizeInBytes().getAsLong()
+        //                   : null;
+        DefaultTransferProgressSnapshot completedProgressSnapshot =
+            DefaultTransferProgressSnapshot.builder()
+                                           .sdkResponse(ctx.response())
+                                           .totalBytes(ctx.bytesToLastCompletedParts())
+                                           .transferredBytes(resumableFileDownload.bytesTransferred())
+                                           .build();
+        return new DefaultFileDownload(CompletableFuture.completedFuture(completedFileDownload),
+                                       new DefaultTransferProgress(completedProgressSnapshot),
+                                       resumableFileDownload::downloadFileRequest,
                                        resumableFileDownload);
     }
 

@@ -148,7 +148,9 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                 invokeSafely(() -> Files.deleteIfExists(path));
             }
         }
-        cf.completeExceptionally(throwable);
+        if (cf != null) {
+            cf.completeExceptionally(throwable);
+        }
     }
 
     /**

@@ -24,7 +24,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
 @SdkInternalApi
-public class MultipartDownloadUtils {
+public final class MultipartDownloadUtils {
 
     private MultipartDownloadUtils() {
     }

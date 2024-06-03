@@ -44,10 +44,12 @@ public class S3TransferManagerMultipartDownloadPauseResumeIntegrationTest extend
 
     @BeforeAll
     public static void setup() throws Exception {
+        System.out.println("CREATING BUCKET");
         createBucket(BUCKET);
         sourceFile = new RandomTempFile(OBJ_SIZE);
 
         // use async client for multipart upload (with default part size)
+        System.out.println("UPLOADING TEST OBJECT");
         s3Async.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
                                           .key(KEY)
@@ -68,13 +70,35 @@ public class S3TransferManagerMultipartDownloadPauseResumeIntegrationTest extend
                                                          .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                          .destination(path)
                                                          .build();
+        System.out.println("DOWNLOADING");
         FileDownload download = tmJava.downloadFile(request);
 
         // wait until we receive enough byte to stop somewhere between part 2 and 3, 18 Mib should do it
         waitUntilAmountTransferred(download, 18 * MB);
+        System.out.println("PAUSING");
         ResumableFileDownload resumableFileDownload = download.pause();
-        FileDownload resumed = tmCrt.resumeDownloadFile(resumableFileDownload);
+        System.out.println("RESUMING");
+        FileDownload resumed = tmJava.resumeDownloadFile(resumableFileDownload);
         resumed.completionFuture().join();
+        assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);
+    }
+
+    @Test
+    void pauseAndResume_whenAlreadyComplete_shouldHandleGracefully() {
+        Path path = RandomTempFile.randomUncreatedFile().toPath();
+        DownloadFileRequest request = DownloadFileRequest.builder()
+                                                         .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                                         .destination(path)
+                                                         .build();
+        FileDownload download = tmJava.downloadFile(request);
+        System.out.println("JOINING");
+        download.completionFuture().join();
+        System.out.println("PAUSING");
+        ResumableFileDownload resume = download.pause();
+        System.out.println("RESUMING");
+        FileDownload resumedDownload = tmJava.resumeDownloadFile(resume);
+        System.out.println("ASSERTING");
+        assertThat(resumedDownload.completionFuture()).isCompleted();
         assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);
     }
 
