@@ -84,13 +84,13 @@ public class HttpTestUtils {
     }
 
     public static class TestClientBuilder {
-        private RetryStrategy<?, ?> retryStrategy;
+        private RetryStrategy retryStrategy;
         private SdkHttpClient httpClient;
         private Map<String, String> additionalHeaders = new HashMap<>();
         private Duration apiCallTimeout;
         private Duration apiCallAttemptTimeout;
 
-        public TestClientBuilder retryStrategy(RetryStrategy<?, ?> retryStrategy) {
+        public TestClientBuilder retryStrategy(RetryStrategy retryStrategy) {
             this.retryStrategy = retryStrategy;
             return this;
         }
@@ -143,13 +143,13 @@ public class HttpTestUtils {
     }
 
     public static class TestAsyncClientBuilder {
-        private RetryStrategy<?, ?> retryStrategy;
+        private RetryStrategy retryStrategy;
         private SdkAsyncHttpClient asyncHttpClient;
         private Duration apiCallTimeout;
         private Duration apiCallAttemptTimeout;
         private Map<String, String> additionalHeaders = new HashMap<>();
 
-        public TestAsyncClientBuilder retryStrategy(RetryStrategy<?, ?> retryStrategy) {
+        public TestAsyncClientBuilder retryStrategy(RetryStrategy retryStrategy) {
             this.retryStrategy = retryStrategy;
             return this;
         }

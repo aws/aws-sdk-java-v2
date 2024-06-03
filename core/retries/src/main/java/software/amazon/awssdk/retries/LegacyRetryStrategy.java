@@ -45,7 +45,7 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
  */
 @SdkPublicApi
 @ThreadSafe
-public interface LegacyRetryStrategy extends RetryStrategy<LegacyRetryStrategy.Builder, LegacyRetryStrategy> {
+public interface LegacyRetryStrategy extends RetryStrategy {
     /**
      * Create a new {@link LegacyRetryStrategy.Builder}.
      *

@@ -368,7 +368,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         return config;
     }
 
-    private String resolveRetryMode(RetryPolicy retryPolicy, RetryStrategy<?, ?> retryStrategy) {
+    private String resolveRetryMode(RetryPolicy retryPolicy, RetryStrategy retryStrategy) {
         if (retryPolicy != null) {
             return retryPolicy.retryMode().toString();
         }
@@ -394,7 +394,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                                           retryMode);
     }
 
-    private RetryStrategy<?, ?> resolveRetryStrategy(LazyValueSource config) {
+    private RetryStrategy resolveRetryStrategy(LazyValueSource config) {
         RetryMode retryMode = RetryMode.resolver()
                                        .profileFile(config.get(PROFILE_FILE_SUPPLIER))
                                        .profileName(config.get(PROFILE_NAME))

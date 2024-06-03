@@ -230,11 +230,11 @@ class RetryStrategyCommonTest {
         }
 
         public void run() {
-            RetryStrategy<?, ?> strategy = builder.build();
+            RetryStrategy strategy = builder.build();
             runTestCase(this, strategy);
         }
 
-        public static void runTestCase(TestCase testCase, RetryStrategy<?, ?> strategy) {
+        public static void runTestCase(TestCase testCase, RetryStrategy strategy) {
             AcquireInitialTokenResponse res = strategy.acquireInitialToken(AcquireInitialTokenRequestImpl.create(testCase.scope));
             RetryToken token = res.token();
             testCase.succeeded = false;

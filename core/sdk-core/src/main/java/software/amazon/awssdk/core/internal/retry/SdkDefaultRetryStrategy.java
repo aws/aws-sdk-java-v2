@@ -41,7 +41,7 @@ public final class SdkDefaultRetryStrategy {
      *
      * @return the default retry strategy for the configured retry mode.
      */
-    public static RetryStrategy<?, ?> defaultRetryStrategy() {
+    public static RetryStrategy defaultRetryStrategy() {
         return forRetryMode(RetryMode.defaultRetryMode());
     }
 
@@ -51,7 +51,7 @@ public final class SdkDefaultRetryStrategy {
      * @param mode The retry mode for which we want the retry strategy
      * @return the appropriate retry strategy for the retry mode with AWS-specific conditions added.
      */
-    public static RetryStrategy<?, ?> forRetryMode(RetryMode mode) {
+    public static RetryStrategy forRetryMode(RetryMode mode) {
         switch (mode) {
             case STANDARD:
                 return standardRetryStrategy();
@@ -72,7 +72,7 @@ public final class SdkDefaultRetryStrategy {
      * @param retryStrategy The retry strategy to test for
      * @return The retry mode for the given strategy
      */
-    public static RetryMode retryMode(RetryStrategy<?, ?> retryStrategy) {
+    public static RetryMode retryMode(RetryStrategy retryStrategy) {
         if (retryStrategy instanceof StandardRetryStrategy) {
             return RetryMode.STANDARD;
         }
@@ -201,11 +201,11 @@ public final class SdkDefaultRetryStrategy {
     }
 
     /**
-     * Returns a {@link RetryStrategy<?, ?>} that implements the legacy {@link RetryMode#ADAPTIVE} mode.
+     * Returns a {@link RetryStrategy} that implements the legacy {@link RetryMode#ADAPTIVE} mode.
      *
-     * @return a {@link RetryStrategy<?, ?>} that implements the legacy {@link RetryMode#ADAPTIVE} mode.
+     * @return a {@link RetryStrategy} that implements the legacy {@link RetryMode#ADAPTIVE} mode.
      */
-    private static RetryStrategy<?, ?> legacyAdaptiveRetryStrategy() {
+    private static RetryStrategy legacyAdaptiveRetryStrategy() {
         return RetryPolicyAdapter.builder()
                                  .retryPolicy(RetryPolicy.forRetryMode(RetryMode.ADAPTIVE))
                                  .build();
