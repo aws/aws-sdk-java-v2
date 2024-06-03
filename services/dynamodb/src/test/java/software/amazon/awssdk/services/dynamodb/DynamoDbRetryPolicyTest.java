@@ -33,7 +33,7 @@ class DynamoDbRetryPolicyTest {
     void test_numRetries_with_standardRetryPolicy() {
         environmentVariableHelper.set(SdkSystemSetting.AWS_RETRY_MODE.environmentVariable(), "standard");
         SdkClientConfiguration sdkClientConfiguration = SdkClientConfiguration.builder().build();
-        RetryStrategy<?, ?> retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
+        RetryStrategy retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
         assertThat(retryStrategy.maxAttempts()).isEqualTo(9);
     }
 
@@ -41,7 +41,7 @@ class DynamoDbRetryPolicyTest {
     void test_numRetries_with_legacyRetryPolicy() {
         environmentVariableHelper.set(SdkSystemSetting.AWS_RETRY_MODE.environmentVariable(), "legacy");
         SdkClientConfiguration sdkClientConfiguration = SdkClientConfiguration.builder().build();
-        RetryStrategy<?, ?> retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
+        RetryStrategy retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
         assertThat(retryStrategy.maxAttempts()).isEqualTo(9);
     }
 
@@ -49,7 +49,7 @@ class DynamoDbRetryPolicyTest {
     void resolve_retryModeSetInEnv_doesNotCallSupplier() {
         environmentVariableHelper.set(SdkSystemSetting.AWS_RETRY_MODE.environmentVariable(), "standard");
         SdkClientConfiguration sdkClientConfiguration = SdkClientConfiguration.builder().build();
-        RetryStrategy<?, ?> retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
+        RetryStrategy retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
         RetryMode retryMode = SdkDefaultRetryStrategy.retryMode(retryStrategy);
         assertThat(retryMode).isEqualTo(RetryMode.STANDARD);
     }
@@ -67,7 +67,7 @@ class DynamoDbRetryPolicyTest {
             .option(SdkClientOption.PROFILE_FILE_SUPPLIER, () -> profileFile)
             .option(SdkClientOption.PROFILE_NAME, "default")
             .build();
-        RetryStrategy<?, ?> retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
+        RetryStrategy retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
         RetryMode retryMode = SdkDefaultRetryStrategy.retryMode(retryStrategy);
 
         assertThat(retryMode).isEqualTo(RetryMode.STANDARD);
@@ -85,7 +85,7 @@ class DynamoDbRetryPolicyTest {
             .option(SdkClientOption.PROFILE_FILE_SUPPLIER, () -> profileFile)
             .option(SdkClientOption.PROFILE_NAME, "default")
             .build();
-        RetryStrategy<?, ?> retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
+        RetryStrategy retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
         RetryMode retryMode = SdkDefaultRetryStrategy.retryMode(retryStrategy);
 
         assertThat(retryMode).isEqualTo(RetryMode.ADAPTIVE);
@@ -103,7 +103,7 @@ class DynamoDbRetryPolicyTest {
             .option(SdkClientOption.PROFILE_NAME, "default")
             .option(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.STANDARD)
             .build();
-        RetryStrategy<?, ?> retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
+        RetryStrategy retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
         RetryMode retryMode = SdkDefaultRetryStrategy.retryMode(retryStrategy);
 
         assertThat(retryMode).isEqualTo(RetryMode.STANDARD);
@@ -120,7 +120,7 @@ class DynamoDbRetryPolicyTest {
             .option(SdkClientOption.PROFILE_FILE_SUPPLIER, () -> profileFile)
             .option(SdkClientOption.PROFILE_NAME, "default")
             .build();
-        RetryStrategy<?, ?> retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
+        RetryStrategy retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
         RetryMode retryMode = SdkDefaultRetryStrategy.retryMode(retryStrategy);
 
         assertThat(retryMode).isEqualTo(RetryMode.LEGACY);

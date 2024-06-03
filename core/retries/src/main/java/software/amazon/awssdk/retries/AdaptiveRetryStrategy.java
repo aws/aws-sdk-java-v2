@@ -48,7 +48,7 @@ import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterTokenBucke
  */
 @SdkPublicApi
 @ThreadSafe
-public interface AdaptiveRetryStrategy extends RetryStrategy<AdaptiveRetryStrategy.Builder, AdaptiveRetryStrategy> {
+public interface AdaptiveRetryStrategy extends RetryStrategy {
 
     /**
      * Create a new {@link AdaptiveRetryStrategy.Builder}.

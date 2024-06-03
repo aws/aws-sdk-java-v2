@@ -18,8 +18,6 @@ package software.amazon.awssdk.retries.api;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * A strategy used by an SDK to determine when something should be retried.
@@ -41,10 +39,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @ThreadSafe
 @SdkPublicApi
-public interface RetryStrategy<
-    B extends CopyableBuilder<B, T> & RetryStrategy.Builder<B, T>,
-    T extends ToCopyableBuilder<B, T> & RetryStrategy<B, T>>
-    extends ToCopyableBuilder<B, T> {
+public interface RetryStrategy {
     /**
      * Invoked before the first request attempt.
      *
@@ -95,16 +90,14 @@ public interface RetryStrategy<
      *
      * <p>This is useful for modifying the strategy's behavior, like conditions or max retries.
      */
-    @Override
-    B toBuilder();
+    Builder<?, ?> toBuilder();
 
     /**
      * Builder to create immutable instances of {@link RetryStrategy}.
      */
     interface Builder<
-        B extends Builder<B, T> & CopyableBuilder<B, T>,
-        T extends ToCopyableBuilder<B, T> & RetryStrategy<B, T>>
-        extends CopyableBuilder<B, T> {
+        B extends Builder<B, T>,
+        T extends RetryStrategy> {
         /**
          * Configure the strategy to retry when the provided predicate returns true, given a failure exception.
          */
@@ -214,7 +207,6 @@ public interface RetryStrategy<
         /**
          * Build a new {@link RetryStrategy} with the current configuration on this builder.
          */
-        @Override
         T build();
     }
 }

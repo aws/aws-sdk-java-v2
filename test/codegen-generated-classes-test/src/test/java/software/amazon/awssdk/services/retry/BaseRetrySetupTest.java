@@ -438,7 +438,7 @@ public abstract class BaseRetrySetupTest<ClientT, BuilderT extends AwsClientBuil
             } else if (scenario.retryImplementation() == RetryImplementation.STRATEGY) {
                 assertThat(config.overrideConfiguration().retryPolicy()).isEmpty();
                 assertThat(config.overrideConfiguration().retryStrategy()).isNotEmpty();
-                RetryStrategy<?, ?> strategy = config.overrideConfiguration().retryStrategy().get();
+                RetryStrategy strategy = config.overrideConfiguration().retryStrategy().get();
                 assertThat(SdkDefaultRetryStrategy.retryMode(strategy)).isEqualTo(scenario.mode());
                 assertThat(strategy).isInstanceOf(scenario.expectedClass());
             }

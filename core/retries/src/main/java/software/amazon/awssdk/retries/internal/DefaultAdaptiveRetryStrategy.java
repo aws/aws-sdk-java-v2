@@ -30,7 +30,7 @@ import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultAdaptiveRetryStrategy
-    extends BaseRetryStrategy<AdaptiveRetryStrategy.Builder, AdaptiveRetryStrategy> implements AdaptiveRetryStrategy {
+    extends BaseRetryStrategy implements AdaptiveRetryStrategy {
 
     private static final Logger LOG = Logger.loggerFor(DefaultAdaptiveRetryStrategy.class);
     private final Predicate<Throwable> treatAsThrottling;

@@ -61,7 +61,7 @@ public final class RetryableStageHelper2 {
     private final SdkHttpFullRequest request;
     private final RequestExecutionContext context;
     private RetryPolicyAdapter retryPolicyAdapter;
-    private final RetryStrategy<?, ?> retryStrategy;
+    private final RetryStrategy retryStrategy;
     private final HttpClientDependencies dependencies;
     private final List<String> exceptionMessageHistory = new ArrayList<>();
     private int attemptNumber = 0;
@@ -74,7 +74,7 @@ public final class RetryableStageHelper2 {
         this.request = request;
         this.context = context;
         RetryPolicy retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
-        RetryStrategy<?, ?> retryStrategy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_STRATEGY);
+        RetryStrategy retryStrategy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_STRATEGY);
         if (retryPolicy != null) {
             retryPolicyAdapter = RetryPolicyAdapter.builder()
                                                    .retryPolicy(retryPolicy)
@@ -262,7 +262,7 @@ public final class RetryableStageHelper2 {
      * wrap it is returned. This allows this code to be backwards compatible with previously configured retry-policies by the
      * calling code.
      */
-    private RetryStrategy<?, ?> retryStrategy() {
+    private RetryStrategy retryStrategy() {
         if (retryPolicyAdapter != null) {
             if (retryPolicyAdapter.isInitialized()) {
                 retryPolicyAdapter = retryPolicyAdapter.toBuilder()

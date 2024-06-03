@@ -164,7 +164,7 @@ class RetryStrategyBuilderTest {
         }
     }
 
-    static class DummyRetryStrategy implements RetryStrategy<BuilderToTestDefaults, DummyRetryStrategy> {
+    static class DummyRetryStrategy implements RetryStrategy {
 
         @Override
         public AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request) {

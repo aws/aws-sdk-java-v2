@@ -214,7 +214,7 @@ public final class ClientOverrideConfiguration
      *
      * @see Builder#retryStrategy(RetryStrategy)
      */
-    public Optional<RetryStrategy<?, ?>> retryStrategy() {
+    public Optional<RetryStrategy> retryStrategy() {
         return Optional.ofNullable(config.option(RETRY_STRATEGY));
     }
 
@@ -463,7 +463,7 @@ public final class ClientOverrideConfiguration
          *
          * @see ClientOverrideConfiguration#retryStrategy()
          */
-        Builder retryStrategy(RetryStrategy<?, ?> retryStrategy);
+        Builder retryStrategy(RetryStrategy retryStrategy);
 
         /**
          * Configure the retry strategy that should be used when handling failure cases.
@@ -475,7 +475,7 @@ public final class ClientOverrideConfiguration
             return retryStrategy(builder.build());
         }
 
-        RetryStrategy<?, ?> retryStrategy();
+        RetryStrategy retryStrategy();
 
         /**
          * Configure a list of execution interceptors that will have access to read and modify the request and response objcets as
@@ -777,7 +777,7 @@ public final class ClientOverrideConfiguration
         }
 
         @Override
-        public Builder retryStrategy(RetryStrategy<?, ?> retryStrategy) {
+        public Builder retryStrategy(RetryStrategy retryStrategy) {
             config.option(RETRY_STRATEGY, retryStrategy);
             return this;
         }
@@ -787,7 +787,7 @@ public final class ClientOverrideConfiguration
         }
 
         @Override
-        public RetryStrategy<?, ?> retryStrategy() {
+        public RetryStrategy retryStrategy() {
             return config.option(RETRY_STRATEGY);
         }
 

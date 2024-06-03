@@ -42,7 +42,7 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
  */
 @SdkPublicApi
 @ThreadSafe
-public interface StandardRetryStrategy extends RetryStrategy<StandardRetryStrategy.Builder, StandardRetryStrategy> {
+public interface StandardRetryStrategy extends RetryStrategy {
     /**
      * Create a new {@link StandardRetryStrategy.Builder}.
      *
