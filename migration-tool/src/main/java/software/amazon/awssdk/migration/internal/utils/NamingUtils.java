@@ -32,6 +32,10 @@ public final class NamingUtils {
         return removePrefix(name, "set");
     }
 
+    public static String removeGet(String name) {
+        return removePrefix(name, "get");
+    }
+
     private static String removePrefix(String name, String prefix) {
         if (StringUtils.isBlank(name)) {
             return name;
@@ -52,5 +56,9 @@ public final class NamingUtils {
 
     public static boolean isSetter(String name) {
         return !StringUtils.isBlank(name) && name.startsWith("set");
+    }
+
+    public static boolean isGetter(String name) {
+        return !StringUtils.isBlank(name) && name.startsWith("get");
     }
 }

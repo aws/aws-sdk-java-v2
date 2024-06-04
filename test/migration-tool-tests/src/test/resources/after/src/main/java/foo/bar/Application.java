@@ -42,6 +42,7 @@ public class Application {
             .queueNamePrefix("MyQueue-")
             .nextToken("token").build();
         ListQueuesResponse listQueuesResult = sqs.listQueues(request);
+        String token = listQueuesResult.nextToken();
         System.out.println(listQueuesResult);
     }
 
