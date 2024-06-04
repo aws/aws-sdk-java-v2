@@ -197,8 +197,6 @@ public enum RetryMode {
                 case "standard":
                     return Optional.of(STANDARD);
                 case "adaptive":
-                    return Optional.of(ADAPTIVE);
-                case "adaptive_v2":
                     return Optional.of(ADAPTIVE_V2);
                 default:
                     throw new IllegalStateException("Unsupported retry policy mode configured: " + string);
