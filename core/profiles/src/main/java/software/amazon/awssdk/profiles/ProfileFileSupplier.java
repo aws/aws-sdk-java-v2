@@ -55,7 +55,7 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
             = ProfileFileLocation.configurationFileLocation()
                                  .map(path -> reloadWhenModified(path, ProfileFile.Type.CONFIGURATION));
 
-        ProfileFileSupplier supplier = () -> ProfileFile.builder().build();
+        ProfileFileSupplier supplier = () -> ProfileFile.aggregator().build();
         if (credentialsSupplierOptional.isPresent() && configurationSupplierOptional.isPresent()) {
             supplier = aggregate(credentialsSupplierOptional.get(), configurationSupplierOptional.get());
         } else if (credentialsSupplierOptional.isPresent()) {
