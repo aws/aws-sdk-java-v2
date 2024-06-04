@@ -55,13 +55,15 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
             = ProfileFileLocation.configurationFileLocation()
                                  .map(path -> reloadWhenModified(path, ProfileFile.Type.CONFIGURATION));
 
-        ProfileFileSupplier supplier = () -> ProfileFile.aggregator().build();
+        ProfileFileSupplier supplier = null;
         if (credentialsSupplierOptional.isPresent() && configurationSupplierOptional.isPresent()) {
             supplier = aggregate(credentialsSupplierOptional.get(), configurationSupplierOptional.get());
         } else if (credentialsSupplierOptional.isPresent()) {
             supplier = credentialsSupplierOptional.get();
         } else if (configurationSupplierOptional.isPresent()) {
             supplier = configurationSupplierOptional.get();
+        } else {
+            supplier = fixedProfileFile(ProfileFile.aggregator().build());
         }
 
         return supplier;
