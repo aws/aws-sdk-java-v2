@@ -22,7 +22,7 @@ public class V1GetterToV2Test implements RewriteTest {
 
     @Test
     @EnabledOnJre({JRE.JAVA_8})
-    void getter_isRewritten() {
+    void v1ModelClassGetter_isRewrittenToFluent() {
         rewriteRun(
             java(
                 "import com.amazonaws.services.sqs.AmazonSQS;\n"
@@ -50,6 +50,33 @@ public class V1GetterToV2Test implements RewriteTest {
                 + "        ReceiveMessageRequest request = ReceiveMessageRequest.builder().queueUrl(\"url\").build();\n"
                 + "        ReceiveMessageResponse receiveMessage = sqs.receiveMessage(request);\n"
                 + "        List<Message> messages = receiveMessage.messages();\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
+
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
+    void nonV1ModelClass_shouldNotChangeGetter() {
+        rewriteRun(
+            java(
+                "import java.util.Locale;\n"
+                + "\n"
+                + "public class NonV1ModelClassExample {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        Locale locale = Locale.getDefault();\n"
+                + "        String path = System.getenv(\"PATH\");\n"
+                + "        String className = String.class.getName();\n"
+                + "    }\n"
+                + "}\n",
+                "import java.util.Locale;\n"
+                + "\n"
+                + "public class NonV1ModelClassExample {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        Locale locale = Locale.getDefault();\n"
+                + "        String path = System.getenv(\"PATH\");\n"
+                + "        String className = String.class.getName();\n"
                 + "    }\n"
                 + "}"
             )

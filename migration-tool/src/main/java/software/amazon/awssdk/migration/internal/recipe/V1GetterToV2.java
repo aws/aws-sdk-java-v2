@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.migration.internal.recipe;
 
+import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isV2ModelClass;
+
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -49,41 +51,47 @@ public class V1GetterToV2 extends Recipe {
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
             method = super.visitMethodInvocation(method, executionContext);
 
-            JavaType selectType = null;
+            JavaType selectType;
 
             Expression select = method.getSelect();
-            if (select != null) {
-                selectType = select.getType();
-            }
 
-            if (selectType == null) {
+            if (select == null || select.getType() == null) {
                 return method;
             }
+            selectType = select.getType();
 
             String methodName = method.getSimpleName();
             JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(selectType);
+
+            if (!shouldChangeGetter(fullyQualified)) {
+                return method;
+            }
 
             if (NamingUtils.isGetter(methodName)) {
                 methodName = NamingUtils.removeGet(methodName);
             }
 
-            JavaType.Method mt = method.getMethodType();
+            JavaType.Method methodType = method.getMethodType();
 
-            if (mt != null) {
-                mt = mt.withName(methodName)
+            if (methodType != null) {
+                methodType = methodType.withName(methodName)
                        .withReturnType(selectType);
 
                 if (fullyQualified != null) {
-                    mt = mt.withDeclaringType(fullyQualified);
+                    methodType = methodType.withDeclaringType(fullyQualified);
                 }
 
                 method = method.withName(method.getName()
                                                .withSimpleName(methodName)
-                                               .withType(mt))
-                               .withMethodType(mt);
+                                               .withType(methodType))
+                               .withMethodType(methodType);
             }
 
             return method;
+        }
+
+        private static boolean shouldChangeGetter(JavaType.FullyQualified selectType) {
+            return isV2ModelClass(selectType);
         }
     }
 }
