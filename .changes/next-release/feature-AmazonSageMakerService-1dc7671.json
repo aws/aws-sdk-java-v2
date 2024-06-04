@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Extend DescribeClusterNode response with private DNS hostname and IP address, and placement information about availability zone and availability zone ID."
+}
