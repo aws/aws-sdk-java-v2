@@ -47,7 +47,7 @@ public class CloudWatchCrtAsyncStabilityTest extends CloudWatchBaseStabilityTest
                                                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                                      .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(10))
                                                                                   // Retry at test level
-                                                                                  .retryStrategy(DefaultRetryStrategy.none()))
+                                                                                  .retryStrategy(DefaultRetryStrategy.doNotRetry()))
                                                      .build();
     }
 

@@ -33,6 +33,6 @@ public class SyncStreamingOperationApiCallAttemptTimeoutTest extends BaseSyncStr
     @Override
     ClientOverrideConfiguration clientOverrideConfiguration() {
         return ClientOverrideConfiguration.builder().apiCallAttemptTimeout(Duration.ofMillis(TIMEOUT))
-            .retryStrategy(AwsRetryStrategy.none()).build();
+                                          .retryStrategy(AwsRetryStrategy.doNotRetry()).build();
     }
 }

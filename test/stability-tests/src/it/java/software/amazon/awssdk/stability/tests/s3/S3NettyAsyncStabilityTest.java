@@ -23,7 +23,7 @@ public class S3NettyAsyncStabilityTest extends S3AsyncBaseStabilityTest {
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(10))
                         // Retry at test level
-                        .retryStrategy(DefaultRetryStrategy.none()))
+                        .retryStrategy(DefaultRetryStrategy.doNotRetry()))
                 .build();
     }
 

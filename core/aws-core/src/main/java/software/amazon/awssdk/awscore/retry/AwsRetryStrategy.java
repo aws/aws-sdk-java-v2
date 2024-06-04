@@ -41,7 +41,7 @@ public final class AwsRetryStrategy {
      *
      * @return The default retry strategy.
      */
-    public static RetryStrategy<?, ?> defaultRetryStrategy() {
+    public static RetryStrategy defaultRetryStrategy() {
         return forRetryMode(RetryMode.defaultRetryMode());
     }
 
@@ -51,7 +51,7 @@ public final class AwsRetryStrategy {
      * @param mode The retry mode for which we want to create a retry strategy.
      * @return A retry strategy for the given retry mode.
      */
-    public static RetryStrategy<?, ?> forRetryMode(RetryMode mode) {
+    public static RetryStrategy forRetryMode(RetryMode mode) {
         switch (mode) {
             case STANDARD:
                 return standardRetryStrategy();
@@ -72,19 +72,19 @@ public final class AwsRetryStrategy {
      * @param strategy The strategy to update
      * @return The updated strategy.
      */
-    public static RetryStrategy<?, ?> addRetryConditions(RetryStrategy<?, ?> strategy) {
+    public static RetryStrategy addRetryConditions(RetryStrategy strategy) {
         return strategy.toBuilder()
                        .retryOnException(AwsRetryStrategy::retryOnAwsRetryableErrors)
                        .build();
     }
 
     /**
-     * Returns a retry strategy that does not retry.
+     * Returns a retry strategy that do not retry.
      *
-     * @return A retry strategy that does not retry.
+     * @return A retry strategy that do not retry.
      */
-    public static RetryStrategy<?, ?> none() {
-        return DefaultRetryStrategy.none();
+    public static RetryStrategy doNotRetry() {
+        return DefaultRetryStrategy.doNotRetry();
     }
 
     /**
@@ -152,11 +152,11 @@ public final class AwsRetryStrategy {
     }
 
     /**
-     * Returns a {@link RetryStrategy<?, ?>} that implements the legacy {@link RetryMode#ADAPTIVE} mode.
+     * Returns a {@link RetryStrategy} that implements the legacy {@link RetryMode#ADAPTIVE} mode.
      *
-     * @return a {@link RetryStrategy<?, ?>} that implements the legacy {@link RetryMode#ADAPTIVE} mode.
+     * @return a {@link RetryStrategy} that implements the legacy {@link RetryMode#ADAPTIVE} mode.
      */
-    private static RetryStrategy<?, ?> legacyAdaptiveRetryStrategy() {
+    private static RetryStrategy legacyAdaptiveRetryStrategy() {
         return RetryPolicyAdapter.builder()
                                  .retryPolicy(AwsRetryPolicy.forRetryMode(RetryMode.ADAPTIVE))
                                  .build();

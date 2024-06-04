@@ -57,7 +57,7 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
     public void leasing_a_new_connection_fails_with_connection_pool_timeout() {
 
         AmazonSyncHttpClient httpClient = HttpTestUtils.testClientBuilder()
-                                                       .retryStrategy(DefaultRetryStrategy.none())
+                                                       .retryStrategy(DefaultRetryStrategy.doNotRetry())
                                                        .httpClient(ApacheHttpClient.builder()
                                                                                    .connectionTimeout(Duration.ofMillis(100))
                                                                                    .maxConnections(1)

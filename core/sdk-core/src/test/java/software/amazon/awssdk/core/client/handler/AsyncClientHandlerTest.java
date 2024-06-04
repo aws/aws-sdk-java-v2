@@ -146,7 +146,7 @@ public class AsyncClientHandlerTest {
         return HttpTestUtils.testClientConfiguration().toBuilder()
                             .option(SdkClientOption.ASYNC_HTTP_CLIENT, httpClient)
                             .option(SdkClientOption.RETRY_POLICY, RetryPolicy.none())
-                            .option(SdkClientOption.RETRY_STRATEGY, DefaultRetryStrategy.none())
+                            .option(SdkClientOption.RETRY_STRATEGY, DefaultRetryStrategy.doNotRetry())
                             .build();
     }
 }

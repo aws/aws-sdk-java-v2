@@ -197,7 +197,7 @@ public class SdkPluginTest {
                 .beforeTransmissionValidator((r, a, v) -> {
                     v.forEach((key, value) -> assertThat(r.httpRequest().headers().get(key)).isEqualTo(value));
                 }),
-            new TestCase<RetryStrategy<?, ?>>("override.retryStrategy")
+            new TestCase<RetryStrategy>("override.retryStrategy")
                 .defaultValue(SdkDefaultRetryStrategy.defaultRetryStrategy())
                 .nonDefaultValue(SdkDefaultRetryStrategy.standardRetryStrategyBuilder().maxAttempts(1).build())
                 .clientSetter((b, v) -> b.overrideConfiguration(c -> c.retryStrategy(v)))

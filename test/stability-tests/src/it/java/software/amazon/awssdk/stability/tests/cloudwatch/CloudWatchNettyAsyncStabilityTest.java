@@ -44,7 +44,7 @@ public class CloudWatchNettyAsyncStabilityTest extends CloudWatchBaseStabilityTe
                         .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                         .overrideConfiguration(b -> b
                                 // Retry at test level
-                                .retryStrategy(DefaultRetryStrategy.none())
+                                .retryStrategy(DefaultRetryStrategy.doNotRetry())
                                 .apiCallTimeout(Duration.ofMinutes(1)))
                         .build();
     }

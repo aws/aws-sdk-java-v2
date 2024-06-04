@@ -81,8 +81,8 @@ final class DynamoDbRetryPolicy {
         return retryPolicyFor(retryMode);
     }
 
-    public static RetryStrategy<?, ?> resolveRetryStrategy(SdkClientConfiguration config) {
-        RetryStrategy<?, ?> configuredRetryStrategy = config.option(SdkClientOption.RETRY_STRATEGY);
+    public static RetryStrategy resolveRetryStrategy(SdkClientConfiguration config) {
+        RetryStrategy configuredRetryStrategy = config.option(SdkClientOption.RETRY_STRATEGY);
         if (configuredRetryStrategy != null) {
             return configuredRetryStrategy;
         }

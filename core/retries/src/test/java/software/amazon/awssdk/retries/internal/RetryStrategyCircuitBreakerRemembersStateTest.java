@@ -49,7 +49,7 @@ class RetryStrategyCircuitBreakerRemembersStateTest {
 
         // The test case will throw twice and then succeed, so each run will withdraw 2 * TEST_EXCEPTION_COST and deposit back
         // TEST_EXCEPTION_COST.
-        RetryStrategy<?, ?> strategy = testCase.builder.build();
+        RetryStrategy strategy = testCase.builder.build();
         int total = TEST_MAX;
         for (int idx = 0; idx < 9; idx++) {
             String name = testCase.name + " round " + idx;

@@ -50,7 +50,7 @@ public class SqsCrtAsyncStabilityTest extends SqsBaseStabilityTest {
                                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                        .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(10))
                                                                     // Retry at test level
-                                                                    .retryStrategy(DefaultRetryStrategy.none()))
+                                                                    .retryStrategy(DefaultRetryStrategy.doNotRetry()))
                                        .build();
 
         queueName = "sqscrtasyncstabilitytests" + System.currentTimeMillis();

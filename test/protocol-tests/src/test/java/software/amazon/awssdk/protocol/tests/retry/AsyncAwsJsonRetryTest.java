@@ -149,7 +149,7 @@ public class AsyncAwsJsonRetryTest {
                                                                                                                        "skid")))
                                       .region(Region.US_EAST_1)
                                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                      .overrideConfiguration(c -> c.retryStrategy(AwsRetryStrategy.none()))
+                                      .overrideConfiguration(c -> c.retryStrategy(AwsRetryStrategy.doNotRetry()))
                                       .build();
 
         assertThatThrownBy(() -> clientWithNoRetry.allTypes(AllTypesRequest.builder().build()).join())

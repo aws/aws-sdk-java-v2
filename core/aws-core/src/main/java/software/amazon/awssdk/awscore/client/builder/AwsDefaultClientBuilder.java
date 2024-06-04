@@ -348,7 +348,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     private void configureRetryStrategy(SdkClientConfiguration.Builder config) {
-        RetryStrategy<?, ?> strategy = config.option(SdkClientOption.RETRY_STRATEGY);
+        RetryStrategy strategy = config.option(SdkClientOption.RETRY_STRATEGY);
         if (strategy != null) {
             config.option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.configureStrategy(strategy.toBuilder()).build());
             return;
@@ -356,7 +356,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         config.lazyOption(SdkClientOption.RETRY_STRATEGY, this::resolveAwsRetryStrategy);
     }
 
-    private RetryStrategy<?, ?> resolveAwsRetryStrategy(LazyValueSource config) {
+    private RetryStrategy resolveAwsRetryStrategy(LazyValueSource config) {
         RetryMode retryMode = RetryMode.resolver()
                                        .profileFile(config.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
                                        .profileName(config.get(SdkClientOption.PROFILE_NAME))

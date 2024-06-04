@@ -115,7 +115,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .putAdvancedOption(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
                                        .putExecutionAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION,
                                                               ChecksumValidation.FORCE_SKIP)
-                                       .retryStrategy(AwsRetryStrategy.none())
+                                       .retryStrategy(AwsRetryStrategy.doNotRetry())
                                        .addExecutionInterceptor(new ValidateRequestInterceptor())
                                        .addExecutionInterceptor(new AttachHttpAttributesExecutionInterceptor());
 

@@ -63,7 +63,7 @@ public class AsyncHttpClientApiCallTimeoutTests {
     @Before
     public void setup() {
         httpClient = testAsyncClientBuilder()
-            .retryStrategy(DefaultRetryStrategy.none())
+            .retryStrategy(DefaultRetryStrategy.doNotRetry())
             .apiCallTimeout(API_CALL_TIMEOUT)
             .build();
     }

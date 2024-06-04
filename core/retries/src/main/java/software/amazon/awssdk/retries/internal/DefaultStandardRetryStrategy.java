@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class DefaultStandardRetryStrategy
-    extends BaseRetryStrategy<StandardRetryStrategy.Builder, StandardRetryStrategy> implements StandardRetryStrategy {
+    extends BaseRetryStrategy implements StandardRetryStrategy {
     private static final Logger LOG = Logger.loggerFor(DefaultStandardRetryStrategy.class);
 
     DefaultStandardRetryStrategy(Builder builder) {

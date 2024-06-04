@@ -42,7 +42,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.request.SlowExecutionInterceptor;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -60,7 +59,7 @@ public class HttpClientApiCallTimeoutTest {
     @Before
     public void setup() {
         httpClient = testClientBuilder()
-            .retryStrategy(DefaultRetryStrategy.none())
+            .retryStrategy(DefaultRetryStrategy.doNotRetry())
             .apiCallTimeout(API_CALL_TIMEOUT)
             .build();
     }
