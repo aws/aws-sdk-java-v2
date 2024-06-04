@@ -59,7 +59,7 @@ public class HttpClientApiCallAttemptTimeoutTest {
     @Before
     public void setup() {
         httpClient = testClientBuilder()
-            .retryStrategy(DefaultRetryStrategy.none())
+            .retryStrategy(DefaultRetryStrategy.doNotRetry())
             .apiCallAttemptTimeout(API_CALL_TIMEOUT)
             .build();
     }

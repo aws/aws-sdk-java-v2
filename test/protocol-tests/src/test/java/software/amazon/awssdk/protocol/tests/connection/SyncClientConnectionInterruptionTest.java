@@ -25,7 +25,6 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.net.URI;
 import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -151,7 +150,7 @@ class SyncClientConnectionInterruptionTest {
         ExceptionInThreadRun exception = new ExceptionInThreadRun();
         ProtocolRestJsonClient client =
             getClient(httpClient, Duration.ofMillis(10))
-                .overrideConfiguration(o -> o.retryStrategy(AwsRetryStrategy.none()))
+                .overrideConfiguration(o -> o.retryStrategy(AwsRetryStrategy.doNotRetry()))
                 .build();
         unInterruptedSleep(100);
         // We need to creat a separate thread to interrupt it externally.

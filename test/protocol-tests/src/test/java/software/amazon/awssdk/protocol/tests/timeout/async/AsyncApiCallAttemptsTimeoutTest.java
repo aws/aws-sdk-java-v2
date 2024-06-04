@@ -60,7 +60,7 @@ public class AsyncApiCallAttemptsTimeoutTest extends BaseApiCallAttemptTimeoutTe
                                             .httpClient(mockClient)
                                             .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
                                             .overrideConfiguration(b -> b.apiCallAttemptTimeout(API_CALL_ATTEMPT_TIMEOUT)
-                                                                         .retryStrategy(AwsRetryStrategy.none()))
+                                                                         .retryStrategy(AwsRetryStrategy.doNotRetry()))
                                             .build();
 
         clientWithRetry = ProtocolRestJsonAsyncClient.builder()

@@ -54,7 +54,7 @@ public class SyncApiCallAttemptTimeoutTest extends BaseApiCallAttemptTimeoutTest
                                        .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
                                        .overrideConfiguration(
                                            b -> b.apiCallAttemptTimeout(API_CALL_ATTEMPT_TIMEOUT)
-                                                 .retryStrategy(AwsRetryStrategy.none()))
+                                                 .retryStrategy(AwsRetryStrategy.doNotRetry()))
                                        .build();
 
         clientWithRetry = ProtocolRestJsonClient.builder()

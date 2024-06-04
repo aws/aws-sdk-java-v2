@@ -85,7 +85,7 @@ public class AsyncResponseThreadingTest {
                                        .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                        .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
                                        .asyncConfiguration(c -> c.advancedOption(FUTURE_COMPLETION_EXECUTOR, mockExecutor))
-                                       .overrideConfiguration(o -> o.retryStrategy(AwsRetryStrategy.none()))
+                                       .overrideConfiguration(o -> o.retryStrategy(AwsRetryStrategy.doNotRetry()))
                                        .build();
 
         assertThatThrownBy(() ->
@@ -107,7 +107,7 @@ public class AsyncResponseThreadingTest {
                                        .region(Region.US_WEST_1)
                                        .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                        .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
-                                       .overrideConfiguration(o -> o.retryStrategy(AwsRetryStrategy.none()))
+                                       .overrideConfiguration(o -> o.retryStrategy(AwsRetryStrategy.doNotRetry()))
                                        .asyncConfiguration(c -> c.advancedOption(FUTURE_COMPLETION_EXECUTOR, mockExecutor))
                                        .build();
 

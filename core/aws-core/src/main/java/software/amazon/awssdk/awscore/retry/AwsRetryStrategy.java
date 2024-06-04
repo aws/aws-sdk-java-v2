@@ -79,12 +79,12 @@ public final class AwsRetryStrategy {
     }
 
     /**
-     * Returns a retry strategy that does not retry.
+     * Returns a retry strategy that do not retry.
      *
-     * @return A retry strategy that does not retry.
+     * @return A retry strategy that do not retry.
      */
-    public static RetryStrategy none() {
-        return DefaultRetryStrategy.none();
+    public static RetryStrategy doNotRetry() {
+        return DefaultRetryStrategy.doNotRetry();
     }
 
     /**
