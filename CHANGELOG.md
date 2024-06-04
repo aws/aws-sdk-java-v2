@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.66__ __2024-06-04__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - U7i instances with up to 32 TiB of DDR5 memory and 896 vCPUs are now available. C7i-flex instances are launched and are lower-priced variants of the Amazon EC2 C7i instances that offer a baseline level of CPU performance with the ability to scale up to the full compute performance 95% of the time.
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - This release adds Timestream for LiveAnalytics as a supported target in EventBridge Pipes
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Extend DescribeClusterNode response with private DNS hostname and IP address, and placement information about availability zone and availability zone ID.
+
+## __Tax Settings__
+  - ### Features
+    - Initial release of AWS Tax Settings API
+
 # __2.25.65__ __2024-06-03__
 ## __AWS Amplify__
   - ### Features
