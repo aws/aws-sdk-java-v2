@@ -30,7 +30,7 @@ public final class DefaultRetryStrategy {
     }
 
     /**
-     * Returns a retry strategy that do not retry.
+     * Returns a retry strategy that does not retry.
      */
     public static StandardRetryStrategy doNotRetry() {
         return standardStrategyBuilder()
