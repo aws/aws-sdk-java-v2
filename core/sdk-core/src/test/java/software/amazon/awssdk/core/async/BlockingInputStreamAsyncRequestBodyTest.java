@@ -23,6 +23,7 @@ import static software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.Tra
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import org.junit.jupiter.api.Test;
@@ -76,4 +77,26 @@ class BlockingInputStreamAsyncRequestBodyTest {
         }
     }
 
+    @Test
+    public void builder_withContentType_buildsCorrectly() {
+        BlockingInputStreamAsyncRequestBody.Builder requestBodyBuilder = BlockingInputStreamAsyncRequestBody.builder();
+        BlockingInputStreamAsyncRequestBody requestBody = requestBodyBuilder
+            .contentLength(20L)
+            .contentType("text/plain")
+            .build();
+
+        assertThat(requestBody.contentLength()).isEqualTo(Optional.of(20L));
+        assertThat(requestBody.contentType()).isEqualTo("text/plain");
+    }
+
+    @Test
+    public void builder_withoutContentType_defaultsToOctetStream() {
+        BlockingInputStreamAsyncRequestBody.Builder requestBodyBuilder = BlockingInputStreamAsyncRequestBody.builder();
+        BlockingInputStreamAsyncRequestBody requestBody = requestBodyBuilder
+            .contentLength(20L)
+            .build();
+
+        assertThat(requestBody.contentLength()).isEqualTo(Optional.of(20L));
+        assertThat(requestBody.contentType()).isEqualTo("application/octet-stream");
+    }
 }
