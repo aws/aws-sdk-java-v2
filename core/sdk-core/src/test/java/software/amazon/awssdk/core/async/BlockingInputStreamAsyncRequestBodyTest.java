@@ -78,14 +78,25 @@ class BlockingInputStreamAsyncRequestBodyTest {
     }
 
     @Test
-    public void createRequestBodyByBuilder() {
+    public void builder_withContentType_buildsCorrectly() {
         BlockingInputStreamAsyncRequestBody.Builder requestBodyBuilder = BlockingInputStreamAsyncRequestBody.builder();
         BlockingInputStreamAsyncRequestBody requestBody = requestBodyBuilder
             .contentLength(20L)
             .contentType("text/plain")
             .build();
 
-        assertThat(requestBody).extracting(BlockingInputStreamAsyncRequestBody::contentLength).isEqualTo(Optional.of(20L));
-        assertThat(requestBody).extracting(BlockingInputStreamAsyncRequestBody::contentType).isEqualTo("text/plain");
+        assertThat(requestBody.contentLength()).isEqualTo(Optional.of(20L));
+        assertThat(requestBody.contentType()).isEqualTo("text/plain");
+    }
+
+    @Test
+    public void builder_withoutContentType_defaultsToOctetStream() {
+        BlockingInputStreamAsyncRequestBody.Builder requestBodyBuilder = BlockingInputStreamAsyncRequestBody.builder();
+        BlockingInputStreamAsyncRequestBody requestBody = requestBodyBuilder
+            .contentLength(20L)
+            .build();
+
+        assertThat(requestBody.contentLength()).isEqualTo(Optional.of(20L));
+        assertThat(requestBody.contentType()).isEqualTo("application/octet-stream");
     }
 }

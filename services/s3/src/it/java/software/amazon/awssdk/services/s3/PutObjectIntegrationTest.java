@@ -73,22 +73,25 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void asyncObjectInputStreamWithContentTypeOverride() {
+    public void blockingInputStreamAsyncRequestBody_withContentType_isHonored() {
         BlockingInputStreamAsyncRequestBody requestBody =
-            BlockingInputStreamAsyncRequestBody.builder().contentType(TEXT_CONTENT_TYPE).build();
+            BlockingInputStreamAsyncRequestBody.builder()
+                                               .contentLength((long) CONTENT.length)
+                                               .contentType(TEXT_CONTENT_TYPE)
+                                               .build();
 
         PutObjectRequest.Builder request = PutObjectRequest.builder()
                                                            .bucket(BUCKET)
-                                                           .key(ASYNC_KEY)
-                                                           .contentType(requestBody.contentType());
+                                                           .key(ASYNC_KEY);
+
         CompletableFuture<PutObjectResponse> responseFuture = s3Async.putObject(request.build(), requestBody);
         requestBody.writeInputStream(new ByteArrayInputStream(CONTENT));
         responseFuture.join();
 
         HeadObjectResponse response = s3Async.headObject(r -> r.bucket(BUCKET).key(ASYNC_KEY)).join();
 
-        assertThat(response).extracting(HeadObjectResponse::contentLength).isEqualTo((long) CONTENT.length);
-        assertThat(response).extracting(HeadObjectResponse::contentType).isEqualTo(TEXT_CONTENT_TYPE);
+        assertThat(response.contentLength()).isEqualTo(CONTENT.length);
+        assertThat(response.contentType()).isEqualTo(TEXT_CONTENT_TYPE);
     }
 
     @Test
