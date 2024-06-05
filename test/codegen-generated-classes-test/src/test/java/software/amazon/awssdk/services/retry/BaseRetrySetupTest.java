@@ -335,7 +335,7 @@ public abstract class BaseRetrySetupTest<ClientT, BuilderT extends AwsClientBuil
 
         /**
          * Returns the name used externally of the given mode. This name is used in the profile `retry_mode` setting or in the
-         * system property. Externally, "adaptive" gets mapped to RetryMode.ADAPTIVE_V2, and "adaptive_v2" an internal name
+         * system property. Externally, "adaptive" gets mapped to RetryMode.ADAPTIVE_V2, and "adaptive_v2" is an internal name
          * only and not supported externally.
          */
         public String modeExternalName() {
