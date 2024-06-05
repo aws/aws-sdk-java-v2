@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.model.CommonPrefix;
+import software.amazon.awssdk.services.s3.model.DeleteMarkerEntry;
 import software.amazon.awssdk.services.s3.model.EncodingType;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListMultipartUploadsResponse;
@@ -108,6 +109,9 @@ public class DecodeUrlEncodedResponseInterceptorTest {
                                                                                                                   .versions(ObjectVersion.builder()
                                                                                                                                          .key(TEST_URL_ENCODED_KEY)
                                                                                                                                          .build())
+                                                                                                                  .deleteMarkers(DeleteMarkerEntry.builder()
+                                                                                                                                                  .key(TEST_URL_ENCODED_KEY)
+                                                                                                                                                  .build())
                                                                                                                   .build();
 
 
@@ -161,6 +165,7 @@ public class DecodeUrlEncodedResponseInterceptorTest {
         assertDecoded(decoded::nextKeyMarker, " nextKeyMarker");
         assertCommonPrefixesAreDecoded(decoded.commonPrefixes());
         assertVersionsAreDecoded(decoded.versions());
+        assertDeleteMarkersAreDecoded(decoded.deleteMarkers());
     }
 
     @Test
@@ -236,6 +241,9 @@ public class DecodeUrlEncodedResponseInterceptorTest {
         uploads.forEach(u -> assertDecoded(u::key, " key"));
     }
 
+    private void assertDeleteMarkersAreDecoded(List<DeleteMarkerEntry> entries) {
+        entries.forEach(entry -> assertDecoded(entry::key, " key"));
+    }
 
     private static Context.ModifyResponse newContext(SdkResponse response) {
         return new Context.ModifyResponse() {

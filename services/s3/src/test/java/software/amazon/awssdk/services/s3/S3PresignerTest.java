@@ -30,7 +30,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.function.Consumer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +38,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.internal.AbstractAwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
@@ -932,6 +932,29 @@ public class S3PresignerTest {
         assertThat(presigned.isBrowserExecutable()).isTrue();
         boolean expectNoSessionHeader = true;
         verifyS3ExpressGetRequest(presigned, bucketName, expectNoSessionHeader);
+    }
+
+    @Test
+    public void presignedUrl_preSraSigner_expirationDurationDoesNotGetRoundedDown() {
+
+        int errorCount = 0;
+        int iterations = 3000;
+        for (int i = 0; i < iterations; i++ ) {
+            String url = generatePresignedUrlWith60SecondsLife();
+            if (!url.contains("Expires=60")) {
+                errorCount++;
+            }
+        }
+        assertThat(errorCount).isZero();
+    }
+
+    public String generatePresignedUrlWith60SecondsLife() {
+        PresignedGetObjectRequest presigned =
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofSeconds(60))
+                                             .getObjectRequest(go -> go.bucket("bucket")
+                                                                       .key("key")
+                                                                       .overrideConfiguration(c -> c.signer(AwsS3V4Signer.create()))));
+        return presigned.url().toString();
     }
 
     private void verifyS3ExpressGetRequest(PresignedGetObjectRequest presigned, String bucketName,
