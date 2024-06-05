@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.67__ __2024-06-05__
+## __AWS Global Accelerator__
+  - ### Features
+    - This release contains a new optional ip-addresses input field for the update accelerator and update custom routing accelerator apis. This input enables consumers to replace IPv4 addresses on existing accelerators with addresses provided in the input.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports native SaaS connectivity: Salesforce connector available now
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added new params copySource and key to copyObject API for supporting S3 Access Grants plugin. These changes will not change any of the existing S3 API functionality.
+
 # __2.25.66__ __2024-06-04__
 ## __AWS SDK for Java v2__
   - ### Features
