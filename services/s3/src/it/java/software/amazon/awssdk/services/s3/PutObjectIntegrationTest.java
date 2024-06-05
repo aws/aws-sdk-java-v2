@@ -28,19 +28,27 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 /**
  * Integration tests for {@code PutObject}.
  */
 public class PutObjectIntegrationTest extends S3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(PutObjectIntegrationTest.class);
-    private static final String KEY = "key";
+    private static final String ASYNC_KEY = "async-key";
+    private static final String SYNC_KEY = "sync-key";
+
     private static final byte[] CONTENT = "Hello".getBytes(StandardCharsets.UTF_8);
+    private static final String TEXT_CONTENT_TYPE = "text/plain";
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -56,11 +64,34 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
     @Test
     public void objectInputStreamsAreClosed() {
         TestContentProvider provider = new TestContentProvider(CONTENT);
-        s3.putObject(r -> r.bucket(BUCKET).key(KEY), RequestBody.fromContentProvider(provider, CONTENT.length, "binary/octet-stream"));
+        s3.putObject(r -> r.bucket(BUCKET).key(SYNC_KEY),
+                     RequestBody.fromContentProvider(provider, CONTENT.length, "binary/octet-stream"));
 
         for (CloseTrackingInputStream is : provider.getCreatedStreams()) {
             assertThat(is.isClosed()).isTrue();
         }
+    }
+
+    @Test
+    public void blockingInputStreamAsyncRequestBody_withContentType_isHonored() {
+        BlockingInputStreamAsyncRequestBody requestBody =
+            BlockingInputStreamAsyncRequestBody.builder()
+                                               .contentLength((long) CONTENT.length)
+                                               .contentType(TEXT_CONTENT_TYPE)
+                                               .build();
+
+        PutObjectRequest.Builder request = PutObjectRequest.builder()
+                                                           .bucket(BUCKET)
+                                                           .key(ASYNC_KEY);
+
+        CompletableFuture<PutObjectResponse> responseFuture = s3Async.putObject(request.build(), requestBody);
+        requestBody.writeInputStream(new ByteArrayInputStream(CONTENT));
+        responseFuture.join();
+
+        HeadObjectResponse response = s3Async.headObject(r -> r.bucket(BUCKET).key(ASYNC_KEY)).join();
+
+        assertThat(response.contentLength()).isEqualTo(CONTENT.length);
+        assertThat(response.contentType()).isEqualTo(TEXT_CONTENT_TYPE);
     }
 
     @Test
@@ -71,7 +102,7 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
                                                  .chunkedEncodingEnabled(false)
                                                  .build())
             .build()) {
-            assertThat(s3Client.putObject(b -> b.bucket(BUCKET).key(KEY), RequestBody.fromBytes(
+            assertThat(s3Client.putObject(b -> b.bucket(BUCKET).key(SYNC_KEY), RequestBody.fromBytes(
                 "helloworld".getBytes()))).isNotNull();
         }
     }
