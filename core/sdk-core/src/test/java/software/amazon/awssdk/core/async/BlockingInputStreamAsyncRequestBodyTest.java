@@ -23,6 +23,7 @@ import static software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.Tra
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import org.junit.jupiter.api.Test;
@@ -76,4 +77,15 @@ class BlockingInputStreamAsyncRequestBodyTest {
         }
     }
 
+    @Test
+    public void createRequestBodyByBuilder() {
+        BlockingInputStreamAsyncRequestBody.Builder requestBodyBuilder = BlockingInputStreamAsyncRequestBody.builder();
+        BlockingInputStreamAsyncRequestBody requestBody = requestBodyBuilder
+            .contentLength(20L)
+            .contentType("text/plain")
+            .build();
+
+        assertThat(requestBody).extracting(BlockingInputStreamAsyncRequestBody::contentLength).isEqualTo(Optional.of(20L));
+        assertThat(requestBody).extracting(BlockingInputStreamAsyncRequestBody::contentType).isEqualTo("text/plain");
+    }
 }
