@@ -143,7 +143,6 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
         if (partCount != null && totalParts == null) {
             log.trace(() -> String.format("total parts: %d", partCount));
             totalParts = partCount;
-            MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest).ifPresent(ctx -> ctx.totalParts(partCount));
         }
         synchronized (lock) {
             if (totalParts != null && totalParts > 1 && totalComplete < totalParts) {

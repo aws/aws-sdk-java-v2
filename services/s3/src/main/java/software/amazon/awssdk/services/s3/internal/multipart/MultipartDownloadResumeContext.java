@@ -78,14 +78,6 @@ public class MultipartDownloadResumeContext {
         bytesToLastCompletedParts += bytes;
     }
 
-    public void totalParts(int totalParts) {
-        this.totalParts = totalParts;
-    }
-
-    public Integer totalParts() {
-        return totalParts;
-    }
-
     public GetObjectResponse response() {
         return this.response;
     }

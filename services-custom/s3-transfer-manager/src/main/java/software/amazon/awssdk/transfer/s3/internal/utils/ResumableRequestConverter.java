@@ -20,6 +20,7 @@ import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWrite
 import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
 
 import java.time.Instant;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -102,9 +103,15 @@ public final class ResumableRequestConverter {
     }
 
     private static boolean hasRemainingParts(GetObjectRequest getObjectRequest) {
-        return MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
-            .map(ctx -> !ctx.completedParts().isEmpty())
-            .orElse(false);
+        Optional<MultipartDownloadResumeContext> optCtx = MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest);
+        if (!optCtx.isPresent()) {
+            return false;
+        }
+        MultipartDownloadResumeContext ctx = optCtx.get();
+        if (ctx.response() != null && ctx.response().partsCount() == null) {
+            return false;
+        }
+        return !ctx.completedParts().isEmpty();
     }
 
     private static AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> fileAsyncResponseTransformer(
