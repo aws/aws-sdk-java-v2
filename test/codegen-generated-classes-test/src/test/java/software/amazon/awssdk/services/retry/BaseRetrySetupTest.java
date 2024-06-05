@@ -94,7 +94,7 @@ public abstract class BaseRetrySetupTest<ClientT, BuilderT extends AwsClientBuil
         RetryModeSetup setup = scenario.setup();
         switch (setup) {
             case PROFILE_USING_MODE:
-                setupProfile(builder, scenario.mode());
+                setupProfile(builder, scenario);
                 break;
             case CLIENT_OVERRIDE_USING_MODE:
                 builder.overrideConfiguration(o -> o.retryPolicy(mode));
@@ -115,7 +115,7 @@ public abstract class BaseRetrySetupTest<ClientT, BuilderT extends AwsClientBuil
         // client.
         switch (scenario.setup()) {
             case PROFILE_USING_MODE:
-                setupProfile(builder, scenario.mode());
+                setupProfile(builder, scenario);
                 break;
             case CLIENT_OVERRIDE_USING_MODE:
                 builder.overrideConfiguration(o -> o.retryStrategy(mode));
@@ -130,8 +130,8 @@ public abstract class BaseRetrySetupTest<ClientT, BuilderT extends AwsClientBuil
         }
     }
 
-    private void setupProfile(BuilderT builder, RetryMode mode) {
-        String modeName = mode.toString().toLowerCase(Locale.ROOT);
+    private void setupProfile(BuilderT builder, RetryScenario scenario) {
+        String modeName = scenario.modeExternalName();
         ProfileFile profileFile = ProfileFile.builder()
                                              .content(new StringInputStream("[profile retry_test]\n" +
                                                                             "retry_mode = " + modeName))
@@ -165,7 +165,7 @@ public abstract class BaseRetrySetupTest<ClientT, BuilderT extends AwsClientBuil
 
     private void setupScenarioBefore(RetryScenario scenario) {
         if (scenario.setup() == RetryModeSetup.SYSTEM_PROPERTY_USING_MODE) {
-            System.setProperty("aws.retryMode", scenario.mode().name().toLowerCase(Locale.ROOT));
+            System.setProperty("aws.retryMode", scenario.modeExternalName());
         }
     }
 
@@ -233,6 +233,16 @@ public abstract class BaseRetrySetupTest<ClientT, BuilderT extends AwsClientBuil
         // which an adapter is used. That case is tested using RetryImplementation.STRATEGY.
         if (scenario.retryImplementation() == RetryImplementation.POLICY
             && scenario.setup() == RetryModeSetup.SYSTEM_PROPERTY_USING_MODE) {
+            return false;
+        }
+
+        // System property or profile do not support the internal "adaptive_v2" name, only adaptive,
+        // and it's mapped to adaptive_v2. We mark here adaptive using profile or system property
+        // and map in the tests "adaptive_v2" to "adaptive" such that everything comes together at
+        // the end.
+        if (scenario.mode() == RetryMode.ADAPTIVE
+            && (scenario.setup() == RetryModeSetup.PROFILE_USING_MODE
+                || scenario.setup() == RetryModeSetup.SYSTEM_PROPERTY_USING_MODE)) {
             return false;
         }
 
@@ -321,6 +331,25 @@ public abstract class BaseRetrySetupTest<ClientT, BuilderT extends AwsClientBuil
 
         public Builder toBuilder() {
             return new Builder(this);
+        }
+
+        /**
+         * Returns the name used externally of the given mode. This name is used in the profile `retry_mode` setting or in the
+         * system property. Externally, "adaptive" gets mapped to RetryMode.ADAPTIVE_V2, and "adaptive_v2" is an internal name
+         * only and not supported externally.
+         */
+        public String modeExternalName() {
+            switch (mode) {
+                case ADAPTIVE:
+                case ADAPTIVE_V2:
+                    return "adaptive";
+                case LEGACY:
+                    return "legacy";
+                case STANDARD:
+                    return "standard";
+                default:
+                    throw new RuntimeException("Unsupported mode: " + mode);
+            }
         }
 
         @Override

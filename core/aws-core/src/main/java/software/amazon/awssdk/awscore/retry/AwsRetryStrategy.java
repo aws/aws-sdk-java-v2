@@ -79,7 +79,7 @@ public final class AwsRetryStrategy {
     }
 
     /**
-     * Returns a retry strategy that do not retry.
+     * Returns a retry strategy that does not retry.
      *
      * @return A retry strategy that do not retry.
      */
