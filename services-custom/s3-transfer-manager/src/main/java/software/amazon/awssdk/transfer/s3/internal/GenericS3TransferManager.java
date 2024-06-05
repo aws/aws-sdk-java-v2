@@ -426,7 +426,6 @@ class GenericS3TransferManager implements S3TransferManager {
         Validate.paramNotNull(resumableFileDownload, "resumableFileDownload");
 
         // check if the multipart-download was already completed and handle it gracefully.
-        // only
         Optional<MultipartDownloadResumeContext> optCtx =
             multipartDownloadResumeContext(resumableFileDownload.downloadFileRequest().getObjectRequest());
         if (optCtx.map(MultipartDownloadResumeContext::isComplete).orElse(false)) {

@@ -70,14 +70,11 @@ public class S3TransferManagerMultipartDownloadPauseResumeIntegrationTest extend
                                                          .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                          .destination(path)
                                                          .build();
-        System.out.println("DOWNLOADING");
         FileDownload download = tmJava.downloadFile(request);
 
         // wait until we receive enough byte to stop somewhere between part 2 and 3, 18 Mib should do it
         waitUntilAmountTransferred(download, 18 * MB);
-        System.out.println("PAUSING");
         ResumableFileDownload resumableFileDownload = download.pause();
-        System.out.println("RESUMING");
         FileDownload resumed = tmJava.resumeDownloadFile(resumableFileDownload);
         resumed.completionFuture().join();
         assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);
@@ -91,13 +88,9 @@ public class S3TransferManagerMultipartDownloadPauseResumeIntegrationTest extend
                                                          .destination(path)
                                                          .build();
         FileDownload download = tmJava.downloadFile(request);
-        System.out.println("JOINING");
         download.completionFuture().join();
-        System.out.println("PAUSING");
         ResumableFileDownload resume = download.pause();
-        System.out.println("RESUMING");
         FileDownload resumedDownload = tmJava.resumeDownloadFile(resume);
-        System.out.println("ASSERTING");
         assertThat(resumedDownload.completionFuture()).isCompleted();
         assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);
     }
