@@ -471,9 +471,6 @@ class GenericS3TransferManager implements S3TransferManager {
 
     private FileDownload completedDownload(ResumableFileDownload resumableFileDownload, MultipartDownloadResumeContext ctx) {
         CompletedFileDownload completedFileDownload = CompletedFileDownload.builder().response(ctx.response()).build();
-        // Long totalBytes = resumableFileDownload.totalSizeInBytes().isPresent()
-        //                   ? resumableFileDownload.totalSizeInBytes().getAsLong()
-        //                   : null;
         DefaultTransferProgressSnapshot completedProgressSnapshot =
             DefaultTransferProgressSnapshot.builder()
                                            .sdkResponse(ctx.response())

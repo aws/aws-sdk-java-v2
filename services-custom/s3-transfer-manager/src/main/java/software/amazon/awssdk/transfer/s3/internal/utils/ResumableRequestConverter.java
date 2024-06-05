@@ -88,7 +88,6 @@ public final class ResumableRequestConverter {
                                                                             .position(positionToWriteFrom)
                                                                             .failureBehavior(LEAVE)
                                                                             .build());
-            // todo do we need a new request object? The old onw should contain the correct context for multipart resume
             return Pair.of(originalDownloadRequest, responseTransformer);
         }
 

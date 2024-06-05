@@ -26,7 +26,7 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * This class keep tracks of the state of a multipart dwnload across multipar part GET requests.
+ * This class keep tracks of the state of a multipart download across multipart GET requests.
  */
 @SdkInternalApi
 public class MultipartDownloadResumeContext {
