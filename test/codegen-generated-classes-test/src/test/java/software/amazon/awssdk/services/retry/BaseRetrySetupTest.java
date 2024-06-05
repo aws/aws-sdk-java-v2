@@ -238,7 +238,7 @@ public abstract class BaseRetrySetupTest<ClientT, BuilderT extends AwsClientBuil
 
         // System property or profile do not support the internal "adaptive_v2" name, only adaptive,
         // and it's mapped to adaptive_v2. We mark here adaptive using profile or system property
-        // and map in te tests "adaptive_v2" to "adaptive" such that everything comes together at
+        // and map in the tests "adaptive_v2" to "adaptive" such that everything comes together at
         // the end.
         if (scenario.mode() == RetryMode.ADAPTIVE
             && (scenario.setup() == RetryModeSetup.PROFILE_USING_MODE
