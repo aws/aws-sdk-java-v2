@@ -1,4 +1,67 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.68__ __2024-06-06__
+## __AWS Account__
+  - ### Features
+    - This release adds 3 new APIs (AcceptPrimaryEmailUpdate, GetPrimaryEmail, and StartPrimaryEmailUpdate) used to centrally manage the root user email address of member accounts within an AWS organization.
+
+## __AWS Glue__
+  - ### Features
+    - This release adds support for creating and updating Glue Data Catalog Views.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Adds support for wireless device to be in Conflict FUOTA Device Status due to a FUOTA Task, so it couldn't be attached to a new one.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adds SoftwareUpdatePreferences to DescribeMaintenanceStartTime and UpdateMaintenanceStartTime, a structure which contains AutomaticUpdatePolicy.
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support to increase metadata performance on FSx for Lustre file systems beyond the default level provisioned when a file system is created. This can be done by specifying MetadataConfiguration during the creation of Persistent_2 file systems or by updating it on demand.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Adds integration with Secrets Manager for Redshift, Splunk, HttpEndpoint, and Snowflake destinations
+
+## __Amazon Location Service__
+  - ### Features
+    - Added two new APIs, VerifyDevicePosition and ForecastGeofenceEvents. Added support for putting larger geofences up to 100,000 vertices with Geobuf fields.
+
+## __Amazon S3__
+  - ### Features
+    - Allow user to configure content type for BlockingInputStreamAsyncRequestBody
+        - Contributed by: [@chaykin](https://github.com/chaykin)
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Doc-only update for SNS. These changes include customer-reported issues and TXC3 updates.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Doc only updates for SQS. These updates include customer-reported issues and TCX3 modifications.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@chaykin](https://github.com/chaykin)
+# __2.25.67__ __2024-06-05__
+## __AWS Global Accelerator__
+  - ### Features
+    - This release contains a new optional ip-addresses input field for the update accelerator and update custom routing accelerator apis. This input enables consumers to replace IPv4 addresses on existing accelerators with addresses provided in the input.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports native SaaS connectivity: Salesforce connector available now
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added new params copySource and key to copyObject API for supporting S3 Access Grants plugin. These changes will not change any of the existing S3 API functionality.
+
 # __2.25.66__ __2024-06-04__
 ## __AWS SDK for Java v2__
   - ### Features
