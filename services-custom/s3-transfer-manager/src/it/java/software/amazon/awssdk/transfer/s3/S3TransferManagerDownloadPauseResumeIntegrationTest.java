@@ -108,8 +108,10 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         assertThat(actual.transferListeners())
             .withFailMessage("ResumableFileDownload transferListeners not equal to the original DownloadFileRequest")
             .isEqualTo(expected.transferListeners());
-        assertTrue(actual.getObjectRequest().equalsBySdkFields(expected),
-                   "ResumableFileDownload GetObjectRequest not equal to the original DownloadFileRequest");
+        assertTrue(actual.getObjectRequest().equalsBySdkFields(expected.getObjectRequest()),
+                   () -> String.format("ResumableFileDownload GetObjectRequest not equal to the original DownloadFileRequest. "
+                                       + "expected: %s. Actual:"
+                                       + " %s", actual.getObjectRequest(), expected.getObjectRequest()));
     }
 
     @ParameterizedTest
