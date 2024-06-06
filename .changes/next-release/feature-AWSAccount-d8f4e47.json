@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Account",
-    "contributor": "",
-    "description": "This release adds 3 new APIs (AcceptPrimaryEmailUpdate, GetPrimaryEmail, and StartPrimaryEmailUpdate) used to centrally manage the root user email address of member accounts within an AWS organization."
-}
