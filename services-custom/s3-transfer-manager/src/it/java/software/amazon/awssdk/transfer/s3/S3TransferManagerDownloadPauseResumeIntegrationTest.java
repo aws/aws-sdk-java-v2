@@ -103,13 +103,13 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         // Transfer manager adds an execution attribute to the GetObjectRequest, so both objects are different.
         // Need to assert equality by sdk fields, which does not check execution attributes.
         assertThat(actual.destination())
-            .withFailMessage("ResumableFileDownload destination")
+            .withFailMessage("ResumableFileDownload destination not equal to the original DownloadFileRequest")
             .isEqualTo(expected.destination());
         assertThat(actual.transferListeners())
-            .withFailMessage("ResumableFileDownload transferListeners")
+            .withFailMessage("ResumableFileDownload transferListeners not equal to the original DownloadFileRequest")
             .isEqualTo(expected.transferListeners());
         assertTrue(actual.getObjectRequest().equalsBySdkFields(expected),
-                   "GetObjectRequest of ResumableFileDownload not equal to the one in DownloadFileRequest");
+                   "ResumableFileDownload GetObjectRequest not equal to the original DownloadFileRequest");
     }
 
     @ParameterizedTest
