@@ -28,8 +28,8 @@ import software.amazon.awssdk.utils.Logger;
 
 /**
  * A subscriber implementation that will download all individual parts for a multipart get-object request. It receives the
- * individual {@link AsyncResponseTransformer} which will be used to perform the individual part requests.
- * This is a 'one-shot' class, it should <em>NOT</em> be reused for more than one multipart download
+ * individual {@link AsyncResponseTransformer} which will be used to perform the individual part requests. This is a 'one-shot'
+ * class, it should <em>NOT</em> be reused for more than one multipart download
  */
 @SdkInternalApi
 public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> {
@@ -56,7 +56,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
      * The total number of completed parts. A part is considered complete once the completable future associated with its request
      * completes successfully.
      */
-    private final AtomicInteger completedParts = new AtomicInteger(0);
+    private final AtomicInteger completedParts;
 
     /**
      * The subscription received from the publisher this subscriber subscribes to.
@@ -64,8 +64,8 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
     private Subscription subscription;
 
     /**
-     * This future will be completed once this subscriber reaches a terminal state, failed or successfully, and will be
-     * completed accordingly.
+     * This future will be completed once this subscriber reaches a terminal state, failed or successfully, and will be completed
+     * accordingly.
      */
     private final CompletableFuture<Void> future = new CompletableFuture<>();
 
@@ -77,8 +77,13 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
     private String eTag;
 
     public MultipartDownloaderSubscriber(S3AsyncClient s3, GetObjectRequest getObjectRequest) {
+        this(s3, getObjectRequest, 0);
+    }
+
+    public MultipartDownloaderSubscriber(S3AsyncClient s3, GetObjectRequest getObjectRequest, int completedParts) {
         this.s3 = s3;
         this.getObjectRequest = getObjectRequest;
+        this.completedParts = new AtomicInteger(completedParts);
     }
 
     @Override
@@ -113,27 +118,41 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
                 onError(error);
                 return;
             }
-            int totalComplete = completedParts.incrementAndGet();
-            log.trace(() -> String.format("completed part: %s", totalComplete));
-
-            if (eTag == null) {
-                this.eTag = response.eTag();
-                log.trace(() -> String.format("Multipart object ETag: %s", this.eTag));
-            }
-
-            Integer partCount = response.partsCount();
-            if (partCount != null && totalParts == null) {
-                log.trace(() -> String.format("total parts: %s", partCount));
-                totalParts = partCount;
-            }
-            synchronized (lock) {
-                if (totalParts != null && totalParts > 1 && totalComplete < totalParts) {
-                    subscription.request(1);
-                } else {
-                    subscription.cancel();
-                }
-            }
+            requestMoreIfNeeded(response);
         });
+    }
+
+    private void requestMoreIfNeeded(GetObjectResponse response) {
+        int totalComplete = completedParts.incrementAndGet();
+        MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
+                              .ifPresent(ctx -> {
+                                  ctx.addCompletedPart(totalComplete);
+                                  ctx.addToBytesToLastCompletedParts(response.contentLength());
+                                  if (ctx.response() == null) {
+                                      ctx.response(response);
+                                  }
+                              });
+        log.trace(() -> String.format("completed part: %d", totalComplete));
+
+        if (eTag == null) {
+            this.eTag = response.eTag();
+            log.trace(() -> String.format("Multipart object ETag: %s", this.eTag));
+        }
+
+        Integer partCount = response.partsCount();
+        if (partCount != null && totalParts == null) {
+            log.trace(() -> String.format("total parts: %d", partCount));
+            MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
+                .ifPresent(ctx -> ctx.totalParts(partCount));
+            totalParts = partCount;
+        }
+        synchronized (lock) {
+            if (totalParts != null && totalParts > 1 && totalComplete < totalParts) {
+                subscription.request(1);
+            } else {
+                subscription.cancel();
+            }
+        }
     }
 
     @Override

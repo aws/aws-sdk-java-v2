@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
@@ -85,7 +86,7 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         ResumableFileDownload resumableFileDownload = download.pause();
         long bytesTransferred = resumableFileDownload.bytesTransferred();
         log.debug(() -> "Paused: " + resumableFileDownload);
-        assertThat(resumableFileDownload.downloadFileRequest()).isEqualTo(request);
+        assertEqualsBySdkFields(resumableFileDownload.downloadFileRequest(), request);
         assertThat(testDownloadListener.getObjectResponse).isNotNull();
         assertThat(resumableFileDownload.s3ObjectLastModified()).hasValue(testDownloadListener.getObjectResponse.lastModified());
         assertThat(bytesTransferred).isEqualTo(path.toFile().length());
@@ -96,6 +97,21 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
 
         log.debug(() -> "Resuming download ");
         verifyFileDownload(path, resumableFileDownload, OBJ_SIZE - bytesTransferred, tm);
+    }
+
+    private void assertEqualsBySdkFields(DownloadFileRequest actual, DownloadFileRequest expected) {
+        // Transfer manager adds an execution attribute to the GetObjectRequest, so both objects are different.
+        // Need to assert equality by sdk fields, which does not check execution attributes.
+        assertThat(actual.destination())
+            .withFailMessage("ResumableFileDownload destination not equal to the original DownloadFileRequest")
+            .isEqualTo(expected.destination());
+        assertThat(actual.transferListeners())
+            .withFailMessage("ResumableFileDownload transferListeners not equal to the original DownloadFileRequest")
+            .isEqualTo(expected.transferListeners());
+        assertTrue(actual.getObjectRequest().equalsBySdkFields(expected.getObjectRequest()),
+                   () -> String.format("ResumableFileDownload GetObjectRequest not equal to the original DownloadFileRequest. "
+                                       + "expected: %s. Actual:"
+                                       + " %s", actual.getObjectRequest(), expected.getObjectRequest()));
     }
 
     @ParameterizedTest

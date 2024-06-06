@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
@@ -44,7 +45,16 @@ public class DownloadObjectHelper {
             asyncResponseTransformer.split(SplittingTransformerConfiguration.builder()
                                                                             .bufferSizeInBytes(bufferSizeInBytes)
                                                                             .build());
-        split.publisher().subscribe(new MultipartDownloaderSubscriber(s3AsyncClient, requestToPerform));
+        MultipartDownloaderSubscriber subscriber = subscriber(requestToPerform);
+        split.publisher().subscribe(subscriber);
         return split.resultFuture();
+    }
+
+    private MultipartDownloaderSubscriber subscriber(GetObjectRequest getObjectRequest) {
+        Optional<MultipartDownloadResumeContext> multipartDownloadContext =
+            MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest);
+        return multipartDownloadContext
+            .map(ctx -> new MultipartDownloaderSubscriber(s3AsyncClient, getObjectRequest, ctx.highestSequentialCompletedPart()))
+            .orElseGet(() -> new MultipartDownloaderSubscriber(s3AsyncClient, getObjectRequest));
     }
 }
