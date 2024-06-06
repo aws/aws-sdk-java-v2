@@ -80,7 +80,7 @@ public interface AwsV4FamilyHttpSigner<T extends Identity> extends HttpSigner<T>
 
     /**
      * Whether to indicate that a payload is chunk-encoded or not. This property defaults to false. This can be set true to
-     * enable the `aws-chunk` content-encoding.
+     * enable the `aws-chunked` content-encoding.
      * <p>
      * Only some services support this value being set to true, but for those services it can prevent the need to read
      * the whole payload before writing when {@link #PAYLOAD_SIGNING_ENABLED} is true.

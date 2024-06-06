@@ -33,19 +33,19 @@ import software.amazon.awssdk.identity.spi.Identity;
 @SdkPublicApi
 public interface HttpSigner<IdentityT extends Identity> {
     /**
-     * Retrieve a signer that returns the input message, without signing.
-     */
-    default <T extends Identity> HttpSigner<T> doNotSign() {
-        return new NoOpHttpSigner<>();
-    }
-
-    /**
      * A {@link Clock} to be used to derive the signing time. This property defaults to the system clock.
      *
      * <p>Note, signing time may not be relevant to some signers.
      */
     SignerProperty<Clock> SIGNING_CLOCK = SignerProperty.create(HttpSigner.class, "SigningClock");
 
+    /**
+     * Retrieve a signer that returns the input message, without signing.
+     */
+    default <T extends Identity> HttpSigner<T> doNotSign() {
+        return new NoOpHttpSigner<>();
+    }
+    
     /**
      * Method that takes in inputs to sign a request with sync payload and returns a signed version of the request.
      *

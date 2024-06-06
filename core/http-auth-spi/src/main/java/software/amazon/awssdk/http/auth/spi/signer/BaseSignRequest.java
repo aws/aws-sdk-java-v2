@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.auth.spi.signer;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
