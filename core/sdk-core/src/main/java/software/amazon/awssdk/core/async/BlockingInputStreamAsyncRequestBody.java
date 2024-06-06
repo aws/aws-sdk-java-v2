@@ -26,6 +26,7 @@ import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.internal.io.SdkLengthAwareInputStream;
+import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.InputStreamConsumingPublisher;
@@ -39,14 +40,17 @@ import software.amazon.awssdk.utils.async.InputStreamConsumingPublisher;
 @SdkPublicApi
 public final class BlockingInputStreamAsyncRequestBody implements AsyncRequestBody {
     private static final Duration DEFAULT_SUBSCRIBE_TIMEOUT = Duration.ofSeconds(10);
+    private static final String DEFAULT_CONTENT_TYPE = Mimetype.MIMETYPE_OCTET_STREAM;
     private final InputStreamConsumingPublisher delegate = new InputStreamConsumingPublisher();
     private final CountDownLatch subscribedLatch = new CountDownLatch(1);
     private final AtomicBoolean subscribeCalled = new AtomicBoolean(false);
     private final Long contentLength;
+    private final String contentType;
     private final Duration subscribeTimeout;
 
     BlockingInputStreamAsyncRequestBody(Builder builder) {
         this.contentLength = builder.contentLength;
+        this.contentType = builder.contentType != null ? builder.contentType : DEFAULT_CONTENT_TYPE;
         this.subscribeTimeout = Validate.isPositiveOrNull(builder.subscribeTimeout, "subscribeTimeout") != null ?
                                 builder.subscribeTimeout :
                                 DEFAULT_SUBSCRIBE_TIMEOUT;
@@ -62,6 +66,11 @@ public final class BlockingInputStreamAsyncRequestBody implements AsyncRequestBo
     @Override
     public Optional<Long> contentLength() {
         return Optional.ofNullable(contentLength);
+    }
+
+    @Override
+    public String contentType() {
+        return contentType;
     }
 
     /**
@@ -123,6 +132,7 @@ public final class BlockingInputStreamAsyncRequestBody implements AsyncRequestBo
     public static final class Builder {
         private Duration subscribeTimeout;
         private Long contentLength;
+        private String contentType;
 
         private Builder() {
         }
@@ -149,6 +159,17 @@ public final class BlockingInputStreamAsyncRequestBody implements AsyncRequestBo
          */
         public Builder contentLength(Long contentLength) {
             this.contentLength = contentLength;
+            return this;
+        }
+
+        /**
+         * The content type of the output stream.
+         *
+         * @param contentType the content type
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        public Builder contentType(String contentType) {
+            this.contentType = contentType;
             return this;
         }
 
