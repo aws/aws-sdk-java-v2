@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3",
-    "contributor": "chaykin",
-    "description": "Allow user to configure content type for BlockingInputStreamAsyncRequestBody"
-}
