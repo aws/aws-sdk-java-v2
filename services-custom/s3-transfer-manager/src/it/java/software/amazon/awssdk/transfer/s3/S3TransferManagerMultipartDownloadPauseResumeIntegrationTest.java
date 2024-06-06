@@ -22,6 +22,9 @@ import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import java.io.File;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.List;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -29,6 +32,7 @@ import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
@@ -44,12 +48,10 @@ public class S3TransferManagerMultipartDownloadPauseResumeIntegrationTest extend
 
     @BeforeAll
     public static void setup() throws Exception {
-        System.out.println("CREATING BUCKET");
         createBucket(BUCKET);
         sourceFile = new RandomTempFile(OBJ_SIZE);
 
         // use async client for multipart upload (with default part size)
-        System.out.println("UPLOADING TEST OBJECT");
         s3Async.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
                                           .key(KEY)
@@ -90,9 +92,19 @@ public class S3TransferManagerMultipartDownloadPauseResumeIntegrationTest extend
         FileDownload download = tmJava.downloadFile(request);
         download.completionFuture().join();
         ResumableFileDownload resume = download.pause();
-        FileDownload resumedDownload = tmJava.resumeDownloadFile(resume);
-        assertThat(resumedDownload.completionFuture()).isCompleted();
-        assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            FileDownload resumedDownload = tmJava.resumeDownloadFile(resume);
+            assertThat(resumedDownload.completionFuture()).isCompleted();
+            assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);
+
+            List<LogEvent> logEvents = logCaptor.loggedEvents();
+            assertThat(logEvents).noneMatch(
+                event -> event.getMessage().getFormattedMessage().contains("Sending downloadFileRequest"));
+            LogEvent firstLog = logEvents.get(0);
+            assertThat(firstLog.getMessage().getFormattedMessage())
+                .contains("The multipart download associated to the provided ResumableFileDownload is already completed, "
+                          + "nothing to resume");
+        }
     }
 
     private void waitUntilAmountTransferred(FileDownload download, long amountTransferred) {

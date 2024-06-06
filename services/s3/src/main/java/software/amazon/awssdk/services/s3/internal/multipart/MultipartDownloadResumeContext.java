@@ -42,7 +42,7 @@ public class MultipartDownloadResumeContext {
     private Long bytesToLastCompletedParts;
 
     /**
-     * The total amount of part of the multipart download;
+     * The total number of parts of the multipart download.
      */
     private Integer totalParts;
 
@@ -76,6 +76,14 @@ public class MultipartDownloadResumeContext {
 
     public void addToBytesToLastCompletedParts(long bytes) {
         bytesToLastCompletedParts += bytes;
+    }
+
+    public void totalParts(int totalParts) {
+        this.totalParts = totalParts;
+    }
+
+    public Integer totalParts() {
+        return totalParts;
     }
 
     public GetObjectResponse response() {

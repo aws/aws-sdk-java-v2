@@ -305,7 +305,7 @@ class GenericS3TransferManager implements S3TransferManager {
                                 .build();
     }
 
-    private GetObjectRequest attachSdkAttributes(GetObjectRequest request,
+    private GetObjectRequest attachSdkAttribute(GetObjectRequest request,
                                                  Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
         AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
             request.overrideConfiguration()
@@ -373,7 +373,7 @@ class GenericS3TransferManager implements S3TransferManager {
     public final FileDownload downloadFile(DownloadFileRequest downloadRequest) {
         Validate.paramNotNull(downloadRequest, "downloadFileRequest");
 
-        GetObjectRequest getObjectRequestWithAttributes = attachSdkAttributes(
+        GetObjectRequest getObjectRequestWithAttributes = attachSdkAttribute(
             downloadRequest.getObjectRequest(),
             b -> b.putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext()));
         DownloadFileRequest downloadFileRequestWithAttributes =
@@ -429,6 +429,8 @@ class GenericS3TransferManager implements S3TransferManager {
         Optional<MultipartDownloadResumeContext> optCtx =
             multipartDownloadResumeContext(resumableFileDownload.downloadFileRequest().getObjectRequest());
         if (optCtx.map(MultipartDownloadResumeContext::isComplete).orElse(false)) {
+            log.debug(() -> "The multipart download associated to the provided ResumableFileDownload is already completed, "
+                            + "nothing to resume");
             return completedDownload(resumableFileDownload, optCtx.get());
         }
 
