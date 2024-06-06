@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS S3",
+    "contributor": "nikitamsawant",
+    "description": "Updated the version of aws-s3-accessgrants-java-plugin to include changes that support copyObject and deleteObjects."
+}
