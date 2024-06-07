@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Verified Permissions",
-    "contributor": "",
-    "description": "This release adds OpenIdConnect (OIDC) configuration support for IdentitySources, allowing for external IDPs to be used in authorization requests."
-}
