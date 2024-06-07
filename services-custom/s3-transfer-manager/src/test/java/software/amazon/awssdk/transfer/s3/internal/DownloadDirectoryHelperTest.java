@@ -54,6 +54,7 @@ import software.amazon.awssdk.services.s3.model.EncodingType;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
@@ -121,6 +122,37 @@ public class DownloadDirectoryHelperTest {
         assertThat(argumentCaptor.getAllValues()).element(0).satisfies(d -> assertThat(d.getObjectRequest().key()).isEqualTo(
             "key1"));
         assertThat(argumentCaptor.getAllValues()).element(1).satisfies(d -> assertThat(d.getObjectRequest().key()).isEqualTo(
+            "key2"));
+    }
+
+    @Test
+    void downloadDirectory_containsFolderObjects_shouldSkip() throws Exception {
+        stubSuccessfulListObjects(listObjectsHelper, S3Object.builder().key("key1").size(10L).build(),
+                                  S3Object.builder().key("key2").size(0L).build(),
+                                  S3Object.builder().key("folder/").size(0L).build());
+
+        FileDownload fileDownload = newSuccessfulDownload();
+        FileDownload fileDownload2 = newSuccessfulDownload();
+
+        when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
+
+        DirectoryDownload downloadDirectory =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destination(directory)
+                                                                              .bucket("bucket")
+                                                                              .build());
+
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
+
+        ArgumentCaptor<DownloadFileRequest> argumentCaptor = ArgumentCaptor.forClass(DownloadFileRequest.class);
+        verify(singleDownloadFunction, times(2)).apply(argumentCaptor.capture());
+
+        assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
+        List<DownloadFileRequest> allValues = argumentCaptor.getAllValues();
+        assertThat(allValues).size().isEqualTo(2);
+        assertThat(allValues).element(0).satisfies(d -> assertThat(d.getObjectRequest().key()).isEqualTo(
+            "key1"));
+        assertThat(allValues).element(1).satisfies(d -> assertThat(d.getObjectRequest().key()).isEqualTo(
             "key2"));
     }
 

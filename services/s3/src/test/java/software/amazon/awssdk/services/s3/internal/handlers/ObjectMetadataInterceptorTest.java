@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -69,6 +70,26 @@ public class ObjectMetadataInterceptorTest {
         PutObjectRequest modified = (PutObjectRequest) INTERCEPTOR.modifyRequest(ctx, attrs);
 
         assertThat(modified.metadata().keySet()).containsExactlyElementsOf(tc.expectedKeys);
+    }
+
+    @Test
+    public void modifyRequest_putObjectMetadataValueNull_shouldNotThrowException() {
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("key", null);
+
+        Context.ModifyHttpRequest ctx = mock(Context.ModifyHttpRequest.class);
+
+        PutObjectRequest put = PutObjectRequest.builder()
+                                               .metadata(metadata)
+                                               .build();
+
+        when(ctx.request()).thenReturn(put);
+
+        ExecutionAttributes attrs = new ExecutionAttributes();
+        attrs.putAttribute(SdkExecutionAttribute.OPERATION_NAME, "PutObject");
+
+        PutObjectRequest modified = (PutObjectRequest) INTERCEPTOR.modifyRequest(ctx, attrs);
+        assertThat(modified.metadata().entrySet()).containsExactlyElementsOf(metadata.entrySet());
     }
 
     @ParameterizedTest

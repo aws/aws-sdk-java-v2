@@ -193,12 +193,12 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                     .overrideConfiguration().flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
                     .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
                     .resolveIdentity();
-                endpointFuture = identityFuture.thenApply(credentials -> {
+                endpointFuture = identityFuture.thenCompose(credentials -> {
                     EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(true)
                                                                                                 .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
                                                                                                 .overrideConfiguration(testDiscoveryIdentifiersRequiredRequest.overrideConfiguration().orElse(null))
                                                                                                 .build();
-                    return endpointDiscoveryCache.get(credentials.accessKeyId(), endpointDiscoveryRequest);
+                    return endpointDiscoveryCache.getAsync(credentials.accessKeyId(), endpointDiscoveryRequest);
                 });
             }
 
@@ -267,11 +267,11 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                     .overrideConfiguration().flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
                     .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
                     .resolveIdentity();
-                endpointFuture = identityFuture.thenApply(credentials -> {
+                endpointFuture = identityFuture.thenCompose(credentials -> {
                     EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(false)
                                                                                                 .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
                                                                                                 .overrideConfiguration(testDiscoveryOptionalRequest.overrideConfiguration().orElse(null)).build();
-                    return endpointDiscoveryCache.get(credentials.accessKeyId(), endpointDiscoveryRequest);
+                    return endpointDiscoveryCache.getAsync(credentials.accessKeyId(), endpointDiscoveryRequest);
                 });
             }
 
@@ -348,11 +348,11 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                     .overrideConfiguration().flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
                     .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
                     .resolveIdentity();
-                endpointFuture = identityFuture.thenApply(credentials -> {
+                endpointFuture = identityFuture.thenCompose(credentials -> {
                     EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(true)
                                                                                                 .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
                                                                                                 .overrideConfiguration(testDiscoveryRequiredRequest.overrideConfiguration().orElse(null)).build();
-                    return endpointDiscoveryCache.get(credentials.accessKeyId(), endpointDiscoveryRequest);
+                    return endpointDiscoveryCache.getAsync(credentials.accessKeyId(), endpointDiscoveryRequest);
                 });
             }
 

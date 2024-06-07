@@ -28,6 +28,7 @@ import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.EndpointTrait;
+import software.amazon.awssdk.codegen.model.service.OperationContextParam;
 import software.amazon.awssdk.codegen.model.service.StaticContextParam;
 
 public class OperationModel extends DocumentationModel {
@@ -82,6 +83,9 @@ public class OperationModel extends DocumentationModel {
 
     @JsonIgnore
     private Map<String, StaticContextParam> staticContextParams;
+
+    @JsonIgnore
+    private Map<String, OperationContextParam> operationContextParams;
 
     public String getOperationName() {
         return operationName;
@@ -356,5 +360,13 @@ public class OperationModel extends DocumentationModel {
 
     public void setStaticContextParams(Map<String, StaticContextParam> staticContextParams) {
         this.staticContextParams = staticContextParams;
+    }
+
+    public Map<String, OperationContextParam> getOperationContextParams() {
+        return operationContextParams;
+    }
+
+    public void setOperationContextParams(Map<String, OperationContextParam> operationContextParams) {
+        this.operationContextParams = operationContextParams;
     }
 }
