@@ -1,0 +1,30 @@
+{
+    "version": "2.25.67",
+    "date": "2024-06-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Global Accelerator",
+            "contributor": "",
+            "description": "This release contains a new optional ip-addresses input field for the update accelerator and update custom routing accelerator apis. This input enables consumers to replace IPv4 addresses on existing accelerators with addresses provided in the input."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "AWS Glue now supports native SaaS connectivity: Salesforce connector available now"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Added new params copySource and key to copyObject API for supporting S3 Access Grants plugin. These changes will not change any of the existing S3 API functionality."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

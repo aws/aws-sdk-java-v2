@@ -1,4 +1,192 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.68__ __2024-06-06__
+## __AWS Account__
+  - ### Features
+    - This release adds 3 new APIs (AcceptPrimaryEmailUpdate, GetPrimaryEmail, and StartPrimaryEmailUpdate) used to centrally manage the root user email address of member accounts within an AWS organization.
+
+## __AWS Glue__
+  - ### Features
+    - This release adds support for creating and updating Glue Data Catalog Views.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Adds support for wireless device to be in Conflict FUOTA Device Status due to a FUOTA Task, so it couldn't be attached to a new one.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adds SoftwareUpdatePreferences to DescribeMaintenanceStartTime and UpdateMaintenanceStartTime, a structure which contains AutomaticUpdatePolicy.
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support to increase metadata performance on FSx for Lustre file systems beyond the default level provisioned when a file system is created. This can be done by specifying MetadataConfiguration during the creation of Persistent_2 file systems or by updating it on demand.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Adds integration with Secrets Manager for Redshift, Splunk, HttpEndpoint, and Snowflake destinations
+
+## __Amazon Location Service__
+  - ### Features
+    - Added two new APIs, VerifyDevicePosition and ForecastGeofenceEvents. Added support for putting larger geofences up to 100,000 vertices with Geobuf fields.
+
+## __Amazon S3__
+  - ### Features
+    - Allow user to configure content type for BlockingInputStreamAsyncRequestBody
+        - Contributed by: [@chaykin](https://github.com/chaykin)
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Doc-only update for SNS. These changes include customer-reported issues and TXC3 updates.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Doc only updates for SQS. These updates include customer-reported issues and TCX3 modifications.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@chaykin](https://github.com/chaykin)
+# __2.25.67__ __2024-06-05__
+## __AWS Global Accelerator__
+  - ### Features
+    - This release contains a new optional ip-addresses input field for the update accelerator and update custom routing accelerator apis. This input enables consumers to replace IPv4 addresses on existing accelerators with addresses provided in the input.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports native SaaS connectivity: Salesforce connector available now
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added new params copySource and key to copyObject API for supporting S3 Access Grants plugin. These changes will not change any of the existing S3 API functionality.
+
+# __2.25.66__ __2024-06-04__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - U7i instances with up to 32 TiB of DDR5 memory and 896 vCPUs are now available. C7i-flex instances are launched and are lower-priced variants of the Amazon EC2 C7i instances that offer a baseline level of CPU performance with the ability to scale up to the full compute performance 95% of the time.
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - This release adds Timestream for LiveAnalytics as a supported target in EventBridge Pipes
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Extend DescribeClusterNode response with private DNS hostname and IP address, and placement information about availability zone and availability zone ID.
+
+## __Tax Settings__
+  - ### Features
+    - Initial release of AWS Tax Settings API
+
+# __2.25.65__ __2024-06-03__
+## __AWS Amplify__
+  - ### Features
+    - This doc-only update identifies fields that are specific to Gen 1 and Gen 2 applications.
+
+## __AWS Batch__
+  - ### Features
+    - This release adds support for the AWS Batch GetJobQueueSnapshot API operation.
+
+## __AWS IoT TwinMaker__
+  - ### Features
+    - Support RESET_VALUE UpdateType for PropertyUpdates to reset property value to default or null
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for EKS add-ons pod identity associations integration
+
+# __2.25.64__ __2024-05-31__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports Self-hosted GitHub Actions runners for Github Enterprise
+
+## __AWS Launch Wizard__
+  - ### Features
+    - This release adds support for describing workload deployment specifications, deploying additional workload types, and managing tags for Launch Wizard resources with API operations.
+
+## __Amazon CodeGuru Security__
+  - ### Features
+    - This release includes minor model updates and documentation updates.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Update to attributes of TestFailover and minor revisions.
+
+# __2.25.63__ __2024-05-30__
+## __AWS Certificate Manager__
+  - ### Features
+    - add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS CloudTrail__
+  - ### Features
+    - CloudTrail Lake returns PartitionKeys in the GetEventDataStore API response. Events are grouped into partitions based on these keys for better query performance. For example, the calendarday key groups events by day, while combining the calendarday key with the hour key groups them by day and hour.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - With this release, Knowledge bases for Bedrock adds support for Titan Text Embedding v2.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds Converse and ConverseStream APIs to Bedrock Runtime
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adding associatedQueueIds as a SearchCriteria and response field to the SearchRoutingProfiles API
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for Aurora Postgres DBname.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds Model Card information as a new component to Model Package. Autopilot launches algorithm selection for TimeSeries modality to generate AutoML candidates per algorithm.
+
+## __EMR Serverless__
+  - ### Features
+    - The release adds support for spark structured streaming.
+
+# __2.25.62__ __2024-05-29__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports manually creating GitHub webhooks
+
+## __AWS Glue__
+  - ### Features
+    - Add optional field JobMode to CreateJob and UpdateJob APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Add ROOT type for TargetType model
+
+## __Amazon Athena__
+  - ### Features
+    - Throwing validation errors on CreateNotebook with Name containing `/`,`:`,`\`
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release includes changes to DescribeContact API's response by including ConnectedToSystemTimestamp, RoutingCriteria, Customer, Campaign, AnsweringMachineDetectionStatus, CustomerVoiceActivity, QualityMetrics, DisconnectDetails, and SegmentAttributes information from a contact in Amazon Connect.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Remove CopySourceInterceptor and add the updation of "copySource" parameter in CopyObject and UploadPartCopy API via preClientExecutionRequestCustomizer Customization before client execution.
+
 # __2.25.61__ __2024-05-28__
 ## __AWS SDK for Java v2__
   - ### Features

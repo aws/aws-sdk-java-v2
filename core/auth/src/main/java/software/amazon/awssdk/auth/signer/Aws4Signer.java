@@ -20,7 +20,10 @@ import software.amazon.awssdk.auth.signer.internal.BaseAws4Signer;
 
 /**
  * Signer implementation that signs requests with the AWS4 signing protocol.
+ *
+ * @deprecated Use {@code software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner} from the 'http-auth-aws' module.
  */
+@Deprecated
 @SdkPublicApi
 public final class Aws4Signer extends BaseAws4Signer {
 
