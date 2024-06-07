@@ -18,6 +18,7 @@ package software.amazon.awssdk.auth.signer;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.signer.internal.BaseEventStreamAsyncAws4Signer;
 
+@Deprecated
 @SdkProtectedApi
 public final class EventStreamAws4Signer extends BaseEventStreamAsyncAws4Signer {
     private EventStreamAws4Signer() {
