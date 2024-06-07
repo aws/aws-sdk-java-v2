@@ -75,9 +75,23 @@ import software.amazon.awssdk.utils.Validate;
  *
  *         S3TransferManager transferManager =
  *             S3TransferManager.builder()
- *                              .s3AsyncClient(s3AsyncClient)
+ *                              .s3Client(s3AsyncClient)
  *                              .build();
  * }
+ *
+ * <b>Create an S3 Transfer Manager with S3 Multipart Async Client</b>
+ * {@snippet :
+ *      S3AsyncClient s3AsyncClient = s3AsyncClient.builder()
+ *                                                 .multipartEnabled(true)
+ *                                                 .multipartConfiguration(conf -> conf.apiCallBufferSizeInBytes(32 * MB))
+ *                                                 .build();
+ *
+ *      S3TransferManager transferManager =
+ *          S3TransferManager.builder()
+ *                           .s3Client(s3AsyncClient)
+ *                           .build();
+ * }
+ *
  * <h2>Common Usage Patterns</h2>
  * <b>Upload a file to S3</b>
  * {@snippet :
@@ -157,9 +171,14 @@ import software.amazon.awssdk.utils.Validate;
  *         // Wait for the transfer to complete
  *         CompletedCopy completedCopy = copy.completionFuture().join();
  * }
- * <b> Warns the user if a multi-part operation disabled client is provided for TransferManager to use
- * If no client is provided, a multi-part enabled async client is instantiated and used.
- * In the event of a multi-part disabled defaultS3AsyncClient being used, a warning is logged </b>
+ * <b> The automatic parallel transfer feature (multipart upload/download) is available
+ * through the AWS-CRT based S3 client {@link S3AsyncClient#crtBuilder().build)}
+ * and Java-based S3 multipart client {@link S3AsyncClient#builder().multipartEnabled(true).build()}.
+ * If no client is configured, AWS-CRT based S3 client will be used if AWS CRT is in the classpath,
+ * otherwise, Java-based S3 multipart client will be used. </b>
+ * {@snippet
+ *
+ * }
  */
 @SdkPublicApi
 @ThreadSafe

@@ -54,7 +54,9 @@ public final class TransferManagerFactory {
 
         if (!s3AsyncClient.getClass().getName().equals("software.amazon.awssdk.services.s3.internal.multipart"
                                                        + ".MultipartS3AsyncClient")) {
-            log.debug(() -> "The provided S3AsyncClient is neither an instance of S3CrtAsyncClient or MultipartS3AsyncClient, "
+            log.debug(() -> "The provided S3AsyncClient is neither "
+                            + "an AWS CRT-based S3 async client (S3AsyncClient.crtBuilder().build()) or "
+                            + "a Java-based S3 async client (S3AsyncClient.builder().multipartEnabled(true).build()), "
                             + "and thus multipart upload/download feature may not be enabled and resumable file upload may not "
                             + "be supported. To benefit from maximum throughput, consider using "
                             + "S3AsyncClient.crtBuilder().build() or "

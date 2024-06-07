@@ -24,9 +24,12 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public class DownloadObjectHelper {
+    private static final Logger log = Logger.loggerFor(DownloadObjectHelper.class);
+
     private final S3AsyncClient s3AsyncClient;
     private final long bufferSizeInBytes;
 
@@ -38,6 +41,7 @@ public class DownloadObjectHelper {
     public <T> CompletableFuture<T> downloadObject(
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, T> asyncResponseTransformer) {
         if (getObjectRequest.range() != null || getObjectRequest.partNumber() != null) {
+            logSinglePartWarning(getObjectRequest);
             return s3AsyncClient.getObject(getObjectRequest, asyncResponseTransformer);
         }
         GetObjectRequest requestToPerform = getObjectRequest.toBuilder().checksumMode(ChecksumMode.ENABLED).build();
@@ -56,5 +60,18 @@ public class DownloadObjectHelper {
         return multipartDownloadContext
             .map(ctx -> new MultipartDownloaderSubscriber(s3AsyncClient, getObjectRequest, ctx.highestSequentialCompletedPart()))
             .orElseGet(() -> new MultipartDownloaderSubscriber(s3AsyncClient, getObjectRequest));
+    }
+
+    private void logSinglePartWarning(GetObjectRequest getObjectRequest) {
+        String reason = "";
+        if (getObjectRequest.range() != null) {
+            reason = " because getObjectRequest range is included in the request."
+                     + " range = " + getObjectRequest.range();
+        } else if (getObjectRequest.partNumber() != null) {
+            reason = " because getObjectRequest part number is included in the request."
+                     + " part number = " + getObjectRequest.partNumber();
+        }
+        String finalReason = reason;
+        log.debug(() -> "Using single part download" + finalReason);
     }
 }

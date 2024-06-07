@@ -142,6 +142,13 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
                                             .build();
     }
 
+    default SplitResult<ResponseT, ResultT> split(Consumer<SplittingTransformerConfiguration.Builder> splitConfig) {
+        SplittingTransformerConfiguration conf = SplittingTransformerConfiguration.builder()
+                                                                                  .applyMutation(splitConfig)
+                                                                                  .build();
+        return split(conf);
+    }
+
     /**
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error, the
      * SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an exception will

@@ -19,6 +19,7 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.SplittingTransformer;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -70,6 +71,13 @@ public final class SplittingTransformerConfiguration implements ToCopyableBuilde
     @Override
     public int hashCode() {
         return bufferSizeInBytes != null ? bufferSizeInBytes.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("SplittingTransformerConfiguration")
+            .add("bufferSizeInBytes", bufferSizeInBytes)
+            .build();
     }
 
     @Override
