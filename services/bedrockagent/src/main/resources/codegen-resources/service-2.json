@@ -822,7 +822,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the Lambda function containing the business logic that is carried out upon invoking the action.</p>"
         }
       },
-      "documentation":"<p>Contains details about the Lambda function containing the business logic that is carried out upon invoking the action.</p>",
+      "documentation":"<p>Contains details about the Lambda function containing the business logic that is carried out upon invoking the action or the custom control method for handling the information elicited from the user.</p>",
       "union":true
     },
     "ActionGroupSignature":{
@@ -936,6 +936,10 @@
           "shape":"ModelIdentifier",
           "documentation":"<p>The foundation model used for orchestration by the agent.</p>"
         },
+        "guardrailConfiguration":{
+          "shape":"GuardrailConfiguration",
+          "documentation":"<p>The guardrails configuration assigned to the agent.</p>"
+        },
         "idleSessionTTLInSeconds":{
           "shape":"SessionTTL",
           "documentation":"<p>The number of seconds for which Amazon Bedrock keeps information about a user's conversation with the agent.</p> <p>A user interaction remains active for the amount of time specified. If no conversation occurs during this time, the session expires and Amazon Bedrock deletes any data provided before the timeout.</p>"
@@ -977,7 +981,7 @@
       "members":{
         "actionGroupExecutor":{
           "shape":"ActionGroupExecutor",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Lambda function containing the business logic that is carried out upon invoking the action.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Lambda function containing the business logic that is carried out upon invoking the action or the custom control method for handling the information elicited from the user.</p>"
         },
         "actionGroupId":{
           "shape":"Id",
@@ -1079,6 +1083,10 @@
           "shape":"Description",
           "documentation":"<p>The description of the alias of the agent.</p>"
         },
+        "failureReasons":{
+          "shape":"FailureReasons",
+          "documentation":"<p>Information on the failure of Provisioned Throughput assigned to an agent alias.</p>"
+        },
         "routingConfiguration":{
           "shape":"AgentAliasRoutingConfiguration",
           "documentation":"<p>Contains details about the routing configuration of the alias.</p>"
@@ -1134,11 +1142,14 @@
     },
     "AgentAliasRoutingConfigurationListItem":{
       "type":"structure",
-      "required":["agentVersion"],
       "members":{
         "agentVersion":{
           "shape":"Version",
           "documentation":"<p>The version of the agent with which the alias is associated.</p>"
+        },
+        "provisionedThroughput":{
+          "shape":"ProvisionedModelIdentifier",
+          "documentation":"<p>Information on the Provisioned Throughput assigned to an agent alias.</p>"
         }
       },
       "documentation":"<p>Contains details about the routing configuration of the alias.</p>"
@@ -1286,7 +1297,7 @@
       "type":"string",
       "max":2048,
       "min":0,
-      "pattern":"^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/(service-role/)?AmazonBedrockExecutionRoleForAgents_.+$"
+      "pattern":"^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$"
     },
     "AgentStatus":{
       "type":"string",
@@ -1331,6 +1342,10 @@
         "description":{
           "shape":"Description",
           "documentation":"<p>The description of the agent.</p>"
+        },
+        "guardrailConfiguration":{
+          "shape":"GuardrailConfiguration",
+          "documentation":"<p>The details of the guardrails configuration in the agent summary.</p>"
         },
         "latestAgentVersion":{
           "shape":"Version",
@@ -1397,6 +1412,10 @@
           "shape":"ModelIdentifier",
           "documentation":"<p>The foundation model that the version invokes.</p>"
         },
+        "guardrailConfiguration":{
+          "shape":"GuardrailConfiguration",
+          "documentation":"<p>The guardrails configuration assigned to the agent version.</p>"
+        },
         "idleSessionTTLInSeconds":{
           "shape":"SessionTTL",
           "documentation":"<p>The number of seconds for which Amazon Bedrock keeps information about a user's conversation with the agent.</p> <p>A user interaction remains active for the amount of time specified. If no conversation occurs during this time, the session expires and Amazon Bedrock deletes any data provided before the timeout.</p>"
@@ -1460,6 +1479,10 @@
           "shape":"Description",
           "documentation":"<p>The description of the version of the agent.</p>"
         },
+        "guardrailConfiguration":{
+          "shape":"GuardrailConfiguration",
+          "documentation":"<p>The details of the guardrails configuration in the agent version summary.</p>"
+        },
         "updatedAt":{
           "shape":"DateTimestamp",
           "documentation":"<p>The time at which the version was last updated.</p>"
@@ -1519,9 +1542,19 @@
     },
     "BedrockEmbeddingModelArn":{
       "type":"string",
-      "max":1011,
+      "max":2048,
       "min":20,
-      "pattern":"^arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:(([0-9]{12}:custom-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}/[a-z0-9]{12})|(:foundation-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}))$"
+      "pattern":"^(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:(([0-9]{12}:custom-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}/[a-z0-9]{12})|(:foundation-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.:]?[a-z0-9-]{1,63}))|([0-9]{12}:provisioned-model/[a-z0-9]{12})))|([a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.:]?[a-z0-9-]{1,63}))|(([0-9a-zA-Z][_-]?)+)$"
+    },
+    "BedrockEmbeddingModelConfiguration":{
+      "type":"structure",
+      "members":{
+        "dimensions":{
+          "shape":"Dimensions",
+          "documentation":"<p>The dimensions details for the vector configuration used on the Bedrock embeddings model.</p>"
+        }
+      },
+      "documentation":"<p>The vector configuration details for the Bedrock embeddings model.</p>"
     },
     "Boolean":{
       "type":"boolean",
@@ -1589,7 +1622,7 @@
       "members":{
         "actionGroupExecutor":{
           "shape":"ActionGroupExecutor",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Lambda function containing the business logic that is carried out upon invoking the action.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Lambda function containing the business logic that is carried out upon invoking the action or the custom control method for handling the information elicited from the user.</p>"
         },
         "actionGroupName":{
           "shape":"Name",
@@ -1719,6 +1752,10 @@
           "shape":"ModelIdentifier",
           "documentation":"<p>The foundation model to be used for orchestration by the agent you create.</p>"
         },
+        "guardrailConfiguration":{
+          "shape":"GuardrailConfiguration",
+          "documentation":"<p>The unique Guardrail configuration assigned to the agent when it is created.</p>"
+        },
         "idleSessionTTLInSeconds":{
           "shape":"SessionTTL",
           "documentation":"<p>The number of seconds for which Amazon Bedrock keeps information about a user's conversation with the agent.</p> <p>A user interaction remains active for the amount of time specified. If no conversation occurs during this time, the session expires and Amazon Bedrock deletes any data provided before the timeout.</p>"
@@ -1762,7 +1799,7 @@
         },
         "dataDeletionPolicy":{
           "shape":"DataDeletionPolicy",
-          "documentation":"<p>The deletion policy for the requested data source</p>"
+          "documentation":"<p>The data deletion policy assigned to the data source.</p>"
         },
         "dataSourceConfiguration":{
           "shape":"DataSourceConfiguration",
@@ -1888,7 +1925,7 @@
         },
         "dataDeletionPolicy":{
           "shape":"DataDeletionPolicy",
-          "documentation":"<p>The deletion policy for the data source.</p>"
+          "documentation":"<p>The data deletion policy for a data source.</p>"
         },
         "dataSourceConfiguration":{
           "shape":"DataSourceConfiguration",
@@ -1904,7 +1941,7 @@
         },
         "failureReasons":{
           "shape":"FailureReasons",
-          "documentation":"<p>The details of the failure reasons related to the data source.</p>"
+          "documentation":"<p>The detailed reasons on the failure to delete a data source.</p>"
         },
         "knowledgeBaseId":{
           "shape":"Id",
@@ -2248,6 +2285,12 @@
       "max":200,
       "min":1
     },
+    "Dimensions":{
+      "type":"integer",
+      "box":true,
+      "max":4096,
+      "min":0
+    },
     "DisassociateAgentKnowledgeBaseRequest":{
       "type":"structure",
       "required":[
@@ -2286,6 +2329,16 @@
       "max":5,
       "min":5,
       "pattern":"^DRAFT$"
+    },
+    "EmbeddingModelConfiguration":{
+      "type":"structure",
+      "members":{
+        "bedrockEmbeddingModelConfiguration":{
+          "shape":"BedrockEmbeddingModelConfiguration",
+          "documentation":"<p>The vector configuration details on the Bedrock embeddings model.</p>"
+        }
+      },
+      "documentation":"<p>The configuration details for the embeddings model.</p>"
     },
     "FailureReason":{
       "type":"string",
@@ -2623,6 +2676,30 @@
         }
       }
     },
+    "GuardrailConfiguration":{
+      "type":"structure",
+      "members":{
+        "guardrailIdentifier":{
+          "shape":"GuardrailIdentifier",
+          "documentation":"<p>The guardrails identifier assigned to the guardrails configuration.</p>"
+        },
+        "guardrailVersion":{
+          "shape":"GuardrailVersion",
+          "documentation":"<p>The guardrails version assigned to the guardrails configuration.</p>"
+        }
+      },
+      "documentation":"<p>The details of the guardrails configuration.</p>"
+    },
+    "GuardrailIdentifier":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"^(([a-z0-9]+)|(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:guardrail/[a-z0-9]+))$"
+    },
+    "GuardrailVersion":{
+      "type":"string",
+      "pattern":"^(([0-9]{1,8})|(DRAFT))$"
+    },
     "Id":{
       "type":"string",
       "pattern":"^[0-9a-zA-Z]{10}$"
@@ -2872,7 +2949,7 @@
     },
     "Instruction":{
       "type":"string",
-      "max":1200,
+      "max":4000,
       "min":40,
       "sensitive":true
     },
@@ -3004,7 +3081,8 @@
         "OPENSEARCH_SERVERLESS",
         "PINECONE",
         "REDIS_ENTERPRISE_CLOUD",
-        "RDS"
+        "RDS",
+        "MONGO_DB_ATLAS"
       ]
     },
     "KnowledgeBaseSummaries":{
@@ -3385,6 +3463,101 @@
       "min":1,
       "pattern":"^arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:(([0-9]{12}:custom-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}(([:][a-z0-9-]{1,63}){0,2})?/[a-z0-9]{12})|(:foundation-model/([a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.]?[a-z0-9-]{1,63})([:][a-z0-9-]{1,63}){0,2})))|(([a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.]?[a-z0-9-]{1,63})([:][a-z0-9-]{1,63}){0,2}))|(([0-9a-zA-Z][_-]?)+)$"
     },
+    "MongoDbAtlasCollectionName":{
+      "type":"string",
+      "max":63,
+      "min":0,
+      "pattern":"^.*$"
+    },
+    "MongoDbAtlasConfiguration":{
+      "type":"structure",
+      "required":[
+        "collectionName",
+        "credentialsSecretArn",
+        "databaseName",
+        "endpoint",
+        "fieldMapping",
+        "vectorIndexName"
+      ],
+      "members":{
+        "collectionName":{
+          "shape":"MongoDbAtlasCollectionName",
+          "documentation":"<p>The collection name of the knowledge base in MongoDB Atlas.</p>"
+        },
+        "credentialsSecretArn":{
+          "shape":"SecretArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the secret that you created in Secrets Manager that contains user credentials for your MongoDB Atlas cluster.</p>"
+        },
+        "databaseName":{
+          "shape":"MongoDbAtlasDatabaseName",
+          "documentation":"<p>The database name in your MongoDB Atlas cluster for your knowledge base.</p>"
+        },
+        "endpoint":{
+          "shape":"MongoDbAtlasEndpoint",
+          "documentation":"<p>The endpoint URL of your MongoDB Atlas cluster for your knowledge base.</p>"
+        },
+        "endpointServiceName":{
+          "shape":"MongoDbAtlasEndpointServiceName",
+          "documentation":"<p>The name of the VPC endpoint service in your account that is connected to your MongoDB Atlas cluster.</p>"
+        },
+        "fieldMapping":{
+          "shape":"MongoDbAtlasFieldMapping",
+          "documentation":"<p>Contains the names of the fields to which to map information about the vector store.</p>"
+        },
+        "vectorIndexName":{
+          "shape":"MongoDbAtlasIndexName",
+          "documentation":"<p>The name of the MongoDB Atlas vector search index.</p>"
+        }
+      },
+      "documentation":"<p>Contains details about the storage configuration of the knowledge base in MongoDB Atlas. </p>"
+    },
+    "MongoDbAtlasDatabaseName":{
+      "type":"string",
+      "max":63,
+      "min":0,
+      "pattern":"^.*$"
+    },
+    "MongoDbAtlasEndpoint":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"^.*$"
+    },
+    "MongoDbAtlasEndpointServiceName":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"^(?:arn:aws(?:-us-gov|-cn|-iso|-iso-[a-z])*:.+:.*:\\d+:.+/.+$|[a-zA-Z0-9*]+[a-zA-Z0-9._-]*)$"
+    },
+    "MongoDbAtlasFieldMapping":{
+      "type":"structure",
+      "required":[
+        "metadataField",
+        "textField",
+        "vectorField"
+      ],
+      "members":{
+        "metadataField":{
+          "shape":"FieldName",
+          "documentation":"<p>The name of the field in which Amazon Bedrock stores metadata about the vector store.</p>"
+        },
+        "textField":{
+          "shape":"FieldName",
+          "documentation":"<p>The name of the field in which Amazon Bedrock stores the raw text from your data. The text is split according to the chunking strategy you choose.</p>"
+        },
+        "vectorField":{
+          "shape":"FieldName",
+          "documentation":"<p>The name of the field in which Amazon Bedrock stores the vector embeddings for your data sources.</p>"
+        }
+      },
+      "documentation":"<p>Contains the names of the fields to which to map information about the vector store.</p>"
+    },
+    "MongoDbAtlasIndexName":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"^.*$"
+    },
     "Name":{
       "type":"string",
       "pattern":"^([0-9a-zA-Z][_-]?){1,100}$"
@@ -3596,7 +3769,7 @@
       "members":{
         "basePromptTemplate":{
           "shape":"BasePromptTemplate",
-          "documentation":"<p>Defines the prompt template with which to replace the default prompt template. You can use placeholder variables in the base prompt template to customize the prompt. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-placeholders.html\">Prompt template placeholder variables</a>.</p>"
+          "documentation":"<p>Defines the prompt template with which to replace the default prompt template. You can use placeholder variables in the base prompt template to customize the prompt. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-placeholders.html\">Prompt template placeholder variables</a>. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/advanced-prompts-configure.html\">Configure the prompt templates</a>.</p>"
         },
         "inferenceConfiguration":{
           "shape":"InferenceConfiguration",
@@ -3633,7 +3806,7 @@
       "members":{
         "overrideLambda":{
           "shape":"LambdaArn",
-          "documentation":"<p>The ARN of the Lambda function to use when parsing the raw foundation model output in parts of the agent sequence. If you specify this field, at least one of the <code>promptConfigurations</code> must contain a <code>parserMode</code> value that is set to <code>OVERRIDDEN</code>.</p>"
+          "documentation":"<p>The ARN of the Lambda function to use when parsing the raw foundation model output in parts of the agent sequence. If you specify this field, at least one of the <code>promptConfigurations</code> must contain a <code>parserMode</code> value that is set to <code>OVERRIDDEN</code>. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/lambda-parser.html\">Parser Lambda function in Agents for Amazon Bedrock</a>.</p>"
         },
         "promptConfigurations":{
           "shape":"PromptConfigurations",
@@ -3658,6 +3831,12 @@
         "POST_PROCESSING",
         "KNOWLEDGE_BASE_RESPONSE_GENERATION"
       ]
+    },
+    "ProvisionedModelIdentifier":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"^((([0-9a-zA-Z][_-]?){1,63})|(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:provisioned-model/[a-z0-9]{12}))$"
     },
     "RdsArn":{
       "type":"string",
@@ -3844,7 +4023,7 @@
         },
         "bucketOwnerAccountId":{
           "shape":"BucketOwnerAccountId",
-          "documentation":"<p>The account ID for the owner of the S3 bucket.</p>"
+          "documentation":"<p>The bucket account owner ID for the S3 bucket.</p>"
         },
         "inclusionPrefixes":{
           "shape":"S3Prefixes",
@@ -3973,6 +4152,10 @@
       "type":"structure",
       "required":["type"],
       "members":{
+        "mongoDbAtlasConfiguration":{
+          "shape":"MongoDbAtlasConfiguration",
+          "documentation":"<p>Contains the storage configuration of the knowledge base in MongoDB Atlas.</p>"
+        },
         "opensearchServerlessConfiguration":{
           "shape":"OpenSearchServerlessConfiguration",
           "documentation":"<p>Contains the storage configuration of the knowledge base in Amazon OpenSearch Service.</p>"
@@ -4308,6 +4491,10 @@
           "shape":"ModelIdentifier",
           "documentation":"<p>Specifies a new foundation model to be used for orchestration by the agent.</p>"
         },
+        "guardrailConfiguration":{
+          "shape":"GuardrailConfiguration",
+          "documentation":"<p>The unique Guardrail configuration assigned to the agent when it is updated.</p>"
+        },
         "idleSessionTTLInSeconds":{
           "shape":"SessionTTL",
           "documentation":"<p>The number of seconds for which Amazon Bedrock keeps information about a user's conversation with the agent.</p> <p>A user interaction remains active for the amount of time specified. If no conversation occurs during this time, the session expires and Amazon Bedrock deletes any data provided before the timeout.</p>"
@@ -4492,6 +4679,10 @@
         "embeddingModelArn":{
           "shape":"BedrockEmbeddingModelArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the model used to create vector embeddings for the knowledge base.</p>"
+        },
+        "embeddingModelConfiguration":{
+          "shape":"EmbeddingModelConfiguration",
+          "documentation":"<p>The embeddings model configuration details for the vector model used in Knowledge Base.</p>"
         }
       },
       "documentation":"<p>Contains details about the model used to create vector embeddings for the knowledge base.</p>"

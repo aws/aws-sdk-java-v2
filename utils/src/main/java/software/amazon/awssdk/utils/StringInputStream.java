@@ -16,6 +16,7 @@
 package software.amazon.awssdk.utils;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
@@ -29,7 +30,11 @@ public class StringInputStream extends ByteArrayInputStream {
     private final String string;
 
     public StringInputStream(String s) {
-        super(s.getBytes(StandardCharsets.UTF_8));
+        this(s, StandardCharsets.UTF_8);
+    }
+
+    public StringInputStream(String s, Charset charset) {
+        super(s.getBytes(charset));
         this.string = s;
     }
 

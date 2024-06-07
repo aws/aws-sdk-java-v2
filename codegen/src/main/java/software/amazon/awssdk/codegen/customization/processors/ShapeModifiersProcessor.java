@@ -160,6 +160,11 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
                                                                     .getUnmarshallLocationName());
         }
 
+        if (modifyModel.isIgnoreDataTypeConversionFailures()) {
+            MemberModel memberModel = shapeModel.findMemberModelByC2jName(memberName);
+            memberModel.ignoreDataTypeConversionFailures(true);
+        }
+
     }
 
     /**

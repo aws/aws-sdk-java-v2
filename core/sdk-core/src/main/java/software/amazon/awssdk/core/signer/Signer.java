@@ -22,9 +22,12 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
  * Interface for the signer used for signing the requests. All SDK signer implementations will implement this interface.
+ *
+ * @deprecated Replaced by {@code software.amazon.awssdk.http.auth.spi.signer.HttpSigner} in 'http-auth-spi'.
  */
 @SdkPublicApi
 @FunctionalInterface
+@Deprecated
 public interface Signer {
     /**
      * Method that takes in an request and returns a signed version of the request.

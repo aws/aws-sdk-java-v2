@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.testutils.service.AwsTestBase.CREDENTIALS_PROVIDER_CHAIN;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -100,6 +101,12 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
     private static S3AsyncClient s3Async;
     private static S3AsyncClient s3CrtAsync;
     private static String testBucket;
+
+    private static final String S3EXPRESS_BUCKET_PATTERN = temporaryBucketName(S3ExpressIntegrationTest.class) +"--%s--x-s3";
+
+    private static String getS3ExpressBucketNameForAz(String az) {
+        return String.format(S3EXPRESS_BUCKET_PATTERN, az);
+    }
 
     @BeforeAll
     static void setup() {

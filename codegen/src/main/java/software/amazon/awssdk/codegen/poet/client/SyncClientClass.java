@@ -20,10 +20,12 @@ import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
+import static software.amazon.awssdk.codegen.poet.PoetUtils.classNameFromFqcn;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -36,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,6 +53,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
+import software.amazon.awssdk.codegen.model.service.PreClientExecutionRequestCustomizer;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
@@ -249,6 +253,8 @@ public class SyncClientClass extends SyncClientInterface {
     private MethodSpec traditionalMethod(OperationModel opModel) {
         MethodSpec.Builder method = SyncClientInterface.operationMethodSignature(model, opModel)
                                                        .addAnnotation(Override.class);
+
+        addRequestModifierCode(opModel, model).ifPresent(method::addCode);
         if (!useSraAuth) {
             method.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel));
         }
@@ -339,6 +345,28 @@ public class SyncClientClass extends SyncClientInterface {
               .endControlFlow();
 
         return method.build();
+    }
+
+    public static Optional<CodeBlock> addRequestModifierCode(OperationModel opModel, IntermediateModel model) {
+
+        Map<String, PreClientExecutionRequestCustomizer> preClientExecutionRequestCustomizer =
+            model.getCustomizationConfig().getPreClientExecutionRequestCustomizer();
+
+        if (!CollectionUtils.isNullOrEmpty(preClientExecutionRequestCustomizer)) {
+            PreClientExecutionRequestCustomizer requestCustomizer =
+                preClientExecutionRequestCustomizer.get(opModel.getOperationName());
+            if (requestCustomizer != null) {
+                CodeBlock.Builder builder = CodeBlock.builder();
+                ClassName instanceType = classNameFromFqcn(requestCustomizer.getClassName());
+                builder.addStatement("$L = $T.$N($L)",
+                                     opModel.getInput().getVariableName(),
+                                     instanceType,
+                                     requestCustomizer.getMethodName(),
+                                     opModel.getInput().getVariableName());
+                return Optional.of(builder.build());
+            }
+        }
+        return Optional.empty();
     }
 
     @Override

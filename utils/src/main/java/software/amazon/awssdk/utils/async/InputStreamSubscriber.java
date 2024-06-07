@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.utils.async;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.Queue;
 import java.util.concurrent.CancellationException;
@@ -25,6 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.TransferResult;
 
@@ -53,6 +56,11 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
 
     public InputStreamSubscriber() {
         this.delegate = new ByteBufferStoringSubscriber(BUFFER_SIZE);
+    }
+
+    @SdkTestInternalApi
+    public InputStreamSubscriber(ByteBufferStoringSubscriber delegate) {
+        this.delegate = delegate;
     }
 
     @Override
@@ -90,9 +98,15 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
     }
 
     @Override
-    public int read() {
+    public int read() throws IOException {
         singleByte.clear();
-        TransferResult transferResult = delegate.blockingTransferTo(singleByte);
+
+        TransferResult transferResult;
+        try {
+            transferResult = delegate.blockingTransferTo(singleByte);
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
+        }
 
         if (singleByte.hasRemaining()) {
             assert transferResult == TransferResult.END_OF_STREAM;
@@ -103,18 +117,25 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
     }
 
     @Override
-    public int read(byte[] b) {
+    public int read(byte[] b) throws IOException {
         return read(b, 0, b.length);
     }
 
     @Override
-    public int read(byte[] bytes, int off, int len) {
+    public int read(byte[] bytes, int off, int len) throws IOException {
         if (len == 0) {
             return 0;
         }
 
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes, off, len);
-        TransferResult transferResult = delegate.blockingTransferTo(byteBuffer);
+
+        TransferResult transferResult;
+        try {
+            transferResult = delegate.blockingTransferTo(byteBuffer);
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
+        }
+
         int dataTransferred = byteBuffer.position() - off;
 
         if (dataTransferred == 0) {

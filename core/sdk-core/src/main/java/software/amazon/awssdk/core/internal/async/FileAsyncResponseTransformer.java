@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.async;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.CREATE_OR_APPEND_TO_EXISTING;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -43,6 +44,7 @@ import software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -52,6 +54,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public final class FileAsyncResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT, ResponseT> {
+    private static final Logger log = Logger.loggerFor(FileAsyncResponseTransformer.class);
     private final Path path;
     private volatile AsynchronousFileChannel fileChannel;
     private volatile CompletableFuture<Void> cf;
@@ -118,7 +121,9 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         cf = new CompletableFuture<>();
         cf.whenComplete((r, t) -> {
             if (t != null && fileChannel != null) {
-                invokeSafely(fileChannel::close);
+                runAndLogError(log.logger(),
+                               String.format("Failed to close the file %s, resource may be leaked", path),
+                               () -> fileChannel.close());
             }
         });
         return cf.thenApply(ignored -> response);
@@ -131,21 +136,29 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
-        // onStream may be called multiple times so reset the file channel every time
-        this.fileChannel = invokeSafely(() -> createChannel(path));
-        publisher.subscribe(new FileSubscriber(this.fileChannel, path, cf, this::exceptionOccurred,
-                                               position));
+        try {
+            // onStream may be called multiple times so reset the file channel every time
+            this.fileChannel = createChannel(path);
+            publisher.subscribe(new FileSubscriber(this.fileChannel, path, cf, this::exceptionOccurred,
+                                                   position));
+        } catch (Throwable e) {
+            exceptionOccurred(e);
+        }
     }
 
     @Override
     public void exceptionOccurred(Throwable throwable) {
         try {
             if (fileChannel != null) {
-                invokeSafely(fileChannel::close);
+                runAndLogError(log.logger(),
+                               String.format("Failed to close the file %s, resource may be leaked", path),
+                               () -> fileChannel.close());
             }
         } finally {
             if (configuration.failureBehavior() == FailureBehavior.DELETE) {
-                invokeSafely(() -> Files.deleteIfExists(path));
+                runAndLogError(log.logger(),
+                               String.format("Failed to delete the file %s", path),
+                               () -> Files.deleteIfExists(path));
             }
         }
         if (cf != null) {
