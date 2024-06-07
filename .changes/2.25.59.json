@@ -1,0 +1,24 @@
+{
+    "version": "2.25.59",
+    "date": "2024-05-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS OpsWorks",
+            "contributor": "",
+            "description": "Documentation-only update for OpsWorks Stacks."
+        },
+        {
+            "type": "feature",
+            "category": "EMR Serverless",
+            "contributor": "",
+            "description": "This release adds the capability to run interactive workloads using Apache Livy Endpoint."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

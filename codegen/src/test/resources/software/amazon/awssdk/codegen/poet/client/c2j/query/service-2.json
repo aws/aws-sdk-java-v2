@@ -31,6 +31,25 @@
       },
       "input":{"shape":"WithContextParam"}
     },
+    "OperationWithOperationContextParam": {
+      "name": "OperationWithOperationContextParam",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "operationContextParams":{
+        "customEndpointArray":{"value":"ListMember.StringList[*].LeafString"}
+      },
+      "input":{"shape":"WithOperationContextParam"}
+    },
+    "OperationWithCustomizedOperationContextParam": {
+      "name": "OperationWithCustomizedOperationContextParam",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input":{"shape":"WithOperationContextParam"}
+    },
     "OperationWithStaticContextParams": {
       "name": "OperationWithStaticContextParams",
       "http": {
@@ -68,6 +87,14 @@
       "requestcompression": {
         "encodings": ["gzip"]
       }
+    },
+    "OperationWithCustomMember": {
+      "name": "OperationWithCustomMember",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input":{"shape":"WithCustomMember"}
     },
     "APostOperation": {
       "name": "APostOperation",
@@ -182,6 +209,54 @@
           "shape": "ChecksumStructure"
         }
       }
+    },
+    "WithCustomMember": {
+      "type": "structure",
+      "members": {
+        "StringMemberToBeUpdate" : {
+          "shape": "String"
+        },
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "WithOperationContextParam": {
+      "type": "structure",
+      "members": {
+        "ListMember":{
+          "shape":"ListMember"
+        }
+      }
+    },
+    "ListMember":{
+      "type":"structure",
+      "members":{
+        "Strings":{
+          "shape":"StringList"
+        },
+        "StringParam":{
+          "shape":"String"
+        }
+      },
+      "documentation":"<p>Container for the objects to delete.</p>"
+    },
+    "StringList":{
+      "type":"list",
+      "member":{"shape":"LeafNode"},
+      "flattened":true
+    },
+    "LeafNode":{
+      "type":"structure",
+      "members":{
+        "LeafString":{
+          "shape":"LeafString"
+        }
+      },
+      "documentation":""
+    },
+    "LeafString":{
+      "type":"string"
     },
     "APostOperationRequest": {
       "type": "structure",

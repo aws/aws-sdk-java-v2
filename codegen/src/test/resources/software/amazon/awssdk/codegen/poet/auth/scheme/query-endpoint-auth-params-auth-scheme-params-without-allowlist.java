@@ -1,20 +1,6 @@
-/*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
- */
-
 package software.amazon.awssdk.services.query.auth.scheme;
 
+import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.regions.Region;
@@ -49,9 +35,14 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
 
     Boolean useFipsEndpoint();
 
-    String awsAccountId();
+    String accountId();
 
-    String awsAccountIdEndpointMode();
+    String accountIdEndpointMode();
+
+    List<String> listOfStrings();
+
+    List<String> defaultListOfStrings();
+
     String endpointId();
 
     /**
@@ -93,9 +84,14 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
 
         Builder useFipsEndpoint(Boolean useFIPSEndpoint);
 
-        Builder awsAccountId(String awsAccountId);
+        Builder accountId(String accountId);
 
-        Builder awsAccountIdEndpointMode(String awsAccountIdEndpointMode);
+        Builder accountIdEndpointMode(String accountIdEndpointMode);
+
+        Builder listOfStrings(List<String> listOfStrings);
+
+        Builder defaultListOfStrings(List<String> defaultListOfStrings);
+
         Builder endpointId(String endpointId);
 
         /**
