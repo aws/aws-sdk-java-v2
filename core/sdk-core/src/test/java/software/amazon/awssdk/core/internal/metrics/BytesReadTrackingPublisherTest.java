@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
+import software.amazon.awssdk.core.internal.util.DownloadProgressUpdaterInvocation;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
@@ -44,7 +45,7 @@ public class BytesReadTrackingPublisherTest {
         long nElements = 1024;
         int elementSize = 4;
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
-        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0), Optional.empty());
+        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0), null);
         readFully(trackingPublisher);
 
         assertThat(trackingPublisher.bytesRead()).isEqualTo(nElements * elementSize);
@@ -59,7 +60,7 @@ public class BytesReadTrackingPublisherTest {
         AtomicLong bytesRead = new AtomicLong(baseBytesRead);
 
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
-        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, bytesRead, Optional.empty());
+        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, bytesRead, null);
         readFully(trackingPublisher);
 
         long expectedRead = baseBytesRead + nElements * elementSize;
@@ -88,7 +89,8 @@ public class BytesReadTrackingPublisherTest {
         ProgressUpdater progressUpdater = new ProgressUpdater(request, null);
 
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
-        Publisher<ByteBuffer> trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, bytesRead, Optional.of(progressUpdater));
+        Publisher<ByteBuffer> trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, bytesRead,
+                                                                                 new DownloadProgressUpdaterInvocation(progressUpdater));
         readFully(trackingPublisher);
 
         Mockito.verify(progressListener, Mockito.times(nElements)).responseBytesReceived(ArgumentMatchers.any());

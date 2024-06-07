@@ -47,8 +47,11 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.TimerUtils;
 import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingPublisher;
+import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
+import software.amazon.awssdk.core.internal.util.DownloadProgressUpdaterInvocation;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.internal.util.ProgressListenerUtils;
+import software.amazon.awssdk.core.internal.util.UploadProgressUpdaterInvocation;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -130,21 +133,15 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         CompletableFuture<Response<OutputT>> responseHandlerFuture = responseHandler.prepare();
 
+        ProgressUpdater progressUpdater = ProgressListenerUtils.getProgressUpdaterIfAttached(context);
+
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
-                                                  ? new SimpleHttpContentPublisher(request)
-                                                  : new SdkHttpContentPublisherAdapter(context.requestProvider());
+                                                  ? new SimpleHttpContentPublisher(request, progressUpdater)
+                                                  : new SdkHttpContentPublisherAdapter(context.requestProvider(), progressUpdater);
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
         MetricCollector httpMetricCollector = MetricUtils.createHttpMetricsCollector(context);
-
-        //If Progress Listening is enabled, wrap around BytesSentTrackingPublisher to track progress on bytes sent
-        if (context.progressUpdater().isPresent()) {
-            boolean shouldSetContentLength = shouldSetContentLength(request, requestProvider);
-            requestProvider = ProgressListenerUtils.updateProgressListenersWithRequestStatus(context.progressUpdater().get(),
-                                                                                             requestProvider,
-                                                                                             shouldSetContentLength);
-        }
 
         AsyncExecuteRequest.Builder executeRequestBuilder = AsyncExecuteRequest.builder()
                                                                 .request(requestWithContentLength)
@@ -273,9 +270,11 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private static final class SdkHttpContentPublisherAdapter implements SdkHttpContentPublisher {
 
         private final AsyncRequestBody asyncRequestBody;
+        private final ProgressUpdater progressUpdater;
 
-        private SdkHttpContentPublisherAdapter(AsyncRequestBody asyncRequestBody) {
+        private SdkHttpContentPublisherAdapter(AsyncRequestBody asyncRequestBody, ProgressUpdater progressUpdater) {
             this.asyncRequestBody = asyncRequestBody;
+            this.progressUpdater = progressUpdater;
         }
 
         @Override
@@ -285,7 +284,12 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
-            asyncRequestBody.subscribe(s);
+            if (progressUpdater != null) {
+                Publisher<ByteBuffer> readTrackingPublisher = new BytesReadTrackingPublisher(asyncRequestBody, new AtomicLong(0L), new UploadProgressUpdaterInvocation(progressUpdater));
+                readTrackingPublisher.subscribe(s);
+            } else {
+                asyncRequestBody.subscribe(s);
+            }
         }
     }
 
@@ -323,9 +327,11 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             AtomicLong bytesReadCounter = context.executionAttributes()
                                                  .getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ);
 
-            BytesReadTrackingPublisher bytesReadTrackingPublisher = new BytesReadTrackingPublisher(stream,
-                                                                        bytesReadCounter,
-                                                                        context.progressUpdater());
+            ProgressUpdater progressUpdater = context.progressUpdater().isPresent() ?
+                                              context.progressUpdater().get() : null;
+            Publisher<ByteBuffer> bytesReadTrackingPublisher = new BytesReadTrackingPublisher(stream,
+                                                                                              bytesReadCounter,
+                                                                                              new DownloadProgressUpdaterInvocation(progressUpdater));
 
             super.onStream(bytesReadTrackingPublisher);
         }

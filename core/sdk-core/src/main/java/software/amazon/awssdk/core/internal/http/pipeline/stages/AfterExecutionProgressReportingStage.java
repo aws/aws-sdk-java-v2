@@ -25,7 +25,10 @@ import software.amazon.awssdk.core.internal.util.ProgressListenerUtils;
 public class AfterExecutionProgressReportingStage<OutputT> implements RequestPipeline<OutputT, OutputT> {
     @Override
     public OutputT execute(OutputT input, RequestExecutionContext context) throws Exception {
-        ProgressListenerUtils.updateProgressListenersWithSuccessResponse((SdkResponse) input, context);
+        if (input instanceof SdkResponse) {
+            ProgressListenerUtils.updateProgressListenersWithSuccessResponse((SdkResponse) input, context);
+        }
+
         return input;
     }
 

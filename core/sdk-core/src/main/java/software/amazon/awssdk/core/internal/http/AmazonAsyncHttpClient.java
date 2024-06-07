@@ -210,7 +210,7 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                         .wrappedWith(AsyncApiCallAttemptMetricCollectionStage::new)
                                         .wrappedWith((deps, wrapped) -> new AsyncRetryableStage<>(responseHandler, deps, wrapped))
                                         .then(async(() -> new UnwrapResponseContainer<>()))
-                                        .then(() -> new AfterExecutionProgressReportingStage<>())
+                                        .then(async(() -> new AfterExecutionProgressReportingStage<>()))
                                         .then(async(() -> new AfterExecutionInterceptorsStage<>()))
                                         .wrappedWith(AsyncExecutionFailureExceptionReportingStage::new)
                                         .wrappedWith(AsyncApiCallTimeoutTrackingStage::new)

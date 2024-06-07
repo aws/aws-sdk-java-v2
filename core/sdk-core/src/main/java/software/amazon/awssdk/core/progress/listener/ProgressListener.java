@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.progress.listener;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -422,7 +423,7 @@ public interface ProgressListener {
             /**
              * The successful completion of a request submitted to the Sdk
              */
-            SdkResponse response();
+            Optional<SdkResponse> response();
         }
 
         /**

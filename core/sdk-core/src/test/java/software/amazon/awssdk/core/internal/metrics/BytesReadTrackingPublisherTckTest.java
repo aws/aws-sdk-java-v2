@@ -35,7 +35,7 @@ public class BytesReadTrackingPublisherTckTest extends PublisherVerification<Byt
 
     @Override
     public Publisher<ByteBuffer> createPublisher(long l) {
-        return new BytesReadTrackingPublisher(createUpstreamPublisher(l), new AtomicLong(0), Optional.empty());
+        return new BytesReadTrackingPublisher(createUpstreamPublisher(l), new AtomicLong(0), null);
     }
 
     @Override
