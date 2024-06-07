@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.69__ __2024-06-07__
+## __AWS Audit Manager__
+  - ### Features
+    - New feature: common controls. When creating custom controls, you can now use pre-grouped AWS data sources based on common compliance themes. Also, the awsServices parameter is deprecated because we now manage services in scope for you. If used, the input is ignored and an empty list is returned.
+
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Added exceptions to B2Bi List operations and ConflictException to B2Bi StartTransformerJob operation. Also made capabilities field explicitly required when creating a Partnership.
+
+## __AWS CodePipeline__
+  - ### Features
+    - CodePipeline now supports overriding S3 Source Object Key during StartPipelineExecution, as part of Source Overrides.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release introduces a new optional parameter: InferenceAmiVersion, in ProductionVariant.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - This release adds OpenIdConnect (OIDC) configuration support for IdentitySources, allowing for external IDPs to be used in authorization requests.
+
 # __2.25.68__ __2024-06-06__
 ## __AWS Account__
   - ### Features
