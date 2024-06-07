@@ -76,7 +76,6 @@ public final class SimpleHttpContentPublisher implements SdkHttpContentPublisher
                 if (n <= 0) {
                     s.onError(new IllegalArgumentException("Demand must be positive"));
                 } else {
-                    ProgressListenerU
                     s.onNext(content);
                     s.onComplete();
                 }
