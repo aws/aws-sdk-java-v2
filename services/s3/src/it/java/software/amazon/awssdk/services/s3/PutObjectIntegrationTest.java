@@ -46,8 +46,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
  * Integration tests for {@code PutObject}.
  */
 public class PutObjectIntegrationTest extends S3IntegrationTestBase {
-    private static final String BUCKET = "embers-test-bucket";
-    //temporaryBucketName(PutObjectIntegrationTest.class);
+    private static final String BUCKET = temporaryBucketName(PutObjectIntegrationTest.class);
     private static final String ASYNC_KEY = "async-key";
     private static final String SYNC_KEY = "sync-key";
 
@@ -56,12 +55,12 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
     @BeforeClass
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
-        //createBucket(BUCKET);
+        createBucket(BUCKET);
     }
 
     @AfterClass
     public static void tearDown() {
-        //deleteBucketAndAllContents(BUCKET);
+        deleteBucketAndAllContents(BUCKET);
     }
 
     @Test
