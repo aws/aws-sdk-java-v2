@@ -1,0 +1,36 @@
+{
+    "version": "2.25.70",
+    "date": "2024-06-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon S3",
+            "contributor": "nikitamsawant",
+            "description": "Updated the version of aws-s3-accessgrants-java-plugin to include changes that support copyObject and deleteObjects."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Application Signals",
+            "contributor": "",
+            "description": "This is the initial SDK release for Amazon CloudWatch Application Signals. Amazon CloudWatch Application Signals provides curated application performance monitoring for developers to monitor and troubleshoot application health using pre-built dashboards and Service Level Objectives."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This release introduces a new cluster configuration to support the customer-managed keys for ECS managed storage encryption."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "This release updates the regex pattern for Image Builder ARNs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
