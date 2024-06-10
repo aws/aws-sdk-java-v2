@@ -32,15 +32,19 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 /**
  * Integration tests for {@code PutObject}.
@@ -49,7 +53,7 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(PutObjectIntegrationTest.class);
     private static final String ASYNC_KEY = "async-key";
     private static final String SYNC_KEY = "sync-key";
-
+    private static final String TEXT_CONTENT_TYPE = "text/plain";
     private static final byte[] CONTENT = "Hello".getBytes(StandardCharsets.UTF_8);
 
     @BeforeClass
