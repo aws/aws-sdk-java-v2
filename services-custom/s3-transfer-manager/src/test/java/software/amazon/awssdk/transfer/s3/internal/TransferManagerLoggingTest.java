@@ -17,22 +17,22 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.utils.internal.SystemSettingUtilsTestBackdoor;
 
 class TransferManagerLoggingTest {
 
-    private static final String EXPECTED_DEBUG_MESSAGE = "The provided S3AsyncClient is neither an instance of S3CrtAsyncClient or MultipartS3AsyncClient, "
+    private static final String EXPECTED_DEBUG_MESSAGE = "The provided S3AsyncClient is neither "
+                                                         + "an AWS CRT-based S3 async client (S3AsyncClient.crtBuilder().build()) or "
+                                                         + "a Java-based S3 async client (S3AsyncClient.builder().multipartEnabled(true).build()), "
                                                          + "and thus multipart upload/download feature may not be enabled and resumable file upload may not "
                                                          + "be supported. To benefit from maximum throughput, consider using "
                                                          + "S3AsyncClient.crtBuilder().build() or "
@@ -86,12 +86,13 @@ class TransferManagerLoggingTest {
     @Test
     void transferManager_withDefaultClient_shouldNotLogDebugMessage() {
 
-
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("AWS_REGION", "us-east-1");
         try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
              S3TransferManager tm = S3TransferManager.builder().build()) {
             List<LogEvent> events = logCaptor.loggedEvents();
             assertThat(events).isEmpty();
         }
+        SystemSettingUtilsTestBackdoor.clearEnvironmentVariableOverrides();
     }
 
     @Test

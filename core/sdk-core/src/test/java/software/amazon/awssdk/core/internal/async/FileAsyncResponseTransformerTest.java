@@ -282,7 +282,7 @@ class FileAsyncResponseTransformerTest {
         transformer.onResponse("foobar");
         assertThatThrownBy(() -> {
             transformer.onStream(testPublisher("foo-bar-content"));
-            future.join();
+            future.get(10, TimeUnit.SECONDS);
         }).hasRootCauseInstanceOf(NoSuchFileException.class);
     }
 
