@@ -172,8 +172,8 @@ import software.amazon.awssdk.utils.Validate;
  *         CompletedCopy completedCopy = copy.completionFuture().join();
  * }
  * <b> The automatic parallel transfer feature (multipart upload/download) is available
- * through the AWS-CRT based S3 client {@link S3AsyncClient#crtBuilder().build)}
- * and Java-based S3 multipart client {@link S3AsyncClient#builder().multipartEnabled(true).build()}.
+ * through the AWS-CRT based S3 client {@code S3AsyncClient.crtBuilder().build)}
+ * and Java-based S3 multipart client {@code S3AsyncClient.builder().multipartEnabled(true).build()}.
  * If no client is configured, AWS-CRT based S3 client will be used if AWS CRT is in the classpath,
  * otherwise, Java-based S3 multipart client will be used. </b>
  * {@snippet
