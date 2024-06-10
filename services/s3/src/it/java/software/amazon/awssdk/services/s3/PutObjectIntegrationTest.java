@@ -97,6 +97,28 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
+    public void blockingInputStreamAsyncRequestBody_withContentType_isHonored() {
+        BlockingInputStreamAsyncRequestBody requestBody =
+            BlockingInputStreamAsyncRequestBody.builder()
+                                               .contentLength((long) CONTENT.length)
+                                               .contentType(TEXT_CONTENT_TYPE)
+                                               .build();
+
+        PutObjectRequest.Builder request = PutObjectRequest.builder()
+                                                           .bucket(BUCKET)
+                                                           .key(ASYNC_KEY);
+
+        CompletableFuture<PutObjectResponse> responseFuture = s3Async.putObject(request.build(), requestBody);
+        requestBody.writeInputStream(new ByteArrayInputStream(CONTENT));
+        responseFuture.join();
+
+        HeadObjectResponse response = s3Async.headObject(r -> r.bucket(BUCKET).key(ASYNC_KEY)).join();
+
+        assertThat(response.contentLength()).isEqualTo(CONTENT.length);
+        assertThat(response.contentType()).isEqualTo(TEXT_CONTENT_TYPE);
+    }
+
+    @Test
     public void s3Client_usingHttpAndDisableChunkedEncoding() {
         try (S3Client s3Client = s3ClientBuilder()
             .endpointOverride(URI.create("http://s3.us-west-2.amazonaws.com"))
