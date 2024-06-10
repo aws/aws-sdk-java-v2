@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.25.70-SNAPSHOT</version>
+        <version>2.25.71-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -403,6 +403,7 @@
         <module>route53profiles</module>
         <module>mailmanager</module>
         <module>taxsettings</module>
+        <module>applicationsignals</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
