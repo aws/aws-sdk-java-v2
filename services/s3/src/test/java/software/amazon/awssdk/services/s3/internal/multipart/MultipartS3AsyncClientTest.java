@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -45,7 +46,7 @@ class MultipartS3AsyncClientTest {
                                                .build();
         S3AsyncClient s3AsyncClient = MultipartS3AsyncClient.create(mockDelegate, MultipartConfiguration.builder().build());
         s3AsyncClient.getObject(req, mockTransformer);
-        verify(mockTransformer, never()).split(any());
+        verify(mockTransformer, never()).split(any(SplittingTransformerConfiguration.class));
         verify(mockDelegate, times(1)).getObject(any(GetObjectRequest.class), eq(mockTransformer));
     }
 
@@ -62,7 +63,7 @@ class MultipartS3AsyncClientTest {
         assertThat(req).isEqualTo(req);
         S3AsyncClient s3AsyncClient = MultipartS3AsyncClient.create(mockDelegate, MultipartConfiguration.builder().build());
         s3AsyncClient.getObject(req, mockTransformer);
-        verify(mockTransformer, never()).split(any());
+        verify(mockTransformer, never()).split(any(SplittingTransformerConfiguration.class));
         verify(mockDelegate, times(1)).getObject(any(GetObjectRequest.class), eq(mockTransformer));
     }
 }
