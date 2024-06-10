@@ -428,12 +428,17 @@ public final class ClientOverrideConfiguration
          * Configure the retry policy that should be used when handling failure cases.
          *
          * @see ClientOverrideConfiguration#retryPolicy()
+         * @deprecated Use instead {@link #retryStrategy(RetryStrategy)}
          */
+        @Deprecated
         Builder retryPolicy(RetryPolicy retryPolicy);
 
         /**
          * Configure the retry policy the should be used when handling failure cases.
+         *
+         * @deprecated Use instead {@link #retryStrategy(Consumer<RetryStrategy.Builder>)}
          */
+        @Deprecated
         default Builder retryPolicy(Consumer<RetryPolicy.Builder> retryPolicy) {
             return retryPolicy(RetryPolicy.builder().applyMutation(retryPolicy).build());
         }
@@ -442,7 +447,10 @@ public final class ClientOverrideConfiguration
          * Configure the retry mode used to determine the retry policy that is used when handling failure cases. This is
          * shorthand for {@code retryPolicy(RetryPolicy.forRetryMode(retryMode))}, and overrides any configured retry policy on
          * this builder.
+         *
+         * @deprecated Use instead {@link #retryStrategy(RetryMode)}
          */
+        @Deprecated
         default Builder retryPolicy(RetryMode retryMode) {
             return retryPolicy(RetryPolicy.forRetryMode(retryMode));
         }
