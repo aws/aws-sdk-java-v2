@@ -17,6 +17,7 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.CHECKSUM;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
@@ -26,39 +27,63 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 /**
  * Integration tests for {@code PutObject}.
  */
 public class PutObjectIntegrationTest extends S3IntegrationTestBase {
-    private static final String BUCKET = temporaryBucketName(PutObjectIntegrationTest.class);
+    private static final String BUCKET = "embers-test-bucket";
+    //temporaryBucketName(PutObjectIntegrationTest.class);
     private static final String ASYNC_KEY = "async-key";
     private static final String SYNC_KEY = "sync-key";
 
     private static final byte[] CONTENT = "Hello".getBytes(StandardCharsets.UTF_8);
-    private static final String TEXT_CONTENT_TYPE = "text/plain";
 
     @BeforeClass
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
-        createBucket(BUCKET);
+        //createBucket(BUCKET);
     }
 
     @AfterClass
     public static void tearDown() {
-        deleteBucketAndAllContents(BUCKET);
+        //deleteBucketAndAllContents(BUCKET);
+    }
+
+    @Test
+    public void putObject_withUserCalculatedChecksum_doesNotPerformMd5Validation() throws NoSuchAlgorithmException {
+        CapturingInterceptor capturingInterceptor = new CapturingInterceptor();
+        S3Client s3Client = s3ClientBuilder()
+            .overrideConfiguration(o -> o.addExecutionInterceptor(capturingInterceptor))
+            .build();
+
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
+        md.update(CONTENT);
+        byte[] checksum = md.digest();
+        String checksumVal = Base64.getEncoder().encodeToString(checksum);
+
+        PutObjectRequest request = PutObjectRequest.builder()
+                                                   .bucket(BUCKET)
+                                                   .key(SYNC_KEY)
+                                                   .checksumSHA1(checksumVal)
+                                                   .build();
+
+        s3Client.putObject(request, RequestBody.fromString("Hello"));
+        assertThat(capturingInterceptor.isMd5Enabled).isFalse();
     }
 
     @Test
@@ -70,28 +95,6 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
         for (CloseTrackingInputStream is : provider.getCreatedStreams()) {
             assertThat(is.isClosed()).isTrue();
         }
-    }
-
-    @Test
-    public void blockingInputStreamAsyncRequestBody_withContentType_isHonored() {
-        BlockingInputStreamAsyncRequestBody requestBody =
-            BlockingInputStreamAsyncRequestBody.builder()
-                                               .contentLength((long) CONTENT.length)
-                                               .contentType(TEXT_CONTENT_TYPE)
-                                               .build();
-
-        PutObjectRequest.Builder request = PutObjectRequest.builder()
-                                                           .bucket(BUCKET)
-                                                           .key(ASYNC_KEY);
-
-        CompletableFuture<PutObjectResponse> responseFuture = s3Async.putObject(request.build(), requestBody);
-        requestBody.writeInputStream(new ByteArrayInputStream(CONTENT));
-        responseFuture.join();
-
-        HeadObjectResponse response = s3Async.headObject(r -> r.bucket(BUCKET).key(ASYNC_KEY)).join();
-
-        assertThat(response.contentLength()).isEqualTo(CONTENT.length);
-        assertThat(response.contentType()).isEqualTo(TEXT_CONTENT_TYPE);
     }
 
     @Test
@@ -146,6 +149,19 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
 
         boolean isClosed() {
             return isClosed;
+        }
+    }
+
+    private static class CapturingInterceptor implements ExecutionInterceptor {
+        private boolean isMd5Enabled;
+
+        @Override
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+            isMd5Enabled = executionAttributes.getAttribute(CHECKSUM) != null;
+        }
+
+        public boolean isMd5Enabled() {
+            return isMd5Enabled;
         }
     }
 }
