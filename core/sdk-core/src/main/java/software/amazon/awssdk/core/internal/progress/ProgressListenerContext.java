@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.progress;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkRequest;
@@ -89,8 +90,8 @@ public final class ProgressListenerContext
     }
 
     @Override
-    public SdkResponse response() {
-        return response;
+    public Optional<SdkResponse> response() {
+        return Optional.of(response);
     }
 
     @Override

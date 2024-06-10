@@ -31,52 +31,32 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
-import software.amazon.awssdk.core.internal.util.DownloadProgressUpdaterInvocation;
-import software.amazon.awssdk.core.internal.util.ProgressUpdaterInvoker;
 import software.amazon.awssdk.core.internal.util.UploadProgressUpdaterInvocation;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 
-/**
- * Functional tests for {@link BytesReadTrackingPublisher}.
- */
-public class BytesReadTrackingPublisherTest {
+public class BytesSentTrackingPublisherTest {
 
     @Test
-    public void requestAll_calculatesCorrectTotal() {
-        long nElements = 1024;
-        int elementSize = 4;
-        Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
-        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0), new UploadProgressUpdaterInvocation(null));
-        readFully(trackingPublisher);
-
-        assertThat(trackingPublisher.bytesRead()).isEqualTo(nElements * elementSize);
-    }
-
-    @Test
-    public void requestAll_updatesInputCount() {
-        long nElements = 8;
-        int elementSize = 2;
-
-        long baseBytesRead = 1024;
-        AtomicLong bytesRead = new AtomicLong(baseBytesRead);
-
-        Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
-        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, bytesRead, new UploadProgressUpdaterInvocation(null));
-        readFully(trackingPublisher);
-
-        long expectedRead = baseBytesRead + nElements * elementSize;
-        assertThat(bytesRead.get()).isEqualTo(expectedRead);
-        assertThat(trackingPublisher.bytesRead()).isEqualTo(expectedRead);
-    }
-
-    @Test
-    public void progressUpdater_invokes_incrementBytesReceived() {
+    public void test_updatesBytesSent() {
         int nElements = 8;
         int elementSize = 2;
 
-        long baseBytesRead = 1024;
-        AtomicLong bytesRead = new AtomicLong(baseBytesRead);
+        ProgressUpdater progressUpdater = Mockito.mock(ProgressUpdater.class);
+
+        Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
+        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0),
+                                                                                      new UploadProgressUpdaterInvocation(progressUpdater));
+        readFully(trackingPublisher);
+
+        long expectedSent = nElements * elementSize;
+
+        assertThat(trackingPublisher.bytesRead()).isEqualTo(expectedSent);
+    }
+
+    @Test
+    public void test_progressUpdater_invokes_incrementBytesSent() {
+        int nElements = 8;
+        int elementSize = 2;
 
         ProgressListener progressListener = Mockito.mock(ProgressListener.class);
 
@@ -91,11 +71,14 @@ public class BytesReadTrackingPublisherTest {
         ProgressUpdater progressUpdater = new ProgressUpdater(request, null);
 
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
-        Publisher<ByteBuffer> trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, bytesRead,
-                                                                                 new DownloadProgressUpdaterInvocation(progressUpdater));
+        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0L),
+                                                                                      new UploadProgressUpdaterInvocation(progressUpdater));
         readFully(trackingPublisher);
 
-        Mockito.verify(progressListener, Mockito.times(nElements)).responseBytesReceived(ArgumentMatchers.any());
+        long expectedSent = nElements * elementSize;
+
+        assertThat(trackingPublisher.bytesRead()).isEqualTo(expectedSent);
+        Mockito.verify(progressListener, Mockito.times(nElements)).requestBytesSent(ArgumentMatchers.any());
     }
 
     private Publisher<ByteBuffer> createUpstreamPublisher(long elements, int elementSize) {
@@ -108,3 +91,4 @@ public class BytesReadTrackingPublisherTest {
         Flowable.fromPublisher(publisher).toList().blockingGet();
     }
 }
+

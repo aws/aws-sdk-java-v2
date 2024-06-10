@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static software.amazon.awssdk.core.internal.http.pipeline.stages.utils.ExceptionReportingUtils.reportFailureToInterceptors;
+import static software.amazon.awssdk.core.internal.http.pipeline.stages.utils.ExceptionReportingUtils.reportFailureToProgressListeners;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -42,16 +43,19 @@ public final class AsyncExecutionFailureExceptionReportingStage<OutputT>
         CompletableFuture<OutputT> executeFuture = wrappedExecute.handle((o, t) -> {
             if (t != null) {
                 Throwable toReport = t;
-
                 if (toReport instanceof CompletionException) {
                     toReport = toReport.getCause();
                 }
                 toReport = reportFailureToInterceptors(context, toReport);
 
+                // If Progress Listeners are attached to the request, update them with the throwable
+                if (context.progressUpdater().isPresent()) {
+                    reportFailureToProgressListeners(context.progressUpdater().get(), toReport);
+                }
+
                 throw CompletableFutureUtils.errorAsCompletionException(ThrowableUtils.asSdkException(toReport));
-            } else {
-                return o;
             }
+            return o;
         });
         return CompletableFutureUtils.forwardExceptionTo(executeFuture, wrappedExecute);
     }

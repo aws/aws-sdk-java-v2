@@ -17,12 +17,15 @@ package software.amazon.awssdk.core.internal.metrics;
 
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
+import software.amazon.awssdk.core.internal.util.DownloadProgressUpdaterInvocation;
+import software.amazon.awssdk.core.internal.util.UploadProgressUpdaterInvocation;
 
 /**
  * TCK verification class for {@link BytesReadTrackingPublisher}.
@@ -34,7 +37,7 @@ public class BytesReadTrackingPublisherTckTest extends PublisherVerification<Byt
 
     @Override
     public Publisher<ByteBuffer> createPublisher(long l) {
-        return new BytesReadTrackingPublisher(createUpstreamPublisher(l), new AtomicLong(0));
+        return new BytesReadTrackingPublisher(createUpstreamPublisher(l), new AtomicLong(0), new UploadProgressUpdaterInvocation(null));
     }
 
     @Override
