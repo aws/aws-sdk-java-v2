@@ -52,6 +52,7 @@ import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.util.FileUtils;
 
 /**
  * Tests for {@link FileAsyncResponseTransformer}.
@@ -270,12 +271,19 @@ class FileAsyncResponseTransformerTest {
     @Test
     void writeToPosition_fileDoesNotExists_shouldThrowException() throws Exception {
         Path path = testFs.getPath("this/file/does/not/exists");
-        FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(path);
-        transformer.prepare();
+        FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(
+            path,
+            FileTransformerConfiguration.builder()
+                                        .position(0L)
+                                        .failureBehavior(DELETE)
+                                        .fileWriteOption(FileWriteOption.WRITE_TO_POSITION)
+                                        .build());
+        CompletableFuture<?> future = transformer.prepare();
         transformer.onResponse("foobar");
-        assertThatThrownBy(() -> transformer.onStream(testPublisher("foo-bar-content")))
-            .hasRootCauseInstanceOf(NoSuchFileException.class);
-
+        assertThatThrownBy(() -> {
+            transformer.onStream(testPublisher("foo-bar-content"));
+            future.join();
+        }).hasRootCauseInstanceOf(NoSuchFileException.class);
     }
 
     @Test
