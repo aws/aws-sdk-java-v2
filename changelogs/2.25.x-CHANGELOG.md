@@ -1,4 +1,30 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.25.70__ __2024-06-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - This is the initial SDK release for Amazon CloudWatch Application Signals. Amazon CloudWatch Application Signals provides curated application performance monitoring for developers to monitor and troubleshoot application health using pre-built dashboards and Service Level Objectives.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release introduces a new cluster configuration to support the customer-managed keys for ECS managed storage encryption.
+
+## __Amazon S3__
+  - ### Features
+    - Updated the version of aws-s3-accessgrants-java-plugin to include changes that support copyObject and deleteObjects.
+        - Contributed by: [@nikitamsawant](https://github.com/nikitamsawant)
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release updates the regex pattern for Image Builder ARNs.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@nikitamsawant](https://github.com/nikitamsawant)
 # __2.25.69__ __2024-06-07__
 ## __AWS Audit Manager__
   - ### Features

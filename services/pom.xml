@@ -403,6 +403,7 @@
         <module>route53profiles</module>
         <module>mailmanager</module>
         <module>taxsettings</module>
+        <module>applicationsignals</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
