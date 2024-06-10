@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "EC2 Image Builder",
+    "contributor": "",
+    "description": "This release updates the regex pattern for Image Builder ARNs."
+}
