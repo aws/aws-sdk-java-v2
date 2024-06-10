@@ -32,6 +32,8 @@ import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.core.internal.util.DownloadProgressUpdaterInvocation;
+import software.amazon.awssdk.core.internal.util.ProgressUpdaterInvoker;
+import software.amazon.awssdk.core.internal.util.UploadProgressUpdaterInvocation;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
@@ -45,7 +47,7 @@ public class BytesReadTrackingPublisherTest {
         long nElements = 1024;
         int elementSize = 4;
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
-        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0), null);
+        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0), new UploadProgressUpdaterInvocation(null));
         readFully(trackingPublisher);
 
         assertThat(trackingPublisher.bytesRead()).isEqualTo(nElements * elementSize);
@@ -60,7 +62,7 @@ public class BytesReadTrackingPublisherTest {
         AtomicLong bytesRead = new AtomicLong(baseBytesRead);
 
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
-        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, bytesRead, null);
+        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, bytesRead, new UploadProgressUpdaterInvocation(null));
         readFully(trackingPublisher);
 
         long expectedRead = baseBytesRead + nElements * elementSize;

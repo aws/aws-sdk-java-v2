@@ -137,7 +137,8 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
                                                   ? new SimpleHttpContentPublisher(request, progressUpdater)
-                                                  : new SdkHttpContentPublisherAdapter(context.requestProvider(), progressUpdater);
+                                                  : new SdkHttpContentPublisherAdapter(context.requestProvider(),
+                                                                                       progressUpdater);
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
@@ -285,7 +286,11 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
             if (progressUpdater != null) {
-                Publisher<ByteBuffer> readTrackingPublisher = new BytesReadTrackingPublisher(asyncRequestBody, new AtomicLong(0L), new UploadProgressUpdaterInvocation(progressUpdater));
+                Publisher<ByteBuffer> readTrackingPublisher = new BytesReadTrackingPublisher(asyncRequestBody,
+                                                                                             new AtomicLong(0L),
+                                                                                             new UploadProgressUpdaterInvocation(
+                                                                                                 progressUpdater
+                                                                                             ));
                 readTrackingPublisher.subscribe(s);
             } else {
                 asyncRequestBody.subscribe(s);
@@ -330,8 +335,8 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             ProgressUpdater progressUpdater = context.progressUpdater().isPresent() ?
                                               context.progressUpdater().get() : null;
             Publisher<ByteBuffer> bytesReadTrackingPublisher = new BytesReadTrackingPublisher(stream,
-                                                                                              bytesReadCounter,
-                                                                                              new DownloadProgressUpdaterInvocation(progressUpdater));
+                                                       bytesReadCounter,
+                                                       new DownloadProgressUpdaterInvocation(progressUpdater));
 
             super.onStream(bytesReadTrackingPublisher);
         }

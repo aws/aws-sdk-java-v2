@@ -15,14 +15,17 @@
 
 package software.amazon.awssdk.core.internal.util;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 
+@SdkInternalApi
 public class DownloadProgressUpdaterInvocation implements ProgressUpdaterInvoker {
     ProgressUpdater progressUpdater;
 
     public DownloadProgressUpdaterInvocation(ProgressUpdater progressUpdater) {
         this.progressUpdater = progressUpdater;
     }
+
     @Override
     public void updateBytesTransferred(long bytes) {
         progressUpdater.incrementBytesReceived(bytes);
@@ -31,5 +34,10 @@ public class DownloadProgressUpdaterInvocation implements ProgressUpdaterInvoker
     @Override
     public void resetBytes() {
         progressUpdater.resetBytesReceived();
+    }
+
+    @Override
+    public ProgressUpdater progressUpdater() {
+        return progressUpdater;
     }
 }

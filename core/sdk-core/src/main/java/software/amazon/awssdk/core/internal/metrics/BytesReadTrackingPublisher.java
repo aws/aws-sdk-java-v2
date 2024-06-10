@@ -63,7 +63,7 @@ public final class BytesReadTrackingPublisher implements Publisher<ByteBuffer> {
         @Override
         public void onSubscribe(Subscription subscription) {
             downstream.onSubscribe(subscription);
-            if (progressUpdaterInvoker != null) {
+            if (progressUpdaterInvoker.progressUpdater() != null) {
                 progressUpdaterInvoker.resetBytes();
             }
         }
@@ -73,7 +73,7 @@ public final class BytesReadTrackingPublisher implements Publisher<ByteBuffer> {
             long byteBufferSize = byteBuffer.remaining();
             bytesRead.addAndGet(byteBufferSize);
             downstream.onNext(byteBuffer);
-            if (progressUpdaterInvoker != null) {
+            if (progressUpdaterInvoker != null && progressUpdaterInvoker.progressUpdater() != null) {
                 progressUpdaterInvoker.updateBytesTransferred(byteBufferSize);
             }
         }

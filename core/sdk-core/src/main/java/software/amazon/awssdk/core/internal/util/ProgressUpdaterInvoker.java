@@ -15,7 +15,14 @@
 
 package software.amazon.awssdk.core.internal.util;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
+
+@SdkInternalApi
 public interface ProgressUpdaterInvoker {
     void updateBytesTransferred(long bytes);
+
     void resetBytes();
+
+    ProgressUpdater progressUpdater();
 }
