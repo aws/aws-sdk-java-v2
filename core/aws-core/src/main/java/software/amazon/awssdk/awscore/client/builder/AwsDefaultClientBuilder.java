@@ -38,6 +38,7 @@ import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDisc
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeResolver;
 import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -55,6 +56,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.AttributeMap.LazyValueSource;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -180,6 +182,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                             .lazyOption(AwsClientOption.SIGNING_REGION, this::resolveSigningRegion)
                             .lazyOption(SdkClientOption.HTTP_CLIENT_CONFIG, this::resolveHttpClientConfig)
                             .applyMutation(this::configureRetryPolicy)
+                            .applyMutation(this::configureRetryStrategy)
                             .lazyOptionIfAbsent(SdkClientOption.IDENTITY_PROVIDERS, this::resolveIdentityProviders)
                             .build();
     }
@@ -341,19 +344,25 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             if (policy.additionalRetryConditionsAllowed()) {
                 config.option(SdkClientOption.RETRY_POLICY, AwsRetryPolicy.addRetryConditions(policy));
             }
-            return;
         }
-
-        config.lazyOption(SdkClientOption.RETRY_POLICY, this::resolveAwsRetryPolicy);
     }
 
-    private RetryPolicy resolveAwsRetryPolicy(LazyValueSource config) {
+    private void configureRetryStrategy(SdkClientConfiguration.Builder config) {
+        RetryStrategy strategy = config.option(SdkClientOption.RETRY_STRATEGY);
+        if (strategy != null) {
+            config.option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.configureStrategy(strategy.toBuilder()).build());
+            return;
+        }
+        config.lazyOption(SdkClientOption.RETRY_STRATEGY, this::resolveAwsRetryStrategy);
+    }
+
+    private RetryStrategy resolveAwsRetryStrategy(LazyValueSource config) {
         RetryMode retryMode = RetryMode.resolver()
                                        .profileFile(config.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
                                        .profileName(config.get(SdkClientOption.PROFILE_NAME))
                                        .defaultRetryMode(config.get(SdkClientOption.DEFAULT_RETRY_MODE))
                                        .resolve();
-        return AwsRetryPolicy.forRetryMode(retryMode);
+        return AwsRetryStrategy.forRetryMode(retryMode);
     }
 
     @Override

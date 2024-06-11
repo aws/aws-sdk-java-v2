@@ -24,8 +24,12 @@ import software.amazon.awssdk.utils.ToString;
 
 /**
  * Simple backoff strategy that always uses a fixed delay for the delay before the next retry attempt.
+ *
+ * @deprecated Use instead {@link software.amazon.awssdk.retries.api.BackoffStrategy} and
+ * {@link software.amazon.awssdk.retries.api.BackoffStrategy#fixedDelay(Duration)}.
  */
 @SdkPublicApi
+@Deprecated
 public final class FixedDelayBackoffStrategy implements BackoffStrategy {
 
     private final Duration fixedBackoff;

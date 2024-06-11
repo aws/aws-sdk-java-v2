@@ -68,6 +68,8 @@ public class CoreMetricsTest {
     private static final String REQUEST_ID = "req-id";
     private static final String EXTENDED_REQUEST_ID = "extended-id";
     private static final int MAX_RETRIES = 2;
+    private static final int MAX_ATTEMPTS = MAX_RETRIES + 1;
+
 
     private static ProtocolRestJsonClient client;
 
@@ -239,7 +241,7 @@ public class CoreMetricsTest {
 
             MetricCollection capturedCollection = collectionCaptor.getValue();
 
-            assertThat(capturedCollection.children()).hasSize(MAX_RETRIES + 1);
+            assertThat(capturedCollection.children()).hasSize(MAX_ATTEMPTS);
             assertThat(capturedCollection.metricValues(CoreMetric.RETRY_COUNT)).containsExactly(MAX_RETRIES);
             assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).containsExactly(false);
 
