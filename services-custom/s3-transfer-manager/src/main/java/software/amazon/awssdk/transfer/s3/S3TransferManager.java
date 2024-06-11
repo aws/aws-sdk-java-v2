@@ -176,9 +176,6 @@ import software.amazon.awssdk.utils.Validate;
  * and Java-based S3 multipart client {@code S3AsyncClient.builder().multipartEnabled(true).build()}.
  * If no client is configured, AWS-CRT based S3 client will be used if AWS CRT is in the classpath,
  * otherwise, Java-based S3 multipart client will be used. </b>
- * {@snippet
- *
- * }
  */
 @SdkPublicApi
 @ThreadSafe
