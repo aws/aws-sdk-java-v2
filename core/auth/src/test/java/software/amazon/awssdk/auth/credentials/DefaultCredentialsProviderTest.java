@@ -17,26 +17,18 @@ package software.amazon.awssdk.auth.credentials;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
-import software.amazon.awssdk.profiles.internal.ProfileFileRefresher;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.internal.SystemSettingUtilsTestBackdoor;
 
