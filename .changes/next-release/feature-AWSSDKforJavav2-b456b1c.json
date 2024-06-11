@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "sugmanue", 
+    "type": "feature", 
+    "description": "Adds the new module retries API module"
+}

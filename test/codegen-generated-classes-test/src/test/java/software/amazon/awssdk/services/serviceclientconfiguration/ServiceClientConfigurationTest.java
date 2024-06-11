@@ -110,7 +110,8 @@ public class ServiceClientConfigurationTest {
         ClientOverrideConfiguration overrideConfig = client.serviceClientConfiguration().overrideConfiguration();
         assertThat(overrideConfig.apiCallAttemptTimeout()).isNotPresent();
         assertThat(overrideConfig.apiCallTimeout()).isNotPresent();
-        assertThat(overrideConfig.retryPolicy().get().numRetries()).isEqualTo(3);
+        assertThat(overrideConfig.retryPolicy()).isNotPresent();
+        assertThat(overrideConfig.retryStrategy().get().maxAttempts()).isEqualTo(4);
         assertThat(overrideConfig.defaultProfileFile()).hasValue(ProfileFile.defaultProfileFile());
         assertThat(overrideConfig.metricPublishers()).isEmpty();
     }
@@ -194,7 +195,8 @@ public class ServiceClientConfigurationTest {
         ClientOverrideConfiguration overrideConfig = client.serviceClientConfiguration().overrideConfiguration();
         assertThat(overrideConfig.apiCallAttemptTimeout()).isNotPresent();
         assertThat(overrideConfig.apiCallTimeout()).isNotPresent();
-        assertThat(overrideConfig.retryPolicy().get().numRetries()).isEqualTo(3);
+        assertThat(overrideConfig.retryPolicy()).isNotPresent();
+        assertThat(overrideConfig.retryStrategy().get().maxAttempts()).isEqualTo(4);
         assertThat(overrideConfig.defaultProfileFile()).hasValue(ProfileFile.defaultProfileFile());
         assertThat(overrideConfig.metricPublishers()).isEmpty();
     }
