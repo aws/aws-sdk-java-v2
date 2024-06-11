@@ -17,7 +17,6 @@ package software.amazon.awssdk.testutils.service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import reactor.blockhound.BlockHound;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -26,13 +25,15 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.internal.blockhound.ThreadBlockDetector;
+import software.amazon.awssdk.utils.internal.blockhound.ThreadBlockDetectorConfiguration;
 
 public abstract class AwsIntegrationTestBase {
 
     static {
-        BlockHound.install();
+        new ThreadBlockDetector(new ThreadBlockDetectorConfiguration()).start();
     }
-    
+
     /** Default Properties Credentials file path. */
     private static final String TEST_CREDENTIALS_PROFILE_NAME = "aws-test-account";
 

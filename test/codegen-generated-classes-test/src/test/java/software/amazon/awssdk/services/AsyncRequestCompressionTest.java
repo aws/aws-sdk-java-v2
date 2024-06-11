@@ -40,6 +40,8 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncCli
 import software.amazon.awssdk.services.protocolrestjson.model.PutOperationWithRequestCompressionRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.PutOperationWithStreamingRequestCompressionRequest;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
+import software.amazon.awssdk.utils.internal.blockhound.ThreadBlockDetector;
+import software.amazon.awssdk.utils.internal.blockhound.ThreadBlockDetectorConfiguration;
 
 public class AsyncRequestCompressionTest {
     private static final String UNCOMPRESSED_BODY =
@@ -49,6 +51,10 @@ public class AsyncRequestCompressionTest {
     private MockAsyncHttpClient mockAsyncHttpClient;
     private ProtocolRestJsonAsyncClient asyncClient;
     private Compressor compressor;
+
+    static {
+        new ThreadBlockDetector(new ThreadBlockDetectorConfiguration()).start();
+    }
 
     @BeforeEach
     public void setUp() {

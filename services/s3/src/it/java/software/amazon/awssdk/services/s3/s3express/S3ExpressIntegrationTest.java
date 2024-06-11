@@ -86,6 +86,8 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.internal.blockhound.ThreadBlockDetectorConfiguration;
+import software.amazon.awssdk.utils.internal.blockhound.ThreadBlockDetector;
 
 /**
  * S3Express integration tests, covering all supported APIs
@@ -106,6 +108,10 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
 
     private static String getS3ExpressBucketNameForAz(String az) {
         return String.format(S3EXPRESS_BUCKET_PATTERN, az);
+    }
+
+    static {
+        new ThreadBlockDetector(new ThreadBlockDetectorConfiguration()).start();
     }
 
     @BeforeAll

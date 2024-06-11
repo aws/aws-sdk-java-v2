@@ -23,17 +23,18 @@ import java.io.InputStream;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import reactor.blockhound.BlockHound;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.internal.blockhound.ThreadBlockDetector;
+import software.amazon.awssdk.utils.internal.blockhound.ThreadBlockDetectorConfiguration;
 
 public abstract class AwsTestBase {
 
     static {
-        BlockHound.install();
+        new ThreadBlockDetector(new ThreadBlockDetectorConfiguration()).start();
     }
 
     /** Default Properties Credentials file path. */
