@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.signer.Signer;
 /**
  * Utility class for instantiating signers only if they're available on the class path.
  */
+@Deprecated
 @SdkProtectedApi
 public final class SignerLoader {
 
