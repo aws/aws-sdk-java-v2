@@ -60,7 +60,6 @@ class MultipartS3AsyncClientTest {
                                                .key("test-key")
                                                .partNumber(1)
                                                .build();
-        assertThat(req).isEqualTo(req);
         S3AsyncClient s3AsyncClient = MultipartS3AsyncClient.create(mockDelegate, MultipartConfiguration.builder().build());
         s3AsyncClient.getObject(req, mockTransformer);
         verify(mockTransformer, never()).split(any(SplittingTransformerConfiguration.class));
