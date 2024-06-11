@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Private CA Connector for SCEP",
+    "contributor": "",
+    "description": "Connector for SCEP allows you to use a managed, cloud CA to enroll mobile devices and networking gear. SCEP is a widely-adopted protocol used by mobile device management (MDM) solutions for enrolling mobile devices. With the connector, you can use AWS Private CA with popular MDM solutions."
+}
