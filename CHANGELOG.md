@@ -1,7 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
 # __2.26.0__ __2024-06-11__
-## __"AWS SDK for Java v2"__
+## __AWS Network Manager__
   - ### Features
+    - This is model changes & documentation update for Service Insertion feature for AWS Cloud WAN. This feature allows insertion of AWS/3rd party security services on Cloud WAN. This allows to steer inter/intra segment traffic via security appliances and provide visibility to the route updates.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds the new module retries API module
+        - Contributed by: [@sugmanue](https://github.com/sugmanue)
     - This release contains a major internal refactor of retries and is part
       of moving the SDK to a standardized AWS SDK architecture. It
       introduces the interface `RetryStrategy` and three subclasses
@@ -32,15 +38,6 @@
       SDKs. The list of configuration options are: profile file `retry_mode`
       setting, the `aws.retryMode` system property and the `AWS_RETRY_MODE`
       environment variable.
-        - Contributed by: [@sugmanue](https://github.com/sugmanue)
-
-## __AWS Network Manager__
-  - ### Features
-    - This is model changes & documentation update for Service Insertion feature for AWS Cloud WAN. This feature allows insertion of AWS/3rd party security services on Cloud WAN. This allows to steer inter/intra segment traffic via security appliances and provide visibility to the route updates.
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Adds the new module retries API module
         - Contributed by: [@sugmanue](https://github.com/sugmanue)
     - Updated endpoint and partition metadata.
 
