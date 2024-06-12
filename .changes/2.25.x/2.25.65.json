@@ -1,0 +1,36 @@
+{
+    "version": "2.25.65",
+    "date": "2024-06-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Amplify",
+            "contributor": "",
+            "description": "This doc-only update identifies fields that are specific to Gen 1 and Gen 2 applications."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "This release adds support for the AWS Batch GetJobQueueSnapshot API operation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT TwinMaker",
+            "contributor": "",
+            "description": "Support RESET_VALUE UpdateType for PropertyUpdates to reset property value to default or null"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Adds support for EKS add-ons pod identity associations integration"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

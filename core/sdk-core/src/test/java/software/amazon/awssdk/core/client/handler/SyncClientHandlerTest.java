@@ -42,7 +42,6 @@ import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -51,6 +50,7 @@ import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import utils.HttpTestUtils;
 import utils.ValidSdkObjects;
 
@@ -205,7 +205,7 @@ public class SyncClientHandlerTest {
     public SdkClientConfiguration clientConfiguration() {
         return HttpTestUtils.testClientConfiguration().toBuilder()
                             .option(SdkClientOption.SYNC_HTTP_CLIENT, httpClient)
-                            .option(SdkClientOption.RETRY_POLICY, RetryPolicy.none())
+                            .option(SdkClientOption.RETRY_STRATEGY, DefaultRetryStrategy.doNotRetry())
                             .build();
     }
 }

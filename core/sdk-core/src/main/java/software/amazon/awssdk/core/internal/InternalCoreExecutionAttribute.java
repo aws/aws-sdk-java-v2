@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.retries.api.RetryToken;
 
 /**
  * Attributes that can be applied to all sdk requests. These attributes are only used internally by the core to
@@ -31,6 +32,9 @@ public final class InternalCoreExecutionAttribute extends SdkExecutionAttribute 
      */
     public static final ExecutionAttribute<Integer> EXECUTION_ATTEMPT =
         new ExecutionAttribute<>("SdkInternalExecutionAttempt");
+
+    public static final ExecutionAttribute<RetryToken> RETRY_TOKEN =
+        new ExecutionAttribute<>("SdkInternalRetryToken");
 
     private InternalCoreExecutionAttribute() {
     }
