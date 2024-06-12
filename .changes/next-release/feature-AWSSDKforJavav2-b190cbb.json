@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "anirudh9391",
+    "description": "Adding interface methods for Progress Listener and state capturing Progress Snapshots"
+}
