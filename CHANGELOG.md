@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.1__ __2024-06-12__
+## __AWS Mainframe Modernization Application Testing__
+  - ### Features
+    - AWS Mainframe Modernization Application Testing is an AWS Mainframe Modernization service feature that automates functional equivalence testing for mainframe application modernization and migration to AWS, and regression testing.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Introducing RotationToken parameter for PutSecretValue API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Tagging support for Traffic Mirroring FilterRule resource
+
+## __Amazon OpenSearch Ingestion__
+  - ### Features
+    - SDK changes for self-managed vpc endpoint to OpenSearch ingestion pipelines.
+
+## __Amazon Redshift__
+  - ### Features
+    - Updates to remove DC1 and DS2 node types.
+
+## __Amazon Security Lake__
+  - ### Features
+    - This release updates request validation regex to account for non-commercial aws partitions.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release adds support for Amazon EventBridge as an email sending events destination.
+
 # __2.26.0__ __2024-06-11__
 ## __AWS Network Manager__
   - ### Features
