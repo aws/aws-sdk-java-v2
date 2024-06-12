@@ -327,7 +327,6 @@
         <module>redshiftserverless</module>
         <module>rolesanywhere</module>
         <module>licensemanagerusersubscriptions</module>
-        <module>backupstorage</module>
         <module>privatenetworks</module>
         <module>supportapp</module>
         <module>controltower</module>
