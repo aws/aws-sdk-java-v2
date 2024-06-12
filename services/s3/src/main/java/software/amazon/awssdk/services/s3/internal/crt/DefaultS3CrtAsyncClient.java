@@ -37,6 +37,7 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -48,7 +49,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.crt.io.ExponentialBackoffRetryOptions;
 import software.amazon.awssdk.crt.io.StandardRetryOptions;
@@ -115,7 +115,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .putAdvancedOption(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
                                        .putExecutionAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION,
                                                               ChecksumValidation.FORCE_SKIP)
-                                       .retryPolicy(RetryPolicy.none())
+                                       .retryStrategy(AwsRetryStrategy.doNotRetry())
                                        .addExecutionInterceptor(new ValidateRequestInterceptor())
                                        .addExecutionInterceptor(new AttachHttpAttributesExecutionInterceptor());
 

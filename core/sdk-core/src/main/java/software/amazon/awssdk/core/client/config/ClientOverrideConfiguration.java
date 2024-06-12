@@ -29,6 +29,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_P
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE_SUPPLIER;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_NAME;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.utils.ScheduledExecutorUtils.unmanagedScheduledExecutor;
 import static software.amazon.awssdk.utils.ScheduledExecutorUtils.unwrapUnmanagedScheduledExecutor;
@@ -54,6 +55,7 @@ import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -61,6 +63,7 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
@@ -107,6 +110,7 @@ public final class ClientOverrideConfiguration
         options.add(CONFIGURED_COMPRESSION_CONFIGURATION);
         options.add(CONFIGURED_SCHEDULED_EXECUTOR_SERVICE);
         options.add(RETRY_POLICY);
+        options.add(RETRY_STRATEGY);
         options.add(API_CALL_TIMEOUT);
         options.add(API_CALL_ATTEMPT_TIMEOUT);
         options.add(PROFILE_FILE_SUPPLIER);
@@ -203,6 +207,15 @@ public final class ClientOverrideConfiguration
      */
     public Optional<RetryPolicy> retryPolicy() {
         return Optional.ofNullable(config.option(RETRY_POLICY));
+    }
+
+    /**
+     * The optional retry strategy that should be used when handling failure cases.
+     *
+     * @see Builder#retryStrategy(RetryStrategy)
+     */
+    public Optional<RetryStrategy> retryStrategy() {
+        return Optional.ofNullable(config.option(RETRY_STRATEGY));
     }
 
     /**
@@ -346,6 +359,7 @@ public final class ClientOverrideConfiguration
         return ToString.builder("ClientOverrideConfiguration")
                        .add("headers", headers())
                        .add("retryPolicy", retryPolicy().orElse(null))
+                       .add("retryStrategy", retryStrategy().orElse(null))
                        .add("apiCallTimeout", apiCallTimeout().orElse(null))
                        .add("apiCallAttemptTimeout", apiCallAttemptTimeout().orElse(null))
                        .add("executionInterceptors", executionInterceptors())
@@ -414,12 +428,17 @@ public final class ClientOverrideConfiguration
          * Configure the retry policy that should be used when handling failure cases.
          *
          * @see ClientOverrideConfiguration#retryPolicy()
+         * @deprecated Use instead {@link #retryStrategy(RetryStrategy)}
          */
+        @Deprecated
         Builder retryPolicy(RetryPolicy retryPolicy);
 
         /**
          * Configure the retry policy the should be used when handling failure cases.
+         *
+         * @deprecated Use instead {@link #retryStrategy(Consumer<RetryStrategy.Builder>)}
          */
+        @Deprecated
         default Builder retryPolicy(Consumer<RetryPolicy.Builder> retryPolicy) {
             return retryPolicy(RetryPolicy.builder().applyMutation(retryPolicy).build());
         }
@@ -428,12 +447,43 @@ public final class ClientOverrideConfiguration
          * Configure the retry mode used to determine the retry policy that is used when handling failure cases. This is
          * shorthand for {@code retryPolicy(RetryPolicy.forRetryMode(retryMode))}, and overrides any configured retry policy on
          * this builder.
+         *
+         * @deprecated Use instead {@link #retryStrategy(RetryMode)}
          */
+        @Deprecated
         default Builder retryPolicy(RetryMode retryMode) {
             return retryPolicy(RetryPolicy.forRetryMode(retryMode));
         }
 
         RetryPolicy retryPolicy();
+
+        /**
+         * Configure the retry mode used to determine the retry strategy that is used when handling failure cases. This is
+         * shorthand for {@code retryStrategy(SdkDefaultRetryStrategy.forRetryMode(retryMode))}, and overrides any configured
+         * retry policy on this builder.
+         */
+        default Builder retryStrategy(RetryMode retryMode) {
+            return retryStrategy(SdkDefaultRetryStrategy.forRetryMode(retryMode));
+        }
+
+        /**
+         * Configure the retry strategy that should be used when handling failure cases.
+         *
+         * @see ClientOverrideConfiguration#retryStrategy()
+         */
+        Builder retryStrategy(RetryStrategy retryStrategy);
+
+        /**
+         * Configure the retry strategy that should be used when handling failure cases.
+         */
+        default Builder retryStrategy(Consumer<RetryStrategy.Builder<?, ?>> mutator) {
+            RetryStrategy.Builder<?, ?> builder = SdkDefaultRetryStrategy.forRetryMode(RetryMode.defaultRetryMode())
+                                                                         .toBuilder();
+            mutator.accept(builder);
+            return retryStrategy(builder.build());
+        }
+
+        RetryStrategy retryStrategy();
 
         /**
          * Configure a list of execution interceptors that will have access to read and modify the request and response objcets as
@@ -732,6 +782,21 @@ public final class ClientOverrideConfiguration
         @Override
         public RetryPolicy retryPolicy() {
             return config.option(RETRY_POLICY);
+        }
+
+        @Override
+        public Builder retryStrategy(RetryStrategy retryStrategy) {
+            config.option(RETRY_STRATEGY, retryStrategy);
+            return this;
+        }
+
+        public void setRetryStrategy(RetryStrategy retryStrategy) {
+            retryStrategy(retryStrategy);
+        }
+
+        @Override
+        public RetryStrategy retryStrategy() {
+            return config.option(RETRY_STRATEGY);
         }
 
         @Override

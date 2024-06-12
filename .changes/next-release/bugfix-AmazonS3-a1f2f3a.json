@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixes bug where Md5 validation is performed for S3 PutObject even if checksum value is supplied"
+}
