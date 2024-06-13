@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "This release adds support for configuration of evaluation method for composite rules in Glue Data Quality rulesets."
+}
