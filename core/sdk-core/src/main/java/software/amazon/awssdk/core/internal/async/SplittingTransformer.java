@@ -270,6 +270,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 if (isCancelled.get()) {
                     return individualFuture;
                 }
+                log.trace(() -> "calling prepare on the upstream transformer");
                 CompletableFuture<ResultT> upstreamFuture = upstreamResponseTransformer.prepare();
                 if (!resultFuture.isDone()) {
                     CompletableFutureUtils.forwardResultTo(upstreamFuture, resultFuture);
@@ -320,6 +321,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         @Override
         public void exceptionOccurred(Throwable error) {
             publisherToUpstream.error(error);
+            log.trace(() -> "calling exceptionOccurred on the upstream transformer");
             upstreamResponseTransformer.exceptionOccurred(error);
         }
     }

@@ -48,7 +48,7 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         this.fileWriteOption = Validate.paramNotNull(builder.fileWriteOption, "fileWriteOption");
         this.failureBehavior = Validate.paramNotNull(builder.failureBehavior, "failureBehavior");
         this.executorService = builder.executorService;
-        this.position = builder.position;
+        this.position = Validate.isNotNegativeOrNull(builder.position, "position");
         if (fileWriteOption != FileWriteOption.WRITE_TO_POSITION && position != null) {
             throw new IllegalArgumentException(String.format(
                 "'position' can only be used with 'WRITE_TO_POSITION' file write option, but was used with '%s'",

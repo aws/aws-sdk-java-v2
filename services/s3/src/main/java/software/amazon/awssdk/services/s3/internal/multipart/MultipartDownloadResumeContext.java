@@ -95,9 +95,10 @@ public class MultipartDownloadResumeContext {
     }
 
     /**
-     * Return the highest sequentially completed part, 0 means no parts completed
+     * @return the highest sequentially completed part, 0 means no parts completed. Used for non-sequential operation when parts
+     * may have been completed in a non-sequential order. For example, if parts [1, 2, 3, 6, 7, 10] were completed, this
+     * method will return 3.
      *
-     * @return
      */
     public int highestSequentialCompletedPart() {
         if (completedParts.isEmpty() || completedParts.first() != 1) {

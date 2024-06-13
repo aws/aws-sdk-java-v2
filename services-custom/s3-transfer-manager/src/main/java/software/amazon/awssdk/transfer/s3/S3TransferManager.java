@@ -79,7 +79,8 @@ import software.amazon.awssdk.utils.Validate;
  *                              .build();
  * }
  *
- * <b>Create an S3 Transfer Manager with S3 Multipart Async Client</b>
+ * <b>Create an S3 Transfer Manager with S3 Multipart Async Client</b>. The S3 Multipart Async Client is an alternative to the CRT
+ * client that offers the same multipart upload/download feature.
  * {@snippet :
  *      S3AsyncClient s3AsyncClient = s3AsyncClient.builder()
  *                                                 .multipartEnabled(true)

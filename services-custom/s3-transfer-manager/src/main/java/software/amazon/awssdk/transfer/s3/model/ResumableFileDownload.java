@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -72,7 +73,8 @@ public final class ResumableFileDownload implements ResumableTransfer,
         this.s3ObjectLastModified = builder.s3ObjectLastModified;
         this.totalSizeInBytes = Validate.isPositiveOrNull(builder.totalSizeInBytes, "totalSizeInBytes");
         this.fileLastModified = builder.fileLastModified;
-        this.completedParts = Validate.getOrDefault(builder.completedParts, Collections::emptyList);
+        List<Integer> compledPartsList =  Validate.getOrDefault(builder.completedParts, Collections::emptyList);
+        this.completedParts = Collections.unmodifiableList(new ArrayList<>(compledPartsList));
     }
 
     @Override
@@ -163,7 +165,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
      * @return part numbers of a multipart download that were completed saved to file.
      */
     public List<Integer> completedParts() {
-        return Collections.unmodifiableList(completedParts);
+        return completedParts;
     }
 
     @Override

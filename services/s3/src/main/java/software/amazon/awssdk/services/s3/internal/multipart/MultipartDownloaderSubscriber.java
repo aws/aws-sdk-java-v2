@@ -48,7 +48,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
 
     /**
      * This value indicates the total number of parts of the object to get. If null, it means we don't know the total amount of
-     * parts, wither because we haven't received a response from s3 yet to set it, or the object to get is not multipart.
+     * parts, either because we haven't received a response from s3 yet to set it, or the object to get is not multipart.
      */
     private volatile Integer totalParts;
 
@@ -74,7 +74,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
     /**
      * The etag of the object being downloaded.
      */
-    private String eTag;
+    private volatile String eTag;
 
     public MultipartDownloaderSubscriber(S3AsyncClient s3, GetObjectRequest getObjectRequest) {
         this(s3, getObjectRequest, 0);
@@ -101,6 +101,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         log.trace(() -> String.format("onNext, completed part = %d", completedParts.get()));
         if (asyncResponseTransformer == null) {
+            subscription.cancel();
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
         }
 
@@ -111,6 +112,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
                 logMulitpartComplete(totalParts);
                 subscription.cancel();
             }
+            return;
         }
 
         GetObjectRequest actualRequest = nextRequest(nextPartToGet);

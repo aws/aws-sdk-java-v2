@@ -41,7 +41,7 @@ public class DownloadObjectHelper {
     public <T> CompletableFuture<T> downloadObject(
         GetObjectRequest getObjectRequest, AsyncResponseTransformer<GetObjectResponse, T> asyncResponseTransformer) {
         if (getObjectRequest.range() != null || getObjectRequest.partNumber() != null) {
-            logSinglePartWarning(getObjectRequest);
+            logSinglePartMessage(getObjectRequest);
             return s3AsyncClient.getObject(getObjectRequest, asyncResponseTransformer);
         }
         GetObjectRequest requestToPerform = getObjectRequest.toBuilder().checksumMode(ChecksumMode.ENABLED).build();
@@ -62,7 +62,7 @@ public class DownloadObjectHelper {
             .orElseGet(() -> new MultipartDownloaderSubscriber(s3AsyncClient, getObjectRequest));
     }
 
-    private void logSinglePartWarning(GetObjectRequest getObjectRequest) {
+    private void logSinglePartMessage(GetObjectRequest getObjectRequest) {
         String reason = "";
         if (getObjectRequest.range() != null) {
             reason = " because getObjectRequest range is included in the request."
