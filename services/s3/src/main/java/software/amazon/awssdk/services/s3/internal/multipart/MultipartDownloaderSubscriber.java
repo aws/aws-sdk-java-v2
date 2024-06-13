@@ -88,6 +88,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
 
     @Override
     public void onSubscribe(Subscription s) {
+        log.trace(() -> "onSubscribe");
         if (this.subscription != null) {
             s.cancel();
             return;
@@ -98,7 +99,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
 
     @Override
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
-        log.trace(() -> "onNext " + completedParts.get());
+        log.trace(() -> String.format("onNext, completed part = %d", completedParts.get()));
         if (asyncResponseTransformer == null) {
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
         }
@@ -107,19 +108,26 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
 
         if (totalParts != null && nextPartToGet > totalParts) {
             synchronized (lock) {
+                logMulitpartComplete(totalParts);
                 subscription.cancel();
             }
         }
 
         GetObjectRequest actualRequest = nextRequest(nextPartToGet);
+        log.debug(() -> "Sending GetObjectRequest for next part with partNumber=" + nextPartToGet);
         CompletableFuture<GetObjectResponse> getObjectFuture = s3.getObject(actualRequest, asyncResponseTransformer);
         getObjectFuture.whenComplete((response, error) -> {
             if (error != null) {
+                log.debug(() -> "Error encountered during GetObjectRequest with partNumber=" + nextPartToGet);
                 onError(error);
                 return;
             }
             requestMoreIfNeeded(response);
         });
+    }
+
+    private void logMulitpartComplete(int totalParts) {
+        log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
     }
 
     private void requestMoreIfNeeded(GetObjectResponse response) {
@@ -132,16 +140,16 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
                                       ctx.response(response);
                                   }
                               });
-        log.trace(() -> String.format("completed part: %d", totalComplete));
+        log.debug(() -> String.format("Completed part %d", totalComplete));
 
         if (eTag == null) {
             this.eTag = response.eTag();
-            log.trace(() -> String.format("Multipart object ETag: %s", this.eTag));
+            log.debug(() -> String.format("Multipart object ETag: %s", this.eTag));
         }
 
         Integer partCount = response.partsCount();
         if (partCount != null && totalParts == null) {
-            log.trace(() -> String.format("total parts: %d", partCount));
+            log.debug(() -> String.format("Total amount of parts of the object to download: %d", partCount));
             MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
                 .ifPresent(ctx -> ctx.totalParts(partCount));
             totalParts = partCount;
@@ -150,6 +158,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
             if (totalParts != null && totalParts > 1 && totalComplete < totalParts) {
                 subscription.request(1);
             } else {
+                logMulitpartComplete(totalParts);
                 subscription.cancel();
             }
         }

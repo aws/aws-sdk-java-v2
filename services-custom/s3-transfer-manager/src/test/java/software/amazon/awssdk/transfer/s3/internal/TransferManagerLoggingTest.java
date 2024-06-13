@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.function.Predicate;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.Test;
@@ -48,13 +49,14 @@ class TransferManagerLoggingTest {
              LogCaptor logCaptor = LogCaptor.create(Level.WARN);
              S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
             List<LogEvent> events = logCaptor.loggedEvents();
-            assertThat(events).isEmpty();
+            assertThat(events)
+                .withFailMessage("A message from S3TransferManager was logged at DEBUG level when none was expected")
+                .noneMatch(loggedFromS3TransferManager());
         }
     }
 
     @Test
     void transferManager_withJavaClientMultiPartNotSet_shouldLogDebugMessage() {
-
 
         try (S3AsyncClient s3Crt = S3AsyncClient.builder()
                                                 .region(Region.US_WEST_2)
@@ -69,7 +71,6 @@ class TransferManagerLoggingTest {
 
     @Test
     void transferManager_withJavaClientMultiPartEqualsFalse_shouldLogDebugMessage() {
-
 
         try (S3AsyncClient s3Crt = S3AsyncClient.builder()
                                                 .region(Region.US_WEST_2)
@@ -90,7 +91,9 @@ class TransferManagerLoggingTest {
         try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
              S3TransferManager tm = S3TransferManager.builder().build()) {
             List<LogEvent> events = logCaptor.loggedEvents();
-            assertThat(events).isEmpty();
+            assertThat(events)
+                .withFailMessage("A message from S3TransferManager was logged at DEBUG level when none was expected")
+                .noneMatch(loggedFromS3TransferManager());
         }
         SystemSettingUtilsTestBackdoor.clearEnvironmentVariableOverrides();
     }
@@ -106,7 +109,9 @@ class TransferManagerLoggingTest {
              LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
              S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
             List<LogEvent> events = logCaptor.loggedEvents();
-            assertThat(events).isEmpty();
+            assertThat(events)
+                .withFailMessage("A message from S3TransferManager was logged at DEBUG level when none was expected")
+                .noneMatch(loggedFromS3TransferManager());
         }
     }
 
@@ -122,7 +127,9 @@ class TransferManagerLoggingTest {
              LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
              S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
             List<LogEvent> events = logCaptor.loggedEvents();
-            assertThat(events).isEmpty();
+            assertThat(events)
+                .withFailMessage("A message from S3TransferManager was logged at DEBUG level when none was expected")
+                .noneMatch(loggedFromS3TransferManager());
         }
     }
 
@@ -132,5 +139,10 @@ class TransferManagerLoggingTest {
         String msg = event.getMessage().getFormattedMessage();
         assertThat(msg).isEqualTo(message);
         assertThat(event.getLevel()).isEqualTo(level);
+    }
+
+    private static Predicate<LogEvent> loggedFromS3TransferManager() {
+        String tmLoggerName = "software.amazon.awssdk.transfer.s3.S3TransferManager";
+        return logEvent -> tmLoggerName.equals(logEvent.getLoggerName());
     }
 }
