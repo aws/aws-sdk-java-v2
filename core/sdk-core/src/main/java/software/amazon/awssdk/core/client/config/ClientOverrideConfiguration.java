@@ -477,8 +477,14 @@ public final class ClientOverrideConfiguration
          * Configure the retry strategy that should be used when handling failure cases.
          */
         default Builder retryStrategy(Consumer<RetryStrategy.Builder<?, ?>> mutator) {
-            RetryStrategy.Builder<?, ?> builder = SdkDefaultRetryStrategy.forRetryMode(RetryMode.defaultRetryMode())
-                                                                         .toBuilder();
+            RetryStrategy retryStrategy = retryStrategy();
+            RetryStrategy.Builder<?, ?> builder;
+            if (retryStrategy != null) {
+                builder = retryStrategy.toBuilder();
+            } else {
+                builder = SdkDefaultRetryStrategy.forRetryMode(RetryMode.defaultRetryMode())
+                                                 .toBuilder();
+            }
             mutator.accept(builder);
             return retryStrategy(builder.build());
         }
