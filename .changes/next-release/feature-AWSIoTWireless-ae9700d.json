@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Wireless",
+    "contributor": "",
+    "description": "Add RoamingDeviceSNR and RoamingDeviceRSSI to Customer Metrics."
+}
