@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.3__ __2024-06-14__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds the ability to search for historical job records within the management console using a search box and/or via the SDK/CLI with partial string matching search on input file name.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release introduces a new default service blueprint for custom environment creation.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Amazon EC2.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for managing the status of automated sensitive data discovery for individual accounts in an organization, and determining whether individual S3 buckets are included in the scope of the analyses.
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
 # __2.26.2__ __2024-06-13__
 ## __AWS CloudHSM V2__
   - ### Features
