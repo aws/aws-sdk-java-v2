@@ -15,11 +15,7 @@
 
 package software.amazon.awssdk.core.internal.retry;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryMode;
@@ -36,8 +32,6 @@ import software.amazon.awssdk.retries.api.RetryStrategy;
  */
 @SdkPublicApi
 public final class SdkDefaultRetryStrategy {
-    private static final Function<RetryMode, RetryStrategy> RETRY_MODE_TO_RETRY_STRATEGY = forRetryModeHandler();
-
 
     private SdkDefaultRetryStrategy() {
     }
@@ -58,7 +52,18 @@ public final class SdkDefaultRetryStrategy {
      * @return the appropriate retry strategy for the retry mode with AWS-specific conditions added.
      */
     public static RetryStrategy forRetryMode(RetryMode mode) {
-        return RETRY_MODE_TO_RETRY_STRATEGY.apply(mode);
+        switch (mode) {
+            case STANDARD:
+                return standardRetryStrategy();
+            case ADAPTIVE:
+                return legacyAdaptiveRetryStrategy();
+            case ADAPTIVE_V2:
+                return adaptiveRetryStrategy();
+            case LEGACY:
+                return legacyRetryStrategy();
+            default:
+                throw new IllegalStateException("unknown retry mode: " + mode);
+        }
     }
 
     /**
@@ -204,63 +209,6 @@ public final class SdkDefaultRetryStrategy {
         return RetryPolicyAdapter.builder()
                                  .retryPolicy(RetryPolicy.forRetryMode(RetryMode.ADAPTIVE))
                                  .build();
-    }
-
-    /**
-     * Creating a retry strategy using retry mode needs to be properly configured for the expected retry conditions. If we are
-     * building a retry strategy for an AWS service the SDK retry strategies do not cover all the AWS retryable conditions.
-     * Furthermore, this can be called statically in a non-client specific context, as when calling
-     * {@link ClientOverrideConfiguration#builder()} and then using
-     * {@link ClientOverrideConfiguration.Builder#retryStrategy(RetryMode)}, this means that we need to call an statically defined
-     * method, and by default we call {@link #forRetryMode(RetryMode)} in this class.
-     * <p>
-     * This method attempts to return properly configured retry strategy for AWS services since we cannot adjust it downstream
-     * without risking overwriting customer defined ones. We do that by trying to load the {@code AwsRetryStrategy} from the class
-     * path and, if found, creating a reflective delegate to its method {@link AwsRetryStrategy#forRetryMode(RetryMode)} which
-     * will create proper strategies for AWS services.
-     */
-    private static Function<RetryMode, RetryStrategy> forRetryModeHandler() {
-        try {
-            Class<?> awsRetryStrategy = Class.forName("software.amazon.awssdk.awscore.retry.AwsRetryStrategy");
-            Method method = awsRetryStrategy.getMethod("forRetryMode", RetryMode.class);
-            return new ReflectiveRetryModeToRetryStrategy(method);
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-            // ignored.
-        }
-        return SdkDefaultRetryStrategy::defaultForRetryMode;
-    }
-
-    static RetryStrategy defaultForRetryMode(RetryMode mode) {
-        switch (mode) {
-            case STANDARD:
-                return standardRetryStrategy();
-            case ADAPTIVE:
-                return legacyAdaptiveRetryStrategy();
-            case ADAPTIVE_V2:
-                return adaptiveRetryStrategy();
-            case LEGACY:
-                return legacyRetryStrategy();
-            default:
-                throw new IllegalStateException("unknown retry mode: " + mode);
-        }
-    }
-
-    static class ReflectiveRetryModeToRetryStrategy implements Function<RetryMode, RetryStrategy> {
-        private final Method method;
-
-        ReflectiveRetryModeToRetryStrategy(Method method) {
-            this.method = method;
-        }
-
-        @Override
-        public RetryStrategy apply(RetryMode retryMode) {
-            try {
-                return RetryStrategy.class.cast(method.invoke(null, retryMode));
-            } catch (ClassCastException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                // ignore and fall back.
-            }
-            return defaultForRetryMode(retryMode);
-        }
     }
 }
 

@@ -28,6 +28,9 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.COMPRESS
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_ASYNC_HTTP_CLIENT_BUILDER;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_COMPRESSION_CONFIGURATION;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_RETRY_CONFIGURATOR;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_RETRY_MODE;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_RETRY_STRATEGY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_SYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_SYNC_HTTP_CLIENT_BUILDER;
@@ -138,7 +141,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private final SdkAsyncHttpClient.Builder defaultAsyncHttpClientBuilder;
     private final List<SdkPlugin> plugins = new ArrayList<>();
 
-    private ClientOverrideConfiguration overrideConfig;
+    protected ClientOverrideConfiguration overrideConfig;
 
     protected SdkDefaultClientBuilder() {
         this(DEFAULT_HTTP_CLIENT_BUILDER, DEFAULT_ASYNC_HTTP_CLIENT_BUILDER);
@@ -240,11 +243,23 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         if (overrideConfig == null) {
             return configuration;
         }
-
-        return configuration.toBuilder()
-                            .putAll(overrideConfig)
-                            .build();
+        SdkClientConfiguration.Builder builder = configuration.toBuilder();
+        overrideConfig.retryStrategy().ifPresent(retryStrategy -> builder.option(RETRY_STRATEGY, retryStrategy));
+        overrideConfig.retryMode().ifPresent(retryMode -> builder.option(RETRY_STRATEGY,
+                                                                         SdkDefaultRetryStrategy.forRetryMode(retryMode)));
+        overrideConfig.retryStrategyConfigurator().ifPresent(configurator -> {
+            RetryStrategy.Builder<?, ?> defaultBuilder = SdkDefaultRetryStrategy.defaultRetryStrategy().toBuilder();
+            configurator.accept(defaultBuilder);
+            builder.option(RETRY_STRATEGY, defaultBuilder.build());
+        });
+        builder.putAll(overrideConfig);
+        // Forget anything we configured in the override configuration else it might be re-applied.
+        builder.option(CONFIGURED_RETRY_MODE, null);
+        builder.option(CONFIGURED_RETRY_STRATEGY, null);
+        builder.option(CONFIGURED_RETRY_CONFIGURATOR, null);
+        return builder.build();
     }
+
 
     /**
      * Optionally overridden by child implementations to apply implementation-specific default configuration.

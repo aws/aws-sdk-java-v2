@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.ClientType;
@@ -60,8 +61,26 @@ public final class SdkClientOption<T> extends ClientOption<T> {
     /**
      * @see ClientOverrideConfiguration#retryStrategy()
      */
-    @SuppressWarnings("rawtypes")
     public static final SdkClientOption<RetryStrategy> RETRY_STRATEGY = new SdkClientOption<>(RetryStrategy.class);
+
+    /**
+     * XXX add javadocs after testing, see #CONFIGURED_SCHEDULED_EXECUTOR_SERVICE
+     * @see ClientOverrideConfiguration#retryMode()
+     */
+    public static final SdkClientOption<RetryStrategy> CONFIGURED_RETRY_STRATEGY = new SdkClientOption<>(RetryStrategy.class);
+
+    /**
+     * XXX add javadocs after testing, see #CONFIGURED_SCHEDULED_EXECUTOR_SERVICE
+     * @see ClientOverrideConfiguration#retryMode()
+     */
+    public static final SdkClientOption<RetryMode> CONFIGURED_RETRY_MODE = new SdkClientOption<>(RetryMode.class);
+
+    /**
+     * XXX add javadocs after testing, see #CONFIGURED_SCHEDULED_EXECUTOR_SERVICE
+     * @see ClientOverrideConfiguration#retryMode()
+     */
+    public static final SdkClientOption<Consumer<RetryStrategy.Builder<?, ?>>> CONFIGURED_RETRY_CONFIGURATOR =
+        new SdkClientOption<>(new UnsafeValueType(RetryStrategy.Builder.class));
 
     /**
      * @see ClientOverrideConfiguration#executionInterceptors()

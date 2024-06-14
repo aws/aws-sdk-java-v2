@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -31,6 +32,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
@@ -73,6 +75,47 @@ public class RetryStrategySetupUsingRetryMode {
     }
 
     @Test
+    public void request_settingRetryModeInOverrideConfigurationConsumerRunTwice() {
+        ProtocolRestJsonClient client = client(b -> {
+        });
+
+        SdkPlugin retryStrategyPlugin = config -> config.overrideConfiguration(o -> o.retryStrategy(RetryMode.STANDARD));
+
+        // Configuring the client using RetryMode should support AWS retryable conditions.
+        assertThrows(ProtocolRestJsonException.class, () -> callAllTypes(client, Collections.singletonList(retryStrategyPlugin)));
+        // Three requests, i.e., there were retries.
+        verifyRequestCount(3);
+
+        SdkPlugin unrelatedPlugin = config -> config.overrideConfiguration(o -> o.apiCallTimeout(Duration.ofSeconds(10)));
+
+        // Configuring the client using an unrelated plugin should not remember the previous settings.
+        assertThrows(ProtocolRestJsonException.class, () -> callAllTypes(client, Collections.singletonList(unrelatedPlugin)));
+        // Four retries, the LEGACY retry strategy is back in.
+        verifyRequestCount(3 + 4);
+    }
+
+    @Test
+    public void request_settingRetryStrategyOverrideConfigurationConsumer() {
+        // Configuring the client using RetryStrategy should work as expected.
+        assertThrows(ProtocolRestJsonException.class,
+                     () -> callAllTypesWithPlugin(o -> o.retryStrategy(AwsRetryStrategy.standardRetryStrategy()
+                                                                                       .toBuilder()
+                                                                                       .maxAttempts(2)
+                                                                                       .build())));
+        // Two requests, the configured per request is being used.
+        verifyRequestCount(2);
+    }
+
+    @Test
+    public void request_configuringRetryStrategyOverrideConfigurationConsumer() {
+        // Configuring the client using Consumer<RetryStrategy.Builder> should work as expected.
+        assertThrows(ProtocolRestJsonException.class,
+                     () -> callAllTypesWithPlugin(o -> o.retryStrategy(b -> b.maxAttempts(2))));
+        // Two requests, the configured per request is being used.
+        verifyRequestCount(2);
+    }
+
+    @Test
     public void clientBuilder_settingRetryModeInOverrideConfigurationAndUsingIt() {
         // It does not matter if the ClientOverrideConfiguration.Builder is created by the customer or inside the
         // overrideConfiguration method in the client, using RetryMode should support AWS retryable conditions.
@@ -84,26 +127,6 @@ public class RetryStrategySetupUsingRetryMode {
         verifyRequestCount(3);
     }
 
-
-    @Test
-    public void clientBuilder_settingRetryModeAndRefinementInOverrideConfigurationConsumer() {
-        // Configure standard mode and chain the configured strategy for max attempts of 4 (default is 3).
-        ProtocolRestJsonClient client = client(
-            b -> b.overrideConfiguration(o -> o.retryStrategy(RetryMode.STANDARD)
-                                               .retryStrategy(rsb -> rsb.maxAttempts(4))));
-        assertThrows(ProtocolRestJsonException.class, () -> callAllTypes(client));
-        // Four requests, i.e., the refinement works
-        verifyRequestCount(4);
-    }
-
-    @Test
-    public void request_settingRetryModeAndRefinementInOverrideConfigurationConsumer() {
-        assertThrows(ProtocolRestJsonException.class, () ->
-            callAllTypesWithPlugin(o -> o.retryStrategy(RetryMode.STANDARD)
-                                         .retryStrategy(rsb -> rsb.maxAttempts(4))));
-        // Four requests, i.e., the refinement works
-        verifyRequestCount(4);
-    }
 
     private void verifyRequestCount(int count) {
         wireMock.verify(count, anyRequestedFor(anyUrl()));

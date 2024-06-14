@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.awscore.client.builder;
 
+import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
+
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -44,6 +46,7 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -185,6 +188,26 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                             .applyMutation(this::configureRetryStrategy)
                             .lazyOptionIfAbsent(SdkClientOption.IDENTITY_PROVIDERS, this::resolveIdentityProviders)
                             .build();
+    }
+
+    /**
+     * Apply the client override configuration to the provided configuration.
+     */
+    protected SdkClientConfiguration setOverrides(SdkClientConfiguration configuration) {
+        if (overrideConfig == null) {
+            return configuration;
+        }
+        SdkClientConfiguration.Builder builder = configuration.toBuilder()
+                                                              .putAll(overrideConfig);
+        overrideConfig.retryStrategy().ifPresent(retryStrategy -> builder.option(RETRY_STRATEGY, retryStrategy));
+        overrideConfig.retryMode().ifPresent(retryMode -> builder.option(RETRY_STRATEGY,
+                                                                         AwsRetryStrategy.forRetryMode(retryMode)));
+        overrideConfig.retryStrategyConfigurator().ifPresent(configurator -> {
+            RetryStrategy.Builder<?, ?> defaultBuilder = AwsRetryStrategy.defaultRetryStrategy().toBuilder();
+            configurator.accept(defaultBuilder);
+            builder.option(RETRY_STRATEGY, defaultBuilder.build());
+        });
+        return builder.build();
     }
 
     /**
