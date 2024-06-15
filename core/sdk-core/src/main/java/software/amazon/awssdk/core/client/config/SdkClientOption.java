@@ -64,20 +64,23 @@ public final class SdkClientOption<T> extends ClientOption<T> {
     public static final SdkClientOption<RetryStrategy> RETRY_STRATEGY = new SdkClientOption<>(RetryStrategy.class);
 
     /**
-     * XXX add javadocs after testing, see #CONFIGURED_SCHEDULED_EXECUTOR_SERVICE
+     * The internal retry strategy set by the customer. This is likely only useful within configuration
+     * classes, and will be converted into a {@link #RETRY_STRATEGY} for the SDK's runtime.
      * @see ClientOverrideConfiguration#retryMode()
      */
     public static final SdkClientOption<RetryStrategy> CONFIGURED_RETRY_STRATEGY = new SdkClientOption<>(RetryStrategy.class);
 
     /**
-     * XXX add javadocs after testing, see #CONFIGURED_SCHEDULED_EXECUTOR_SERVICE
+     * The internal retry mode set by the customer. This is likely only useful within configuration
+     * classes, and will be converted into a {@link #RETRY_STRATEGY} for the SDK's runtime.
      * @see ClientOverrideConfiguration#retryMode()
      */
     public static final SdkClientOption<RetryMode> CONFIGURED_RETRY_MODE = new SdkClientOption<>(RetryMode.class);
 
     /**
-     * XXX add javadocs after testing, see #CONFIGURED_SCHEDULED_EXECUTOR_SERVICE
-     * @see ClientOverrideConfiguration#retryMode()
+     * The internal consumer to configure the default retry strategy set by the customer. This is likely only useful within
+     * configuration classes, and will be converted into a {@link #RETRY_STRATEGY} for the SDK's runtime.
+     * @see ClientOverrideConfiguration#retryStrategy()
      */
     public static final SdkClientOption<Consumer<RetryStrategy.Builder<?, ?>>> CONFIGURED_RETRY_CONFIGURATOR =
         new SdkClientOption<>(new UnsafeValueType(RetryStrategy.Builder.class));
