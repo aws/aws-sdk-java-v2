@@ -746,9 +746,6 @@ public final class ClientOverrideConfiguration
     static final class DefaultBuilder implements Builder {
         private final SdkClientConfiguration.Builder config;
         private final SdkClientConfiguration.Builder resolvedConfig;
-        private RetryMode retryMode;
-        private RetryStrategy retryStrategy;
-        private Consumer<RetryStrategy.Builder<?, ?>> retryStrategyConfigurator;
 
         @SdkInternalApi
         DefaultBuilder(SdkClientConfiguration.Builder config) {

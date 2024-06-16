@@ -136,12 +136,12 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     protected final SdkClientConfiguration.Builder clientConfiguration = SdkClientConfiguration.builder();
 
     protected final AttributeMap.Builder clientContextParams = AttributeMap.builder();
-
+    protected ClientOverrideConfiguration overrideConfig;
     private final SdkHttpClient.Builder defaultHttpClientBuilder;
     private final SdkAsyncHttpClient.Builder defaultAsyncHttpClientBuilder;
     private final List<SdkPlugin> plugins = new ArrayList<>();
 
-    protected ClientOverrideConfiguration overrideConfig;
+
 
     protected SdkDefaultClientBuilder() {
         this(DEFAULT_HTTP_CLIENT_BUILDER, DEFAULT_ASYNC_HTTP_CLIENT_BUILDER);
