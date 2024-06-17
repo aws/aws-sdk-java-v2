@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Certificate Manager Private Certificate Authority",
+    "contributor": "",
+    "description": "Doc-only update that adds name constraints as an allowed extension for ImportCertificateAuthorityCertificate."
+}
