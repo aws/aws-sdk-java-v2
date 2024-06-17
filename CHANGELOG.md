@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.4__ __2024-06-17__
+## __AWS Batch__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Doc-only update that adds name constraints as an allowed extension for ImportCertificateAuthorityCertificate.
+
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports global and organization GitHub webhooks
+
+## __AWS Directory Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes support for creating I-frame only video segments for DASH trick play.
+
+## __AWS Glue__
+  - ### Features
+    - This release introduces a new feature, Usage profiles. Usage profiles allow the AWS Glue admin to create different profiles for various classes of users within the account, enforcing limits and defaults for jobs and sessions.
+
+## __AWS Key Management Service__
+  - ### Features
+    - Updating SDK example for KMS DeriveSharedSecret API.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Doc only update for Secrets Manager
+
+## __AWS WAF__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
 # __2.26.3__ __2024-06-14__
 ## __AWS Elemental MediaConvert__
   - ### Features
