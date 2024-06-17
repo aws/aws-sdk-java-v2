@@ -51,7 +51,7 @@ import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
-final class ClientClassUtils {
+public final class ClientClassUtils {
 
     private ClientClassUtils() {
     }

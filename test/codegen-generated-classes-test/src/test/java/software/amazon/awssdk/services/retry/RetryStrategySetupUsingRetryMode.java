@@ -116,6 +116,15 @@ public class RetryStrategySetupUsingRetryMode {
     }
 
     @Test
+    public void request_configuringRetryStrategyOverrideConfigurationMode() {
+        // Configuring the client using RetryMode should work as expected.
+        assertThrows(ProtocolRestJsonException.class,
+                     () -> callAllTypesWithPlugin(o -> o.retryStrategy(RetryMode.STANDARD)));
+        // Three requests, the configured per request is being used.
+        verifyRequestCount(3);
+    }
+
+    @Test
     public void clientBuilder_settingRetryModeInOverrideConfigurationAndUsingIt() {
         // It does not matter if the ClientOverrideConfiguration.Builder is created by the customer or inside the
         // overrideConfiguration method in the client, using RetryMode should support AWS retryable conditions.
