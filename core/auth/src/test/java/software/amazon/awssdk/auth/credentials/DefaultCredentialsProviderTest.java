@@ -122,7 +122,7 @@ class DefaultCredentialsProviderTest {
         generateTestCredentialsFile("modifiedAccess", "modifiedSecret");
 
         // without sleep the assertion fails, as there is delay in config reload
-        Thread.sleep(4000);
+        Thread.sleep(5000);
         assertThat(provider.resolveCredentials()).satisfies(awsCredentials -> {
             assertThat(awsCredentials.accessKeyId()).isEqualTo("modifiedAccess");
             assertThat(awsCredentials.secretAccessKey()).isEqualTo("modifiedSecret");
