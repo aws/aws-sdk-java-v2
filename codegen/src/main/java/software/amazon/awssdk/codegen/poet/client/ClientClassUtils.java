@@ -271,9 +271,6 @@ public final class ClientClassUtils {
                .addStatement("configuration.option($T.RETRY_STRATEGY, defaultBuilder.build())", SdkClientOption.class)
                .addStatement("return")
                .endControlFlow();
-        // This might be just blindly setting the same strategy that was already configured instead of a given override, but we
-        // don't have any means to know if the retryStrategy was overridden, that's OK compared to having to expand the API to
-        // add a method for it, such as overriddenRetryStrategy().
         builder.addStatement("$T retryStrategy = builder.retryStrategy()", RetryStrategy.class);
         builder.beginControlFlow("if (retryStrategy != null)")
                .addStatement("configuration.option($T.RETRY_STRATEGY, retryStrategy)", SdkClientOption.class)
