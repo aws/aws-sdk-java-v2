@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.5__ __2024-06-18__
+## __AWS CloudTrail__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Config__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Shield__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds support for using Guardrails with the Converse and ConverseStream APIs.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - This release adds support to surface async fargate customer errors from async path to customer through describe-fargate-profile API response.
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Polly__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Rekognition__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Launched a new feature in SageMaker to provide managed MLflow Tracking Servers for customers to track ML experiments. This release also adds a new capability of attaching additional storage to SageMaker HyperPod cluster instances.
+
 # __2.26.4__ __2024-06-17__
 ## __AWS Batch__
   - ### Features
