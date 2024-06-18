@@ -38,6 +38,7 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -55,6 +56,12 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      * @see ClientOverrideConfiguration#retryPolicy()
      */
     public static final SdkClientOption<RetryPolicy> RETRY_POLICY = new SdkClientOption<>(RetryPolicy.class);
+
+    /**
+     * @see ClientOverrideConfiguration#retryStrategy()
+     */
+    @SuppressWarnings("rawtypes")
+    public static final SdkClientOption<RetryStrategy> RETRY_STRATEGY = new SdkClientOption<>(RetryStrategy.class);
 
     /**
      * @see ClientOverrideConfiguration#executionInterceptors()

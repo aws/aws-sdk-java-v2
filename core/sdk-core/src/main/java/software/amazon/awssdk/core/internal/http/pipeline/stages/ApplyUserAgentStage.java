@@ -34,7 +34,6 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.useragent.IdentityProviderNameMapping;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -82,7 +81,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
                                                 ClientType clientType,
                                                 SdkHttpClient syncHttpClient,
                                                 SdkAsyncHttpClient asyncHttpClient,
-                                                RetryPolicy retryPolicy) {
+                                                String retryMode) {
         String awsExecutionEnvironment = SdkSystemSetting.AWS_EXECUTION_ENV.getStringValue().orElse(null);
 
         StringBuilder userAgent = new StringBuilder(128);
@@ -115,11 +114,8 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         userAgent.append(SPACE)
                  .append(HTTP)
                  .append("/")
-                 .append(SdkHttpUtils.urlEncode(clientName(clientType, syncHttpClient, asyncHttpClient)));
-
-        String retryMode = retryPolicy.retryMode().toString();
-
-        userAgent.append(SPACE)
+                 .append(SdkHttpUtils.urlEncode(clientName(clientType, syncHttpClient, asyncHttpClient)))
+                 .append(SPACE)
                  .append(CONFIG)
                  .append("/")
                  .append(RETRY_MODE)

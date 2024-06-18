@@ -42,6 +42,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE_SUPPLIER;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_NAME;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
@@ -80,6 +81,7 @@ import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuil
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.CompressRequestStage;
 import software.amazon.awssdk.core.internal.interceptor.HttpChecksumValidationInterceptor;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.util.SdkUserAgent;
@@ -94,6 +96,10 @@ import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
+import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
+import software.amazon.awssdk.retries.LegacyRetryStrategy;
+import software.amazon.awssdk.retries.StandardRetryStrategy;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.AttributeMap.LazyValueSource;
 import software.amazon.awssdk.utils.Either;
@@ -306,7 +312,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private SdkClientConfiguration finalizeConfiguration(SdkClientConfiguration config) {
         return config.toBuilder()
                      .lazyOption(SCHEDULED_EXECUTOR_SERVICE, this::resolveScheduledExecutorService)
-                     .lazyOptionIfAbsent(RETRY_POLICY, this::resolveRetryPolicy)
+                     .lazyOptionIfAbsent(RETRY_STRATEGY, this::resolveRetryStrategy)
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
                      .lazyOption(CLIENT_USER_AGENT, this::resolveClientUserAgent)
                      .lazyOption(COMPRESSION_CONFIGURATION, this::resolveCompressionConfiguration)
@@ -364,24 +370,41 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         return config;
     }
 
+    private String resolveRetryMode(RetryPolicy retryPolicy, RetryStrategy retryStrategy) {
+        if (retryPolicy != null) {
+            return retryPolicy.retryMode().toString();
+        }
+        if (retryStrategy instanceof StandardRetryStrategy) {
+            return RetryMode.STANDARD.toString();
+        }
+        if (retryStrategy instanceof LegacyRetryStrategy) {
+            return RetryMode.LEGACY.toString();
+        }
+        if (retryStrategy instanceof AdaptiveRetryStrategy) {
+            return RetryMode.ADAPTIVE.toString();
+        }
+        return "UnknownRetryMode";
+    }
+
     private String resolveClientUserAgent(LazyValueSource config) {
+        String retryMode = resolveRetryMode(config.get(RETRY_POLICY), config.get(RETRY_STRATEGY));
         return ApplyUserAgentStage.resolveClientUserAgent(config.get(USER_AGENT_PREFIX),
                                                           config.get(INTERNAL_USER_AGENT),
                                                           config.get(CLIENT_TYPE),
                                                           config.get(SYNC_HTTP_CLIENT),
                                                           config.get(ASYNC_HTTP_CLIENT),
-                                                          config.get(RETRY_POLICY));
+                                                          retryMode);
     }
 
-    private RetryPolicy resolveRetryPolicy(LazyValueSource config) {
+    private RetryStrategy resolveRetryStrategy(LazyValueSource config) {
         RetryMode retryMode = RetryMode.resolver()
                                        .profileFile(config.get(PROFILE_FILE_SUPPLIER))
                                        .profileName(config.get(PROFILE_NAME))
                                        .defaultRetryMode(config.get(DEFAULT_RETRY_MODE))
                                        .resolve();
-        return RetryPolicy.forRetryMode(retryMode);
+        return SdkDefaultRetryStrategy.forRetryMode(retryMode);
     }
-
+    
     /**
      * Finalize which sync HTTP client will be used for the created client.
      */
