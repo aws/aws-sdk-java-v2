@@ -192,7 +192,8 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     /**
      * Apply the client override configuration to the provided configuration.
      */
-    protected SdkClientConfiguration setOverrides(SdkClientConfiguration configuration) {
+    @Override
+    protected final SdkClientConfiguration setOverrides(SdkClientConfiguration configuration) {
         if (overrideConfig == null) {
             return configuration;
         }

@@ -645,7 +645,7 @@
                             <includeModule>profiles</includeModule>
                             <includeModule>protocols</includeModule>
                             <includeModule>regions</includeModule>
-                            <!-- <includeModule>sdk-core</includeModule> -->
+                            <includeModule>sdk-core</includeModule>
                             <includeModule>http-client-spi</includeModule>
                             <includeModule>apache-client</includeModule>
                             <includeModule>netty-nio-client</includeModule>

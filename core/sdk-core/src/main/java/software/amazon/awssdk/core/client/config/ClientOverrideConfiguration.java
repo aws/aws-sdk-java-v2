@@ -485,17 +485,19 @@ public final class ClientOverrideConfiguration
         RetryPolicy retryPolicy();
 
         /**
+         * Configure the retry strategy that should be used when handling failure cases.
+         */
+        Builder retryStrategy(RetryStrategy retryStrategy);
+
+        /**
          * Configure the retry mode used to resolve the corresponding {@link RetryStrategy} that should be used when handling
          * failure cases.
          *
          * @see RetryMode
          */
-        Builder retryStrategy(RetryMode retryMode);
-
-        /**
-         * Configure the retry strategy that should be used when handling failure cases.
-         */
-        Builder retryStrategy(RetryStrategy retryStrategy);
+        default Builder retryStrategy(RetryMode retryMode) {
+            throw new UnsupportedOperationException();
+        }
 
         /**
          * Configure a consumer to customize the default retry strategy. The default retry strategy is obtained by using the
@@ -510,7 +512,9 @@ public final class ClientOverrideConfiguration
          * <p>
          * Defaults to {@link RetryMode#LEGACY} if no configuration setting is found.
          */
-        Builder retryStrategy(Consumer<RetryStrategy.Builder<?, ?>> configurator);
+        default Builder retryStrategy(Consumer<RetryStrategy.Builder<?, ?>> configurator) {
+            throw new UnsupportedOperationException();
+        }
 
         RetryStrategy retryStrategy();
 
