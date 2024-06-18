@@ -64,22 +64,28 @@ public final class SdkClientOption<T> extends ClientOption<T> {
     public static final SdkClientOption<RetryStrategy> RETRY_STRATEGY = new SdkClientOption<>(RetryStrategy.class);
 
     /**
-     * The internal retry strategy set by the customer. This is likely only useful within configuration
-     * classes, and will be converted into a {@link #RETRY_STRATEGY} for the SDK's runtime.
+     * The retry strategy set by the customer using {@link ClientOverrideConfiguration.Builder#retryStrategy(RetryStrategy)}. This
+     * is likely only useful within configuration classes, and will be converted into a {@link #RETRY_STRATEGY} for the SDK's
+     * runtime.
+     *
      * @see ClientOverrideConfiguration#retryMode()
      */
     public static final SdkClientOption<RetryStrategy> CONFIGURED_RETRY_STRATEGY = new SdkClientOption<>(RetryStrategy.class);
 
     /**
-     * The internal retry mode set by the customer. This is likely only useful within configuration
-     * classes, and will be converted into a {@link #RETRY_STRATEGY} for the SDK's runtime.
+     * The retry mode set by the customer using {@link ClientOverrideConfiguration.Builder#retryStrategy(RetryMode)}. This is
+     * likely only useful within configuration classes, and will be converted into a {@link #RETRY_STRATEGY} for the SDK's
+     * runtime.
+     *
      * @see ClientOverrideConfiguration#retryMode()
      */
     public static final SdkClientOption<RetryMode> CONFIGURED_RETRY_MODE = new SdkClientOption<>(RetryMode.class);
 
     /**
-     * The internal consumer to configure the default retry strategy set by the customer. This is likely only useful within
-     * configuration classes, and will be converted into a {@link #RETRY_STRATEGY} for the SDK's runtime.
+     * The retry strategy builder consumer set by the customer using
+     * {@link ClientOverrideConfiguration.Builder#retryStrategy(Consumer<RetryStrategy.Builder>)}. This is likely only useful
+     * within configuration classes, and will be converted into a {@link #RETRY_STRATEGY} for the SDK's runtime.
+     *
      * @see ClientOverrideConfiguration#retryStrategy()
      */
     public static final SdkClientOption<Consumer<RetryStrategy.Builder<?, ?>>> CONFIGURED_RETRY_CONFIGURATOR =
