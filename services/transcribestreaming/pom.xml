@@ -81,11 +81,6 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>retries-spi</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
             <artifactId>http-auth-aws-eventstream</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>

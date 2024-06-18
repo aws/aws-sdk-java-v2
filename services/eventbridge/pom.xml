@@ -66,11 +66,6 @@
             <artifactId>http-auth-aws</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>retries-spi</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
         <!-- Test Dependencies -->
         <!-- TODO(post-sra-identity-auth): auth-crt dependency can be removed as part of
         cleanup after all services are on SRA -->
