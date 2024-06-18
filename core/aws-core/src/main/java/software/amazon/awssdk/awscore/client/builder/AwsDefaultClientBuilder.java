@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.awscore.client.builder;
 
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_RETRY_CONFIGURATOR;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_RETRY_MODE;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_RETRY_STRATEGY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 
 import java.net.URI;
@@ -197,8 +200,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         if (overrideConfig == null) {
             return configuration;
         }
-        SdkClientConfiguration.Builder builder = configuration.toBuilder()
-                                                              .putAll(overrideConfig);
+        SdkClientConfiguration.Builder builder = configuration.toBuilder();
         overrideConfig.retryStrategy().ifPresent(retryStrategy -> builder.option(RETRY_STRATEGY, retryStrategy));
         overrideConfig.retryMode().ifPresent(retryMode -> builder.option(RETRY_STRATEGY,
                                                                          AwsRetryStrategy.forRetryMode(retryMode)));
@@ -207,6 +209,11 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             configurator.accept(defaultBuilder);
             builder.option(RETRY_STRATEGY, defaultBuilder.build());
         });
+        builder.putAll(overrideConfig);
+        // Forget anything we configured in the override configuration else it might be re-applied.
+        builder.option(CONFIGURED_RETRY_MODE, null);
+        builder.option(CONFIGURED_RETRY_STRATEGY, null);
+        builder.option(CONFIGURED_RETRY_CONFIGURATOR, null);
         return builder.build();
     }
 

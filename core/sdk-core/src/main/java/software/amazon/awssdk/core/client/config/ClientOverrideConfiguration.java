@@ -486,12 +486,17 @@ public final class ClientOverrideConfiguration
 
         /**
          * Configure the retry strategy that should be used when handling failure cases.
+         *
+         * <p>
+         * Note that retryStrategy options are mutually exclusive
          */
         Builder retryStrategy(RetryStrategy retryStrategy);
 
         /**
          * Configure the retry mode used to resolve the corresponding {@link RetryStrategy} that should be used when handling
          * failure cases.
+         * <p>
+         * Note that retryStrategy options are mutually exclusive
          *
          * @see RetryMode
          */
@@ -511,6 +516,8 @@ public final class ClientOverrideConfiguration
          *
          * <p>
          * Defaults to {@link RetryMode#LEGACY} if no configuration setting is found.
+         * <p>
+         * Note that retryStrategy options are mutually exclusive
          */
         default Builder retryStrategy(Consumer<RetryStrategy.Builder<?, ?>> configurator) {
             throw new UnsupportedOperationException();
