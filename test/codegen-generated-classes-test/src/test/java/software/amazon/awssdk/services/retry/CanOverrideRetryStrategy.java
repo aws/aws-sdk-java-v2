@@ -33,6 +33,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
@@ -45,6 +46,7 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncCli
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClientBuilder;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBuilder;
+import software.amazon.awssdk.services.protocolrestjson.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
 
 public abstract class CanOverrideRetryStrategy<ClientT, BuilderT extends AwsClientBuilder<BuilderT, ClientT>> {
@@ -53,23 +55,43 @@ public abstract class CanOverrideRetryStrategy<ClientT, BuilderT extends AwsClie
 
     protected abstract BuilderT newClientBuilder();
 
-    protected abstract AllTypesResponse callAllTypes(ClientT client);
+    protected abstract AllTypesResponse callAllTypes(ClientT client, SdkPlugin... plugins);
 
-    private BuilderT clientBuilder(RetryStrategy retryStrategy) {
+    private BuilderT clientBuilder() {
         StaticCredentialsProvider credentialsProvider =
             StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
         return newClientBuilder()
             .credentialsProvider(credentialsProvider)
-            .overrideConfiguration(o -> o.retryStrategy(retryStrategy))
             .region(Region.US_EAST_1)
             .endpointOverride(URI.create("http://localhost:" + wireMock.port()));
     }
 
     @Test
-    public void overrideConfiguration_RetryStrategyIsOverridden_itGetsUsed() {
+    public void clientBuilderOverrideConfiguration_RetryStrategyIsOverridden_itGetsUsed() {
         WrappingRetryStrategy wrappingRetryStrategy = wrappingRetryStrategy();
-        ClientT client = clientBuilder(wrappingRetryStrategy).build();
+        ClientT client = clientBuilder()
+            .overrideConfiguration(o -> o.retryStrategy(wrappingRetryStrategy))
+            .build();
         assertThrows(Exception.class, () -> callAllTypes(client));
+        assertEquals(3, wrappingRetryStrategy.failures.size());
+    }
+
+    @Test
+    public void clientBuilderUsingPlugins_RetryStrategyIsOverridden_itGetsUsed() {
+        WrappingRetryStrategy wrappingRetryStrategy = wrappingRetryStrategy();
+        ClientT client = clientBuilder()
+            .addPlugin(c -> c.overrideConfiguration(o -> o.retryStrategy(wrappingRetryStrategy)))
+            .build();
+        assertThrows(Exception.class, () -> callAllTypes(client));
+        assertEquals(3, wrappingRetryStrategy.failures.size());
+    }
+
+    @Test
+    public void requestBuilderUsingPlugins_RetryStrategyIsOverridden_itGetsUsed() {
+        WrappingRetryStrategy wrappingRetryStrategy = wrappingRetryStrategy();
+        ClientT client = clientBuilder().build();
+        SdkPlugin plugin = c -> c.overrideConfiguration(o -> o.retryStrategy(wrappingRetryStrategy));
+        assertThrows(Exception.class, () -> callAllTypes(client, plugin));
         assertEquals(3, wrappingRetryStrategy.failures.size());
     }
 
@@ -84,7 +106,6 @@ public abstract class CanOverrideRetryStrategy<ClientT, BuilderT extends AwsClie
     private void afterEach() {
         wireMock.stop();
     }
-
 
     public WrappingRetryStrategy wrappingRetryStrategy() {
         RetryStrategy wrapped = AwsRetryStrategy.standardRetryStrategy();
@@ -134,8 +155,12 @@ public abstract class CanOverrideRetryStrategy<ClientT, BuilderT extends AwsClie
         }
 
         @Override
-        protected AllTypesResponse callAllTypes(ProtocolRestJsonClient client) {
-            return client.allTypes();
+        protected AllTypesResponse callAllTypes(ProtocolRestJsonClient client, SdkPlugin... plugins) {
+            AllTypesRequest.Builder requestBuilder = AllTypesRequest.builder();
+            for (SdkPlugin plugin : plugins) {
+                requestBuilder.overrideConfiguration(o -> o.addPlugin(plugin));
+            }
+            return client.allTypes(requestBuilder.build());
         }
     }
 
@@ -147,9 +172,13 @@ public abstract class CanOverrideRetryStrategy<ClientT, BuilderT extends AwsClie
         }
 
         @Override
-        protected AllTypesResponse callAllTypes(ProtocolRestJsonAsyncClient client) {
+        protected AllTypesResponse callAllTypes(ProtocolRestJsonAsyncClient client, SdkPlugin... plugins) {
             try {
-                return client.allTypes().join();
+                AllTypesRequest.Builder requestBuilder = AllTypesRequest.builder();
+                for (SdkPlugin plugin : plugins) {
+                    requestBuilder.overrideConfiguration(o -> o.addPlugin(plugin));
+                }
+                return client.allTypes(requestBuilder.build()).join();
             } catch (CompletionException e) {
                 if (e.getCause() instanceof RuntimeException) {
                     throw (RuntimeException) e.getCause();
