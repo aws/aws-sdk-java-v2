@@ -463,7 +463,7 @@ public final class ClientOverrideConfiguration
         /**
          * Configure the retry policy the should be used when handling failure cases.
          *
-         * @deprecated Use instead {@link #retryStrategy(RetryStrategy)}
+         * @deprecated Use instead {@link #retryStrategy(Consumer<RetryStrategy.Builder>)}
          */
         @Deprecated
         default Builder retryPolicy(Consumer<RetryPolicy.Builder> retryPolicy) {
