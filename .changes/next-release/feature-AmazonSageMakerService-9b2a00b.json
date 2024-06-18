@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "Launched a new feature in SageMaker to provide managed MLflow Tracking Servers for customers to track ML experiments. This release also adds a new capability of attaching additional storage to SageMaker HyperPod cluster instances."
-}
