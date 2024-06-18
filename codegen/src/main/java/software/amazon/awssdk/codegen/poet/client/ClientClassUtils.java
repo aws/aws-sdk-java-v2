@@ -265,7 +265,6 @@ public final class ClientClassUtils {
         builder.addStatement("$T<$T<?, ?>> configurator = builder.retryStrategyConfigurator()", Consumer.class,
                              RetryStrategy.Builder.class);
         builder.beginControlFlow("if (configurator != null)")
-               // RetryStrategy.Builder<?, ?> defaultBuilder = AwsRetryStrategy.defaultRetryStrategy().toBuilder();
                .addStatement("$T<?, ?>  defaultBuilder = $T.defaultRetryStrategy().toBuilder()", RetryStrategy.Builder.class,
                              AwsRetryStrategy.class)
                .addStatement("configurator.accept(defaultBuilder)")

@@ -485,21 +485,30 @@ public final class ClientOverrideConfiguration
         RetryPolicy retryPolicy();
 
         /**
-         * Configure the retry mode used to determine the retry strategy that is used when handling failure cases. This is
-         * shorthand for {@code retryStrategy(SdkDefaultRetryStrategy.forRetryMode(retryMode))}, and overrides any configured
-         * retry policy on this builder.
+         * Configure the retry mode used to resolve the corresponding {@link RetryStrategy} that should be used when handling
+         * failure cases.
+         *
+         * @see RetryMode
          */
         Builder retryStrategy(RetryMode retryMode);
 
         /**
          * Configure the retry strategy that should be used when handling failure cases.
-         *
-         * @see ClientOverrideConfiguration#retryStrategy()
          */
         Builder retryStrategy(RetryStrategy retryStrategy);
 
         /**
-         * Configure a new default retry strategy that should be used when handling failure cases using the given consumer for it.
+         * Configure a consumer to customize the default retry strategy. The default retry strategy is obtained by using the
+         * default {@link RetryMode} that is resolved by looking at (in this order)
+         *
+         * <ol>
+         *  <li>The {@code AWS_RETRY_MODE} environment variable</li>
+         *  <li>The {@code aws.retryMode} JVM system property</li>
+         *  <li>The {@code retry_mode} setting in the profile file for the active profile</li>
+         * </ol>
+         *
+         * <p>
+         * Defaults to {@link RetryMode#LEGACY} if no configuration setting is found.
          */
         Builder retryStrategy(Consumer<RetryStrategy.Builder<?, ?>> configurator);
 
