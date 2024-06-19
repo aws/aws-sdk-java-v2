@@ -31,6 +31,15 @@ public class NamingConversionUtilsTest {
 
         assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.iot.model.AuditFinding"))
             .isEqualTo("software.amazon.awssdk.services.iot.model.AuditFinding");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.iot.ResultConfiguration"))
+            .isEqualTo("software.amazon.awssdk.services.iot.ResultConfiguration");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.iot.ResultConfigurationResult"))
+            .isEqualTo("software.amazon.awssdk.services.iot.ResultConfigurationResponse");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.iot.ListCACertificatesRequest"))
+            .isEqualTo("software.amazon.awssdk.services.iot.ListCaCertificatesRequest");
     }
 
     @Test

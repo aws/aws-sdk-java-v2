@@ -137,7 +137,8 @@ public final class SdkTypeUtils {
     }
 
     public static boolean isEligibleToConvertToBuilder(JavaType.FullyQualified type) {
-        return type != null && (isV2ModelClass(type) || isV2ClientClass(type) || isV2CoreClassesWithBuilder(type.getFullyQualifiedName()));
+        return type != null && (isV2ModelClass(type) || isV2ClientClass(type) ||
+                                isV2CoreClassesWithBuilder(type.getFullyQualifiedName()));
     }
 
     public static boolean isEligibleToConvertToStaticFactory(JavaType.FullyQualified type) {
