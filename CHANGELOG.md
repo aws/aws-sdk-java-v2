@@ -1,4 +1,36 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.6__ __2024-06-19__
+## __AWS Artifact__
+  - ### Features
+    - This release adds an acceptanceType field to the ReportSummary structure (used in the ListReports API response).
+
+## __AWS Cost and Usage Report Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Direct Connect__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix a bug that prevented users from overriding retry strategies
+
+## __Amazon Athena__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Elastic Transcoder__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release enables customers to use JSON Web Tokens (JWT) for authentication on their Amazon OpenSearch Service domains.
+
 # __2.26.5__ __2024-06-18__
 ## __AWS CloudTrail__
   - ### Features

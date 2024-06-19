@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Transcoder",
-    "contributor": "",
-    "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
-}
