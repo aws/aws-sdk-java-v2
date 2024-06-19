@@ -2,5 +2,5 @@
     "category": "DynamoDB Enhanced Client", 
     "contributor": "shetsa-amzn", 
     "type": "feature", 
-    "description": "Adding a member to the UpdateItemEnhancedRequest.Builder named returnItems, that accepts values from the com.amazonaws.services.dynamodbv2.model.ReturnValue enum, and defaults to the current behaviour ALL_NEW, and pass it to the request instead of the constant ALL_NEW."
+    "description": "Adds support for specifying ReturnValue in UpdateItemEnhancedRequest"
 }
