@@ -5,14 +5,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkPlugin;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
@@ -23,7 +20,6 @@ import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
-import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.json.auth.scheme.JsonAuthSchemeProvider;
 import software.amazon.awssdk.services.json.auth.scheme.internal.JsonAuthSchemeInterceptor;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
@@ -53,9 +49,9 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
-                .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
-                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+                                  .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
+                                  .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
+                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
     }
 
     @Override
@@ -74,7 +70,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         endpointInterceptors.add(new JsonRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-                .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
+            .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
@@ -139,28 +135,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
-        updateRetryStrategyClientConfiguration(configuration);
         return configuration.build();
-    }
-
-    private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {
-        ClientOverrideConfiguration.Builder builder = configuration.asOverrideConfigurationBuilder();
-        RetryMode retryMode = builder.retryMode();
-        if (retryMode != null) {
-            configuration.option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.forRetryMode(retryMode));
-            return;
-        }
-        Consumer<RetryStrategy.Builder<?, ?>> configurator = builder.retryStrategyConfigurator();
-        if (configurator != null) {
-            RetryStrategy.Builder<?, ?> defaultBuilder = AwsRetryStrategy.defaultRetryStrategy().toBuilder();
-            configurator.accept(defaultBuilder);
-            configuration.option(SdkClientOption.RETRY_STRATEGY, defaultBuilder.build());
-            return;
-        }
-        RetryStrategy retryStrategy = builder.retryStrategy();
-        if (retryStrategy != null) {
-            configuration.option(SdkClientOption.RETRY_STRATEGY, retryStrategy);
-        }
     }
 
     private List<SdkPlugin> internalPlugins(SdkClientConfiguration config) {

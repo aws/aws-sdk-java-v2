@@ -467,14 +467,9 @@ public abstract class BaseRetrySetupTest<ClientT, BuilderT extends AwsClientBuil
             } else if (scenario.retryImplementation() == RetryImplementation.STRATEGY) {
                 assertThat(config.overrideConfiguration().retryPolicy()).isEmpty();
                 assertThat(config.overrideConfiguration().retryStrategy()).isNotEmpty();
-                // Plugin override using mode won't work since the the retry strategy
-                // will be resolved lazily.
-                if (scenario.setup != RetryModeSetup.REQUEST_PLUGIN_OVERRIDE_USING_MODE
-                    && scenario.setup != RetryModeSetup.CLIENT_PLUGIN_OVERRIDE_USING_MODE) {
-                    RetryStrategy strategy = config.overrideConfiguration().retryStrategy().get();
-                    assertThat(SdkDefaultRetryStrategy.retryMode(strategy)).isEqualTo(scenario.mode());
-                    assertThat(strategy).isInstanceOf(scenario.expectedClass());
-                }
+                RetryStrategy strategy = config.overrideConfiguration().retryStrategy().get();
+                assertThat(SdkDefaultRetryStrategy.retryMode(strategy)).isEqualTo(scenario.mode());
+                assertThat(strategy).isInstanceOf(scenario.expectedClass());
             }
         }
     }

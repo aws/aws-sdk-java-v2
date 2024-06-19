@@ -15,11 +15,6 @@
 
 package software.amazon.awssdk.awscore.client.builder;
 
-import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_RETRY_CONFIGURATOR;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_RETRY_MODE;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_RETRY_STRATEGY;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
-
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -193,31 +188,6 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     /**
-     * Apply the client override configuration to the provided configuration.
-     */
-    @Override
-    protected final SdkClientConfiguration setOverrides(SdkClientConfiguration configuration) {
-        if (overrideConfig == null) {
-            return configuration;
-        }
-        SdkClientConfiguration.Builder builder = configuration.toBuilder();
-        overrideConfig.retryStrategy().ifPresent(retryStrategy -> builder.option(RETRY_STRATEGY, retryStrategy));
-        overrideConfig.retryMode().ifPresent(retryMode -> builder.option(RETRY_STRATEGY,
-                                                                         AwsRetryStrategy.forRetryMode(retryMode)));
-        overrideConfig.retryStrategyConfigurator().ifPresent(configurator -> {
-            RetryStrategy.Builder<?, ?> defaultBuilder = AwsRetryStrategy.defaultRetryStrategy().toBuilder();
-            configurator.accept(defaultBuilder);
-            builder.option(RETRY_STRATEGY, defaultBuilder.build());
-        });
-        builder.putAll(overrideConfig);
-        // Forget anything we configured in the override configuration else it might be re-applied.
-        builder.option(CONFIGURED_RETRY_MODE, null);
-        builder.option(CONFIGURED_RETRY_STRATEGY, null);
-        builder.option(CONFIGURED_RETRY_CONFIGURATOR, null);
-        return builder.build();
-    }
-
-    /**
      * Return HTTP related defaults with the following chain of priorities.
      * <ol>
      * <li>Service-Specific Defaults</li>
@@ -380,6 +350,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     private void configureRetryStrategy(SdkClientConfiguration.Builder config) {
         RetryStrategy strategy = config.option(SdkClientOption.RETRY_STRATEGY);
         if (strategy != null) {
+            config.option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.configureStrategy(strategy.toBuilder()).build());
             return;
         }
         config.lazyOption(SdkClientOption.RETRY_STRATEGY, this::resolveAwsRetryStrategy);

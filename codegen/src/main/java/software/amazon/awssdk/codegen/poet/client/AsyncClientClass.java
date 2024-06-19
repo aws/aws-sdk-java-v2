@@ -173,7 +173,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                 type.addMethod(isSignerOverriddenOnClientMethod());
             }
         }
-        type.addMethod(ClientClassUtils.updateRetryStrategyClientConfigurationMethod());
         type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName()));
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
     }
@@ -314,9 +313,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
                .addStatement("$1T serviceConfigBuilder = new $1T(configuration)", serviceClientConfigurationBuilderClassName)
                .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
                .addStatement("plugin.configureClient(serviceConfigBuilder)")
-               .endControlFlow();
-        builder.addStatement("updateRetryStrategyClientConfiguration(configuration)");
-        builder.addStatement("return configuration.build()");
+               .endControlFlow()
+               .addStatement("return configuration.build()");
 
         return builder.build();
     }
