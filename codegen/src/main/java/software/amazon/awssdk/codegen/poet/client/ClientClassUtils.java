@@ -259,22 +259,25 @@ public final class ClientClassUtils {
         builder.addStatement("$T retryMode = builder.retryMode()", RetryMode.class);
         builder.beginControlFlow("if (retryMode != null)")
                .addStatement("configuration.option($T.RETRY_STRATEGY, $T.forRetryMode(retryMode))", SdkClientOption.class,
-                             AwsRetryStrategy.class)
-               .addStatement("return")
-               .endControlFlow();
+                             AwsRetryStrategy.class);
+        builder.nextControlFlow("else");
         builder.addStatement("$T<$T<?, ?>> configurator = builder.retryStrategyConfigurator()", Consumer.class,
                              RetryStrategy.Builder.class);
         builder.beginControlFlow("if (configurator != null)")
                .addStatement("$T<?, ?>  defaultBuilder = $T.defaultRetryStrategy().toBuilder()", RetryStrategy.Builder.class,
                              AwsRetryStrategy.class)
                .addStatement("configurator.accept(defaultBuilder)")
-               .addStatement("configuration.option($T.RETRY_STRATEGY, defaultBuilder.build())", SdkClientOption.class)
-               .addStatement("return")
-               .endControlFlow();
+               .addStatement("configuration.option($T.RETRY_STRATEGY, defaultBuilder.build())", SdkClientOption.class);
+        builder.nextControlFlow("else");
         builder.addStatement("$T retryStrategy = builder.retryStrategy()", RetryStrategy.class);
         builder.beginControlFlow("if (retryStrategy != null)")
                .addStatement("configuration.option($T.RETRY_STRATEGY, retryStrategy)", SdkClientOption.class)
                .endControlFlow();
+        builder.endControlFlow();
+        builder.endControlFlow();
+        builder.addStatement("configuration.option($T.CONFIGURED_RETRY_MODE, null)", SdkClientOption.class);
+        builder.addStatement("configuration.option($T.CONFIGURED_RETRY_STRATEGY, null)", SdkClientOption.class);
+        builder.addStatement("configuration.option($T.CONFIGURED_RETRY_CONFIGURATOR, null)", SdkClientOption.class);
         return builder.build();
     }
 }
