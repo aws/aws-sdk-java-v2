@@ -1359,19 +1359,22 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         RetryMode retryMode = builder.retryMode();
         if (retryMode != null) {
             configuration.option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.forRetryMode(retryMode));
-            return;
+        } else {
+            Consumer<RetryStrategy.Builder<?, ?>> configurator = builder.retryStrategyConfigurator();
+            if (configurator != null) {
+                RetryStrategy.Builder<?, ?> defaultBuilder = AwsRetryStrategy.defaultRetryStrategy().toBuilder();
+                configurator.accept(defaultBuilder);
+                configuration.option(SdkClientOption.RETRY_STRATEGY, defaultBuilder.build());
+            } else {
+                RetryStrategy retryStrategy = builder.retryStrategy();
+                if (retryStrategy != null) {
+                    configuration.option(SdkClientOption.RETRY_STRATEGY, retryStrategy);
+                }
+            }
         }
-        Consumer<RetryStrategy.Builder<?, ?>> configurator = builder.retryStrategyConfigurator();
-        if (configurator != null) {
-            RetryStrategy.Builder<?, ?> defaultBuilder = AwsRetryStrategy.defaultRetryStrategy().toBuilder();
-            configurator.accept(defaultBuilder);
-            configuration.option(SdkClientOption.RETRY_STRATEGY, defaultBuilder.build());
-            return;
-        }
-        RetryStrategy retryStrategy = builder.retryStrategy();
-        if (retryStrategy != null) {
-            configuration.option(SdkClientOption.RETRY_STRATEGY, retryStrategy);
-        }
+        configuration.option(SdkClientOption.CONFIGURED_RETRY_MODE, null);
+        configuration.option(SdkClientOption.CONFIGURED_RETRY_STRATEGY, null);
+        configuration.option(SdkClientOption.CONFIGURED_RETRY_CONFIGURATOR, null);
     }
 
     private SdkClientConfiguration updateSdkClientConfiguration(SdkRequest request, SdkClientConfiguration clientConfiguration) {
