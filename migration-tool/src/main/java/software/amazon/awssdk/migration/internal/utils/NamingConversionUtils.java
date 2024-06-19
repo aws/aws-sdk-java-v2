@@ -33,13 +33,14 @@ public final class NamingConversionUtils {
         String v1ClassName = currentFqcn.substring(lastIndexOfDot + 1, currentFqcn.length());
         String packagePrefix = currentFqcn.substring(0, lastIndexOfDot);
 
-        String v2ClassName;
+        String v2ClassName = CodegenNamingUtils.pascalCase(v1ClassName);
         String v2PackagePrefix = packagePrefix.replace(V1_PACKAGE_PREFIX, V2_PACKAGE_PREFIX);
 
         if (Stream.of("Abstract", "Amazon", "AWS").anyMatch(v1ClassName::startsWith)) {
             v2ClassName = getV2ClientEquivalent(v1ClassName);
-        } else {
-            v2ClassName = v1ClassName.replace("Result", "Response");
+        } else if (v1ClassName.endsWith("Result")) {
+            int lastIndex = v1ClassName.lastIndexOf("Result");
+            v2ClassName = v1ClassName.substring(0, lastIndex) + "Response";
         }
 
         return v2PackagePrefix + "." + v2ClassName;
