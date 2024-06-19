@@ -1,4 +1,122 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.6__ __2024-06-19__
+## __AWS Artifact__
+  - ### Features
+    - This release adds an acceptanceType field to the ReportSummary structure (used in the ListReports API response).
+
+## __AWS Cost and Usage Report Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Direct Connect__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix a bug that prevented users from overriding retry strategies
+
+## __Amazon Athena__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Elastic Transcoder__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release enables customers to use JSON Web Tokens (JWT) for authentication on their Amazon OpenSearch Service domains.
+
+# __2.26.5__ __2024-06-18__
+## __AWS CloudTrail__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Config__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Shield__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds support for using Guardrails with the Converse and ConverseStream APIs.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - This release adds support to surface async fargate customer errors from async path to customer through describe-fargate-profile API response.
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Polly__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Rekognition__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Launched a new feature in SageMaker to provide managed MLflow Tracking Servers for customers to track ML experiments. This release also adds a new capability of attaching additional storage to SageMaker HyperPod cluster instances.
+
+# __2.26.4__ __2024-06-17__
+## __AWS Batch__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Doc-only update that adds name constraints as an allowed extension for ImportCertificateAuthorityCertificate.
+
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports global and organization GitHub webhooks
+
+## __AWS Directory Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes support for creating I-frame only video segments for DASH trick play.
+
+## __AWS Glue__
+  - ### Features
+    - This release introduces a new feature, Usage profiles. Usage profiles allow the AWS Glue admin to create different profiles for various classes of users within the account, enforcing limits and defaults for jobs and sessions.
+
+## __AWS Key Management Service__
+  - ### Features
+    - Updating SDK example for KMS DeriveSharedSecret API.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Doc only update for Secrets Manager
+
+## __AWS WAF__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
 # __2.26.3__ __2024-06-14__
 ## __AWS Elemental MediaConvert__
   - ### Features

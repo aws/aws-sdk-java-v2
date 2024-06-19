@@ -52,6 +52,7 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.ModelAuthSchemeClassesKnowledgeIndex;
+import software.amazon.awssdk.codegen.poet.client.ClientClassUtils;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointParamsKnowledgeIndex;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
@@ -180,6 +181,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         }
         addServiceHttpConfigIfNeeded(builder, model);
         builder.addMethod(invokePluginsMethod());
+        builder.addMethod(ClientClassUtils.updateRetryStrategyClientConfigurationMethod());
         builder.addMethod(internalPluginsMethod());
 
         endpointParamsKnowledgeIndex.resolveAccountIdEndpointModeMethod().ifPresent(builder::addMethod);
@@ -783,6 +785,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
                .addStatement("plugin.configureClient(serviceConfigBuilder)")
                .endControlFlow()
+               .addStatement("updateRetryStrategyClientConfiguration(configuration)")
                .addStatement("return configuration.build()");
         return builder.build();
     }
