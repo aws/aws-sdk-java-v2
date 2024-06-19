@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.credentials;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -113,21 +114,33 @@ class DefaultCredentialsProviderTest {
         SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(ProfileFileSystemSetting.AWS_SHARED_CREDENTIALS_FILE.environmentVariable(),
                                                                       credentialsFilePath.toString());
         DefaultCredentialsProvider provider = DefaultCredentialsProvider.create();
-
-        assertThat(provider.resolveCredentials()).satisfies(awsCredentials -> {
-            assertThat(awsCredentials.accessKeyId()).isEqualTo("customAccess");
-            assertThat(awsCredentials.secretAccessKey()).isEqualTo("customSecret");
-        });
+        Thread.sleep(2000);
+        try {
+            assertThat(provider.resolveCredentials()).satisfies(awsCredentials -> {
+                assertThat(awsCredentials.accessKeyId()).isEqualTo("customAccess");
+                assertThat(awsCredentials.secretAccessKey()).isEqualTo("customSecret");
+            });
+        } catch (AssertionError e) {
+            Thread.sleep(2000);
+            assertTrue(assertReloadCredentials(provider));
+        }
 
         generateTestCredentialsFile("modifiedAccess", "modifiedSecret");
 
         // without sleep the assertion fails, as there is delay in config reload
-        Thread.sleep(5000);
+        Thread.sleep(1000);
         assertThat(provider.resolveCredentials()).satisfies(awsCredentials -> {
             assertThat(awsCredentials.accessKeyId()).isEqualTo("modifiedAccess");
             assertThat(awsCredentials.secretAccessKey()).isEqualTo("modifiedSecret");
         });
         SystemSettingUtilsTestBackdoor.clearEnvironmentVariableOverrides();
+    }
+
+    private boolean assertReloadCredentials(AwsCredentialsProvider provider) {
+        assertThat(provider.resolveCredentials()).satisfies(awsCredentials -> {
+            assertThat(awsCredentials.accessKeyId()).isEqualTo("customAccess");
+            assertThat(awsCredentials.secretAccessKey()).isEqualTo("customSecret");
+        });
     }
 
     private Path generateTestFile(String contents, String filename) {
