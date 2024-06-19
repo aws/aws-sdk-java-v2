@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon OpenSearch Service",
+    "contributor": "",
+    "description": "This release enables customers to use JSON Web Tokens (JWT) for authentication on their Amazon OpenSearch Service domains."
+}
