@@ -73,6 +73,9 @@ public class ExecutionAttributeBackwardsCompatibilityTest {
                      attributeModifications.accept(executionAttributes);
                  }
              },
+             AwsSignerExecutionAttribute.AWS_CREDENTIALS, // Identity resolution (modifyRequest) overrides credentials
+             AwsSignerExecutionAttribute.SIGNER_NORMALIZE_PATH, // Set in ConfigureSignerInterceptor (beforeExecution)
+             S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, // Set in DisablePayloadSigningInterceptor (beforeExecution)
              AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, // Endpoint rules override signing name
              AwsSignerExecutionAttribute.SIGNING_REGION, // Endpoint rules override signing region
              AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE); // Endpoint rules override double-url-encode
