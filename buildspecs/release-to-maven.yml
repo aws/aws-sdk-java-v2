@@ -23,7 +23,7 @@ phases:
       - SONATYPE_URL="https://aws.oss.sonatype.org/service/local/repositories/releases/content/software/amazon/awssdk/aws-sdk-java/$RELEASE_VERSION/"
       - |
         if ! curl -f --head $SONATYPE_URL; then
-          SONATYPE_USERNAME=`aws secretsmanager get-secret-value --secret-id SONATYPE_USERNAME_ARN --query SecretString --output text`
+          SONATYPE_USERNAME=`aws secretsmanager get-secret-value --secret-id $SONATYPE_USERNAME_ARN --query SecretString --output text`
           SONATYPE_PASSWORD=`aws secretsmanager get-secret-value --secret-id $SONATYPE_PASSWORD_ARN --query SecretString --output text`
           SDK_SIGNING_GPG_KEYNAME=`aws secretsmanager get-secret-value --secret-id $SDK_SIGNING_GPG_KEYNAME_ARN --query SecretString --output text`
           SDK_SIGNING_GPG_PASSPHRASE=`aws secretsmanager get-secret-value --secret-id $SDK_SIGNING_GPG_PASSPHRASE_ARN --query SecretString --output text`
