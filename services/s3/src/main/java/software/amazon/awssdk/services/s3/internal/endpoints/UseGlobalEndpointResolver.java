@@ -82,6 +82,9 @@ public class UseGlobalEndpointResolver {
 
     private String profileFileSetting(Supplier<ProfileFile> profileFileSupplier, Supplier<String> profileNameSupplier) {
         try {
+            if (profileFileSupplier == null) {
+                return null;
+            }
             ProfileFile profileFile = profileFileSupplier.get();
             String profileName = profileNameSupplier.get();
             if (profileFile == null || profileName == null) {
