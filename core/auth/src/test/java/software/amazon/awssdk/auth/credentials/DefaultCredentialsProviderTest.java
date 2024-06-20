@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -34,8 +36,7 @@ import software.amazon.awssdk.utils.internal.SystemSettingUtilsTestBackdoor;
 
 class DefaultCredentialsProviderTest {
 
-    @TempDir
-    private Path testDirectory;
+    private static final Logger log = LoggerFactory.getLogger(DefaultCredentialsProviderTest.class);
 
     @Test
     void resolveCredentials_ProfileCredentialsProviderWithProfileFile_returnsCredentials() {
@@ -108,8 +109,8 @@ class DefaultCredentialsProviderTest {
     }
 
     @Test
-    void resolveCredentials_DefaultCredentialProviderWithReloadWhenModified() throws Exception {
-        Path credentialsFilePath = generateTestCredentialsFile("customAccess", "customSecret");
+    void resolveCredentials_DefaultCredentialProviderWithReloadWhenModified(@TempDir Path parentDirectory) throws Exception {
+        Path credentialsFilePath = generateTestCredentialsFile(parentDirectory, "customAccess", "customSecret");
         SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(ProfileFileSystemSetting.AWS_SHARED_CREDENTIALS_FILE.environmentVariable(),
                                                                       credentialsFilePath.toString());
         DefaultCredentialsProvider provider = DefaultCredentialsProvider.create();
@@ -119,30 +120,43 @@ class DefaultCredentialsProviderTest {
             assertThat(awsCredentials.secretAccessKey()).isEqualTo("customSecret");
         });
 
-        generateTestCredentialsFile("modifiedAccess", "modifiedSecret");
+        Path credentialsFilePath2 = generateTestCredentialsFile(parentDirectory,"modifiedAccess", "modifiedSecret");
+        assertThat(credentialsFilePath2).isEqualTo(credentialsFilePath);
 
-        // without sleep the assertion fails, as there is delay in config reload
-        Thread.sleep(2000);
-        assertThat(provider.resolveCredentials()).satisfies(awsCredentials -> {
-            assertThat(awsCredentials.accessKeyId()).isEqualTo("modifiedAccess");
-            assertThat(awsCredentials.secretAccessKey()).isEqualTo("modifiedSecret");
-        });
+        int maxRetries = 4;
+        int i = 0;
+        // check if this can be replaced with RetryPolicy and backoff
+        while (i <= maxRetries) {
+            try {
+                Thread.sleep(1500);
+                assertThat(provider.resolveCredentials()).satisfies(awsCredentials -> {
+                    assertThat(awsCredentials.accessKeyId()).isEqualTo("modifiedAccess");
+                    assertThat(awsCredentials.secretAccessKey()).isEqualTo("modifiedSecret");
+                });
+                break;
+            } catch (AssertionError e) {
+                if (i == maxRetries) {
+                    throw e;
+                }
+                ++i;
+                log.warn("Assertion failed, Retrying count {}", i);
+            }
+        }
         SystemSettingUtilsTestBackdoor.clearEnvironmentVariableOverrides();
     }
 
-    private Path generateTestFile(String contents, String filename) {
+    private Path generateTestFile(Path parentDirectory, String contents, String filename) {
         try {
-            Files.createDirectories(testDirectory);
-            return Files.write(testDirectory.resolve(filename), contents.getBytes(StandardCharsets.UTF_8));
+            return Files.write(parentDirectory.resolve(filename), contents.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private Path generateTestCredentialsFile(String accessKeyId, String secretAccessKey) {
+    private Path generateTestCredentialsFile(Path parentDirectory, String accessKeyId, String secretAccessKey) {
         String contents = String.format("[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n",
                                         accessKeyId, secretAccessKey);
-        return generateTestFile(contents, "credentials.txt");
+        return generateTestFile(parentDirectory, contents, "credentials.txt");
     }
 
     private ProfileFile credentialFile(String credentialFile) {
