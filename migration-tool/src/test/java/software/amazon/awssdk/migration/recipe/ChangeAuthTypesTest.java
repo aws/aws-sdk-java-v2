@@ -128,6 +128,36 @@ public class ChangeAuthTypesTest implements RewriteTest {
     @EnabledOnJre({JRE.JAVA_8})
     void staticCredentials_getter_isRewritten() {
         rewriteRun(
+            java(
+                "import com.amazonaws.auth.AWSStaticCredentialsProvider;\n"
+                + "import com.amazonaws.auth.AWSCredentials;\n"
+                + "import com.amazonaws.auth.BasicAWSCredentials;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        AWSCredentials credentials = new BasicAWSCredentials(\"foo\", \"bar\");\n"
+                + "        String accessKeyId = credentials.getAWSAccessKeyId();\n"
+                + "        String secreteKey = credentials.getAWSSecretKey();\n"
+                + "    }\n"
+                + "}\n",
+                "import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;\n"
+                + "import software.amazon.awssdk.auth.credentials.AwsCredentials;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        AwsCredentials credentials = new AwsBasicCredentials(\"foo\", \"bar\");\n"
+                + "        String accessKeyId = credentials.accessKeyId();\n"
+                + "        String secreteKey = credentials.secretAccessKey();\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
+
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
+    void sessionStaticCredentials_getter_isRewritten() {
+        rewriteRun(
             java("import com.amazonaws.auth.AWSCredentials;\n"
                 + "import com.amazonaws.auth.BasicSessionCredentials;\n"
                 + "\n"
@@ -144,8 +174,8 @@ public class ChangeAuthTypesTest implements RewriteTest {
                 + "public class Example {\n"
                 + "    public static void main(String[] args) {\n"
                 + "        AwsSessionCredentials credentials = new AwsSessionCredentials(\"foo\", \"bar\", \"123\");\n"
-                + "        String accessKeyId = credentials.getAWSAccessKeyId();\n"
-                + "        String secreteKey = credentials.getAWSSecretKey();\n"
+                + "        String accessKeyId = credentials.accessKeyId();\n"
+                + "        String secreteKey = credentials.secretAccessKey();\n"
                 + "        String sessionToken = credentials.sessionToken();\n"
                 + "    }\n"
                 + "}"

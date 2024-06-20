@@ -52,6 +52,12 @@ recipeList:
       newFullyQualifiedTypeName: software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 
   - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.auth.BasicSessionCredentials getAWSAccessKeyId
+      newMethodName: accessKeyId
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.auth.BasicSessionCredentials getAWSSecretKey
+      newMethodName: secretAccessKey
+  - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.auth.BasicSessionCredentials getSessionToken
       newMethodName: sessionToken
   - org.openrewrite.java.ChangeType:
