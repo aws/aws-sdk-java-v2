@@ -178,6 +178,7 @@ public class TimeoutExceptionHandlingStageTest {
         verifyExceptionThrown(IOException.class);
     }
 
+
     @Test
     public void abortedException_causedByApiCallAttemptTimeoutTask_shouldNotPropagate() throws Exception {
         when(apiCallTimeoutTask.hasExecuted()).thenReturn(false);
