@@ -32,6 +32,7 @@ import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.StringInputStream;
+import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.internal.SystemSettingUtilsTestBackdoor;
 
 class DefaultCredentialsProviderTest {
@@ -129,6 +130,9 @@ class DefaultCredentialsProviderTest {
         while (i <= maxRetries) {
             try {
                 Thread.sleep(1500);
+                log.info("Credential file with content {} last modified at {}",
+                         Files.readAllLines(credentialsFilePath2),
+                             Files.getLastModifiedTime(credentialsFilePath2).toInstant());
                 assertThat(provider.resolveCredentials()).satisfies(awsCredentials -> {
                     assertThat(awsCredentials.accessKeyId()).isEqualTo("modifiedAccess");
                     assertThat(awsCredentials.secretAccessKey()).isEqualTo("modifiedSecret");
