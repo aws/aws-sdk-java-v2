@@ -1,4 +1,36 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.6__ __2024-06-19__
+## __AWS Artifact__
+  - ### Features
+    - This release adds an acceptanceType field to the ReportSummary structure (used in the ListReports API response).
+
+## __AWS Cost and Usage Report Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Direct Connect__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix a bug that prevented users from overriding retry strategies
+
+## __Amazon Athena__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Elastic Transcoder__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release enables customers to use JSON Web Tokens (JWT) for authentication on their Amazon OpenSearch Service domains.
+
 # __2.26.5__ __2024-06-18__
 ## __AWS CloudTrail__
   - ### Features
@@ -165,8 +197,14 @@
     - This release adds support for Amazon EventBridge as an email sending events destination.
 
 # __2.26.0__ __2024-06-11__
-## __"AWS SDK for Java v2"__
+## __AWS Network Manager__
   - ### Features
+    - This is model changes & documentation update for Service Insertion feature for AWS Cloud WAN. This feature allows insertion of AWS/3rd party security services on Cloud WAN. This allows to steer inter/intra segment traffic via security appliances and provide visibility to the route updates.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds the new module retries API module
+        - Contributed by: [@sugmanue](https://github.com/sugmanue)
     - This release contains a major internal refactor of retries and is part
       of moving the SDK to a standardized AWS SDK architecture. It
       introduces the interface `RetryStrategy` and three subclasses
@@ -197,15 +235,6 @@
       SDKs. The list of configuration options are: profile file `retry_mode`
       setting, the `aws.retryMode` system property and the `AWS_RETRY_MODE`
       environment variable.
-        - Contributed by: [@sugmanue](https://github.com/sugmanue)
-
-## __AWS Network Manager__
-  - ### Features
-    - This is model changes & documentation update for Service Insertion feature for AWS Cloud WAN. This feature allows insertion of AWS/3rd party security services on Cloud WAN. This allows to steer inter/intra segment traffic via security appliances and provide visibility to the route updates.
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Adds the new module retries API module
         - Contributed by: [@sugmanue](https://github.com/sugmanue)
     - Updated endpoint and partition metadata.
 
