@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "CodeArtifact",
-    "contributor": "",
-    "description": "Add support for the Cargo package format."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "Adds support for model references in Hub service, and adds support for cross-account access of Hubs"
-}

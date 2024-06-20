@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "contributor": "",
-    "description": "Fix Glue paginators for Jobs, JobRuns, Triggers, Blueprints and Workflows."
-}
