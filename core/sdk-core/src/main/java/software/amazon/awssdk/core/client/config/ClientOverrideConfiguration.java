@@ -22,6 +22,9 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.COMPRESSION_CONFIGURATION;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_COMPRESSION_CONFIGURATION;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_RETRY_CONFIGURATOR;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_RETRY_MODE;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_RETRY_STRATEGY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
@@ -55,7 +58,6 @@ import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -115,6 +117,9 @@ public final class ClientOverrideConfiguration
         options.add(API_CALL_ATTEMPT_TIMEOUT);
         options.add(PROFILE_FILE_SUPPLIER);
         options.add(PROFILE_NAME);
+        options.add(CONFIGURED_RETRY_STRATEGY);
+        options.add(CONFIGURED_RETRY_CONFIGURATOR);
+        options.add(CONFIGURED_RETRY_MODE);
         CLIENT_OVERRIDE_OPTIONS = Collections.unmodifiableSet(options);
 
         Set<ClientOption<?>> resolvedOptions = new HashSet<>();
@@ -215,7 +220,29 @@ public final class ClientOverrideConfiguration
      * @see Builder#retryStrategy(RetryStrategy)
      */
     public Optional<RetryStrategy> retryStrategy() {
+        RetryStrategy configured = config.option(CONFIGURED_RETRY_STRATEGY);
+        if (configured != null) {
+            return Optional.of(configured);
+        }
         return Optional.ofNullable(config.option(RETRY_STRATEGY));
+    }
+
+    /**
+     * The optional retry mode that should be used when handling failure cases.
+     *
+     * @see Builder#retryStrategy(RetryMode)
+     */
+    public Optional<Consumer<RetryStrategy.Builder<?, ?>>> retryStrategyConfigurator() {
+        return Optional.ofNullable(config.option(CONFIGURED_RETRY_CONFIGURATOR));
+    }
+
+    /**
+     * The optional retry mode that should be used when handling failure cases.
+     *
+     * @see Builder#retryStrategy(RetryMode)
+     */
+    public Optional<RetryMode> retryMode() {
+        return Optional.ofNullable(config.option(CONFIGURED_RETRY_MODE));
     }
 
     /**
@@ -458,32 +485,49 @@ public final class ClientOverrideConfiguration
         RetryPolicy retryPolicy();
 
         /**
-         * Configure the retry mode used to determine the retry strategy that is used when handling failure cases. This is
-         * shorthand for {@code retryStrategy(SdkDefaultRetryStrategy.forRetryMode(retryMode))}, and overrides any configured
-         * retry policy on this builder.
-         */
-        default Builder retryStrategy(RetryMode retryMode) {
-            return retryStrategy(SdkDefaultRetryStrategy.forRetryMode(retryMode));
-        }
-
-        /**
          * Configure the retry strategy that should be used when handling failure cases.
          *
-         * @see ClientOverrideConfiguration#retryStrategy()
+         * <p>
+         * Note that retryStrategy options are mutually exclusive
          */
         Builder retryStrategy(RetryStrategy retryStrategy);
 
         /**
-         * Configure the retry strategy that should be used when handling failure cases.
+         * Configure the retry mode used to resolve the corresponding {@link RetryStrategy} that should be used when handling
+         * failure cases.
+         * <p>
+         * Note that retryStrategy options are mutually exclusive
+         *
+         * @see RetryMode
          */
-        default Builder retryStrategy(Consumer<RetryStrategy.Builder<?, ?>> mutator) {
-            RetryStrategy.Builder<?, ?> builder = SdkDefaultRetryStrategy.forRetryMode(RetryMode.defaultRetryMode())
-                                                                         .toBuilder();
-            mutator.accept(builder);
-            return retryStrategy(builder.build());
+        default Builder retryStrategy(RetryMode retryMode) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Configure a consumer to customize the default retry strategy. The default retry strategy is obtained by using the
+         * default {@link RetryMode} that is resolved by looking at (in this order)
+         *
+         * <ol>
+         *  <li>The {@code AWS_RETRY_MODE} environment variable</li>
+         *  <li>The {@code aws.retryMode} JVM system property</li>
+         *  <li>The {@code retry_mode} setting in the profile file for the active profile</li>
+         * </ol>
+         *
+         * <p>
+         * Defaults to {@link RetryMode#LEGACY} if no configuration setting is found.
+         * <p>
+         * Note that retryStrategy options are mutually exclusive
+         */
+        default Builder retryStrategy(Consumer<RetryStrategy.Builder<?, ?>> configurator) {
+            throw new UnsupportedOperationException();
         }
 
         RetryStrategy retryStrategy();
+
+        RetryMode retryMode();
+
+        Consumer<RetryStrategy.Builder<?, ?>> retryStrategyConfigurator();
 
         /**
          * Configure a list of execution interceptors that will have access to read and modify the request and response objcets as
@@ -672,7 +716,6 @@ public final class ClientOverrideConfiguration
          */
         Builder metricPublishers(List<MetricPublisher> metricPublishers);
 
-
         /**
          * Add a metric publisher to the existing list of previously set publishers to be used for publishing metrics
          * for this client.
@@ -786,7 +829,28 @@ public final class ClientOverrideConfiguration
 
         @Override
         public Builder retryStrategy(RetryStrategy retryStrategy) {
-            config.option(RETRY_STRATEGY, retryStrategy);
+            Validate.paramNotNull(retryStrategy, "retryStrategy");
+            config.option(CONFIGURED_RETRY_STRATEGY, retryStrategy);
+            config.option(CONFIGURED_RETRY_CONFIGURATOR, null);
+            config.option(CONFIGURED_RETRY_MODE, null);
+            return this;
+        }
+
+        @Override
+        public Builder retryStrategy(Consumer<RetryStrategy.Builder<?, ?>> configurator) {
+            Validate.paramNotNull(configurator, "configurator");
+            config.option(CONFIGURED_RETRY_CONFIGURATOR, configurator);
+            config.option(CONFIGURED_RETRY_MODE, null);
+            config.option(CONFIGURED_RETRY_STRATEGY, null);
+            return this;
+        }
+
+        @Override
+        public Builder retryStrategy(RetryMode retryMode) {
+            Validate.paramNotNull(retryMode, "retryMode");
+            config.option(CONFIGURED_RETRY_MODE, retryMode);
+            config.option(CONFIGURED_RETRY_CONFIGURATOR, null);
+            config.option(CONFIGURED_RETRY_STRATEGY, null);
             return this;
         }
 
@@ -796,7 +860,27 @@ public final class ClientOverrideConfiguration
 
         @Override
         public RetryStrategy retryStrategy() {
+            RetryStrategy retryStrategy = config.option(CONFIGURED_RETRY_STRATEGY);
+            if (retryStrategy != null) {
+                return retryStrategy;
+            }
+            if (config.option(CONFIGURED_RETRY_CONFIGURATOR) != null) {
+                return null;
+            }
+            if (config.option(CONFIGURED_RETRY_MODE) != null) {
+                return null;
+            }
             return config.option(RETRY_STRATEGY);
+        }
+
+        @Override
+        public RetryMode retryMode() {
+            return config.option(CONFIGURED_RETRY_MODE);
+        }
+
+        @Override
+        public Consumer<RetryStrategy.Builder<?, ?>> retryStrategyConfigurator() {
+            return config.option(CONFIGURED_RETRY_CONFIGURATOR);
         }
 
         @Override
