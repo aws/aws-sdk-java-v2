@@ -19,6 +19,7 @@ import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.resolv
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -90,8 +91,8 @@ public final class TimeoutExceptionHandlingStage<OutputT> implements RequestToRe
      * @return The translated exception.
      */
     private Exception translatePipelineException(RequestExecutionContext context, Exception e) {
-        if (e instanceof InterruptedException || e instanceof IOException ||
-                e instanceof AbortedException || Thread.currentThread().isInterrupted()
+        if (e instanceof InterruptedException || e instanceof IOException || e instanceof UncheckedIOException
+                || e instanceof AbortedException || Thread.currentThread().isInterrupted()
                 || (e instanceof SdkClientException && isCausedByApiCallAttemptTimeout(context))) {
             return handleTimeoutCausedException(context, e);
         }
@@ -116,6 +117,10 @@ public final class TimeoutExceptionHandlingStage<OutputT> implements RequestToRe
         if (e instanceof InterruptedException) {
             Thread.currentThread().interrupt();
             return AbortedException.create("Thread was interrupted", e);
+        }
+
+        if (e instanceof UncheckedIOException) {
+            return new IOException(e.getCause());
         }
 
         return e;

@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.SocketException;
 import java.util.concurrent.ScheduledFuture;
 import org.junit.Before;
@@ -172,13 +173,10 @@ public class TimeoutExceptionHandlingStageTest {
     }
 
     @Test
-    public void interruptedException_causedByApiCallAttemptTimeoutTask() throws Exception {
-        when(apiCallTimeoutTask.hasExecuted()).thenReturn(true);
-        when(apiCallAttemptTimeoutTask.hasExecuted()).thenReturn(true);
-        when(requestPipeline.execute(any(), any())).thenThrow(SdkClientException.class);
-        verifyExceptionThrown(InterruptedException.class);
+    public void uncheckedIOException_causedByApiCallAttemptTimeoutTask() throws Exception {
+        when(requestPipeline.execute(any(), any())).thenThrow(UncheckedIOException.class);
+        verifyExceptionThrown(IOException.class);
     }
-
 
     @Test
     public void abortedException_causedByApiCallAttemptTimeoutTask_shouldNotPropagate() throws Exception {
