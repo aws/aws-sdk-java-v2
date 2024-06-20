@@ -393,6 +393,10 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
          * Resolve the provided value, making sure to record any of its dependencies in the dependency graph.
          */
         private <T> T resolveValue(Value<T> value) {
+            Validate.notNull(value,
+                             "Encountered a null value when resolving configuration attributes. This is commonly "
+                             + "caused by concurrent modifications to non-thread-safe types. Ensure you're "
+                             + "synchronizing access to all non-thread-safe types.");
             return value.get(new LazyValueSource() {
                 @Override
                 public <U> U get(Key<U> innerKey) {
