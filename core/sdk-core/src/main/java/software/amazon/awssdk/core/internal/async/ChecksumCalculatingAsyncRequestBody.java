@@ -197,7 +197,7 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
                     checksumBytes = checksum.getChecksumBytes();
                     ByteBuffer allocatedBuffer = getFinalChecksumAppendedChunk(byteBuffer);
                     wrapped.onNext(allocatedBuffer);
-                } else if (byteBuffer.remaining() > 0) {
+                } else if (byteBuffer.hasRemaining()) {
                     ByteBuffer allocatedBuffer = createChunk(byteBuffer, false);
                     wrapped.onNext(allocatedBuffer);
                 } else {
