@@ -43,6 +43,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.migration.internal.utils.IdentifierUtils;
 import software.amazon.awssdk.migration.internal.utils.SdkTypeUtils;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -65,7 +66,10 @@ import software.amazon.awssdk.utils.Pair;
  * to v2:
  * <p>
  * {@snippet :
+ *         ClientOverrideConfiguration clientConfiguration = ClientOverrideConfiguration.builder().build();
+ *
  *         SqsClient sqs = SqsClient.builder()
+ *                                  .overrideConfiguration(clientConfiguration)
  *                                  .httpClientBuilder(ApacheHttpClient.builder()
  *                                                      .maxConnections(100)
  *                                                      .tcpKeepAlive(true))
@@ -258,15 +262,8 @@ public class HttpSettingsToHttpClient extends Recipe {
                 Collections.emptyList()
             );
 
-            J.Identifier httpClientBuilderName = new J.Identifier(
-                Tree.randomId(),
-                Space.EMPTY,
-                Markers.EMPTY,
-                Collections.emptyList(),
-                "httpClientBuilder",
-                null,
-                null
-            );
+            J.Identifier httpClientBuilderName =
+                IdentifierUtils.makeId("httpClientBuilder", builderType);
 
             J.MethodInvocation httpClientBuilderMethodInvoke = new J.MethodInvocation(
                 Tree.randomId(),
@@ -366,25 +363,11 @@ public class HttpSettingsToHttpClient extends Recipe {
                 Collections.emptyList()
             );
 
-            J.Identifier httpClient = new J.Identifier(
-                Tree.randomId(),
-                Space.EMPTY,
-                Markers.EMPTY,
-                Collections.emptyList(),
-                httpClientClassName.getSimpleName(),
-                httpClientType,
-                null
-            );
+            J.Identifier httpClient =
+                IdentifierUtils.makeId(httpClientClassName.getSimpleName(), httpClientType);
 
-            J.Identifier httpClientBuilderName = new J.Identifier(
-                Tree.randomId(),
-                Space.EMPTY,
-                Markers.EMPTY,
-                Collections.emptyList(),
-                "builder",
-                null,
-                null
-            );
+            J.Identifier httpClientBuilderName =
+                IdentifierUtils.makeId("builder", httpClientBuilderType);
 
             J.MethodInvocation httpClientBuilderMethodInvoke = new J.MethodInvocation(
                 Tree.randomId(),
@@ -411,15 +394,8 @@ public class HttpSettingsToHttpClient extends Recipe {
             String settingName = entry.getKey();
             Expression value = entry.getValue();
 
-            J.Identifier settingBuilderName = new J.Identifier(
-                Tree.randomId(),
-                Space.EMPTY,
-                Markers.EMPTY,
-                Collections.emptyList(),
-                settingName,
-                httpClientBuilderType,
-                null
-            );
+            J.Identifier settingBuilderName =
+                IdentifierUtils.makeId(settingName, httpClientBuilderType);
 
             List<JavaType> parametersTypes = Collections.singletonList(value.getType());
 
