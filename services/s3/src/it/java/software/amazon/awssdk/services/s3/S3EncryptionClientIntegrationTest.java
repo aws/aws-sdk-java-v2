@@ -18,12 +18,14 @@ package software.amazon.awssdk.services.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.IOException;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.kms.model.AliasListEntry;
@@ -45,8 +47,7 @@ public class S3EncryptionClientIntegrationTest extends S3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(S3EncryptionClientIntegrationTest.class);
     private static final String KEY = "key";
     private static final String KMS_KEY_ALIAS = "alias/do-not-delete-encryption-client-integ-test-key";
-    private static RandomTempFile tempFile;
-    private static Path filePath;
+
     private static KmsClient kmsClient;
     private static S3AsyncEncryptionClient encryptionClient;
 
@@ -55,8 +56,6 @@ public class S3EncryptionClientIntegrationTest extends S3IntegrationTestBase {
     public static void init() throws Exception {
         setUp();
         createBucket(BUCKET);
-        tempFile = new RandomTempFile(15);
-        filePath = Paths.get(tempFile.getPath());
         kmsClient = KmsClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
         String kmsKeyId = getOrCreateKmsKey();
         Keyring keyring = KmsKeyring.builder().wrappingKeyId(kmsKeyId).kmsClient(kmsClient).build();
@@ -66,7 +65,6 @@ public class S3EncryptionClientIntegrationTest extends S3IntegrationTestBase {
                                                   .enableDelayedAuthenticationMode(true)
                                                   .wrappedClient(s3Async)
                                                   .build();
-
     }
 
     @AfterAll
@@ -74,7 +72,29 @@ public class S3EncryptionClientIntegrationTest extends S3IntegrationTestBase {
         deleteBucketAndAllContents(BUCKET);
         kmsClient.close();
         encryptionClient.close();
-        tempFile.delete();
+    }
+
+    private static Stream<Arguments> publishers() throws IOException {
+        return Stream.of(
+            Arguments.of(AsyncRequestBody.fromFile(new RandomTempFile(15))),
+            Arguments.of(AsyncRequestBody.fromFile(new RandomTempFile(0))),
+            Arguments.of(AsyncRequestBody.fromString("a")),
+            Arguments.of(AsyncRequestBody.fromString("")),
+            Arguments.of(AsyncRequestBody.fromBytes(new byte[15])),
+            Arguments.of(AsyncRequestBody.fromBytes(new byte[0]))
+            );
+    }
+
+    @ParameterizedTest
+    @MethodSource("publishers")
+    void putObject_withEncryptionClient_withChecksumAlgorithm_withFilesLessThan16Bytes_uploadsSuccessfully(AsyncRequestBody asyncRequestBody) {
+        PutObjectRequest request = PutObjectRequest.builder()
+                                                   .bucket(BUCKET).key(KEY)
+                                                   .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                                   .build();
+
+        PutObjectResponse response = encryptionClient.putObject(request, asyncRequestBody).join();
+        assertThat(response).isNotNull();
     }
 
     private static Optional<AliasListEntry> checkForExistingKey() {
@@ -100,16 +120,5 @@ public class S3EncryptionClientIntegrationTest extends S3IntegrationTestBase {
         kmsClient.createAlias(createAliasRequest);
 
         return keyId;
-    }
-
-    @Test
-    void putObject_withEncryptionClient_withChecksumAlgorithm_withFileLessThan16Bytes_uploadsSuccessfully() {
-        PutObjectRequest request = PutObjectRequest.builder()
-                                                   .bucket(BUCKET).key(KEY)
-                                                   .checksumAlgorithm(ChecksumAlgorithm.CRC32)
-                                                   .build();
-
-        PutObjectResponse response = encryptionClient.putObject(request, AsyncRequestBody.fromFile(filePath)).join();
-        assertThat(response).isNotNull();
     }
 }

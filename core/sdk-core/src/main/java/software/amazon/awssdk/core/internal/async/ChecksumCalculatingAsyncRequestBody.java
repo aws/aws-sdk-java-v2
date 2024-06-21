@@ -186,11 +186,6 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            if (byteBuffer.remaining() == 0) {
-                wrapped.onNext(byteBuffer);
-                return;
-            }
-
             boolean lastByte = this.remainingBytes.addAndGet(-byteBuffer.remaining()) <= 0;
             try {
                 if (checksum != null) {
@@ -202,9 +197,11 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
                     checksumBytes = checksum.getChecksumBytes();
                     ByteBuffer allocatedBuffer = getFinalChecksumAppendedChunk(byteBuffer);
                     wrapped.onNext(allocatedBuffer);
-                } else {
+                } else if (byteBuffer.remaining() > 0) {
                     ByteBuffer allocatedBuffer = createChunk(byteBuffer, false);
                     wrapped.onNext(allocatedBuffer);
+                } else {
+                    wrapped.onNext(byteBuffer);
                 }
             } catch (SdkException sdkException) {
                 this.subscription.cancel();
