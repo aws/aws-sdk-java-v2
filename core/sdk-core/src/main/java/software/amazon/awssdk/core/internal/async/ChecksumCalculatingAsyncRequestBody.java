@@ -186,6 +186,11 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
+            if (byteBuffer.remaining() == 0) {
+                wrapped.onNext(byteBuffer);
+                return;
+            }
+
             boolean lastByte = this.remainingBytes.addAndGet(-byteBuffer.remaining()) <= 0;
             try {
                 if (checksum != null) {
