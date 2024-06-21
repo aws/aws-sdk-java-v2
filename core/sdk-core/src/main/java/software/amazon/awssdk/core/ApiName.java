@@ -17,6 +17,7 @@ package software.amazon.awssdk.core;
 
 import static software.amazon.awssdk.utils.Validate.notNull;
 
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -40,6 +41,30 @@ public final class ApiName {
 
     public String version() {
         return version;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ApiName that = (ApiName) o;
+
+        if (!Objects.equals(name, that.name)) {
+            return false;
+        }
+        return Objects.equals(version, that.version);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (version != null ? version.hashCode() : 0);
+        return result;
     }
 
     public static Builder builder() {
