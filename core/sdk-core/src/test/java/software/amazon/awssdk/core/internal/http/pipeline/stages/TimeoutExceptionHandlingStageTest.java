@@ -173,7 +173,7 @@ public class TimeoutExceptionHandlingStageTest {
     }
 
     @Test
-    public void uncheckedIOException_causedByApiCallAttemptTimeoutTask() throws Exception {
+    public void uncheckedIOException_throws_IOException() throws Exception {
         when(requestPipeline.execute(any(), any())).thenThrow(UncheckedIOException.class);
         verifyExceptionThrown(IOException.class);
     }
