@@ -217,4 +217,9 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
     protected MethodSpec.Builder waiterOperationBody(MethodSpec.Builder builder) {
         return builder.addAnnotation(Override.class).addStatement("return delegate.waiter()");
     }
+
+    @Override
+    protected MethodSpec.Builder batchManagerOperationBody(MethodSpec.Builder builder) {
+        return builder.addAnnotation(Override.class).addStatement("return delegate.batchManager()");
+    }
 }
