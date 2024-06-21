@@ -37,7 +37,6 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkInterruptedException;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -172,6 +171,14 @@ public class TimeoutExceptionHandlingStageTest {
         when(apiCallAttemptTimeoutTask.hasExecuted()).thenReturn(true);
         when(requestPipeline.execute(any(), any())).thenThrow(SdkClientException.create(""));
         verifyExceptionThrown(ApiCallAttemptTimeoutException.class);
+    }
+
+    @Test
+    public void interruptedException_causedByApiCallAttemptTimeoutTask() throws Exception {
+        when(apiCallTimeoutTask.hasExecuted()).thenReturn(true);
+        when(apiCallAttemptTimeoutTask.hasExecuted()).thenReturn(true);
+        when(requestPipeline.execute(any(), any())).thenThrow(SdkClientException.class);
+        verifyExceptionThrown(InterruptedException.class);
     }
 
     @Test
