@@ -157,7 +157,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
             type.addField(AwsJsonProtocolFactory.class, "jsonProtocolFactory", PRIVATE, FINAL);
         }
 
-        if (model.getCustomizationConfig().getBatchManagerSupported() || model.hasWaiters()) {
+        if (shouldAddScheduledExecutor()) {
             addScheduledExecutorIfNeeded(type);
         }
 
@@ -266,12 +266,16 @@ public final class AsyncClientClass extends AsyncClientInterface {
             builder.endControlFlow();
         }
 
-        if (model.hasWaiters() || model.getCustomizationConfig().getBatchManagerSupported()) {
+        if (shouldAddScheduledExecutor()) {
             builder.addStatement("this.executorService = clientConfiguration.option($T.SCHEDULED_EXECUTOR_SERVICE)",
                                  SdkClientOption.class);
         }
 
         return builder.build();
+    }
+
+    private boolean shouldAddScheduledExecutor() {
+        return model.hasWaiters() || model.getCustomizationConfig().getBatchManagerSupported();
     }
 
     private boolean hasOperationWithEventStreamOutput() {

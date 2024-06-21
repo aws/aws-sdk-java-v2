@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs.internal.batchmanager;
+package software.amazon.awssdk.services.sqs.batchmanager;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -37,6 +37,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     private final Duration maxBatchOpenInMs;
 
     public BatchOverrideConfiguration(Builder builder) {
+        //TODO : Add defaults based on QueueBufferConfig.java of V1 Default values.
         this.maxBatchItems = Validate.isPositiveOrNull(builder.maxBatchItems, "maxBatchItems");
         this.maxBatchOpenInMs = Validate.isPositiveOrNull(builder.maxBatchOpenInMs, "maxBachOpenInMs");
         this.maxBatchKeys = Validate.isPositiveOrNull(builder.maxBatchKeys, "maxBatchKeys");
@@ -137,7 +138,8 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         }
 
         /**
-         * Define the the maximum number of messages that are batched together in a single request.
+         * Define the maximum number of messages that are batched together in a single request.
+         * //TODO : QueueBufferConfig.java Default value of 10.
          *
          * @param maxBatchItems The new maxBatchItems value.
          * @return This object for method chaining.
@@ -176,7 +178,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         /**
          * The maximum amount of time (in milliseconds) that an outgoing call waits for other requests before sending out a batch
          * request.
-         *
+         * TODO : Decide if Ms needs to be added to the name in surface API review meeting
          * @param maxBatchOpenInMs The new maxBatchOpenInMs value.
          * @return This object for method chaining.
          */

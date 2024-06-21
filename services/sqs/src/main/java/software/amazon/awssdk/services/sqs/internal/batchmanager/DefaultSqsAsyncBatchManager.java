@@ -18,15 +18,22 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.batchmanager.SqsAsyncBatchManager;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchOverrideConfiguration;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
+    // TODO : update the validation here while implementing this class in next PR
     private final SqsAsyncClient client;
+    private final  ScheduledExecutorService scheduledExecutor;
+    private final  BatchOverrideConfiguration overrideConfiguration;
 
     private DefaultSqsAsyncBatchManager(DefaultBuilder builder) {
-        this.client = builder.client;
+        this.client = Validate.notNull(builder.client, "client cannot be null");
+        this.scheduledExecutor = Validate.notNull(builder.scheduledExecutor, "scheduledExecutor cannot be null");
+        // TODO : create overrideConfiguration with Default values if null
+        this.overrideConfiguration = builder.overrideConfiguration;
     }
 
     public static SqsAsyncBatchManager.Builder builder() {

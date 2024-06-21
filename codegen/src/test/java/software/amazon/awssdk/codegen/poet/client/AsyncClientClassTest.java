@@ -95,8 +95,8 @@ public class AsyncClientClassTest {
 
     @Test
     public void asyncClientBatchManager() {
-        ClassSpec syncClientCustomServiceMetaData = createAsyncClientClass(batchManagerModels());
-        assertThat(syncClientCustomServiceMetaData, generatesTo("test-batchmanager-async.java"));
+        ClassSpec aSyncClientBatchManager = createAsyncClientClass(batchManagerModels());
+        assertThat(aSyncClientBatchManager, generatesTo("test-batchmanager-async.java"));
     }
 
     private AsyncClientClass createAsyncClientClass(IntermediateModel model) {

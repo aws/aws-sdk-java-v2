@@ -134,7 +134,6 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-
     private final Executor executor;
 
     protected DefaultJsonAsyncClient(SdkClientConfiguration clientConfiguration) {

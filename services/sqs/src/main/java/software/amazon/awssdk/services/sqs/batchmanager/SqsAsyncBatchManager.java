@@ -19,7 +19,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.DefaultSqsAsyncBatchManager;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
@@ -36,6 +35,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * <p>
  * This manager buffers client requests and sends them in batches to the service, enhancing efficiency by reducing the number of
  * API requests. Requests are buffered until they reach a specified limit or a timeout occurs.
+ * TODO : add consumer builder overloads for requests for all the methods.
  */
 @SdkPublicApi
 public interface SqsAsyncBatchManager extends SdkAutoCloseable {
@@ -112,6 +112,7 @@ public interface SqsAsyncBatchManager extends SdkAutoCloseable {
          *
          * @param client The SqsAsyncClient to use.
          * @return This builder for method chaining.
+         * @throws NullPointerException If client is null.
          */
         Builder client(SqsAsyncClient client);
 
