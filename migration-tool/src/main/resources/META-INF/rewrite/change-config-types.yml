@@ -13,6 +13,7 @@
 # permissions and limitations under the License.
 #
 ## TODO: support retry policy, signer and throttledRetries
+## TODO: handle http settings renaming for async HTTP client
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: software.amazon.awssdk.ChangeConfigTypes
@@ -35,6 +36,23 @@ recipeList:
       newMethodName: withApiCallTimeout
   - software.amazon.awssdk.migration.internal.recipe.NumberToDuration:
       methodPattern: com.amazonaws.ClientConfiguration withApiCallTimeout(int)
+
+  - software.amazon.awssdk.migration.internal.recipe.NumberToDuration:
+      methodPattern: com.amazonaws.ClientConfiguration withConnectionTimeout(int)
+  - software.amazon.awssdk.migration.internal.recipe.NumberToDuration:
+      methodPattern: com.amazonaws.ClientConfiguration withSocketTimeout(int)
+
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.ClientConfiguration withConnectionMaxIdleMillis(long)
+      newMethodName: withConnectionMaxIdleTime
+  - software.amazon.awssdk.migration.internal.recipe.NumberToDuration:
+      methodPattern: com.amazonaws.ClientConfiguration withConnectionMaxIdleTime(long)
+
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.ClientConfiguration withConnectionTTL(long)
+      newMethodName: withConnectionTimeToLive
+  - software.amazon.awssdk.migration.internal.recipe.NumberToDuration:
+      methodPattern: com.amazonaws.ClientConfiguration withConnectionTimeToLive(long)
 
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.ClientConfiguration withRetryMode(..)
