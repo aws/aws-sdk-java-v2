@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.resolveTimeoutInMillis;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Check if an {@link Exception} is caused by either ApiCallTimeout or ApiAttemptTimeout and translate that
@@ -41,6 +43,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 @SdkInternalApi
 public final class TimeoutExceptionHandlingStage<OutputT> implements RequestToResponsePipeline<OutputT> {
 
+    private static final Logger log = Logger.loggerFor(TimeoutExceptionHandlingStage.class);
     private final HttpClientDependencies dependencies;
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> requestPipeline;
 
@@ -104,6 +107,10 @@ public final class TimeoutExceptionHandlingStage<OutputT> implements RequestToRe
             ((SdkInterruptedException) e).getResponseStream().ifPresent(r -> invokeSafely(r::close));
         }
 
+        if (e instanceof UncheckedIOException) {
+            runAndLogError(log.logger(), e.getMessage(), e::getCause);
+        }
+
         if (isCausedByApiCallTimeout(context)) {
             return new InterruptedException();
         }
@@ -117,10 +124,6 @@ public final class TimeoutExceptionHandlingStage<OutputT> implements RequestToRe
         if (e instanceof InterruptedException) {
             Thread.currentThread().interrupt();
             return AbortedException.create("Thread was interrupted", e);
-        }
-
-        if (e instanceof UncheckedIOException) {
-            return new IOException(e.getCause());
         }
 
         return e;

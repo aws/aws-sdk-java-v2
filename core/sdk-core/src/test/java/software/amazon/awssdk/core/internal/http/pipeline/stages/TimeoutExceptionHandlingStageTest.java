@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +37,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkInterruptedException;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -173,9 +175,10 @@ public class TimeoutExceptionHandlingStageTest {
     }
 
     @Test
-    public void uncheckedIOException_throws_IOException() throws Exception {
+    public void uncheckedIOException_doesNotThrowException() throws Exception {
+        when(apiCallTimeoutTask.hasExecuted()).thenReturn(true);
         when(requestPipeline.execute(any(), any())).thenThrow(UncheckedIOException.class);
-        verifyExceptionThrown(IOException.class);
+        verifyExceptionThrown(InterruptedException.class);
     }
 
 
@@ -205,6 +208,13 @@ public class TimeoutExceptionHandlingStageTest {
 
         assertThatThrownBy(() -> stage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), context))
             .isExactlyInstanceOf(exceptionToAssert);
+    }
+    private void verifyExceptionNotThrown() {
+        RequestExecutionContext context = requestContext();
+        context.apiCallTimeoutTracker(new ApiCallTimeoutTracker(apiCallTimeoutTask, scheduledFuture));
+        context.apiCallAttemptTimeoutTracker(new ApiCallTimeoutTracker(apiCallAttemptTimeoutTask, scheduledFuture));
+
+        assertDoesNotThrow(() -> stage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), context));
     }
 
     private RequestExecutionContext requestContext() {
