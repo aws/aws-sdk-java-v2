@@ -152,7 +152,7 @@ public class HttpSettingsToHttpClient extends Recipe {
 
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-            method = super.visitMethodInvocation(method, executionContext).cast();
+            method = super.visitMethodInvocation(method, executionContext);
             if (isClientOverrideConfigurationBuilder(method)) {
                 return handleClientOverrideConfiguration(method, executionContext);
             }
@@ -452,11 +452,14 @@ public class HttpSettingsToHttpClient extends Recipe {
 
             // select.getSelect: ClientOverrideConfiguration.builder()
             J.MethodInvocation selectInvokeSelect = (J.MethodInvocation) selectInvoke.getSelect();
-            Space selectPrefix = selectInvoke.getPrefix();
 
             // new method: ClientOverrideConfiguration.builder().aNonHttpSetting(xx)
-            method = method.withSelect(selectInvokeSelect).withPrefix(selectPrefix);
+            method = method.withSelect(selectInvokeSelect);
             method = autoFormat(method, executionContext);
+
+            if (method.getSimpleName().equals("build")) {
+                method = method.withPrefix(Space.SINGLE_SPACE);
+            }
             return method;
         }
 

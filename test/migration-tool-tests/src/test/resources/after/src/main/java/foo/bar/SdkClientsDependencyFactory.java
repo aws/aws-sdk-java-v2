@@ -35,7 +35,7 @@ public final class SdkClientsDependencyFactory {
     }
 
     public static ClientOverrideConfiguration customClientConfiguration() {
-        ClientOverrideConfiguration clientConfiguration =ClientOverrideConfiguration.builder()
+        ClientOverrideConfiguration clientConfiguration = ClientOverrideConfiguration.builder()
             .retryPolicy(RetryMode.STANDARD)
             .apiCallTimeout(Duration.ofMillis(1000))
             .apiCallAttemptTimeout(Duration.ofMillis(1001))
@@ -65,7 +65,7 @@ public final class SdkClientsDependencyFactory {
 
     public static SqsAsyncClient sqsAsyncClientWithAllSettings() {
 
-        ClientOverrideConfiguration clientConfiguration =ClientOverrideConfiguration.builder()
+        ClientOverrideConfiguration clientConfiguration = ClientOverrideConfiguration.builder()
             .retryPolicy(RetryMode.STANDARD)
             .apiCallTimeout(Duration.ofMillis(2001))
             .apiCallAttemptTimeout(Duration.ofMillis(2002))
