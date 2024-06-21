@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "anirudh9391",
+    "description": "Modify exception handling to not have it throw UncheckedIoExceptions if caused by timeout"
+}
