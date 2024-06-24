@@ -37,7 +37,7 @@ public final class NamingConversionUtils {
         String v2PackagePrefix = packagePrefix.replace(V1_PACKAGE_PREFIX, V2_PACKAGE_PREFIX);
 
         if (Stream.of("Abstract", "Amazon", "AWS").anyMatch(v1ClassName::startsWith)) {
-            v2ClassName = getV2ClientEquivalent(v1ClassName);
+            v2ClassName = getV2ClientOrExceptionEquivalent(v1ClassName);
         } else if (v1ClassName.endsWith("Result")) {
             int lastIndex = v1ClassName.lastIndexOf("Result");
             v2ClassName = v1ClassName.substring(0, lastIndex) + "Response";
@@ -46,7 +46,7 @@ public final class NamingConversionUtils {
         return v2PackagePrefix + "." + v2ClassName;
     }
 
-    private static String getV2ClientEquivalent(String className) {
+    private static String getV2ClientOrExceptionEquivalent(String className) {
         if (className.startsWith("Abstract")) {
             className = className.substring(8);
         }
@@ -57,6 +57,10 @@ public final class NamingConversionUtils {
         }
 
         String v2Style = CodegenNamingUtils.pascalCase(className);
+
+        if (className.endsWith("Exception")) {
+            return v2Style;
+        }
 
         if (!className.endsWith("Client") && !className.endsWith("Builder")) {
             v2Style = v2Style + "Client";

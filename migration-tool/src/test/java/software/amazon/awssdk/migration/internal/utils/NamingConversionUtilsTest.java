@@ -71,4 +71,11 @@ public class NamingConversionUtilsTest {
         assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.iot.AWSIotAsyncClientBuilder"))
             .isEqualTo("software.amazon.awssdk.services.iot.IotAsyncClientBuilder");
     }
+
+    @Test
+    void v1Exception_shouldConvertToV2() {
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.iot.AmazonIOTException"))
+            .isEqualTo("software.amazon.awssdk.services.iot.IotException");
+    }
 }
