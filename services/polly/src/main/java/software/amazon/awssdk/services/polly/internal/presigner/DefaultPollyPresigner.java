@@ -251,7 +251,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
         AwsCredentialsIdentity credentialsIdentity = resolveCredentials(resolveCredentialsProvider(requestToPresign));
         AuthSchemeOption.Builder optionBuilder = AuthSchemeOption.builder()
                                                                  .schemeId(authScheme.schemeId());
-        optionBuilder.putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, SERVICE_NAME);
+        optionBuilder.putSignerProperty(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME, SERVICE_NAME);
         String region = attributes.getAttribute(AwsExecutionAttribute.AWS_REGION).id();
         optionBuilder.putSignerProperty(AwsV4HttpSigner.REGION_NAME, region);
         return new SelectedAuthScheme<>(CompletableFuture.completedFuture(credentialsIdentity), authScheme.signer(),

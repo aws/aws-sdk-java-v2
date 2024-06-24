@@ -101,7 +101,7 @@ public final class DocumentationUtils {
          * be present in documentation and inadvertently terminate that Java
          * comment line, resulting in broken code.
          */
-        documentation = documentation.replaceAll("\\*\\/", "*&#47;");
+        documentation = documentation.replace("\\*\\/", "*&#47;");
 
         return documentation;
     }
