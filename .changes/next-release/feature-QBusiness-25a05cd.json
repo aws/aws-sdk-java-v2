@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "QBusiness",
-    "contributor": "",
-    "description": "Allow enable/disable Q Apps when creating/updating a Q application; Return the Q Apps enablement information when getting a Q application."
-}
