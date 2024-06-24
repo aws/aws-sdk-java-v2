@@ -60,6 +60,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.endpoints.Endpoint;
@@ -76,6 +77,8 @@ import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBuilder;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonServiceClientConfiguration;
@@ -194,16 +197,16 @@ public class SdkPluginTest {
                 .beforeTransmissionValidator((r, a, v) -> {
                     v.forEach((key, value) -> assertThat(r.httpRequest().headers().get(key)).isEqualTo(value));
                 }),
-            new TestCase<RetryPolicy>("override.retryPolicy")
-                .defaultValue(RetryPolicy.defaultRetryPolicy())
-                .nonDefaultValue(RetryPolicy.builder(RetryMode.STANDARD).numRetries(1).build())
-                .clientSetter((b, v) -> b.overrideConfiguration(c -> c.retryPolicy(v)))
-                .pluginSetter((b, v) -> b.overrideConfiguration(b.overrideConfiguration().copy(c -> c.retryPolicy(v))))
-                .pluginValidator((c, v) -> assertThat(c.overrideConfiguration().retryPolicy().get().numRetries())
-                    .isEqualTo(v.numRetries()))
+            new TestCase<RetryStrategy>("override.retryStrategy")
+                .defaultValue(SdkDefaultRetryStrategy.defaultRetryStrategy())
+                .nonDefaultValue(SdkDefaultRetryStrategy.standardRetryStrategyBuilder().maxAttempts(1).build())
+                .clientSetter((b, v) -> b.overrideConfiguration(c -> c.retryStrategy(v)))
+                .pluginSetter((b, v) -> b.overrideConfiguration(b.overrideConfiguration().copy(c -> c.retryStrategy(v))))
+                .pluginValidator((c, v) -> assertThat(c.overrideConfiguration().retryStrategy().get().maxAttempts())
+                    .isEqualTo(v.maxAttempts()))
                 .beforeTransmissionValidator((r, a, v) -> {
                     assertThat(r.httpRequest().firstMatchingHeader("amz-sdk-request"))
-                        .hasValue("attempt=1; max=" + (v.numRetries() + 1));
+                        .hasValue("attempt=1; max=" + v.maxAttempts());
                 }),
             new TestCase<List<ExecutionInterceptor>>("override.executionInterceptors")
                 .defaultValue(emptyList())

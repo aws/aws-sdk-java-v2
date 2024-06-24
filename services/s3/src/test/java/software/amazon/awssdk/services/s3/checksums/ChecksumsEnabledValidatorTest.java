@@ -155,6 +155,54 @@ public class ChecksumsEnabledValidatorTest {
     }
 
     @Test
+    public void putObject_crc32ValueSupplied_shouldNotValidateMd5() {
+        ExecutionAttributes executionAttributes = getSyncExecutionAttributes();
+
+        assertThat(shouldRecordChecksum(PutObjectRequest.builder()
+                                                        .checksumCRC32("checksumVal")
+                                                        .build(),
+                                        ClientType.SYNC,
+                                        executionAttributes,
+                                        emptyHttpRequest().build())).isFalse();
+    }
+
+    @Test
+    public void putObject_crc32cValueSupplied_shouldNotValidateMd5() {
+        ExecutionAttributes executionAttributes = getSyncExecutionAttributes();
+
+        assertThat(shouldRecordChecksum(PutObjectRequest.builder()
+                                                        .checksumCRC32C("checksumVal")
+                                                        .build(),
+                                        ClientType.SYNC,
+                                        executionAttributes,
+                                        emptyHttpRequest().build())).isFalse();
+    }
+
+    @Test
+    public void putObject_sha1ValueSupplied_shouldNotValidateMd5() {
+        ExecutionAttributes executionAttributes = getSyncExecutionAttributes();
+
+        assertThat(shouldRecordChecksum(PutObjectRequest.builder()
+                                                        .checksumSHA1("checksumVal")
+                                                        .build(),
+                                        ClientType.SYNC,
+                                        executionAttributes,
+                                        emptyHttpRequest().build())).isFalse();
+    }
+
+    @Test
+    public void putObject_sha256ValueSupplied_shouldNotValidateMd5() {
+        ExecutionAttributes executionAttributes = getSyncExecutionAttributes();
+
+        assertThat(shouldRecordChecksum(PutObjectRequest.builder()
+                                                        .checksumSHA256("checksumVal")
+                                                        .build(),
+                                        ClientType.SYNC,
+                                        executionAttributes,
+                                        emptyHttpRequest().build())).isFalse();
+    }
+
+    @Test
     public void responseChecksumIsValid_defaultTrue() {
         assertThat(responseChecksumIsValid(SdkHttpResponse.builder().build())).isTrue();
     }
