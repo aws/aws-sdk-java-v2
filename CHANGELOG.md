@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.8__ __2024-06-24__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Implement `ApiName.equals`/`.hashCode`
+        - Contributed by: [@brettkail-wk](https://github.com/brettkail-wk)
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Increases Converse API's document name length
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release includes changes to ProfileObjectType APIs, adds functionality top set and get capacity for profile object types.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Fix EC2 multi-protocol info in models.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixes bug where empty non-final chunk is wrapped with headers and trailers during PutObject when using flexible checksums with S3AsyncClient
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Add sensitive trait to SSM IPAddress property for CloudTrail redaction
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Added ability to enable DeepLinking functionality on a Portal via UserSettings as well as added support for IdentityProvider resource tagging.
+
+## __QBusiness__
+  - ### Features
+    - Allow enable/disable Q Apps when creating/updating a Q application; Return the Q Apps enablement information when getting a Q application.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@brettkail-wk](https://github.com/brettkail-wk)
 # __2.26.7__ __2024-06-20__
 ## __AWS Compute Optimizer__
   - ### Features
