@@ -90,7 +90,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                   .initializer("$T.loggerFor($T.class)", Logger.class, className())
                                   .build());
 
-        builder.addMethod(generateBeforeExecution())
+        builder.addMethod(generateModifyRequest())
                .addMethod(generateResolveAuthOptions())
                .addMethod(generateSelectAuthScheme())
                .addMethod(generateAuthSchemeParams())
@@ -100,20 +100,22 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         return builder.build();
     }
 
-    private MethodSpec generateBeforeExecution() {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("beforeExecution")
+    private MethodSpec generateModifyRequest() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("modifyRequest")
                                                .addAnnotation(Override.class)
                                                .addModifiers(Modifier.PUBLIC)
-                                               .addParameter(Context.BeforeExecution.class,
+                                               .addParameter(Context.ModifyRequest.class,
                                                              "context")
                                                .addParameter(ExecutionAttributes.class,
-                                                             "executionAttributes");
+                                                             "executionAttributes")
+                                               .returns(SdkRequest.class);
 
         builder.addStatement("$T authOptions = resolveAuthOptions(context, executionAttributes)",
                              listOf(AuthSchemeOption.class))
                .addStatement("$T selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes)",
                              wildcardSelectedAuthScheme())
-               .addStatement("putSelectedAuthScheme(executionAttributes, selectedAuthScheme)");
+               .addStatement("putSelectedAuthScheme(executionAttributes, selectedAuthScheme)")
+               .addStatement("return context.request()");
         return builder.build();
     }
 

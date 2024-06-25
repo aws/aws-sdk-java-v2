@@ -317,11 +317,12 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     private static final class AttachHttpAttributesExecutionInterceptor implements ExecutionInterceptor {
 
         @Override
-        public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
+        public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
             // Hack to disable new SRA path because we still rely on HttpChecksumStage to perform checksum for
             // non-streaming operation.
             // TODO: remove this once CRT supports checksum for default requests
             executionAttributes.putAttribute(AUTH_SCHEMES, null);
+            return context.request();
         }
 
         @Override

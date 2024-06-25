@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Moving identity resolution from beforeExecution execution interceptor hook to modifyExecution interceptor hook, which lets execution interceptors use beforeExecution to affect identity resolution."
+}

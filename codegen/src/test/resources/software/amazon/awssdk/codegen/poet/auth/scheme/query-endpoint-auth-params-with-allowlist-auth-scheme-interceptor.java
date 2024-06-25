@@ -45,10 +45,11 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
     private static Logger LOG = Logger.loggerFor(QueryAuthSchemeInterceptor.class);
 
     @Override
-    public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
+    public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
         List<AuthSchemeOption> authOptions = resolveAuthOptions(context, executionAttributes);
         SelectedAuthScheme<? extends Identity> selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes);
         putSelectedAuthScheme(executionAttributes, selectedAuthScheme);
+        return context.request();
     }
 
     private List<AuthSchemeOption> resolveAuthOptions(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {

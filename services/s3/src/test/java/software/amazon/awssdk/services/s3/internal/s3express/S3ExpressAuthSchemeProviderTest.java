@@ -54,7 +54,7 @@ class S3ExpressAuthSchemeProviderTest {
         AttributeMap clientContextParams = AttributeMap.builder().build();
         ExecutionAttributes executionAttributes = requiredExecutionAttributes(clientContextParams);
 
-        new S3AuthSchemeInterceptor().beforeExecution(() -> request, executionAttributes);
+        new S3AuthSchemeInterceptor().modifyRequest(() -> request, executionAttributes);
 
         SelectedAuthScheme<?> attribute = executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
         assertThat(attribute).isNotNull();
@@ -85,7 +85,7 @@ class S3ExpressAuthSchemeProviderTest {
                                                        .build();
         ExecutionAttributes executionAttributes = requiredExecutionAttributes(clientContextParams);
 
-        new S3AuthSchemeInterceptor().beforeExecution(() -> request, executionAttributes);
+        new S3AuthSchemeInterceptor().modifyRequest(() -> request, executionAttributes);
 
         SelectedAuthScheme<?> attribute = executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
         assertThat(attribute).isNotNull();
