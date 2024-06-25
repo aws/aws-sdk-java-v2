@@ -41,7 +41,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * between 0 and the computed exponential delay.
  *
  * @deprecated Use instead {@link software.amazon.awssdk.retries.api.BackoffStrategy} and
- * {@link software.amazon.awssdk.retries.api.BackoffStrategy#fixedDelayWithoutJitter(Duration)}
+ * {@link software.amazon.awssdk.retries.api.BackoffStrategy#exponentialDelay(Duration, Duration)}
  */
 @SdkPublicApi
 @Deprecated
