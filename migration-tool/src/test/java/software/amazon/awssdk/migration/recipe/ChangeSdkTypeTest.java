@@ -28,17 +28,18 @@ public class ChangeSdkTypeTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new ChangeSdkType());
+        spec.recipe(new ChangeSdkType()).parser(Java8Parser.builder().classpath("aws-java-sdk-sqs","sqs"));
     }
 
     @Test
     @EnabledOnJre({JRE.JAVA_8})
     void shouldChangeVariables() {
         rewriteRun(
-            spec -> spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs")),
             java(
                 "import com.amazonaws.services.sqs.AmazonSQS;\n" +
                 "import com.amazonaws.services.sqs.AmazonSQSClient;\n" +
+                "import com.amazonaws.services.sqs.model.InvalidAttributeNameException;\n" +
+                "import com.amazonaws.services.sqs.model.AmazonSQSException;\n" +
                 "import com.amazonaws.services.sqs.model.ListQueuesResult;\n" +
                "import com.amazonaws.services.sqs.model.ListQueuesRequest;\n" +
                 "class Test {\n" +
@@ -46,21 +47,27 @@ public class ChangeSdkTypeTest implements RewriteTest {
                 "        AmazonSQS sqs = null;\n" +
                 "        ListQueuesRequest request = null;\n" +
                 "        ListQueuesResult result = null;\n" +
+                "        InvalidAttributeNameException exception = null;\n" +
+                "        AmazonSQSException baseException = null;\n" +
                 "    }\n" +
                 "}\n",
-               "import software.amazon.awssdk.services.sqs.SqsClient;\n" +
-               "import software.amazon.awssdk.services.sqs.model.ListQueuesRequest;\n" +
+               "import software.amazon.awssdk.services.sqs.SqsClient;\n"
                // TODO: duplicate import for some reason, fix this
-               "import software.amazon.awssdk.services.sqs.SqsClient;\n" +
-                "import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;\n" +
-                "\n" +
-                "class Test {\n" +
-               "    static void method() {\n" +
-                "        SqsClient sqs = null;\n" +
-                "        ListQueuesRequest request = null;\n" +
-                "        ListQueuesResponse result = null;\n" +
-                "    }\n" +
-                "}\n"
+               + "import software.amazon.awssdk.services.sqs.SqsClient;\n"
+               + "import software.amazon.awssdk.services.sqs.model.InvalidAttributeNameException;\n"
+               + "import software.amazon.awssdk.services.sqs.model.ListQueuesRequest;\n"
+               + "import software.amazon.awssdk.services.sqs.model.SqsException;\n"
+               + "import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;\n"
+               + "\n"
+               + "class Test {\n"
+               + "    static void method() {\n"
+               + "        SqsClient sqs = null;\n"
+               + "        ListQueuesRequest request = null;\n"
+               + "        ListQueuesResponse result = null;\n"
+               + "        InvalidAttributeNameException exception = null;\n"
+               + "        SqsException baseException = null;\n"
+               + "    }\n"
+               + "}"
             )
         );
     }
@@ -69,7 +76,6 @@ public class ChangeSdkTypeTest implements RewriteTest {
     @EnabledOnJre({JRE.JAVA_8})
     void shouldChangeFields() {
         rewriteRun(
-            spec -> spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs")),
             java(
                 "import com.amazonaws.services.sqs.model.DeleteQueueRequest;\n" +
                 "import com.amazonaws.services.sqs.model.DeleteQueueResult;\n" +
@@ -92,7 +98,6 @@ public class ChangeSdkTypeTest implements RewriteTest {
     @EnabledOnJre({JRE.JAVA_8})
     void shouldChangeFieldsInAList() {
         rewriteRun(
-            spec -> spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs")),
             java(
                 "import com.amazonaws.services.sqs.model.DeleteQueueResult;\n" +
                 "import java.util.List;\n" +
@@ -113,7 +118,6 @@ public class ChangeSdkTypeTest implements RewriteTest {
     @EnabledOnJre({JRE.JAVA_8})
     void shouldChangeMethodParameters() {
         rewriteRun(
-            spec -> spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs")),
             java(
                 "import com.amazonaws.services.sqs.model.CreateQueueRequest;\n" +
                 "class Test {\n" +
@@ -134,7 +138,6 @@ public class ChangeSdkTypeTest implements RewriteTest {
     @EnabledOnJre({JRE.JAVA_8})
     void shouldNotChangeExistingV2Types() {
         rewriteRun(
-            spec -> spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs", "sqs")),
             java(
                 "import com.amazonaws.services.sqs.model.CreateQueueRequest;\n" +
                 "import software.amazon.awssdk.services.sqs.model.DeleteQueueRequest;\n" +
@@ -161,7 +164,6 @@ public class ChangeSdkTypeTest implements RewriteTest {
     @EnabledOnJre({JRE.JAVA_8})
     void shouldChangeFieldsInInnerClass() {
         rewriteRun(
-            spec -> spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs")),
             java(
                 "import com.amazonaws.services.sqs.model.CreateQueueResult;\n" +
                 "class Test {\n" +

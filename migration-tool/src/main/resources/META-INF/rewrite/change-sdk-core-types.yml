@@ -15,8 +15,9 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: software.amazon.awssdk.ChangeSdkCoreTypes
-displayName: Change Maven dependency groupId, artifactId and/or the version example
+displayName: Change SDK core types from v1 to v2
 recipeList:
   - software.amazon.awssdk.ChangeRegionTypes
   - software.amazon.awssdk.ChangeAuthTypes
   - software.amazon.awssdk.ChangeConfigTypes
+  - software.amazon.awssdk.ChangeExceptionTypes

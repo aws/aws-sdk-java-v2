@@ -15,13 +15,17 @@
 
 package foo.bar;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.model.AmazonSQSException;
 import com.amazonaws.services.sqs.model.ListQueuesRequest;
 import com.amazonaws.services.sqs.model.ListQueuesResult;
 
+import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -40,9 +44,27 @@ public class Application {
             .withMaxResults(5)
             .withQueueNamePrefix("MyQueue-")
             .withNextToken("token");
-        ListQueuesResult listQueuesResult = sqs.listQueues(request);
-        String token = listQueuesResult.getNextToken();
-        System.out.println(listQueuesResult);
+
+        try {
+            ListQueuesResult listQueuesResult = sqs.listQueues(request);
+            String token = listQueuesResult.getNextToken();
+            System.out.println(listQueuesResult);
+        } catch (QueueDoesNotExistException exception) {
+            String errorCode = exception.getErrorCode();
+            String errorMessage = exception.getErrorMessage();
+            String requestId = exception.getRequestId();
+            byte[] rawResponse = exception.getRawResponse();
+            System.out.println(String.format("Error code: %s, message: %s, requestId: %s", errorCode, errorMessage, requestId));
+        } catch (AmazonSQSException exception) {
+            System.out.println(String.format("Error code: %s. RequestId: %s. Raw response content: %s",
+                                             exception.getErrorCode(), exception.getRequestId(),
+                                             exception.getRawResponseContent()));
+        } catch (AmazonServiceException exception) {
+            System.out.println(String.format("Error message: %s. Service Name: %s",
+                                             exception.getErrorMessage(), exception.getServiceName()));
+        } catch (AmazonClientException exception) {
+            System.out.println("Error message " + exception.getMessage());
+        }
     }
 
     private static Path downloadFile(AmazonS3 s3, String bucket, String key, Path dst) throws IOException {
