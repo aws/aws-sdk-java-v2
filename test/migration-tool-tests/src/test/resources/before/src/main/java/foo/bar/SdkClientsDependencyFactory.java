@@ -50,7 +50,7 @@ public final class SdkClientsDependencyFactory {
 
     public static AmazonSQS sqsClientWithAllSettings() {
         return AmazonSQSClient.builder()
-                              .withRegion(Regions.US_WEST_2)
+                              .withRegion("us-west-2")
                               .withClientConfiguration(customClientConfiguration())
                               .withCredentials(CredentialsDependencyFactory.defaultCredentialsProviderChain())
                               .build();
