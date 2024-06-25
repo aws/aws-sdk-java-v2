@@ -15,11 +15,17 @@
 
 package software.amazon.awssdk.http.apache.internal.net;
 
+import java.io.FilterInputStream;
 import java.io.FilterOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
 import javax.net.ssl.SSLSocket;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Wrapper socket that ensures the read end of the socket is still open before performing a {@code write()}. In TLS 1.3, it is
@@ -28,22 +34,114 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @SdkInternalApi
 public final class InputShutdownCheckingSslSocket extends DelegateSslSocket {
+    private static final Logger LOG = Logger.loggerFor(InputShutdownCheckingSslSocket.class);
+    private final SSLSocket sslSocket;
+    private final Socket layered;
+    private final ByteBuffer readBuffer = ByteBuffer.allocate(1024);
 
-    public InputShutdownCheckingSslSocket(SSLSocket sock) {
-        super(sock);
+    public InputShutdownCheckingSslSocket(SSLSocket sslSocket, Socket layered) {
+        super(sslSocket);
+        this.sslSocket = sslSocket;
+        this.layered = layered;
     }
 
     @Override
     public OutputStream getOutputStream() throws IOException {
-        return new InputShutdownCheckingOutputStream(sock.getOutputStream(), sock);
+        return new InputShutdownCheckingOutputStream(sslSocket.getOutputStream());
     }
 
-    private static class InputShutdownCheckingOutputStream extends FilterOutputStream {
-        private final SSLSocket sock;
+    @Override
+    public InputStream getInputStream() throws IOException {
+        return new BufferedInputStream(sslSocket.getInputStream());
+    }
 
-        InputShutdownCheckingOutputStream(OutputStream out, SSLSocket sock) {
+    // Attempt 1-byte read from the SSLSocket so that the SSLSocket reads the TLS record if there is one pending.
+    private void bufferSslSocketRead() throws IOException {
+        LOG.debug(() -> "Buffering SSLSocket data to consume pending TLS records that may contain a close_notify");
+        synchronized (readBuffer) {
+            if (!readBuffer.hasRemaining() || !dataAvailableOnLayeredSocket()) {
+                return;
+            }
+
+            InputStream is = sslSocket.getInputStream();
+            int originalSoTimeout = sslSocket.getSoTimeout();
+            try {
+                // Maximum time to block for the least amount of time possible (1ms)
+                sslSocket.setSoTimeout(1);
+                int read = is.read();
+                if (read != -1) {
+                    readBuffer.put((byte) read);
+                }
+            } catch (SocketTimeoutException to) {
+                LOG.debug(() -> "Timeout doing single byte read on SSLSocket. Most likely due to incomplete record", to);
+            } finally {
+                sslSocket.setSoTimeout(originalSoTimeout);
+            }
+        }
+    }
+
+    private class BufferedInputStream extends FilterInputStream {
+        private final byte[] oneByte = new byte[1];
+
+        protected BufferedInputStream(InputStream in) {
+            super(in);
+        }
+
+        @Override
+        public int available() throws IOException {
+            synchronized (readBuffer) {
+                readBuffer.flip();
+                int remaining = readBuffer.remaining();
+                readBuffer.flip();
+
+                if (remaining > 0) {
+                    return remaining;
+                }
+
+                return in.available();
+            }
+        }
+
+        @Override
+        public int read() throws IOException {
+            int read = read(oneByte, 0, 1);
+            if (read == -1) {
+                return -1;
+            }
+            return oneByte[0];
+        }
+
+        @Override
+        public int read(byte[] b) throws IOException {
+            return read(b, 0, b.length);
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            if (len == 0) {
+                return 0;
+            }
+
+            synchronized (readBuffer) {
+                readBuffer.flip();
+                if (readBuffer.hasRemaining()) {
+                    int bufferedRead = Math.min(len, readBuffer.remaining());
+                    readBuffer.get(b, off, bufferedRead);
+                    readBuffer.flip();
+                    return bufferedRead;
+                } else {
+                    readBuffer.flip();
+                }
+
+                return in.read(b, off, len);
+            }
+        }
+    }
+
+    private class InputShutdownCheckingOutputStream extends FilterOutputStream {
+
+        InputShutdownCheckingOutputStream(OutputStream out) {
             super(out);
-            this.sock = sock;
         }
 
         @Override
@@ -65,17 +163,26 @@ public final class InputShutdownCheckingSslSocket extends DelegateSslSocket {
         }
 
         private void checkInputShutdown() throws IOException {
-            if (sock.isInputShutdown()) {
+            if (sslSocket.isInputShutdown()) {
                 throw new IOException("Remote end is closed.");
             }
 
             try {
-                sock.getInputStream();
+                if (dataAvailableOnLayeredSocket()) {
+                    LOG.debug(() -> String.format("%d bytes available in layered socket, calling SSLSocket's read() to try and "
+                                                 + "consume the TLS record(s) if present."));
+                    bufferSslSocketRead();
+                }
+                sslSocket.getInputStream();
             } catch (IOException inputStreamException) {
                 IOException e = new IOException("Remote end is closed.");
                 e.addSuppressed(inputStreamException);
                 throw e;
             }
         }
+    }
+
+    private boolean dataAvailableOnLayeredSocket() throws IOException {
+        return layered.getInputStream().available() > 0;
     }
 }

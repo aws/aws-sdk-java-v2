@@ -54,6 +54,15 @@ public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
     }
 
     @Override
+    public Socket createLayeredSocket(Socket socket, String target, int port, HttpContext context) throws IOException {
+        Socket layeredSocket = super.createLayeredSocket(socket, target, port, context);
+        if (layeredSocket instanceof SSLSocket) {
+            return new InputShutdownCheckingSslSocket(new SdkSslSocket((SSLSocket) layeredSocket), socket);
+        }
+        return layeredSocket;
+    }
+
+    @Override
     public Socket connectSocket(
             final int connectTimeout,
             final Socket socket,
@@ -64,10 +73,6 @@ public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
         log.trace(() -> String.format("Connecting to %s:%s", remoteAddress.getAddress(), remoteAddress.getPort()));
 
         Socket connectedSocket = super.connectSocket(connectTimeout, socket, host, remoteAddress, localAddress, context);
-
-        if (connectedSocket instanceof SSLSocket) {
-            return new InputShutdownCheckingSslSocket(new SdkSslSocket((SSLSocket) connectedSocket));
-        }
 
         return new SdkSocket(connectedSocket);
     }
