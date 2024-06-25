@@ -22,6 +22,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -37,6 +38,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.internal.util.Mimetype;
@@ -97,7 +99,10 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
                          expectedEmptyString),
             Arguments.of("RequestBody from string, random pos, empty string",
                          checksumPublisher(AsyncRequestBody.fromRemainingByteBufferUnsafe(nonPosZeroByteBuffer(emptyString))),
-                         expectedEmptyString));
+                         expectedEmptyString),
+            Arguments.of("EmptyBufferPublisher, test string",
+                         checksumPublisher(new EmptyBufferPublisher(testString)),
+                         expectedTestString));
     }
 
     private static ChecksumCalculatingAsyncRequestBody checksumPublisher(AsyncRequestBody sourcePublisher) {
@@ -273,5 +278,41 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
         }
         ByteBuffer publishedBb = Flowable.fromPublisher(body).toList().blockingGet().get(0);
         assertThat(BinaryUtils.copyAllBytesFrom(publishedBb)).isEqualTo(expected);
+    }
+
+    static class EmptyBufferPublisher implements AsyncRequestBody {
+
+        private final ByteBuffer[] buffers = new ByteBuffer[2];
+        private final String payload;
+
+        EmptyBufferPublisher(String payload) {
+            buffers[0] = ByteBuffer.wrap(new byte[0]);
+            buffers[1] = ByteBuffer.wrap(payload.getBytes(StandardCharsets.UTF_8));
+            this.payload = payload;
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+            subscriber.onSubscribe(new Subscription() {
+                private int count = 0;
+
+                @Override
+                public void request(long n) {
+                    if (count < 2) {
+                        subscriber.onNext(buffers[count++]);
+                    } else {
+                        subscriber.onComplete();
+                    }
+                }
+
+                @Override
+                public void cancel() {}
+            });
+        }
+
+        @Override
+        public Optional<Long> contentLength() {
+            return Optional.of((long) payload.length());
+        }
     }
 }
