@@ -46,7 +46,7 @@ public final class SdkClientsDependencyFactory {
 
     public static SqsClient sqsClientWithAllSettings() {
         return SqsClient.builder()
-            .region(Region.US_WEST_2)
+            .region(Region.of("us-west-2"))
             .overrideConfiguration(customClientConfiguration())
             .credentialsProvider(CredentialsDependencyFactory.defaultCredentialsProviderChain())
             .httpClientBuilder(ApacheHttpClient.builder()
