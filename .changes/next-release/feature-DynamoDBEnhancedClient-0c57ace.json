@@ -1,6 +1,0 @@
-{
-    "category": "DynamoDB Enhanced Client", 
-    "contributor": "shetsa-amzn", 
-    "type": "feature", 
-    "description": "Adds support for specifying ReturnValue in UpdateItemEnhancedRequest"
-}
