@@ -1,4 +1,39 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.10__ __2024-06-26__
+## __AWS Control Tower__
+  - ### Features
+    - Added ListLandingZoneOperations API.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - upgrade netty version to 4.1.111.Final
+        - Contributed by: [@sullis](https://github.com/sullis)
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added support for disabling unmanaged addons during cluster creation.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - IVS Real-Time now offers customers the ability to upload public keys for customer vended participant tokens.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - This release adds support for new ListApplicationOperations and DescribeApplicationOperation APIs. It adds a new configuration to enable system rollbacks, adds field ApplicationVersionCreateTimestamp for clarity and improves support for pagination for APIs.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds support for enabling or disabling Natural Language Query Processing feature for Amazon OpenSearch Service domains, and provides visibility into the current state of the setup or tear-down.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Adds support for specifying ReturnValue in UpdateItemEnhancedRequest
+        - Contributed by: [@shetsa-amzn](https://github.com/shetsa-amzn)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
 # __2.26.9__ __2024-06-25__
 ## __AWS Network Manager__
   - ### Features
