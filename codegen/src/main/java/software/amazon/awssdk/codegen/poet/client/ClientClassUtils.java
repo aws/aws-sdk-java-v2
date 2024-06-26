@@ -275,6 +275,12 @@ public final class ClientClassUtils {
                .endControlFlow();
         builder.endControlFlow();
         builder.endControlFlow();
+        // Reset the retry policy for services such as kinesis that have a default one that will be always
+        // present. If the customer sets the retry strategy we need to remove the service retry policy or else
+        // it will get picked up in favor of the retry strategy thus rendering the override an no-op.
+        builder.beginControlFlow("if (configuration.option($T.RETRY_STRATEGY) != null)", SdkClientOption.class);
+        builder.addStatement("configuration.option($T.RETRY_POLICY, null)", SdkClientOption.class);
+        builder.endControlFlow();
         builder.addStatement("configuration.option($T.CONFIGURED_RETRY_MODE, null)", SdkClientOption.class);
         builder.addStatement("configuration.option($T.CONFIGURED_RETRY_STRATEGY, null)", SdkClientOption.class);
         builder.addStatement("configuration.option($T.CONFIGURED_RETRY_CONFIGURATOR, null)", SdkClientOption.class);
