@@ -78,4 +78,12 @@ public class NamingConversionUtilsTest {
         assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.iot.AmazonIOTException"))
             .isEqualTo("software.amazon.awssdk.services.iot.IotException");
     }
+
+    @Test
+    void v2WildCardImport_shouldConvertToV2() {
+        assertThat(NamingConversionUtils.getV2ModelPackageWildCardEquivalent("com.amazonaws.services.iot.model.*"))
+            .isEqualTo("software.amazon.awssdk.services.iot.model.*");
+        assertThat(NamingConversionUtils.getV2ModelPackageWildCardEquivalent("com.amazonaws.services.iot.*"))
+            .isEqualTo("software.amazon.awssdk.services.iot.*");
+    }
 }
