@@ -59,6 +59,6 @@ public final class NamingUtils {
     }
 
     public static boolean isGetter(String name) {
-        return !StringUtils.isBlank(name) && name.startsWith("get");
+        return !StringUtils.isBlank(name) && name.startsWith("get") && !name.equals("get");
     }
 }

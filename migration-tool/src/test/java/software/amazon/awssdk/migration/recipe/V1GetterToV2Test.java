@@ -37,6 +37,7 @@ public class V1GetterToV2Test implements RewriteTest {
                 + "        ReceiveMessageRequest request = new ReceiveMessageRequest().withQueueUrl(\"url\");\n"
                 + "        ReceiveMessageResult receiveMessage = sqs.receiveMessage(request);\n"
                 + "        List<Message> messages = receiveMessage.getMessages();\n"
+                + "        Message message = receiveMessage.getMessages().get(0);\n"
                 + "    }\n"
                 + "}\n",
                 "import software.amazon.awssdk.services.sqs.SqsClient;\n"
@@ -50,6 +51,7 @@ public class V1GetterToV2Test implements RewriteTest {
                 + "        ReceiveMessageRequest request = ReceiveMessageRequest.builder().queueUrl(\"url\").build();\n"
                 + "        ReceiveMessageResponse receiveMessage = sqs.receiveMessage(request);\n"
                 + "        List<Message> messages = receiveMessage.messages();\n"
+                + "        Message message = receiveMessage.messages().get(0);\n"
                 + "    }\n"
                 + "}"
             )

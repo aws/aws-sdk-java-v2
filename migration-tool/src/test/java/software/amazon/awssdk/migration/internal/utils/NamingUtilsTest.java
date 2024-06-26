@@ -91,4 +91,20 @@ public class NamingUtilsTest {
     public void removeWith_empty_returnsValue() {
         assertThat(NamingUtils.removeWith("")).isEqualTo("");
     }
+
+    @Test
+    public void isGetter_startsWithGetter_returnsTrue() {
+        assertThat(NamingUtils.isGetter("getFoo")).isTrue();
+    }
+
+    @Test
+    public void isGetter_equalsToGet_returnsFalse() {
+        assertThat(NamingUtils.isGetter("get")).isFalse();
+    }
+
+    @Test
+    public void isGetter_emptyOrNull_returnsFalse() {
+        assertThat(NamingUtils.isGetter("")).isFalse();
+        assertThat(NamingUtils.isGetter(null)).isFalse();
+    }
 }

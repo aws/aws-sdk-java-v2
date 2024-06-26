@@ -46,15 +46,21 @@ public class Application {
             .withNextToken("token");
 
         try {
+
             ListQueuesResult listQueuesResult = sqs.listQueues(request);
+            String queueUrl = listQueuesResult.getQueueUrls().get(0);
             String token = listQueuesResult.getNextToken();
-            System.out.println(listQueuesResult);
+            System.out.println(queueUrl);
+            System.out.println(token);
+
         } catch (QueueDoesNotExistException exception) {
+
             String errorCode = exception.getErrorCode();
             String errorMessage = exception.getErrorMessage();
             String requestId = exception.getRequestId();
             byte[] rawResponse = exception.getRawResponse();
             System.out.println(String.format("Error code: %s, message: %s, requestId: %s", errorCode, errorMessage, requestId));
+
         } catch (AmazonSQSException exception) {
             System.out.println(String.format("Error code: %s. RequestId: %s. Raw response content: %s",
                                              exception.getErrorCode(), exception.getRequestId(),
