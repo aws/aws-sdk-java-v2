@@ -96,9 +96,9 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
             }
             return result.build();
         });
-        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
-                .option(SdkClientOption.CLIENT_CONTEXT_PARAMS, clientContextParams.build())
-                .option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE, resolveAccountIdEndpointMode(config));
+        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
+        builder.option(SdkClientOption.CLIENT_CONTEXT_PARAMS, clientContextParams.build());
+        builder.option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE, resolveAccountIdEndpointMode(config));
         return builder.build();
     }
 
@@ -191,6 +191,9 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
                     configuration.option(SdkClientOption.RETRY_STRATEGY, retryStrategy);
                 }
             }
+        }
+        if (configuration.option(SdkClientOption.RETRY_STRATEGY) != null) {
+            configuration.option(SdkClientOption.RETRY_POLICY, null);
         }
         configuration.option(SdkClientOption.CONFIGURED_RETRY_MODE, null);
         configuration.option(SdkClientOption.CONFIGURED_RETRY_STRATEGY, null);

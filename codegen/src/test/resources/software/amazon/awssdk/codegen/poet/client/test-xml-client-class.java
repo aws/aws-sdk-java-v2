@@ -693,6 +693,9 @@ final class DefaultXmlClient implements XmlClient {
                 }
             }
         }
+        if (configuration.option(SdkClientOption.RETRY_STRATEGY) != null) {
+            configuration.option(SdkClientOption.RETRY_POLICY, null);
+        }
         configuration.option(SdkClientOption.CONFIGURED_RETRY_MODE, null);
         configuration.option(SdkClientOption.CONFIGURED_RETRY_STRATEGY, null);
         configuration.option(SdkClientOption.CONFIGURED_RETRY_CONFIGURATOR, null);

@@ -102,8 +102,8 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
             }
             return result.build();
         });
-        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).option(SdkClientOption.SERVICE_CONFIGURATION,
-                finalServiceConfig);
+        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
+        builder.option(SdkClientOption.SERVICE_CONFIGURATION, finalServiceConfig);
         return builder.build();
     }
 
@@ -195,6 +195,9 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
                     configuration.option(SdkClientOption.RETRY_STRATEGY, retryStrategy);
                 }
             }
+        }
+        if (configuration.option(SdkClientOption.RETRY_STRATEGY) != null) {
+            configuration.option(SdkClientOption.RETRY_POLICY, null);
         }
         configuration.option(SdkClientOption.CONFIGURED_RETRY_MODE, null);
         configuration.option(SdkClientOption.CONFIGURED_RETRY_STRATEGY, null);
