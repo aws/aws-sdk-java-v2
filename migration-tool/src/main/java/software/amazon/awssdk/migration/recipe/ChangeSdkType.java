@@ -16,12 +16,15 @@
 package software.amazon.awssdk.migration.recipe;
 
 import static software.amazon.awssdk.migration.internal.utils.NamingConversionUtils.getV2Equivalent;
+import static software.amazon.awssdk.migration.internal.utils.NamingConversionUtils.getV2ModelPackageWildCardEquivalent;
 import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isV1ClientClass;
 import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isV1ModelClass;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -55,8 +58,9 @@ import software.amazon.awssdk.utils.Pair;
  */
 @SdkInternalApi
 public class ChangeSdkType extends Recipe {
-
-    private static final String V1_PATTERN = "com.amazonaws.services.";
+    private static final String V1_SERVICE_MODEL_WILD_CARD_CLASS_PATTERN =
+        "com\\.amazonaws\\.services\\.[a-zA-Z0-9]+\\.model\\.\\*";
+    private static final String V1_SERVICE_WILD_CARD_CLASS_PATTERN = "com\\.amazonaws\\.services\\.[a-zA-Z0-9]+\\.\\*";
 
     @Override
     public String getDisplayName() {
@@ -79,6 +83,7 @@ public class ChangeSdkType extends Recipe {
 
         private final Map<JavaType, JavaType> oldNameToChangedType = new IdentityHashMap<>();
         private final Set<String> topLevelClassnames = new HashSet<>();
+        private final List<String> wildcardImports = new ArrayList<>();
 
         private Map<String, Pair<JavaType.Class, JavaType>> oldTypeToNewType = new HashMap<>();
 
@@ -99,19 +104,19 @@ public class ChangeSdkType extends Recipe {
                         .map(TypeUtils::asFullyQualified)
                         .orElse(null);
 
-            if (fullyQualified == null)  {
+            if (fullyQualified == null) {
+                String fullName = anImport.getTypeName();
+                if (isWildcard(fullName)) {
+                    maybeAddImport(getV2ModelPackageWildCardEquivalent(fullName));
+                    wildcardImports.add(fullName);
+                }
                 return anImport;
             }
 
             String currentFqcn = fullyQualified.getFullyQualifiedName();
 
-            if (isV1ModelClass(fullyQualified) || isV1ClientClass(fullyQualified)) {
-                JavaType.ShallowClass originalType = JavaType.ShallowClass.build(currentFqcn);
-                String v2Equivalent = getV2Equivalent(currentFqcn);
-
-                JavaType targetType = JavaType.buildType(v2Equivalent);
-
-                oldTypeToNewType.put(currentFqcn, Pair.of(originalType, targetType));
+            if (isV1Class(fullyQualified)) {
+                storeV1ClassMetadata(currentFqcn);
                 if (anImport.getAlias() != null) {
                     importAlias = anImport.getAlias();
                 }
@@ -120,9 +125,13 @@ public class ChangeSdkType extends Recipe {
             return anImport;
         }
 
-        @Override
-        public J visitCompilationUnit(J.CompilationUnit cu, ExecutionContext executionContext) {
-            return super.visitCompilationUnit(cu, executionContext);
+        private static boolean isWildcard(String fullName) {
+            return fullName.matches(V1_SERVICE_MODEL_WILD_CARD_CLASS_PATTERN) ||
+                   fullName.matches(V1_SERVICE_WILD_CARD_CLASS_PATTERN);
+        }
+
+        private static boolean isV1Class(JavaType.FullyQualified fullyQualified) {
+            return isV1ModelClass(fullyQualified) || isV1ClientClass(fullyQualified);
         }
 
         @Override
@@ -230,6 +239,23 @@ public class ChangeSdkType extends Recipe {
 
                 currentTree = sourceFile;
             }
+
+            return removeWildcardImports(ctx, currentTree, sourceFile);
+        }
+
+        private J removeWildcardImports(ExecutionContext ctx, J currentTree, JavaSourceFile sourceFile) {
+            for (String fqcn : wildcardImports) {
+                sourceFile = (JavaSourceFile) new RemoveImport<ExecutionContext>(fqcn)
+                    .visit(sourceFile, ctx, getCursor().getParentOrThrow());
+
+                if (sourceFile != null) {
+                    sourceFile = sourceFile.withImports(
+                        ListUtils.map(sourceFile.getImports(), i -> visitAndCast(i, ctx,
+                                                                                 super::visitImport)));
+                }
+
+                currentTree = sourceFile;
+            }
             return currentTree;
         }
 
@@ -281,21 +307,24 @@ public class ChangeSdkType extends Recipe {
         public J visitIdentifier(J.Identifier ident, ExecutionContext ctx) {
 
             JavaType currentType = ident.getType();
-            if (currentType instanceof JavaType.FullyQualified) {
-                JavaType.FullyQualified original = TypeUtils.asFullyQualified(currentType);
+            if (!(currentType instanceof JavaType.FullyQualified)) {
+                return visitAndCast(ident, ctx, super::visitIdentifier);
+            }
 
-                if (original != null && TypeUtils.isOfClassType(ident.getType(), original.getFullyQualifiedName())) {
-                    String fullyQualifiedName = original.getFullyQualifiedName();
+            JavaType.FullyQualified original = TypeUtils.asFullyQualified(currentType);
 
-                    if (oldTypeToNewType.containsKey(fullyQualifiedName)) {
-                        JavaType.Class originalType = oldTypeToNewType.get(fullyQualifiedName).left();
-                        String className = originalType.getClassName();
+            if (original != null && TypeUtils.isOfClassType(ident.getType(), original.getFullyQualifiedName())) {
+                String fullyQualifiedName = original.getFullyQualifiedName();
 
-                        if (ident.getSimpleName().equals(className)) {
-                            JavaType targetType = oldTypeToNewType.get(fullyQualifiedName).right();
-                            ident = ident.withSimpleName(((JavaType.FullyQualified) targetType).getClassName());
-                            ident = ident.withType(updateType(currentType));
-                        }
+                if (isV1Class(original)) {
+                    storeV1ClassMetadata(fullyQualifiedName);
+                    JavaType.Class originalType = oldTypeToNewType.get(fullyQualifiedName).left();
+                    String className = originalType.getClassName();
+
+                    if (ident.getSimpleName().equals(className)) {
+                        JavaType targetType = oldTypeToNewType.get(fullyQualifiedName).right();
+                        ident = ident.withSimpleName(((JavaType.FullyQualified) targetType).getClassName());
+                        ident = ident.withType(updateType(currentType));
                     }
                 }
             }
@@ -303,11 +332,25 @@ public class ChangeSdkType extends Recipe {
             return visitAndCast(ident, ctx, super::visitIdentifier);
         }
 
+        private void storeV1ClassMetadata(String currentFqcn) {
+            JavaType.ShallowClass originalType = JavaType.ShallowClass.build(currentFqcn);
+            String v2Equivalent = getV2Equivalent(currentFqcn);
+
+            JavaType targetType = JavaType.buildType(v2Equivalent);
+
+            oldTypeToNewType.put(currentFqcn, Pair.of(originalType, targetType));
+        }
+
         @Override
         public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-            for (Pair<JavaType.Class, JavaType> entry : oldTypeToNewType.values()) {
-                JavaType.Class originalType = entry.left();
-                JavaType targetType = entry.right();
+            JavaType.FullyQualified declaringType = method.getMethodType().getDeclaringType();
+            if (isV1Class(declaringType)) {
+                String fullyQualifiedName = declaringType.getFullyQualifiedName();
+                storeV1ClassMetadata(fullyQualifiedName);
+
+                Pair<JavaType.Class, JavaType> oldTypeToNewTypePair = oldTypeToNewType.get(fullyQualifiedName);
+                JavaType.Class originalType = oldTypeToNewTypePair.left();
+                JavaType targetType = oldTypeToNewTypePair.right();
                 if (method.getMethodType() != null && method.getMethodType().hasFlags(Flag.Static)) {
                     if (method.getMethodType().getDeclaringType().isAssignableFrom(originalType)) {
                         JavaSourceFile cu = getCursor().firstEnclosingOrThrow(JavaSourceFile.class);
@@ -329,6 +372,7 @@ public class ChangeSdkType extends Recipe {
                     }
                 }
             }
+
             return super.visitMethodInvocation(method, ctx);
         }
 

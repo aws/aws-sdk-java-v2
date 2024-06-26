@@ -46,6 +46,13 @@ public final class NamingConversionUtils {
         return v2PackagePrefix + "." + v2ClassName;
     }
 
+    public static String getV2ModelPackageWildCardEquivalent(String currentFqcn) {
+        int lastIndexOfDot = currentFqcn.lastIndexOf(".");
+        String packagePrefix = currentFqcn.substring(0, lastIndexOfDot);
+        String v2PackagePrefix = packagePrefix.replace(V1_PACKAGE_PREFIX, V2_PACKAGE_PREFIX);
+        return v2PackagePrefix + ".*";
+    }
+
     private static String getV2ClientOrExceptionEquivalent(String className) {
         if (className.startsWith("Abstract")) {
             className = className.substring(8);

@@ -74,6 +74,40 @@ public class ChangeSdkTypeTest implements RewriteTest {
 
     @Test
     @EnabledOnJre({JRE.JAVA_8})
+    void wildCardImport_shouldRewrite() {
+        rewriteRun(
+            java(
+                "import com.amazonaws.services.sqs.model.*;\n" +
+                "import com.amazonaws.services.sqs.*;\n" +
+                "class Test {\n" +
+                "    private DeleteQueueResult deleteQueResult;\n" +
+                "    static void method(CreateQueueResult createQueueResult) {\n" +
+                "        AmazonSQS sqs = null;\n" +
+                "        ListQueuesRequest request = null;\n" +
+                "        ListQueuesResult result = null;\n" +
+                "        InvalidAttributeNameException exception = null;\n" +
+                "        AmazonSQSException baseException = null;\n" +
+                "    }\n" +
+                "}\n",
+                "import software.amazon.awssdk.services.sqs.*;\n"
+                + "import software.amazon.awssdk.services.sqs.model.*;\n"
+                + "\n"
+                + "class Test {\n"
+                + "    private DeleteQueueResponse deleteQueResult;\n"
+                + "    static void method(CreateQueueResponse createQueueResult) {\n"
+                + "        SqsClient sqs = null;\n"
+                + "        ListQueuesRequest request = null;\n"
+                + "        ListQueuesResponse result = null;\n"
+                + "        InvalidAttributeNameException exception = null;\n"
+                + "        SqsException baseException = null;\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
+
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
     void shouldChangeFields() {
         rewriteRun(
             java(
