@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime SDK Media Pipelines",
+    "contributor": "",
+    "description": "Added Amazon Transcribe multi language identification to Chime SDK call analytics. Enabling customers sending single stream audio to generate call recordings using Chime SDK call analytics"
+}
