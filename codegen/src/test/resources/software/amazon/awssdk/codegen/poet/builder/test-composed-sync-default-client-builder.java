@@ -95,8 +95,8 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
             }
             return result.build();
         });
-        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).option(SdkClientOption.SERVICE_CONFIGURATION,
-                finalServiceConfig);
+        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
+        builder.option(SdkClientOption.SERVICE_CONFIGURATION, finalServiceConfig);
         return builder.build();
     }
 

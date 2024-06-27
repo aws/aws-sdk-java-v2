@@ -72,8 +72,9 @@ public final class DefaultRetryStrategy {
         return LegacyRetryStrategy.builder()
                                   .maxAttempts(Legacy.MAX_ATTEMPTS)
                                   .backoffStrategy(BackoffStrategy.exponentialDelay(Legacy.BASE_DELAY, Legacy.MAX_BACKOFF))
-                                  .throttlingBackoffStrategy(BackoffStrategy.exponentialDelay(Legacy.THROTTLED_BASE_DELAY,
-                                                                                              Legacy.MAX_BACKOFF));
+                                  .throttlingBackoffStrategy(BackoffStrategy.exponentialDelayHalfJitter(
+                                      Legacy.THROTTLED_BASE_DELAY,
+                                      Legacy.MAX_BACKOFF));
     }
 
     /**

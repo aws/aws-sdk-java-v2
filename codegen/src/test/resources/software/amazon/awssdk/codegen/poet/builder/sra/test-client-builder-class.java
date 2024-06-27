@@ -155,12 +155,14 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
             }
             return result.build();
         });
-        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
-                .option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED, finalServiceConfig.dualstackEnabled())
-                .option(AwsClientOption.FIPS_ENDPOINT_ENABLED, finalServiceConfig.fipsModeEnabled())
-                .option(SdkClientOption.RETRY_POLICY, MyServiceRetryPolicy.resolveRetryPolicy(config))
-                .option(SdkClientOption.RETRY_STRATEGY, MyServiceRetryStrategy.resolveRetryStrategy(config))
-                .option(SdkClientOption.SERVICE_CONFIGURATION, finalServiceConfig);
+        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
+        builder.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED, finalServiceConfig.dualstackEnabled());
+        builder.option(AwsClientOption.FIPS_ENDPOINT_ENABLED, finalServiceConfig.fipsModeEnabled());
+        builder.option(SdkClientOption.RETRY_STRATEGY, MyServiceRetryStrategy.resolveRetryStrategy(config));
+        if (builder.option(SdkClientOption.RETRY_STRATEGY) == null) {
+            builder.option(SdkClientOption.RETRY_POLICY, MyServiceRetryPolicy.resolveRetryPolicy(config));
+        }
+        builder.option(SdkClientOption.SERVICE_CONFIGURATION, finalServiceConfig);
         return builder.build();
     }
 
