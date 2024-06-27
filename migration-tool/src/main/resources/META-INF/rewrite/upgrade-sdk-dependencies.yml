@@ -25,6 +25,13 @@ recipeList:
       groupId: software.amazon.awssdk
       artifactId: netty-nio-client
       version: 2.23.16-SNAPSHOT
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: com.amazonaws
+      oldArtifactId: aws-java-sdk-core
+      newGroupId: software.amazon.awssdk
+      newArtifactId: aws-core
+      newVersion: 2.23.16-SNAPSHOT
+      
   - org.openrewrite.maven.ChangeManagedDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-bom
