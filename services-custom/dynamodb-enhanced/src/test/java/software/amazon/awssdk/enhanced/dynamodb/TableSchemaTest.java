@@ -88,11 +88,10 @@ public class TableSchemaTest {
     }
 
     @Test
-    public void fromClass_missingObjectConverter() {
+    public void fromClass_missingObjectConverter_throwsIllegalStateException() {
         assertThatIllegalStateException().isThrownBy(
             () -> TableSchema.fromClass(ObjectMapBean.class)
-        ).withMessage("Converter not found for "
-                      + "EnhancedType(java.lang.Object)");
+        ).withMessage("Converter not found for EnhancedType(java.lang.Object)");
     }
 
     @Test

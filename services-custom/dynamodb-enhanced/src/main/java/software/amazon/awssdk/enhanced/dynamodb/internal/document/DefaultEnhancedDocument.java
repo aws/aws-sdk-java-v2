@@ -101,7 +101,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         }
         if (type.rawClass().isAssignableFrom(Map.class)) {
             List<EnhancedType<?>> params = type.rawClassParameters();
-            if (params.isEmpty()) {
+            if (params.isEmpty() || params.size() < 2) {
                 throw new IllegalStateException("Type parameters are missing for " + type);
             }
             return (AttributeConverter<T>) MapAttributeConverter.mapConverter(

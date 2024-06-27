@@ -189,7 +189,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
     @SuppressWarnings("unchecked")
     private <T> AttributeConverter<T> createMapConverter(EnhancedType<T> type) {
         List<EnhancedType<?>> rawClassParameters = type.rawClassParameters();
-        if (rawClassParameters.isEmpty()) {
+        if (rawClassParameters.isEmpty() || rawClassParameters.size() < 2) {
             throw new IllegalStateException("Converter not found for " + type);
         }
         EnhancedType<?> keyType = rawClassParameters.get(0);

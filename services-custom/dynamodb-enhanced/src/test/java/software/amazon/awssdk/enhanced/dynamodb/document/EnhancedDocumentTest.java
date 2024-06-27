@@ -306,7 +306,7 @@ class EnhancedDocumentTest {
     }
 
     @Test
-    void error_When_listUsed() {
+    void listUsed_missingTypeParameter_throwsIllegalStateException() {
         EnhancedDocument enhancedDocument = EnhancedDocument.builder()
                                                             .attributeConverterProviders(defaultProvider())
                                                             .put("list", Collections.singletonList(new Object()),
@@ -315,12 +315,11 @@ class EnhancedDocumentTest {
 
         assertThatIllegalStateException().isThrownBy(
             () -> enhancedDocument.toJson()
-        ).withMessage("Type parameter is missing for "
-                      + "EnhancedType(java.util.List)");
+        ).withMessage("Type parameter is missing for EnhancedType(java.util.List)");
     }
 
     @Test
-    void error_When_mapUsed() {
+    void mapUsed_missingTypeParameters_throwsIllegalStateException() {
         EnhancedDocument enhancedDocument = EnhancedDocument.builder()
                                                             .attributeConverterProviders(defaultProvider())
                                                             .put("map", Collections.singletonMap("key1", new Object()),
@@ -329,8 +328,7 @@ class EnhancedDocumentTest {
 
         assertThatIllegalStateException().isThrownBy(
             () -> enhancedDocument.toJson()
-        ).withMessage("Type parameters are missing for "
-                      + "EnhancedType(java.util.Map)");
+        ).withMessage("Type parameters are missing for EnhancedType(java.util.Map)");
     }
 
     @Test
