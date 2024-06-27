@@ -38,7 +38,7 @@ import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEventStream
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardRequest;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponseHandler;
 
-public class KinesisClientCanOverrideDefaultRetryPolicy {
+public class KinesisClientCanOverrideDefaultRetryPolicyTest {
     private WireMockServer wireMock = new WireMockServer(0);
 
     @Test
