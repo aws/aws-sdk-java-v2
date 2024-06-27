@@ -176,7 +176,7 @@ public class DefaultPartitionDataProviderSpec implements ClassSpec {
             Map<String, JsonNode> regionsObj = regions.asObject();
             regionsObj.forEach((k, v) -> {
                 builder.add(".putRegion($S, ", k);
-                codegenRegionOverride(builder, v);
+                codegenRegionOverride(builder);
                 builder.add(")");
             });
         }
@@ -190,7 +190,7 @@ public class DefaultPartitionDataProviderSpec implements ClassSpec {
         builder.add(".build()");
     }
 
-    private void codegenRegionOverride(CodeBlock.Builder builder, JsonNode node) {
+    private void codegenRegionOverride(CodeBlock.Builder builder) {
         builder.add("$T.builder().build()", regionOverrideClass);
     }
 

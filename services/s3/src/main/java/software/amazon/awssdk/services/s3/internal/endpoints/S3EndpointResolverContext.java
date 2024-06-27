@@ -127,8 +127,6 @@ public final class S3EndpointResolverContext {
         private URI endpointOverride;
         private boolean disableHostPrefixInjection;
         private Boolean fipsEnabled;
-        private Supplier<ProfileFile> profileFile;
-        private String profileName;
 
         private Builder() {
         }

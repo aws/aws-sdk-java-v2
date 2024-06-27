@@ -97,10 +97,10 @@ public final class SdkNumber extends Number implements Serializable {
     private static Number valueOfInfiniteOrNaN(Number numberValue) {
         if (numberValue instanceof Double
                 && (Double.isInfinite((double) numberValue) || Double.isNaN((double) numberValue))) {
-            return Double.valueOf(numberValue.doubleValue());
+            return numberValue.doubleValue();
         } else if ((numberValue instanceof Float
                 && (Float.isInfinite((float) numberValue) || Float.isNaN((float) numberValue)))) {
-            return Float.valueOf(numberValue.floatValue());
+            return numberValue.floatValue();
         } else {
             return null;
         }
