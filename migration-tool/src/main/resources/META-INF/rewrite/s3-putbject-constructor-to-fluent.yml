@@ -15,7 +15,7 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: software.amazon.awssdk.S3PutObjectConstructorToFluent
-displayName: Change auth related classes
+displayName: Change PutObject constructors to fluent builder calls
 recipeList:
   - software.amazon.awssdk.migration.internal.recipe.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.PutObjectRequest
