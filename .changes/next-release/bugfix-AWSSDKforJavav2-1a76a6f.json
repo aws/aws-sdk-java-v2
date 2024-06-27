@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Allows overrides of the retry strategy for Kinesis clients. Kinesis has its own RetryPolicy that would take precedence over any retry strategy making it impossible to override using a retry strategy."
-}
