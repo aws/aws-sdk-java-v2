@@ -17,11 +17,9 @@ package software.amazon.awssdk.services.s3.internal.endpoints;
 
 import java.net.URI;
 import java.util.Objects;
-import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Configuration;
 
