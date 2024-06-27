@@ -48,15 +48,21 @@ public class Application {
             .nextToken("token").build();
 
         try {
+
             ListQueuesResponse listQueuesResult = sqs.listQueues(request);
+            String queueUrl = listQueuesResult.queueUrls().get(0);
             String token = listQueuesResult.nextToken();
-            System.out.println(listQueuesResult);
+            System.out.println(queueUrl);
+            System.out.println(token);
+
         } catch (QueueDoesNotExistException exception) {
+
             String errorCode = exception.awsErrorDetails().errorCode();
             String errorMessage = exception.awsErrorDetails().errorMessage();
             String requestId = exception.requestId();
             byte[] rawResponse = exception.awsErrorDetails().rawResponse().asByteArray();
             System.out.println(String.format("Error code: %s, message: %s, requestId: %s", errorCode, errorMessage, requestId));
+
         } catch (SqsException exception) {
             System.out.println(String.format("Error code: %s. RequestId: %s. Raw response content: %s",
                                              exception.awsErrorDetails().errorCode(), exception.requestId(),
