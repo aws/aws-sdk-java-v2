@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Add a new backoff strategy that reassembles\n`EqualJitterBackoffStrategy` and is used to be behavioral backwards\ncompatible with the way `RetryPolicy` behaves for the `LEGACY` retry\nmode."
+}
