@@ -89,7 +89,8 @@ public final class TokenBucket {
                            .maxCapacity(maxCapacity);
 
         if (amountToRelease == 0) {
-            amountToRelease = 1;
+            return builder.currentCapacity(capacity.get())
+                          .build();
         }
 
         int currentCapacity;
