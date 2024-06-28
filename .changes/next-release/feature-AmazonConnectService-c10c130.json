@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "This release supports showing PreferredAgentRouting step via DescribeContact API."
+}
