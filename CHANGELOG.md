@@ -1,4 +1,112 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.11__ __2024-06-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Add a new backoff strategy that reassembles
+      `EqualJitterBackoffStrategy` and is used to be behavioral backwards
+      compatible with the way `RetryPolicy` behaves for the `LEGACY` retry
+      mode.
+    - Allows overrides of the retry strategy for Kinesis clients. Kinesis has its own RetryPolicy that would take precedence over any retry strategy making it impossible to override using a retry strategy.
+
+## __Amazon Chime SDK Media Pipelines__
+  - ### Features
+    - Added Amazon Transcribe multi language identification to Chime SDK call analytics. Enabling customers sending single stream audio to generate call recordings using Chime SDK call analytics
+
+## __Amazon CloudFront__
+  - ### Features
+    - Doc only update for CloudFront that fixes customer-reported issue
+
+## __Amazon DataZone__
+  - ### Features
+    - This release supports the data lineage feature of business data catalog in Amazon DataZone.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Q Connect__
+  - ### Features
+    - Adds CreateContentAssociation, ListContentAssociations, GetContentAssociation, and DeleteContentAssociation APIs.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adding support for Repeating Sections, Nested Filters
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for TAZ export to S3.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add capability for Admins to customize Studio experience for the user by showing or hiding Apps and MLTools.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added support for WorkSpaces Pools.
+
+## __AmazonMQ__
+  - ### Features
+    - This release makes the EngineVersion field optional for both broker and configuration and uses the latest available version by default. The AutoMinorVersionUpgrade field is also now optional for broker creation and defaults to 'true'.
+
+## __Application Auto Scaling__
+  - ### Features
+    - Amazon WorkSpaces customers can now use Application Auto Scaling to automatically scale the number of virtual desktops in a WorkSpaces pool.
+
+# __2.26.10__ __2024-06-26__
+## __AWS Control Tower__
+  - ### Features
+    - Added ListLandingZoneOperations API.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - upgrade netty version to 4.1.111.Final
+        - Contributed by: [@sullis](https://github.com/sullis)
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added support for disabling unmanaged addons during cluster creation.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - IVS Real-Time now offers customers the ability to upload public keys for customer vended participant tokens.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - This release adds support for new ListApplicationOperations and DescribeApplicationOperation APIs. It adds a new configuration to enable system rollbacks, adds field ApplicationVersionCreateTimestamp for clarity and improves support for pagination for APIs.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds support for enabling or disabling Natural Language Query Processing feature for Amazon OpenSearch Service domains, and provides visibility into the current state of the setup or tear-down.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Adds support for specifying ReturnValue in UpdateItemEnhancedRequest
+        - Contributed by: [@shetsa-amzn](https://github.com/shetsa-amzn)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
+# __2.26.9__ __2024-06-25__
+## __AWS Network Manager__
+  - ### Features
+    - This is model changes & documentation update for the Asynchronous Error Reporting feature for AWS Cloud WAN. This feature allows customers to view errors that occur while their resources are being provisioned, enabling customers to fix their resources without needing external support.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release is for the launch of the new u7ib-12tb.224xlarge, R8g, c7gn.metal and mac2-m1ultra.metal instance types
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - This release adds the deviceCreationTags field to CreateEnvironment API input, UpdateEnvironment API input and GetEnvironment API output.
+
+## __Auto Scaling__
+  - ### Features
+    - Doc only update for Auto Scaling's TargetTrackingMetricDataQuery
+
 # __2.26.8__ __2024-06-24__
 ## __AWS SDK for Java v2__
   - ### Features
