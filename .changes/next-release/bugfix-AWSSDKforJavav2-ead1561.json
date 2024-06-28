@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fix a bug on the token bucket, after success we need to deposit back one token to allow it to slowly recover and allow more retries after seeing several successful responses."
+}
