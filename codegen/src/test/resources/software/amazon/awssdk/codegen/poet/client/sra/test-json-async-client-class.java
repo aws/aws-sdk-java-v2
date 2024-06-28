@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
@@ -58,6 +59,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.services.json.batchmanager.JsonAsyncBatchManager;
 import software.amazon.awssdk.services.json.internal.JsonServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
@@ -142,6 +144,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final ScheduledExecutorService executorService;
+
     private final Executor executor;
 
     protected DefaultJsonAsyncClient(SdkClientConfiguration clientConfiguration) {
@@ -149,6 +153,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         this.executor = clientConfiguration.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
+        this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }
 
     @Override
@@ -1316,6 +1321,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
+    }
+
+    @Override
+    public JsonAsyncBatchManager batchManager() {
+        return JsonAsyncBatchManager.builder().client(this).scheduledExecutor(executorService).build();
     }
 
     @Override

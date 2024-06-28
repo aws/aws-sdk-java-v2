@@ -96,6 +96,9 @@ public class AsyncClientInterface implements ClassSpec {
         if (model.hasWaiters()) {
             addWaiterMethod(result);
         }
+        if (model.getCustomizationConfig().getBatchManagerSupported()) {
+            addBatchManagerMethod(result);
+        }
         result.addMethod(serviceClientConfigMethod());
         addAdditionalMethods(result);
         addCloseMethod(result);
@@ -160,6 +163,16 @@ public class AsyncClientInterface implements ClassSpec {
                                                    poetExtensions.getAsyncWaiterInterface()));
         
         type.addMethod(waiterOperationBody(builder).build());
+    }
+
+    protected void addBatchManagerMethod(TypeSpec.Builder type) {
+        ClassName returnType = poetExtensions.getBatchManagerAsyncInterface();
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("batchManager")
+                                               .addModifiers(PUBLIC)
+                                               .returns(returnType)
+                                               .addJavadoc("Creates an instance of {@link $T} object with the "
+                                                           + "configuration set on this client.", returnType);
+        type.addMethod(batchManagerOperationBody(builder).build());
     }
 
     @Override
@@ -532,4 +545,10 @@ public class AsyncClientInterface implements ClassSpec {
         return builder.addModifiers(DEFAULT, PUBLIC)
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
     }
+
+    protected MethodSpec.Builder batchManagerOperationBody(MethodSpec.Builder builder) {
+        return builder.addModifiers(DEFAULT, PUBLIC)
+                      .addStatement("throw new $T()", UnsupportedOperationException.class);
+    }
+
 }

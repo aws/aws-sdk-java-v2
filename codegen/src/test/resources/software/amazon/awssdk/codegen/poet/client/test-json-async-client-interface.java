@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.builder.Builder;
 import software.amazon.awssdk.services.builder.CustomBuilder;
 import software.amazon.awssdk.services.builder.DefaultBuilder;
 import software.amazon.awssdk.services.builder.DefaultBuilderTwo;
+import software.amazon.awssdk.services.json.batchmanager.JsonAsyncBatchManager;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -1866,6 +1867,13 @@ public interface JsonAsyncClient extends AwsClient {
         Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest, Path destinationPath) {
         return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest)
                                                                        .build(), destinationPath);
+    }
+
+    /**
+     * Creates an instance of {@link JsonAsyncBatchManager} object with the configuration set on this client.
+     */
+    default JsonAsyncBatchManager batchManager() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

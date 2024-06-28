@@ -1,0 +1,84 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"batchmanagertest",
+    "jsonVersion":"1.1",
+    "protocol":"rest-json",
+    "serviceAbbreviation":"BatchManagerTest",
+    "serviceFullName":"BatchManagerTest",
+    "serviceId":"BatchManagerTest",
+    "signatureVersion":"v4",
+    "uid":"batchmanagertest-2016-03-11"
+  },
+  "operations":{
+    "SendRequest":{
+      "name":"SendMessage",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"SendRequestRequest"},
+      "output":{
+        "shape":"SendRequestResult",
+        "resultWrapper":"SendRequestResult"
+      }
+    }
+  },
+  "shapes": {
+    "String": {
+      "type": "string"
+    },
+    "Integer": {
+      "type": "integer"
+    },
+    "Boolean": {
+      "type": "boolean"
+    },
+    "SendRequestRequest": {
+      "type": "structure",
+      "required": [
+        "QueueUrl",
+        "MessageBody"
+      ],
+      "members": {
+        "QueueUrl": {
+          "shape": "String"
+        },
+        "MessageBody": {
+          "shape": "String"
+        },
+        "DelaySeconds": {
+          "shape": "Integer"
+        },
+        "MessageDeduplicationId": {
+          "shape": "String"
+        },
+        "MessageGroupId": {
+          "shape": "String"
+        }
+      }
+    },
+    "SendRequestResult":{
+      "type":"structure",
+      "members":{
+        "MD5OfMessageBody":{
+          "shape":"String"
+        },
+        "MD5OfMessageAttributes":{
+          "shape":"String"
+        },
+        "MD5OfMessageSystemAttributes":{
+          "shape":"String"
+        },
+        "MessageId":{
+          "shape":"String"
+        },
+        "SequenceNumber":{
+          "shape":"String"
+        }
+      }
+    }
+  },
+  "documentation": "A service that implements the batchManager() method"
+}

@@ -60,6 +60,7 @@ final class AddMetadata {
                 .withBaseBuilder(String.format(Constant.BASE_BUILDER_CLASS_NAME_PATTERN, serviceName))
                 .withDocumentation(serviceModel.getDocumentation())
                 .withServiceAbbreviation(serviceMetadata.getServiceAbbreviation())
+                .withBatchmanagerPackageName(namingStrategy.getBatchManagerPackageName(serviceName))
                 .withServiceFullName(serviceMetadata.getServiceFullName())
                 .withServiceName(serviceName)
                 .withSyncClient(String.format(Constant.SYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))
