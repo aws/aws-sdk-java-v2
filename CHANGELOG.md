@@ -1,4 +1,60 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.11__ __2024-06-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Add a new backoff strategy that reassembles
+      `EqualJitterBackoffStrategy` and is used to be behavioral backwards
+      compatible with the way `RetryPolicy` behaves for the `LEGACY` retry
+      mode.
+    - Allows overrides of the retry strategy for Kinesis clients. Kinesis has its own RetryPolicy that would take precedence over any retry strategy making it impossible to override using a retry strategy.
+
+## __Amazon Chime SDK Media Pipelines__
+  - ### Features
+    - Added Amazon Transcribe multi language identification to Chime SDK call analytics. Enabling customers sending single stream audio to generate call recordings using Chime SDK call analytics
+
+## __Amazon CloudFront__
+  - ### Features
+    - Doc only update for CloudFront that fixes customer-reported issue
+
+## __Amazon DataZone__
+  - ### Features
+    - This release supports the data lineage feature of business data catalog in Amazon DataZone.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Q Connect__
+  - ### Features
+    - Adds CreateContentAssociation, ListContentAssociations, GetContentAssociation, and DeleteContentAssociation APIs.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adding support for Repeating Sections, Nested Filters
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for TAZ export to S3.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add capability for Admins to customize Studio experience for the user by showing or hiding Apps and MLTools.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added support for WorkSpaces Pools.
+
+## __AmazonMQ__
+  - ### Features
+    - This release makes the EngineVersion field optional for both broker and configuration and uses the latest available version by default. The AutoMinorVersionUpgrade field is also now optional for broker creation and defaults to 'true'.
+
+## __Application Auto Scaling__
+  - ### Features
+    - Amazon WorkSpaces customers can now use Application Auto Scaling to automatically scale the number of virtual desktops in a WorkSpaces pool.
+
 # __2.26.10__ __2024-06-26__
 ## __AWS Control Tower__
   - ### Features
