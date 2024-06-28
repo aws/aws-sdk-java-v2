@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "akidambisrinivasan",
+    "description": "Fix Http2PingHandler to not write to the channel pipeline"
+}
