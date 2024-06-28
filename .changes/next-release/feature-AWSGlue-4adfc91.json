@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "contributor": "",
-    "description": "Added AttributesToGet parameter to Glue GetDatabases, allowing caller to limit output to include only the database name."
-}

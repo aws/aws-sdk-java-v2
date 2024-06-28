@@ -1,4 +1,48 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.12__ __2024-06-28__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Added CCPC_LEVEL_1_OR_HIGHER KeyStorageSecurityStandard and SM2 KeyAlgorithm and SM3WITHSM2 SigningAlgorithm for China regions.
+
+## __AWS CloudHSM V2__
+  - ### Features
+    - Added 3 new APIs to support backup sharing: GetResourcePolicy, PutResourcePolicy, and DeleteResourcePolicy. Added BackupArn to the output of the DescribeBackups API. Added support for BackupArn in the CreateCluster API.
+
+## __AWS Glue__
+  - ### Features
+    - Added AttributesToGet parameter to Glue GetDatabases, allowing caller to limit output to include only the database name.
+
+## __AWS Performance Insights__
+  - ### Features
+    - Noting that the filter db.sql.db_id isn't available for RDS for SQL Server DB instances.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix a bug on the token bucket, after success we need to deposit back one token to allow it to slowly recover and allow more retries after seeing several successful responses.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release supports showing PreferredAgentRouting step via DescribeContact API.
+
+## __Amazon EMR__
+  - ### Features
+    - This release provides the support for new allocation strategies i.e. CAPACITY_OPTIMIZED_PRIORITIZED for Spot and PRIORITIZED for On-Demand by taking input of priority value for each instance type for instance fleet clusters.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for Flink 1.19 in Managed Service for Apache Flink
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release removes support for enabling or disabling Natural Language Query Processing feature for Amazon OpenSearch Service domains.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added support for Red Hat Enterprise Linux 8 on Amazon WorkSpaces Personal.
+
 # __2.26.11__ __2024-06-27__
 ## __AWS SDK for Java v2__
   - ### Features
