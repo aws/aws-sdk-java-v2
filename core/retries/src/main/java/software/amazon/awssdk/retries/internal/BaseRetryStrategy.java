@@ -197,7 +197,7 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
     private ReleaseResponse releaseTokenBucketCapacity(DefaultRetryToken token) {
         TokenBucket bucket = tokenBucketStore.tokenBucketForScope(token.scope());
         int capacityReleased = token.capacityAcquired();
-        return bucket.release(capacityReleased);
+        return bucket.release(Math.max(capacityReleased, 1));
     }
 
     private DefaultRetryToken refreshRetryTokenAfterSuccess(DefaultRetryToken token, ReleaseResponse releaseResponse) {
