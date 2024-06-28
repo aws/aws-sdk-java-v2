@@ -343,6 +343,10 @@ public class ChangeSdkType extends Recipe {
 
         @Override
         public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+            if (method.getMethodType() == null) {
+                return method;
+            }
+
             JavaType.FullyQualified declaringType = method.getMethodType().getDeclaringType();
             if (isV1Class(declaringType)) {
                 String fullyQualifiedName = declaringType.getFullyQualifiedName();
@@ -351,7 +355,7 @@ public class ChangeSdkType extends Recipe {
                 Pair<JavaType.Class, JavaType> oldTypeToNewTypePair = oldTypeToNewType.get(fullyQualifiedName);
                 JavaType.Class originalType = oldTypeToNewTypePair.left();
                 JavaType targetType = oldTypeToNewTypePair.right();
-                if (method.getMethodType() != null && method.getMethodType().hasFlags(Flag.Static)) {
+                if (method.getMethodType().hasFlags(Flag.Static)) {
                     if (method.getMethodType().getDeclaringType().isAssignableFrom(originalType)) {
                         JavaSourceFile cu = getCursor().firstEnclosingOrThrow(JavaSourceFile.class);
 
