@@ -37,6 +37,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkInterruptedException;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -45,6 +46,7 @@ import software.amazon.awssdk.core.internal.http.timers.ApiCallTimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTask;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -184,7 +186,7 @@ public class TimeoutExceptionHandlingStageTest {
     @Test
     public void uncheckedIOException_doesNotThrowException() throws Exception {
         when(apiCallTimeoutTask.hasExecuted()).thenReturn(true);
-        when(requestPipeline.execute(any(), any())).thenThrow(UncheckedIOException.class);
+        when(requestPipeline.execute(any(), any())).thenThrow(SdkInterruptedException.class);
         verifyExceptionThrown(InterruptedException.class);
     }
 

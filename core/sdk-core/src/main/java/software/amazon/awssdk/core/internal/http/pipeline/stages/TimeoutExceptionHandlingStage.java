@@ -16,11 +16,9 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.resolveTimeoutInMillis;
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -94,7 +92,7 @@ public final class TimeoutExceptionHandlingStage<OutputT> implements RequestToRe
      * @return The translated exception.
      */
     private Exception translatePipelineException(RequestExecutionContext context, Exception e) {
-        if (e instanceof InterruptedException || e instanceof IOException || e instanceof UncheckedIOException
+        if (e instanceof InterruptedException || e instanceof IOException
                 || e instanceof AbortedException || Thread.currentThread().isInterrupted()
                 || (e instanceof SdkClientException && isCausedByApiCallAttemptTimeout(context))) {
             return handleTimeoutCausedException(context, e);
@@ -104,11 +102,8 @@ public final class TimeoutExceptionHandlingStage<OutputT> implements RequestToRe
 
     private Exception handleTimeoutCausedException(RequestExecutionContext context, Exception e) {
         if (e instanceof SdkInterruptedException) {
-            ((SdkInterruptedException) e).getResponseStream().ifPresent(r -> invokeSafely(r::close));
-        }
-
-        if (e instanceof UncheckedIOException) {
-            runAndLogError(log.logger(), e.getMessage(), e::getCause);
+            ((SdkInterruptedException) e).getResponseStream().ifPresent(r -> runAndLogError(log.logger(), "Unable to close the "
+                                                                                                          + "stream", r::close));
         }
 
         if (isCausedByApiCallTimeout(context)) {
