@@ -132,8 +132,7 @@ public final class SdkDefaultRetryStrategy {
      */
     public static LegacyRetryStrategy.Builder legacyRetryStrategyBuilder() {
         LegacyRetryStrategy.Builder builder = DefaultRetryStrategy.legacyStrategyBuilder();
-        return configure(builder)
-            .treatAsThrottling(SdkDefaultRetryStrategy::treatAsThrottling);
+        return configure(builder);
     }
 
     /**
@@ -143,8 +142,7 @@ public final class SdkDefaultRetryStrategy {
      */
     public static AdaptiveRetryStrategy.Builder adaptiveRetryStrategyBuilder() {
         AdaptiveRetryStrategy.Builder builder = DefaultRetryStrategy.adaptiveStrategyBuilder();
-        return configure(builder)
-            .treatAsThrottling(SdkDefaultRetryStrategy::treatAsThrottling);
+        return configure(builder);
     }
 
     /**
@@ -161,6 +159,7 @@ public final class SdkDefaultRetryStrategy {
                .retryOnException(SdkDefaultRetryStrategy::retryOnClockSkewException)
                .retryOnException(SdkDefaultRetryStrategy::retryOnThrottlingCondition);
         SdkDefaultRetrySetting.RETRYABLE_EXCEPTIONS.forEach(builder::retryOnExceptionOrCauseInstanceOf);
+        builder.treatAsThrottling(SdkDefaultRetryStrategy::treatAsThrottling);
         return builder;
     }
 

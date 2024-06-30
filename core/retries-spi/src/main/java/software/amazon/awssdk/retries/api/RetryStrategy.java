@@ -188,7 +188,7 @@ public interface RetryStrategy {
         }
 
         /**
-         * Configure the maximum number of attempts used by this executor.
+         * Configure the maximum number of attempts used by the retry strategy.
          *
          * <p>The actual number of attempts made may be less, depending on the retry strategy implementation. For example, the
          * standard and adaptive retry modes both employ short-circuiting which reduces the maximum attempts during outages.
@@ -198,11 +198,23 @@ public interface RetryStrategy {
         B maxAttempts(int maxAttempts);
 
         /**
-         * Configure the backoff strategy used by this executor.
+         * Configure the backoff strategy used by the retry strategy.
          *
          * <p>By default, this uses jittered exponential backoff.
          */
         B backoffStrategy(BackoffStrategy backoffStrategy);
+
+        /**
+         * Configure the backoff strategy used for throttling exceptions by this strategy.
+         *
+         * <p>By default, this uses jittered exponential backoff.
+         */
+        B throttlingBackoffStrategy(BackoffStrategy throttlingBackoffStrategy);
+
+        /**
+         * Configure the predicate to allow the strategy categorize a Throwable as throttling exception.
+         */
+        B treatAsThrottling(Predicate<Throwable> treatAsThrottling);
 
         /**
          * Build a new {@link RetryStrategy} with the current configuration on this builder.

@@ -33,12 +33,10 @@ public final class DefaultAdaptiveRetryStrategy
     extends BaseRetryStrategy implements AdaptiveRetryStrategy {
 
     private static final Logger LOG = Logger.loggerFor(DefaultAdaptiveRetryStrategy.class);
-    private final Predicate<Throwable> treatAsThrottling;
     private final RateLimiterTokenBucketStore rateLimiterTokenBucketStore;
 
     DefaultAdaptiveRetryStrategy(Builder builder) {
         super(LOG, builder);
-        this.treatAsThrottling = Validate.paramNotNull(builder.treatAsThrottling, "treatAsThrottling");
         this.rateLimiterTokenBucketStore = Validate.paramNotNull(builder.rateLimiterTokenBucketStore,
                                                                  "rateLimiterTokenBucketStore");
     }
@@ -81,7 +79,6 @@ public final class DefaultAdaptiveRetryStrategy
     }
 
     public static class Builder extends BaseRetryStrategy.Builder implements AdaptiveRetryStrategy.Builder {
-        private Predicate<Throwable> treatAsThrottling;
         private RateLimiterTokenBucketStore rateLimiterTokenBucketStore;
 
         Builder() {
@@ -89,7 +86,6 @@ public final class DefaultAdaptiveRetryStrategy
 
         Builder(DefaultAdaptiveRetryStrategy strategy) {
             super(strategy);
-            this.treatAsThrottling = strategy.treatAsThrottling;
             this.rateLimiterTokenBucketStore = strategy.rateLimiterTokenBucketStore;
         }
 
@@ -107,13 +103,19 @@ public final class DefaultAdaptiveRetryStrategy
 
         @Override
         public Builder treatAsThrottling(Predicate<Throwable> treatAsThrottling) {
-            this.treatAsThrottling = treatAsThrottling;
+            setTreatAsThrottling(treatAsThrottling);
             return this;
         }
 
         @Override
         public Builder backoffStrategy(BackoffStrategy backoffStrategy) {
             setBackoffStrategy(backoffStrategy);
+            return this;
+        }
+
+        @Override
+        public Builder throttlingBackoffStrategy(BackoffStrategy backoffStrategy) {
+            setThrottlingBackoffStrategy(backoffStrategy);
             return this;
         }
 

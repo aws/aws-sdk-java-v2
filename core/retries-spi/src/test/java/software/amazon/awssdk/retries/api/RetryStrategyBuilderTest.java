@@ -159,6 +159,16 @@ class RetryStrategyBuilderTest {
         }
 
         @Override
+        public BuilderToTestDefaults throttlingBackoffStrategy(BackoffStrategy backoffStrategy) {
+            return this;
+        }
+
+        @Override
+        public BuilderToTestDefaults treatAsThrottling(Predicate<Throwable> treatAsThrottling) {
+            return this;
+        }
+
+        @Override
         public DummyRetryStrategy build() {
             return null;
         }
