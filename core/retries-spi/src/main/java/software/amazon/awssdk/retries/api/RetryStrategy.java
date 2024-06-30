@@ -212,7 +212,9 @@ public interface RetryStrategy {
         B throttlingBackoffStrategy(BackoffStrategy throttlingBackoffStrategy);
 
         /**
-         * Configure the predicate to allow the strategy categorize a Throwable as throttling exception.
+         * Configure a predicate that determines whether a retryable exception is a throttling exception. When this predicate
+         * returns true, the retry strategy will use the {@link #throttlingBackoffStrategy}. If it returns false, the
+         * {@link #backoffStrategy} will be used. This predicate will not be called for non-retryable exceptions.
          */
         B treatAsThrottling(Predicate<Throwable> treatAsThrottling);
 
