@@ -18,7 +18,6 @@ package software.amazon.awssdk.migration.internal.utils;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.migration.internal.utils.NamingConversionUtils;
 
 public class NamingConversionUtilsTest {
     @Test
@@ -85,5 +84,13 @@ public class NamingConversionUtilsTest {
             .isEqualTo("software.amazon.awssdk.services.iot.model.*");
         assertThat(NamingConversionUtils.getV2ModelPackageWildCardEquivalent("com.amazonaws.services.iot.*"))
             .isEqualTo("software.amazon.awssdk.services.iot.*");
+    }
+
+    @Test
+    void packageNameV2Suffix_shouldBeRemoved() {
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.cloudsearchv2.AmazonCloudSearchClient"))
+                       .isEqualTo("software.amazon.awssdk.services.cloudsearch.CloudSearchClient");
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.dynamodbv2.AmazonDynamoDB"))
+            .isEqualTo("software.amazon.awssdk.services.dynamodb.DynamoDbClient");
     }
 }
