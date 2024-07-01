@@ -241,6 +241,8 @@ public interface TableSchema<T> {
      * @param ignoreNulls If set to true; any null values in the Java object will not be added to the output map.
      *                    If set to false; null values in the Java object will be added as {@link AttributeValue} of
      *                    type 'nul' to the output map.
+     * @param attributeMapping denotes the level of nesting, i.e. SHALLOW or NESTED, contained in the request params based
+     * which nested update query parameters would be dealt with
      * @return A map of String to {@link AttributeValue} representing all the modelled attributes in the model object.
      */
     Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls, AttributeMapping attributeMapping);
