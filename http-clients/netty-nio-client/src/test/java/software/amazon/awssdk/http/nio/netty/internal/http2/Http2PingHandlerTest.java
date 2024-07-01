@@ -17,7 +17,9 @@ package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -38,6 +40,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -46,7 +50,7 @@ import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 public class Http2PingHandlerTest {
-    private static final NettyClientLogger log = NettyClientLogger.getLogger(Http2PingHandler.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(Http2PingHandlerTest.class);
 
     private static final int FAST_CHECKER_DURATION_MILLIS = 100;
 
@@ -221,7 +225,7 @@ public class Http2PingHandlerTest {
         EmbeddedChannel channel = createHttp2Channel(fastChecker);
         ChannelHandlerContext context = Mockito.mock(ChannelHandlerContext.class);
         fastChecker.channelInactive(context);
-        Mockito.verify(context).fireChannelInactive();
+        verify(context).fireChannelInactive();
 
         channel.writeInbound(new DefaultHttp2PingFrame(0, false));
         assertThat(channel.runScheduledPendingTasks()).isEqualTo(-1L);
@@ -278,6 +282,62 @@ public class Http2PingHandlerTest {
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, Http2PingFrame msg) {
             caughtPings.add(msg);
+        }
+    }
+
+    @Test
+    public void pingsRequestsAreNotWrittenToTheWholePipeline() {
+        // pipelines are in the order of
+        // Transport -> Head -> Handlers -> Tail -> Application
+        DuplexCatcher tailCatcher = new DuplexCatcher();
+
+        // create a channel with the following handlers
+        // Transport -> Head -> pingHandler, tailCatcher -> Tail -> Application
+        // When pings are written it flows from Tail -> Head so would start from tailCatcher,
+        // but we don't want pings to go through the whole pipeline, so the test verifies
+        // that no packets were seen by tailCatcher
+        // When pings are read, it flows Head -> Tail and ping handler consumes it, so it's not seen
+        // by other handlers
+        EmbeddedChannel channel = createHttp2Channel(fastChecker, tailCatcher);
+
+        // Roughly 10 pings will be sent and acked...
+        int count = 0;
+        Instant runEnd = Instant.now().plus(1, SECONDS);
+        while (Instant.now().isBefore(runEnd)) {
+            channel.runPendingTasks();
+            DefaultHttp2PingFrame sentFrame = channel.readOutbound();
+
+            if (sentFrame != null) {
+                log.debug(channel, () -> "Ping request was sent");
+                assertThat(sentFrame.ack()).isFalse();
+                // send the ack
+                channel.writeInbound(new DefaultHttp2PingFrame(0, true));
+                count++;
+            }
+        }
+
+        Assertions.assertTrue(count >= 10); // atleast 10 must be sent
+        // but none received by the tail catcher
+        Assertions.assertEquals(0, tailCatcher.rcvdMsgs.size());
+        Assertions.assertEquals(0, tailCatcher.sentMsgs.size());
+    }
+
+    private static final class DuplexCatcher extends ChannelDuplexHandler {
+        private final List<Object> sentMsgs = Collections.synchronizedList(new ArrayList<>());
+        private final List<Object> rcvdMsgs = Collections.synchronizedList(new ArrayList<>());
+
+        @Override
+        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+            sentMsgs.add(msg);
+            // continue the write through the pipeline
+            ctx.write(msg, promise);
+        }
+
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            rcvdMsgs.add(msg);
+            // continue the read through the pipeline
+            ctx.fireChannelRead(msg);
         }
     }
 

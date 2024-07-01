@@ -68,7 +68,7 @@ public class Http2PingHandler extends SimpleChannelInboundHandler<Http2PingFrame
         if (protocol == Protocol.HTTP2 && periodicPing == null) {
             periodicPing = ctx.channel()
                               .eventLoop()
-                              .schedule(() -> doPeriodicPing(ctx.channel()), 0, MILLISECONDS);
+                              .schedule(() -> doPeriodicPing(ctx), 0, MILLISECONDS);
         }
     }
 
@@ -93,35 +93,35 @@ public class Http2PingHandler extends SimpleChannelInboundHandler<Http2PingFrame
         }
     }
 
-    private void doPeriodicPing(Channel channel) {
+    private void doPeriodicPing(ChannelHandlerContext ctx) {
         if (lastPingAckTime <= lastPingSendTime - pingTimeoutMillis) {
-            log.warn(channel, () -> "PING timeout occurred");
+            log.warn(ctx.channel(), () -> "PING timeout occurred");
             long timeSinceLastPingSend = System.currentTimeMillis() - lastPingSendTime;
-            channelIsUnhealthy(channel, new PingFailedException("Server did not respond to PING after " +
+            channelIsUnhealthy(ctx.channel(), new PingFailedException("Server did not respond to PING after " +
                                                                 timeSinceLastPingSend + "ms (limit: " +
                                                                 pingTimeoutMillis + "ms)"));
         } else {
-            log.debug(channel, () -> "Sending HTTP2/PING frame");
+            log.debug(ctx.channel(), () -> "Sending HTTP2/PING frame");
             long scheduleTime = lastPingSendTime == 0 ? 0 : System.currentTimeMillis() - lastPingSendTime;
             if (scheduleTime - pingTimeoutMillis > delayWarningTimeLimitMs) {
-                log.warn(channel, () -> "PING timer scheduled after " + scheduleTime + "ms");
+                log.warn(ctx.channel(), () -> "PING timer scheduled after " + scheduleTime + "ms");
             }
-            sendPing(channel);
+            sendPing(ctx);
         }
     }
 
-    private void sendPing(Channel channel) {
+    private void sendPing(ChannelHandlerContext ctx) {
         long writeMs = System.currentTimeMillis();
-        channel.writeAndFlush(DEFAULT_PING_FRAME).addListener(res -> {
+        ctx.writeAndFlush(DEFAULT_PING_FRAME).addListener(res -> {
             if (!res.isSuccess()) {
-                log.debug(channel, () -> "Failed to write and flush PING frame to connection", res.cause());
-                channelIsUnhealthy(channel, new PingFailedException("Failed to send PING to the service", res.cause()));
+                log.debug(ctx.channel(), () -> "Failed to write and flush PING frame to connection", res.cause());
+                channelIsUnhealthy(ctx.channel(), new PingFailedException("Failed to send PING to the service", res.cause()));
             } else {
-                log.debug(channel, () -> "Successfully flushed PING frame to connection");
+                log.debug(ctx.channel(), () -> "Successfully flushed PING frame to connection");
                 lastPingSendTime = System.currentTimeMillis();
                 long flushTime = lastPingSendTime - writeMs;
                 if (flushTime > delayWarningTimeLimitMs) {
-                    log.warn(channel, () -> "Flushing PING frame took " + flushTime + "ms");
+                    log.warn(ctx.channel(), () -> "Flushing PING frame took " + flushTime + "ms");
                 }
                 // ping frame was flushed to the socket, schedule to send the next ping now to avoid premature timeout.
                 //
@@ -136,7 +136,7 @@ public class Http2PingHandler extends SimpleChannelInboundHandler<Http2PingFrame
                 // 0            ptm1               ptm2
                 // |-|----------|------|----------|-----------> time
                 // W1F1 R1      W2     F2   R2    W3
-                periodicPing = channel.eventLoop().schedule(() -> doPeriodicPing(channel), pingTimeoutMillis, MILLISECONDS);
+                periodicPing = ctx.channel().eventLoop().schedule(() -> doPeriodicPing(ctx), pingTimeoutMillis, MILLISECONDS);
             }
         });
     }
