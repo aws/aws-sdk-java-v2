@@ -71,7 +71,7 @@ public interface StandardRetryStrategy extends RetryStrategy {
 
     interface Builder extends RetryStrategy.Builder<Builder, StandardRetryStrategy> {
         /**
-         * Whether circuit breaking is enabled for this executor.
+         * Whether circuit breaking is enabled for this strategy.
          *
          * <p>The circuit breaker will prevent attempts (even below the {@link #maxAttempts(int)}) if a large number of
          * failures are observed by this executor.
