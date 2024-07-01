@@ -174,7 +174,7 @@
 
         <jre.version>1.8</jre.version>
         <httpcomponents.httpclient.version>4.5.13</httpcomponents.httpclient.version>
-        <httpcomponents.httpcore.version>4.4.13</httpcomponents.httpcore.version>
+        <httpcomponents.httpcore.version>4.4.16</httpcomponents.httpcore.version>
 
         <!-- Reactive Streams version -->
         <reactive-streams.version>1.0.4</reactive-streams.version>
