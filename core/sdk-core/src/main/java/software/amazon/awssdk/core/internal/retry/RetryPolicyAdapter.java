@@ -181,6 +181,16 @@ public final class RetryPolicyAdapter implements RetryStrategy {
             throw new UnsupportedOperationException("RetryPolicyAdapter does not support calling backoffStrategy");
         }
 
+        @Override
+        public Builder throttlingBackoffStrategy(BackoffStrategy backoffStrategy) {
+            throw new UnsupportedOperationException("RetryPolicyAdapter does not support calling throttlingBackoffStrategy");
+        }
+
+        @Override
+        public Builder treatAsThrottling(Predicate<Throwable> treatAsThrottling) {
+            throw new UnsupportedOperationException("RetryPolicyAdapter does not support calling treatAsThrottling");
+        }
+
         public Builder retryPolicy(RetryPolicy retryPolicy) {
             this.retryPolicy = retryPolicy;
             return this;

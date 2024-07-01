@@ -19,7 +19,6 @@ import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
-import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.internal.DefaultAdaptiveRetryStrategy;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
@@ -30,10 +29,11 @@ import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterTokenBucke
  * <p>
  * Unlike {@link StandardRetryStrategy}, care should be taken when using this strategy. Specifically, it should be used:
  * <ol>
- * <li>When the availability of downstream resources are mostly affected by callers that are also using
- * the {@link AdaptiveRetryStrategy}.
- * <li>The scope (either the whole strategy or the {@link AcquireInitialTokenRequest#scope}) of the strategy is constrained
- * to target "resource", so that availability issues in one resource cannot delay other, unrelated resource's availability.
+ *   <li>When the availability of downstream resources are mostly affected by callers that are also using
+ *   the {@link AdaptiveRetryStrategy}.
+ *   <li>The scope (either the whole strategy or the {@link AcquireInitialTokenRequest#scope}) of the strategy is constrained
+ *   to target "resource", so that availability issues in one resource cannot delay other, unrelated resource's availability.
+ * </ol>
  * <p>
  * The adaptive retry strategy by default:
  * <ol>
@@ -70,8 +70,6 @@ public interface AdaptiveRetryStrategy extends RetryStrategy {
                                               .tokenBucketMaxCapacity(DefaultRetryStrategy.Standard.TOKEN_BUCKET_SIZE)
                                               .build())
             .tokenBucketExceptionCost(DefaultRetryStrategy.Standard.DEFAULT_EXCEPTION_TOKEN_COST)
-            .backoffStrategy(BackoffStrategy.exponentialDelay(DefaultRetryStrategy.Standard.BASE_DELAY,
-                                                              DefaultRetryStrategy.Standard.MAX_BACKOFF))
             .rateLimiterTokenBucketStore(RateLimiterTokenBucketStore.builder().build());
     }
 
