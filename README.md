@@ -150,7 +150,8 @@ For information about maintenance and support for SDK major versions and their u
 
 ## Maintenance and Support for Java Versions
 
-We maintain full support on Long-Term Support(LTS) releases: Java 8, Java 11, Java 17, and Java 21.
+We maintain full support on Long-Term Support(LTS) releases: Java 8, Java 11, Java 17, and Java 21. Note that there 
+may be individual features in newer releases that are not supported, because the SDK must be compatible with Java 8.
 
 ## Giving Feedback
 We need your help in making this SDK great. Please participate in the community and contribute to this effort by submitting issues, participating in discussion forums and submitting pull requests through the following channels:
