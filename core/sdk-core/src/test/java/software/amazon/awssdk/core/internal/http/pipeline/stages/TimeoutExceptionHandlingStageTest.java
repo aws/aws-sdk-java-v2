@@ -17,10 +17,12 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.SocketException;
 import java.util.concurrent.ScheduledFuture;
 import org.junit.Before;
@@ -35,6 +37,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkInterruptedException;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -43,6 +46,7 @@ import software.amazon.awssdk.core.internal.http.timers.ApiCallTimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTask;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -179,6 +183,13 @@ public class TimeoutExceptionHandlingStageTest {
         verifyExceptionThrown(InterruptedException.class);
     }
 
+    @Test
+    public void uncheckedIOException_doesNotThrowException() throws Exception {
+        when(apiCallTimeoutTask.hasExecuted()).thenReturn(true);
+        when(requestPipeline.execute(any(), any())).thenThrow(SdkInterruptedException.class);
+        verifyExceptionThrown(InterruptedException.class);
+    }
+
 
     @Test
     public void abortedException_causedByApiCallAttemptTimeoutTask_shouldNotPropagate() throws Exception {
@@ -206,6 +217,13 @@ public class TimeoutExceptionHandlingStageTest {
 
         assertThatThrownBy(() -> stage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), context))
             .isExactlyInstanceOf(exceptionToAssert);
+    }
+    private void verifyExceptionNotThrown() {
+        RequestExecutionContext context = requestContext();
+        context.apiCallTimeoutTracker(new ApiCallTimeoutTracker(apiCallTimeoutTask, scheduledFuture));
+        context.apiCallAttemptTimeoutTracker(new ApiCallTimeoutTracker(apiCallAttemptTimeoutTask, scheduledFuture));
+
+        assertDoesNotThrow(() -> stage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), context));
     }
 
     private RequestExecutionContext requestContext() {
