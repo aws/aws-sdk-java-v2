@@ -137,7 +137,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                             httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
                                             s3MetaRequestFuture);
 
-        S3MetaRequestOptions.MetaRequestType requestType = requestType(asyncRequest);
+        String operationName = asyncRequest.httpExecutionAttributes().getAttribute(OPERATION_NAME);
+        S3MetaRequestOptions.MetaRequestType requestType = requestType(operationName);
 
         HttpChecksum httpChecksum = httpExecutionAttributes.getAttribute(HTTP_CHECKSUM);
         ResumeToken resumeToken = httpExecutionAttributes.getAttribute(CRT_PAUSE_RESUME_TOKEN);
@@ -156,6 +157,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             .withEndpoint(endpoint)
             .withResponseHandler(responseHandler)
             .withResumeToken(resumeToken)
+            .withOperationName(operationName)
             .withRequestFilePath(requestFilePath)
             .withSigningConfig(signingConfig);
 
@@ -202,8 +204,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         return "s3crt";
     }
 
-    private static S3MetaRequestOptions.MetaRequestType requestType(AsyncExecuteRequest asyncRequest) {
-        String operationName = asyncRequest.httpExecutionAttributes().getAttribute(OPERATION_NAME);
+    private static S3MetaRequestOptions.MetaRequestType requestType(String operationName) {
         if (operationName != null) {
             switch (operationName) {
                 case "GetObject":
