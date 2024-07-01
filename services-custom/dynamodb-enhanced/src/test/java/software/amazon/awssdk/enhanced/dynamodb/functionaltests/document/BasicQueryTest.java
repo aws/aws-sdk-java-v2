@@ -62,6 +62,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 
 public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     private DynamoDbClient lowLevelClient;
@@ -236,6 +237,66 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         assertThat(firstRecord.getString("id"), is(nullValue()));
         assertThat(firstRecord.getNumber("sort"), is(nullValue()));
         assertThat(firstRecord.getNumber("value").intValue(), is(0));
+    }
+
+    @Test
+    public void queryAllRecordsDefaultSettings_withSelect_specificAttributes() {
+        insertDocuments();
+        Iterator<Page<EnhancedDocument>> results =
+            docMappedtable.query(b -> b
+                .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                .select(Select.SPECIFIC_ATTRIBUTES)
+                .attributesToProject("value")
+            ).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<EnhancedDocument> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(DOCUMENTS.size()));
+        EnhancedDocument firstRecord = page.items().get(0);
+
+        assertThat(firstRecord.getString("id"), is(nullValue()));
+        assertThat(firstRecord.getNumber("sort"), is(nullValue()));
+        assertThat(firstRecord.getNumber("value").intValue(), is(0));
+    }
+
+    @Test
+    public void queryAllRecordsDefaultSettings_withSelect_allAttributes() {
+        insertDocuments();
+        Iterator<Page<EnhancedDocument>> results =
+            docMappedtable.query(b -> b
+                .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                .select(Select.ALL_ATTRIBUTES)
+            ).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<EnhancedDocument> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.items().size(), is(DOCUMENTS.size()));
+        EnhancedDocument firstRecord = page.items().get(0);
+
+        assertThat(firstRecord.getString("id"), is("id-value"));
+        assertThat(firstRecord.getNumber("sort").intValue(), is(0));
+        assertThat(firstRecord.getNumber("value").intValue(), is(0));
+    }
+
+    @Test
+    public void queryAllRecordsDefaultSettings_withSelect_count() {
+        insertDocuments();
+        Iterator<Page<EnhancedDocument>> results =
+            docMappedtable.query(b -> b
+                .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                .select(Select.COUNT)
+            ).iterator();
+
+
+        assertThat(results.hasNext(), is(true));
+        Page<EnhancedDocument> page = results.next();
+        assertThat(results.hasNext(), is(false));
+        assertThat(page.count(), is(DOCUMENTS.size()));
+        assertThat(page.scannedCount(), is(DOCUMENTS.size()));
+        assertThat(page.items(), is(empty()));
+        assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
     @Test

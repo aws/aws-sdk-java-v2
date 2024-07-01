@@ -80,6 +80,7 @@ public class QueryOperation<T> implements PaginatedTableOperation<T, QueryReques
                                                         .expressionAttributeValues(expressionValues)
                                                         .expressionAttributeNames(expressionNames)
                                                         .scanIndexForward(this.request.scanIndexForward())
+                                                        .select(this.request.select())
                                                         .limit(this.request.limit())
                                                         .exclusiveStartKey(this.request.exclusiveStartKey())
                                                         .consistentRead(this.request.consistentRead())
