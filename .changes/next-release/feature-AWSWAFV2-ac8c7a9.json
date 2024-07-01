@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "contributor": "",
+    "description": "JSON body inspection: Update documentation to clarify that JSON parsing doesn't include full validation."
+}
