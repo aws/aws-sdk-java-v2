@@ -19,6 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.NESTED;
 
 import java.util.Arrays;
 import java.util.List;
@@ -94,7 +95,7 @@ public class TransactGetItemsEnhancedRequestTest {
 
     
     private List<TransactGetItem> getTransactGetItems(FakeItem fakeItem) {
-        final Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
+        final Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true, NESTED);
 
         TransactGetItem getItem = TransactGetItem.builder()
                                                       .get(Get.builder()

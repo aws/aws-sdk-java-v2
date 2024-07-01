@@ -73,6 +73,19 @@ public class FakeItem extends FakeItemAbstractSubclass {
                        .build();
     }
 
+    public static FakeItem createUniqueFakeItemWithNestedComposedAttribute() {
+        return FakeItem.builder()
+                       .id(UUID.randomUUID().toString())
+                       .composedObject(FakeItemComposedClass.builder().
+                                                            nestedComposedAttribute(
+                                                                FakeItemComposedClass.builder().
+                                                                                     composedAttribute("nested").build()
+                                                            )
+                                                            .build())
+                       .build();
+
+    }
+
     public String getId() {
         return id;
     }

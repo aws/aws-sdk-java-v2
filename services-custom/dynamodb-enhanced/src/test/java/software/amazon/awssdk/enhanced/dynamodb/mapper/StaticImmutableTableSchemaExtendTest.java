@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.Collections;
@@ -66,7 +67,7 @@ public class StaticImmutableTableSchemaExtendTest {
 
     @Test
     public void itemToMap() {
-        Map<String, AttributeValue> result = immutableTableSchema.itemToMap(TEST_RECORD, false);
+        Map<String, AttributeValue> result = immutableTableSchema.itemToMap(TEST_RECORD, false, SHALLOW);
 
         assertThat(result).isEqualTo(ITEM_MAP);
     }

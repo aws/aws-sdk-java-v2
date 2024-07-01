@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.Collections;
 import java.util.Map;
@@ -48,7 +49,7 @@ public class BeanTableSchemaRecursiveTest {
         recursiveRecordBean1.setAttribute(1);
         recursiveRecordBean1.setRecursiveRecordBean(recursiveRecordBean2);
 
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(recursiveRecordBean1, true);
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(recursiveRecordBean1, true, SHALLOW);
 
         assertThat(itemMap).hasSize(2);
         assertThat(itemMap).containsEntry("attribute", AttributeValue.builder().n("1").build());
@@ -77,7 +78,7 @@ public class BeanTableSchemaRecursiveTest {
         recursiveRecordBean1.setAttribute(1);
         recursiveRecordBean1.setRecursiveRecordList(Collections.singletonList(recursiveRecordBean2));
 
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(recursiveRecordBean1, true);
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(recursiveRecordBean1, true, SHALLOW);
 
         assertThat(itemMap).hasSize(2);
         assertThat(itemMap).containsEntry("attribute", AttributeValue.builder().n("1").build());

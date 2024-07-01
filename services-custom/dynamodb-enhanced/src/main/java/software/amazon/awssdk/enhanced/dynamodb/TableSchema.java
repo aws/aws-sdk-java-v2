@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.document.DocumentTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
@@ -242,9 +243,7 @@ public interface TableSchema<T> {
      *                    type 'nul' to the output map.
      * @return A map of String to {@link AttributeValue} representing all the modelled attributes in the model object.
      */
-    Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls);
-
-    Map<String, AttributeValue> updateItemToMap(T item, boolean ignoreNulls);
+    Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls, AttributeMapping attributeMapping);
 
     /**
      * Takes a modelled object and extracts a specific set of attributes which are then returned as a map of

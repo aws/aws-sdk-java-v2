@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.Map;
 import org.junit.Before;
@@ -48,8 +49,8 @@ public class TransactWriteItemsOperationTest {
 
     private final FakeItem fakeItem1 = FakeItem.createUniqueFakeItem();
     private final FakeItem fakeItem2 = FakeItem.createUniqueFakeItem();
-    private final Map<String, AttributeValue> fakeItemMap1 = FakeItem.getTableSchema().itemToMap(fakeItem1, true);
-    private final Map<String, AttributeValue> fakeItemMap2 = FakeItem.getTableSchema().itemToMap(fakeItem2, true);
+    private final Map<String, AttributeValue> fakeItemMap1 = FakeItem.getTableSchema().itemToMap(fakeItem1, true, SHALLOW);
+    private final Map<String, AttributeValue> fakeItemMap2 = FakeItem.getTableSchema().itemToMap(fakeItem2, true, SHALLOW);
 
     @Mock
     private DynamoDbEnhancedClientExtension mockDynamoDbEnhancedClientExtension;

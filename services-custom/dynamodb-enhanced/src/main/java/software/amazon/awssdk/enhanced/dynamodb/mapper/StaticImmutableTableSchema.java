@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import static java.util.Collections.unmodifiableMap;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.NESTED;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -124,14 +125,14 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
             return thisBuilder;
         }
 
-        private Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
+        private Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls, AttributeMapping attributeMapping) {
             T1 otherItem = this.otherItemGetter.apply(item);
 
             if (otherItem == null) {
                 return Collections.emptyMap();
             }
 
-            return this.otherItemTableSchema.itemToMap(otherItem, ignoreNulls);
+            return this.otherItemTableSchema.itemToMap(otherItem, ignoreNulls, attributeMapping);
         }
 
         private AttributeValue attributeValue(T item, String attributeName) {
@@ -511,36 +512,16 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
     }
 
     @Override
-    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
+    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls, AttributeMapping attributeMapping) {
         Map<String, AttributeValue> attributeValueMap = new HashMap<>();
 
         attributeMappers.forEach(attributeMapper -> {
             String attributeKey = attributeMapper.attributeName();
             AttributeValue attributeValue = attributeMapper.attributeGetterMethod().apply(item);
 
-            if (!ignoreNulls || !isNullAttributeValue(attributeValue)) {
-                attributeValueMap.put(attributeKey, attributeValue);
-            }
-        });
-
-        indexedFlattenedMappers.forEach((name, flattenedMapper) -> {
-            attributeValueMap.putAll(flattenedMapper.itemToMap(item, ignoreNulls));
-        });
-
-        return unmodifiableMap(attributeValueMap);
-    }
-
-    @Override
-    public Map<String, AttributeValue> updateItemToMap(T item, boolean ignoreNulls) {
-        Map<String, AttributeValue> attributeValueMap = new HashMap<>();
-
-        attributeMappers.forEach(attributeMapper -> {
-            String attributeKey = attributeMapper.attributeName();
-            AttributeValue attributeValue = attributeMapper.attributeGetterMethod().apply(item);
-
-            if (!ignoreNulls || !isNullAttributeValue(attributeValue)) {
-                if (attributeValue.hasM()) {
-                    nestedUpdateAttributeMapper(attributeValueMap, attributeValue.m(), attributeKey, ignoreNulls);
+            if (attributeValueNonNullOrShouldWriteNull(ignoreNulls, attributeValue)) {
+                if (attributeMapping == NESTED && attributeValue.hasM()) {
+                    nestedItemToMap(attributeValueMap, attributeValue.m(), attributeKey, ignoreNulls);
                 } else {
                     attributeValueMap.put(attributeKey, attributeValue);
                 }
@@ -548,22 +529,24 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         });
 
         indexedFlattenedMappers.forEach((name, flattenedMapper) -> {
-            attributeValueMap.putAll(flattenedMapper.itemToMap(item, ignoreNulls));
+            attributeValueMap.putAll(flattenedMapper.itemToMap(item, ignoreNulls, attributeMapping));
         });
 
         return unmodifiableMap(attributeValueMap);
     }
 
-    public void nestedUpdateAttributeMapper(Map<String, AttributeValue> attributeValueMap,
-                                            Map<String, AttributeValue> updateItemAttributeMap, String attributeKey,
-                                            boolean ignoreNulls) {
-        updateItemAttributeMap.forEach((mapKey, mapValue) -> {
-            if (!ignoreNulls || !isNullAttributeValue(mapValue)) {
+    private void nestedItemToMap(Map<String, AttributeValue> resultAttributeValueMap,
+                                 Map<String, AttributeValue> updatedItemValuesAttributeMap,
+                                 String attributeKey,
+                                 boolean ignoreNulls) {
+        updatedItemValuesAttributeMap.forEach((mapKey, mapValue) -> {
+            String nestedAttributeKey = attributeKey + NESTED_OBJECT_UPDATE + mapKey;
+            if (attributeValueNonNullOrShouldWriteNull(ignoreNulls, mapValue)) {
                 if (mapValue.hasM()) {
-                    nestedUpdateAttributeMapper(attributeValueMap, mapValue.m(), attributeKey + NESTED_OBJECT_UPDATE + mapKey,
-                                                ignoreNulls);
+                    nestedItemToMap(resultAttributeValueMap, mapValue.m(), nestedAttributeKey,
+                                    ignoreNulls);
                 } else {
-                    attributeValueMap.put(attributeKey + NESTED_OBJECT_UPDATE + mapKey, mapValue);
+                    resultAttributeValueMap.put(nestedAttributeKey, mapValue);
                 }
             }
         });
@@ -650,5 +633,9 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
             return (AttributeConverter) flattenedMapper.getOtherItemTableSchema().converterForAttribute(key);
         }
         return null;
+    }
+
+    private boolean attributeValueNonNullOrShouldWriteNull(boolean ignoreNulls, AttributeValue attributeValue) {
+        return !ignoreNulls || !isNullAttributeValue(attributeValue);
     }
 }

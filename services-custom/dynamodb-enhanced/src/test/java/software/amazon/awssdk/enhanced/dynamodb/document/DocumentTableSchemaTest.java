@@ -20,6 +20,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
 import static software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocumentTestData.testDataInstance;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -125,7 +126,7 @@ class DocumentTableSchemaTest {
         DocumentTableSchema documentTableSchema = DocumentTableSchema.builder().build();
 
         Assertions.assertThat(
-            documentTableSchema.itemToMap(testData.getEnhancedDocument(), false)).isEqualTo(testData.getDdbItemMap());
+            documentTableSchema.itemToMap(testData.getEnhancedDocument(), false, SHALLOW)).isEqualTo(testData.getDdbItemMap());
     }
 
     @ParameterizedTest
@@ -234,6 +235,6 @@ class DocumentTableSchemaTest {
                                                                              CustomAttributeForDocumentConverterProvider.create()))
                                                                      .build();
         Assertions.assertThat(
-            documentTableSchema.itemToMap(numberDocument, true)).isEqualTo(resultMap);
+            documentTableSchema.itemToMap(numberDocument, true, SHALLOW)).isEqualTo(resultMap);
     }
 }

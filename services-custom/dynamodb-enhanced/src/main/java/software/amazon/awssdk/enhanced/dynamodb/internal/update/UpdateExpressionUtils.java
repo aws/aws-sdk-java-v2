@@ -21,7 +21,6 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUt
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema.NESTED_OBJECT_UPDATE;
 import static software.amazon.awssdk.utils.CollectionUtils.filterMap;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +30,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
-import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.UpdateBehaviorTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
 import software.amazon.awssdk.enhanced.dynamodb.update.RemoveAction;
@@ -141,18 +139,17 @@ public final class UpdateExpressionUtils {
     /**
      * Simple utility method that can create an ExpressionNames map based on a list of attribute names.
      */
-    private static Map<String, String> expressionNamesFor(String... attributeNames) {
+    private static Map<String, String> expressionNamesFor(String attributeNames) {
         Map<String, String> map = new HashMap<>();
-        for (String attributeName : attributeNames) {
-            if (attributeName.contains(NESTED_OBJECT_UPDATE)) {
-                for (String attribute : PATTERN.split(attributeName)) {
-                    map.put(keyRef(attribute), attribute);
-                }
+
+        if (attributeNames.contains(NESTED_OBJECT_UPDATE)) {
+            for (String attribute : PATTERN.split(attributeNames)) {
+                map.put(keyRef(attribute), attribute);
             }
         }
+
         if (map.isEmpty()) {
-            return Arrays.stream(attributeNames)
-                         .collect(Collectors.toMap(EnhancedClientUtils::keyRef, Function.identity()));
+            map.put(keyRef(attributeNames), attributeNames);
         }
         return map;
     }

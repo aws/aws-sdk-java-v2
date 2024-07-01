@@ -21,11 +21,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping;
 
 /**
- * Specifies that when calling {@link TableSchema#itemToMap(Object, boolean)}, a separate DynamoDB object that is
- * stored in the current object should ignore the attributes with null values. Note that if this annotation is absent, NULL
- * attributes will be created.
+ * Specifies that when calling {@link TableSchema#itemToMap(Object, boolean, AttributeMapping)}, a separate DynamoDB object
+ * that is stored in the current object should ignore the attributes with null values. Note that if this annotation
+ * is absent, NULL attributes will be created.
  *
  * <p>
  * Example using {@link DynamoDbIgnoreNulls}:

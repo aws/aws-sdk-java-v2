@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -52,7 +53,7 @@ public class ImmutableTableSchemaTest {
                                                         .m(singletonMap("attribute2", stringValue("two")))
                                                         .build();
 
-        Map<String, AttributeValue> itemMap = documentImmutableTableSchema.itemToMap(documentImmutable, true);
+        Map<String, AttributeValue> itemMap = documentImmutableTableSchema.itemToMap(documentImmutable, true, SHALLOW);
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -82,7 +83,7 @@ public class ImmutableTableSchemaTest {
                                                          .build();
         AttributeValue expectedList = AttributeValue.builder().l(expectedDocument1, expectedDocument2).build();
 
-        Map<String, AttributeValue> itemMap = documentImmutableTableSchema.itemToMap(documentImmutable, true);
+        Map<String, AttributeValue> itemMap = documentImmutableTableSchema.itemToMap(documentImmutable, true, SHALLOW);
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -118,7 +119,7 @@ public class ImmutableTableSchemaTest {
         expectedAttributeValueMap.put("key2", expectedDocument2);
         AttributeValue expectedMap = AttributeValue.builder().m(expectedAttributeValueMap).build();
 
-        Map<String, AttributeValue> itemMap = documentImmutableTableSchema.itemToMap(documentImmutable, true);
+        Map<String, AttributeValue> itemMap = documentImmutableTableSchema.itemToMap(documentImmutable, true, SHALLOW);
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -139,7 +140,7 @@ public class ImmutableTableSchemaTest {
                                                         .m(singletonMap("attribute2", stringValue("two")))
                                                         .build();
 
-        Map<String, AttributeValue> itemMap = documentImmutableTableSchema.itemToMap(documentImmutable, true);
+        Map<String, AttributeValue> itemMap = documentImmutableTableSchema.itemToMap(documentImmutable, true, SHALLOW);
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -168,7 +169,7 @@ public class ImmutableTableSchemaTest {
                                                          .build();
         AttributeValue expectedList = AttributeValue.builder().l(expectedDocument1, expectedDocument2).build();
 
-        Map<String, AttributeValue> itemMap = documentImmutableTableSchema.itemToMap(documentImmutable, true);
+        Map<String, AttributeValue> itemMap = documentImmutableTableSchema.itemToMap(documentImmutable, true, SHALLOW);
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -202,7 +203,7 @@ public class ImmutableTableSchemaTest {
         expectedAttributeValueMap.put("key2", expectedDocument2);
         AttributeValue expectedMap = AttributeValue.builder().m(expectedAttributeValueMap).build();
 
-        Map<String, AttributeValue> itemMap = documentImmutableTableSchema.itemToMap(documentImmutable, true);
+        Map<String, AttributeValue> itemMap = documentImmutableTableSchema.itemToMap(documentImmutable, true, SHALLOW);
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -221,7 +222,7 @@ public class ImmutableTableSchemaTest {
                                                 .setAbstractBean(abstractBean)
                                                 .build();
 
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(flattenedBeanImmutable, false);
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(flattenedBeanImmutable, false, SHALLOW);
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -239,7 +240,7 @@ public class ImmutableTableSchemaTest {
                                                      .setAbstractImmutable(abstractImmutable)
                                                      .build();
 
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(FlattenedImmutableImmutable, false);
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(FlattenedImmutableImmutable, false, SHALLOW);
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -257,7 +258,7 @@ public class ImmutableTableSchemaTest {
                            .innerBean(abstractImmutable)
                            .build();
 
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(nestedImmutable, false);
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(nestedImmutable, false, SHALLOW);
         assertThat(itemMap.size(), is(3));
 
         NestedImmutable result = tableSchema.mapToItem(itemMap);
@@ -275,7 +276,7 @@ public class ImmutableTableSchemaTest {
                                       .innerBean2(AbstractImmutable.builder().build())
                                       .build();
 
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(nestedImmutable, true);
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(nestedImmutable, true, SHALLOW);
         assertThat(itemMap.size(), is(2));
         AttributeValue expectedMapForInnerBean1 = AttributeValue.builder().m(new HashMap<>()).build();
 
@@ -293,7 +294,7 @@ public class ImmutableTableSchemaTest {
                                                                   .attribute1("one")
                                                                   .build();
 
-        Map<String, AttributeValue> itemMap = toBuilderImmutableTableSchema.itemToMap(toBuilderImmutable, true);
+        Map<String, AttributeValue> itemMap = toBuilderImmutableTableSchema.itemToMap(toBuilderImmutable, true, SHALLOW);
         assertThat(itemMap.size(), is(2));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));

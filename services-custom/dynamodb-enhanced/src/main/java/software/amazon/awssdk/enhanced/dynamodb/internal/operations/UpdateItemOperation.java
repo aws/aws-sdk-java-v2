@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.readAndTransformSingleItem;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.operationExpression;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.NESTED;
 import static software.amazon.awssdk.utils.CollectionUtils.filterMap;
 
 import java.util.Collection;
@@ -90,7 +91,7 @@ public class UpdateItemOperation<T>
                                           r -> Optional.ofNullable(r.ignoreNulls()))
                                      .orElse(null);
 
-        Map<String, AttributeValue> itemMap = tableSchema.updateItemToMap(item, Boolean.TRUE.equals(ignoreNulls));
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item, Boolean.TRUE.equals(ignoreNulls), NESTED);
         TableMetadata tableMetadata = tableSchema.tableMetadata();
 
         WriteModification transformation =

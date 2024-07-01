@@ -23,6 +23,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -50,13 +51,8 @@ public class MetaTableSchema<T> implements TableSchema<T> {
     }
 
     @Override
-    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
-        return concreteTableSchema().itemToMap(item, ignoreNulls);
-    }
-
-    @Override
-    public Map<String, AttributeValue> updateItemToMap(T item, boolean ignoreNulls) {
-        return concreteTableSchema().updateItemToMap(item, ignoreNulls);
+    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls, AttributeMapping attributeMapping) {
+        return concreteTableSchema().itemToMap(item, ignoreNulls, attributeMapping);
     }
 
     @Override

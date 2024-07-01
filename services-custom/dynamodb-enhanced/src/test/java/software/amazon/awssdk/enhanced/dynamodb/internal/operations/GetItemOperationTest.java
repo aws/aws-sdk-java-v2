@@ -27,6 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -245,8 +246,8 @@ public class GetItemOperationTest {
     public void transformResponse_withExtension_appliesItemModification() {
         FakeItem baseFakeItem = createUniqueFakeItem();
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> baseFakeItemMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, false);
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, false);
+        Map<String, AttributeValue> baseFakeItemMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, false, SHALLOW);
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, false, SHALLOW);
         GetItemOperation<FakeItem> getItemOperation =
             GetItemOperation.create(GetItemEnhancedRequest.builder().key(k -> k.partitionValue(baseFakeItem.getId())).build());
         GetItemResponse response = GetItemResponse.builder()

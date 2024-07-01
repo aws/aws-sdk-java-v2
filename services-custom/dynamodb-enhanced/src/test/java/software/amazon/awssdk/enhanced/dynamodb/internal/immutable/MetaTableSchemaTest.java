@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.MetaTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -73,17 +75,17 @@ public class MetaTableSchemaTest {
     @Test
     public void itemToMap_ignoreNulls() {
         metaTableSchema.initialize(mockTableSchema);
-        when(mockTableSchema.itemToMap(any(FakeItem.class), any(boolean.class))).thenReturn(fakeMap);
+        when(mockTableSchema.itemToMap(any(FakeItem.class), any(boolean.class), any(AttributeMapping.class))).thenReturn(fakeMap);
 
-        assertThat(metaTableSchema.itemToMap(fakeItem, true)).isSameAs(fakeMap);
-        verify(mockTableSchema).itemToMap(fakeItem, true);
-        assertThat(metaTableSchema.itemToMap(fakeItem, false)).isSameAs(fakeMap);
-        verify(mockTableSchema).itemToMap(fakeItem, false);
+        assertThat(metaTableSchema.itemToMap(fakeItem, true, SHALLOW)).isSameAs(fakeMap);
+        verify(mockTableSchema).itemToMap(fakeItem, true, SHALLOW);
+        assertThat(metaTableSchema.itemToMap(fakeItem, false, SHALLOW)).isSameAs(fakeMap);
+        verify(mockTableSchema).itemToMap(fakeItem, false, SHALLOW);
     }
 
     @Test
     public void itemToMap_ignoreNulls_notInitialized() {
-        assertUninitialized(t -> t.itemToMap(fakeItem, true));
+        assertUninitialized(t -> t.itemToMap(fakeItem, true, SHALLOW));
     }
 
     @Test

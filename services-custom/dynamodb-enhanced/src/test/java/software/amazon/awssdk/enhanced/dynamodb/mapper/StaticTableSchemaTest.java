@@ -29,6 +29,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.NESTED;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -820,7 +822,7 @@ public class StaticTableSchemaTest {
 
     @Test
     public void itemToMap_returnsCorrectMapWithMultipleAttributes() {
-        Map<String, AttributeValue> attributeMap = createSimpleTableSchema().itemToMap(FAKE_ITEM, false);
+        Map<String, AttributeValue> attributeMap = createSimpleTableSchema().itemToMap(FAKE_ITEM, false, SHALLOW);
 
         assertThat(attributeMap.size(), is(3));
         assertThat(attributeMap, hasEntry("a_boolean", ATTRIBUTE_VALUE_B));
@@ -831,7 +833,7 @@ public class StaticTableSchemaTest {
     @Test
     public void itemToMap_omitsNullAttributes() {
         FakeMappedItem fakeMappedItemWithNulls = FakeMappedItem.builder().aPrimitiveBoolean(true).build();
-        Map<String, AttributeValue> attributeMap = createSimpleTableSchema().itemToMap(fakeMappedItemWithNulls, true);
+        Map<String, AttributeValue> attributeMap = createSimpleTableSchema().itemToMap(fakeMappedItemWithNulls, true, SHALLOW);
 
         assertThat(attributeMap.size(), is(1));
         assertThat(attributeMap, hasEntry("a_primitive_boolean", ATTRIBUTE_VALUE_B));
@@ -1311,7 +1313,7 @@ public class StaticTableSchemaTest {
                                                                .setter(FakeMappedItem::setAString))
                              .build();
 
-        assertThat(tableSchema.itemToMap(FAKE_ITEM, false), is(singletonMap("aString", stringValue("test-string"))));
+        assertThat(tableSchema.itemToMap(FAKE_ITEM, false, SHALLOW), is(singletonMap("aString", stringValue("test-string"))));
 
         exception.expect(UnsupportedOperationException.class);
         exception.expectMessage("abstract");
@@ -1330,7 +1332,7 @@ public class StaticTableSchemaTest {
         FakeDocument document = FakeDocument.of("test-string", null);
         FakeMappedItem item = FakeMappedItem.builder().aFakeDocument(document).build();
 
-        assertThat(tableSchema.itemToMap(item, true),
+        assertThat(tableSchema.itemToMap(item, true, SHALLOW),
                    is(singletonMap("documentString", AttributeValue.builder().s("test-string").build())));
     }
 
@@ -1351,7 +1353,7 @@ public class StaticTableSchemaTest {
         FakeAbstractSubclass item = new FakeAbstractSubclass();
         item.setAString("test-string");
 
-        assertThat(subclassTableSchema.itemToMap(item, true),
+        assertThat(subclassTableSchema.itemToMap(item, true, SHALLOW),
                    is(singletonMap("aString", AttributeValue.builder().s("test-string").build())));
     }
 
@@ -1434,7 +1436,7 @@ public class StaticTableSchemaTest {
                              .build();
 
         Map<String, AttributeValue> resultMap =
-                tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(), false);
+                tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(), false, SHALLOW);
         assertThat(resultMap.get("aString").s(), is(expectedString));
     }
 
@@ -1456,7 +1458,7 @@ public class StaticTableSchemaTest {
                              .build();
 
         Map<String, AttributeValue> resultMap =
-                tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(), false);
+                tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(), false, SHALLOW);
         assertThat(resultMap.get("aString").s(), is(expectedString));
     }
 
@@ -1492,7 +1494,7 @@ public class StaticTableSchemaTest {
                         .build();
 
         Map<String, AttributeValue> resultMap = tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(),
-                false);
+                false, SHALLOW);
         assertThat(resultMap.get("aString").s(), is(expectedString));
     }
 
@@ -1513,7 +1515,7 @@ public class StaticTableSchemaTest {
         Map<String, AttributeValue> expectedMap =
             Collections.singletonMap("entity", AttributeValue.fromS("test-value"));
 
-        assertThat(envelopeTableSchema.itemToMap(testEnvelope, false), equalTo(expectedMap));
+        assertThat(envelopeTableSchema.itemToMap(testEnvelope, false, SHALLOW), equalTo(expectedMap));
         assertThat(envelopeTableSchema.mapToItem(expectedMap).getEntity(), equalTo("test-value"));
     }
 
@@ -1528,7 +1530,7 @@ public class StaticTableSchemaTest {
                                                                          .build();
         Map<String, AttributeValue> expectedMap = singletonMap("value", attributeValue);
 
-        Map<String, AttributeValue> resultMap = tableSchema.itemToMap(fakeMappedItem, false);
+        Map<String, AttributeValue> resultMap = tableSchema.itemToMap(fakeMappedItem, false, SHALLOW);
         assertThat(resultMap, is(expectedMap));
 
         FakeMappedItem resultItem = tableSchema.mapToItem(expectedMap);
@@ -1545,7 +1547,7 @@ public class StaticTableSchemaTest {
                                                                          .build();
         Map<String, AttributeValue> expectedMap = singletonMap("value", nullAttributeValue());
 
-        Map<String, AttributeValue> resultMap = tableSchema.itemToMap(fakeMappedItem, false);
+        Map<String, AttributeValue> resultMap = tableSchema.itemToMap(fakeMappedItem, false, SHALLOW);
         assertThat(resultMap, is(expectedMap));
 
         FakeMappedItem resultItem = tableSchema.mapToItem(expectedMap);

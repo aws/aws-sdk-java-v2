@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.extensions;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.atomicCounter;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
@@ -77,7 +78,7 @@ public class AtomicCounterExtensionTest {
         AtomicCounterItem atomicCounterItem = new AtomicCounterItem();
         atomicCounterItem.setId(RECORD_ID);
 
-        Map<String, AttributeValue> items = ITEM_MAPPER.itemToMap(atomicCounterItem, true);
+        Map<String, AttributeValue> items = ITEM_MAPPER.itemToMap(atomicCounterItem, true, SHALLOW);
         assertThat(items).hasSize(1);
 
         WriteModification result =
@@ -106,7 +107,7 @@ public class AtomicCounterExtensionTest {
         item.setId(RECORD_ID);
         item.setNumberAttribute(4L);
 
-        Map<String, AttributeValue> items = SIMPLE_ITEM_MAPPER.itemToMap(item, true);
+        Map<String, AttributeValue> items = SIMPLE_ITEM_MAPPER.itemToMap(item, true, SHALLOW);
         assertThat(items).hasSize(2);
 
         WriteModification result =
@@ -125,7 +126,7 @@ public class AtomicCounterExtensionTest {
         atomicCounterItem.setId(RECORD_ID);
         atomicCounterItem.setCustomCounter(255L);
 
-        Map<String, AttributeValue> items = ITEM_MAPPER.itemToMap(atomicCounterItem, true);
+        Map<String, AttributeValue> items = ITEM_MAPPER.itemToMap(atomicCounterItem, true, SHALLOW);
         assertThat(items).hasSize(2);
 
         WriteModification result =
@@ -153,7 +154,7 @@ public class AtomicCounterExtensionTest {
         AtomicCounterItem atomicCounterItem = new AtomicCounterItem();
         atomicCounterItem.setId(RECORD_ID);
 
-        Map<String, AttributeValue> items = ITEM_MAPPER.itemToMap(atomicCounterItem, true);
+        Map<String, AttributeValue> items = ITEM_MAPPER.itemToMap(atomicCounterItem, true, SHALLOW);
         assertThat(items).hasSize(1);
 
         WriteModification result =
@@ -174,7 +175,7 @@ public class AtomicCounterExtensionTest {
         item.setId(RECORD_ID);
         item.setNumberAttribute(4L);
 
-        Map<String, AttributeValue> items = SIMPLE_ITEM_MAPPER.itemToMap(item, true);
+        Map<String, AttributeValue> items = SIMPLE_ITEM_MAPPER.itemToMap(item, true, SHALLOW);
         assertThat(items).hasSize(2);
 
         WriteModification result =
@@ -192,7 +193,7 @@ public class AtomicCounterExtensionTest {
     public void beforeRead_doesNotTransformObject() {
         AtomicCounterItem atomicCounterItem = new AtomicCounterItem();
         atomicCounterItem.setId(RECORD_ID);
-        Map<String, AttributeValue> fakeItemMap = ITEM_MAPPER.itemToMap(atomicCounterItem, true);
+        Map<String, AttributeValue> fakeItemMap = ITEM_MAPPER.itemToMap(atomicCounterItem, true, SHALLOW);
 
         ReadModification result =
             atomicCounterExtension.afterRead(DefaultDynamoDbExtensionContext

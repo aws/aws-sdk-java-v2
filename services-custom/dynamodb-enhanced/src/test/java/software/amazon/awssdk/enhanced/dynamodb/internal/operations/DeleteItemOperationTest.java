@@ -31,6 +31,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.Fa
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -426,8 +427,8 @@ public class DeleteItemOperationTest {
     public void transformResponse_withExtension_appliesItemModification() {
         FakeItem baseFakeItem = createUniqueFakeItem();
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> baseFakeItemMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, false);
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, false);
+        Map<String, AttributeValue> baseFakeItemMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, false, SHALLOW);
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, false, SHALLOW);
         DeleteItemOperation<FakeItem> deleteItemOperation =
             DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
                                                                 .key(k -> k.partitionValue(baseFakeItem.getId()))
@@ -456,7 +457,7 @@ public class DeleteItemOperationTest {
     @Test
     public void generateTransactWriteItem_basicRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW);
         DeleteItemOperation<FakeItem> deleteItemOperation =
             spy(DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
                                                                     .key(k -> k.partitionValue(fakeItem.getId()))
@@ -486,7 +487,7 @@ public class DeleteItemOperationTest {
     @Test
     public void generateTransactWriteItem_conditionalRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW);
         DeleteItemOperation<FakeItem> deleteItemOperation =
             spy(DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
                                                                     .key(k -> k.partitionValue(fakeItem.getId()))
@@ -526,7 +527,7 @@ public class DeleteItemOperationTest {
     @Test
     public void generateTransactWriteItem_returnValuesOnConditionCheckFailure_generatesCorrectRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW);
         String returnValues = "return-values";
 
         DeleteItemOperation<FakeItem> deleteItemOperation =
