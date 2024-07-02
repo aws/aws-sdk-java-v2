@@ -173,9 +173,8 @@ class S3ExpressHttpSignerTest {
 
         CompletableFuture<?> signedFuture = signer.signAsync(signRequest);
 
-        assertThat(signedFuture)
-            .isCompletedExceptionally()
-            .withFailMessage("Poof!");
+        assertThat(signedFuture).isCompletedExceptionally();
+        assertThatThrownBy(signedFuture::get).hasMessage("java.lang.RuntimeException: Poof!");
     }
 
     private void mockNoopSigner() {

@@ -78,7 +78,7 @@ public class SyncChecksumValidationInterceptorTest {
 
         assertThat(requestBody.isPresent()).isTrue();
         assertThat(executionAttributes.getAttribute(CHECKSUM)).isNotNull();
-        assertThat(requestBody.get().contentStreamProvider()).isNotEqualTo(modifyHttpRequest.requestBody().get());
+        assertThat(requestBody.get().contentStreamProvider()).isNotEqualTo(modifyHttpRequest.requestBody().get().contentStreamProvider());
     }
 
     @Test

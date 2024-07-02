@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Locale;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -53,7 +52,7 @@ public class XmlNamespaceModelTest {
     }
 
 
-    private static void setUp() throws IOException {
+    private static void setUp() {
         File serviceModelFile = new File(XmlNamespaceModelTest.class.getResource("xmlnamespace/service-2.json")
                                                                .getFile());
         File configFile = new File(XmlNamespaceModelTest.class

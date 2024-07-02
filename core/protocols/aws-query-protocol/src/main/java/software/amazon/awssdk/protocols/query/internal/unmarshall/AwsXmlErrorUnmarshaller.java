@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkBytes;
@@ -87,7 +86,7 @@ public final class AwsXmlErrorUnmarshaller {
                            .errorMessage(builder.message())
                            .rawResponse(documentBytes.orElse(null))
                            .sdkHttpResponse(response)
-                           .serviceName(executionAttributes.getAttribute(AwsExecutionAttribute.SERVICE_NAME))
+                           .serviceName(executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_NAME))
                            .build();
 
         builder.requestId(getRequestId(response, documentRoot))

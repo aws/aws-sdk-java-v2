@@ -185,8 +185,6 @@ public class ParameterHttpMapping {
             return MarshallLocation.PAYLOAD;
         }
         switch (location) {
-            default:
-                return MarshallLocation.PAYLOAD;
             case STATUS_CODE:
                 return MarshallLocation.STATUS_CODE;
             case HEADER:
@@ -196,6 +194,8 @@ public class ParameterHttpMapping {
                 return MarshallLocation.QUERY_PARAM;
             case URI:
                 return isGreedy ? MarshallLocation.GREEDY_PATH : MarshallLocation.PATH;
+            default:
+                return MarshallLocation.PAYLOAD;
         }
     }
 

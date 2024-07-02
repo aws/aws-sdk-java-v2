@@ -24,7 +24,6 @@ import software.amazon.awssdk.utils.Logger;
 public final class S3BucketUtils {
     private static final Logger logger = Logger.loggerFor(S3BucketUtils.class);
     private static final Random RANDOM = new Random();
-    private static final int MAX_BUCKET_NAME_LENGTH = 63;
 
     private S3BucketUtils() {
     }

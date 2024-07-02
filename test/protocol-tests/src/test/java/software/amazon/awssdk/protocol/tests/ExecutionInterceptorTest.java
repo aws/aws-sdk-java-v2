@@ -179,7 +179,7 @@ public class ExecutionInterceptorTest {
         // Expect
         Context.AfterTransmission afterTransmissionArg = captureAfterTransmissionArg(interceptor);
         // TODO: When we don't always close the input stream, make sure we can read the service's '0' response.
-        assertThat(afterTransmissionArg.responseBody() != null);
+        assertThat(afterTransmissionArg.responseBody()).isPresent();
     }
 
     @Test

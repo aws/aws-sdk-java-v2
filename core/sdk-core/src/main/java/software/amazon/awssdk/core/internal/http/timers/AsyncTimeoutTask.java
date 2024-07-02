@@ -19,7 +19,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -28,7 +27,6 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public final class AsyncTimeoutTask implements TimeoutTask {
-    private static final Logger log = Logger.loggerFor(AsyncTimeoutTask.class);
     private final Supplier<SdkClientException> exception;
     private volatile boolean hasExecuted;
 

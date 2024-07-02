@@ -57,14 +57,14 @@ public class DisallowMethodCall extends OpcodeStackDetector {
             case Const.INVOKESPECIAL:
             case Const.INVOKESTATIC:
             case Const.INVOKEINTERFACE:
-                handleMethodCall(code);
+                handleMethodCall();
                 return;
             default:
                 // Ignore - not a method call.
         }
     }
 
-    private void handleMethodCall(int code) {
+    private void handleMethodCall() {
         MethodDescriptor method = getMethodDescriptorOperand();
         SignatureParser signature = new SignatureParser(method.getSignature());
         Entry<String, String> calledMethod = new SimpleEntry<>(method.getSlashedClassName(), method.getName());

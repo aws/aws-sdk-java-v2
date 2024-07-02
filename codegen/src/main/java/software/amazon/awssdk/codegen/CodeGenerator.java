@@ -96,20 +96,14 @@ public class CodeGenerator {
         PrintWriter writer = null;
         try {
             File outDir = new File(sourcesDirectory);
-            if (!outDir.exists()) {
-                if (!outDir.mkdirs()) {
-                    throw new RuntimeException("Failed to create "
-                                               + outDir.getAbsolutePath());
-                }
+            if (!outDir.exists() && !outDir.mkdirs()) {
+                throw new RuntimeException("Failed to create " + outDir.getAbsolutePath());
             }
 
             File outputFile = new File(modelDir, fileNamePrefix + "-intermediate.json");
 
-            if (!outputFile.exists()) {
-                if (!outputFile.createNewFile()) {
-                    throw new RuntimeException("Error creating file "
-                                               + outputFile.getAbsolutePath());
-                }
+            if (!outputFile.exists() && !outputFile.createNewFile()) {
+                throw new RuntimeException("Error creating file " + outputFile.getAbsolutePath());
             }
 
             writer = new PrintWriter(outputFile, "UTF-8");

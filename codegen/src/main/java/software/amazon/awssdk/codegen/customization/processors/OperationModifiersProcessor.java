@@ -107,9 +107,7 @@ final class OperationModifiersProcessor implements CodegenCustomizationProcessor
              *   }
              * }
              */
-            shape.getCustomization().setArtificialResultWrapper(
-                    createArtificialResultWrapperInfo(
-                            shape, wrappedMember));
+            shape.getCustomization().setArtificialResultWrapper(createArtificialResultWrapperInfo(wrappedMember));
         }
     }
 
@@ -136,8 +134,7 @@ final class OperationModifiersProcessor implements CodegenCustomizationProcessor
                                             + " shape already exists in the service model.");
         }
 
-        Shape wrapperShape = createWrapperShape(wrapperShapeName,
-                                                wrappedShapeName, wrappedShape, wrappedAsMember);
+        Shape wrapperShape = createWrapperShape(wrappedShapeName, wrappedShape, wrappedAsMember);
 
         // Add the new shape to the model
         serviceModel.getShapes().put(wrapperShapeName, wrapperShape);
@@ -149,7 +146,7 @@ final class OperationModifiersProcessor implements CodegenCustomizationProcessor
         return wrapperShapeName;
     }
 
-    private Shape createWrapperShape(String wrapperShapeName, String wrappedShapeName, Shape wrapped, String wrappedAsMember) {
+    private Shape createWrapperShape(String wrappedShapeName, Shape wrapped, String wrappedAsMember) {
 
         Shape wrapper = new Shape();
         wrapper.setType(ShapeType.Structure.getName());
@@ -164,7 +161,7 @@ final class OperationModifiersProcessor implements CodegenCustomizationProcessor
         return wrapper;
     }
 
-    private ArtificialResultWrapper createArtificialResultWrapperInfo(ShapeModel shape, MemberModel wrappedMember) {
+    private ArtificialResultWrapper createArtificialResultWrapperInfo(MemberModel wrappedMember) {
         ArtificialResultWrapper wrapper = new ArtificialResultWrapper();
         wrapper.setWrappedMemberName(wrappedMember.getName());
         wrapper.setWrappedMemberSimpleType(wrappedMember.getVariable().getSimpleType());

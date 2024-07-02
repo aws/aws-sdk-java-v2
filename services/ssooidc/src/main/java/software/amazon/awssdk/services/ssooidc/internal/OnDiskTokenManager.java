@@ -51,12 +51,11 @@ public final class OnDiskTokenManager implements TokenManager<SsoOidcToken> {
 
     private final JsonNodeParser jsonParser = JsonNodeParser.builder().removeErrorLocations(true).build();
 
-    private final String sessionName;
     private final Path tokenLocation;
 
     private OnDiskTokenManager(Path cacheLocation, String sessionName) {
         Validate.notNull(cacheLocation, "cacheLocation must not be null");
-        this.sessionName = Validate.notNull(sessionName, "sessionName must not be null");
+        Validate.notNull(sessionName, "sessionName must not be null");
         Validate.notBlank(sessionName, "sessionName must not be blank");
         String cacheKey = deriveCacheKey(sessionName);
         this.tokenLocation = cacheLocation.resolve(cacheKey + ".json");

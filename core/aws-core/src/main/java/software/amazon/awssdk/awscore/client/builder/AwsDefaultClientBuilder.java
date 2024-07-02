@@ -370,10 +370,8 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     private void configureRetryPolicy(SdkClientConfiguration.Builder config) {
         RetryPolicy policy = config.option(SdkClientOption.RETRY_POLICY);
-        if (policy != null) {
-            if (policy.additionalRetryConditionsAllowed()) {
-                config.option(SdkClientOption.RETRY_POLICY, AwsRetryPolicy.addRetryConditions(policy));
-            }
+        if (policy != null && policy.additionalRetryConditionsAllowed()) {
+            config.option(SdkClientOption.RETRY_POLICY, AwsRetryPolicy.addRetryConditions(policy));
         }
     }
 

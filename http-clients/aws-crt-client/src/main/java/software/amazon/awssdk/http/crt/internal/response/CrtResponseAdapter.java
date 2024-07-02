@@ -44,7 +44,6 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
 public final class CrtResponseAdapter implements HttpStreamResponseHandler {
     private static final Logger log = Logger.loggerFor(CrtResponseAdapter.class);
 
-    private final HttpClientConnection connection;
     private final CompletableFuture<Void> completionFuture;
     private final SdkAsyncHttpResponseHandler responseHandler;
     private final SimplePublisher<ByteBuffer> responsePublisher;
@@ -64,7 +63,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
                                CompletableFuture<Void> completionFuture,
                                SdkAsyncHttpResponseHandler responseHandler,
                                SimplePublisher<ByteBuffer> simplePublisher) {
-        this.connection = Validate.paramNotNull(connection, "connection");
+        Validate.paramNotNull(connection, "connection");
         this.completionFuture = Validate.paramNotNull(completionFuture, "completionFuture");
         this.responseHandler = Validate.paramNotNull(responseHandler, "responseHandler");
         this.responseBuilder = SdkHttpResponse.builder();
@@ -80,7 +79,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
 
     @Override
     public void onResponseHeaders(HttpStream stream, int responseStatusCode, int blockType, HttpHeader[] nextHeaders) {
-        responseHandlerHelper.onResponseHeaders(stream, responseStatusCode, blockType, nextHeaders);
+        responseHandlerHelper.onResponseHeaders(responseStatusCode, blockType, nextHeaders);
     }
 
     @Override
@@ -134,7 +133,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
     }
 
     private void handlePublisherError(HttpStream stream, Throwable failure) {
-        failResponseHandlerAndFuture(stream, failure);
+        failResponseHandlerAndFuture(failure);
         responseHandlerHelper.closeConnection(stream);
     }
 
@@ -143,11 +142,11 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
 
         Throwable toThrow = wrapWithIoExceptionIfRetryable(error);;
         responsePublisher.error(toThrow);
-        failResponseHandlerAndFuture(stream, toThrow);
+        failResponseHandlerAndFuture(toThrow);
         responseHandlerHelper.closeConnection(stream);
     }
 
-    private void failResponseHandlerAndFuture(HttpStream stream, Throwable error) {
+    private void failResponseHandlerAndFuture(Throwable error) {
         callResponseHandlerOnError(error);
         completionFuture.completeExceptionally(error);
     }

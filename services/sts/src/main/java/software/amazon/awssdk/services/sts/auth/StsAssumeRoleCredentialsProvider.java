@@ -50,7 +50,7 @@ public final class StsAssumeRoleCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsAssumeRoleCredentialsProvider.Builder, StsAssumeRoleCredentialsProvider> {
     private static final String PROVIDER_NAME = "StsAssumeRoleCredentialsProvider";
-    private Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
+    private final Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
 
     /**
      * @see #builder()
@@ -81,7 +81,7 @@ public final class StsAssumeRoleCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.builder("StsAssumeRoleCredentialsProvider")
+        return ToString.builder(PROVIDER_NAME)
                        .add("refreshRequest", assumeRoleRequestSupplier)
                        .build();
     }

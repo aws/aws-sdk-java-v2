@@ -26,12 +26,10 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.utils.Logger;
 
 
 @SdkInternalApi
 public abstract class BaseAsyncAws4Signer extends BaseAws4Signer implements AsyncRequestBodySigner {
-    private static final Logger LOG = Logger.loggerFor(BaseAsyncAws4Signer.class);
 
     private static final Pattern AUTHENTICATION_HEADER_PATTERN = Pattern.compile(
         SignerConstant.AWS4_SIGNING_ALGORITHM + "\\s" + "Credential=(\\S+)" + "\\s" + "SignedHeaders=(\\S+)" + "\\s"

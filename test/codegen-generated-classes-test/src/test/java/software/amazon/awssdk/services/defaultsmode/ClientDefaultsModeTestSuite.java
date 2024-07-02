@@ -16,13 +16,11 @@
 package software.amazon.awssdk.services.defaultsmode;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -83,10 +81,6 @@ public abstract class ClientDefaultsModeTestSuite<ClientT, BuilderT extends AwsC
     protected abstract BuilderT newClientBuilder();
 
     protected abstract AllTypesResponse callAllTypes(ClientT client);
-
-    private void verifyRequestCount(int count) {
-        verify(count, anyRequestedFor(anyUrl()));
-    }
 
     private void stubResponse() {
         stubFor(post(anyUrl())

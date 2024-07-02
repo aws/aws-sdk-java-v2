@@ -21,7 +21,6 @@ import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
-import software.amazon.awssdk.codegen.poet.common.UserAgentUtilsSpec;
 
 public class UserAgentClassSpecTest {
 

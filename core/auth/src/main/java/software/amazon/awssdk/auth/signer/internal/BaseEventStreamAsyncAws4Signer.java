@@ -246,7 +246,7 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
 
     private SdkHttpFullRequest addContentSha256Header(SdkHttpFullRequest request) {
         return request.toBuilder()
-                      .putHeader(X_AMZ_CONTENT_SHA256, "STREAMING-AWS4-HMAC-SHA256-EVENTS").build();
+                      .putHeader(X_AMZ_CONTENT_SHA256, HTTP_CONTENT_SHA_256).build();
     }
 
     /**

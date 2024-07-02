@@ -23,6 +23,7 @@ import static software.amazon.awssdk.codegen.model.intermediate.ShapeType.Respon
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 
@@ -52,6 +53,7 @@ public final class DocumentationUtils {
             "discovery", "elastictranscoder", "es", "glacier",
             "iot", "data.iot", "machinelearning", "rekognition", "s3", "sdb", "swf"
                                                                                                        ));
+    private static final Pattern COMMENT_DELIMITER = Pattern.compile("\\*\\/");
 
     private DocumentationUtils() {
     }
@@ -101,7 +103,7 @@ public final class DocumentationUtils {
          * be present in documentation and inadvertently terminate that Java
          * comment line, resulting in broken code.
          */
-        documentation = documentation.replaceAll("\\*\\/", "*&#47;");
+        documentation = COMMENT_DELIMITER.matcher(documentation).replaceAll("*&#47;");
 
         return documentation;
     }

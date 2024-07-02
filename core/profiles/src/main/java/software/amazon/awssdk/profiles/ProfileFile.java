@@ -125,7 +125,7 @@ public final class ProfileFile {
         Map<String, Profile> profiles = profilesAndSectionsMap.get(PROFILES_SECTION_TITLE);
         return ToString.builder("ProfileFile")
                        .add("sections", profilesAndSectionsMap.keySet())
-                       .add("profiles", profiles == null ? null : profiles.values())
+                       .add(PROFILES_SECTION_TITLE, profiles == null ? null : profiles.values())
                        .build();
     }
 

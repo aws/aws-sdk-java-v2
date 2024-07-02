@@ -86,13 +86,12 @@ public class BuilderClientContextParamsTest {
             AttributeMap clientContextParams =
                 executionAttrsCaptor.getValue().getAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS);
 
-            AttributeMap expected = mergeExpectedParamsAndHandleS3Express(tc.expectedParams(), clientContextParams);
+            AttributeMap expected = mergeExpectedParamsAndHandleS3Express(tc.expectedParams());
             assertThat(clientContextParams).isEqualTo(expected);
         }
     }
 
-    private AttributeMap mergeExpectedParamsAndHandleS3Express(AttributeMap testCaseExpectedParams,
-                                                               AttributeMap actualParams) {
+    private AttributeMap mergeExpectedParamsAndHandleS3Express(AttributeMap testCaseExpectedParams) {
         AttributeMap s3ExpressAttributes = AttributeMap.builder()
                                                          .put(S3ClientContextParams.DISABLE_S3_EXPRESS_SESSION_AUTH, false)
                                                          .build();

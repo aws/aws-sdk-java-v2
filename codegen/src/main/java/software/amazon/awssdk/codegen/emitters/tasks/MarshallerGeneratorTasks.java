@@ -41,7 +41,7 @@ public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
     protected List<GeneratorTask> createTasks() {
         return model.getShapes().entrySet().stream()
                     .filter(e -> shouldGenerate(e.getValue()))
-                    .flatMap(safeFunction(e -> createTask(e.getKey(), e.getValue())))
+                    .flatMap(safeFunction(e -> createTask(e.getValue())))
                     .collect(Collectors.toList());
     }
 
@@ -57,7 +57,7 @@ public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
                && !shapeModel.isEventStream();
     }
 
-    private Stream<GeneratorTask> createTask(String javaShapeName, ShapeModel shapeModel) throws Exception {
+    private Stream<GeneratorTask> createTask(ShapeModel shapeModel) {
         return ShapeType.Request == shapeModel.getShapeType() || (ShapeType.Model == shapeModel.getShapeType()
                                                                   && shapeModel.isEvent()
                                                                   && EventStreamUtils.isRequestEvent(model, shapeModel))

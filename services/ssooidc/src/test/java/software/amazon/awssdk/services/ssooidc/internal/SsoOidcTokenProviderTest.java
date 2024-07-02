@@ -58,9 +58,6 @@ public class SsoOidcTokenProviderTest {
     private TokenManager<SsoOidcToken> mockTokenManager;
     private SsoOidcClient ssoOidcClient;
 
-    private FileSystem testFs;
-    private Path cache;
-
     public static String deriveCacheKey(String startUrl) {
         try {
             MessageDigest sha1 = MessageDigest.getInstance("sha1");
@@ -439,11 +436,6 @@ public class SsoOidcTokenProviderTest {
         SdkToken highExpiryDateToken = tokenProvider.resolveToken();
         Thread.sleep(1000);
         assertThat(highExpiryDateToken.token()).isEqualTo("tokenVeryHighExpiry");
-    }
-
-    private CreateTokenResponse someOne(CreateTokenResponse.Builder builder, String tokenGreaterThanStaleButLessThanPrefetch,
-                                        int i) {
-        return builder.accessToken(tokenGreaterThanStaleButLessThanPrefetch).expiresIn(i).build();
     }
 
     @Test

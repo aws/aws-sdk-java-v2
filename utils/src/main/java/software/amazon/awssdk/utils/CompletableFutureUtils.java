@@ -27,7 +27,6 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @SdkProtectedApi
 public final class CompletableFutureUtils {
-    private static final Logger log = Logger.loggerFor(CompletableFutureUtils.class);
 
     private CompletableFutureUtils() {
     }

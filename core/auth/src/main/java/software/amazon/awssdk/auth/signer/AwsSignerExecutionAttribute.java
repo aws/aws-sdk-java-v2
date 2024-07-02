@@ -189,7 +189,7 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
      * {@code HttpSigner}.
      */
     @Deprecated
-    public static final ExecutionAttribute<Instant> PRESIGNER_EXPIRATION = new ExecutionAttribute("PresignerExpiration");
+    public static final ExecutionAttribute<Instant> PRESIGNER_EXPIRATION = new ExecutionAttribute<>("PresignerExpiration");
 
     private AwsSignerExecutionAttribute() {
     }
