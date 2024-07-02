@@ -33,6 +33,7 @@ import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionConverter;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhancedRequest;
@@ -91,7 +92,8 @@ public class UpdateItemOperation<T>
                                           r -> Optional.ofNullable(r.ignoreNulls()))
                                      .orElse(null);
 
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item, Boolean.TRUE.equals(ignoreNulls), NESTED);
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item, Boolean.TRUE.equals(ignoreNulls),
+                                                                    new DynamoDBEnhancedRequestConfiguration(NESTED));
         TableMetadata tableMetadata = tableSchema.tableMetadata();
 
         WriteModification transformation =

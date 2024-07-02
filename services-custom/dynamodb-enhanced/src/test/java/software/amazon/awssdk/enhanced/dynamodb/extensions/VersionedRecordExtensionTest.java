@@ -30,6 +30,7 @@ import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -44,7 +45,7 @@ public class VersionedRecordExtensionTest {
     @Test
     public void beforeRead_doesNotTransformObject() {
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW);
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true, new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         ReadModification result =
             versionedRecordExtension.afterRead(DefaultDynamoDbExtensionContext
@@ -64,7 +65,7 @@ public class VersionedRecordExtensionTest {
             versionedRecordExtension.beforeWrite(
                 DefaultDynamoDbExtensionContext
                     .builder()
-                    .items(FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW))
+                    .items(FakeItem.getTableSchema().itemToMap(fakeItem, true, new DynamoDBEnhancedRequestConfiguration(SHALLOW)))
                     .tableMetadata(FakeItem.getTableMetadata())
                     .operationContext(PRIMARY_CONTEXT).build());
 
@@ -79,13 +80,13 @@ public class VersionedRecordExtensionTest {
     public void beforeWrite_initialVersion_transformedItemIsCorrect() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemWithInitialVersion =
-            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW));
+            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true, new DynamoDBEnhancedRequestConfiguration(SHALLOW)));
         fakeItemWithInitialVersion.put("version", AttributeValue.builder().n("1").build());
 
         WriteModification result =
             versionedRecordExtension.beforeWrite(DefaultDynamoDbExtensionContext
                                                      .builder()
-                                                     .items(FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW))
+                                                     .items(FakeItem.getTableSchema().itemToMap(fakeItem, true, new DynamoDBEnhancedRequestConfiguration(SHALLOW)))
                                                      .tableMetadata(FakeItem.getTableMetadata())
                                                      .operationContext(PRIMARY_CONTEXT).build());
 
@@ -97,10 +98,10 @@ public class VersionedRecordExtensionTest {
     public void beforeWrite_initialVersionDueToExplicitNull_transformedItemIsCorrect() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> inputMap =
-            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW));
+            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true, new DynamoDBEnhancedRequestConfiguration(SHALLOW)));
         inputMap.put("version", AttributeValue.builder().nul(true).build());
         Map<String, AttributeValue> fakeItemWithInitialVersion =
-            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW));
+            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true, new DynamoDBEnhancedRequestConfiguration(SHALLOW)));
         fakeItemWithInitialVersion.put("version", AttributeValue.builder().n("1").build());
 
         WriteModification result =
@@ -121,7 +122,7 @@ public class VersionedRecordExtensionTest {
         WriteModification result =
             versionedRecordExtension.beforeWrite(DefaultDynamoDbExtensionContext
                                                      .builder()
-                                                     .items(FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW))
+                                                     .items(FakeItem.getTableSchema().itemToMap(fakeItem, true, new DynamoDBEnhancedRequestConfiguration(SHALLOW)))
                                                      .tableMetadata(FakeItem.getTableMetadata())
                                                      .operationContext(PRIMARY_CONTEXT).build());
 
@@ -139,13 +140,13 @@ public class VersionedRecordExtensionTest {
         FakeItem fakeItem = createUniqueFakeItem();
         fakeItem.setVersion(13);
         Map<String, AttributeValue> fakeItemWithInitialVersion =
-            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW));
+            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true, new DynamoDBEnhancedRequestConfiguration(SHALLOW)));
         fakeItemWithInitialVersion.put("version", AttributeValue.builder().n("14").build());
 
         WriteModification result =
             versionedRecordExtension.beforeWrite(DefaultDynamoDbExtensionContext
                                                      .builder()
-                                                     .items(FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW))
+                                                     .items(FakeItem.getTableSchema().itemToMap(fakeItem, true, new DynamoDBEnhancedRequestConfiguration(SHALLOW)))
                                                      .tableMetadata(FakeItem.getTableMetadata())
                                                      .operationContext(PRIMARY_CONTEXT).build());
 
@@ -156,7 +157,7 @@ public class VersionedRecordExtensionTest {
     public void beforeWrite_returnsNoOpModification_ifVersionAttributeNotDefined() {
         FakeItemWithSort fakeItemWithSort = createUniqueFakeItemWithSort();
         Map<String, AttributeValue> itemMap =
-            new HashMap<>(FakeItemWithSort.getTableSchema().itemToMap(fakeItemWithSort, true, SHALLOW));
+            new HashMap<>(FakeItemWithSort.getTableSchema().itemToMap(fakeItemWithSort, true, new DynamoDBEnhancedRequestConfiguration(SHALLOW)));
 
         WriteModification writeModification = versionedRecordExtension.beforeWrite( DefaultDynamoDbExtensionContext.builder()
                                                                                                                    .items(itemMap)
@@ -170,7 +171,7 @@ public class VersionedRecordExtensionTest {
     public void beforeWrite_throwsIllegalArgumentException_ifVersionAttributeIsWrongType() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemWIthBadVersion =
-            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW));
+            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true, new DynamoDBEnhancedRequestConfiguration(SHALLOW)));
         fakeItemWIthBadVersion.put("version", AttributeValue.builder().s("14").build());
 
         versionedRecordExtension.beforeWrite(

@@ -36,6 +36,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -54,7 +55,8 @@ public class UpdateItemOperationTransactTest {
     @Test
     public void generateTransactWriteItem_basicRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW);
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true,
+                                                                                      new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         UpdateItemOperation<FakeItem> updateItemOperation =
             spy(UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(fakeItem).build()));
         OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
@@ -90,7 +92,8 @@ public class UpdateItemOperationTransactTest {
     @Test
     public void generateTransactWriteItem_conditionalRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW);
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true,
+                                                                                      new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         UpdateItemOperation<FakeItem> updateItemOperation =
             spy(UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(fakeItem).build()));
         OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
@@ -129,7 +132,8 @@ public class UpdateItemOperationTransactTest {
     @Test
     public void generateTransactWriteItem_returnValuesOnConditionCheckFailure_generatesCorrectRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW);
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true,
+                                                                                      new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         String returnValues = "return-values";
 
         UpdateItemOperation<FakeItem> updateItemOperation =

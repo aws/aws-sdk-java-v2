@@ -28,6 +28,7 @@ import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
@@ -89,7 +90,8 @@ public class PutItemOperation<T>
 
         boolean alwaysIgnoreNulls = true;
         T item = request.map(PutItemEnhancedRequest::item, TransactPutItemEnhancedRequest::item);
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item, alwaysIgnoreNulls, SHALLOW);
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item, alwaysIgnoreNulls,
+                                                                    new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         WriteModification transformation =
             extension != null ? extension.beforeWrite(

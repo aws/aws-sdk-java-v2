@@ -36,10 +36,7 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI;
-import software.amazon.awssdk.enhanced.dynamodb.document.DocumentTableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
-import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocumentTestData;
-import software.amazon.awssdk.enhanced.dynamodb.document.TestData;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ChainConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticKeyAttributeMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -126,7 +123,8 @@ class DocumentTableSchemaTest {
         DocumentTableSchema documentTableSchema = DocumentTableSchema.builder().build();
 
         Assertions.assertThat(
-            documentTableSchema.itemToMap(testData.getEnhancedDocument(), false, SHALLOW)).isEqualTo(testData.getDdbItemMap());
+            documentTableSchema.itemToMap(testData.getEnhancedDocument(), false,
+                                          new DynamoDBEnhancedRequestConfiguration(SHALLOW))).isEqualTo(testData.getDdbItemMap());
     }
 
     @ParameterizedTest
@@ -235,6 +233,6 @@ class DocumentTableSchemaTest {
                                                                              CustomAttributeForDocumentConverterProvider.create()))
                                                                      .build();
         Assertions.assertThat(
-            documentTableSchema.itemToMap(numberDocument, true, SHALLOW)).isEqualTo(resultMap);
+            documentTableSchema.itemToMap(numberDocument, true, new DynamoDBEnhancedRequestConfiguration(SHALLOW))).isEqualTo(resultMap);
     }
 }

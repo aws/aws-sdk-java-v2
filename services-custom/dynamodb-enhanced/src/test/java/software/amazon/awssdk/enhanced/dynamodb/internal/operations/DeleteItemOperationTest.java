@@ -50,6 +50,7 @@ import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactDeleteItemEnhancedRequest;
@@ -427,8 +428,10 @@ public class DeleteItemOperationTest {
     public void transformResponse_withExtension_appliesItemModification() {
         FakeItem baseFakeItem = createUniqueFakeItem();
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> baseFakeItemMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, false, SHALLOW);
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, false, SHALLOW);
+        Map<String, AttributeValue> baseFakeItemMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, false,
+                                                                                          new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, false,
+                                                                                      new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         DeleteItemOperation<FakeItem> deleteItemOperation =
             DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
                                                                 .key(k -> k.partitionValue(baseFakeItem.getId()))
@@ -457,7 +460,8 @@ public class DeleteItemOperationTest {
     @Test
     public void generateTransactWriteItem_basicRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW);
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true,
+                                                                                      new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         DeleteItemOperation<FakeItem> deleteItemOperation =
             spy(DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
                                                                     .key(k -> k.partitionValue(fakeItem.getId()))
@@ -487,7 +491,8 @@ public class DeleteItemOperationTest {
     @Test
     public void generateTransactWriteItem_conditionalRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW);
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true,
+                                                                                      new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         DeleteItemOperation<FakeItem> deleteItemOperation =
             spy(DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
                                                                     .key(k -> k.partitionValue(fakeItem.getId()))
@@ -527,7 +532,8 @@ public class DeleteItemOperationTest {
     @Test
     public void generateTransactWriteItem_returnValuesOnConditionCheckFailure_generatesCorrectRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW);
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true,
+                                                                                      new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         String returnValues = "return-values";
 
         DeleteItemOperation<FakeItem> deleteItemOperation =

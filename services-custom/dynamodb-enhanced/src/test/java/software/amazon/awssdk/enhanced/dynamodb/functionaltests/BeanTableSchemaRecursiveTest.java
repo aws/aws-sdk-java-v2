@@ -24,6 +24,7 @@ import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecursiveRecordBean;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecursiveRecordImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class BeanTableSchemaRecursiveTest {
@@ -49,7 +50,8 @@ public class BeanTableSchemaRecursiveTest {
         recursiveRecordBean1.setAttribute(1);
         recursiveRecordBean1.setRecursiveRecordBean(recursiveRecordBean2);
 
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(recursiveRecordBean1, true, SHALLOW);
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(recursiveRecordBean1, true,
+                                                                    new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         assertThat(itemMap).hasSize(2);
         assertThat(itemMap).containsEntry("attribute", AttributeValue.builder().n("1").build());
@@ -78,7 +80,8 @@ public class BeanTableSchemaRecursiveTest {
         recursiveRecordBean1.setAttribute(1);
         recursiveRecordBean1.setRecursiveRecordList(Collections.singletonList(recursiveRecordBean2));
 
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(recursiveRecordBean1, true, SHALLOW);
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(recursiveRecordBean1, true,
+                                                                    new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         assertThat(itemMap).hasSize(2);
         assertThat(itemMap).containsEntry("attribute", AttributeValue.builder().n("1").build());

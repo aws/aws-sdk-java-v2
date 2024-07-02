@@ -35,6 +35,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -49,8 +50,10 @@ public class TransactWriteItemsOperationTest {
 
     private final FakeItem fakeItem1 = FakeItem.createUniqueFakeItem();
     private final FakeItem fakeItem2 = FakeItem.createUniqueFakeItem();
-    private final Map<String, AttributeValue> fakeItemMap1 = FakeItem.getTableSchema().itemToMap(fakeItem1, true, SHALLOW);
-    private final Map<String, AttributeValue> fakeItemMap2 = FakeItem.getTableSchema().itemToMap(fakeItem2, true, SHALLOW);
+    private final Map<String, AttributeValue> fakeItemMap1 = FakeItem.getTableSchema().itemToMap(fakeItem1, true,
+                                                                                                 new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+    private final Map<String, AttributeValue> fakeItemMap2 = FakeItem.getTableSchema().itemToMap(fakeItem2, true,
+                                                                                                 new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
     @Mock
     private DynamoDbEnhancedClientExtension mockDynamoDbEnhancedClientExtension;

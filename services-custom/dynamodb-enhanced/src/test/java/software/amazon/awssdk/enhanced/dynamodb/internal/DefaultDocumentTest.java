@@ -62,7 +62,8 @@ public class DefaultDocumentTest {
     @Test
     public void noExtension_mapsToItem() {
         FakeItem fakeItem = FakeItem.createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW);
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true,
+                                                                                      new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         Document defaultDocument = DefaultDocument.create(fakeItemMap);
 
         assertThat(defaultDocument.getItem(createMappedTable(null)), is(fakeItem));
@@ -72,8 +73,10 @@ public class DefaultDocumentTest {
     public void extension_mapsToItem() {
         FakeItem fakeItem = FakeItem.createUniqueFakeItem();
         FakeItem fakeItem2 = FakeItem.createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true, SHALLOW);
-        Map<String, AttributeValue> fakeItemMap2 = FakeItem.getTableSchema().itemToMap(fakeItem2, true, SHALLOW);
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true,
+                                                                                      new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        Map<String, AttributeValue> fakeItemMap2 = FakeItem.getTableSchema().itemToMap(fakeItem2, true,
+                                                                                       new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class)))
             .thenReturn(ReadModification.builder().transformedItem(fakeItemMap2).build());
 
