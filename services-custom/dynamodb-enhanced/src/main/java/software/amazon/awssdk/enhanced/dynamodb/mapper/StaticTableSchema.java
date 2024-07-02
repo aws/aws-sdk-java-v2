@@ -36,9 +36,9 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequest
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
- * Implementation of {@link TableSchema} that builds a schema based on directly declared attributes and methods to get and set
- * those attributes. Just like {@link StaticImmutableTableSchema} which is the equivalent implementation for immutable objects,
- * this is the most direct, and thus fastest, implementation of {@link TableSchema}.
+ * Implementation of {@link TableSchema} that builds a schema based on directly declared attributes and methods to
+ * get and set those attributes. Just like {@link StaticImmutableTableSchema} which is the equivalent implementation for
+ * immutable objects, this is the most direct, and thus fastest, implementation of {@link TableSchema}.
  * <p>
  * Example using a fictional 'Customer' data item class:-
  * <pre>{@code
@@ -74,7 +74,6 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
 
     /**
      * Creates a builder for a {@link StaticTableSchema} typed to specific data item class.
-     *
      * @param itemClass The data item class object that the {@link StaticTableSchema} is to map to.
      * @return A newly initialized builder
      */
@@ -84,7 +83,6 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
 
     /**
      * Creates a builder for a {@link StaticTableSchema} typed to specific data item class.
-     *
      * @param itemType The {@link EnhancedType} of the data item class object that the {@link StaticTableSchema} is to map to.
      * @return A newly initialized builder
      */
@@ -99,7 +97,6 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
 
     /**
      * Builder for a {@link StaticTableSchema}
-     *
      * @param <T> The data item type that the {@link StaticTableSchema} this builder will build is to map to.
      */
     @NotThreadSafe
@@ -121,8 +118,8 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
         }
 
         /**
-         * A list of attributes that can be mapped between the data item object and the database record that are to be associated
-         * with the schema. Will overwrite any existing attributes.
+         * A list of attributes that can be mapped between the data item object and the database record that are to
+         * be associated with the schema. Will overwrite any existing attributes.
          */
         @SafeVarargs
         public final Builder<T> attributes(StaticAttribute<T, ?>... staticAttributes) {
@@ -134,8 +131,8 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
         }
 
         /**
-         * A list of attributes that can be mapped between the data item object and the database record that are to be associated
-         * with the schema. Will overwrite any existing attributes.
+         * A list of attributes that can be mapped between the data item object and the database record that are to
+         * be associated with the schema. Will overwrite any existing attributes.
          */
         public Builder<T> attributes(Collection<StaticAttribute<T, ?>> staticAttributes) {
             this.delegateBuilder.attributes(staticAttributes.stream()
@@ -145,7 +142,8 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
         }
 
         /**
-         * Adds a single attribute to the table schema that can be mapped between the data item object and the database record.
+         * Adds a single attribute to the table schema that can be mapped between the data item object and the database
+         * record.
          */
         public <R> Builder<T> addAttribute(EnhancedType<R> attributeType,
                                            Consumer<StaticAttribute.Builder<T, R>> staticAttribute) {
@@ -156,7 +154,8 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
         }
 
         /**
-         * Adds a single attribute to the table schema that can be mapped between the data item object and the database record.
+         * Adds a single attribute to the table schema that can be mapped between the data item object and the database
+         * record.
          */
         public <R> Builder<T> addAttribute(Class<R> attributeClass,
                                            Consumer<StaticAttribute.Builder<T, R>> staticAttribute) {
@@ -167,7 +166,8 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
         }
 
         /**
-         * Adds a single attribute to the table schema that can be mapped between the data item object and the database record.
+         * Adds a single attribute to the table schema that can be mapped between the data item object and the database
+         * record.
          */
         public Builder<T> addAttribute(StaticAttribute<T, ?> staticAttribute) {
             this.delegateBuilder.addAttribute(staticAttribute.toImmutableAttribute());
@@ -175,8 +175,8 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
         }
 
         /**
-         * Flattens all the attributes defined in another {@link StaticTableSchema} into the database record this schema maps to.
-         * Functions to get and set an object that the flattened schema maps to is required.
+         * Flattens all the attributes defined in another {@link StaticTableSchema} into the database record this schema
+         * maps to. Functions to get and set an object that the flattened schema maps to is required.
          */
         public <R> Builder<T> flatten(TableSchema<R> otherTableSchema,
                                       Function<T, R> otherItemGetter,
@@ -186,8 +186,8 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
         }
 
         /**
-         * Extends the {@link StaticTableSchema} of a super-class, effectively rolling all the attributes modelled by the
-         * super-class into the {@link StaticTableSchema} of the sub-class.
+         * Extends the {@link StaticTableSchema} of a super-class, effectively rolling all the attributes modelled by
+         * the super-class into the {@link StaticTableSchema} of the sub-class.
          */
         public Builder<T> extend(StaticTableSchema<? super T> superTableSchema) {
             this.delegateBuilder.extend(superTableSchema.toImmutableTableSchema());
@@ -195,8 +195,8 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
         }
 
         /**
-         * Associate one or more {@link StaticTableTag} with this schema. See documentation on the tags themselves to understand
-         * what each one does. This method will overwrite any existing table tags.
+         * Associate one or more {@link StaticTableTag} with this schema. See documentation on the tags themselves to
+         * understand what each one does. This method will overwrite any existing table tags.
          */
         public Builder<T> tags(StaticTableTag... staticTableTags) {
             this.delegateBuilder.tags(staticTableTags);
@@ -204,8 +204,8 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
         }
 
         /**
-         * Associate one or more {@link StaticTableTag} with this schema. See documentation on the tags themselves to understand
-         * what each one does. This method will overwrite any existing table tags.
+         * Associate one or more {@link StaticTableTag} with this schema. See documentation on the tags themselves to
+         * understand what each one does. This method will overwrite any existing table tags.
          */
         public Builder<T> tags(Collection<StaticTableTag> staticTableTags) {
             this.delegateBuilder.tags(staticTableTags);
@@ -213,8 +213,8 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
         }
 
         /**
-         * Associates a {@link StaticTableTag} with this schema. See documentation on the tags themselves to understand what each
-         * one does. This method will add the tag to the list of existing table tags.
+         * Associates a {@link StaticTableTag} with this schema. See documentation on the tags themselves to understand
+         * what each one does. This method will add the tag to the list of existing table tags.
          */
         public Builder<T> addTag(StaticTableTag staticTableTag) {
             this.delegateBuilder.addTag(staticTableTag);
@@ -222,16 +222,19 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
         }
 
         /**
-         * Specifies the {@link AttributeConverterProvider}s to use with the table schema. The list of attribute converter
-         * providers must provide {@link AttributeConverter}s for all types used in the schema. The attribute converter providers
-         * will be loaded in the strict order they are supplied here.
+         * Specifies the {@link AttributeConverterProvider}s to use with the table schema.
+         * The list of attribute converter providers must provide {@link AttributeConverter}s for all types used
+         * in the schema. The attribute converter providers will be loaded in the strict order they are supplied here.
          * <p>
-         * Calling this method will override the default attribute converter provider {@link DefaultAttributeConverterProvider},
-         * which provides standard converters for most primitive and common Java types, so that provider must included in the
-         * supplied list if it is to be used. Providing an empty list here will cause no providers to get loaded.
+         * Calling this method will override the default attribute converter provider
+         * {@link DefaultAttributeConverterProvider}, which provides standard converters for most primitive
+         * and common Java types, so that provider must included in the supplied list if it is to be
+         * used. Providing an empty list here will cause no providers to get loaded.
          * <p>
          * Adding one custom attribute converter provider and using the default as fallback:
-         * {@code builder.attributeConverterProviders(customAttributeConverter, AttributeConverterProvider.defaultProvider()) }
+         * {@code
+         * builder.attributeConverterProviders(customAttributeConverter, AttributeConverterProvider.defaultProvider())
+         * }
          *
          * @param attributeConverterProviders a list of attribute converter providers to use with the table schema
          */
@@ -241,17 +244,22 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
         }
 
         /**
-         * Specifies the {@link AttributeConverterProvider}s to use with the table schema. The list of attribute converter
-         * providers must provide {@link AttributeConverter}s for all types used in the schema. The attribute converter providers
-         * will be loaded in the strict order they are supplied here.
+         * Specifies the {@link AttributeConverterProvider}s to use with the table schema.
+         * The list of attribute converter providers must provide {@link AttributeConverter}s for all types used
+         * in the schema. The attribute converter providers will be loaded in the strict order they are supplied here.
          * <p>
-         * Calling this method will override the default attribute converter provider {@link DefaultAttributeConverterProvider},
-         * which provides standard converters for most primitive and common Java types, so that provider must included in the
-         * supplied list if it is to be used. Providing an empty list here will cause no providers to get loaded.
+         * Calling this method will override the default attribute converter provider
+         * {@link DefaultAttributeConverterProvider}, which provides standard converters
+         * for most primitive and common Java types, so that provider must included in the supplied list if it is to be
+         * used. Providing an empty list here will cause no providers to get loaded.
          * <p>
          * Adding one custom attribute converter provider and using the default as fallback:
-         * {@code List<AttributeConverterProvider> providers = new ArrayList<>( customAttributeConverter,
-         * AttributeConverterProvider.defaultProvider()); builder.attributeConverterProviders(providers); }
+         * {@code
+         * List<AttributeConverterProvider> providers = new ArrayList<>(
+         *     customAttributeConverter,
+         *     AttributeConverterProvider.defaultProvider());
+         * builder.attributeConverterProviders(providers);
+         * }
          *
          * @param attributeConverterProviders a list of attribute converter providers to use with the table schema
          */
@@ -276,7 +284,6 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
 
     /**
      * The table schema {@link AttributeConverterProvider}.
-     *
      * @see Builder#attributeConverterProvider
      */
     public AttributeConverterProvider attributeConverterProvider() {
