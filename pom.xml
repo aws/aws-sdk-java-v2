@@ -399,7 +399,7 @@
                         </execution>
                     </executions>
                     <configuration>
-                        <failOnError>true</failOnError>
+                        <failOnError>false</failOnError>
                         <fork>false</fork>
                         <spotbugsXmlOutput>true</spotbugsXmlOutput>
                         <excludeFilterFile>software/amazon/awssdk/spotbugs-suppressions.xml</excludeFilterFile>

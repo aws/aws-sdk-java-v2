@@ -298,9 +298,24 @@
         <Bug pattern="BAD_TO_BUILDER"/>
     </Match>
 
-    <!-- New flags as of spotbogs 4.7.3.5 -->
-    <!-- TODO: Fix or explicitly exclude each occurrence -->
-     <Match>
-        <Bug pattern="EI_EXPOSE_REP2,EI_EXPOSE_REP,MS_EXPOSE_REP,MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR,SA_FIELD_SELF_ASSIGNMENT,DCN_NULLPOINTER_EXCEPTION"/>
+    <!-- Intentional catching of NullPointerException -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient"/>
+            <Class name="software.amazon.awssdk.buildtools.checkstyle.SdkPublicMethodNameCheck"/>
+            <Class name="software.amazon.awssdk.utils.ValidateTest"/>
+        </Or>
+        <Bug pattern="DCN_NULLPOINTER_EXCEPTION"/>
+    </Match>
+
+    <!-- Retrieves and updates crc value in update() -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkCrc32CChecksum"/>
+            <Class name="software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkCrc32Checksum"/>
+            <Class name="software.amazon.awssdk.core.internal.checksums.factory.SdkCrc32C"/>
+            <Class name="software.amazon.awssdk.core.internal.checksums.factory.SdkCrc32"/>
+        </Or>
+        <Bug pattern="SA_FIELD_SELF_ASSIGNMENT"/>
     </Match>
 </FindBugsFilter>
