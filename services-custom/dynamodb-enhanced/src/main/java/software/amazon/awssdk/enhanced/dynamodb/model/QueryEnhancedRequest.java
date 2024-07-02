@@ -310,7 +310,6 @@ public final class QueryEnhancedRequest {
             return this;
         }
 
-
         /**
          * The primary key of the first item that this operation will evaluate. By default, the operation will evaluate
          * the whole dataset. If used, normally this parameter is populated with the value that was returned for
