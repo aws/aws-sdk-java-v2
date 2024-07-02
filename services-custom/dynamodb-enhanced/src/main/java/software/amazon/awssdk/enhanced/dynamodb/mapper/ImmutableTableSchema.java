@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDbEnhancedLogger.BEAN_LOGGER;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -46,6 +47,7 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedTypeDocumentConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeConfiguration;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.immutable.ImmutableInfo;
 import software.amazon.awssdk.enhanced.dynamodb.internal.immutable.ImmutableIntrospector;
 import software.amazon.awssdk.enhanced.dynamodb.internal.immutable.ImmutablePropertyDescriptor;
@@ -64,6 +66,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatt
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPreserveEmptyObject;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Implementation of {@link TableSchema} that builds a table schema based on properties and annotations of an immutable
@@ -441,6 +444,11 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
 
     private static void debugLog(Class<?> beanClass, Supplier<String> logMessage) {
         BEAN_LOGGER.debug(() -> beanClass.getTypeName() + " - " + logMessage.get());
+    }
+
+    @Override
+    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
+        return itemToMap(item, ignoreNulls, new DynamoDBEnhancedRequestConfiguration(SHALLOW));
     }
 }
 

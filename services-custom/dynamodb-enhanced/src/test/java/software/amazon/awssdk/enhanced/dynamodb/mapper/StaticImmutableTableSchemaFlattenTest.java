@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.Arrays;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class StaticImmutableTableSchemaFlattenTest {
@@ -148,7 +150,8 @@ public class StaticImmutableTableSchemaFlattenTest {
 
     @Test
     public void itemToMap_completeRecord() {
-        Map<String, AttributeValue> result = immutableTableSchema.itemToMap(TEST_RECORD, false);
+        Map<String, AttributeValue> result = immutableTableSchema.itemToMap(TEST_RECORD, false,
+                                                                            new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         assertThat(result).isEqualTo(ITEM_MAP);
     }

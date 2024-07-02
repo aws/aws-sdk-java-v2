@@ -32,6 +32,7 @@ public class NestedRecordWithUpdateBehavior {
     private Long nestedVersionedAttribute;
     private Instant nestedTimeAttribute;
     private Long nestedCounter;
+    private NestedRecordWithUpdateBehavior nestedRecord;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -76,5 +77,13 @@ public class NestedRecordWithUpdateBehavior {
 
     public void setNestedCounter(Long nestedCounter) {
         this.nestedCounter = nestedCounter;
+    }
+
+    public NestedRecordWithUpdateBehavior getNestedRecord() {
+        return nestedRecord;
+    }
+
+    public void setNestedRecord(NestedRecordWithUpdateBehavior nestedRecord) {
+        this.nestedRecord = nestedRecord;
     }
 }

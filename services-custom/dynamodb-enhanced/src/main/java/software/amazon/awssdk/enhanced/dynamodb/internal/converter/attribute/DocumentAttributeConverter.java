@@ -15,12 +15,15 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute;
 
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedTypeDocumentConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -54,7 +57,8 @@ public class DocumentAttributeConverter<T> implements AttributeConverter<T> {
 
     @Override
     public AttributeValue transformFrom(T input) {
-        return AttributeValue.builder().m(tableSchema.itemToMap(input, ignoreNulls)).build();
+        return AttributeValue.builder().m(tableSchema.itemToMap(input, ignoreNulls,
+                                                                new DynamoDBEnhancedRequestConfiguration(SHALLOW))).build();
     }
 
     @Override

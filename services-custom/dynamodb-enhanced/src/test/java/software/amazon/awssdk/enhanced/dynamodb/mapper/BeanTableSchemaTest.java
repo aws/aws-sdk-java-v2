@@ -27,6 +27,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -43,6 +44,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AttributeConverterBean;
@@ -134,7 +136,8 @@ public class BeanTableSchemaTest {
         ignoredAttributeBean.setId("id-value");
         ignoredAttributeBean.setIntegerAttribute(123);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(ignoredAttributeBean, false);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(ignoredAttributeBean, false,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         assertThat(itemMap.size(), is(1));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
@@ -147,7 +150,8 @@ public class BeanTableSchemaTest {
         ignoredAttributeBean.setId("id-value");
         ignoredAttributeBean.setInteger2Attribute(123);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(ignoredAttributeBean, false);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(ignoredAttributeBean, false,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         assertThat(itemMap.size(), is(1));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
@@ -163,7 +167,8 @@ public class BeanTableSchemaTest {
 
         assertThat(beanTableSchema.tableMetadata().primaryPartitionKey(), is("id"));
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setterAnnotatedBean, false);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setterAnnotatedBean, false,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         assertThat(itemMap.size(), is(1));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
     }
@@ -185,7 +190,8 @@ public class BeanTableSchemaTest {
         flattenedBeanBean.setAttribute1("one");
         flattenedBeanBean.setAbstractBean(abstractBean);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedBeanBean, false);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedBeanBean, false,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -200,7 +206,8 @@ public class BeanTableSchemaTest {
 
         bean.setInnerBean(innerPreserveEmptyBean);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(bean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(bean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         NestedBean nestedBean = beanTableSchema.mapToItem(itemMap);
         assertThat(nestedBean.getInnerBean(), is(innerPreserveEmptyBean));
     }
@@ -213,7 +220,8 @@ public class BeanTableSchemaTest {
         bean.setInnerBean1(new AbstractBean());
         bean.setInnerBean2(new AbstractBean());
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(bean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(bean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         AttributeValue expectedMapForInnerBean1 = AttributeValue.builder().m(new HashMap<>()).build();
 
         assertThat(itemMap.size(), is(2));
@@ -229,7 +237,8 @@ public class BeanTableSchemaTest {
         bean.setInnerBeanList1(Collections.singletonList(new AbstractBean()));
         bean.setInnerBeanList2(Collections.singletonList(new AbstractBean()));
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(bean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(bean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         AttributeValue expectedMapForInnerBean1 = AttributeValue.builder().l(l -> l.m(emptyMap())).build();
         AttributeValue expectedMapForInnerBean2 = AttributeValue.builder()
                                                                 .l(l -> l.m(singletonMap("attribute2", nullAttributeValue())))
@@ -249,7 +258,8 @@ public class BeanTableSchemaTest {
         flattenedImmutableBean.setAttribute1("one");
         flattenedImmutableBean.setAbstractImmutable(abstractImmutable);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedImmutableBean, false);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedImmutableBean, false,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -270,7 +280,8 @@ public class BeanTableSchemaTest {
                                                         .m(singletonMap("attribute2", stringValue("two")))
                                                         .build();
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -297,7 +308,8 @@ public class BeanTableSchemaTest {
                                                          .build();
         AttributeValue expectedList = AttributeValue.builder().l(expectedDocument1, expectedDocument2).build();
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -331,7 +343,8 @@ public class BeanTableSchemaTest {
         expectedAttributeValueMap.put("key2", expectedDocument2);
         AttributeValue expectedMap = AttributeValue.builder().m(expectedAttributeValueMap).build();
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -351,7 +364,8 @@ public class BeanTableSchemaTest {
                                                         .m(singletonMap("attribute2", stringValue("two")))
                                                         .build();
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -376,7 +390,8 @@ public class BeanTableSchemaTest {
                                                          .build();
         AttributeValue expectedList = AttributeValue.builder().l(expectedDocument1, expectedDocument2).build();
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -408,7 +423,8 @@ public class BeanTableSchemaTest {
         expectedAttributeValueMap.put("key2", expectedDocument2);
         AttributeValue expectedMap = AttributeValue.builder().m(expectedAttributeValueMap).build();
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -429,7 +445,8 @@ public class BeanTableSchemaTest {
                                                         .m(singletonMap("attribute2", stringValue("two")))
                                                         .build();
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -456,7 +473,8 @@ public class BeanTableSchemaTest {
                                                          .build();
         AttributeValue expectedList = AttributeValue.builder().l(expectedDocument1, expectedDocument2).build();
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -490,7 +508,8 @@ public class BeanTableSchemaTest {
         expectedAttributeValueMap.put("key2", expectedDocument2);
         AttributeValue expectedMap = AttributeValue.builder().m(expectedAttributeValueMap).build();
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -505,7 +524,8 @@ public class BeanTableSchemaTest {
         extendedBean.setAttribute1("one");
         extendedBean.setAttribute2("two");
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(extendedBean, false);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(extendedBean, false,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
@@ -523,7 +543,8 @@ public class BeanTableSchemaTest {
         SimpleBean simpleBean = new SimpleBean();
         simpleBean.setId("id-value");
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(simpleBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(simpleBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         assertThat(itemMap.size(), is(1));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
@@ -535,7 +556,8 @@ public class BeanTableSchemaTest {
         SimpleBean simpleBean = new SimpleBean();
         simpleBean.setId("id-value");
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(simpleBean, false);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(simpleBean, false,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         assertThat(itemMap.size(), is(2));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
@@ -549,7 +571,8 @@ public class BeanTableSchemaTest {
         simpleBean.setId("id-value");
         simpleBean.setIntegerAttribute(123);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(simpleBean, false);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(simpleBean, false,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         assertThat(itemMap.size(), is(2));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
@@ -602,7 +625,8 @@ public class BeanTableSchemaTest {
         enumBean.setId("id-value");
         enumBean.setTestEnum(EnumBean.TestEnum.ONE);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(enumBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(enumBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         assertThat(itemMap.size(), is(2));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
@@ -619,7 +643,8 @@ public class BeanTableSchemaTest {
         enumBean.setId("id-value");
         enumBean.setTestEnumList(Arrays.asList(EnumBean.TestEnum.ONE, EnumBean.TestEnum.TWO));
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(enumBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(enumBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         AttributeValue expectedAttributeValue = AttributeValue.builder()
                                                               .l(stringValue("ONE"),
@@ -640,7 +665,8 @@ public class BeanTableSchemaTest {
         listBean.setId("id-value");
         listBean.setStringList(Arrays.asList("one", "two", "three"));
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(listBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(listBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         AttributeValue expectedAttributeValue = AttributeValue.builder()
                                                               .l(stringValue("one"),
@@ -663,7 +689,8 @@ public class BeanTableSchemaTest {
         listBean.setId("id-value");
         listBean.setStringListList(Arrays.asList(Arrays.asList("one", "two"), Arrays.asList("three", "four")));
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(listBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(listBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         AttributeValue list1 = AttributeValue.builder().l(stringValue("one"), stringValue("two")).build();
         AttributeValue list2 = AttributeValue.builder().l(stringValue("three"), stringValue("four")).build();
@@ -690,7 +717,8 @@ public class BeanTableSchemaTest {
         stringSet.add("three");
         setBean.setStringSet(stringSet);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         AttributeValue expectedAttributeValue = AttributeValue.builder()
                                                               .ss("one", "two", "three")
@@ -715,7 +743,8 @@ public class BeanTableSchemaTest {
         integerSet.add(3);
         setBean.setIntegerSet(integerSet);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         AttributeValue expectedAttributeValue = AttributeValue.builder()
                                                               .ns("1", "2", "3")
@@ -740,7 +769,8 @@ public class BeanTableSchemaTest {
         longSet.add(3L);
         setBean.setLongSet(longSet);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         AttributeValue expectedAttributeValue = AttributeValue.builder()
                                                               .ns("1", "2", "3")
@@ -765,7 +795,8 @@ public class BeanTableSchemaTest {
         shortSet.add((short)3);
         setBean.setShortSet(shortSet);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         AttributeValue expectedAttributeValue = AttributeValue.builder()
                                                               .ns("1", "2", "3")
@@ -790,7 +821,8 @@ public class BeanTableSchemaTest {
         byteSet.add((byte)3);
         setBean.setByteSet(byteSet);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         AttributeValue expectedAttributeValue = AttributeValue.builder()
                                                               .ns("1", "2", "3")
@@ -815,7 +847,8 @@ public class BeanTableSchemaTest {
         doubleSet.add(3.3);
         setBean.setDoubleSet(doubleSet);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         AttributeValue expectedAttributeValue = AttributeValue.builder()
                                                               .ns("1.1", "2.2", "3.3")
@@ -840,7 +873,8 @@ public class BeanTableSchemaTest {
         floatSet.add(3.3f);
         setBean.setFloatSet(floatSet);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         AttributeValue expectedAttributeValue = AttributeValue.builder()
                                                               .ns("1.1", "2.2", "3.3")
@@ -869,7 +903,8 @@ public class BeanTableSchemaTest {
         binarySet.add(buffer3);
         setBean.setBinarySet(binarySet);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         AttributeValue expectedAttributeValue = AttributeValue.builder()
                                                               .bs(buffer1, buffer2, buffer3)
@@ -895,7 +930,8 @@ public class BeanTableSchemaTest {
 
         mapBean.setStringMap(testMap);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(mapBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(mapBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         Map<String, AttributeValue> expectedMap = new HashMap<>();
         expectedMap.put("one", stringValue("two"));
@@ -924,7 +960,8 @@ public class BeanTableSchemaTest {
 
         mapBean.setStringMap(testMap);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(mapBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(mapBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         Map<String, AttributeValue> expectedMap = new HashMap<>();
         expectedMap.put("one", AttributeValues.nullAttributeValue());
@@ -953,7 +990,8 @@ public class BeanTableSchemaTest {
 
         mapBean.setNestedStringMap(testMap);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(mapBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(mapBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         Map<String, AttributeValue> expectedMap = new HashMap<>();
         expectedMap.put("five", AttributeValue.builder().m(singletonMap("one", stringValue("two"))).build());
@@ -987,7 +1025,8 @@ public class BeanTableSchemaTest {
         commonTypesBean.setFloatAttribute((float) 67.8);
         commonTypesBean.setBinaryAttribute(binaryLiteral);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(commonTypesBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(commonTypesBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         assertThat(itemMap.size(), is(9));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
@@ -1018,7 +1057,8 @@ public class BeanTableSchemaTest {
         primitiveTypesBean.setDoubleAttribute(56.7);
         primitiveTypesBean.setFloatAttribute((float) 67.8);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(primitiveTypesBean, true);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(primitiveTypesBean, true,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         assertThat(itemMap.size(), is(8));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
@@ -1078,7 +1118,8 @@ public class BeanTableSchemaTest {
         converterBean.setIntegerAttribute(123);
         converterBean.setAttributeItem(attributeItem);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         assertThat(itemMap.size(), is(3));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
@@ -1104,7 +1145,8 @@ public class BeanTableSchemaTest {
         converterBean.setId("id-value");
         converterBean.setIntegerAttribute(123);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         assertThat(itemMap.size(), is(2));
         assertThat(itemMap, hasEntry("id", stringValue("id-value-custom")));
@@ -1118,13 +1160,14 @@ public class BeanTableSchemaTest {
     @Test
     public void usesCustomAttributeConverterProviders() {
         BeanTableSchema<MultipleConverterProvidersBean> beanTableSchema =
-                BeanTableSchema.create(MultipleConverterProvidersBean.class);
+            BeanTableSchema.create(MultipleConverterProvidersBean.class);
 
         MultipleConverterProvidersBean converterBean = new MultipleConverterProvidersBean();
         converterBean.setId("id-value");
         converterBean.setIntegerAttribute(123);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         assertThat(itemMap.size(), is(2));
         assertThat(itemMap, hasEntry("id", stringValue("id-value-custom")));
@@ -1144,13 +1187,14 @@ public class BeanTableSchemaTest {
     @Test
     public void emptyConverterProviderList_correct_whenAttributeConvertersAreSupplied() {
         BeanTableSchema<EmptyConverterProvidersValidBean> beanTableSchema =
-                BeanTableSchema.create(EmptyConverterProvidersValidBean.class);
+            BeanTableSchema.create(EmptyConverterProvidersValidBean.class);
 
         EmptyConverterProvidersValidBean converterBean = new EmptyConverterProvidersValidBean();
         converterBean.setId("id-value");
         converterBean.setIntegerAttribute(123);
 
-        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false,
+                                                                        new DynamoDBEnhancedRequestConfiguration(SHALLOW));
 
         assertThat(itemMap.size(), is(2));
         assertThat(itemMap, hasEntry("id", stringValue("id-value-custom")));

@@ -18,17 +18,18 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.valueRef;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema.NESTED_OBJECT_UPDATE;
 import static software.amazon.awssdk.utils.CollectionUtils.filterMap;
 
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
-import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.UpdateBehaviorTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
 import software.amazon.awssdk.enhanced.dynamodb.update.RemoveAction;
@@ -38,6 +39,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkInternalApi
 public final class UpdateExpressionUtils {
+
+    private static final Pattern PATTERN = Pattern.compile(NESTED_OBJECT_UPDATE);
 
     private UpdateExpressionUtils() {
     }
@@ -99,7 +102,7 @@ public final class UpdateExpressionUtils {
     private static RemoveAction remove(String attributeName) {
         return RemoveAction.builder()
                            .path(keyRef(attributeName))
-                           .expressionNames(Collections.singletonMap(keyRef(attributeName), attributeName))
+                           .expressionNames(expressionNamesFor(attributeName))
                            .build();
     }
 
@@ -136,9 +139,18 @@ public final class UpdateExpressionUtils {
     /**
      * Simple utility method that can create an ExpressionNames map based on a list of attribute names.
      */
-    private static Map<String, String> expressionNamesFor(String... attributeNames) {
-        return Arrays.stream(attributeNames)
-                     .collect(Collectors.toMap(EnhancedClientUtils::keyRef, Function.identity()));
-    }
+    private static Map<String, String> expressionNamesFor(String attributeNames) {
+        Map<String, String> map = new HashMap<>();
 
+        if (attributeNames.contains(NESTED_OBJECT_UPDATE)) {
+            for (String attribute : PATTERN.split(attributeNames)) {
+                map.put(keyRef(attribute), attribute);
+            }
+        }
+
+        if (map.isEmpty()) {
+            map.put(keyRef(attributeNames), attributeNames);
+        }
+        return map;
+    }
 }

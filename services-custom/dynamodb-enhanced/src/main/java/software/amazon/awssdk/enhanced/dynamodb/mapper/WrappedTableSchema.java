@@ -24,6 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -63,8 +64,9 @@ public abstract class WrappedTableSchema<T, R extends TableSchema<T>> implements
     }
 
     @Override
-    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
-        return this.delegateTableSchema.itemToMap(item, ignoreNulls);
+    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls,
+                                                 DynamoDBEnhancedRequestConfiguration requestConfiguration) {
+        return this.delegateTableSchema.itemToMap(item, ignoreNulls, requestConfiguration);
     }
 
     @Override

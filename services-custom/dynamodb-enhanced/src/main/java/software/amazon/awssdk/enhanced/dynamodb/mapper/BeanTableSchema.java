@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDbEnhancedLogger.BEAN_LOGGER;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -51,6 +52,7 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedTypeDocumentConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeConfiguration;
+import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeGetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeSetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.MetaTableSchema;
@@ -65,6 +67,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnor
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPreserveEmptyObject;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Implementation of {@link TableSchema} that builds a table schema based on properties and annotations of a bean
@@ -456,6 +459,11 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
 
     private static void debugLog(Class<?> beanClass, Supplier<String> logMessage) {
         BEAN_LOGGER.debug(() -> beanClass.getTypeName() + " - " + logMessage.get());
+    }
+
+    @Override
+    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
+        return itemToMap(item, ignoreNulls, new DynamoDBEnhancedRequestConfiguration(SHALLOW));
     }
 }
 
