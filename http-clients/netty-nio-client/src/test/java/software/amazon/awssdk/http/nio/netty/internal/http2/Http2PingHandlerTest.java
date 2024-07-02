@@ -123,7 +123,7 @@ public class Http2PingHandlerTest {
     public void schedulingDelayDoesNotCausePingTimeout() throws InterruptedException {
         PipelineExceptionCatcher catcher = new PipelineExceptionCatcher();
         PingResponder pingResponder = new PingResponder();
-        EmbeddedChannel channel = createHttp2Channel(fastChecker, catcher, pingResponder);
+        EmbeddedChannel channel = createHttp2Channel(pingResponder, fastChecker, catcher);
 
         pingResponder.setCallback(() -> channel.writeInbound(new DefaultHttp2PingFrame(0, true)),
                                   (long)(FAST_CHECKER_DURATION_MILLIS / 10) /* send ack 10ms after getting ping */);
@@ -173,7 +173,7 @@ public class Http2PingHandlerTest {
     @Test
     public void failedWriteResultsInOneChannelException() throws InterruptedException {
         PipelineExceptionCatcher catcher = new PipelineExceptionCatcher();
-        EmbeddedChannel channel = createHttp2Channel(fastChecker, catcher, new FailingWriter());
+        EmbeddedChannel channel = createHttp2Channel(new FailingWriter(), fastChecker, catcher);
         channel.runPendingTasks();
         assertThat(catcher.caughtExceptions).hasSize(1);
         assertThat(catcher.caughtExceptions.get(0)).isInstanceOf(IOException.class);
@@ -239,7 +239,7 @@ public class Http2PingHandlerTest {
         PingResponder pingResponder = new PingResponder();
         DelayingWriter delayingWriter = new DelayingWriter((long)(FAST_CHECKER_DURATION_MILLIS * 1.5));
 
-        EmbeddedChannel channel = createHttp2Channel(fastChecker, catcher, pingResponder, delayingWriter);
+        EmbeddedChannel channel = createHttp2Channel(pingResponder, delayingWriter, fastChecker, catcher);
 
         pingResponder.setCallback(() -> channel.writeInbound(new DefaultHttp2PingFrame(0, true)),
                                   FAST_CHECKER_DURATION_MILLIS / 10 /* send ack in 10 ms after getting ping*/);
@@ -259,7 +259,7 @@ public class Http2PingHandlerTest {
         PingResponder pingResponder = new PingResponder();
         DelayingWriter delayingWriter = new DelayingWriter((long)(FAST_CHECKER_DURATION_MILLIS * 1.5));
 
-        EmbeddedChannel channel = createHttp2Channel(fastChecker, catcher, pingResponder, delayingWriter);
+        EmbeddedChannel channel = createHttp2Channel(pingResponder, delayingWriter, fastChecker, catcher);
 
         pingResponder.setCallback(() -> channel.writeInbound(new DefaultHttp2PingFrame(0, true)),
                                   (long)(FAST_CHECKER_DURATION_MILLIS * 1.5) /* send a late ack to trigger timeout */);

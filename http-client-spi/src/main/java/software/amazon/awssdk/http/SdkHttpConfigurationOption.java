@@ -54,7 +54,8 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             new SdkHttpConfigurationOption<>("ConnectionAcquireTimeout", Duration.class);
 
     /**
-     * Timeout after which an idle connection should be closed.
+     * Timeout after which an idle connection should be closed. For HTTP/2 this only
+     * applies to the connection not streams.
      */
     public static final SdkHttpConfigurationOption<Duration> CONNECTION_MAX_IDLE_TIMEOUT =
             new SdkHttpConfigurationOption<>("ConnectionMaxIdleTimeout", Duration.class);
@@ -86,6 +87,7 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
 
     /**
      * Whether idle connection should be removed after the {@link #CONNECTION_MAX_IDLE_TIMEOUT} has passed.
+     * For HTTP/2, this only applies HTTP/2 connections not streams.
      */
     public static final SdkHttpConfigurationOption<Boolean> REAP_IDLE_CONNECTIONS =
             new SdkHttpConfigurationOption<>("ReapIdleConnections", Boolean.class);

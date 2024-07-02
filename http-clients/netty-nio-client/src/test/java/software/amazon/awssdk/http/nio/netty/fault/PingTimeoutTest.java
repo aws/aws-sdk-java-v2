@@ -131,8 +131,12 @@ public class PingTimeoutTest {
 
     private CompletableFuture<Void> makeRequest(Duration healthCheckPingPeriod) {
         netty = NettyNioAsyncHttpClient.builder()
+                 // have a long enough idle timeout so that the connection doesn't timeout from being idle.
+                 // NOTE: Ping traffic will not keep the connection alive from idle timeout.
+                .connectionMaxIdleTime(Duration.ofSeconds(20))
                 .protocol(Protocol.HTTP2)
-                .http2Configuration(Http2Configuration.builder().healthCheckPingPeriod(healthCheckPingPeriod).build())
+                .http2Configuration(Http2Configuration.builder().healthCheckPingPeriod(healthCheckPingPeriod)
+                                                      .build())
                 .build();
 
         SdkHttpFullRequest request = SdkHttpFullRequest.builder()

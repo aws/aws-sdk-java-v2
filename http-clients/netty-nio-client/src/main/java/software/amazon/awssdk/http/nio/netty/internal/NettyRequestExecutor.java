@@ -206,10 +206,12 @@ public final class NettyRequestExecutor {
 
         switch (protocol) {
             case HTTP2:
+                // Configure pipeline for the child stream channel
                 pipeline.addLast(new Http2ToHttpInboundAdapter());
                 pipeline.addLast(new HttpToHttp2OutboundAdapter());
                 pipeline.addLast(Http2StreamExceptionHandler.create());
                 requestAdapter = REQUEST_ADAPTER_HTTP2;
+
                 break;
             case HTTP1_1:
                 requestAdapter = REQUEST_ADAPTER_HTTP1_1;

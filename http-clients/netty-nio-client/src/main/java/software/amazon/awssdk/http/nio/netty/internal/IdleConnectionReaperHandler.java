@@ -24,6 +24,7 @@ import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 /**
  * A handler that closes unused channels that have not had any traffic on them for a configurable amount of time.
+ * For HTTP/2 this is applied to the HTTP/2 connection only not the streams.
  */
 @SdkInternalApi
 public class IdleConnectionReaperHandler extends IdleStateHandler {

@@ -111,10 +111,9 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
             configureHttp2(ch, pipeline);
         } else {
             configureHttp11(ch, pipeline);
-        }
-
-        if (configuration.reapIdleConnections()) {
-            pipeline.addLast(new IdleConnectionReaperHandler(configuration.idleTimeoutMillis()));
+            if (configuration.reapIdleConnections()) {
+                pipeline.addLast(new IdleConnectionReaperHandler(configuration.idleTimeoutMillis()));
+            }
         }
 
         if (configuration.connectionTtlMillis() > 0) {
@@ -153,13 +152,24 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         ch.attr(HTTP2_CONNECTION).set(codec.connection());
 
         ch.attr(HTTP2_INITIAL_WINDOW_SIZE).set(clientInitialWindowSize);
-        pipeline.addLast(new Http2MultiplexHandler(new NoOpChannelInitializer()));
-        pipeline.addLast(new Http2SettingsFrameHandler(ch, clientMaxStreams, channelPoolRef));
         if (healthCheckPingPeriod == null) {
             pipeline.addLast(new Http2PingHandler(HTTP2_CONNECTION_PING_TIMEOUT_SECONDS * 1_000));
         } else if (healthCheckPingPeriod.toMillis() > 0) {
             pipeline.addLast(new Http2PingHandler(saturatedCast(healthCheckPingPeriod.toMillis())));
         }
+        // Idle connection reaper must be present before the Http2MultiplexHandler otherwise
+        // it will not see any traffic that flows to the child stream channel which is important to consider
+        // for connection idleness.
+        // This is connection-level idle channel reaper not stream level. If some streams are idling, it
+        // will not be closed. Streams are cheaper than connection and utilize less resources.
+        // The handler is also placed after the PingHandler so that it does not see ping traffic. Any connection
+        // with only ping traffic going on, will be considered idle.
+        if (configuration.reapIdleConnections()) {
+            pipeline.addLast(new IdleConnectionReaperHandler(configuration.idleTimeoutMillis()));
+        }
+        pipeline.addLast(new Http2MultiplexHandler(new NoOpChannelInitializer()));
+        pipeline.addLast(new Http2SettingsFrameHandler(ch, clientMaxStreams, channelPoolRef));
+
     }
 
     private void configureHttp11(Channel ch, ChannelPipeline pipeline) {
