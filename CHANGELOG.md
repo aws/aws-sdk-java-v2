@@ -1,4 +1,96 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.13__ __2024-07-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - The retry strategies implementation was not backwards compatible with the retry policies in regards of throttled exceptions, for these the retry policies had a different backoff strategy that is much more slower. This change retrofits the retry strategies to have also a different backoff strategy for throttling errors that has the same base and max delay values as the legacy retry policy.
+
+## __AWS Step Functions__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS WAFV2__
+  - ### Features
+    - JSON body inspection: Update documentation to clarify that JSON parsing doesn't include full validation.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Cognito Identity__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Authentication profiles are Amazon Connect resources (in gated preview) that allow you to configure authentication settings for users in your contact center. This release adds support for new ListAuthenticationProfiles, DescribeAuthenticationProfile and UpdateAuthenticationProfile APIs.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Updates EKS managed node groups to support EC2 Capacity Blocks for ML
+
+## __Amazon Simple Workflow Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Added further restrictions on logging of potentially sensitive inputs and outputs.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Adding support for dynamic keys for encrypt, decrypt, re-encrypt and translate pin functions. With this change, customers can use one-time TR-31 keys directly in dataplane operations without the need to first import them into the service.
+
+# __2.26.12__ __2024-06-28__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Added CCPC_LEVEL_1_OR_HIGHER KeyStorageSecurityStandard and SM2 KeyAlgorithm and SM3WITHSM2 SigningAlgorithm for China regions.
+
+## __AWS CloudHSM V2__
+  - ### Features
+    - Added 3 new APIs to support backup sharing: GetResourcePolicy, PutResourcePolicy, and DeleteResourcePolicy. Added BackupArn to the output of the DescribeBackups API. Added support for BackupArn in the CreateCluster API.
+
+## __AWS Glue__
+  - ### Features
+    - Added AttributesToGet parameter to Glue GetDatabases, allowing caller to limit output to include only the database name.
+
+## __AWS Performance Insights__
+  - ### Features
+    - Noting that the filter db.sql.db_id isn't available for RDS for SQL Server DB instances.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix a bug on the token bucket, after success we need to deposit back one token to allow it to slowly recover and allow more retries after seeing several successful responses.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release supports showing PreferredAgentRouting step via DescribeContact API.
+
+## __Amazon EMR__
+  - ### Features
+    - This release provides the support for new allocation strategies i.e. CAPACITY_OPTIMIZED_PRIORITIZED for Spot and PRIORITIZED for On-Demand by taking input of priority value for each instance type for instance fleet clusters.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for Flink 1.19 in Managed Service for Apache Flink
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release removes support for enabling or disabling Natural Language Query Processing feature for Amazon OpenSearch Service domains.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added support for Red Hat Enterprise Linux 8 on Amazon WorkSpaces Personal.
+
 # __2.26.11__ __2024-06-27__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -89,7 +181,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
+[@sullis](https://github.com/sullis), [@shetsa-amzn](https://github.com/shetsa-amzn)
 # __2.26.9__ __2024-06-25__
 ## __AWS Network Manager__
   - ### Features

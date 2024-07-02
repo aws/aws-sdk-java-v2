@@ -51,6 +51,8 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
     protected final int maxAttempts;
     protected final boolean circuitBreakerEnabled;
     protected final BackoffStrategy backoffStrategy;
+    protected final BackoffStrategy throttlingBackoffStrategy;
+    protected final Predicate<Throwable> treatAsThrottling;
     protected final int exceptionCost;
     protected final TokenBucketStore tokenBucketStore;
 
@@ -60,6 +62,8 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
         this.maxAttempts = Validate.isPositive(builder.maxAttempts, "maxAttempts");
         this.circuitBreakerEnabled = builder.circuitBreakerEnabled == null || builder.circuitBreakerEnabled;
         this.backoffStrategy = Validate.paramNotNull(builder.backoffStrategy, "backoffStrategy");
+        this.throttlingBackoffStrategy = Validate.paramNotNull(builder.throttlingBackoffStrategy, "throttlingBackoffStrategy");
+        this.treatAsThrottling = Validate.paramNotNull(builder.treatAsThrottling, "treatAsThrottling");
         this.exceptionCost = Validate.paramNotNull(builder.exceptionCost, "exceptionCost");
         this.tokenBucketStore = Validate.paramNotNull(builder.tokenBucketStore, "tokenBucketStore");
     }
@@ -149,7 +153,12 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
      * compute different a different depending on their logic.
      */
     protected Duration computeBackoff(RefreshRetryTokenRequest request, DefaultRetryToken token) {
-        Duration backoff = backoffStrategy.computeDelay(token.attempt());
+        Duration backoff;
+        if (treatAsThrottling.test(request.failure())) {
+            backoff = throttlingBackoffStrategy.computeDelay(token.attempt());
+        } else {
+            backoff = backoffStrategy.computeDelay(token.attempt());
+        }
         Duration suggested = request.suggestedDelay().orElse(Duration.ZERO);
         return maxOf(suggested, backoff);
     }
@@ -196,7 +205,9 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
 
     private ReleaseResponse releaseTokenBucketCapacity(DefaultRetryToken token) {
         TokenBucket bucket = tokenBucketStore.tokenBucketForScope(token.scope());
-        int capacityReleased = token.capacityAcquired();
+        // Make sure that we release at least one token to allow the token bucket
+        // to replenish its tokens.
+        int capacityReleased = Math.max(token.capacityAcquired(), 1);
         return bucket.release(capacityReleased);
     }
 
@@ -338,6 +349,8 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
         private Boolean circuitBreakerEnabled;
         private Integer exceptionCost;
         private BackoffStrategy backoffStrategy;
+        private BackoffStrategy throttlingBackoffStrategy;
+        private Predicate<Throwable> treatAsThrottling = throwable -> false;
         private TokenBucketStore tokenBucketStore;
 
         Builder() {
@@ -350,6 +363,8 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
             this.circuitBreakerEnabled = strategy.circuitBreakerEnabled;
             this.exceptionCost = strategy.exceptionCost;
             this.backoffStrategy = strategy.backoffStrategy;
+            this.throttlingBackoffStrategy = strategy.throttlingBackoffStrategy;
+            this.treatAsThrottling = strategy.treatAsThrottling;
             this.tokenBucketStore = strategy.tokenBucketStore;
         }
 
@@ -371,6 +386,14 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
 
         void setBackoffStrategy(BackoffStrategy backoffStrategy) {
             this.backoffStrategy = backoffStrategy;
+        }
+
+        void setThrottlingBackoffStrategy(BackoffStrategy throttlingBackoffStrategy) {
+            this.throttlingBackoffStrategy = throttlingBackoffStrategy;
+        }
+
+        void setTreatAsThrottling(Predicate<Throwable> treatAsThrottling) {
+            this.treatAsThrottling = treatAsThrottling;
         }
 
         void setTokenBucketExceptionCost(int exceptionCost) {

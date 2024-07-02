@@ -68,6 +68,18 @@ public final class DefaultStandardRetryStrategy
         }
 
         @Override
+        public Builder throttlingBackoffStrategy(BackoffStrategy throttlingBackoffStrategy) {
+            setThrottlingBackoffStrategy(throttlingBackoffStrategy);
+            return this;
+        }
+
+        @Override
+        public Builder treatAsThrottling(Predicate<Throwable> treatAsThrottling) {
+            setTreatAsThrottling(treatAsThrottling);
+            return this;
+        }
+
+        @Override
         public Builder circuitBreakerEnabled(Boolean circuitBreakerEnabled) {
             setCircuitBreakerEnabled(circuitBreakerEnabled);
             return this;
