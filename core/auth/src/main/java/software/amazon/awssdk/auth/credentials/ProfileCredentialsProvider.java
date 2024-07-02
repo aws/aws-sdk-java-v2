@@ -73,7 +73,7 @@ public final class ProfileCredentialsProvider
                                           .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
             selectedProfileSupplier =
                 Optional.ofNullable(builder.profileFile)
-                        .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(builder.defaultProfileFileLoader.get()));
+                        .orElseGet(() -> builder.defaultProfileFileLoader);
 
         } catch (RuntimeException e) {
             // If we couldn't load the credentials provider for some reason, save an exception describing why. This exception
@@ -216,7 +216,7 @@ public final class ProfileCredentialsProvider
     static final class BuilderImpl implements Builder {
         private Supplier<ProfileFile> profileFile;
         private String profileName;
-        private Supplier<ProfileFile> defaultProfileFileLoader = ProfileFile::defaultProfileFile;
+        private Supplier<ProfileFile> defaultProfileFileLoader = ProfileFileSupplier.defaultSupplier();
 
         BuilderImpl() {
         }
