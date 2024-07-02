@@ -71,6 +71,17 @@ def add_dependencies(f, version):
       version: {0}'''
     f.write(add_dependencies_str.format(version))
 
+def replace_core_dependencies(f, version):
+    add_dependencies_str = '''
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+      oldGroupId: com.amazonaws
+      oldArtifactId: aws-java-sdk-core
+      newGroupId: software.amazon.awssdk
+      newArtifactId: aws-core
+      newVersion: {0}
+      '''
+    f.write(add_dependencies_str.format(version))
+
 def write_cloudwatch_recipe(f, version):
     change_bom = '''
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
@@ -88,6 +99,7 @@ def write_recipe_yml_file(service_mapping):
         write_copy_right_header(f)
         write_recipe_metadata(f, version)
         add_dependencies(f, version)
+        replace_core_dependencies(f, version)
         write_bom_recipe(f, version)
         for s in service_mapping:
             # edge case : v1 contains modules: cloudwatch AND cloudwatchmetrics, which both map to cloudwatch in v2
