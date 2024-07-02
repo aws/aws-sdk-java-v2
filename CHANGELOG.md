@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.14__ __2024-07-02__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Elastic Compute Cloud (EC2).
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added response overrides to Head Object requests.
+
+## __Firewall Management Service__
+  - ### Features
+    - Increases Customer API's ManagedServiceData length
+
 # __2.26.13__ __2024-07-01__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -181,7 +194,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@sullis](https://github.com/sullis), [@shetsa-amzn](https://github.com/shetsa-amzn)
+[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
 # __2.26.9__ __2024-06-25__
 ## __AWS Network Manager__
   - ### Features
