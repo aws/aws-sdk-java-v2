@@ -25,9 +25,11 @@ import static org.mockito.Mockito.when;
 
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -215,6 +217,25 @@ class S3TransferManagerTest {
             tm.download(downloadRequest).completionFuture();
         future.cancel(true);
         assertThat(s3CrtFuture).isCancelled();
+    }
+
+    @Test
+    @Timeout(value = 5, unit = TimeUnit.SECONDS)
+    void download_futureReturnsNull_doesNotHang() {
+        AsyncResponseTransformer<GetObjectResponse, Void> mockTr = mock(AsyncResponseTransformer.class);
+        CompletableFuture<Void> returnMockFuture = new CompletableFuture<>();
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(returnMockFuture);
+        DownloadRequest<Void> downloadRequest =
+            DownloadRequest.builder()
+                           .getObjectRequest(g -> g.bucket("bucket").key("key"))
+                           .responseTransformer(mockTr).build();
+
+        CompletableFuture<CompletedDownload<Void>> future = tm.download(downloadRequest).completionFuture();
+        returnMockFuture.complete(null);
+        assertThatThrownBy(future::join)
+            .hasCauseInstanceOf(NullPointerException.class)
+            .hasMessageContaining("result must not be null");
     }
 
     @Test

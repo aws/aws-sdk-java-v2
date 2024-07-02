@@ -41,6 +41,8 @@ public final class BenchmarkRunner {
     private static final String READ_BUFFER_IN_MB = "readBufferInMB";
 
     private static final String VERSION = "version";
+    private static final String S3_CLIENT = "s3Client";
+
     private static final String PREFIX = "prefix";
 
     private static final String TIMEOUT = "timeoutInMin";
@@ -90,6 +92,10 @@ public final class BenchmarkRunner {
         options.addOption(null, READ_BUFFER_IN_MB, true, "Read buffer size in MB");
         options.addOption(null, VERSION, true, "The major version of the transfer manager to run test: "
                                                + "v1 | v2 | crt | java, default: v2");
+        options.addOption(null, S3_CLIENT, true, "For v2 transfer manager benchmarks, which base s3 client "
+                                                 + "should be used: "
+                                                 + "crt | java, default: crt");
+
         options.addOption(null, PREFIX, true, "S3 Prefix used in downloadDirectory and uploadDirectory");
 
         options.addOption(null, CONTENT_LENGTH, true, "Content length to upload from memory. Used only in the "
@@ -140,7 +146,11 @@ public final class BenchmarkRunner {
                     benchmark = new JavaS3ClientCopyBenchmark(config);
                     break;
                 }
-                throw new UnsupportedOperationException("Java based s3 client benchmark only support upload and copy");
+                if (operation == TransferManagerOperation.DOWNLOAD) {
+                    benchmark = new JavaS3ClientDownloadBenchmark(config);
+                    break;
+                }
+                throw new UnsupportedOperationException();
             default:
                 throw new UnsupportedOperationException();
         }
@@ -150,6 +160,11 @@ public final class BenchmarkRunner {
     private static TransferManagerBenchmarkConfig parseConfig(CommandLine cmd) {
         TransferManagerOperation operation = TransferManagerOperation.valueOf(cmd.getOptionValue(OPERATION)
                                                                                  .toUpperCase(Locale.ENGLISH));
+
+        TransferManagerBaseS3Client s3Client = cmd.getOptionValue(S3_CLIENT) == null
+                                               ? TransferManagerBaseS3Client.CRT
+                                               : TransferManagerBaseS3Client.valueOf(cmd.getOptionValue(S3_CLIENT)
+                                                                                        .toUpperCase(Locale.ENGLISH));
 
         String filePath = cmd.getOptionValue(FILE);
         String bucket = cmd.getOptionValue(BUCKET);
@@ -205,6 +220,7 @@ public final class BenchmarkRunner {
                                              .connectionAcquisitionTimeoutInSec(connAcqTimeoutInSec)
                                              .forceCrtHttpClient(forceCrtHttpClient)
                                              .maxConcurrency(maxConcurrency)
+                                             .s3Client(s3Client)
                                              .build();
     }
 
@@ -214,6 +230,11 @@ public final class BenchmarkRunner {
         COPY,
         DOWNLOAD_DIRECTORY,
         UPLOAD_DIRECTORY
+    }
+
+    public enum TransferManagerBaseS3Client {
+        CRT,
+        JAVA
     }
 
     private enum SdkVersion {

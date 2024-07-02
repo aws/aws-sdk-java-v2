@@ -25,11 +25,11 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 /**
  * A no-op {@link AsyncResponseTransformer}
  */
-public class NoOpResponseTransformer<T> implements AsyncResponseTransformer<T, Void> {
-    private CompletableFuture<Void> future;
+public class NoOpResponseTransformer<T> implements AsyncResponseTransformer<T, Object> {
+    private CompletableFuture<Object> future;
 
     @Override
-    public CompletableFuture<Void> prepare() {
+    public CompletableFuture<Object> prepare() {
         future = new CompletableFuture<>();
         return future;
     }
@@ -50,10 +50,10 @@ public class NoOpResponseTransformer<T> implements AsyncResponseTransformer<T, V
     }
 
     static class NoOpSubscriber implements Subscriber<ByteBuffer> {
-        private final CompletableFuture<Void> future;
+        private final CompletableFuture<Object> future;
         private Subscription subscription;
 
-        NoOpSubscriber(CompletableFuture<Void> future) {
+        NoOpSubscriber(CompletableFuture<Object> future) {
             this.future = future;
         }
 
@@ -75,7 +75,7 @@ public class NoOpResponseTransformer<T> implements AsyncResponseTransformer<T, V
 
         @Override
         public void onComplete() {
-            future.complete(null);
+            future.complete(new Object());
         }
     }
 

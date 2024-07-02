@@ -26,13 +26,13 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Arrays;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.testutils.RandomTempFile;
-import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 
 class ResumableFileDownloadTest {
 
@@ -130,6 +130,7 @@ class ResumableFileDownloadTest {
                                     .fileLastModified(DATE1)
                                     .s3ObjectLastModified(DATE2)
                                     .totalSizeInBytes(2000L)
+                                    .completedParts(Arrays.asList(1, 2, 5))
                                     .build();
     }
 }

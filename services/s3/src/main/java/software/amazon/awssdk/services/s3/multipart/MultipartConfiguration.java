@@ -15,26 +15,28 @@
 
 package software.amazon.awssdk.services.s3.multipart;
 
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Class that hold configuration properties related to multipart operation for a {@link S3AsyncClient}. Passing this class to the
  * {@link S3AsyncClientBuilder#multipartConfiguration(MultipartConfiguration)} will enable automatic conversion of
- * {@link S3AsyncClient#putObject(Consumer, AsyncRequestBody)}, {@link S3AsyncClient#copyObject(CopyObjectRequest)} to their
- * respective multipart operation.
+ * {@link S3AsyncClient#getObject(GetObjectRequest, AsyncResponseTransformer)},
+ * {@link S3AsyncClient#putObject(PutObjectRequest, AsyncRequestBody)} and
+ * {@link S3AsyncClient#copyObject(CopyObjectRequest)} to their respective multipart operation.
  * <p>
- * <em>Note</em>: The multipart operation for {@link S3AsyncClient#getObject(GetObjectRequest, AsyncResponseTransformer)} is
- * temporarily disabled and will result in throwing a {@link UnsupportedOperationException} if called when configured for
- * multipart operation.
+ * Note that multipart download fetch individual part of the object using {@link GetObjectRequest#partNumber() part number}, this
+ * means it will only download multiple parts if the
+ * object itself was uploaded as a {@link S3AsyncClient#createMultipartUpload(CreateMultipartUploadRequest) multipart object}
  */
 @SdkPublicApi
 public final class MultipartConfiguration implements ToCopyableBuilder<MultipartConfiguration.Builder, MultipartConfiguration> {

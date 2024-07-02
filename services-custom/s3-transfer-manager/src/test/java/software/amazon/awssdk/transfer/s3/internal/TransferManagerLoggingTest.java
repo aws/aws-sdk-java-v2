@@ -17,20 +17,27 @@ package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.function.Predicate;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.utils.internal.SystemSettingUtilsTestBackdoor;
 
 class TransferManagerLoggingTest {
+
+    private static final String EXPECTED_DEBUG_MESSAGE = "The provided S3AsyncClient is neither "
+                                                         + "an AWS CRT-based S3 async client (S3AsyncClient.crtBuilder().build()) or "
+                                                         + "a Java-based S3 async client (S3AsyncClient.builder().multipartEnabled(true).build()), "
+                                                         + "and thus multipart upload/download feature may not be enabled and resumable file upload may not "
+                                                         + "be supported. To benefit from maximum throughput, consider using "
+                                                         + "S3AsyncClient.crtBuilder().build() or "
+                                                         + "S3AsyncClient.builder().multipartEnabled(true).build() instead";
 
     @Test
     void transferManager_withCrtClient_shouldNotLogWarnMessages() {
@@ -42,26 +49,87 @@ class TransferManagerLoggingTest {
              LogCaptor logCaptor = LogCaptor.create(Level.WARN);
              S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
             List<LogEvent> events = logCaptor.loggedEvents();
-            assertThat(events).isEmpty();
+            assertThat(events)
+                .withFailMessage("A message from S3TransferManager was logged at DEBUG level when none was expected")
+                .noneMatch(loggedFromS3TransferManager());
         }
     }
 
     @Test
-    void transferManager_withJavaClient_shouldLogWarnMessage() {
-
+    void transferManager_withJavaClientMultiPartNotSet_shouldLogDebugMessage() {
 
         try (S3AsyncClient s3Crt = S3AsyncClient.builder()
                                                 .region(Region.US_WEST_2)
                                                 .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
                                                 .build();
-             LogCaptor logCaptor = LogCaptor.create(Level.WARN);
+             LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
              S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
             List<LogEvent> events = logCaptor.loggedEvents();
-            assertLogged(events, Level.WARN, "The provided DefaultS3AsyncClient is not an instance of S3CrtAsyncClient, and "
-                                             + "thus multipart upload/download feature is not enabled and resumable file upload"
-                                             + " is "
-                                             + "not supported. To benefit from maximum throughput, consider using "
-                                             + "S3AsyncClient.crtBuilder().build() instead.");
+            assertLogged(events, Level.DEBUG, EXPECTED_DEBUG_MESSAGE);
+        }
+    }
+
+    @Test
+    void transferManager_withJavaClientMultiPartEqualsFalse_shouldLogDebugMessage() {
+
+        try (S3AsyncClient s3Crt = S3AsyncClient.builder()
+                                                .region(Region.US_WEST_2)
+                                                .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
+                                                .multipartEnabled(false)
+                                                .build();
+             LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
+             S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
+            List<LogEvent> events = logCaptor.loggedEvents();
+            assertLogged(events, Level.DEBUG, EXPECTED_DEBUG_MESSAGE);
+        }
+    }
+
+    @Test
+    void transferManager_withDefaultClient_shouldNotLogDebugMessage() {
+
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("AWS_REGION", "us-east-1");
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
+             S3TransferManager tm = S3TransferManager.builder().build()) {
+            List<LogEvent> events = logCaptor.loggedEvents();
+            assertThat(events)
+                .withFailMessage("A message from S3TransferManager was logged at DEBUG level when none was expected")
+                .noneMatch(loggedFromS3TransferManager());
+        }
+        SystemSettingUtilsTestBackdoor.clearEnvironmentVariableOverrides();
+    }
+
+    @Test
+    void transferManager_withMultiPartEnabledJavaClient_shouldNotLogDebugMessage() {
+
+        try (S3AsyncClient s3Crt = S3AsyncClient.builder()
+                                                .region(Region.US_WEST_2)
+                                                .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
+                                                .multipartEnabled(true)
+                                                .build();
+             LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
+             S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
+            List<LogEvent> events = logCaptor.loggedEvents();
+            assertThat(events)
+                .withFailMessage("A message from S3TransferManager was logged at DEBUG level when none was expected")
+                .noneMatch(loggedFromS3TransferManager());
+        }
+    }
+
+    @Test
+    void transferManager_withMultiPartEnabledAndCrossRegionEnabledJavaClient_shouldNotLogDebugMessage() {
+
+        try (S3AsyncClient s3Crt = S3AsyncClient.builder()
+                                                .region(Region.US_WEST_2)
+                                                .credentialsProvider(() -> AwsBasicCredentials.create("foo", "bar"))
+                                                .multipartEnabled(true)
+                                                .crossRegionAccessEnabled(true)
+                                                .build();
+             LogCaptor logCaptor = LogCaptor.create(Level.DEBUG);
+             S3TransferManager tm = S3TransferManager.builder().s3Client(s3Crt).build()) {
+            List<LogEvent> events = logCaptor.loggedEvents();
+            assertThat(events)
+                .withFailMessage("A message from S3TransferManager was logged at DEBUG level when none was expected")
+                .noneMatch(loggedFromS3TransferManager());
         }
     }
 
@@ -71,5 +139,10 @@ class TransferManagerLoggingTest {
         String msg = event.getMessage().getFormattedMessage();
         assertThat(msg).isEqualTo(message);
         assertThat(event.getLevel()).isEqualTo(level);
+    }
+
+    private static Predicate<LogEvent> loggedFromS3TransferManager() {
+        String tmLoggerName = "software.amazon.awssdk.transfer.s3.S3TransferManager";
+        return logEvent -> tmLoggerName.equals(logEvent.getLoggerName());
     }
 }
