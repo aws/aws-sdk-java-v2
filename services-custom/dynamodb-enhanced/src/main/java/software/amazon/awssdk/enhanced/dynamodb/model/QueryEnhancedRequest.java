@@ -122,7 +122,6 @@ public final class QueryEnhancedRequest {
      * Returns the value of select, or null if it doesn't exist.
      * @return
      */
-
     public Select select() {
         return select;
     }
@@ -131,7 +130,6 @@ public final class QueryEnhancedRequest {
      * Returns the value of select as a string, or null if it doesn't exist.
      * @return
      */
-
     public String selectAsString() {
         return String.valueOf(select);
     }
@@ -307,7 +305,6 @@ public final class QueryEnhancedRequest {
          * @param select
          * @return a builder of this type
          */
-
         public Builder select(Select select) {
             this.select = select;
             return this;
@@ -396,8 +393,10 @@ public final class QueryEnhancedRequest {
                 this.attributesToProject.clear();
             }
             if (attributesToProject != null) {
-                addNestedAttributesToProject(new ArrayList<>(attributesToProject).stream()
-                                                                                 .map(NestedAttributeName::create).collect(Collectors.toList()));
+                addNestedAttributesToProject(new ArrayList<>(attributesToProject)
+                                                 .stream()
+                                                 .map(NestedAttributeName::create)
+                                                 .collect(Collectors.toList()));
             }
             return this;
         }
