@@ -73,7 +73,7 @@ def add_dependencies(f, version):
 
 def replace_core_dependencies(f, version):
     add_dependencies_str = '''
-  - org.openrewrite.maven.ChangeManagedDependencyGroupIdAndArtifactId:
+  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-core
       newGroupId: software.amazon.awssdk
