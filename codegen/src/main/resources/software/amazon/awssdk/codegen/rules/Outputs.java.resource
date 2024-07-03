@@ -61,11 +61,12 @@ public class Outputs {
         if (supportsDualStack != outputs.supportsDualStack) {
             return false;
         }
-        if (dnsSuffix != null ? !dnsSuffix.equals(outputs.dnsSuffix) : outputs.dnsSuffix != null) {
+        if ((dnsSuffix != null && !dnsSuffix.equals(outputs.dnsSuffix)) ||
+             (dnsSuffix == null && outputs.dnsSuffix != null)) {
             return false;
         }
-        if (implicitGlobalRegion != null ? !implicitGlobalRegion.equals(outputs.implicitGlobalRegion) :
-                outputs.implicitGlobalRegion != null) {
+        if ((implicitGlobalRegion != null && !implicitGlobalRegion.equals(outputs.implicitGlobalRegion)) ||
+             (implicitGlobalRegion == null && outputs.implicitGlobalRegion != null)) {
             return false;
         }
         return dualStackDnsSuffix != null ? dualStackDnsSuffix.equals(outputs.dualStackDnsSuffix)
