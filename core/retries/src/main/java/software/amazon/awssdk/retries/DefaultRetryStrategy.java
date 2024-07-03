@@ -53,7 +53,10 @@ public final class DefaultRetryStrategy {
     public static StandardRetryStrategy.Builder standardStrategyBuilder() {
         return StandardRetryStrategy.builder()
                                     .maxAttempts(Standard.MAX_ATTEMPTS)
-                                    .backoffStrategy(BackoffStrategy.exponentialDelay(Standard.BASE_DELAY, Standard.MAX_BACKOFF));
+                                    .backoffStrategy(BackoffStrategy.exponentialDelay(Standard.BASE_DELAY, Standard.MAX_BACKOFF))
+                                    .throttlingBackoffStrategy(BackoffStrategy.exponentialDelay(
+                                        Standard.THROTTLED_BASE_DELAY,
+                                        Standard.MAX_BACKOFF));
     }
 
     /**
@@ -72,8 +75,9 @@ public final class DefaultRetryStrategy {
         return LegacyRetryStrategy.builder()
                                   .maxAttempts(Legacy.MAX_ATTEMPTS)
                                   .backoffStrategy(BackoffStrategy.exponentialDelay(Legacy.BASE_DELAY, Legacy.MAX_BACKOFF))
-                                  .throttlingBackoffStrategy(BackoffStrategy.exponentialDelay(Legacy.THROTTLED_BASE_DELAY,
-                                                                                              Legacy.MAX_BACKOFF));
+                                  .throttlingBackoffStrategy(BackoffStrategy.exponentialDelayHalfJitter(
+                                      Legacy.THROTTLED_BASE_DELAY,
+                                      Legacy.MAX_BACKOFF));
     }
 
     /**
@@ -90,12 +94,18 @@ public final class DefaultRetryStrategy {
      */
     public static AdaptiveRetryStrategy.Builder adaptiveStrategyBuilder() {
         return AdaptiveRetryStrategy.builder()
-                                    .maxAttempts(Adaptive.MAX_ATTEMPTS);
+                                    .maxAttempts(Adaptive.MAX_ATTEMPTS)
+                                    .backoffStrategy(BackoffStrategy.exponentialDelay(Standard.BASE_DELAY,
+                                                                                      Standard.MAX_BACKOFF))
+                                    .throttlingBackoffStrategy(BackoffStrategy.exponentialDelay(
+                                        Standard.THROTTLED_BASE_DELAY,
+                                        Standard.MAX_BACKOFF));
     }
 
     static final class Standard {
         static final int MAX_ATTEMPTS = 3;
         static final Duration BASE_DELAY = Duration.ofMillis(100);
+        static final Duration THROTTLED_BASE_DELAY = Duration.ofSeconds(1);
         static final Duration MAX_BACKOFF = Duration.ofSeconds(20);
         static final int TOKEN_BUCKET_SIZE = 500;
         static final int DEFAULT_EXCEPTION_TOKEN_COST = 5;

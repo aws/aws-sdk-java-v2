@@ -1,4 +1,200 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.14__ __2024-07-02__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Elastic Compute Cloud (EC2).
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added response overrides to Head Object requests.
+
+## __Firewall Management Service__
+  - ### Features
+    - Increases Customer API's ManagedServiceData length
+
+# __2.26.13__ __2024-07-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - The retry strategies implementation was not backwards compatible with the retry policies in regards of throttled exceptions, for these the retry policies had a different backoff strategy that is much more slower. This change retrofits the retry strategies to have also a different backoff strategy for throttling errors that has the same base and max delay values as the legacy retry policy.
+
+## __AWS Step Functions__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS WAFV2__
+  - ### Features
+    - JSON body inspection: Update documentation to clarify that JSON parsing doesn't include full validation.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Cognito Identity__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Authentication profiles are Amazon Connect resources (in gated preview) that allow you to configure authentication settings for users in your contact center. This release adds support for new ListAuthenticationProfiles, DescribeAuthenticationProfile and UpdateAuthenticationProfile APIs.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Updates EKS managed node groups to support EC2 Capacity Blocks for ML
+
+## __Amazon Simple Workflow Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Added further restrictions on logging of potentially sensitive inputs and outputs.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Adding support for dynamic keys for encrypt, decrypt, re-encrypt and translate pin functions. With this change, customers can use one-time TR-31 keys directly in dataplane operations without the need to first import them into the service.
+
+# __2.26.12__ __2024-06-28__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Added CCPC_LEVEL_1_OR_HIGHER KeyStorageSecurityStandard and SM2 KeyAlgorithm and SM3WITHSM2 SigningAlgorithm for China regions.
+
+## __AWS CloudHSM V2__
+  - ### Features
+    - Added 3 new APIs to support backup sharing: GetResourcePolicy, PutResourcePolicy, and DeleteResourcePolicy. Added BackupArn to the output of the DescribeBackups API. Added support for BackupArn in the CreateCluster API.
+
+## __AWS Glue__
+  - ### Features
+    - Added AttributesToGet parameter to Glue GetDatabases, allowing caller to limit output to include only the database name.
+
+## __AWS Performance Insights__
+  - ### Features
+    - Noting that the filter db.sql.db_id isn't available for RDS for SQL Server DB instances.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix a bug on the token bucket, after success we need to deposit back one token to allow it to slowly recover and allow more retries after seeing several successful responses.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release supports showing PreferredAgentRouting step via DescribeContact API.
+
+## __Amazon EMR__
+  - ### Features
+    - This release provides the support for new allocation strategies i.e. CAPACITY_OPTIMIZED_PRIORITIZED for Spot and PRIORITIZED for On-Demand by taking input of priority value for each instance type for instance fleet clusters.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for Flink 1.19 in Managed Service for Apache Flink
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release removes support for enabling or disabling Natural Language Query Processing feature for Amazon OpenSearch Service domains.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added support for Red Hat Enterprise Linux 8 on Amazon WorkSpaces Personal.
+
+# __2.26.11__ __2024-06-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Add a new backoff strategy that reassembles
+      `EqualJitterBackoffStrategy` and is used to be behavioral backwards
+      compatible with the way `RetryPolicy` behaves for the `LEGACY` retry
+      mode.
+    - Allows overrides of the retry strategy for Kinesis clients. Kinesis has its own RetryPolicy that would take precedence over any retry strategy making it impossible to override using a retry strategy.
+
+## __Amazon Chime SDK Media Pipelines__
+  - ### Features
+    - Added Amazon Transcribe multi language identification to Chime SDK call analytics. Enabling customers sending single stream audio to generate call recordings using Chime SDK call analytics
+
+## __Amazon CloudFront__
+  - ### Features
+    - Doc only update for CloudFront that fixes customer-reported issue
+
+## __Amazon DataZone__
+  - ### Features
+    - This release supports the data lineage feature of business data catalog in Amazon DataZone.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Q Connect__
+  - ### Features
+    - Adds CreateContentAssociation, ListContentAssociations, GetContentAssociation, and DeleteContentAssociation APIs.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adding support for Repeating Sections, Nested Filters
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for TAZ export to S3.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add capability for Admins to customize Studio experience for the user by showing or hiding Apps and MLTools.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added support for WorkSpaces Pools.
+
+## __AmazonMQ__
+  - ### Features
+    - This release makes the EngineVersion field optional for both broker and configuration and uses the latest available version by default. The AutoMinorVersionUpgrade field is also now optional for broker creation and defaults to 'true'.
+
+## __Application Auto Scaling__
+  - ### Features
+    - Amazon WorkSpaces customers can now use Application Auto Scaling to automatically scale the number of virtual desktops in a WorkSpaces pool.
+
+# __2.26.10__ __2024-06-26__
+## __AWS Control Tower__
+  - ### Features
+    - Added ListLandingZoneOperations API.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - upgrade netty version to 4.1.111.Final
+        - Contributed by: [@sullis](https://github.com/sullis)
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added support for disabling unmanaged addons during cluster creation.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - IVS Real-Time now offers customers the ability to upload public keys for customer vended participant tokens.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - This release adds support for new ListApplicationOperations and DescribeApplicationOperation APIs. It adds a new configuration to enable system rollbacks, adds field ApplicationVersionCreateTimestamp for clarity and improves support for pagination for APIs.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds support for enabling or disabling Natural Language Query Processing feature for Amazon OpenSearch Service domains, and provides visibility into the current state of the setup or tear-down.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Adds support for specifying ReturnValue in UpdateItemEnhancedRequest
+        - Contributed by: [@shetsa-amzn](https://github.com/shetsa-amzn)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
 # __2.26.9__ __2024-06-25__
 ## __AWS Network Manager__
   - ### Features

@@ -32,8 +32,9 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
  *     <li>Retries 3 times (4 total attempts). Adjust with {@link Builder#maxAttempts(int)}
  *     <li>For non-throttling exceptions uses the {@link BackoffStrategy#exponentialDelay} backoff strategy, with a base delay
  *     of 100 milliseconds and max delay of 20 seconds. Adjust with {@link Builder#backoffStrategy}
- *     <li>For throttling exceptions uses the {@link BackoffStrategy#exponentialDelay} backoff strategy, with a base delay of
- *     500 milliseconds  and max delay of 20 seconds. Adjust with {@link LegacyRetryStrategy.Builder#throttlingBackoffStrategy}
+ *     <li>For throttling exceptions uses the {@link BackoffStrategy#exponentialDelayHalfJitter} backoff strategy, with a base
+ *     delay of 500 milliseconds  and max delay of 20 seconds. Adjust with
+ *     {@link LegacyRetryStrategy.Builder#throttlingBackoffStrategy}
  *     <li>Circuit breaking (disabling retries) in the event of high downstream failures across the scope of
  *     the strategy. The circuit breaking will never prevent a successful first attempt. Adjust with
  *     {@link Builder#circuitBreakerEnabled}
