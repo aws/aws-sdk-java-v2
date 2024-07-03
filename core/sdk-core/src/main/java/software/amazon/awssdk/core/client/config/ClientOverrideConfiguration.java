@@ -815,6 +815,9 @@ public final class ClientOverrideConfiguration
         @Override
         public Builder retryPolicy(RetryPolicy retryPolicy) {
             config.option(RETRY_POLICY, retryPolicy);
+            config.option(CONFIGURED_RETRY_STRATEGY, null);
+            config.option(CONFIGURED_RETRY_CONFIGURATOR, null);
+            config.option(CONFIGURED_RETRY_MODE, null);
             return this;
         }
 
@@ -833,6 +836,7 @@ public final class ClientOverrideConfiguration
             config.option(CONFIGURED_RETRY_STRATEGY, retryStrategy);
             config.option(CONFIGURED_RETRY_CONFIGURATOR, null);
             config.option(CONFIGURED_RETRY_MODE, null);
+            config.option(RETRY_POLICY, null);
             return this;
         }
 
@@ -842,6 +846,7 @@ public final class ClientOverrideConfiguration
             config.option(CONFIGURED_RETRY_CONFIGURATOR, configurator);
             config.option(CONFIGURED_RETRY_MODE, null);
             config.option(CONFIGURED_RETRY_STRATEGY, null);
+            config.option(RETRY_POLICY, null);
             return this;
         }
 
@@ -851,6 +856,7 @@ public final class ClientOverrideConfiguration
             config.option(CONFIGURED_RETRY_MODE, retryMode);
             config.option(CONFIGURED_RETRY_CONFIGURATOR, null);
             config.option(CONFIGURED_RETRY_STRATEGY, null);
+            config.option(RETRY_POLICY, null);
             return this;
         }
 

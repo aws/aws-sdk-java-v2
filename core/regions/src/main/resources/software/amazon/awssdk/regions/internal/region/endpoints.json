@@ -12276,12 +12276,25 @@
       },
       "meetings-chime" : {
         "endpoints" : {
+          "af-south-1" : { },
           "ap-northeast-1" : { },
           "ap-northeast-2" : { },
           "ap-south-1" : { },
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
-          "ca-central-1" : { },
+          "ca-central-1" : {
+            "variants" : [ {
+              "hostname" : "meetings-chime-fips.ca-central-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "ca-central-1-fips" : {
+            "credentialScope" : {
+              "region" : "ca-central-1"
+            },
+            "deprecated" : true,
+            "hostname" : "meetings-chime-fips.ca-central-1.amazonaws.com"
+          },
           "eu-central-1" : { },
           "eu-west-2" : { },
           "il-central-1" : { },
@@ -21061,6 +21074,15 @@
         "partitionEndpoint" : "aws-cn-global"
       },
       "acm" : {
+        "endpoints" : {
+          "cn-north-1" : { },
+          "cn-northwest-1" : { }
+        }
+      },
+      "acm-pca" : {
+        "defaults" : {
+          "protocols" : [ "https" ]
+        },
         "endpoints" : {
           "cn-north-1" : { },
           "cn-northwest-1" : { }

@@ -89,9 +89,9 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
             }
             return result.build();
         });
-        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
-                .option(SdkClientOption.CLIENT_CONTEXT_PARAMS, clientContextParams.build())
-                .option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE, resolveAccountIdEndpointMode(config));
+        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
+        builder.option(SdkClientOption.CLIENT_CONTEXT_PARAMS, clientContextParams.build());
+        builder.option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE, resolveAccountIdEndpointMode(config));
         return builder.build();
     }
 

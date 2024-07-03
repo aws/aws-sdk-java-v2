@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.retry;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,6 +35,9 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.internal.retry.RetryPolicyAdapter;
+import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
@@ -95,6 +99,29 @@ public abstract class CanOverrideRetryStrategy<ClientT, BuilderT extends AwsClie
         assertEquals(3, wrappingRetryStrategy.failures.size());
     }
 
+    @Test
+    public void clientBuilderOverrideConfiguration_RetryStrategyFollowedByRetryPolicy_itGetsUsed() {
+        WrappingRetryStrategy wrappingRetryStrategy = wrappingRetryStrategy();
+        ClientT client = clientBuilder()
+            .overrideConfiguration(o -> o.retryStrategy(wrappingRetryStrategy)
+                .retryPolicy(RetryPolicy.forRetryMode(RetryMode.STANDARD)))
+            .build();
+        assertThrows(Exception.class, () -> callAllTypes(client));
+        assertEquals(0, wrappingRetryStrategy.failures.size());
+        verifyRequestCount(3);
+    }
+
+    @Test
+    public void clientBuilderOverrideConfiguration_RetryPolicyFollowedByRetryStrategy_itGetsUsed() {
+        WrappingRetryStrategy wrappingRetryStrategy = wrappingRetryStrategy();
+        ClientT client = clientBuilder()
+            .overrideConfiguration(o -> o.retryPolicy(RetryPolicy.forRetryMode(RetryMode.STANDARD))
+                                         .retryStrategy(wrappingRetryStrategy))
+            .build();
+        assertThrows(Exception.class, () -> callAllTypes(client));
+        assertEquals(3, wrappingRetryStrategy.failures.size());
+    }
+
     @BeforeEach
     private void beforeEach() {
         wireMock.start();
@@ -105,6 +132,10 @@ public abstract class CanOverrideRetryStrategy<ClientT, BuilderT extends AwsClie
     @AfterEach
     private void afterEach() {
         wireMock.stop();
+    }
+
+    private void verifyRequestCount(int count) {
+        wireMock.verify(count, anyRequestedFor(anyUrl()));
     }
 
     public WrappingRetryStrategy wrappingRetryStrategy() {
