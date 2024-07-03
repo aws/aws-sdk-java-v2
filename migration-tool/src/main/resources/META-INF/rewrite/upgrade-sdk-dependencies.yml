@@ -21,10 +21,12 @@ recipeList:
       groupId: software.amazon.awssdk
       artifactId: apache-client
       version: 2.23.16-SNAPSHOT
+      onlyIfUsing: com.amazonaws.ClientConfiguration
   - org.openrewrite.maven.AddDependency:
       groupId: software.amazon.awssdk
       artifactId: netty-nio-client
       version: 2.23.16-SNAPSHOT
+      onlyIfUsing: com.amazonaws.ClientConfiguration
   - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
       oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-core
