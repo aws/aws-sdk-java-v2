@@ -41,8 +41,8 @@ public class Outputs {
     }
 
     public String implicitGlobalRegion() {
-            return implicitGlobalRegion;
-        }
+        return implicitGlobalRegion;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -89,7 +89,7 @@ public class Outputs {
                ", dualStackDnsSuffix='" + dualStackDnsSuffix + '\'' +
                ", supportsFips=" + supportsFips +
                ", supportsDualStack=" + supportsDualStack +
-               ". implicitGlobalRegion=" + implicitGlobalRegion +
+               ", implicitGlobalRegion=" + implicitGlobalRegion +
                '}';
     }
 
