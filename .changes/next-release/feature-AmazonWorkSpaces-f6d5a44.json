@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon WorkSpaces",
-    "contributor": "",
-    "description": "Fix create workspace bundle RootStorage/UserStorage to accept non null values"
-}
