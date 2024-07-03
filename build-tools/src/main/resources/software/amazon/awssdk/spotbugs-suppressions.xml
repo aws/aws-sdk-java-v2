@@ -271,7 +271,7 @@
     <!-- Intentional catching of NullPointerException -->
     <Match>
         <Or>
-            <Class name="software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient"/>
+            <Class name="software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient$RequestCallable"/>
             <Class name="software.amazon.awssdk.buildtools.checkstyle.SdkPublicMethodNameCheck"/>
         </Or>
         <Bug pattern="DCN_NULLPOINTER_EXCEPTION"/>
