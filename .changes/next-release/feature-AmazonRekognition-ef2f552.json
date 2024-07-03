@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Rekognition",
+    "contributor": "",
+    "description": "This release adds support for tagging projects and datasets with the CreateProject and CreateDataset APIs."
+}
