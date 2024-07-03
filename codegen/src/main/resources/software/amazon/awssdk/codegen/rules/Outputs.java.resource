@@ -8,17 +8,20 @@ public class Outputs {
     private static final String DUAL_STACK_DNS_SUFFIX = "dualStackDnsSuffix";
     private static final String SUPPORTS_FIPS = "supportsFIPS";
     private static final String SUPPORTS_DUAL_STACK = "supportsDualStack";
+    private static final String IMPLICIT_GLOBAL_REGION = "implicitGlobalRegion";
 
     private final String dnsSuffix;
     private final String dualStackDnsSuffix;
     private final boolean supportsFips;
     private final boolean supportsDualStack;
+    private final String implicitGlobalRegion;
 
     private Outputs(Builder builder) {
         this.dnsSuffix = builder.dnsSuffix;
         this.dualStackDnsSuffix = builder.dualStackDnsSuffix;
         this.supportsFips = builder.supportsFips;
         this.supportsDualStack = builder.supportsDualStack;
+        this.implicitGlobalRegion = builder.implicitGlobalRegion;
     }
 
     public String dnsSuffix() {
@@ -36,6 +39,10 @@ public class Outputs {
     public boolean supportsDualStack() {
         return supportsDualStack;
     }
+
+    public String implicitGlobalRegion() {
+            return implicitGlobalRegion;
+        }
 
     @Override
     public boolean equals(Object o) {
@@ -57,6 +64,10 @@ public class Outputs {
         if (dnsSuffix != null ? !dnsSuffix.equals(outputs.dnsSuffix) : outputs.dnsSuffix != null) {
             return false;
         }
+        if (implicitGlobalRegion != null ? !implicitGlobalRegion.equals(outputs.implicitGlobalRegion) :
+                outputs.implicitGlobalRegion != null) {
+            return false;
+        }
         return dualStackDnsSuffix != null ? dualStackDnsSuffix.equals(outputs.dualStackDnsSuffix)
                                           : outputs.dualStackDnsSuffix == null;
     }
@@ -67,6 +78,7 @@ public class Outputs {
         result = 31 * result + (dualStackDnsSuffix != null ? dualStackDnsSuffix.hashCode() : 0);
         result = 31 * result + (supportsFips ? 1 : 0);
         result = 31 * result + (supportsDualStack ? 1 : 0);
+        result = 31 * result + (implicitGlobalRegion != null ? implicitGlobalRegion.hashCode() : 0);
         return result;
     }
 
@@ -77,6 +89,7 @@ public class Outputs {
                ", dualStackDnsSuffix='" + dualStackDnsSuffix + '\'' +
                ", supportsFips=" + supportsFips +
                ", supportsDualStack=" + supportsDualStack +
+               ". implicitGlobalRegion=" + implicitGlobalRegion +
                '}';
     }
 
@@ -109,6 +122,11 @@ public class Outputs {
             b.supportsDualStack(supportsDualStack.asBoolean());
         }
 
+        JsonNode implicitGlobalRegion = objNode.get(IMPLICIT_GLOBAL_REGION);
+        if (implicitGlobalRegion != null) {
+            b.implicitGlobalRegion(implicitGlobalRegion.asString());
+        }
+
         return b.build();
     }
 
@@ -117,6 +135,7 @@ public class Outputs {
         private String dualStackDnsSuffix;
         private boolean supportsFips;
         private boolean supportsDualStack;
+        private String implicitGlobalRegion;
 
         public Builder dnsSuffix(String dnsSuffix) {
             this.dnsSuffix = dnsSuffix;
@@ -135,6 +154,11 @@ public class Outputs {
 
         public Builder supportsDualStack(boolean supportsDualStack) {
             this.supportsDualStack = supportsDualStack;
+            return this;
+        }
+
+        public Builder implicitGlobalRegion(String implicitGlobalRegion) {
+            this.implicitGlobalRegion = implicitGlobalRegion;
             return this;
         }
 
