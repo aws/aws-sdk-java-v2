@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.15__ __2024-07-03__
+## __AWS Direct Connect__
+  - ### Features
+    - This update includes documentation for support of new native 400 GBps ports for Direct Connect.
+
+## __AWS Organizations__
+  - ### Features
+    - Added a new reason under ConstraintViolationException in RegisterDelegatedAdministrator API to prevent registering suspended accounts as delegated administrator of a service.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds support for tagging projects and datasets with the CreateProject and CreateDataset APIs.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Fix create workspace bundle RootStorage/UserStorage to accept non null values
+
+## __Application Auto Scaling__
+  - ### Features
+    - Doc only update for Application Auto Scaling that fixes resource name.
+
 # __2.26.14__ __2024-07-02__
 ## __Amazon Elastic Compute Cloud__
   - ### Features
@@ -194,7 +219,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
+[@sullis](https://github.com/sullis), [@shetsa-amzn](https://github.com/shetsa-amzn)
 # __2.26.9__ __2024-06-25__
 ## __AWS Network Manager__
   - ### Features
