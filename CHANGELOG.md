@@ -1,4 +1,65 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.14__ __2024-07-02__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Elastic Compute Cloud (EC2).
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added response overrides to Head Object requests.
+
+## __Firewall Management Service__
+  - ### Features
+    - Increases Customer API's ManagedServiceData length
+
+# __2.26.13__ __2024-07-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - The retry strategies implementation was not backwards compatible with the retry policies in regards of throttled exceptions, for these the retry policies had a different backoff strategy that is much more slower. This change retrofits the retry strategies to have also a different backoff strategy for throttling errors that has the same base and max delay values as the legacy retry policy.
+
+## __AWS Step Functions__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS WAFV2__
+  - ### Features
+    - JSON body inspection: Update documentation to clarify that JSON parsing doesn't include full validation.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Cognito Identity__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Authentication profiles are Amazon Connect resources (in gated preview) that allow you to configure authentication settings for users in your contact center. This release adds support for new ListAuthenticationProfiles, DescribeAuthenticationProfile and UpdateAuthenticationProfile APIs.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Updates EKS managed node groups to support EC2 Capacity Blocks for ML
+
+## __Amazon Simple Workflow Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Added further restrictions on logging of potentially sensitive inputs and outputs.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Adding support for dynamic keys for encrypt, decrypt, re-encrypt and translate pin functions. With this change, customers can use one-time TR-31 keys directly in dataplane operations without the need to first import them into the service.
+
 # __2.26.12__ __2024-06-28__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features
