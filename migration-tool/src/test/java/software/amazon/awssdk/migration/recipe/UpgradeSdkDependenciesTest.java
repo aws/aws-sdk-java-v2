@@ -28,6 +28,8 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -81,6 +83,7 @@ public class UpgradeSdkDependenciesTest implements RewriteTest {
     }
 
     @Test
+    @EnabledOnJre({JRE.JAVA_8})
     void standardClient_shouldChangeDependencyGroupIdAndArtifactId() throws IOException {
         String currentVersion = getVersion();
         rewriteRun(
@@ -125,6 +128,7 @@ public class UpgradeSdkDependenciesTest implements RewriteTest {
     }
 
     @Test
+    @EnabledOnJre({JRE.JAVA_8})
     void useClientConfiguration_shouldAddHttpDependencies() throws IOException {
         String currentVersion = getVersion();
         rewriteRun(
