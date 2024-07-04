@@ -28,7 +28,7 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>bom</artifactId>
-                <version>2.23.16-SNAPSHOT</version>
+                <version>2.26.16-SNAPSHOT</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -40,22 +40,22 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sqs</artifactId>
-            <version>2.23.16-SNAPSHOT</version>
+            <version>2.26.16-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>apache-client</artifactId>
-            <version>2.23.16-SNAPSHOT</version>
+            <version>2.26.16-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>netty-nio-client</artifactId>
-            <version>2.23.16-SNAPSHOT</version>
+            <version>2.26.16-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
-            <version>2.23.16-SNAPSHOT</version>
+            <version>2.26.16-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>
