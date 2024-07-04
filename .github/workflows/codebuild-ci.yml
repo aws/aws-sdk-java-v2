@@ -1,10 +1,6 @@
 name: AWS CodeBuild CI
 on:
   pull_request:
-    paths-ignore:
-      - '**.md'
-      - '.all-contributorsrc'
-      - 'docs/**'
   push:
     branches:
       - master
@@ -18,6 +14,7 @@ permissions:
 
 jobs:
   jdk8-build:
+    if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -32,6 +29,7 @@ jobs:
         with:
           project-name: aws-sdk-java-v2
   jdk11-build:
+    if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -46,6 +44,7 @@ jobs:
         with:
           project-name: aws-sdk-java-v2-JDK11
   jdk17-build:
+    if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -60,6 +59,7 @@ jobs:
         with:
           project-name: aws-sdk-java-v2-JDK17
   jdk21-build:
+    if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -74,6 +74,7 @@ jobs:
         with:
           project-name: aws-java-sdk-v2-JDK21
   windows-jdk8-build:
+    if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -87,6 +88,7 @@ jobs:
         with:
           project-name: aws-sdk-java-v2-JDK8-windows
   native-image-test:
+    if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -100,6 +102,7 @@ jobs:
         with:
           project-name: aws-sdk-java-v2-native-image-test
   sonar-cloud-build:
+    if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -122,6 +125,7 @@ jobs:
           BRANCH: ${{ github.head_ref || 'master'}}
           BASE: ${{ github.base_ref }}
   endpoints-tests:
+    if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials

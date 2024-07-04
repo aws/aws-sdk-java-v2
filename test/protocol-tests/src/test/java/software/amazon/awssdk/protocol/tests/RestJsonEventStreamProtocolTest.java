@@ -15,10 +15,22 @@
 
 package software.amazon.awssdk.protocol.tests;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.in;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import io.reactivex.Flowable;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -27,6 +39,7 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
+import software.amazon.awssdk.services.protocolrestjsoncontenttype.ProtocolRestJsonContentTypeAsyncClient;
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.model.BlobAndHeadersEvent;
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.model.HeadersOnlyEvent;
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.model.ImplicitPayloadAndHeadersEvent;
@@ -38,8 +51,18 @@ import software.amazon.awssdk.services.protocolrestjsoncontenttype.transform.Hea
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.transform.ImplicitPayloadAndHeadersEventMarshaller;
 import software.amazon.awssdk.services.protocolrestjsoncontenttype.transform.StringAndHeadersEventMarshaller;
 
+@WireMockTest
 public class RestJsonEventStreamProtocolTest {
     private static final String EVENT_CONTENT_TYPE_HEADER = ":content-type";
+
+    private ProtocolRestJsonContentTypeAsyncClient client;
+
+    @BeforeEach
+    void setup(WireMockRuntimeInfo info) {
+        client = ProtocolRestJsonContentTypeAsyncClient.builder()
+                                                       .endpointOverride(URI.create("http://localhost:" + info.getHttpPort()))
+                                                       .build();
+    }
 
     @Test
     public void implicitPayloadAndHeaders_payloadMemberPresent() {
@@ -89,6 +112,18 @@ public class RestJsonEventStreamProtocolTest {
 
         String content = contentAsString(marshalledEvent);
         assertThat(content).isEqualTo("hello rest-json");
+    }
+
+    @Test
+    public void containsEmptyEvent_shouldEncodeSuccessfully() {
+        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200)));
+        client.testEventStream(b -> {
+        }, Flowable.fromArray(InputEventStream.stringAndHeadersEventBuilder().stringPayloadMember(
+                                  "test").build(),
+                              InputEventStream.endEventBuilder().build())).join();
+
+        verify(postRequestedFor(anyUrl())
+                   .withHeader("Content-Type", equalTo("application/vnd.amazon.eventstream")));
     }
 
     @Test

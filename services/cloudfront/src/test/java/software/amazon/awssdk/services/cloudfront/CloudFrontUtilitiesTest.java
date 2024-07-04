@@ -39,7 +39,8 @@ import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
 
 
 class CloudFrontUtilitiesTest {
-    private static final String resourceUrl = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey";
+    private static final String RESOURCE_URL = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey";
+    private static final String RESOURCE_URL_WITH_PORT = "https://d1npcfkc2mojrf.cloudfront.net:65535/s3ObjectKey";
     private static KeyPairGenerator kpg;
     private static KeyPair keyPair;
     private static File keyFile;
@@ -77,7 +78,7 @@ class CloudFrontUtilitiesTest {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         SignedUrl signedUrl =
             cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r
-                .resourceUrl(resourceUrl)
+                .resourceUrl(RESOURCE_URL)
                 .privateKey(keyPair.getPrivate())
                 .keyPairId("keyPairId")
                 .expirationDate(expirationDate));
@@ -115,7 +116,7 @@ class CloudFrontUtilitiesTest {
         String ipRange = "1.2.3.4";
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> {
             try {
-                r.resourceUrl(resourceUrl)
+                r.resourceUrl(RESOURCE_URL)
                  .privateKey(keyFilePath)
                  .keyPairId("keyPairId")
                  .expirationDate(expirationDate)
@@ -164,7 +165,7 @@ class CloudFrontUtilitiesTest {
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CustomSignerRequest request = CustomSignerRequest.builder()
-                                                         .resourceUrl(resourceUrl)
+                                                         .resourceUrl(RESOURCE_URL)
                                                          .privateKey(keyFilePath)
                                                          .keyPairId("keyPairId")
                                                          .expirationDate(expirationDate)
@@ -186,7 +187,7 @@ class CloudFrontUtilitiesTest {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         String ipRange = "1.2.3.4";
         CustomSignerRequest request = CustomSignerRequest.builder()
-                                                         .resourceUrl(resourceUrl)
+                                                         .resourceUrl(RESOURCE_URL)
                                                          .privateKey(keyFilePath)
                                                          .keyPairId("keyPairId")
                                                          .expirationDate(expirationDate)
@@ -207,7 +208,7 @@ class CloudFrontUtilitiesTest {
     void getSignedURLWithCustomPolicy_withMissingExpirationDate_shouldThrowException() {
         SdkClientException exception = assertThrows(SdkClientException.class, () ->
             cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> r
-                .resourceUrl(resourceUrl)
+                .resourceUrl(RESOURCE_URL)
                 .privateKey(keyPair.getPrivate())
                 .keyPairId("keyPairId"))
         );
@@ -261,16 +262,40 @@ class CloudFrontUtilitiesTest {
     }
 
     @Test
+    void getSignedURLWithCannedPolicy_withPortNumber_returnsPortNumber() {
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        SignedUrl signedUrl =
+            cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r
+                .resourceUrl(RESOURCE_URL_WITH_PORT)
+                .privateKey(keyPair.getPrivate())
+                .keyPairId("keyPairId")
+                .expirationDate(expirationDate));
+        assertThat(signedUrl.url()).contains("65535");
+    }
+
+    @Test
+    void getSignedURLWithCustomPolicy_withPortNumber_returnsPortNumber() {
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        SignedUrl signedUrl =
+            cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> r
+                .resourceUrl(RESOURCE_URL_WITH_PORT)
+                .privateKey(keyPair.getPrivate())
+                .keyPairId("keyPairId")
+                .expirationDate(expirationDate));
+        assertThat(signedUrl.url()).contains("65535");
+    }
+
+    @Test
     void getCookiesForCannedPolicy_producesValidCookies() throws Exception {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CannedSignerRequest request = CannedSignerRequest.builder()
-                                                         .resourceUrl(resourceUrl)
+                                                         .resourceUrl(RESOURCE_URL)
                                                          .privateKey(keyFilePath)
                                                          .keyPairId("keyPairId")
                                                          .expirationDate(expirationDate)
                                                          .build();
         CookiesForCannedPolicy cookiesForCannedPolicy = cloudFrontUtilities.getCookiesForCannedPolicy(request);
-        assertThat(cookiesForCannedPolicy.resourceUrl()).isEqualTo(resourceUrl);
+        assertThat(cookiesForCannedPolicy.resourceUrl()).isEqualTo(RESOURCE_URL);
         assertThat(cookiesForCannedPolicy.keyPairIdHeaderValue()).isEqualTo("CloudFront-Key-Pair-Id=keyPairId");
     }
 
@@ -280,7 +305,7 @@ class CloudFrontUtilitiesTest {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         String ipRange = "1.2.3.4";
         CustomSignerRequest request = CustomSignerRequest.builder()
-                                                         .resourceUrl(resourceUrl)
+                                                         .resourceUrl(RESOURCE_URL)
                                                          .privateKey(keyFilePath)
                                                          .keyPairId("keyPairId")
                                                          .expirationDate(expirationDate)
@@ -288,7 +313,7 @@ class CloudFrontUtilitiesTest {
                                                          .ipRange(ipRange)
                                                          .build();
         CookiesForCustomPolicy cookiesForCustomPolicy = cloudFrontUtilities.getCookiesForCustomPolicy(request);
-        assertThat(cookiesForCustomPolicy.resourceUrl()).isEqualTo(resourceUrl);
+        assertThat(cookiesForCustomPolicy.resourceUrl()).isEqualTo(RESOURCE_URL);
         assertThat(cookiesForCustomPolicy.keyPairIdHeaderValue()).isEqualTo("CloudFront-Key-Pair-Id=keyPairId");
     }
 
@@ -296,13 +321,13 @@ class CloudFrontUtilitiesTest {
     void getCookiesForCustomPolicy_withActiveDateAndIpRangeOmitted_producesValidCookies() {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CustomSignerRequest request = CustomSignerRequest.builder()
-                                                         .resourceUrl(resourceUrl)
+                                                         .resourceUrl(RESOURCE_URL)
                                                          .privateKey(keyPair.getPrivate())
                                                          .keyPairId("keyPairId")
                                                          .expirationDate(expirationDate)
                                                          .build();
         CookiesForCustomPolicy cookiesForCustomPolicy = cloudFrontUtilities.getCookiesForCustomPolicy(request);
-        assertThat(cookiesForCustomPolicy.resourceUrl()).isEqualTo(resourceUrl);
+        assertThat(cookiesForCustomPolicy.resourceUrl()).isEqualTo(RESOURCE_URL);
         assertThat(cookiesForCustomPolicy.keyPairIdHeaderValue()).isEqualTo("CloudFront-Key-Pair-Id=keyPairId");
     }
 

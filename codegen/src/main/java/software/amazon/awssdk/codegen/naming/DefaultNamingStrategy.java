@@ -185,6 +185,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
+    public String getJmesPathPackageName(String serviceName) {
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName), Constant.PACKAGE_NAME_JMESPATH_PATTERN);
+    }
+
+    @Override
     public String getSmokeTestPackageName(String serviceName) {
 
         return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),

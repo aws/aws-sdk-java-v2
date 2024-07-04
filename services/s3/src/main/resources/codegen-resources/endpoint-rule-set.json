@@ -68,6 +68,11 @@
             "documentation": "The S3 Prefix used to send the request. This is an optional parameter that will be set automatically for operations that are scoped to an S3 Prefix.",
             "type": "String"
         },
+        "CopySource": {
+            "required": false,
+            "documentation": "The Copy Source used for Copy Object request. This is an optional parameter that will be set automatically for operations that are scoped to Copy Source.",
+            "type": "String"
+        },
         "DisableAccessPoints": {
             "required": false,
             "documentation": "Internal parameter to disable Access Point Buckets",
@@ -1342,6 +1347,14 @@
                                                             "authSchemes": [
                                                                 {
                                                                     "disableDoubleEncoding": true,
+                                                                    "name": "sigv4a",
+                                                                    "signingName": "s3-outposts",
+                                                                    "signingRegionSet": [
+                                                                        "*"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "disableDoubleEncoding": true,
                                                                     "name": "sigv4",
                                                                     "signingName": "s3-outposts",
                                                                     "signingRegion": "{Region}"
@@ -1361,6 +1374,14 @@
                                                 "url": "https://{Bucket}.ec2.s3-outposts.{Region}.{regionPartition#dnsSuffix}",
                                                 "properties": {
                                                     "authSchemes": [
+                                                        {
+                                                            "disableDoubleEncoding": true,
+                                                            "name": "sigv4a",
+                                                            "signingName": "s3-outposts",
+                                                            "signingRegionSet": [
+                                                                "*"
+                                                            ]
+                                                        },
                                                         {
                                                             "disableDoubleEncoding": true,
                                                             "name": "sigv4",
@@ -1447,6 +1468,14 @@
                                                             "authSchemes": [
                                                                 {
                                                                     "disableDoubleEncoding": true,
+                                                                    "name": "sigv4a",
+                                                                    "signingName": "s3-outposts",
+                                                                    "signingRegionSet": [
+                                                                        "*"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "disableDoubleEncoding": true,
                                                                     "name": "sigv4",
                                                                     "signingName": "s3-outposts",
                                                                     "signingRegion": "{Region}"
@@ -1466,6 +1495,14 @@
                                                 "url": "https://{Bucket}.op-{outpostId}.s3-outposts.{Region}.{regionPartition#dnsSuffix}",
                                                 "properties": {
                                                     "authSchemes": [
+                                                        {
+                                                            "disableDoubleEncoding": true,
+                                                            "name": "sigv4a",
+                                                            "signingName": "s3-outposts",
+                                                            "signingRegionSet": [
+                                                                "*"
+                                                            ]
+                                                        },
                                                         {
                                                             "disableDoubleEncoding": true,
                                                             "name": "sigv4",
@@ -5514,6 +5551,14 @@
                                                                                                                                             "authSchemes": [
                                                                                                                                                 {
                                                                                                                                                     "disableDoubleEncoding": true,
+                                                                                                                                                    "name": "sigv4a",
+                                                                                                                                                    "signingName": "s3-outposts",
+                                                                                                                                                    "signingRegionSet": [
+                                                                                                                                                        "*"
+                                                                                                                                                    ]
+                                                                                                                                                },
+                                                                                                                                                {
+                                                                                                                                                    "disableDoubleEncoding": true,
                                                                                                                                                     "name": "sigv4",
                                                                                                                                                     "signingName": "s3-outposts",
                                                                                                                                                     "signingRegion": "{bucketArn#region}"
@@ -5530,6 +5575,14 @@
                                                                                                                                         "url": "https://{accessPointName}-{bucketArn#accountId}.{outpostId}.s3-outposts.{bucketArn#region}.{bucketPartition#dnsSuffix}",
                                                                                                                                         "properties": {
                                                                                                                                             "authSchemes": [
+                                                                                                                                                {
+                                                                                                                                                    "disableDoubleEncoding": true,
+                                                                                                                                                    "name": "sigv4a",
+                                                                                                                                                    "signingName": "s3-outposts",
+                                                                                                                                                    "signingRegionSet": [
+                                                                                                                                                        "*"
+                                                                                                                                                    ]
+                                                                                                                                                },
                                                                                                                                                 {
                                                                                                                                                     "disableDoubleEncoding": true,
                                                                                                                                                     "name": "sigv4",

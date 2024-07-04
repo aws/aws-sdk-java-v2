@@ -247,7 +247,8 @@
           "deprecatedMessage": "This field is modeled as deprecated."
         },
         "MemberModifiedAsDeprecated":{"shape": "String"},
-        "UndeprecatedMember": {"shape": "String"}
+        "UndeprecatedMember": {"shape": "String"},
+        "MemberIgnoreDataTypeFailureHandling":{"shape": "String"}
       }
     },
     "OperationWithDeprecatedMemberResponse":{

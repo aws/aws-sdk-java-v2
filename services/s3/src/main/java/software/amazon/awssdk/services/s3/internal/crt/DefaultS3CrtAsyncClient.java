@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.AUTH_SCHEMES;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
@@ -30,11 +31,13 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -46,7 +49,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.crt.io.ExponentialBackoffRetryOptions;
 import software.amazon.awssdk.crt.io.StandardRetryOptions;
@@ -56,6 +58,7 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
@@ -112,7 +115,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .putAdvancedOption(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
                                        .putExecutionAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION,
                                                               ChecksumValidation.FORCE_SKIP)
-                                       .retryPolicy(RetryPolicy.none())
+                                       .retryStrategy(AwsRetryStrategy.doNotRetry())
                                        .addExecutionInterceptor(new ValidateRequestInterceptor())
                                        .addExecutionInterceptor(new AttachHttpAttributesExecutionInterceptor());
 
@@ -120,22 +123,30 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
             builder.executionInterceptors.forEach(overrideConfigurationBuilder::addExecutionInterceptor);
         }
 
-        return S3AsyncClient.builder()
-                            // Disable checksum for streaming operations, it is handled in CRT. Checksumming for non-streaming
-                            // operations is still handled in HttpChecksumStage
-                            .serviceConfiguration(S3Configuration.builder()
-                                                                 .checksumValidationEnabled(false)
-                                                                 .build())
-                            .region(builder.region)
-                            .endpointOverride(builder.endpointOverride)
-                            .credentialsProvider(builder.credentialsProvider)
-                            .overrideConfiguration(overrideConfigurationBuilder.build())
-                            .accelerate(builder.accelerate)
-                            .forcePathStyle(builder.forcePathStyle)
-                            .crossRegionAccessEnabled(builder.crossRegionAccessEnabled)
-                            .putAuthScheme(new CrtS3ExpressNoOpAuthScheme())
-                            .httpClientBuilder(initializeS3CrtAsyncHttpClient(builder))
-                            .build();
+        S3AsyncClientBuilder s3AsyncClientBuilder =
+            S3AsyncClient.builder()
+                         // Disable checksum for streaming operations, it is handled in
+                         // CRT. Checksumming for non-streaming
+                         // operations is still handled in HttpChecksumStage
+                         .serviceConfiguration(S3Configuration.builder()
+                                                              .checksumValidationEnabled(false)
+                                                              .build())
+                         .region(builder.region)
+                         .endpointOverride(builder.endpointOverride)
+                         .credentialsProvider(builder.credentialsProvider)
+                         .overrideConfiguration(overrideConfigurationBuilder.build())
+                         .accelerate(builder.accelerate)
+                         .forcePathStyle(builder.forcePathStyle)
+                         .crossRegionAccessEnabled(builder.crossRegionAccessEnabled)
+                         .putAuthScheme(new CrtS3ExpressNoOpAuthScheme())
+                         .httpClientBuilder(initializeS3CrtAsyncHttpClient(builder));
+
+
+        if (builder.futureCompletionExecutor != null) {
+            s3AsyncClientBuilder.asyncConfiguration(b -> b.advancedOption(FUTURE_COMPLETION_EXECUTOR,
+                                                                          builder.futureCompletionExecutor));
+        }
+        return s3AsyncClientBuilder.build();
     }
 
     private static S3CrtAsyncHttpClient.Builder initializeS3CrtAsyncHttpClient(DefaultS3CrtClientBuilder builder) {
@@ -157,7 +168,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .credentialsProvider(builder.credentialsProvider)
                                        .readBufferSizeInBytes(builder.readBufferSizeInBytes)
                                        .httpConfiguration(builder.httpConfiguration)
-                                       .thresholdInBytes(builder.thresholdInBytes);
+                                       .thresholdInBytes(builder.thresholdInBytes)
+                                       .maxNativeMemoryLimitInBytes(builder.maxNativeMemoryLimitInBytes);
 
         if (builder.retryConfiguration != null) {
             nativeClientBuilder.standardRetryOptions(
@@ -175,6 +187,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private Region region;
         private Long minimalPartSizeInBytes;
         private Double targetThroughputInGbps;
+        private Long maxNativeMemoryLimitInBytes
+;
         private Integer maxConcurrency;
         private URI endpointOverride;
         private Boolean checksumValidationEnabled;
@@ -186,6 +200,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private S3CrtRetryConfiguration retryConfiguration;
         private boolean crossRegionAccessEnabled;
         private Long thresholdInBytes;
+        private Executor futureCompletionExecutor;
 
         @Override
         public S3CrtAsyncClientBuilder credentialsProvider(
@@ -209,6 +224,12 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         @Override
         public S3CrtAsyncClientBuilder targetThroughputInGbps(Double targetThroughputInGbps) {
             this.targetThroughputInGbps = targetThroughputInGbps;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder maxNativeMemoryLimitInBytes(Long maxNativeMemoryLimitInBytes) {
+            this.maxNativeMemoryLimitInBytes = maxNativeMemoryLimitInBytes;
             return this;
         }
 
@@ -278,6 +299,12 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         @Override
         public S3CrtAsyncClientBuilder thresholdInBytes(Long thresholdInBytes) {
             this.thresholdInBytes = thresholdInBytes;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder futureCompletionExecutor(Executor futureCompletionExecutor) {
+            this.futureCompletionExecutor = futureCompletionExecutor;
             return this;
         }
 

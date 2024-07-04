@@ -22,10 +22,8 @@ import static software.amazon.awssdk.utils.StringUtils.isEmpty;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -33,10 +31,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
-import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
-import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -46,16 +43,14 @@ import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
-import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.internal.plugins.S3OverrideAuthSchemePropertiesPlugin;
 import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3control.model.BucketAlreadyExistsException;
@@ -99,7 +94,7 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
                                    .build();
 
         s3Client = mrapEnabledS3Client(Collections.singletonList(captureInterceptor));
-        s3ClientWithPayloadSigning = mrapEnabledS3Client(Arrays.asList(captureInterceptor, new PayloadSigningInterceptor()));
+        s3ClientWithPayloadSigning = mrapEnabledS3ClientWithPayloadSigning(captureInterceptor);
 
         stsClient = StsClient.builder()
                              .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
@@ -309,6 +304,25 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
                        .build();
     }
 
+    private static S3Client mrapEnabledS3ClientWithPayloadSigning(ExecutionInterceptor executionInterceptor) {
+        // We can't use here `S3OverrideAuthSchemePropertiesPlugin.enablePayloadSigningPlugin()` since
+        // it enables payload signing for *all* operations.
+        SdkPlugin plugin = S3OverrideAuthSchemePropertiesPlugin.builder()
+                                                               .payloadSigningEnabled(true)
+                                                               .addOperationConstraint("UploadPart")
+                                                               .addOperationConstraint("PutObject")
+                                                               .build();
+        return S3Client.builder()
+                       .region(REGION)
+                       .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                       .serviceConfiguration(S3Configuration.builder()
+                                                            .useArnRegionEnabled(true)
+                                                            .build())
+                       .overrideConfiguration(o -> o.addExecutionInterceptor(executionInterceptor))
+                       .addPlugin(plugin)
+                       .build();
+    }
+
     private void deleteObjectIfExists(S3Client s31, String bucket1, String key) {
         System.out.println(bucket1);
         try {
@@ -339,23 +353,6 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
         public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
             this.request = context.httpRequest();
             this.normalizePath = executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_NORMALIZE_PATH);
-        }
-    }
-
-    private static class PayloadSigningInterceptor implements ExecutionInterceptor {
-
-        public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
-                                                       ExecutionAttributes executionAttributes) {
-            SdkRequest sdkRequest = context.request();
-
-            if (sdkRequest instanceof PutObjectRequest || sdkRequest instanceof UploadPartRequest) {
-                executionAttributes.putAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, true);
-            }
-            if (!context.requestBody().isPresent() && context.httpRequest().method().equals(SdkHttpMethod.POST)) {
-                return Optional.of(RequestBody.fromBytes(new byte[0]));
-            }
-
-            return context.requestBody();
         }
     }
 }

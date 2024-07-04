@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.s3control.internal.interceptors;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -25,7 +24,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpMethod;
 
 /**
- * Turns on payload signing and prevents moving query params to body during a POST which S3 doesn't like.
+ * Prevents moving query params to body during a POST which S3 doesn't like.
  */
 @SdkInternalApi
 public class PayloadSigningInterceptor implements ExecutionInterceptor {
@@ -33,11 +32,10 @@ public class PayloadSigningInterceptor implements ExecutionInterceptor {
     @Override
     public Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
                                                    ExecutionAttributes executionAttributes) {
-        executionAttributes.putAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, true);
-        if (!context.requestBody().isPresent() && context.httpRequest().method() == SdkHttpMethod.POST) {
+        Optional<RequestBody> bodyOptional = context.requestBody();
+        if (context.httpRequest().method() == SdkHttpMethod.POST && !bodyOptional.isPresent()) {
             return Optional.of(RequestBody.fromBytes(new byte[0]));
         }
-
-        return context.requestBody();
+        return bodyOptional;
     }
 }

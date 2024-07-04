@@ -87,7 +87,7 @@ public class CreateNewServiceModuleMain extends Cli {
         new CreateNewServiceModuleMain().run(args);
     }
 
-    static Set<String> toSet(String...args) {
+    static Set<String> toSet(String... args) {
         Set<String> result = new LinkedHashSet<>();
         for (String arg : args) {
             result.add(arg);

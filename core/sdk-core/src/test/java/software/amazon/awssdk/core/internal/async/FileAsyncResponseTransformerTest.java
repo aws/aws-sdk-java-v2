@@ -125,7 +125,8 @@ class FileAsyncResponseTransformerTest {
 
         CompletableFuture<String> future = transformer.prepare();
         transformer.onResponse("foobar");
-        assertThatThrownBy(() -> transformer.onStream(testPublisher(content))).hasRootCauseInstanceOf(FileAlreadyExistsException.class);
+        transformer.onStream(testPublisher(content));
+        assertThatThrownBy(() -> future.join()).hasRootCauseInstanceOf(FileAlreadyExistsException.class);
     }
 
     @Test
@@ -244,6 +245,15 @@ class FileAsyncResponseTransformerTest {
             executor.shutdown();
             assertThat(executor.awaitTermination(1, TimeUnit.MINUTES)).isTrue();
         }
+    }
+
+    @Test
+    void onStreamFailed_shouldCompleteFutureExceptionally() {
+        Path testPath = testFs.getPath("test_file.txt");
+        FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath);
+        CompletableFuture<String> future = transformer.prepare();
+        transformer.onStream(null);
+        assertThat(future).isCompletedExceptionally();
     }
 
     private static void stubSuccessfulStreaming(String newContent, FileAsyncResponseTransformer<String> transformer) throws Exception {

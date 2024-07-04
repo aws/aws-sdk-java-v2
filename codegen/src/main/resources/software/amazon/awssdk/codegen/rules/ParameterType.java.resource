@@ -7,6 +7,7 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 public enum ParameterType {
     STRING("String"),
     BOOLEAN("Boolean"),
+    STRING_ARRAY("StringArray"),
     ;
 
     private final String name;
@@ -30,6 +31,8 @@ public enum ParameterType {
                 return STRING;
             case "boolean":
                 return BOOLEAN;
+            case "stringarray":
+                return STRING_ARRAY;
             default:
                 throw SdkClientException.create("Unknown parameter type: " + value);
         }

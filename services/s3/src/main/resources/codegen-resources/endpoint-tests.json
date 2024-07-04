@@ -1794,6 +1794,33 @@
             }
         },
         {
+            "documentation": "virtual addressing, aws-global region with Copy Source, and Key uses the global endpoint. Copy Source and Key parameters should not be used in endpoint evaluation.",
+            "expect": {
+                "endpoint": {
+                    "properties": {
+                        "authSchemes": [
+                            {
+                                "name": "sigv4",
+                                "signingName": "s3",
+                                "signingRegion": "us-east-1",
+                                "disableDoubleEncoding": true
+                            }
+                        ]
+                    },
+                    "url": "https://bucket-name.s3.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "aws-global",
+                "Bucket": "bucket-name",
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "Accelerate": false,
+                "CopySource": "/copy/source",
+                "Key": "key"
+            }
+        },
+        {
             "documentation": "virtual addressing, aws-global region with fips uses the regional fips endpoint",
             "expect": {
                 "endpoint": {
@@ -2543,6 +2570,14 @@
                 "endpoint": {
                     "properties": {
                         "authSchemes": [
+                            {
+                                "name": "sigv4a",
+                                "signingName": "s3-outposts",
+                                "signingRegionSet": [
+                                    "*"
+                                ],
+                                "disableDoubleEncoding": true
+                            },
                             {
                                 "name": "sigv4",
                                 "signingName": "s3-outposts",
@@ -6190,6 +6225,14 @@
                     "properties": {
                         "authSchemes": [
                             {
+                                "name": "sigv4a",
+                                "signingName": "s3-outposts",
+                                "signingRegionSet": [
+                                    "*"
+                                ],
+                                "disableDoubleEncoding": true
+                            },
+                            {
                                 "name": "sigv4",
                                 "signingName": "s3-outposts",
                                 "signingRegion": "us-west-2",
@@ -6226,6 +6269,14 @@
                 "endpoint": {
                     "properties": {
                         "authSchemes": [
+                            {
+                                "name": "sigv4a",
+                                "signingName": "s3-outposts",
+                                "signingRegionSet": [
+                                    "*"
+                                ],
+                                "disableDoubleEncoding": true
+                            },
                             {
                                 "name": "sigv4",
                                 "signingName": "s3-outposts",
@@ -6324,6 +6375,14 @@
                     "properties": {
                         "authSchemes": [
                             {
+                                "name": "sigv4a",
+                                "signingName": "s3-outposts",
+                                "signingRegionSet": [
+                                    "*"
+                                ],
+                                "disableDoubleEncoding": true
+                            },
+                            {
                                 "name": "sigv4",
                                 "signingName": "s3-outposts",
                                 "signingRegion": "us-east-1",
@@ -6363,6 +6422,14 @@
                 "endpoint": {
                     "properties": {
                         "authSchemes": [
+                            {
+                                "name": "sigv4a",
+                                "signingName": "s3-outposts",
+                                "signingRegionSet": [
+                                    "*"
+                                ],
+                                "disableDoubleEncoding": true
+                            },
                             {
                                 "name": "sigv4",
                                 "signingName": "s3-outposts",
@@ -6429,6 +6496,14 @@
                 "endpoint": {
                     "properties": {
                         "authSchemes": [
+                            {
+                                "name": "sigv4a",
+                                "signingName": "s3-outposts",
+                                "signingRegionSet": [
+                                    "*"
+                                ],
+                                "disableDoubleEncoding": true
+                            },
                             {
                                 "name": "sigv4",
                                 "signingName": "s3-outposts",
@@ -7420,6 +7495,14 @@
                     "properties": {
                         "authSchemes": [
                             {
+                                "name": "sigv4a",
+                                "signingName": "s3-outposts",
+                                "signingRegionSet": [
+                                    "*"
+                                ],
+                                "disableDoubleEncoding": true
+                            },
+                            {
                                 "name": "sigv4",
                                 "signingName": "s3-outposts",
                                 "signingRegion": "us-west-1",
@@ -7444,6 +7527,14 @@
                 "endpoint": {
                     "properties": {
                         "authSchemes": [
+                            {
+                                "name": "sigv4a",
+                                "signingName": "s3-outposts",
+                                "signingRegionSet": [
+                                    "*"
+                                ],
+                                "disableDoubleEncoding": true
+                            },
                             {
                                 "name": "sigv4",
                                 "signingName": "s3-outposts",
@@ -7470,6 +7561,14 @@
                     "properties": {
                         "authSchemes": [
                             {
+                                "name": "sigv4a",
+                                "signingName": "s3-outposts",
+                                "signingRegionSet": [
+                                    "*"
+                                ],
+                                "disableDoubleEncoding": true
+                            },
+                            {
                                 "name": "sigv4",
                                 "signingName": "s3-outposts",
                                 "signingRegion": "us-east-1",
@@ -7494,6 +7593,14 @@
                 "endpoint": {
                     "properties": {
                         "authSchemes": [
+                            {
+                                "name": "sigv4a",
+                                "signingName": "s3-outposts",
+                                "signingRegionSet": [
+                                    "*"
+                                ],
+                                "disableDoubleEncoding": true
+                            },
                             {
                                 "name": "sigv4",
                                 "signingName": "s3-outposts",
@@ -7520,6 +7627,14 @@
                     "properties": {
                         "authSchemes": [
                             {
+                                "name": "sigv4a",
+                                "signingName": "s3-outposts",
+                                "signingRegionSet": [
+                                    "*"
+                                ],
+                                "disableDoubleEncoding": true
+                            },
+                            {
                                 "name": "sigv4",
                                 "signingName": "s3-outposts",
                                 "signingRegion": "us-east-1",
@@ -7545,6 +7660,14 @@
                 "endpoint": {
                     "properties": {
                         "authSchemes": [
+                            {
+                                "name": "sigv4a",
+                                "signingName": "s3-outposts",
+                                "signingRegionSet": [
+                                    "*"
+                                ],
+                                "disableDoubleEncoding": true
+                            },
                             {
                                 "name": "sigv4",
                                 "signingName": "s3-outposts",

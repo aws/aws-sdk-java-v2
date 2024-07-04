@@ -895,6 +895,105 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "faucct",
+      "name": "Nikita Sokolov",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5202503?v=4",
+      "profile": "https://github.com/faucct",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "sugmanue",
+      "name": "Manuel Sugawara",
+      "avatar_url": "https://avatars.githubusercontent.com/u/108146565?v=4",
+      "profile": "https://github.com/sugmanue",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "anirudh9391",
+      "name": "Anirudh",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15699250?v=4",
+      "profile": "https://github.com/anirudh9391",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "haydenbaker",
+      "name": "Hayden Baker",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26096419?v=4",
+      "profile": "https://github.com/haydenbaker",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "gosar",
+      "name": "Jaykumar Gosar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5666661?v=4",
+      "profile": "https://github.com/gosar",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "graebm",
+      "name": "Michael Graeb",
+      "avatar_url": "https://avatars.githubusercontent.com/u/24399397?v=4",
+      "profile": "https://github.com/graebm",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "mgrundie-r7",
+      "name": "Michael Grundie",
+      "avatar_url": "https://avatars.githubusercontent.com/u/103498312?v=4",
+      "profile": "https://github.com/mgrundie-r7",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "eckardnet",
+      "name": "Eckard Mühlich",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13320705?v=4",
+      "profile": "https://github.com/eckardnet",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "klopfdreh",
+      "name": "Tobias Soloschenko",
+      "avatar_url": "https://avatars.githubusercontent.com/u/980773?v=4",
+      "profile": "http://wicket.apache.org",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Madrigal",
+      "name": "Luis Madrigal",
+      "avatar_url": "https://avatars.githubusercontent.com/u/599908?v=4",
+      "profile": "https://github.com/Madrigal",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "chaykin",
+      "name": "Kirill Chaykin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2480265?v=4",
+      "profile": "https://github.com/chaykin",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

@@ -74,7 +74,7 @@ public class SameTokenSyncResponseClassSpec extends SyncResponseClassSpec {
     protected CodeBlock hasNextPageMethodBody() {
         if (paginatorDefinition.getMoreResults() != null) {
             return CodeBlock.builder()
-                            .add("return $N.$L.booleanValue()",
+                            .add("return $1N.$2L != null && $1N.$2L.booleanValue()",
                                  PREVIOUS_PAGE_METHOD_ARGUMENT,
                                  fluentGetterMethodForResponseMember(paginatorDefinition.getMoreResults()))
                             .build();

@@ -51,7 +51,10 @@ import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
+import software.amazon.awssdk.codegen.poet.auth.scheme.ModelAuthSchemeClassesKnowledgeIndex;
+import software.amazon.awssdk.codegen.poet.client.ClientClassUtils;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointParamsKnowledgeIndex;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.SdkPlugin;
@@ -86,6 +89,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
     private final ServiceClientConfigurationUtils configurationUtils;
+    private final EndpointParamsKnowledgeIndex endpointParamsKnowledgeIndex;
 
     public BaseClientBuilderClass(IntermediateModel model) {
         this.model = model;
@@ -95,6 +99,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
         this.configurationUtils = new ServiceClientConfigurationUtils(model);
+        this.endpointParamsKnowledgeIndex = EndpointParamsKnowledgeIndex.of(model);
     }
 
     @Override
@@ -161,6 +166,8 @@ public class BaseClientBuilderClass implements ClassSpec {
             });
         }
 
+        endpointParamsKnowledgeIndex.accountIdEndpointModeClassMethodSpec().ifPresent(builder::addMethod);
+
         if (model.getCustomizationConfig().getServiceConfig().getClassName() != null) {
             builder.addMethod(setServiceConfigurationMethod())
                    .addMethod(beanStyleSetServiceConfigurationMethod());
@@ -174,9 +181,12 @@ public class BaseClientBuilderClass implements ClassSpec {
         }
         addServiceHttpConfigIfNeeded(builder, model);
         builder.addMethod(invokePluginsMethod());
+        builder.addMethod(ClientClassUtils.updateRetryStrategyClientConfigurationMethod());
         builder.addMethod(internalPluginsMethod());
-        builder.addMethod(validateClientOptionsMethod());
 
+        endpointParamsKnowledgeIndex.resolveAccountIdEndpointModeMethod().ifPresent(builder::addMethod);
+
+        builder.addMethod(validateClientOptionsMethod());
 
         return builder.build();
     }
@@ -393,43 +403,55 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addStatement("return result.build()")
                .addCode("});");
 
-        builder.addCode("builder.option($1T.EXECUTION_INTERCEPTORS, interceptors)", SdkClientOption.class);
+        builder.addStatement("builder.option($1T.EXECUTION_INTERCEPTORS, interceptors)", SdkClientOption.class);
 
         if (model.getCustomizationConfig().getServiceConfig().hasDualstackProperty()) {
-            builder.addCode(".option($T.DUALSTACK_ENDPOINT_ENABLED, finalServiceConfig.dualstackEnabled())",
+            builder.addStatement("builder.option($T.DUALSTACK_ENDPOINT_ENABLED, finalServiceConfig.dualstackEnabled())",
                             AwsClientOption.class);
         }
 
         if (model.getCustomizationConfig().getServiceConfig().hasFipsProperty()) {
-            builder.addCode(".option($T.FIPS_ENDPOINT_ENABLED, finalServiceConfig.fipsModeEnabled())", AwsClientOption.class);
+            builder.addStatement("builder.option($T.FIPS_ENDPOINT_ENABLED, finalServiceConfig.fipsModeEnabled())",
+                                 AwsClientOption.class);
         }
 
         if (model.getEndpointOperation().isPresent()) {
-            builder.addCode(".option($T.ENDPOINT_DISCOVERY_ENABLED, endpointDiscoveryEnabled)\n",
+            builder.addStatement("builder.option($T.ENDPOINT_DISCOVERY_ENABLED, endpointDiscoveryEnabled)\n",
                             SdkClientOption.class);
         }
 
 
-        if (StringUtils.isNotBlank(model.getCustomizationConfig().getCustomRetryPolicy())) {
-            builder.addCode(".option($1T.RETRY_POLICY, $2T.resolveRetryPolicy(config))",
+        if (StringUtils.isNotBlank(model.getCustomizationConfig().getCustomRetryStrategy())) {
+            builder.addStatement("builder.option($1T.RETRY_STRATEGY, $2T.resolveRetryStrategy(config))",
                             SdkClientOption.class,
-                            PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getCustomRetryPolicy()));
+                            PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getCustomRetryStrategy()));
+        }
+
+        if (StringUtils.isNotBlank(model.getCustomizationConfig().getCustomRetryPolicy())) {
+            builder.beginControlFlow("if (builder.option($T.RETRY_STRATEGY) == null)", SdkClientOption.class);
+            builder.addStatement("builder.option($1T.RETRY_POLICY, $2T.resolveRetryPolicy(config))",
+                                 SdkClientOption.class,
+                                 PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getCustomRetryPolicy()));
+            builder.endControlFlow();
         }
 
         if (StringUtils.isNotBlank(clientConfigClassName)) {
-            builder.addCode(".option($T.SERVICE_CONFIGURATION, finalServiceConfig)", SdkClientOption.class);
+            builder.addStatement("builder.option($T.SERVICE_CONFIGURATION, finalServiceConfig)", SdkClientOption.class);
         }
 
         if (model.getCustomizationConfig().useGlobalEndpoint()) {
-            builder.addCode(".option($1T.USE_GLOBAL_ENDPOINT, globalEndpointResolver.resolve(config.option($1T.AWS_REGION)))",
-                            AwsClientOption.class);
+            builder.addStatement("builder.option($1T.USE_GLOBAL_ENDPOINT, "
+                                 + "globalEndpointResolver.resolve(config.option($1T.AWS_REGION)))", AwsClientOption.class);
         }
 
         if (hasClientContextParams() || endpointRulesSpecUtils.useS3Express()) {
-            builder.addCode(".option($T.CLIENT_CONTEXT_PARAMS, clientContextParams.build())", SdkClientOption.class);
+            builder.addStatement("builder.option($T.CLIENT_CONTEXT_PARAMS, clientContextParams.build())", SdkClientOption.class);
         }
 
-        builder.addCode(";\n");
+        if (endpointParamsKnowledgeIndex.hasAccountIdEndpointModeBuiltIn()) {
+            builder.addStatement("builder.option($T.$L, resolveAccountIdEndpointMode(config))",
+                            AwsClientOption.class, model.getNamingStrategy().getEnumValueName("accountIdEndpointMode"));
+        }
         builder.addStatement("return builder.build()");
         return builder.build();
     }
@@ -724,7 +746,8 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                .addModifiers(PRIVATE)
                                                .returns(returns);
 
-        Set<Class<?>> concreteAuthSchemeClasses = authSchemeSpecUtils.allServiceConcreteAuthSchemeClasses();
+        ModelAuthSchemeClassesKnowledgeIndex index = ModelAuthSchemeClassesKnowledgeIndex.of(model);
+        Set<Class<?>> concreteAuthSchemeClasses = index.serviceConcreteAuthSchemeClasses();
         builder.addStatement("$T schemes = new $T<>($L + this.additionalAuthSchemes.size())",
                              returns, HashMap.class, concreteAuthSchemeClasses.size());
         for (Class<?> concreteAuthScheme : concreteAuthSchemeClasses) {
@@ -744,7 +767,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                .addParameter(SdkClientConfiguration.class, "config")
                                                .returns(SdkClientConfiguration.class);
 
-        builder.addStatement("$T internalPlugins = internalPlugins()",
+        builder.addStatement("$T internalPlugins = internalPlugins(config)",
                              ParameterizedTypeName.get(List.class, SdkPlugin.class));
 
         builder.addStatement("$T externalPlugins = plugins()",
@@ -763,6 +786,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
                .addStatement("plugin.configureClient(serviceConfigBuilder)")
                .endControlFlow()
+               .addStatement("updateRetryStrategyClientConfiguration(configuration)")
                .addStatement("return configuration.build()");
         return builder.build();
     }
@@ -773,6 +797,7 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder("internalPlugins")
                                                .addModifiers(PRIVATE)
+                                               .addParameter(SdkClientConfiguration.class, "config")
                                                .returns(parameterizedTypeName);
 
         List<String> internalPlugins = model.getCustomizationConfig().getInternalPlugins();
@@ -784,12 +809,30 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addStatement("$T internalPlugins = new $T<>()", parameterizedTypeName,  ArrayList.class);
 
         for (String internalPlugin : internalPlugins) {
-            ClassName pluginClass = ClassName.bestGuess(internalPlugin);
-            builder.addStatement("internalPlugins.add(new $T())", pluginClass);
+            String arguments = internalPluginNewArguments(internalPlugin);
+            String internalPluginClass = internalPluginClass(internalPlugin);
+            ClassName pluginClass = ClassName.bestGuess(internalPluginClass);
+            builder.addStatement("internalPlugins.add(new $T($L))", pluginClass, arguments);
         }
 
         builder.addStatement("return internalPlugins");
         return builder.build();
+    }
+
+    private String internalPluginClass(String internalPlugin) {
+        int openParenthesisIndex = internalPlugin.indexOf('(');
+        if (openParenthesisIndex == -1) {
+            return internalPlugin;
+        }
+        return internalPlugin.substring(0, openParenthesisIndex);
+    }
+
+    private String internalPluginNewArguments(String internalPlugin) {
+        int openParenthesisIndex = internalPlugin.indexOf('(');
+        if (openParenthesisIndex == -1) {
+            return "";
+        }
+        return internalPlugin.substring(openParenthesisIndex);
     }
 
     @Override

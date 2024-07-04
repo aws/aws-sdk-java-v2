@@ -46,6 +46,11 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_SESSION_TOKEN("aws.sessionToken", null),
 
     /**
+     * Configure the AWS account id associated with credentials supplied through system properties.
+     */
+    AWS_ACCOUNT_ID("aws.accountId", null),
+
+    /**
      * Configure the AWS web identity token file path.
      */
     AWS_WEB_IDENTITY_TOKEN_FILE("aws.webIdentityTokenFile", null),
@@ -69,6 +74,11 @@ public enum SdkSystemSetting implements SystemSetting {
      * Whether to load information such as credentials, regions from EC2 Metadata instance service.
      */
     AWS_EC2_METADATA_DISABLED("aws.disableEc2Metadata", "false"),
+
+    /**
+     * Whether to disable fallback to insecure EC2 Metadata instance service v1 on errors or timeouts.
+     */
+    AWS_EC2_METADATA_V1_DISABLED("aws.disableEc2MetadataV1", null),
 
     /**
      * The EC2 instance metadata service endpoint.
@@ -181,6 +191,11 @@ public enum SdkSystemSetting implements SystemSetting {
      * Which {@code DefaultsMode} to use, case insensitive
      */
     AWS_DEFAULTS_MODE("aws.defaultsMode", null),
+
+    /**
+     * Which {@code AccountIdEndpointMode} to use, case insensitive
+     */
+    AWS_ACCOUNT_ID_ENDPOINT_MODE("aws.accountIdEndpointMode", null),
 
     /**
      * Defines whether dualstack endpoints should be resolved during default endpoint resolution instead of non-dualstack

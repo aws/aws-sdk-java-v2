@@ -302,6 +302,11 @@
         <Bug pattern="NP_BOOLEAN_RETURN_NULL"/>
     </Match>
 
+    <Match>
+        <Class name="software.amazon.awssdk.auth.credentials.AwsSessionCredentials$Builder"/>
+        <Bug pattern="BAD_TO_BUILDER"/>
+    </Match>
+
     <!-- New flags as of spotbogs 4.7.3.5 -->
     <!-- TODO: Fix or explicitly exclude each occurrence -->
      <Match>

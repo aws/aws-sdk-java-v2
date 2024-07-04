@@ -20,7 +20,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
+import software.amazon.awssdk.codegen.model.service.CustomOperationContextParam;
+import software.amazon.awssdk.codegen.model.service.PreClientExecutionRequestCustomizer;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -138,6 +141,11 @@ public class CustomizationConfig {
      * Custom Retry Policy
      */
     private String customRetryPolicy;
+
+    /**
+     * Custom Retry strategy
+     */
+    private String customRetryStrategy;
 
     private boolean skipSyncClientGeneration;
 
@@ -310,6 +318,29 @@ public class CustomizationConfig {
      * By default, it's "software.amazon.awssdk.services.[serviceId]"
      */
     private String rootPackageName;
+
+    /**
+     * Set to true to read from c2j multi-auth values. Currently defaults to false.
+     *
+     * TODO(multi-auth): full multi-auth support is not implemented
+     */
+    private boolean useMultiAuth;
+
+    /**
+     * Special case for a service where model changes for endpoint params were not updated .
+     * This should be removed once the service updates its models
+     */
+    private Map<String, ParameterModel> endpointParameters;
+
+    private List<CustomOperationContextParam> customOperationContextParams;
+
+    /**
+     * A map that associates API names with their respective custom request transformers.
+     * The {@link PreClientExecutionRequestCustomizer} allows for dynamic and specific handling of API requests,
+     * ensuring that each request that requires custom handling can be appropriately transformed based on its corresponding
+     * API name.
+     */
+    private Map<String, PreClientExecutionRequestCustomizer> preClientExecutionRequestCustomizer;
 
     private CustomizationConfig() {
     }
@@ -507,8 +538,16 @@ public class CustomizationConfig {
         return customRetryPolicy;
     }
 
+    public String getCustomRetryStrategy() {
+        return customRetryStrategy;
+    }
+
     public void setCustomRetryPolicy(String customRetryPolicy) {
         this.customRetryPolicy = customRetryPolicy;
+    }
+
+    public void setCustomRetryStrategy(String customRetryStrategy) {
+        this.customRetryStrategy = customRetryStrategy;
     }
 
     public boolean isSkipSyncClientGeneration() {
@@ -828,4 +867,38 @@ public class CustomizationConfig {
         this.rootPackageName = packageName;
         return this;
     }
+
+    public void setUseMultiAuth(boolean useMultiAuth) {
+        this.useMultiAuth = useMultiAuth;
+    }
+
+    public boolean useMultiAuth() {
+        return useMultiAuth;
+    }
+
+    public Map<String, ParameterModel> getEndpointParameters() {
+        return endpointParameters;
+    }
+
+    public void setEndpointParameters(Map<String, ParameterModel> endpointParameters) {
+        this.endpointParameters = endpointParameters;
+    }
+
+    public List<CustomOperationContextParam> getCustomOperationContextParams() {
+        return customOperationContextParams;
+    }
+
+    public void setCustomOperationContextParams(List<CustomOperationContextParam> customOperationContextParams) {
+        this.customOperationContextParams = customOperationContextParams;
+    }
+
+    public Map<String, PreClientExecutionRequestCustomizer> getPreClientExecutionRequestCustomizer() {
+        return preClientExecutionRequestCustomizer;
+    }
+
+    public void setPreClientExecutionRequestCustomizer(Map<String, PreClientExecutionRequestCustomizer>
+                                                           preClientExecutionRequestCustomizer) {
+        this.preClientExecutionRequestCustomizer = preClientExecutionRequestCustomizer;
+    }
+
 }

@@ -23,6 +23,7 @@ import static software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.Tra
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import org.junit.jupiter.api.Test;
@@ -47,9 +48,9 @@ class BlockingInputStreamAsyncRequestBodyTest {
 
     @Test
     @Timeout(10)
-    public void doBlockingWrite_failsIfSubscriptionNeverComes()  {
+    public void doBlockingWrite_overrideSubscribeTimeout_failsIfSubscriptionNeverComes()  {
         BlockingInputStreamAsyncRequestBody requestBody =
-            new BlockingInputStreamAsyncRequestBody(0L, Duration.ofSeconds(1));
+            BlockingInputStreamAsyncRequestBody.builder().contentLength(0L).subscribeTimeout(Duration.ofSeconds(1)).build();
         assertThatThrownBy(() -> requestBody.writeInputStream(new StringInputStream("")))
             .hasMessageContaining("The service request was not made");
     }
@@ -76,4 +77,26 @@ class BlockingInputStreamAsyncRequestBodyTest {
         }
     }
 
+    @Test
+    public void builder_withContentType_buildsCorrectly() {
+        BlockingInputStreamAsyncRequestBody.Builder requestBodyBuilder = BlockingInputStreamAsyncRequestBody.builder();
+        BlockingInputStreamAsyncRequestBody requestBody = requestBodyBuilder
+            .contentLength(20L)
+            .contentType("text/plain")
+            .build();
+
+        assertThat(requestBody.contentLength()).isEqualTo(Optional.of(20L));
+        assertThat(requestBody.contentType()).isEqualTo("text/plain");
+    }
+
+    @Test
+    public void builder_withoutContentType_defaultsToOctetStream() {
+        BlockingInputStreamAsyncRequestBody.Builder requestBodyBuilder = BlockingInputStreamAsyncRequestBody.builder();
+        BlockingInputStreamAsyncRequestBody requestBody = requestBodyBuilder
+            .contentLength(20L)
+            .build();
+
+        assertThat(requestBody.contentLength()).isEqualTo(Optional.of(20L));
+        assertThat(requestBody.contentType()).isEqualTo("application/octet-stream");
+    }
 }
