@@ -17,9 +17,7 @@ package software.amazon.awssdk.core.internal.util;
 
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 
-import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
-import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -37,11 +35,13 @@ public final class ProgressListenerUtils {
     private ProgressListenerUtils() {
     }
 
-    public static SdkHttpContentPublisher wrapRequestProviderWithByteTrackingIfProgressListenerAttached(SdkHttpContentPublisher requestProvider, RequestExecutionContext context) {
+    public static SdkHttpContentPublisher wrapRequestProviderWithByteTrackingIfProgressListenerAttached(
+        SdkHttpContentPublisher requestProvider, RequestExecutionContext context) {
         ProgressUpdater progressUpdater = getProgressUpdaterIfAttached(context);
         SdkHttpContentPublisher wrappedHttpContentPublisher = requestProvider;
         if (progressUpdater != null) {
-            wrappedHttpContentPublisher =  new BytesReadTrackingPublisher(requestProvider,  new AtomicLong(0L), new UploadProgressUpdaterInvocation(progressUpdater));
+            wrappedHttpContentPublisher = new BytesReadTrackingPublisher(requestProvider, new AtomicLong(0L),
+                                                                         new UploadProgressUpdaterInvocation(progressUpdater));
         }
         return wrappedHttpContentPublisher;
     }

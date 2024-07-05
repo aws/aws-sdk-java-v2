@@ -51,7 +51,6 @@ import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.core.internal.util.DownloadProgressUpdaterInvocation;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.internal.util.ProgressListenerUtils;
-import software.amazon.awssdk.core.internal.util.UploadProgressUpdaterInvocation;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -136,7 +135,8 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
                                                   ? new SimpleHttpContentPublisher(request)
                                                   : new SdkHttpContentPublisherAdapter(context.requestProvider());
-        requestProvider = ProgressListenerUtils.wrapRequestProviderWithByteTrackingIfProgressListenerAttached(requestProvider, context);
+        requestProvider = ProgressListenerUtils.wrapRequestProviderWithByteTrackingIfProgressListenerAttached(requestProvider,
+                                                                                                              context);
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 

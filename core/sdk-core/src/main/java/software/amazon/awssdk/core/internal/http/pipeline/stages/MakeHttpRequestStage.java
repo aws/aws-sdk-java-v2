@@ -55,7 +55,6 @@ public class MakeHttpRequestStage
                                                                  RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
         HttpExecuteResponse executeResponse = executeHttpRequest(request, context);
-
         // TODO: Plumb through ExecuteResponse instead
         SdkHttpFullResponse httpResponse = (SdkHttpFullResponse) executeResponse.httpResponse();
         return Pair.of(request, httpResponse.toBuilder().content(executeResponse.responseBody().orElse(null)).build());
