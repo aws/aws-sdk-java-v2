@@ -22,7 +22,6 @@ import java.util.Optional;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.IoUtils;
@@ -36,13 +35,11 @@ public final class SimpleHttpContentPublisher implements SdkHttpContentPublisher
 
     private final byte[] content;
     private final int length;
-    private final ProgressUpdater progressUpdater;
 
-    public SimpleHttpContentPublisher(SdkHttpFullRequest request, ProgressUpdater progressUpdater) {
+    public SimpleHttpContentPublisher(SdkHttpFullRequest request) {
         this.content = request.contentStreamProvider().map(p -> invokeSafely(() -> IoUtils.toByteArray(p.newStream())))
                                                       .orElseGet(() -> new byte[0]);
         this.length = content.length;
-        this.progressUpdater = progressUpdater;
     }
 
     @Override
@@ -55,7 +52,7 @@ public final class SimpleHttpContentPublisher implements SdkHttpContentPublisher
         s.onSubscribe(new SubscriptionImpl(s));
     }
 
-    private final class SubscriptionImpl implements Subscription {
+    private class SubscriptionImpl implements Subscription {
         private boolean running = true;
         private final Subscriber<? super ByteBuffer> s;
 
@@ -71,11 +68,6 @@ public final class SimpleHttpContentPublisher implements SdkHttpContentPublisher
                     s.onError(new IllegalArgumentException("Demand must be positive"));
                 } else {
                     s.onNext(ByteBuffer.wrap(content));
-
-                    if (progressUpdater != null) {
-                        progressUpdater.incrementBytesSent(length);
-                    }
-
                     s.onComplete();
                 }
             }

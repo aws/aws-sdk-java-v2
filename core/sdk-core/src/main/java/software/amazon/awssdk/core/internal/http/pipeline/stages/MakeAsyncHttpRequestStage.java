@@ -133,12 +133,10 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         CompletableFuture<Response<OutputT>> responseHandlerFuture = responseHandler.prepare();
 
-        ProgressUpdater progressUpdater = ProgressListenerUtils.getProgressUpdaterIfAttached(context);
-
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
-                                                  ? new SimpleHttpContentPublisher(request, progressUpdater)
-                                                  : new SdkHttpContentPublisherAdapter(context.requestProvider(),
-                                                                                       progressUpdater);
+                                                  ? new SimpleHttpContentPublisher(request)
+                                                  : new SdkHttpContentPublisherAdapter(context.requestProvider());
+        requestProvider = ProgressListenerUtils.wrapRequestProviderWithByteTrackingIfProgressListenerAttached(requestProvider, context);
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
@@ -271,11 +269,9 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private static final class SdkHttpContentPublisherAdapter implements SdkHttpContentPublisher {
 
         private final AsyncRequestBody asyncRequestBody;
-        private final ProgressUpdater progressUpdater;
 
-        private SdkHttpContentPublisherAdapter(AsyncRequestBody asyncRequestBody, ProgressUpdater progressUpdater) {
+        private SdkHttpContentPublisherAdapter(AsyncRequestBody asyncRequestBody) {
             this.asyncRequestBody = asyncRequestBody;
-            this.progressUpdater = progressUpdater;
         }
 
         @Override
@@ -285,16 +281,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
-            if (progressUpdater != null) {
-                Publisher<ByteBuffer> readTrackingPublisher = new BytesReadTrackingPublisher(asyncRequestBody,
-                                                                                             new AtomicLong(0L),
-                                                                                             new UploadProgressUpdaterInvocation(
-                                                                                                 progressUpdater
-                                                                                             ));
-                readTrackingPublisher.subscribe(s);
-            } else {
-                asyncRequestBody.subscribe(s);
-            }
+            asyncRequestBody.subscribe(s);
         }
     }
 

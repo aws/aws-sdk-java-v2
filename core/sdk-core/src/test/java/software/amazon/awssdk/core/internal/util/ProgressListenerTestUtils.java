@@ -16,12 +16,16 @@
 package software.amazon.awssdk.core.internal.util;
 
 import java.net.URI;
+import java.util.ArrayList;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.http.NoopHttpFullRequest;
 import software.amazon.awssdk.core.http.NoopTestRequest;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
@@ -51,8 +55,13 @@ public final class ProgressListenerTestUtils {
 
         RequestExecutionContext.Builder builder =
             RequestExecutionContext.builder().
-                                   executionContext(ExecutionContext.builder().build()).
-                                   originalRequest(sdkRequest);
+                                   executionContext(ExecutionContext.builder()
+                                                                    .interceptorContext(InterceptorContext.builder()
+                                                                                                          .request(sdkRequest)
+                                                                                                          .build())
+                                                                    .interceptorChain(new ExecutionInterceptorChain(new ArrayList<>()))
+                                                                    .build())
+                                   .originalRequest(sdkRequest);
         if (isAsyncStreaming) {
             builder.requestProvider(ASYNC_REQUEST_BODY);
         }

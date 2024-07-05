@@ -16,18 +16,20 @@
 package software.amazon.awssdk.core.internal.metrics;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.util.ProgressUpdaterInvoker;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 
 /**
  * Publisher that tracks how many bytes are published from the wrapped publisher to the downstream subscriber.
  */
 @SdkInternalApi
-public final class BytesReadTrackingPublisher implements Publisher<ByteBuffer> {
+public final class BytesReadTrackingPublisher implements SdkHttpContentPublisher {
     private final Publisher<ByteBuffer> upstream;
     private final AtomicLong bytesRead;
     private final ProgressUpdaterInvoker progressUpdaterInvoker;
@@ -46,6 +48,11 @@ public final class BytesReadTrackingPublisher implements Publisher<ByteBuffer> {
 
     public long bytesRead() {
         return bytesRead.get();
+    }
+
+    @Override
+    public Optional<Long> contentLength() {
+        return Optional.empty();
     }
 
     private static final class BytesReadTracker implements Subscriber<ByteBuffer> {
