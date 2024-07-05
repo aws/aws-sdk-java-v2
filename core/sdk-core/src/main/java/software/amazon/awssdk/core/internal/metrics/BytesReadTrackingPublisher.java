@@ -27,6 +27,8 @@ import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 
 /**
  * Publisher that tracks how many bytes are published from the wrapped publisher to the downstream subscriber.
+ * If request contains Progress Listeners attached, the callbacks invoke methods to update and track request status
+ * by invoking progress updater methods with the bytes being transacted
  */
 @SdkInternalApi
 public final class BytesReadTrackingPublisher implements SdkHttpContentPublisher {
