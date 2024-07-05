@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Payment Cryptography Data Plane",
+    "contributor": "",
+    "description": "Added further restrictions on logging of potentially sensitive inputs and outputs."
+}
