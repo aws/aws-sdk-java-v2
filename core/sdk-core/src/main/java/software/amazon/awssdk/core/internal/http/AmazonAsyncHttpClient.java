@@ -38,7 +38,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallMet
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallTimeoutTrackingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncBeforeTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncExecutionFailureExceptionReportingStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncRetryableStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncRetryableStage2;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncSigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeExecutionProgressReportingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.CompressRequestStage;
@@ -208,7 +208,8 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                         .then(AsyncBeforeTransmissionExecutionInterceptorsStage::new)
                                         .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, d))
                                         .wrappedWith(AsyncApiCallAttemptMetricCollectionStage::new)
-                                        .wrappedWith((deps, wrapped) -> new AsyncRetryableStage<>(responseHandler, deps, wrapped))
+                                        .wrappedWith((deps, wrapped) -> new AsyncRetryableStage2<>(responseHandler, deps,
+                                                                                                   wrapped))
                                         .then(async(() -> new UnwrapResponseContainer<>()))
                                         .then(async(() -> new AfterExecutionProgressReportingStage<>()))
                                         .then(async(() -> new AfterExecutionInterceptorsStage<>()))
