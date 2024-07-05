@@ -85,7 +85,6 @@ public class UpgradeSdkDependenciesTest implements RewriteTest {
     @Test
     @EnabledOnJre({JRE.JAVA_8})
     void standardClient_shouldChangeDependencyGroupIdAndArtifactId() throws IOException {
-        String currentVersion = getVersion();
         rewriteRun(
             mavenProject("project", srcMainJava(java(noClientConfiguration)),
             pomXml(
@@ -122,7 +121,7 @@ public class UpgradeSdkDependenciesTest implements RewriteTest {
                               + "            <version>%1$s</version>\n"
                               + "        </dependency>\n"
                               + "    </dependencies>\n"
-                              + "</project>", currentVersion)
+                              + "</project>", sdkVersion)
 
             )));
     }
@@ -130,7 +129,6 @@ public class UpgradeSdkDependenciesTest implements RewriteTest {
     @Test
     @EnabledOnJre({JRE.JAVA_8})
     void useClientConfiguration_shouldAddHttpDependencies() throws IOException {
-        String currentVersion = getVersion();
         rewriteRun(
             mavenProject("project", srcMainJava(java(useClientConfiguration)),
                          pomXml(
@@ -177,9 +175,8 @@ public class UpgradeSdkDependenciesTest implements RewriteTest {
                                            + "            <version>%1$s</version>\n"
                                            + "        </dependency>\n"
                                            + "    </dependencies>\n"
-                                           + "</project>", currentVersion)
+                                           + "</project>", sdkVersion)
 
                          )));
     }
-
 }
