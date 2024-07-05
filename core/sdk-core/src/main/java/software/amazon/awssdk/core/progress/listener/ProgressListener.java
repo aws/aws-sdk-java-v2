@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.progress.listener;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -189,8 +190,7 @@ public interface ProgressListener {
     /**
     * For Expect: 100-continue embedded requests, the service returning anything other than 100 continue
     * indicates a request failure. This method captures the error in the payload
-    * After this, either executionFailure or requestHeaderSent will always be invoked depending on
-    * whether the error type is retryable or not
+    * After this it will either be an executionFailure or a request retry
     * <p>
     * Available context attributes:
     * <ol>
@@ -423,7 +423,7 @@ public interface ProgressListener {
             /**
              * The successful completion of a request submitted to the Sdk
              */
-            SdkResponse response();
+            Optional<SdkResponse> response();
         }
 
         /**

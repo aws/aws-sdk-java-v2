@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.internal.progress.ProgressListenerFailedConte
 import software.amazon.awssdk.core.internal.progress.snapshot.DefaultProgressSnapshot;
 import software.amazon.awssdk.core.progress.listener.SdkExchangeProgress;
 import software.amazon.awssdk.core.progress.snapshot.ProgressSnapshot;
+import software.amazon.awssdk.http.SdkHttpRequest;
 
 /**
  * ProgressUpdater exposes methods that invokes listener methods to update and store request progress state
@@ -62,6 +63,10 @@ public class ProgressUpdater {
                                                                 .orElse(Collections.emptyList()));
     }
 
+    public void updateRequestContentLength(Long requestContentLength) {
+        requestBodyProgress.updateAndGet(b -> b.totalBytes(requestContentLength));
+    }
+
     public void updateResponseContentLength(Long responseContentLength) {
         responseBodyProgress.updateAndGet(b -> b.totalBytes(responseContentLength));
     }
@@ -74,8 +79,8 @@ public class ProgressUpdater {
         return responseBodyProgress;
     }
 
-    public void requestPrepared() {
-        listenerInvoker.requestPrepared(context);
+    public void requestPrepared(SdkHttpRequest httpRequest) {
+        listenerInvoker.requestPrepared(context.copy(b -> b.httpRequest(httpRequest)));
     }
 
     public void requestHeaderSent() {
