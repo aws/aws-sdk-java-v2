@@ -78,6 +78,8 @@ public class Shape {
 
     private boolean union;
 
+    private RetryableTrait retryable;
+
     public boolean isFault() {
         return fault;
     }
@@ -344,5 +346,17 @@ public class Shape {
 
     public void setUnion(boolean union) {
         this.union = union;
+    }
+
+    public void setRetryable(RetryableTrait retryable) {
+        this.retryable = retryable;
+    }
+
+    public boolean isRetryable() {
+        return retryable != null;
+    }
+
+    public boolean isThrottling() {
+        return retryable != null && retryable.isThrottling();
     }
 }

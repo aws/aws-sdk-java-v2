@@ -1,0 +1,42 @@
+{
+    "version": "2.26.2",
+    "date": "2024-06-13",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Fixes bug where Md5 validation is performed for S3 PutObject even if checksum value is supplied"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudHSM V2",
+            "contributor": "",
+            "description": "Added support for hsm type hsm2m.medium. Added supported for creating a cluster in FIPS or NON_FIPS mode."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage v2",
+            "contributor": "",
+            "description": "This release adds support for CMAF ingest (DASH-IF live media ingest protocol interface 1)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "This release adds support for configuration of evaluation method for composite rules in Glue Data Quality rulesets."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Wireless",
+            "contributor": "",
+            "description": "Add RoamingDeviceSNR and RoamingDeviceRSSI to Customer Metrics."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "This feature allows customers to use their keys stored in KMS to derive a shared secret which can then be used to establish a secured channel for communication, provide proof of possession, or establish trust with other parties."
+        }
+    ]
+}
