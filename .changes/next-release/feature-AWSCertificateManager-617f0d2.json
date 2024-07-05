@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Certificate Manager",
-    "contributor": "",
-    "description": "Documentation updates, including fixes for xml formatting, broken links, and ListCertificates description."
-}
