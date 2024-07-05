@@ -21,24 +21,25 @@ import static org.testng.Assert.assertThrows;
 import static software.amazon.awssdk.core.internal.util.ProgressListenerTestUtils.createSdkHttpRequest;
 import static software.amazon.awssdk.core.internal.util.ProgressListenerTestUtils.progressListenerContext;
 
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
-import software.amazon.awssdk.core.http.NoopHttpFullRequest;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
+import utils.ValidSdkObjects;
 
 public class ExecutionFailureExceptionReportingStageTest {
 
 
     @Test
-    public void afterExecutionProgressListener_calledFrom_ExecutionPipeline() throws Exception {
+    public void when_sync_executeThrowsException_attemptFailureInvoked() throws Exception {
 
         RequestPipeline<SdkHttpFullRequest, Response<String>> requestPipeline = Mockito.mock(RequestPipeline.class);
         ProgressListener progressListener = Mockito.mock(ProgressListener.class);
@@ -54,7 +55,37 @@ public class ExecutionFailureExceptionReportingStageTest {
 
         ExecutionFailureExceptionReportingStage executionFailureExceptionReportingStage = new ExecutionFailureExceptionReportingStage(requestPipeline);
         when(requestPipeline.execute(any(), any())).thenThrow(new RuntimeException());
-        assertThrows(RuntimeException.class, () -> executionFailureExceptionReportingStage.execute(new NoopHttpFullRequest(), requestExecutionContext));
+        assertThrows(RuntimeException.class, () -> executionFailureExceptionReportingStage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), requestExecutionContext));
+
+        Mockito.verify(progressListener, Mockito.times(0)).requestPrepared(any());
+        Mockito.verify(progressListener, Mockito.times(0)).requestBytesSent(any());
+        Mockito.verify(progressListener, Mockito.times(0)).responseHeaderReceived(any());
+        Mockito.verify(progressListener, Mockito.times(0)).responseBytesReceived(any());
+        Mockito.verify(progressListener, Mockito.times(0)).executionSuccess(any());
+        Mockito.verify(progressListener, Mockito.times(1)).attemptFailure(any());
+    }
+
+    @Test
+    public void when_async_executeThrowsException_attemptFailureInvoked() throws Exception {
+
+        RequestPipeline<SdkHttpFullRequest, CompletableFuture> requestPipeline = Mockito.mock(RequestPipeline.class);
+        ProgressListener progressListener = Mockito.mock(ProgressListener.class);
+        CompletableFuture<SdkHttpFullResponse> future = new CompletableFuture<>();
+
+        SdkRequestOverrideConfiguration config = SdkRequestOverrideConfiguration.builder()
+                                                                                .addProgressListener(progressListener)
+                                                                                .build();
+
+        SdkRequest request = createSdkHttpRequest(config).build();
+        ProgressUpdater progressUpdater = new ProgressUpdater(request, null);
+        RequestExecutionContext requestExecutionContext = progressListenerContext(false, request,
+                                                                                  progressUpdater);
+
+        AsyncExecutionFailureExceptionReportingStage executionFailureExceptionReportingStage = new AsyncExecutionFailureExceptionReportingStage(requestPipeline);
+        when(requestPipeline.execute(any(), any())).thenReturn(future);
+        future.completeExceptionally(new RuntimeException());
+
+        executionFailureExceptionReportingStage.execute(ValidSdkObjects.sdkHttpFullRequest().build(), requestExecutionContext);
 
         Mockito.verify(progressListener, Mockito.times(0)).requestPrepared(any());
         Mockito.verify(progressListener, Mockito.times(0)).requestBytesSent(any());
