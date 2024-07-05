@@ -29,7 +29,9 @@ import org.openrewrite.config.YamlResourceLoader;
 import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import software.amazon.awssdk.migration.internal.recipe.ChangeSdkType;
 import software.amazon.awssdk.migration.internal.recipe.HttpSettingsToHttpClient;
+import software.amazon.awssdk.migration.internal.recipe.NewClassToBuilderPattern;
 
 public class ChangeConfigTypesTest implements RewriteTest {
 

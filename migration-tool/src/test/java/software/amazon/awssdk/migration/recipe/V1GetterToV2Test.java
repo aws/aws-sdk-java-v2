@@ -8,6 +8,8 @@ import org.junit.jupiter.api.condition.JRE;
 import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import software.amazon.awssdk.migration.internal.recipe.ChangeSdkType;
+import software.amazon.awssdk.migration.internal.recipe.NewClassToBuilderPattern;
 import software.amazon.awssdk.migration.internal.recipe.V1GetterToV2;
 
 public class V1GetterToV2Test implements RewriteTest {

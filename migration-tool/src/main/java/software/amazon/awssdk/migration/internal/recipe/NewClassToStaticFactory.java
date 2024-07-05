@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.migration.recipe;
+package software.amazon.awssdk.migration.internal.recipe;
 
 import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.V2_CORE_CLASSES_WITH_STATIC_FACTORY;
 import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isEligibleToConvertToStaticFactory;

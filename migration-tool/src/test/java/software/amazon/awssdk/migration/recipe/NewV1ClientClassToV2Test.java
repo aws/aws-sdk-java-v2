@@ -21,9 +21,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnJre;
 import org.junit.jupiter.api.condition.JRE;
 import org.openrewrite.java.Java8Parser;
-import org.openrewrite.java.search.FindMissingTypes;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import software.amazon.awssdk.migration.internal.recipe.ChangeSdkType;
+import software.amazon.awssdk.migration.internal.recipe.NewClassToBuilderPattern;
 
 public class NewV1ClientClassToV2Test implements RewriteTest {
     @Override

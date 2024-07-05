@@ -23,12 +23,13 @@ import org.junit.jupiter.api.condition.JRE;
 import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import software.amazon.awssdk.migration.internal.recipe.ChangeSdkType;
 
 public class ChangeSdkTypeTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new ChangeSdkType()).parser(Java8Parser.builder().classpath("aws-java-sdk-sqs","sqs", "aws-java-sdk-s3",
+        spec.recipe(new ChangeSdkType()).parser(Java8Parser.builder().classpath("aws-java-sdk-sqs", "sqs", "aws-java-sdk-s3",
                                                                                 "aws-java-sdk-dynamodb"));
     }
 

@@ -13,14 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.migration.recipe;
+package software.amazon.awssdk.migration.internal.recipe;
 
 import java.util.Arrays;
 import java.util.List;
 import org.openrewrite.Recipe;
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.migration.internal.recipe.NewClassToBuilder;
-import software.amazon.awssdk.migration.internal.recipe.V1SetterToV2;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Recipe that converts objects creation using {@code new} such as
@@ -45,7 +43,7 @@ import software.amazon.awssdk.migration.internal.recipe.V1SetterToV2;
  *     sqs.sendMessage(sendMessage);
  * }
  */
-@SdkPublicApi
+@SdkInternalApi
 public class NewClassToBuilderPattern extends Recipe {
     @Override
     public String getDisplayName() {

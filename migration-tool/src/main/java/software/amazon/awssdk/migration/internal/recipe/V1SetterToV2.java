@@ -29,7 +29,6 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.migration.internal.utils.NamingUtils;
-import software.amazon.awssdk.migration.recipe.NewClassToBuilderPattern;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 /**

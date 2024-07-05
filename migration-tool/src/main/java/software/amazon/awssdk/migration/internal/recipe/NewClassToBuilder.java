@@ -33,7 +33,6 @@ import org.openrewrite.marker.Markers;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.migration.internal.utils.NamingUtils;
 import software.amazon.awssdk.migration.internal.utils.SdkTypeUtils;
-import software.amazon.awssdk.migration.recipe.NewClassToBuilderPattern;
 
 /**
  * Internal recipe that converts new class creation to the builder pattern.

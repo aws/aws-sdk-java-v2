@@ -23,6 +23,8 @@ import org.junit.jupiter.api.condition.JRE;
 import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import software.amazon.awssdk.migration.internal.recipe.ChangeSdkType;
+import software.amazon.awssdk.migration.internal.recipe.V1BuilderVariationsToV2Builder;
 
 public class V1BuilderVariationsToV2BuilderTest implements RewriteTest {
     @Override

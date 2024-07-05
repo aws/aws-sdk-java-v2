@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.migration.recipe;
+package software.amazon.awssdk.migration.internal.recipe;
 
 import static software.amazon.awssdk.migration.internal.utils.NamingConversionUtils.getV2Equivalent;
 import static software.amazon.awssdk.migration.internal.utils.NamingConversionUtils.getV2ModelPackageWildCardEquivalent;

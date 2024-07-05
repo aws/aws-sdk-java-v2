@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.migration.recipe;
+package software.amazon.awssdk.migration.internal.recipe;
 
 import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isV2AsyncClientClass;
 import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isV2ClientBuilder;

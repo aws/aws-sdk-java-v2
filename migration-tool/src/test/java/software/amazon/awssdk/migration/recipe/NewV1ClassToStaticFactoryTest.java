@@ -30,6 +30,7 @@ import org.openrewrite.config.YamlResourceLoader;
 import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import software.amazon.awssdk.migration.internal.recipe.NewClassToStaticFactory;
 
 @Disabled("OpenRewrite can't recognize types from the same project. https://github.com/openrewrite/rewrite/issues/2927")
 public class NewV1ClassToStaticFactoryTest implements RewriteTest {
