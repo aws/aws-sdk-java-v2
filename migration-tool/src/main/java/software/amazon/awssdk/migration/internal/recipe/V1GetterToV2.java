@@ -21,10 +21,8 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
-import org.openrewrite.java.tree.TypeUtils;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.migration.internal.utils.NamingUtils;
 
@@ -51,17 +49,14 @@ public class V1GetterToV2 extends Recipe {
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
             method = super.visitMethodInvocation(method, executionContext);
 
-            JavaType selectType;
+            JavaType.Method methodType = method.getMethodType();
 
-            Expression select = method.getSelect();
-
-            if (select == null || select.getType() == null) {
+            if (methodType == null) {
                 return method;
             }
-            selectType = select.getType();
 
             String methodName = method.getSimpleName();
-            JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(selectType);
+            JavaType.FullyQualified fullyQualified = methodType.getDeclaringType();
 
             if (!shouldChangeGetter(fullyQualified)) {
                 return method;
@@ -71,21 +66,11 @@ public class V1GetterToV2 extends Recipe {
                 methodName = NamingUtils.removeGet(methodName);
             }
 
-            JavaType.Method methodType = method.getMethodType();
-
-            if (methodType != null) {
-                methodType = methodType.withName(methodName)
-                       .withReturnType(selectType);
-
-                if (fullyQualified != null) {
-                    methodType = methodType.withDeclaringType(fullyQualified);
-                }
-
-                method = method.withName(method.getName()
-                                               .withSimpleName(methodName)
-                                               .withType(methodType))
-                               .withMethodType(methodType);
-            }
+            methodType = methodType.withName(methodName);
+            method = method.withName(method.getName()
+                                           .withSimpleName(methodName)
+                                           .withType(methodType))
+                           .withMethodType(methodType);
 
             return method;
         }
