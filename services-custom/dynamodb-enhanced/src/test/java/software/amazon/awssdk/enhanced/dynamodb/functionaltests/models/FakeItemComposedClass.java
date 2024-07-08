@@ -29,14 +29,12 @@ public class FakeItemComposedClass {
                          .build();
 
     private String composedAttribute;
-    private FakeItemComposedClass nestedFakeItemComposedClass;
 
     public FakeItemComposedClass() {
     }
 
-    public FakeItemComposedClass(String composedAttribute, FakeItemComposedClass nestedFakeItemComposedClass) {
+    public FakeItemComposedClass(String composedAttribute) {
         this.composedAttribute = composedAttribute;
-        this.nestedFakeItemComposedClass = nestedFakeItemComposedClass;
     }
 
     public static Builder builder() {
@@ -70,20 +68,14 @@ public class FakeItemComposedClass {
 
     public static class Builder {
         private String composedAttribute;
-        private FakeItemComposedClass nestedFakeItemComposedClass;
 
         public Builder composedAttribute(String composedAttribute) {
             this.composedAttribute = composedAttribute;
             return this;
         }
 
-        public Builder nestedComposedAttribute(FakeItemComposedClass nestedFakeItemComposedClass) {
-            this.nestedFakeItemComposedClass = nestedFakeItemComposedClass;
-            return this;
-        }
-
         public FakeItemComposedClass build() {
-            return new FakeItemComposedClass(composedAttribute, nestedFakeItemComposedClass);
+            return new FakeItemComposedClass(composedAttribute);
         }
     }
 }

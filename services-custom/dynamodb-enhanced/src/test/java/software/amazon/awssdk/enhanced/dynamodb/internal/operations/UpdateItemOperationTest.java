@@ -29,11 +29,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
-import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItemWithNestedComposedAttribute;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.NESTED;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -285,31 +283,6 @@ public class UpdateItemOperationTest {
     public void generateRequest_withExtension_modifiesKeyPortionOfItem() {
         FakeItem baseFakeItem = createUniqueFakeItem();
         FakeItem fakeItem = createUniqueFakeItem();
-
-        Map<String, AttributeValue> baseMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, false,
-                                                                                  new DynamoDBEnhancedRequestConfiguration(NESTED));
-        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, false,
-                                                                                  new DynamoDBEnhancedRequestConfiguration(NESTED));
-        Map<String, AttributeValue> keyMap = FakeItem.getTableSchema().itemToMap(fakeItem, singletonList("id"));
-
-        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
-            .thenReturn(WriteModification.builder().transformedItem(fakeMap).build());
-
-        UpdateItemOperation<FakeItem> updateItemOperation =
-            UpdateItemOperation.create(UpdateItemEnhancedRequest.builder(FakeItem.class).item(baseFakeItem).build());
-
-        UpdateItemRequest request = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
-                                                                        PRIMARY_CONTEXT,
-                                                                        mockDynamoDbEnhancedClientExtension);
-
-        assertThat(request.key(), is(keyMap));
-        verify(mockDynamoDbEnhancedClientExtension).beforeWrite(extensionContext(baseMap, b -> b.operationName(OperationName.UPDATE_ITEM)));
-    }
-
-    @Test
-    public void generateRequest_withExtension_nestedAttributes() {
-        FakeItem baseFakeItem = createUniqueFakeItemWithNestedComposedAttribute();
-        FakeItem fakeItem = createUniqueFakeItemWithNestedComposedAttribute();
 
         Map<String, AttributeValue> baseMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, false,
                                                                                   new DynamoDBEnhancedRequestConfiguration(NESTED));

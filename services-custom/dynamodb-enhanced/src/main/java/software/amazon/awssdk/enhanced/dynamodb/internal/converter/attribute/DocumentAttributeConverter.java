@@ -14,7 +14,6 @@
  */
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute;
-
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
