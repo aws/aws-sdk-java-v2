@@ -13,7 +13,7 @@
 # permissions and limitations under the License.
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: software.amazon.awssdk.UpgradeSdkDependencies
+name: software.amazon.awssdk.v2migration.UpgradeSdkDependencies
 displayName: Change v1 Maven/Gradle dependencies to v2
 recipeList:
 

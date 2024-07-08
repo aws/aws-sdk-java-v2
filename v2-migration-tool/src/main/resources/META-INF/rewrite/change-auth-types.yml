@@ -15,7 +15,7 @@
 # TODO: handle Signer classes
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: software.amazon.awssdk.ChangeAuthTypes
+name: software.amazon.awssdk.v2migration.ChangeAuthTypes
 displayName: Change auth related classes
 recipeList:
   - org.openrewrite.java.ChangeMethodName:

@@ -217,7 +217,7 @@
                     <archive>
                         <manifestEntries>
 <!--                            TODO: is this really needed since we don't expect users to use our recipe classes directly ? -->
-                            <Automatic-Module-Name>software.amazon.awssdk.migration</Automatic-Module-Name>
+                            <Automatic-Module-Name>software.amazon.awssdk.v2migration</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>

@@ -14,10 +14,10 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: software.amazon.awssdk.S3GetObjectConstructorToFluent
+name: software.amazon.awssdk.v2migration.S3GetObjectConstructorToFluent
 displayName: Change auth related classes
 recipeList:
-  - software.amazon.awssdk.migration.internal.recipe.ConstructorToFluent:
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.GetObjectRequest
       parameterTypes:
         - java.lang.String

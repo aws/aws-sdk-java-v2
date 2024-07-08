@@ -18,7 +18,7 @@ find the latest version.
 ```
 mvn org.openrewrite.maven:rewrite-maven-plugin:dryRun \
   -Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration-tool:{sdkversion} \
-  -Drewrite.activeRecipes=software.amazon.awssdk.UpgradeJavaSdk2
+  -Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkForJavaV1ToV2
 ```
 
 - Run
@@ -28,7 +28,7 @@ With this mode, it runs the SDK recipes and applies the changes locally.
 ```
 mvn org.openrewrite.maven:rewrite-maven-plugin:run \
   -Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration-tool:{sdkversion} \
-  -Drewrite.activeRecipes=software.amazon.awssdk.UpgradeJavaSdk2
+  -Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkForJavaV1ToV2
 ```
 
 

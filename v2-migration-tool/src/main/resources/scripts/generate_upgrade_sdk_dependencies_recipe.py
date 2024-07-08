@@ -116,7 +116,7 @@ def write_recipe_yml_file(service_mapping):
 def write_recipe_metadata(f, version):
     f.write('''---
 type: specs.openrewrite.org/v1beta/recipe
-name: software.amazon.awssdk.UpgradeSdkDependencies
+name: software.amazon.awssdk.v2migration.UpgradeSdkDependencies
 displayName: Change v1 Maven/Gradle dependencies to v2
 recipeList:
 ''')
