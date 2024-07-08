@@ -34,8 +34,7 @@ public class ListQueryMarshaller implements QueryMarshaller<List<?>> {
 
     private static final EmptyListMarshaller AWS_QUERY_EMPTY_LIST_MARSHALLER =
         (context, path) -> context.request().putRawQueryParameter(path, "");
-    private static final EmptyListMarshaller EC2_QUERY_EMPTY_LIST_MARSHALLER =
-        (context, path) -> {};
+    private static final EmptyListMarshaller EC2_QUERY_EMPTY_LIST_MARSHALLER = (context, path) -> { };
 
     private final PathResolver pathResolver;
     private final EmptyListMarshaller emptyListMarshaller;
