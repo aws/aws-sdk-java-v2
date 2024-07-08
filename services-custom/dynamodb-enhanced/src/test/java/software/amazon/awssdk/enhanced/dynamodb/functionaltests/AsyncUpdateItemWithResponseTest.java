@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNull;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.Objects;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 
 public class AsyncUpdateItemWithResponseTest extends LocalDynamoDbAsyncTestBase {
     private static class Record {
@@ -154,5 +156,99 @@ public class AsyncUpdateItemWithResponseTest extends LocalDynamoDbAsyncTestBase 
         UpdateItemEnhancedResponse<Record> response = mappedTable1.updateItemWithResponse(r -> r.item(updated)).join();
 
         assertThat(response.itemCollectionMetrics()).isNull();
+    }
+
+    @Test
+    public void returnValues_Null_attributesMapped() {
+        Record original = new Record().setId(1).setStringAttr1("attr");
+        mappedTable1.putItem(original).join();
+
+        Record updated = new Record().setId(1).setStringAttr1("attr2");
+
+        UpdateItemEnhancedResponse<Record> response = mappedTable1.updateItemWithResponse(r -> r.item(updated)
+                                                                                                .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL))
+                                                                  .join();
+        AsyncUpdateItemWithResponseTest.Record returned = response.attributes();
+
+        assertThat(returned).isEqualTo(updated);
+    }
+
+    @Test
+    public void returnValues_allOld_attributesMapped() {
+        Record original = new Record().setId(1).setStringAttr1("attr");
+        mappedTable1.putItem(original).join();
+
+        Record updated = new Record().setId(1).setStringAttr1("attr2");
+
+        UpdateItemEnhancedResponse<Record> response = mappedTable1.updateItemWithResponse(r -> r.item(updated)
+                                                                                                .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                                                      .returnValues(ReturnValue.ALL_OLD))
+                                                                  .join();
+
+       AsyncUpdateItemWithResponseTest.Record returned = response.attributes();
+
+        assertThat(returned).isEqualTo(original);
+    }
+
+    @Test
+    public void returnValues_allNew_attributesMapped() {
+        Record original = new Record().setId(1).setStringAttr1("attr");
+        mappedTable1.putItem(original).join();
+
+        Record updated = new Record().setId(1).setStringAttr1("attr2");
+
+        UpdateItemEnhancedResponse<Record> response = mappedTable1.updateItemWithResponse(r -> r.item(updated)
+                                                                                                .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                                                                                .returnValues(ReturnValue.ALL_NEW))
+                                                                  .join();
+        AsyncUpdateItemWithResponseTest.Record returned = response.attributes();
+
+        assertThat(returned).isEqualTo(updated);
+    }
+
+    @Test
+    public void returnValues_None_attributesMapped() {
+        Record original = new Record().setId(1).setStringAttr1("attr");
+        mappedTable1.putItem(original).join();
+
+        Record updated = new Record().setId(1).setStringAttr1("attr2");
+
+        UpdateItemEnhancedResponse<Record> response = mappedTable1.updateItemWithResponse(r -> r.item(updated)
+                                                                                                .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                                                                                .returnValues(ReturnValue.NONE))
+                                                                  .join();
+        AsyncUpdateItemWithResponseTest.Record returned = response.attributes();
+
+        assertNull(returned);
+    }
+
+    @Test
+    public void returnValues_Updated_Old_attributesMapped() {
+        Record original = new Record().setId(1).setStringAttr1("attr");
+        mappedTable1.putItem(original).join();
+
+        Record updated = new Record().setId(1).setStringAttr1("attr2");
+
+        UpdateItemEnhancedResponse<Record> response = mappedTable1.updateItemWithResponse(r -> r.item(updated)
+                                                                                                .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                                                                                .returnValues(ReturnValue.UPDATED_OLD))
+                                                                  .join();
+        AsyncUpdateItemWithResponseTest.Record returned = response.attributes();
+        assertThat(returned.getStringAttr1()).isEqualTo(original.stringAttr1);
+    }
+
+    @Test
+    public void returnValues_Updated_New_attributesMapped() {
+        Record original = new Record().setId(1).setStringAttr1("attr");
+        mappedTable1.putItem(original).join();
+
+        Record updated = new Record().setId(1).setStringAttr1("attr2");
+
+        UpdateItemEnhancedResponse<Record> response = mappedTable1.updateItemWithResponse(r -> r.item(updated)
+                                                                                                .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                                                                                .returnValues(ReturnValue.UPDATED_NEW))
+                                                                  .join();
+        AsyncUpdateItemWithResponseTest.Record returned = response.attributes();
+        assertThat(returned.getStringAttr1()).isEqualTo(updated.getStringAttr1());
     }
 }

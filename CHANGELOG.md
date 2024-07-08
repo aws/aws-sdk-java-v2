@@ -1,4 +1,378 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.16__ __2024-07-05__
+## __AWS Certificate Manager__
+  - ### Features
+    - Documentation updates, including fixes for xml formatting, broken links, and ListCertificates description.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add implicit global region to internal endpoint resolution metadata
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release for Amazon ECR makes change to bring the SDK into sync with the API.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Added further restrictions on logging of potentially sensitive inputs and outputs.
+
+## __QBusiness__
+  - ### Features
+    - Add personalization to Q Applications. Customers can enable or disable personalization when creating or updating a Q application with the personalization configuration.
+
+# __2.26.15__ __2024-07-03__
+## __AWS Direct Connect__
+  - ### Features
+    - This update includes documentation for support of new native 400 GBps ports for Direct Connect.
+
+## __AWS Organizations__
+  - ### Features
+    - Added a new reason under ConstraintViolationException in RegisterDelegatedAdministrator API to prevent registering suspended accounts as delegated administrator of a service.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds support for tagging projects and datasets with the CreateProject and CreateDataset APIs.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Fix create workspace bundle RootStorage/UserStorage to accept non null values
+
+## __Application Auto Scaling__
+  - ### Features
+    - Doc only update for Application Auto Scaling that fixes resource name.
+
+# __2.26.14__ __2024-07-02__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Elastic Compute Cloud (EC2).
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added response overrides to Head Object requests.
+
+## __Firewall Management Service__
+  - ### Features
+    - Increases Customer API's ManagedServiceData length
+
+# __2.26.13__ __2024-07-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - The retry strategies implementation was not backwards compatible with the retry policies in regards of throttled exceptions, for these the retry policies had a different backoff strategy that is much more slower. This change retrofits the retry strategies to have also a different backoff strategy for throttling errors that has the same base and max delay values as the legacy retry policy.
+
+## __AWS Step Functions__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS WAFV2__
+  - ### Features
+    - JSON body inspection: Update documentation to clarify that JSON parsing doesn't include full validation.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Cognito Identity__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Authentication profiles are Amazon Connect resources (in gated preview) that allow you to configure authentication settings for users in your contact center. This release adds support for new ListAuthenticationProfiles, DescribeAuthenticationProfile and UpdateAuthenticationProfile APIs.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Updates EKS managed node groups to support EC2 Capacity Blocks for ML
+
+## __Amazon Simple Workflow Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Added further restrictions on logging of potentially sensitive inputs and outputs.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Adding support for dynamic keys for encrypt, decrypt, re-encrypt and translate pin functions. With this change, customers can use one-time TR-31 keys directly in dataplane operations without the need to first import them into the service.
+
+# __2.26.12__ __2024-06-28__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Added CCPC_LEVEL_1_OR_HIGHER KeyStorageSecurityStandard and SM2 KeyAlgorithm and SM3WITHSM2 SigningAlgorithm for China regions.
+
+## __AWS CloudHSM V2__
+  - ### Features
+    - Added 3 new APIs to support backup sharing: GetResourcePolicy, PutResourcePolicy, and DeleteResourcePolicy. Added BackupArn to the output of the DescribeBackups API. Added support for BackupArn in the CreateCluster API.
+
+## __AWS Glue__
+  - ### Features
+    - Added AttributesToGet parameter to Glue GetDatabases, allowing caller to limit output to include only the database name.
+
+## __AWS Performance Insights__
+  - ### Features
+    - Noting that the filter db.sql.db_id isn't available for RDS for SQL Server DB instances.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix a bug on the token bucket, after success we need to deposit back one token to allow it to slowly recover and allow more retries after seeing several successful responses.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release supports showing PreferredAgentRouting step via DescribeContact API.
+
+## __Amazon EMR__
+  - ### Features
+    - This release provides the support for new allocation strategies i.e. CAPACITY_OPTIMIZED_PRIORITIZED for Spot and PRIORITIZED for On-Demand by taking input of priority value for each instance type for instance fleet clusters.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for Flink 1.19 in Managed Service for Apache Flink
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release removes support for enabling or disabling Natural Language Query Processing feature for Amazon OpenSearch Service domains.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added support for Red Hat Enterprise Linux 8 on Amazon WorkSpaces Personal.
+
+# __2.26.11__ __2024-06-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Add a new backoff strategy that reassembles
+      `EqualJitterBackoffStrategy` and is used to be behavioral backwards
+      compatible with the way `RetryPolicy` behaves for the `LEGACY` retry
+      mode.
+    - Allows overrides of the retry strategy for Kinesis clients. Kinesis has its own RetryPolicy that would take precedence over any retry strategy making it impossible to override using a retry strategy.
+
+## __Amazon Chime SDK Media Pipelines__
+  - ### Features
+    - Added Amazon Transcribe multi language identification to Chime SDK call analytics. Enabling customers sending single stream audio to generate call recordings using Chime SDK call analytics
+
+## __Amazon CloudFront__
+  - ### Features
+    - Doc only update for CloudFront that fixes customer-reported issue
+
+## __Amazon DataZone__
+  - ### Features
+    - This release supports the data lineage feature of business data catalog in Amazon DataZone.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Q Connect__
+  - ### Features
+    - Adds CreateContentAssociation, ListContentAssociations, GetContentAssociation, and DeleteContentAssociation APIs.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adding support for Repeating Sections, Nested Filters
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for TAZ export to S3.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add capability for Admins to customize Studio experience for the user by showing or hiding Apps and MLTools.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added support for WorkSpaces Pools.
+
+## __AmazonMQ__
+  - ### Features
+    - This release makes the EngineVersion field optional for both broker and configuration and uses the latest available version by default. The AutoMinorVersionUpgrade field is also now optional for broker creation and defaults to 'true'.
+
+## __Application Auto Scaling__
+  - ### Features
+    - Amazon WorkSpaces customers can now use Application Auto Scaling to automatically scale the number of virtual desktops in a WorkSpaces pool.
+
+# __2.26.10__ __2024-06-26__
+## __AWS Control Tower__
+  - ### Features
+    - Added ListLandingZoneOperations API.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - upgrade netty version to 4.1.111.Final
+        - Contributed by: [@sullis](https://github.com/sullis)
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added support for disabling unmanaged addons during cluster creation.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - IVS Real-Time now offers customers the ability to upload public keys for customer vended participant tokens.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - This release adds support for new ListApplicationOperations and DescribeApplicationOperation APIs. It adds a new configuration to enable system rollbacks, adds field ApplicationVersionCreateTimestamp for clarity and improves support for pagination for APIs.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds support for enabling or disabling Natural Language Query Processing feature for Amazon OpenSearch Service domains, and provides visibility into the current state of the setup or tear-down.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Adds support for specifying ReturnValue in UpdateItemEnhancedRequest
+        - Contributed by: [@shetsa-amzn](https://github.com/shetsa-amzn)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
+# __2.26.9__ __2024-06-25__
+## __AWS Network Manager__
+  - ### Features
+    - This is model changes & documentation update for the Asynchronous Error Reporting feature for AWS Cloud WAN. This feature allows customers to view errors that occur while their resources are being provisioned, enabling customers to fix their resources without needing external support.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release is for the launch of the new u7ib-12tb.224xlarge, R8g, c7gn.metal and mac2-m1ultra.metal instance types
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - This release adds the deviceCreationTags field to CreateEnvironment API input, UpdateEnvironment API input and GetEnvironment API output.
+
+## __Auto Scaling__
+  - ### Features
+    - Doc only update for Auto Scaling's TargetTrackingMetricDataQuery
+
+# __2.26.8__ __2024-06-24__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Implement `ApiName.equals`/`.hashCode`
+        - Contributed by: [@brettkail-wk](https://github.com/brettkail-wk)
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Increases Converse API's document name length
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release includes changes to ProfileObjectType APIs, adds functionality top set and get capacity for profile object types.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Fix EC2 multi-protocol info in models.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixes bug where empty non-final chunk is wrapped with headers and trailers during PutObject when using flexible checksums with S3AsyncClient
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Add sensitive trait to SSM IPAddress property for CloudTrail redaction
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Added ability to enable DeepLinking functionality on a Portal via UserSettings as well as added support for IdentityProvider resource tagging.
+
+## __QBusiness__
+  - ### Features
+    - Allow enable/disable Q Apps when creating/updating a Q application; Return the Q Apps enablement information when getting a Q application.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@brettkail-wk](https://github.com/brettkail-wk)
+# __2.26.7__ __2024-06-20__
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables AWS Compute Optimizer to analyze and generate optimization recommendations for Amazon RDS MySQL and RDS PostgreSQL.
+
+## __AWS Glue__
+  - ### Features
+    - Fix Glue paginators for Jobs, JobRuns, Triggers, Blueprints and Workflows.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for Security Hub
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds document support to Converse and ConverseStream APIs
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Doc-only update for DynamoDB. Fixed Important note in 6 Global table APIs - CreateGlobalTable, DescribeGlobalTable, DescribeGlobalTableSettings, ListGlobalTables, UpdateGlobalTable, and UpdateGlobalTableSettings.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - IVS Real-Time now offers customers the ability to record individual stage participants to S3.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds support for model references in Hub service, and adds support for cross-account access of Hubs
+
+## __CodeArtifact__
+  - ### Features
+    - Add support for the Cargo package format.
+
+## __Cost Optimization Hub__
+  - ### Features
+    - This release enables AWS Cost Optimization Hub to show cost optimization recommendations for Amazon RDS MySQL and RDS PostgreSQL.
+
+# __2.26.6__ __2024-06-19__
+## __AWS Artifact__
+  - ### Features
+    - This release adds an acceptanceType field to the ReportSummary structure (used in the ListReports API response).
+
+## __AWS Cost and Usage Report Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Direct Connect__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix a bug that prevented users from overriding retry strategies
+
+## __Amazon Athena__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Elastic Transcoder__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release enables customers to use JSON Web Tokens (JWT) for authentication on their Amazon OpenSearch Service domains.
+
 # __2.26.5__ __2024-06-18__
 ## __AWS CloudTrail__
   - ### Features
@@ -165,8 +539,14 @@
     - This release adds support for Amazon EventBridge as an email sending events destination.
 
 # __2.26.0__ __2024-06-11__
-## __"AWS SDK for Java v2"__
+## __AWS Network Manager__
   - ### Features
+    - This is model changes & documentation update for Service Insertion feature for AWS Cloud WAN. This feature allows insertion of AWS/3rd party security services on Cloud WAN. This allows to steer inter/intra segment traffic via security appliances and provide visibility to the route updates.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds the new module retries API module
+        - Contributed by: [@sugmanue](https://github.com/sugmanue)
     - This release contains a major internal refactor of retries and is part
       of moving the SDK to a standardized AWS SDK architecture. It
       introduces the interface `RetryStrategy` and three subclasses
@@ -197,15 +577,6 @@
       SDKs. The list of configuration options are: profile file `retry_mode`
       setting, the `aws.retryMode` system property and the `AWS_RETRY_MODE`
       environment variable.
-        - Contributed by: [@sugmanue](https://github.com/sugmanue)
-
-## __AWS Network Manager__
-  - ### Features
-    - This is model changes & documentation update for Service Insertion feature for AWS Cloud WAN. This feature allows insertion of AWS/3rd party security services on Cloud WAN. This allows to steer inter/intra segment traffic via security appliances and provide visibility to the route updates.
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Adds the new module retries API module
         - Contributed by: [@sugmanue](https://github.com/sugmanue)
     - Updated endpoint and partition metadata.
 

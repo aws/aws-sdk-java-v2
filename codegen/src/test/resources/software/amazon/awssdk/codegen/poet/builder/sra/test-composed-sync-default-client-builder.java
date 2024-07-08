@@ -102,8 +102,8 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
             }
             return result.build();
         });
-        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).option(SdkClientOption.SERVICE_CONFIGURATION,
-                finalServiceConfig);
+        builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
+        builder.option(SdkClientOption.SERVICE_CONFIGURATION, finalServiceConfig);
         return builder.build();
     }
 
@@ -183,19 +183,22 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         RetryMode retryMode = builder.retryMode();
         if (retryMode != null) {
             configuration.option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.forRetryMode(retryMode));
-            return;
+        } else {
+            Consumer<RetryStrategy.Builder<?, ?>> configurator = builder.retryStrategyConfigurator();
+            if (configurator != null) {
+                RetryStrategy.Builder<?, ?> defaultBuilder = AwsRetryStrategy.defaultRetryStrategy().toBuilder();
+                configurator.accept(defaultBuilder);
+                configuration.option(SdkClientOption.RETRY_STRATEGY, defaultBuilder.build());
+            } else {
+                RetryStrategy retryStrategy = builder.retryStrategy();
+                if (retryStrategy != null) {
+                    configuration.option(SdkClientOption.RETRY_STRATEGY, retryStrategy);
+                }
+            }
         }
-        Consumer<RetryStrategy.Builder<?, ?>> configurator = builder.retryStrategyConfigurator();
-        if (configurator != null) {
-            RetryStrategy.Builder<?, ?> defaultBuilder = AwsRetryStrategy.defaultRetryStrategy().toBuilder();
-            configurator.accept(defaultBuilder);
-            configuration.option(SdkClientOption.RETRY_STRATEGY, defaultBuilder.build());
-            return;
-        }
-        RetryStrategy retryStrategy = builder.retryStrategy();
-        if (retryStrategy != null) {
-            configuration.option(SdkClientOption.RETRY_STRATEGY, retryStrategy);
-        }
+        configuration.option(SdkClientOption.CONFIGURED_RETRY_MODE, null);
+        configuration.option(SdkClientOption.CONFIGURED_RETRY_STRATEGY, null);
+        configuration.option(SdkClientOption.CONFIGURED_RETRY_CONFIGURATOR, null);
     }
 
     private List<SdkPlugin> internalPlugins(SdkClientConfiguration config) {
