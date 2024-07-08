@@ -260,12 +260,25 @@
 
     <!-- False positives from Spotbugs 4.7.3.5 -->
     <Match>
-        <Bug pattern="MS_EXPOSE_REP"/>
+        <Bug pattern="MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR"/>
     </Match>
 
     <!-- False positives from Spotbugs 4.7.3.5 -->
     <Match>
-        <Bug pattern="MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR"/>
+        <Or>
+            <Class name="software.amazon.awssdk.enhanced.dynamodb.internal.client.ExtensionResolver"/>
+            <Class name="software.amazon.awssdk.codegen.model.service.Paginators"/>
+            <Class name="software.amazon.awssdk.codegen.model.service.Waiters"/>
+            <Class name="software.amazon.awssdk.regions.EndpointTag"/>
+            <Class name="software.amazon.awssdk.regions.Region"/>
+            <Class name="software.amazon.awssdk.core.util.DefaultSdkAutoConstructList"/>
+            <Class name="software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap"/>
+            <Class name="software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler"/>
+            <Class name="software.amazon.awssdk.http.apache.internal.conn.IdleConnectionReaper"/>
+            <Class name="software.amazon.awssdk.eventnotifications.s3.internal.DefaultS3EventNotificationWriter"/>
+            <Class name="software.amazon.awssdk.policybuilder.iam.internal.DefaultIamPolicyWriter"/>
+        </Or>
+        <Bug pattern="MS_EXPOSE_REP"/>
     </Match>
 
     <!-- Intentional catching of NullPointerException -->
