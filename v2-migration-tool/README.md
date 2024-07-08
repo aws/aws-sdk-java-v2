@@ -17,7 +17,7 @@ find the latest version.
 
 ```
 mvn org.openrewrite.maven:rewrite-maven-plugin:dryRun \
-  -Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:migration-tool:{sdkversion} \
+  -Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration-tool:{sdkversion} \
   -Drewrite.activeRecipes=software.amazon.awssdk.UpgradeJavaSdk2
 ```
 
@@ -27,7 +27,7 @@ With this mode, it runs the SDK recipes and applies the changes locally.
 
 ```
 mvn org.openrewrite.maven:rewrite-maven-plugin:run \
-  -Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:migration-tool:{sdkversion} \
+  -Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration-tool:{sdkversion} \
   -Drewrite.activeRecipes=software.amazon.awssdk.UpgradeJavaSdk2
 ```
 
@@ -37,7 +37,7 @@ mvn org.openrewrite.maven:rewrite-maven-plugin:run \
 To build this module locally for fast development, run the following command.
 
 ```
-mvn clean install -pl :bom-internal,:bom,:migration-tool -P quick --am
+mvn clean install -pl :bom-internal,:bom,:v2-migration-tool -P quick --am
 ```
 
 ### Testing
@@ -56,6 +56,6 @@ code and ensures it compiles.
 [open-rewrite]: https://docs.openrewrite.org/
 [open-rewrite-usage]: https://docs.openrewrite.org/running-recipes
 [open-rewrite-plugin]: https://docs.openrewrite.org/reference/rewrite-maven-plugin
-[maven-central]: https://central.sonatype.com/artifact/software.amazon.awssdk/migration-tool
+[maven-central]: https://central.sonatype.com/artifact/software.amazon.awssdk/v2-migration-tool
 [rewrite-test]:https://docs.openrewrite.org/authoring-recipes/recipe-testing#rewritetest-interface
 [migration-tool-tests]:../test/migration-tool-tests
