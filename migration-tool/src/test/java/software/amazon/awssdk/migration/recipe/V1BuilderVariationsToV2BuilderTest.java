@@ -108,4 +108,55 @@ public class V1BuilderVariationsToV2BuilderTest implements RewriteTest {
             )
         );
     }
+
+
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
+    public void syncClientBuilder_useCreate_shouldRewrite() {
+        rewriteRun(
+            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
+            java(
+                "import com.amazonaws.services.sqs.AmazonSQS;\n"
+                + "import com.amazonaws.services.sqs.AmazonSQSClientBuilder;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient();\n"
+                + "    }\n"
+                + "}\n",
+                "import software.amazon.awssdk.services.sqs.SqsClient;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        SqsClient sqs = SqsClient.create();\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
+
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
+    public void asyncClientBuilder_useCreate_shouldRewrite() {
+        rewriteRun(
+            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
+            java(
+                "import com.amazonaws.services.sqs.AmazonSQSAsync;\n"
+                + "import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        AmazonSQSAsync sqs = AmazonSQSAsyncClientBuilder.defaultClient();\n"
+                + "    }\n"
+                + "}\n",
+                "import software.amazon.awssdk.services.sqs.SqsAsyncClient;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        SqsAsyncClient sqs = SqsAsyncClient.create();\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
 }

@@ -80,7 +80,7 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
             }
 
             if (isV2ClientBuilder(selectType)) {
-                return renameStandardToBuilder(method, selectType);
+                return renameStandardToBuilderOrDefaultClientToCreate(method, selectType);
             }
 
             return method;
@@ -90,16 +90,23 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
             return isV2ClientBuilder(selectType) || isV2AsyncClientClass(selectType);
         }
 
-        private J.MethodInvocation renameStandardToBuilder(J.MethodInvocation method, JavaType selectType) {
+        private J.MethodInvocation renameStandardToBuilderOrDefaultClientToCreate(J.MethodInvocation method,
+                                                                                  JavaType selectType) {
             String methodName = method.getSimpleName();
             JavaType.Method mt = method.getMethodType();
             JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(selectType);
 
-            if (mt == null || !"standard".equals(methodName) || fullyQualified == null) {
+            if (mt == null || fullyQualified == null) {
                 return method;
             }
 
-            methodName = "builder";
+            if ("standard".equals(methodName)) {
+                methodName = "builder";
+            } else if ("defaultClient".equals(methodName)) {
+                methodName = "create";
+            } else {
+                return method;
+            }
 
             JavaType.FullyQualified v2Client = SdkTypeUtils.v2ClientFromClientBuilder(fullyQualified);
             J.Identifier id = new J.Identifier(
@@ -134,9 +141,11 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
                 Collections.emptyList()
             );
 
+            Space spacing = "builder".equals(methodName) ? Space.EMPTY : Space.SINGLE_SPACE;
+
             J.MethodInvocation builderInvoke = new J.MethodInvocation(
                 Tree.randomId(),
-                Space.EMPTY,
+                spacing,
                 Markers.EMPTY,
                 JRightPadded.build(id),
                 null,
