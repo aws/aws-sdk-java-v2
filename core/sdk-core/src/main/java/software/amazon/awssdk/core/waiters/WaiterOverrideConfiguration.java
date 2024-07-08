@@ -18,8 +18,10 @@ package software.amazon.awssdk.core.waiters;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
+import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -55,9 +57,25 @@ public final class WaiterOverrideConfiguration implements ToCopyableBuilder<Wait
     }
 
     /**
-     * @return the optional {@link BackoffStrategy} that should be used when polling the resource
+     * @return the optional {@link software.amazon.awssdk.core.retry.backoff.BackoffStrategy} that should be used when polling
+     * the resource
+     * @deprecated Use instead {@link #backoffStrategy2()}
      */
-    public Optional<BackoffStrategy> backoffStrategy() {
+    public Optional<software.amazon.awssdk.core.retry.backoff.BackoffStrategy> backoffStrategy() {
+        if (backoffStrategy == null) {
+            return Optional.empty();
+        }
+        if (backoffStrategy instanceof LegacyToNonLegacyAdapter) {
+            return Optional.of(((LegacyToNonLegacyAdapter) backoffStrategy).adaptee);
+        }
+        return Optional.of(new NonLegacyToLegacyAdapter(backoffStrategy));
+    }
+
+    /**
+     * @return the optional {@link BackoffStrategy} that should be used when polling the
+     * resource
+     */
+    public Optional<BackoffStrategy> backoffStrategy2() {
         return Optional.ofNullable(backoffStrategy);
     }
 
@@ -123,7 +141,23 @@ public final class WaiterOverrideConfiguration implements ToCopyableBuilder<Wait
         }
 
         /**
-         * Define the {@link BackoffStrategy} that computes the delay before the next retry request.
+         * Define the {@link software.amazon.awssdk.core.retry.backoff.BackoffStrategy} that computes the delay before the next
+         * retry request.
+         *
+         * @param backoffStrategy The new backoffStrategy value.
+         * @return This object for method chaining.
+         * @deprecated Use instead {@link #backoffStrategy(BackoffStrategy)}
+         */
+        public Builder backoffStrategy(software.amazon.awssdk.core.retry.backoff.BackoffStrategy backoffStrategy) {
+            if (backoffStrategy != null) {
+                this.backoffStrategy = new LegacyToNonLegacyAdapter(backoffStrategy);
+            }
+            return this;
+        }
+
+        /**
+         * Define the {@link BackoffStrategy} that computes the delay before the next retry
+         * request.
          *
          * @param backoffStrategy The new backoffStrategy value.
          * @return This object for method chaining.
@@ -161,6 +195,38 @@ public final class WaiterOverrideConfiguration implements ToCopyableBuilder<Wait
         @Override
         public WaiterOverrideConfiguration build() {
             return new WaiterOverrideConfiguration(this);
+        }
+    }
+
+    @SdkInternalApi
+    static class LegacyToNonLegacyAdapter implements BackoffStrategy {
+        private final software.amazon.awssdk.core.retry.backoff.BackoffStrategy adaptee;
+
+        LegacyToNonLegacyAdapter(software.amazon.awssdk.core.retry.backoff.BackoffStrategy adaptee) {
+            this.adaptee = Objects.requireNonNull(adaptee);
+        }
+
+
+        @Override
+        public Duration computeDelay(int attempt) {
+            return adaptee.computeDelayBeforeNextRetry(RetryPolicyContext.builder()
+                                                                         .retriesAttempted(attempt - 2)
+                                                                         .build());
+        }
+    }
+
+    @SdkInternalApi
+    static class NonLegacyToLegacyAdapter implements software.amazon.awssdk.core.retry.backoff.BackoffStrategy {
+        private final BackoffStrategy adaptee;
+
+        NonLegacyToLegacyAdapter(BackoffStrategy adaptee) {
+            this.adaptee = Objects.requireNonNull(adaptee);
+        }
+
+
+        @Override
+        public Duration computeDelayBeforeNextRetry(RetryPolicyContext context) {
+            return adaptee.computeDelay(context.retriesAttempted());
         }
     }
 }
