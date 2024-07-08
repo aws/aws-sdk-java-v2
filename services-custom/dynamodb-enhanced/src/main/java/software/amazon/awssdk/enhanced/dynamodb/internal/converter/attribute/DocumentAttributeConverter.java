@@ -14,6 +14,7 @@
  */
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute;
+
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 /**
  * {@link AttributeConverter} for converting nested table schemas
  */
+
 @SdkInternalApi
 public class DocumentAttributeConverter<T> implements AttributeConverter<T> {
 
