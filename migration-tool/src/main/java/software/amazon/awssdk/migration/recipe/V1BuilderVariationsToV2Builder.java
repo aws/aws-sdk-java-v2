@@ -100,15 +100,19 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
                 return method;
             }
 
+            JavaType.FullyQualified v2Client = SdkTypeUtils.v2ClientFromClientBuilder(fullyQualified);
+            JavaType.FullyQualified returnType;
+
             if ("standard".equals(methodName)) {
                 methodName = "builder";
+                returnType = fullyQualified;
             } else if ("defaultClient".equals(methodName)) {
                 methodName = "create";
+                returnType = v2Client;
             } else {
                 return method;
             }
 
-            JavaType.FullyQualified v2Client = SdkTypeUtils.v2ClientFromClientBuilder(fullyQualified);
             J.Identifier id = new J.Identifier(
                 Tree.randomId(),
                 Space.EMPTY,
@@ -119,7 +123,7 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
                 null
             );
 
-            J.Identifier builderMethod = new J.Identifier(
+            J.Identifier builderOrCreateMethod = new J.Identifier(
                 Tree.randomId(),
                 Space.EMPTY,
                 Markers.EMPTY,
@@ -134,22 +138,20 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
                 0L,
                 v2Client,
                 methodName,
-                v2Client,
+                returnType,
                 Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList()
             );
 
-            Space spacing = "builder".equals(methodName) ? Space.EMPTY : Space.SINGLE_SPACE;
-
             J.MethodInvocation builderInvoke = new J.MethodInvocation(
                 Tree.randomId(),
-                spacing,
+                method.getPrefix(),
                 Markers.EMPTY,
                 JRightPadded.build(id),
                 null,
-                builderMethod,
+                builderOrCreateMethod,
                 JContainer.empty(),
                 methodType
             );

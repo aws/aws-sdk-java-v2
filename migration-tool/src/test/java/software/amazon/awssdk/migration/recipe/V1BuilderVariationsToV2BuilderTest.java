@@ -61,7 +61,7 @@ public class V1BuilderVariationsToV2BuilderTest implements RewriteTest {
 
     @Test
     @EnabledOnJre({JRE.JAVA_8})
-    public void syncClientBuilder_useStandardBuilder_shouldRewrite() {
+    public void syncClientBuilder_useStandardBuilderWithBuild_shouldRewrite() {
         rewriteRun(
             recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
             java(
@@ -86,7 +86,7 @@ public class V1BuilderVariationsToV2BuilderTest implements RewriteTest {
 
     @Test
     @EnabledOnJre({JRE.JAVA_8})
-    public void asyncClientBuilder_useStandardBuilder_shouldRewrite() {
+    public void asyncClientBuilder_useStandardBuilderWithBuild_shouldRewrite() {
         rewriteRun(
             recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
             java(
@@ -103,6 +103,58 @@ public class V1BuilderVariationsToV2BuilderTest implements RewriteTest {
                 + "public class Example {\n"
                 + "    public static void main(String[] args) {\n"
                 + "        SqsAsyncClient sqs = SqsAsyncClient.builder().build();\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
+
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
+    public void syncClientBuilder_useStandardBuilderWithoutBuild_shouldRewrite() {
+        rewriteRun(
+            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
+            java(
+                "import com.amazonaws.services.sqs.AmazonSQS;\n"
+                + "import com.amazonaws.services.sqs.AmazonSQSClientBuilder;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        AmazonSQSClientBuilder sqs = AmazonSQSClientBuilder.standard();\n"
+                + "    }\n"
+                + "}\n",
+                "import software.amazon.awssdk.services.sqs.SqsClient;\n"
+                + "import software.amazon.awssdk.services.sqs.SqsClientBuilder;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        SqsClientBuilder sqs = SqsClient.builder();\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
+
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
+    public void asyncClientBuilder_useStandardBuilderWithoutBuild_shouldRewrite() {
+        rewriteRun(
+            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
+            java(
+                "import com.amazonaws.services.sqs.AmazonSQSAsync;\n"
+                + "import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        AmazonSQSAsyncClientBuilder sqs = AmazonSQSAsyncClientBuilder.standard();\n"
+                + "    }\n"
+                + "}\n",
+                "import software.amazon.awssdk.services.sqs.SqsAsyncClient;\n"
+                + "import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;\n"
+                + "\n"
+                + "public class Example {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        SqsAsyncClientBuilder sqs = SqsAsyncClient.builder();\n"
                 + "    }\n"
                 + "}"
             )
