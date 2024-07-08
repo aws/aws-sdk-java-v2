@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.ClientType;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -55,6 +57,39 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      * @see ClientOverrideConfiguration#retryPolicy()
      */
     public static final SdkClientOption<RetryPolicy> RETRY_POLICY = new SdkClientOption<>(RetryPolicy.class);
+
+    /**
+     * @see ClientOverrideConfiguration#retryStrategy()
+     */
+    public static final SdkClientOption<RetryStrategy> RETRY_STRATEGY = new SdkClientOption<>(RetryStrategy.class);
+
+    /**
+     * The retry strategy set by the customer using {@link ClientOverrideConfiguration.Builder#retryStrategy(RetryStrategy)}. This
+     * is likely only useful within configuration classes, and will be converted into a {@link #RETRY_STRATEGY} for the SDK's
+     * runtime.
+     *
+     * @see ClientOverrideConfiguration#retryMode()
+     */
+    public static final SdkClientOption<RetryStrategy> CONFIGURED_RETRY_STRATEGY = new SdkClientOption<>(RetryStrategy.class);
+
+    /**
+     * The retry mode set by the customer using {@link ClientOverrideConfiguration.Builder#retryStrategy(RetryMode)}. This is
+     * likely only useful within configuration classes, and will be converted into a {@link #RETRY_STRATEGY} for the SDK's
+     * runtime.
+     *
+     * @see ClientOverrideConfiguration#retryMode()
+     */
+    public static final SdkClientOption<RetryMode> CONFIGURED_RETRY_MODE = new SdkClientOption<>(RetryMode.class);
+
+    /**
+     * The retry strategy builder consumer set by the customer using
+     * {@link ClientOverrideConfiguration.Builder#retryStrategy(Consumer<RetryStrategy.Builder>)}. This is likely only useful
+     * within configuration classes, and will be converted into a {@link #RETRY_STRATEGY} for the SDK's runtime.
+     *
+     * @see ClientOverrideConfiguration#retryStrategy()
+     */
+    public static final SdkClientOption<Consumer<RetryStrategy.Builder<?, ?>>> CONFIGURED_RETRY_CONFIGURATOR =
+        new SdkClientOption<>(new UnsafeValueType(RetryStrategy.Builder.class));
 
     /**
      * @see ClientOverrideConfiguration#executionInterceptors()
