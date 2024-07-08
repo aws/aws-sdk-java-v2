@@ -1,4 +1,51 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.16__ __2024-07-05__
+## __AWS Certificate Manager__
+  - ### Features
+    - Documentation updates, including fixes for xml formatting, broken links, and ListCertificates description.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add implicit global region to internal endpoint resolution metadata
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release for Amazon ECR makes change to bring the SDK into sync with the API.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Added further restrictions on logging of potentially sensitive inputs and outputs.
+
+## __QBusiness__
+  - ### Features
+    - Add personalization to Q Applications. Customers can enable or disable personalization when creating or updating a Q application with the personalization configuration.
+
+# __2.26.15__ __2024-07-03__
+## __AWS Direct Connect__
+  - ### Features
+    - This update includes documentation for support of new native 400 GBps ports for Direct Connect.
+
+## __AWS Organizations__
+  - ### Features
+    - Added a new reason under ConstraintViolationException in RegisterDelegatedAdministrator API to prevent registering suspended accounts as delegated administrator of a service.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds support for tagging projects and datasets with the CreateProject and CreateDataset APIs.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Fix create workspace bundle RootStorage/UserStorage to accept non null values
+
+## __Application Auto Scaling__
+  - ### Features
+    - Doc only update for Application Auto Scaling that fixes resource name.
+
 # __2.26.14__ __2024-07-02__
 ## __Amazon Elastic Compute Cloud__
   - ### Features
