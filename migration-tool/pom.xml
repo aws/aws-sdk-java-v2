@@ -32,10 +32,18 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- We should not use bom-internal here because it'll cause version conflict -->
             <dependency>
                 <groupId>org.openrewrite.recipe</groupId>
                 <artifactId>rewrite-recipe-bom</artifactId>
-                <version>2.8.1</version>
+                <version>2.14.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>5.10.3</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -57,6 +65,11 @@
         <dependency>
             <groupId>org.openrewrite</groupId>
             <artifactId>rewrite-java-8</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openrewrite.recipe</groupId>
+            <artifactId>rewrite-java-dependencies</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -137,12 +150,15 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
-            <version>${junit5.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-commons</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit5.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
