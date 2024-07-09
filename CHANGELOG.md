@@ -1,4 +1,120 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.18__ __2024-07-09__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Update way we build retry strategies to honor the `AWS_MAX_ATTEMPTS` system setting.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release deprecates dataProductItem field from SearchInventoryResultItem, along with some unused DataProduct shapes
+
+## __Amazon FSx__
+  - ### Features
+    - Adds support for FSx for NetApp ONTAP 2nd Generation file systems, and FSx for OpenZFS Single AZ HA file systems.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds support for enabling or disabling Natural Language Query Processing feature for Amazon OpenSearch Service domains, and provides visibility into the current state of the setup or tear-down.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release 1/ enables optimization jobs that allows customers to perform Ahead-of-time compilation and quantization. 2/ allows customers to control access to Amazon Q integration in SageMaker Studio. 3/ enables AdditionalModelDataSources for CreateModel action.
+
+# __2.26.17__ __2024-07-08__
+## __AWS CodeDeploy__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Device Farm__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Elastic Beanstalk__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon GameLift__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __QApps__
+  - ### Features
+    - This is a general availability (GA) release of Amazon Q Apps, a capability of Amazon Q Business. Q Apps leverages data sources your company has provided to enable users to build, share, and customize apps within your organization.
+
+# __2.26.16__ __2024-07-05__
+## __AWS Certificate Manager__
+  - ### Features
+    - Documentation updates, including fixes for xml formatting, broken links, and ListCertificates description.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add implicit global region to internal endpoint resolution metadata
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - This release for Amazon ECR makes change to bring the SDK into sync with the API.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Added further restrictions on logging of potentially sensitive inputs and outputs.
+
+## __QBusiness__
+  - ### Features
+    - Add personalization to Q Applications. Customers can enable or disable personalization when creating or updating a Q application with the personalization configuration.
+
+# __2.26.15__ __2024-07-03__
+## __AWS Direct Connect__
+  - ### Features
+    - This update includes documentation for support of new native 400 GBps ports for Direct Connect.
+
+## __AWS Organizations__
+  - ### Features
+    - Added a new reason under ConstraintViolationException in RegisterDelegatedAdministrator API to prevent registering suspended accounts as delegated administrator of a service.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds support for tagging projects and datasets with the CreateProject and CreateDataset APIs.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Fix create workspace bundle RootStorage/UserStorage to accept non null values
+
+## __Application Auto Scaling__
+  - ### Features
+    - Doc only update for Application Auto Scaling that fixes resource name.
+
 # __2.26.14__ __2024-07-02__
 ## __Amazon Elastic Compute Cloud__
   - ### Features
@@ -194,7 +310,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
+[@sullis](https://github.com/sullis), [@shetsa-amzn](https://github.com/shetsa-amzn)
 # __2.26.9__ __2024-06-25__
 ## __AWS Network Manager__
   - ### Features

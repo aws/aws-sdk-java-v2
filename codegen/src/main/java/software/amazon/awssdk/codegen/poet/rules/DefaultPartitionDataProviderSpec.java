@@ -47,6 +47,7 @@ public class DefaultPartitionDataProviderSpec implements ClassSpec {
     private static final String DUAL_STACK_DNS_SUFFIX = "dualStackDnsSuffix";
     private static final String SUPPORTS_FIPS = "supportsFIPS";
     private static final String SUPPORTS_DUAL_STACK = "supportsDualStack";
+    private static final String IMPLICIT_GLOBAL_REGION = "implicitGlobalRegion";
 
     private final IntermediateModel model;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
@@ -223,6 +224,13 @@ public class DefaultPartitionDataProviderSpec implements ClassSpec {
         if (supportsDualStack != null) {
             builder.add(".supportsDualStack(");
             builder.add("$L", supportsDualStack.asBoolean());
+            builder.add(")");
+        }
+
+        JsonNode implicitGlobalRegion = objNode.get(IMPLICIT_GLOBAL_REGION);
+        if (implicitGlobalRegion != null) {
+            builder.add(".implicitGlobalRegion(");
+            builder.add("$S", implicitGlobalRegion.asString());
             builder.add(")");
         }
         builder.add(".build()");
