@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DataZone",
+    "contributor": "",
+    "description": "This release deprecates dataProductItem field from SearchInventoryResultItem, along with some unused DataProduct shapes"
+}
