@@ -27,7 +27,7 @@
     </parent>
 
     <groupId>software.amazon.awssdk</groupId>
-    <artifactId>v2-migration-tool-tests</artifactId>
+    <artifactId>v2-migration-tests</artifactId>
 
     <dependencyManagement>
         <dependencies>
@@ -61,7 +61,7 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>v2-migration-tool</artifactId>
+            <artifactId>v2-migration</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

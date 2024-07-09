@@ -46,7 +46,7 @@
 
         "dynamodb": { "packageName": "AwsJavaSdk-DynamoDb" },
         "waf": { "packageName": "AwsJavaSdk-Waf" },
-        "v2-migration-tool": { "packageName":  "AwsJavaSdk-Tooling-V2MigrationTool"},
+        "v2-migration": { "packageName":  "AwsJavaSdk-Tooling-V2Migration"},
 
         "third-party-jackson-core": {
             "packageName": "AwsJavaSdk-ThirdParty-JacksonCore",
@@ -106,7 +106,7 @@
         "tests-coverage-reporting": { "skipImport": true },
         "third-party": { "skipImport": true },
         "third-party-slf4j-api": { "skipImport": true },
-        "v2-migration-tool-tests": {"skipImport":  true},
+        "v2-migration-tests": {"skipImport":  true},
         "crt-unavailable-tests": { "skipImport": true },
         "bundle-shading-tests": { "skipImport": true }
     },

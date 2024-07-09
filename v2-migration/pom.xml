@@ -24,10 +24,10 @@
         <version>2.26.16-SNAPSHOT</version>
     </parent>
 
-    <artifactId>v2-migration-tool</artifactId>
-    <name>AWS Java SDK :: V2 Migration Tool</name>
+    <artifactId>v2-migration</artifactId>
+    <name>AWS Java SDK :: V2 Migration</name>
     <description>
-        Migration tool to help users migrate from AWS SDK for Java v1 to AWS SDK for Java v2
+        Contains OpenRewrite recipes to help users migrate from the AWS SDK for Java v1 to the AWS SDK for Java v2
     </description>
 
     <dependencyManagement>

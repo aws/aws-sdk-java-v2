@@ -44,7 +44,7 @@ def run_maven_test(version):
     copy_directory(AFTER_DIR_MAVEN, TARGET_AFTER_DIR_MAVEN)
 
     subprocess.run(["mvn", "org.openrewrite.maven:rewrite-maven-plugin:run",
-                    "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration-tool:"+ version,
+                    "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration:"+ version,
                     "-Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkForJavaV1ToV2"], cwd=TARGET_DIR_MAVEN, check=True)
     shutil.rmtree(os.path.join(TARGET_DIR_MAVEN, "target"))
 
