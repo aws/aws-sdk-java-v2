@@ -1,8 +1,7 @@
-# AWS SDK for Java v2 Migration Tool
+# AWS SDK for Java v2 Migration Tooling
 
 ## Description
-This is a migration tool to automate migration from AWS SDK for Java v1 to AWS SDK for Java v2.
-It uses [OpenRewrite][open-rewrite].
+This modules contains [OpenRewrite][open-rewrite] recipes to automate migration from the AWS SDK for Java v1 to the AWS SDK for Java v2.
 
 ## Usage
 
@@ -49,7 +48,7 @@ Unit tests reside in the test folder in this module. They use [RewriteTest][rewr
 
 - End-to-end functional tests
 
-End-to-end functional tests are in [migration-tool-tests module][migration-tool-tests]. It contains
+End-to-end functional tests are in [v2-migration-tests module][v2-migration-tests]. It contains
 sample applications using the AWS SDK for Java v1 and compares the transformed code with the expected v2 
 code and ensures it compiles.
 
@@ -58,4 +57,4 @@ code and ensures it compiles.
 [open-rewrite-plugin]: https://docs.openrewrite.org/reference/rewrite-maven-plugin
 [maven-central]: https://central.sonatype.com/artifact/software.amazon.awssdk/v2-migration
 [rewrite-test]:https://docs.openrewrite.org/authoring-recipes/recipe-testing#rewritetest-interface
-[migration-tool-tests]:../test/migration-tool-tests
+[v2-migration-tests]:../test/v2-migration-tests
