@@ -30,12 +30,14 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * MockServer implementation with several different configurable behaviors.
  */
 public class MockServer {
 
+    private static final Logger logger = Logger.loggerFor(MockServer.class);
     private final ServerBehaviorStrategy serverBehaviorStrategy;
     private ServerSocket serverSocket;
     private Thread listenerThread;
@@ -77,7 +79,7 @@ public class MockServer {
             ctx.init(keyManagersProvider.keyManagers(), null, null);
             SSLServerSocketFactory ssf = ctx.getServerSocketFactory();
             serverSocket = ssf.createServerSocket(0);
-            System.out.println("Listening on port " + serverSocket.getLocalPort());
+            logger.info(() -> "Listening on port " + serverSocket.getLocalPort());
         } catch (Exception e) {
             throw new RuntimeException("Unable to start the server socket.", e);
         }
@@ -91,7 +93,7 @@ public class MockServer {
         try {
             listenerThread.join(10 * 1000);
         } catch (InterruptedException e1) {
-            System.err.println("The listener thread didn't terminate after waiting for 10 seconds.");
+            logger.error(() -> "The listener thread didn't terminate after waiting for 10 seconds.");
         }
 
         if (serverSocket != null) {
@@ -131,7 +133,7 @@ public class MockServer {
         private final ServerSocket serverSocket;
         private final ServerBehaviorStrategy behaviorStrategy;
 
-        public MockServerListenerThread(ServerSocket serverSocket, ServerBehaviorStrategy behaviorStrategy) {
+        MockServerListenerThread(ServerSocket serverSocket, ServerBehaviorStrategy behaviorStrategy) {
             super(behaviorStrategy.getClass().getName());
             this.serverSocket = serverSocket;
             this.behaviorStrategy = behaviorStrategy;
@@ -208,7 +210,8 @@ public class MockServer {
                         if (headers.startsWith("PUT")) {
                             ByteArrayOutputStream bodyStream = new ByteArrayOutputStream();
                             int remaining = contentLength;
-                            while (remaining > 0 && (read = socket.getInputStream().read(buff, 0, Math.min(buff.length, remaining))) != -1) {
+                            while (remaining > 0 &&
+                                   (read = socket.getInputStream().read(buff, 0, Math.min(buff.length, remaining))) != -1) {
                                 bodyStream.write(buff, 0, read);
                                 remaining -= read;
                             }
