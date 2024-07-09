@@ -28,35 +28,35 @@ recipeList:
       newFullyQualifiedTypeName: software.amazon.awssdk.core.exception.SdkClientException
 
   - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.amazonaws.AmazonServiceException getRequestId
+      methodPattern: com.amazonaws.AmazonServiceException getRequestId()
       newMethodName: requestId
   - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.amazonaws.AmazonServiceException getErrorCode
+      methodPattern: com.amazonaws.AmazonServiceException getErrorCode()
       newMethodName: awsErrorDetails().errorCode
   - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.amazonaws.AmazonServiceException getServiceName
+      methodPattern: com.amazonaws.AmazonServiceException getServiceName()
       newMethodName: awsErrorDetails().serviceName
   - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.amazonaws.AmazonServiceException getErrorMessage
+      methodPattern: com.amazonaws.AmazonServiceException getErrorMessage()
       newMethodName: awsErrorDetails().errorMessage
   - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.amazonaws.AmazonServiceException getStatusCode
+      methodPattern: com.amazonaws.AmazonServiceException getStatusCode()
       newMethodName: awsErrorDetails().sdkHttpResponse().statusCode
   ### TODO: v2 returns Map<String, List<String>>. Convert it to Map<String, String>
   - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.amazonaws.AmazonServiceException getHttpHeaders
+      methodPattern: com.amazonaws.AmazonServiceException getHttpHeaders()
       newMethodName: awsErrorDetails().sdkHttpResponse().headers
   - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.amazonaws.AmazonServiceException getRawResponse
+      methodPattern: com.amazonaws.AmazonServiceException getRawResponse()
       newMethodName: awsErrorDetails().rawResponse().asByteArray
   - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.amazonaws.AmazonServiceException getRawResponseContent
+      methodPattern: com.amazonaws.AmazonServiceException getRawResponseContent()
       newMethodName: awsErrorDetails().rawResponse().asUtf8String
   - software.amazon.awssdk.migration.internal.recipe.AddCommentToMethod:
-      methodPattern: com.amazonaws.AmazonServiceException getErrorType
+      methodPattern: com.amazonaws.AmazonServiceException getErrorType()
       comment: getErrorType is not supported in v2. AwsServiceException is a service error in v2. Consider removing it.
   - software.amazon.awssdk.migration.internal.recipe.AddCommentToMethod:
-      methodPattern: com.amazonaws.AmazonServiceException getProxyHost
+      methodPattern: com.amazonaws.AmazonServiceException getProxyHost()
       comment: getProxyHost is not supported in v2. Please submit a feature request https://github.com/aws/aws-sdk-java-v2/issues
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.amazonaws.AmazonServiceException
