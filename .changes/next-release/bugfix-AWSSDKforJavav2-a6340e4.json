@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Update way we build retry strategies to honor the `AWS_MAX_ATTEMPTS` system setting."
+}
