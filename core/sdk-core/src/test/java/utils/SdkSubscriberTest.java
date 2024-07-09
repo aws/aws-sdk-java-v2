@@ -148,8 +148,8 @@ public class SdkSubscriberTest {
         limitingSubscriber.onSubscribe(new EmptySubscription(mockSubscriber));
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         for (int i = 0; i < 10; i++) {
-            int integer = i;
-            executorService.submit(() -> limitingSubscriber.onNext(integer));
+            Integer boxed = i;
+            executorService.submit(() -> limitingSubscriber.onNext(boxed));
         }
         executorService.awaitTermination(300, TimeUnit.MILLISECONDS);
         Mockito.verify(mockSubscriber, times(limitFactor)).onNext(anyInt());
