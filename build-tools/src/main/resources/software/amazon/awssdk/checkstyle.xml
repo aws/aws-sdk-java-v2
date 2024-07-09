@@ -359,6 +359,14 @@
             <property name="ignoreComments" value="true"/>
         </module>
 
+        <!-- Checks that we don't use S3MetaRequest -->
+        <module name="Regexp">
+            <property name="format" value="\bS3MetaRequest\b"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message" value="Don't use S3MetaRequest directly. Use software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestWrapper instead"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
         <!-- Checks that we don't implement AutoCloseable/Closeable -->
         <module name="Regexp">
             <property name="format" value="(class|interface).*(implements|extends).*[^\w](Closeable|AutoCloseable)[^\w]"/>

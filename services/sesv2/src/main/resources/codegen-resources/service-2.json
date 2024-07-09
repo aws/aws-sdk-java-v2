@@ -5,12 +5,14 @@
     "endpointPrefix":"email",
     "jsonVersion":"1.1",
     "protocol":"rest-json",
+    "protocols":["rest-json"],
     "serviceAbbreviation":"Amazon SES V2",
     "serviceFullName":"Amazon Simple Email Service",
     "serviceId":"SESv2",
     "signatureVersion":"v4",
     "signingName":"ses",
-    "uid":"sesv2-2019-09-27"
+    "uid":"sesv2-2019-09-27",
+    "auth":["aws.auth#sigv4"]
   },
   "operations":{
     "BatchGetMetricData":{
@@ -77,7 +79,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"BadRequestException"}
       ],
-      "documentation":"<p>Create an event destination. <i>Events</i> include message sends, deliveries, opens, clicks, bounces, and complaints. <i>Event destinations</i> are places that you can send information about these events to. For example, you can send event data to Amazon SNS to receive notifications when you receive bounces or complaints, or you can use Amazon Kinesis Data Firehose to stream data to Amazon S3 for long-term storage.</p> <p>A single configuration set can include more than one event destination.</p>"
+      "documentation":"<p>Create an event destination. <i>Events</i> include message sends, deliveries, opens, clicks, bounces, and complaints. <i>Event destinations</i> are places that you can send information about these events to. For example, you can send event data to Amazon EventBridge and associate a rule to send the event to the specified target.</p> <p>A single configuration set can include more than one event destination.</p>"
     },
     "CreateContact":{
       "name":"CreateContact",
@@ -277,7 +279,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"BadRequestException"}
       ],
-      "documentation":"<p>Delete an event destination.</p> <p> <i>Events</i> include message sends, deliveries, opens, clicks, bounces, and complaints. <i>Event destinations</i> are places that you can send information about these events to. For example, you can send event data to Amazon SNS to receive notifications when you receive bounces or complaints, or you can use Amazon Kinesis Data Firehose to stream data to Amazon S3 for long-term storage.</p>"
+      "documentation":"<p>Delete an event destination.</p> <p> <i>Events</i> include message sends, deliveries, opens, clicks, bounces, and complaints. <i>Event destinations</i> are places that you can send information about these events to. For example, you can send event data to Amazon EventBridge and associate a rule to send the event to the specified target.</p>"
     },
     "DeleteContact":{
       "name":"DeleteContact",
@@ -459,7 +461,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"BadRequestException"}
       ],
-      "documentation":"<p>Retrieve a list of event destinations that are associated with a configuration set.</p> <p> <i>Events</i> include message sends, deliveries, opens, clicks, bounces, and complaints. <i>Event destinations</i> are places that you can send information about these events to. For example, you can send event data to Amazon SNS to receive notifications when you receive bounces or complaints, or you can use Amazon Kinesis Data Firehose to stream data to Amazon S3 for long-term storage.</p>"
+      "documentation":"<p>Retrieve a list of event destinations that are associated with a configuration set.</p> <p> <i>Events</i> include message sends, deliveries, opens, clicks, bounces, and complaints. <i>Event destinations</i> are places that you can send information about these events to. For example, you can send event data to Amazon EventBridge and associate a rule to send the event to the specified target.</p>"
     },
     "GetContact":{
       "name":"GetContact",
@@ -747,8 +749,8 @@
     "ListContacts":{
       "name":"ListContacts",
       "http":{
-        "method":"GET",
-        "requestUri":"/v2/email/contact-lists/{ContactListName}/contacts"
+        "method":"POST",
+        "requestUri":"/v2/email/contact-lists/{ContactListName}/contacts/list"
       },
       "input":{"shape":"ListContactsRequest"},
       "output":{"shape":"ListContactsResponse"},
@@ -862,8 +864,8 @@
     "ListImportJobs":{
       "name":"ListImportJobs",
       "http":{
-        "method":"GET",
-        "requestUri":"/v2/email/import-jobs"
+        "method":"POST",
+        "requestUri":"/v2/email/import-jobs/list"
       },
       "input":{"shape":"ListImportJobsRequest"},
       "output":{"shape":"ListImportJobsResponse"},
@@ -1351,7 +1353,7 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"BadRequestException"}
       ],
-      "documentation":"<p>Update the configuration of an event destination for a configuration set.</p> <p> <i>Events</i> include message sends, deliveries, opens, clicks, bounces, and complaints. <i>Event destinations</i> are places that you can send information about these events to. For example, you can send event data to Amazon SNS to receive notifications when you receive bounces or complaints, or you can use Amazon Kinesis Data Firehose to stream data to Amazon S3 for long-term storage.</p>"
+      "documentation":"<p>Update the configuration of an event destination for a configuration set.</p> <p> <i>Events</i> include message sends, deliveries, opens, clicks, bounces, and complaints. <i>Event destinations</i> are places that you can send information about these events to. For example, you can send event data to Amazon EventBridge and associate a rule to send the event to the specified target.</p>"
     },
     "UpdateContact":{
       "name":"UpdateContact",
@@ -1367,7 +1369,7 @@
         {"shape":"NotFoundException"},
         {"shape":"ConcurrentModificationException"}
       ],
-      "documentation":"<p>Updates a contact's preferences for a list. It is not necessary to specify all existing topic preferences in the TopicPreferences object, just the ones that need updating.</p>"
+      "documentation":"<p>Updates a contact's preferences for a list.</p> <note> <p>You must specify all existing topic preferences in the <code>TopicPreferences</code> object, not just the ones that need updating; otherwise, all your existing preferences will be removed.</p> </note>"
     },
     "UpdateContactList":{
       "name":"UpdateContactList",
@@ -1684,6 +1686,10 @@
         "ReplacementEmailContent":{
           "shape":"ReplacementEmailContent",
           "documentation":"<p>The <code>ReplacementEmailContent</code> associated with a <code>BulkEmailEntry</code>.</p>"
+        },
+        "ReplacementHeaders":{
+          "shape":"MessageHeaderList",
+          "documentation":"<p>The list of message headers associated with the <code>BulkEmailEntry</code> data type.</p> <ul> <li> <p>Headers Not Present in <code>BulkEmailEntry</code>: If a header is specified in <a href=\"https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_Template.html\"> <code>Template</code> </a> but not in <code>BulkEmailEntry</code>, the header from <code>Template</code> will be added to the outgoing email.</p> </li> <li> <p>Headers Present in <code>BulkEmailEntry</code>: If a header is specified in <code>BulkEmailEntry</code>, it takes precedence over any header of the same name specified in <a href=\"https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_Template.html\"> <code>Template</code> </a>:</p> <ul> <li> <p>If the header is also defined within <code>Template</code>, the value from <code>BulkEmailEntry</code> will replace the header's value in the email.</p> </li> <li> <p>If the header is not defined within <code>Template</code>, it will simply be added to the email as specified in <code>BulkEmailEntry</code>.</p> </li> </ul> </li> </ul>"
         }
       }
     },
@@ -3140,6 +3146,17 @@
       "type":"list",
       "member":{"shape":"Esp"}
     },
+    "EventBridgeDestination":{
+      "type":"structure",
+      "required":["EventBusArn"],
+      "members":{
+        "EventBusArn":{
+          "shape":"AmazonResourceName",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon EventBridge bus to publish email events to. Only the default bus is supported. </p>"
+        }
+      },
+      "documentation":"<p>An object that defines an Amazon EventBridge destination for email events. You can use Amazon EventBridge to send notifications when certain email events occur.</p>"
+    },
     "EventDestination":{
       "type":"structure",
       "required":[
@@ -3169,7 +3186,11 @@
         },
         "SnsDestination":{
           "shape":"SnsDestination",
-          "documentation":"<p>An object that defines an Amazon SNS destination for email events. You can use Amazon SNS to send notification when certain email events occur.</p>"
+          "documentation":"<p>An object that defines an Amazon SNS destination for email events. You can use Amazon SNS to send notifications when certain email events occur.</p>"
+        },
+        "EventBridgeDestination":{
+          "shape":"EventBridgeDestination",
+          "documentation":"<p>An object that defines an Amazon EventBridge destination for email events. You can use Amazon EventBridge to send notifications when certain email events occur.</p>"
         },
         "PinpointDestination":{
           "shape":"PinpointDestination",
@@ -3199,7 +3220,11 @@
         },
         "SnsDestination":{
           "shape":"SnsDestination",
-          "documentation":"<p>An object that defines an Amazon SNS destination for email events. You can use Amazon SNS to send notification when certain email events occur.</p>"
+          "documentation":"<p>An object that defines an Amazon SNS destination for email events. You can use Amazon SNS to send notifications when certain email events occur.</p>"
+        },
+        "EventBridgeDestination":{
+          "shape":"EventBridgeDestination",
+          "documentation":"<p>An object that defines an Amazon EventBridge destination for email events. You can use Amazon EventBridge to send notifications when certain email events occur.</p>"
         },
         "PinpointDestination":{
           "shape":"PinpointDestination",
@@ -3402,7 +3427,7 @@
         },
         "ProductionAccessEnabled":{
           "shape":"Enabled",
-          "documentation":"<p>Indicates whether or not your account has production access in the current Amazon Web Services Region.</p> <p>If the value is <code>false</code>, then your account is in the <i>sandbox</i>. When your account is in the sandbox, you can only send email to verified identities. Additionally, the maximum number of emails you can send in a 24-hour period (your sending quota) is 200, and the maximum number of emails you can send per second (your maximum sending rate) is 1.</p> <p>If the value is <code>true</code>, then your account has production access. When your account has production access, you can send email to any address. The sending quota and maximum sending rate for your account vary based on your specific use case.</p>"
+          "documentation":"<p>Indicates whether or not your account has production access in the current Amazon Web Services Region.</p> <p>If the value is <code>false</code>, then your account is in the <i>sandbox</i>. When your account is in the sandbox, you can only send email to verified identities. </p> <p>If the value is <code>true</code>, then your account has production access. When your account has production access, you can send email to any address. The sending quota and maximum sending rate for your account vary based on your specific use case.</p>"
         },
         "SendQuota":{
           "shape":"SendQuota",
@@ -4557,15 +4582,11 @@
         },
         "PageSize":{
           "shape":"MaxItems",
-          "documentation":"<p>The number of contacts that may be returned at once, which is dependent on if there are more or less contacts than the value of the PageSize. Use this parameter to paginate results. If additional contacts exist beyond the specified limit, the <code>NextToken</code> element is sent in the response. Use the <code>NextToken</code> value in subsequent requests to retrieve additional contacts.</p>",
-          "location":"querystring",
-          "locationName":"PageSize"
+          "documentation":"<p>The number of contacts that may be returned at once, which is dependent on if there are more or less contacts than the value of the PageSize. Use this parameter to paginate results. If additional contacts exist beyond the specified limit, the <code>NextToken</code> element is sent in the response. Use the <code>NextToken</code> value in subsequent requests to retrieve additional contacts.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>A string token indicating that there might be additional contacts available to be listed. Use the token provided in the Response to use in the subsequent call to ListContacts with the same parameters to retrieve the next page of contacts.</p>",
-          "location":"querystring",
-          "locationName":"NextToken"
+          "documentation":"<p>A string token indicating that there might be additional contacts available to be listed. Use the token provided in the Response to use in the subsequent call to ListContacts with the same parameters to retrieve the next page of contacts.</p>"
         }
       }
     },
@@ -4844,15 +4865,11 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>A string token indicating that there might be additional import jobs available to be listed. Copy this token to a subsequent call to <code>ListImportJobs</code> with the same parameters to retrieve the next page of import jobs.</p>",
-          "location":"querystring",
-          "locationName":"NextToken"
+          "documentation":"<p>A string token indicating that there might be additional import jobs available to be listed. Copy this token to a subsequent call to <code>ListImportJobs</code> with the same parameters to retrieve the next page of import jobs.</p>"
         },
         "PageSize":{
           "shape":"MaxItems",
-          "documentation":"<p>Maximum number of import jobs to return at once. Use this parameter to paginate results. If additional import jobs exist beyond the specified limit, the <code>NextToken</code> element is sent in the response. Use the <code>NextToken</code> value in subsequent requests to retrieve additional addresses.</p>",
-          "location":"querystring",
-          "locationName":"PageSize"
+          "documentation":"<p>Maximum number of import jobs to return at once. Use this parameter to paginate results. If additional import jobs exist beyond the specified limit, the <code>NextToken</code> element is sent in the response. Use the <code>NextToken</code> value in subsequent requests to retrieve additional addresses.</p>"
         }
       },
       "documentation":"<p>Represents a request to list all of the import jobs for a data destination within the specified maximum number of import jobs.</p>"
@@ -5095,6 +5112,10 @@
         "Body":{
           "shape":"Body",
           "documentation":"<p>The body of the message. You can specify an HTML version of the message, a text-only version of the message, or both.</p>"
+        },
+        "Headers":{
+          "shape":"MessageHeaderList",
+          "documentation":"<p>The list of message headers that will be added to the email message.</p>"
         }
       },
       "documentation":"<p>Represents the email message that you're sending. The <code>Message</code> object consists of a subject line and a message body.</p>"
@@ -5104,6 +5125,45 @@
       "documentation":"<p>The body of an email message.</p>"
     },
     "MessageData":{"type":"string"},
+    "MessageHeader":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Value"
+      ],
+      "members":{
+        "Name":{
+          "shape":"MessageHeaderName",
+          "documentation":"<p>The name of the message header. The message header name has to meet the following criteria:</p> <ul> <li> <p>Can contain any printable ASCII character (33 - 126) except for colon (:).</p> </li> <li> <p>Can contain no more than 126 characters.</p> </li> </ul>"
+        },
+        "Value":{
+          "shape":"MessageHeaderValue",
+          "documentation":"<p>The value of the message header. The message header value has to meet the following criteria:</p> <ul> <li> <p>Can contain any printable ASCII character.</p> </li> <li> <p>Can contain no more than 870 characters.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Contains the name and value of a message header that you add to an email.</p>"
+    },
+    "MessageHeaderList":{
+      "type":"list",
+      "member":{"shape":"MessageHeader"},
+      "documentation":"<p>A list of message headers. The list of message headers has to meet the following criteria:</p> <ul> <li> <p>Can contain no more than 15 headers in one message.</p> </li> </ul>",
+      "max":15,
+      "min":0
+    },
+    "MessageHeaderName":{
+      "type":"string",
+      "documentation":"<p>The name of the message header. The message header name has to meet the following criteria:</p> <ul> <li> <p>Can contain any printable ASCII character (33 - 126) except for colon (:).</p> </li> <li> <p>Can contain no more than 126 characters.</p> </li> </ul>",
+      "max":126,
+      "min":1,
+      "pattern":"^[!-9;-@A-~]+$"
+    },
+    "MessageHeaderValue":{
+      "type":"string",
+      "documentation":"<p>The value of the message header. The message header value has to meet the following criteria:</p> <ul> <li> <p>Can contain any printable ASCII character.</p> </li> </ul>",
+      "max":870,
+      "min":1,
+      "pattern":"[ -~]*"
+    },
     "MessageInsightsDataSource":{
       "type":"structure",
       "required":[
@@ -5475,7 +5535,7 @@
         },
         "ProductionAccessEnabled":{
           "shape":"EnabledWrapper",
-          "documentation":"<p>Indicates whether or not your account should have production access in the current Amazon Web Services Region.</p> <p>If the value is <code>false</code>, then your account is in the <i>sandbox</i>. When your account is in the sandbox, you can only send email to verified identities. Additionally, the maximum number of emails you can send in a 24-hour period (your sending quota) is 200, and the maximum number of emails you can send per second (your maximum sending rate) is 1.</p> <p>If the value is <code>true</code>, then your account has production access. When your account has production access, you can send email to any address. The sending quota and maximum sending rate for your account vary based on your specific use case.</p>"
+          "documentation":"<p>Indicates whether or not your account should have production access in the current Amazon Web Services Region.</p> <p>If the value is <code>false</code>, then your account is in the <i>sandbox</i>. When your account is in the sandbox, you can only send email to verified identities. </p> <p>If the value is <code>true</code>, then your account has production access. When your account has production access, you can send email to any address. The sending quota and maximum sending rate for your account vary based on your specific use case.</p>"
         }
       },
       "documentation":"<p>A request to submit new account details.</p>"
@@ -6251,7 +6311,7 @@
         },
         "Content":{
           "shape":"EmailContent",
-          "documentation":"<p>An object that contains the body of the message. You can send either a Simple message Raw message or a template Message.</p>"
+          "documentation":"<p>An object that contains the body of the message. You can send either a Simple message, Raw message, or a Templated message.</p>"
         },
         "EmailTags":{
           "shape":"MessageTagList",
@@ -6273,7 +6333,7 @@
       "members":{
         "MessageId":{
           "shape":"OutboundMessageId",
-          "documentation":"<p>A unique identifier for the message that is generated when the message is accepted.</p> <note> <p>It's possible for Amazon SES to accept a message without sending it. This can happen when the message that you're trying to send has an attachment contains a virus, or when you send a templated email that contains invalid personalization content, for example.</p> </note>"
+          "documentation":"<p>A unique identifier for the message that is generated when the message is accepted.</p> <note> <p>It's possible for Amazon SES to accept a message without sending it. For example, this can happen when the message that you're trying to send has an attachment that contains a virus, or when you send a templated email that contains invalid personalization content.</p> </note>"
         }
       },
       "documentation":"<p>A unique message ID that you receive when an email is accepted for sending.</p>"
@@ -6329,7 +6389,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon SNS topic to publish email events to. For more information about Amazon SNS topics, see the <a href=\"https://docs.aws.amazon.com/sns/latest/dg/CreateTopic.html\">Amazon SNS Developer Guide</a>.</p>"
         }
       },
-      "documentation":"<p>An object that defines an Amazon SNS destination for email events. You can use Amazon SNS to send notification when certain email events occur.</p>"
+      "documentation":"<p>An object that defines an Amazon SNS destination for email events. You can use Amazon SNS to send notifications when certain email events occur.</p>"
     },
     "Subject":{"type":"string"},
     "SubscriptionStatus":{
@@ -6526,6 +6586,10 @@
         "TemplateData":{
           "shape":"EmailTemplateData",
           "documentation":"<p>An object that defines the values to use for message variables in the template. This object is a set of key-value pairs. Each key defines a message variable in the template. The corresponding value defines the value to use for that variable.</p>"
+        },
+        "Headers":{
+          "shape":"MessageHeaderList",
+          "documentation":"<p>The list of message headers that will be added to the email message.</p>"
         }
       },
       "documentation":"<p>An object that defines the email template to use for an email message, and the values to use for any message variables in that template. An <i>email template</i> is a type of message template that contains content that you want to define, save, and reuse in email messages that you send.</p>"

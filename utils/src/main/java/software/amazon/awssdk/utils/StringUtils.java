@@ -906,7 +906,7 @@ public final class StringUtils {
      * @param charsToMatch A list of characters to search the string for.
      * @return The character that was first matched in the string or null if none of the characters were found.
      */
-    public static Character findFirstOccurrence(String s, char ...charsToMatch) {
+    public static Character findFirstOccurrence(String s, char... charsToMatch) {
         int lowestIndex = Integer.MAX_VALUE;
 
         for (char toMatch : charsToMatch) {

@@ -144,14 +144,17 @@ public final class CloudFrontUtilities {
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
             URI uri = URI.create(resourceUrl);
             String protocol = uri.getScheme();
-            String domain = uri.getHost();
             String encodedPath = uri.getRawPath()
                                  + (uri.getQuery() != null ? "?" + uri.getRawQuery() + "&" : "?")
                                  + "Expires=" + request.expirationDate().getEpochSecond()
                                  + "&Signature=" + urlSafeSignature
                                  + "&Key-Pair-Id=" + request.keyPairId();
-            return DefaultSignedUrl.builder().protocol(protocol).domain(domain).encodedPath(encodedPath)
-                                   .url(protocol + "://" + domain + encodedPath).build();
+            return DefaultSignedUrl.builder()
+                                   .protocol(protocol)
+                                   .domain(uri.getHost())
+                                   .encodedPath(encodedPath)
+                                   .url(protocol + "://" + uri.getAuthority() + encodedPath)
+                                   .build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign url", e);
         }
@@ -253,14 +256,17 @@ public final class CloudFrontUtilities {
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
             URI uri = URI.create(resourceUrl);
             String protocol = uri.getScheme();
-            String domain = uri.getHost();
             String encodedPath = uri.getRawPath()
                                  + (uri.getQuery() != null ? "?" + uri.getRawQuery() + "&" : "?")
                                  + "Policy=" + urlSafePolicy
                                  + "&Signature=" + urlSafeSignature
                                  + "&Key-Pair-Id=" + request.keyPairId();
-            return DefaultSignedUrl.builder().protocol(protocol).domain(domain).encodedPath(encodedPath)
-                                   .url(protocol + "://" + domain + encodedPath).build();
+            return DefaultSignedUrl.builder()
+                                   .protocol(protocol)
+                                   .domain(uri.getHost())
+                                   .encodedPath(encodedPath)
+                                   .url(protocol + "://" + uri.getAuthority() + encodedPath)
+                                   .build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign url", e);
         }

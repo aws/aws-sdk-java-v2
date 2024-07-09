@@ -1,0 +1,30 @@
+{
+    "version": "2.25.51",
+    "date": "2024-05-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Adds capability to resolve endpoint and auth scheme parameters of type list of string as well as new functions to JmesPath runtime (keys and wildcard)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge",
+            "contributor": "",
+            "description": "Amazon EventBridge introduces KMS customer-managed key (CMK) encryption support for custom and partner events published on EventBridge Event Bus (including default bus) and UpdateEventBus API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon VPC Lattice",
+            "contributor": "",
+            "description": "This release adds TLS Passthrough support. It also increases max number of target group per rule to 10."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

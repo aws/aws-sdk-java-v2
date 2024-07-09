@@ -51,7 +51,7 @@ def find_v1_equivalent(s):
 
 def write_bom_recipe(f, version):
     change_bom = '''
-  - org.openrewrite.maven.ChangeManagedDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-bom
       newGroupId: software.amazon.awssdk
@@ -59,21 +59,35 @@ def write_bom_recipe(f, version):
       newVersion: {0}'''
     f.write(change_bom.format(version))
 
-def add_dependencies(f, version):
+# Only add apache-client and netty-nio-client if ClientConfiguration is used
+def add_http_client_dependencies_if_needed(f, version):
     add_dependencies_str = '''
-  - org.openrewrite.maven.AddDependency:
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: software.amazon.awssdk
       artifactId: apache-client
       version: {0}
-  - org.openrewrite.maven.AddDependency:
+      onlyIfUsing: com.amazonaws.ClientConfiguration
+  - org.openrewrite.java.dependencies.AddDependency:
       groupId: software.amazon.awssdk
       artifactId: netty-nio-client
-      version: {0}'''
+      version: {0}
+      onlyIfUsing: com.amazonaws.ClientConfiguration'''
+    f.write(add_dependencies_str.format(version))
+
+def replace_core_dependencies(f, version):
+    add_dependencies_str = '''
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.amazonaws
+      oldArtifactId: aws-java-sdk-core
+      newGroupId: software.amazon.awssdk
+      newArtifactId: aws-core
+      newVersion: {0}
+      '''
     f.write(add_dependencies_str.format(version))
 
 def write_cloudwatch_recipe(f, version):
     change_bom = '''
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-cloudwatch
       newGroupId: software.amazon.awssdk
@@ -87,7 +101,8 @@ def write_recipe_yml_file(service_mapping):
     with open(filename, 'w') as f:
         write_copy_right_header(f)
         write_recipe_metadata(f, version)
-        add_dependencies(f, version)
+        add_http_client_dependencies_if_needed(f, version)
+        replace_core_dependencies(f, version)
         write_bom_recipe(f, version)
         for s in service_mapping:
             # edge case : v1 contains modules: cloudwatch AND cloudwatchmetrics, which both map to cloudwatch in v2
@@ -102,13 +117,13 @@ def write_recipe_metadata(f, version):
     f.write('''---
 type: specs.openrewrite.org/v1beta/recipe
 name: software.amazon.awssdk.UpgradeSdkDependencies
-displayName: Change Maven dependency groupId, artifactId and/or the version example
+displayName: Change v1 Maven/Gradle dependencies to v2
 recipeList:
 ''')
 
 def write_recipe(f, s, service_mapping, version):
     change_dependency_group_id_and_artifact_id = '''
-  - org.openrewrite.maven.ChangeDependencyGroupIdAndArtifactId:
+  - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: com.amazonaws
       oldArtifactId: {0}
       newGroupId: software.amazon.awssdk

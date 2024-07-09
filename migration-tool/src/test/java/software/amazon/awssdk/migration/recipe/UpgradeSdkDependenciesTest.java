@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.migration.recipe;
 
+import static org.openrewrite.java.Assertions.java;
+import static org.openrewrite.java.Assertions.mavenProject;
+import static org.openrewrite.java.Assertions.srcMainJava;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 import java.io.IOException;
@@ -25,12 +28,27 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
+import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 public class UpgradeSdkDependenciesTest implements RewriteTest {
 
     private static String sdkVersion;
+
+    private final String useClientConfiguration = "    import com.amazonaws.services.sqs.AmazonSQSClient;\n"
+                                                  + "    import com.amazonaws.ClientConfiguration;\n"
+                                                  + "          public class Test {\n"
+                                                  + "              private ClientConfiguration configuration;\n"
+                                                  + "              private AmazonSQSClient sqsClient;\n"
+                                                  + "          }";
+
+    private final String noClientConfiguration = "    import com.amazonaws.services.sqs.AmazonSQSClient;\n"
+                                                  + "          public class Test {\n"
+                                                  + "              private AmazonSQSClient sqsClient;\n"
+                                                  + "          }";
 
     @BeforeAll
     static void setUp() throws IOException {
@@ -40,7 +58,9 @@ public class UpgradeSdkDependenciesTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         try (InputStream stream = getClass().getResourceAsStream("/META-INF/rewrite/upgrade-sdk-dependencies.yml")) {
-            spec.recipe(stream, "software.amazon.awssdk.UpgradeSdkDependencies");
+            spec.recipe(stream, "software.amazon.awssdk.UpgradeSdkDependencies")
+                .parser(Java8Parser.builder().classpath(
+                "aws-java-sdk-sqs", "aws-java-sdk-core"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -63,10 +83,10 @@ public class UpgradeSdkDependenciesTest implements RewriteTest {
     }
 
     @Test
+    @EnabledOnJre({JRE.JAVA_8})
     void standardClient_shouldChangeDependencyGroupIdAndArtifactId() throws IOException {
-        getVersion();
-        String currentVersion = getVersion();
         rewriteRun(
+            mavenProject("project", srcMainJava(java(noClientConfiguration)),
             pomXml(
                 "                  <project>\n"
                 + "                      <groupId>com.test.app</groupId>\n"
@@ -75,35 +95,88 @@ public class UpgradeSdkDependenciesTest implements RewriteTest {
                 + "                      <dependencies>\n"
                 + "                          <dependency>\n"
                 + "                              <groupId>com.amazonaws</groupId>\n"
+                + "                              <artifactId>aws-java-sdk-core</artifactId>\n"
+                + "                              <version>1.12.100</version>\n"
+                + "                          </dependency>\n"
+                + "                          <dependency>\n"
+                + "                              <groupId>com.amazonaws</groupId>\n"
                 + "                              <artifactId>aws-java-sdk-sqs</artifactId>\n"
                 + "                              <version>1.12.100</version>\n"
                 + "                          </dependency>\n"
                 + "                      </dependencies>\n"
                 + "                  </project>",
-                String.format("                  <project>\n"
-                              + "                      <groupId>com.test.app</groupId>\n"
-                              + "                      <artifactId>my-app</artifactId>\n"
-                              + "                      <version>1</version>\n"
-                              + "                      <dependencies>\n"
-                              + "                          <dependency>\n"
-                              + "                              <groupId>software.amazon.awssdk</groupId>\n"
-                              + "                              <artifactId>sqs</artifactId>\n"
-                              + "                              <version>%1$s</version>\n"
-                              + "                          </dependency>\n"
-                              + "                          <dependency>\n"
-                              + "                              <groupId>software.amazon.awssdk</groupId>\n"
-                              + "                              <artifactId>apache-client</artifactId>\n"
-                              + "                              <version>%1$s</version>\n"
-                              + "                          </dependency>\n"
-                              + "                          <dependency>\n"
-                              + "                              <groupId>software.amazon.awssdk</groupId>\n"
-                              + "                              <artifactId>netty-nio-client</artifactId>\n"
-                              + "                              <version>%1$s</version>\n"
-                              + "                          </dependency>\n"
-                              + "                      </dependencies>\n"
-                              + "                  </project>", currentVersion)
+                String.format("<project>\n"
+                              + "    <groupId>com.test.app</groupId>\n"
+                              + "    <artifactId>my-app</artifactId>\n"
+                              + "    <version>1</version>\n"
+                              + "    <dependencies>\n"
+                              + "        <dependency>\n"
+                              + "            <groupId>software.amazon.awssdk</groupId>\n"
+                              + "            <artifactId>aws-core</artifactId>\n"
+                              + "            <version>%1$s</version>\n"
+                              + "        </dependency>\n"
+                              + "        <dependency>\n"
+                              + "            <groupId>software.amazon.awssdk</groupId>\n"
+                              + "            <artifactId>sqs</artifactId>\n"
+                              + "            <version>%1$s</version>\n"
+                              + "        </dependency>\n"
+                              + "    </dependencies>\n"
+                              + "</project>", sdkVersion)
 
-            )
-        );
+            )));
+    }
+
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
+    void useClientConfiguration_shouldAddHttpDependencies() throws IOException {
+        rewriteRun(
+            mavenProject("project", srcMainJava(java(useClientConfiguration)),
+                         pomXml(
+                             "                  <project>\n"
+                             + "                      <groupId>com.test.app</groupId>\n"
+                             + "                      <artifactId>my-app</artifactId>\n"
+                             + "                      <version>1</version>\n"
+                             + "                      <dependencies>\n"
+                             + "                          <dependency>\n"
+                             + "                              <groupId>com.amazonaws</groupId>\n"
+                             + "                              <artifactId>aws-java-sdk-core</artifactId>\n"
+                             + "                              <version>1.12.100</version>\n"
+                             + "                          </dependency>\n"
+                             + "                          <dependency>\n"
+                             + "                              <groupId>com.amazonaws</groupId>\n"
+                             + "                              <artifactId>aws-java-sdk-sqs</artifactId>\n"
+                             + "                              <version>1.12.100</version>\n"
+                             + "                          </dependency>\n"
+                             + "                      </dependencies>\n"
+                             + "                  </project>",
+                             String.format("<project>\n"
+                                           + "    <groupId>com.test.app</groupId>\n"
+                                           + "    <artifactId>my-app</artifactId>\n"
+                                           + "    <version>1</version>\n"
+                                           + "    <dependencies>\n"
+                                           + "        <dependency>\n"
+                                           + "            <groupId>software.amazon.awssdk</groupId>\n"
+                                           + "            <artifactId>aws-core</artifactId>\n"
+                                           + "            <version>%1$s</version>\n"
+                                           + "        </dependency>\n"
+                                           + "        <dependency>\n"
+                                           + "            <groupId>software.amazon.awssdk</groupId>\n"
+                                           + "            <artifactId>sqs</artifactId>\n"
+                                           + "            <version>%1$s</version>\n"
+                                           + "        </dependency>\n"
+                                           + "        <dependency>\n"
+                                           + "            <groupId>software.amazon.awssdk</groupId>\n"
+                                           + "            <artifactId>apache-client</artifactId>\n"
+                                           + "            <version>%1$s</version>\n"
+                                           + "        </dependency>\n"
+                                           + "        <dependency>\n"
+                                           + "            <groupId>software.amazon.awssdk</groupId>\n"
+                                           + "            <artifactId>netty-nio-client</artifactId>\n"
+                                           + "            <version>%1$s</version>\n"
+                                           + "        </dependency>\n"
+                                           + "    </dependencies>\n"
+                                           + "</project>", sdkVersion)
+
+                         )));
     }
 }

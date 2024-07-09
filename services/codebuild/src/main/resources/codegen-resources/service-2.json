@@ -5,11 +5,13 @@
     "endpointPrefix":"codebuild",
     "jsonVersion":"1.1",
     "protocol":"json",
+    "protocols":["json"],
     "serviceFullName":"AWS CodeBuild",
     "serviceId":"CodeBuild",
     "signatureVersion":"v4",
     "targetPrefix":"CodeBuild_20161006",
-    "uid":"codebuild-2016-10-06"
+    "uid":"codebuild-2016-10-06",
+    "auth":["aws.auth#sigv4"]
   },
   "operations":{
     "BatchDeleteBuilds":{
@@ -580,7 +582,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"AccountLimitExceededException"}
       ],
-      "documentation":"<p>Starts running a build.</p>"
+      "documentation":"<p>Starts running a build with the settings defined in the project. These setting include: how to run a build, where to get the source code, which build environment to use, which build commands to run, and where to store the build output.</p> <p>You can also start a build run by overriding some of the build settings in the project. The overrides only apply for that specific start build request. The settings in the project are unaltered.</p>"
     },
     "StartBuildBatch":{
       "name":"StartBuildBatch",
@@ -732,7 +734,8 @@
       "enum":[
         "OAUTH",
         "BASIC_AUTH",
-        "PERSONAL_ACCESS_TOKEN"
+        "PERSONAL_ACCESS_TOKEN",
+        "CODECONNECTIONS"
       ]
     },
     "BatchDeleteBuildsInput":{
@@ -1012,7 +1015,7 @@
         },
         "timeoutInMinutes":{
           "shape":"WrapperInt",
-          "documentation":"<p>How long, in minutes, for CodeBuild to wait before timing out this build if it does not get marked as completed.</p>"
+          "documentation":"<p>How long, in minutes, from 5 to 2160 (36 hours), for CodeBuild to wait before timing out this build if it does not get marked as completed.</p>"
         },
         "queuedTimeoutInMinutes":{
           "shape":"WrapperInt",
@@ -1422,6 +1425,11 @@
       },
       "documentation":"<p>Contains summary information about a batch build group.</p>"
     },
+    "BuildTimeOut":{
+      "type":"integer",
+      "max":2160,
+      "min":5
+    },
     "Builds":{
       "type":"list",
       "member":{"shape":"Build"}
@@ -1593,6 +1601,15 @@
           "shape":"ScalingConfigurationInput",
           "documentation":"<p>The scaling configuration of the compute fleet.</p>"
         },
+        "overflowBehavior":{
+          "shape":"FleetOverflowBehavior",
+          "documentation":"<p>The compute fleet overflow behavior.</p> <ul> <li> <p>For overflow behavior <code>QUEUE</code>, your overflow builds need to wait on the existing fleet instance to become available.</p> </li> <li> <p>For overflow behavior <code>ON_DEMAND</code>, your overflow builds run on CodeBuild on-demand.</p> <note> <p>If you choose to set your overflow behavior to on-demand while creating a VPC-connected fleet, make sure that you add the required VPC permissions to your project service role. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-create-vpc-network-interface\">Example policy statement to allow CodeBuild access to Amazon Web Services services required to create a VPC network interface</a>.</p> </note> </li> </ul>"
+        },
+        "vpcConfig":{"shape":"VpcConfig"},
+        "fleetServiceRole":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The service role associated with the compute fleet. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-permission-policy-fleet-service-role.html\"> Allow a user to add a permission policy for a fleet service role</a> in the <i>CodeBuild User Guide</i>.</p>"
+        },
         "tags":{
           "shape":"TagList",
           "documentation":"<p>A list of tag key and value pairs associated with this compute fleet.</p> <p>These tags are available for use by Amazon Web Services services that support CodeBuild build project tags.</p>"
@@ -1636,7 +1653,7 @@
         },
         "sourceVersion":{
           "shape":"String",
-          "documentation":"<p>A version of the build input to be built for this project. If not specified, the latest version is used. If specified, it must be one of: </p> <ul> <li> <p>For CodeCommit: the commit ID, branch, or Git tag to use.</p> </li> <li> <p>For GitHub: the commit ID, pull request ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a pull request ID is specified, it must use the format <code>pr/pull-request-ID</code> (for example <code>pr/25</code>). If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For Bitbucket: the commit ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For Amazon S3: the version ID of the object that represents the build input ZIP file to use.</p> </li> </ul> <p>If <code>sourceVersion</code> is specified at the build level, then that version takes precedence over this <code>sourceVersion</code> (at the project level). </p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/sample-source-version.html\">Source Version Sample with CodeBuild</a> in the <i>CodeBuild User Guide</i>. </p>"
+          "documentation":"<p>A version of the build input to be built for this project. If not specified, the latest version is used. If specified, it must be one of: </p> <ul> <li> <p>For CodeCommit: the commit ID, branch, or Git tag to use.</p> </li> <li> <p>For GitHub: the commit ID, pull request ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a pull request ID is specified, it must use the format <code>pr/pull-request-ID</code> (for example <code>pr/25</code>). If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For GitLab: the commit ID, branch, or Git tag to use.</p> </li> <li> <p>For Bitbucket: the commit ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For Amazon S3: the version ID of the object that represents the build input ZIP file to use.</p> </li> </ul> <p>If <code>sourceVersion</code> is specified at the build level, then that version takes precedence over this <code>sourceVersion</code> (at the project level). </p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/sample-source-version.html\">Source Version Sample with CodeBuild</a> in the <i>CodeBuild User Guide</i>. </p>"
         },
         "secondarySourceVersions":{
           "shape":"ProjectSecondarySourceVersions",
@@ -1663,8 +1680,8 @@
           "documentation":"<p>The ARN of the IAM role that enables CodeBuild to interact with dependent Amazon Web Services services on behalf of the Amazon Web Services account.</p>"
         },
         "timeoutInMinutes":{
-          "shape":"TimeOut",
-          "documentation":"<p>How long, in minutes, from 5 to 480 (8 hours), for CodeBuild to wait before it times out any build that has not been marked as completed. The default is 60 minutes.</p>"
+          "shape":"BuildTimeOut",
+          "documentation":"<p>How long, in minutes, from 5 to 2160 (36 hours), for CodeBuild to wait before it times out any build that has not been marked as completed. The default is 60 minutes.</p>"
         },
         "queuedTimeoutInMinutes":{
           "shape":"TimeOut",
@@ -1680,7 +1697,7 @@
         },
         "vpcConfig":{
           "shape":"VpcConfig",
-          "documentation":"<p>VpcConfig enables CodeBuild to access resources in an Amazon VPC.</p>"
+          "documentation":"<p>VpcConfig enables CodeBuild to access resources in an Amazon VPC.</p> <note> <p>If you're using compute fleets during project creation, do not provide vpcConfig.</p> </note>"
         },
         "badgeEnabled":{
           "shape":"WrapperBoolean",
@@ -1767,6 +1784,14 @@
         "buildType":{
           "shape":"WebhookBuildType",
           "documentation":"<p>Specifies the type of build this webhook will trigger.</p>"
+        },
+        "manualCreation":{
+          "shape":"WrapperBoolean",
+          "documentation":"<p>If manualCreation is true, CodeBuild doesn't create a webhook in GitHub and instead returns <code>payloadUrl</code> and <code>secret</code> values for the webhook. The <code>payloadUrl</code> and <code>secret</code> values in the output can be used to manually create a webhook within GitHub.</p> <note> <p> <code>manualCreation</code> is only available for GitHub webhooks.</p> </note>"
+        },
+        "scopeConfiguration":{
+          "shape":"ScopeConfiguration",
+          "documentation":"<p>The scope configuration for global or organization webhooks.</p> <note> <p>Global or organization webhooks are only available for GitHub and Github Enterprise webhooks.</p> </note>"
         }
       }
     },
@@ -2196,6 +2221,15 @@
           "shape":"ScalingConfigurationOutput",
           "documentation":"<p>The scaling configuration of the compute fleet.</p>"
         },
+        "overflowBehavior":{
+          "shape":"FleetOverflowBehavior",
+          "documentation":"<p>The compute fleet overflow behavior.</p> <ul> <li> <p>For overflow behavior <code>QUEUE</code>, your overflow builds need to wait on the existing fleet instance to become available.</p> </li> <li> <p>For overflow behavior <code>ON_DEMAND</code>, your overflow builds run on CodeBuild on-demand.</p> <note> <p>If you choose to set your overflow behavior to on-demand while creating a VPC-connected fleet, make sure that you add the required VPC permissions to your project service role. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-create-vpc-network-interface\">Example policy statement to allow CodeBuild access to Amazon Web Services services required to create a VPC network interface</a>.</p> </note> </li> </ul>"
+        },
+        "vpcConfig":{"shape":"VpcConfig"},
+        "fleetServiceRole":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The service role associated with the compute fleet. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-permission-policy-fleet-service-role.html\"> Allow a user to add a permission policy for a fleet service role</a> in the <i>CodeBuild User Guide</i>.</p>"
+        },
         "tags":{
           "shape":"TagList",
           "documentation":"<p>A list of tag key and value pairs associated with this compute fleet.</p> <p>These tags are available for use by Amazon Web Services services that support CodeBuild build project tags.</p>"
@@ -2217,7 +2251,8 @@
       "type":"string",
       "enum":[
         "CREATE_FAILED",
-        "UPDATE_FAILED"
+        "UPDATE_FAILED",
+        "ACTION_REQUIRED"
       ]
     },
     "FleetName":{
@@ -2231,6 +2266,13 @@
       "member":{"shape":"NonEmptyString"},
       "max":100,
       "min":1
+    },
+    "FleetOverflowBehavior":{
+      "type":"string",
+      "enum":[
+        "QUEUE",
+        "ON_DEMAND"
+      ]
     },
     "FleetScalingMetricType":{
       "type":"string",
@@ -2253,7 +2295,7 @@
       "members":{
         "statusCode":{
           "shape":"FleetStatusCode",
-          "documentation":"<p>The status code of the compute fleet. Valid values include:</p> <ul> <li> <p> <code>CREATING</code>: The compute fleet is being created.</p> </li> <li> <p> <code>UPDATING</code>: The compute fleet is being updated.</p> </li> <li> <p> <code>ROTATING</code>: The compute fleet is being rotated.</p> </li> <li> <p> <code>DELETING</code>: The compute fleet is being deleted.</p> </li> <li> <p> <code>CREATE_FAILED</code>: The compute fleet has failed to create.</p> </li> <li> <p> <code>UPDATE_ROLLBACK_FAILED</code>: The compute fleet has failed to update and could not rollback to previous state.</p> </li> <li> <p> <code>ACTIVE</code>: The compute fleet has succeeded and is active.</p> </li> </ul>"
+          "documentation":"<p>The status code of the compute fleet. Valid values include:</p> <ul> <li> <p> <code>CREATING</code>: The compute fleet is being created.</p> </li> <li> <p> <code>UPDATING</code>: The compute fleet is being updated.</p> </li> <li> <p> <code>ROTATING</code>: The compute fleet is being rotated.</p> </li> <li> <p> <code>PENDING_DELETION</code>: The compute fleet is pending deletion.</p> </li> <li> <p> <code>DELETING</code>: The compute fleet is being deleted.</p> </li> <li> <p> <code>CREATE_FAILED</code>: The compute fleet has failed to create.</p> </li> <li> <p> <code>UPDATE_ROLLBACK_FAILED</code>: The compute fleet has failed to update and could not rollback to previous state.</p> </li> <li> <p> <code>ACTIVE</code>: The compute fleet has succeeded and is active.</p> </li> </ul>"
         },
         "context":{
           "shape":"FleetContextCode",
@@ -2272,6 +2314,7 @@
         "CREATING",
         "UPDATING",
         "ROTATING",
+        "PENDING_DELETION",
         "DELETING",
         "CREATE_FAILED",
         "UPDATE_ROLLBACK_FAILED",
@@ -2381,7 +2424,7 @@
         },
         "token":{
           "shape":"SensitiveNonEmptyString",
-          "documentation":"<p> For GitHub or GitHub Enterprise, this is the personal access token. For Bitbucket, this is the app password. </p>"
+          "documentation":"<p> For GitHub or GitHub Enterprise, this is the personal access token. For Bitbucket, this is either the access token or the app password. For the <code>authType</code> CODECONNECTIONS, this is the <code>connectionArn</code>.</p>"
         },
         "serverType":{
           "shape":"ServerType",
@@ -2389,7 +2432,7 @@
         },
         "authType":{
           "shape":"AuthType",
-          "documentation":"<p> The type of authentication used to connect to a GitHub, GitHub Enterprise, or Bitbucket repository. An OAUTH connection is not supported by the API and must be created using the CodeBuild console. </p>"
+          "documentation":"<p> The type of authentication used to connect to a GitHub, GitHub Enterprise, GitLab, GitLab Self Managed, or Bitbucket repository. An OAUTH connection is not supported by the API and must be created using the CodeBuild console. Note that CODECONNECTIONS is only valid for GitLab and GitLab Self Managed.</p>"
         },
         "shouldOverwrite":{
           "shape":"WrapperBoolean",
@@ -2995,7 +3038,7 @@
         },
         "sourceVersion":{
           "shape":"String",
-          "documentation":"<p>A version of the build input to be built for this project. If not specified, the latest version is used. If specified, it must be one of:</p> <ul> <li> <p>For CodeCommit: the commit ID, branch, or Git tag to use.</p> </li> <li> <p>For GitHub: the commit ID, pull request ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a pull request ID is specified, it must use the format <code>pr/pull-request-ID</code> (for example <code>pr/25</code>). If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For Bitbucket: the commit ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For Amazon S3: the version ID of the object that represents the build input ZIP file to use.</p> </li> </ul> <p>If <code>sourceVersion</code> is specified at the build level, then that version takes precedence over this <code>sourceVersion</code> (at the project level). </p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/sample-source-version.html\">Source Version Sample with CodeBuild</a> in the <i>CodeBuild User Guide</i>. </p>"
+          "documentation":"<p>A version of the build input to be built for this project. If not specified, the latest version is used. If specified, it must be one of:</p> <ul> <li> <p>For CodeCommit: the commit ID, branch, or Git tag to use.</p> </li> <li> <p>For GitHub: the commit ID, pull request ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a pull request ID is specified, it must use the format <code>pr/pull-request-ID</code> (for example <code>pr/25</code>). If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For GitLab: the commit ID, branch, or Git tag to use.</p> </li> <li> <p>For Bitbucket: the commit ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For Amazon S3: the version ID of the object that represents the build input ZIP file to use.</p> </li> </ul> <p>If <code>sourceVersion</code> is specified at the build level, then that version takes precedence over this <code>sourceVersion</code> (at the project level). </p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/sample-source-version.html\">Source Version Sample with CodeBuild</a> in the <i>CodeBuild User Guide</i>. </p>"
         },
         "secondarySourceVersions":{
           "shape":"ProjectSecondarySourceVersions",
@@ -3022,8 +3065,8 @@
           "documentation":"<p>The ARN of the IAM role that enables CodeBuild to interact with dependent Amazon Web Services services on behalf of the Amazon Web Services account.</p>"
         },
         "timeoutInMinutes":{
-          "shape":"TimeOut",
-          "documentation":"<p>How long, in minutes, from 5 to 480 (8 hours), for CodeBuild to wait before timing out any related build that did not get marked as completed. The default is 60 minutes.</p>"
+          "shape":"BuildTimeOut",
+          "documentation":"<p>How long, in minutes, from 5 to 2160 (36 hours), for CodeBuild to wait before timing out any related build that did not get marked as completed. The default is 60 minutes.</p>"
         },
         "queuedTimeoutInMinutes":{
           "shape":"TimeOut",
@@ -3298,9 +3341,9 @@
     },
     "ProjectName":{
       "type":"string",
-      "max":255,
+      "max":150,
       "min":2,
-      "pattern":"[A-Za-z0-9][A-Za-z0-9\\-_]{1,254}"
+      "pattern":"[A-Za-z0-9][A-Za-z0-9\\-_]{1,149}"
     },
     "ProjectNames":{
       "type":"list",
@@ -3328,11 +3371,11 @@
       "members":{
         "type":{
           "shape":"SourceType",
-          "documentation":"<p>The type of repository that contains the source code to be built. Valid values include:</p> <ul> <li> <p> <code>BITBUCKET</code>: The source code is in a Bitbucket repository.</p> </li> <li> <p> <code>CODECOMMIT</code>: The source code is in an CodeCommit repository.</p> </li> <li> <p> <code>CODEPIPELINE</code>: The source code settings are specified in the source action of a pipeline in CodePipeline.</p> </li> <li> <p> <code>GITHUB</code>: The source code is in a GitHub or GitHub Enterprise Cloud repository.</p> </li> <li> <p> <code>GITHUB_ENTERPRISE</code>: The source code is in a GitHub Enterprise Server repository.</p> </li> <li> <p> <code>NO_SOURCE</code>: The project does not have input source code.</p> </li> <li> <p> <code>S3</code>: The source code is in an Amazon S3 bucket.</p> </li> </ul>"
+          "documentation":"<p>The type of repository that contains the source code to be built. Valid values include:</p> <ul> <li> <p> <code>BITBUCKET</code>: The source code is in a Bitbucket repository.</p> </li> <li> <p> <code>CODECOMMIT</code>: The source code is in an CodeCommit repository.</p> </li> <li> <p> <code>CODEPIPELINE</code>: The source code settings are specified in the source action of a pipeline in CodePipeline.</p> </li> <li> <p> <code>GITHUB</code>: The source code is in a GitHub repository.</p> </li> <li> <p> <code>GITHUB_ENTERPRISE</code>: The source code is in a GitHub Enterprise Server repository.</p> </li> <li> <p> <code>GITLAB</code>: The source code is in a GitLab repository.</p> </li> <li> <p> <code>GITLAB_SELF_MANAGED</code>: The source code is in a self-managed GitLab repository.</p> </li> <li> <p> <code>NO_SOURCE</code>: The project does not have input source code.</p> </li> <li> <p> <code>S3</code>: The source code is in an Amazon S3 bucket.</p> </li> </ul>"
         },
         "location":{
           "shape":"String",
-          "documentation":"<p>Information about the location of the source code to be built. Valid values include:</p> <ul> <li> <p>For source code settings that are specified in the source action of a pipeline in CodePipeline, <code>location</code> should not be specified. If it is specified, CodePipeline ignores it. This is because CodePipeline uses the settings in a pipeline's source action instead of this value.</p> </li> <li> <p>For source code in an CodeCommit repository, the HTTPS clone URL to the repository that contains the source code and the buildspec file (for example, <code>https://git-codecommit.&lt;region-ID&gt;.amazonaws.com/v1/repos/&lt;repo-name&gt;</code>).</p> </li> <li> <p>For source code in an Amazon S3 input bucket, one of the following. </p> <ul> <li> <p>The path to the ZIP file that contains the source code (for example, <code>&lt;bucket-name&gt;/&lt;path&gt;/&lt;object-name&gt;.zip</code>). </p> </li> <li> <p>The path to the folder that contains the source code (for example, <code>&lt;bucket-name&gt;/&lt;path-to-source-code&gt;/&lt;folder&gt;/</code>). </p> </li> </ul> </li> <li> <p>For source code in a GitHub repository, the HTTPS clone URL to the repository that contains the source and the buildspec file. You must connect your Amazon Web Services account to your GitHub account. Use the CodeBuild console to start creating a build project. When you use the console to connect (or reconnect) with GitHub, on the GitHub <b>Authorize application</b> page, for <b>Organization access</b>, choose <b>Request access</b> next to each repository you want to allow CodeBuild to have access to, and then choose <b>Authorize application</b>. (After you have connected to your GitHub account, you do not need to finish creating the build project. You can leave the CodeBuild console.) To instruct CodeBuild to use this connection, in the <code>source</code> object, set the <code>auth</code> object's <code>type</code> value to <code>OAUTH</code>.</p> </li> <li> <p>For source code in a Bitbucket repository, the HTTPS clone URL to the repository that contains the source and the buildspec file. You must connect your Amazon Web Services account to your Bitbucket account. Use the CodeBuild console to start creating a build project. When you use the console to connect (or reconnect) with Bitbucket, on the Bitbucket <b>Confirm access to your account</b> page, choose <b>Grant access</b>. (After you have connected to your Bitbucket account, you do not need to finish creating the build project. You can leave the CodeBuild console.) To instruct CodeBuild to use this connection, in the <code>source</code> object, set the <code>auth</code> object's <code>type</code> value to <code>OAUTH</code>.</p> </li> </ul> <p> If you specify <code>CODEPIPELINE</code> for the <code>Type</code> property, don't specify this property. For all of the other types, you must specify <code>Location</code>. </p>"
+          "documentation":"<p>Information about the location of the source code to be built. Valid values include:</p> <ul> <li> <p>For source code settings that are specified in the source action of a pipeline in CodePipeline, <code>location</code> should not be specified. If it is specified, CodePipeline ignores it. This is because CodePipeline uses the settings in a pipeline's source action instead of this value.</p> </li> <li> <p>For source code in an CodeCommit repository, the HTTPS clone URL to the repository that contains the source code and the buildspec file (for example, <code>https://git-codecommit.&lt;region-ID&gt;.amazonaws.com/v1/repos/&lt;repo-name&gt;</code>).</p> </li> <li> <p>For source code in an Amazon S3 input bucket, one of the following. </p> <ul> <li> <p>The path to the ZIP file that contains the source code (for example, <code>&lt;bucket-name&gt;/&lt;path&gt;/&lt;object-name&gt;.zip</code>). </p> </li> <li> <p>The path to the folder that contains the source code (for example, <code>&lt;bucket-name&gt;/&lt;path-to-source-code&gt;/&lt;folder&gt;/</code>). </p> </li> </ul> </li> <li> <p>For source code in a GitHub repository, the HTTPS clone URL to the repository that contains the source and the buildspec file. You must connect your Amazon Web Services account to your GitHub account. Use the CodeBuild console to start creating a build project. When you use the console to connect (or reconnect) with GitHub, on the GitHub <b>Authorize application</b> page, for <b>Organization access</b>, choose <b>Request access</b> next to each repository you want to allow CodeBuild to have access to, and then choose <b>Authorize application</b>. (After you have connected to your GitHub account, you do not need to finish creating the build project. You can leave the CodeBuild console.) To instruct CodeBuild to use this connection, in the <code>source</code> object, set the <code>auth</code> object's <code>type</code> value to <code>OAUTH</code>.</p> </li> <li> <p>For source code in an GitLab or self-managed GitLab repository, the HTTPS clone URL to the repository that contains the source and the buildspec file. You must connect your Amazon Web Services account to your GitLab account. Use the CodeBuild console to start creating a build project. When you use the console to connect (or reconnect) with GitLab, on the Connections <b>Authorize application</b> page, choose <b>Authorize</b>. Then on the CodeConnections <b>Create GitLab connection</b> page, choose <b>Connect to GitLab</b>. (After you have connected to your GitLab account, you do not need to finish creating the build project. You can leave the CodeBuild console.) To instruct CodeBuild to override the default connection and use this connection instead, set the <code>auth</code> object's <code>type</code> value to <code>CODECONNECTIONS</code> in the <code>source</code> object.</p> </li> <li> <p>For source code in a Bitbucket repository, the HTTPS clone URL to the repository that contains the source and the buildspec file. You must connect your Amazon Web Services account to your Bitbucket account. Use the CodeBuild console to start creating a build project. When you use the console to connect (or reconnect) with Bitbucket, on the Bitbucket <b>Confirm access to your account</b> page, choose <b>Grant access</b>. (After you have connected to your Bitbucket account, you do not need to finish creating the build project. You can leave the CodeBuild console.) To instruct CodeBuild to use this connection, in the <code>source</code> object, set the <code>auth</code> object's <code>type</code> value to <code>OAUTH</code>.</p> </li> </ul> <p> If you specify <code>CODEPIPELINE</code> for the <code>Type</code> property, don't specify this property. For all of the other types, you must specify <code>Location</code>. </p>"
         },
         "gitCloneDepth":{
           "shape":"GitCloneDepth",
@@ -3352,7 +3395,7 @@
         },
         "reportBuildStatus":{
           "shape":"WrapperBoolean",
-          "documentation":"<p> Set to true to report the status of a build's start and finish to your source provider. This option is valid only when your source provider is GitHub, GitHub Enterprise, or Bitbucket. If this is set and you use a different source provider, an <code>invalidInputException</code> is thrown. </p> <p>To be able to report the build status to the source provider, the user associated with the source provider must have write access to the repo. If the user does not have write access, the build status cannot be updated. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/access-tokens.html\">Source provider access</a> in the <i>CodeBuild User Guide</i>.</p> <p>The status of a build triggered by a webhook is always reported to your source provider. </p> <p>If your project's builds are triggered by a webhook, you must push a new commit to the repo for a change to this property to take effect.</p>"
+          "documentation":"<p> Set to true to report the status of a build's start and finish to your source provider. This option is valid only when your source provider is GitHub, GitHub Enterprise, GitLab, GitLab Self Managed, or Bitbucket. If this is set and you use a different source provider, an <code>invalidInputException</code> is thrown. </p> <p>To be able to report the build status to the source provider, the user associated with the source provider must have write access to the repo. If the user does not have write access, the build status cannot be updated. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/access-tokens.html\">Source provider access</a> in the <i>CodeBuild User Guide</i>.</p> <p>The status of a build triggered by a webhook is always reported to your source provider. </p> <p>If your project's builds are triggered by a webhook, you must push a new commit to the repo for a change to this property to take effect.</p>"
         },
         "buildStatusConfig":{
           "shape":"BuildStatusConfig",
@@ -3382,7 +3425,7 @@
         },
         "sourceVersion":{
           "shape":"String",
-          "documentation":"<p>The source version for the corresponding source identifier. If specified, must be one of:</p> <ul> <li> <p>For CodeCommit: the commit ID, branch, or Git tag to use.</p> </li> <li> <p>For GitHub: the commit ID, pull request ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a pull request ID is specified, it must use the format <code>pr/pull-request-ID</code> (for example, <code>pr/25</code>). If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For Bitbucket: the commit ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For Amazon S3: the version ID of the object that represents the build input ZIP file to use.</p> </li> </ul> <p> For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/sample-source-version.html\">Source Version Sample with CodeBuild</a> in the <i>CodeBuild User Guide</i>. </p>"
+          "documentation":"<p>The source version for the corresponding source identifier. If specified, must be one of:</p> <ul> <li> <p>For CodeCommit: the commit ID, branch, or Git tag to use.</p> </li> <li> <p>For GitHub: the commit ID, pull request ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a pull request ID is specified, it must use the format <code>pr/pull-request-ID</code> (for example, <code>pr/25</code>). If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For GitLab: the commit ID, branch, or Git tag to use.</p> </li> <li> <p>For Bitbucket: the commit ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For Amazon S3: the version ID of the object that represents the build input ZIP file to use.</p> </li> </ul> <p> For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/sample-source-version.html\">Source Version Sample with CodeBuild</a> in the <i>CodeBuild User Guide</i>. </p>"
         }
       },
       "documentation":"<p> A source identifier and its corresponding version. </p>"
@@ -3877,6 +3920,28 @@
       },
       "documentation":"<p>The scaling configuration output of a compute fleet.</p>"
     },
+    "ScopeConfiguration":{
+      "type":"structure",
+      "required":[
+        "name",
+        "scope"
+      ],
+      "members":{
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of either the enterprise or organization that will send webhook events to CodeBuild, depending on if the webhook is a global or organization webhook respectively.</p>"
+        },
+        "domain":{
+          "shape":"String",
+          "documentation":"<p>The domain of the GitHub Enterprise organization. Note that this parameter is only required if your project's source type is GITHUB_ENTERPRISE</p>"
+        },
+        "scope":{
+          "shape":"WebhookScopeType",
+          "documentation":"<p>The type of scope for a GitHub webhook.</p>"
+        }
+      },
+      "documentation":"<p>Contains configuration information about the scope for a webhook. </p>"
+    },
     "SecurityGroupIds":{
       "type":"list",
       "member":{"shape":"NonEmptyString"},
@@ -3896,7 +3961,9 @@
       "enum":[
         "GITHUB",
         "BITBUCKET",
-        "GITHUB_ENTERPRISE"
+        "GITHUB_ENTERPRISE",
+        "GITLAB",
+        "GITLAB_SELF_MANAGED"
       ]
     },
     "SharedResourceSortByType":{
@@ -3919,7 +3986,7 @@
       "members":{
         "type":{
           "shape":"SourceAuthType",
-          "documentation":"<note> <p> This data type is deprecated and is no longer accurate or used. </p> </note> <p>The authorization type to use. The only valid value is <code>OAUTH</code>, which represents the OAuth authorization type.</p>"
+          "documentation":"<p>The authorization type to use. Valid options are OAUTH or CODECONNECTIONS.</p>"
         },
         "resource":{
           "shape":"String",
@@ -3930,7 +3997,10 @@
     },
     "SourceAuthType":{
       "type":"string",
-      "enum":["OAUTH"]
+      "enum":[
+        "OAUTH",
+        "CODECONNECTIONS"
+      ]
     },
     "SourceCredentialsInfo":{
       "type":"structure",
@@ -3941,14 +4011,18 @@
         },
         "serverType":{
           "shape":"ServerType",
-          "documentation":"<p> The type of source provider. The valid options are GITHUB, GITHUB_ENTERPRISE, or BITBUCKET. </p>"
+          "documentation":"<p> The type of source provider. The valid options are GITHUB, GITHUB_ENTERPRISE, GITLAB, GITLAB_SELF_MANAGED, or BITBUCKET. </p>"
         },
         "authType":{
           "shape":"AuthType",
-          "documentation":"<p> The type of authentication used by the credentials. Valid options are OAUTH, BASIC_AUTH, or PERSONAL_ACCESS_TOKEN. </p>"
+          "documentation":"<p> The type of authentication used by the credentials. Valid options are OAUTH, BASIC_AUTH, PERSONAL_ACCESS_TOKEN, or CODECONNECTIONS. </p>"
+        },
+        "resource":{
+          "shape":"String",
+          "documentation":"<p>The connection ARN if your serverType type is GITLAB or GITLAB_SELF_MANAGED and your authType is CODECONNECTIONS.</p>"
         }
       },
-      "documentation":"<p> Information about the credentials for a GitHub, GitHub Enterprise, or Bitbucket repository. </p>"
+      "documentation":"<p> Information about the credentials for a GitHub, GitHub Enterprise, GitLab, GitLab Self Managed, or Bitbucket repository. </p>"
     },
     "SourceCredentialsInfos":{
       "type":"list",
@@ -3960,6 +4034,8 @@
         "CODECOMMIT",
         "CODEPIPELINE",
         "GITHUB",
+        "GITLAB",
+        "GITLAB_SELF_MANAGED",
         "S3",
         "BITBUCKET",
         "GITHUB_ENTERPRISE",
@@ -4059,7 +4135,7 @@
           "documentation":"<p>Enable this flag to override privileged mode in the batch build project.</p>"
         },
         "buildTimeoutInMinutesOverride":{
-          "shape":"TimeOut",
+          "shape":"BuildTimeOut",
           "documentation":"<p>Overrides the build timeout specified in the batch build project.</p>"
         },
         "queuedTimeoutInMinutesOverride":{
@@ -4123,7 +4199,7 @@
         },
         "sourceVersion":{
           "shape":"String",
-          "documentation":"<p>The version of the build input to be built, for this build only. If not specified, the latest version is used. If specified, the contents depends on the source provider:</p> <dl> <dt>CodeCommit</dt> <dd> <p>The commit ID, branch, or Git tag to use.</p> </dd> <dt>GitHub</dt> <dd> <p>The commit ID, pull request ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a pull request ID is specified, it must use the format <code>pr/pull-request-ID</code> (for example <code>pr/25</code>). If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </dd> <dt>Bitbucket</dt> <dd> <p>The commit ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </dd> <dt>Amazon S3</dt> <dd> <p>The version ID of the object that represents the build input ZIP file to use.</p> </dd> </dl> <p>If <code>sourceVersion</code> is specified at the project level, then this <code>sourceVersion</code> (at the build level) takes precedence. </p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/sample-source-version.html\">Source Version Sample with CodeBuild</a> in the <i>CodeBuild User Guide</i>. </p>"
+          "documentation":"<p>The version of the build input to be built, for this build only. If not specified, the latest version is used. If specified, the contents depends on the source provider:</p> <dl> <dt>CodeCommit</dt> <dd> <p>The commit ID, branch, or Git tag to use.</p> </dd> <dt>GitHub</dt> <dd> <p>The commit ID, pull request ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a pull request ID is specified, it must use the format <code>pr/pull-request-ID</code> (for example <code>pr/25</code>). If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </dd> <dt>GitLab</dt> <dd> <p>The commit ID, branch, or Git tag to use.</p> </dd> <dt>Bitbucket</dt> <dd> <p>The commit ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </dd> <dt>Amazon S3</dt> <dd> <p>The version ID of the object that represents the build input ZIP file to use.</p> </dd> </dl> <p>If <code>sourceVersion</code> is specified at the project level, then this <code>sourceVersion</code> (at the build level) takes precedence. </p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/sample-source-version.html\">Source Version Sample with CodeBuild</a> in the <i>CodeBuild User Guide</i>. </p>"
         },
         "artifactsOverride":{
           "shape":"ProjectArtifacts",
@@ -4147,7 +4223,7 @@
         },
         "sourceAuthOverride":{
           "shape":"SourceAuth",
-          "documentation":"<p>An authorization type for this build that overrides the one defined in the build project. This override applies only if the build project's source is BitBucket or GitHub.</p>"
+          "documentation":"<p>An authorization type for this build that overrides the one defined in the build project. This override applies only if the build project's source is BitBucket, GitHub, GitLab, or GitLab Self Managed.</p>"
         },
         "gitCloneDepthOverride":{
           "shape":"GitCloneDepth",
@@ -4159,7 +4235,7 @@
         },
         "buildspecOverride":{
           "shape":"String",
-          "documentation":"<p>A buildspec file declaration that overrides, for this build only, the latest one already defined in the build project.</p> <p> If this value is set, it can be either an inline buildspec definition, the path to an alternate buildspec file relative to the value of the built-in <code>CODEBUILD_SRC_DIR</code> environment variable, or the path to an S3 bucket. The bucket must be in the same Amazon Web Services Region as the build project. Specify the buildspec file using its ARN (for example, <code>arn:aws:s3:::my-codebuild-sample2/buildspec.yml</code>). If this value is not provided or is set to an empty string, the source code must contain a buildspec file in its root directory. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html#build-spec-ref-name-storage\">Buildspec File Name and Storage Location</a>. </p>"
+          "documentation":"<p>A buildspec file declaration that overrides the latest one defined in the build project, for this build only. The buildspec defined on the project is not changed.</p> <p>If this value is set, it can be either an inline buildspec definition, the path to an alternate buildspec file relative to the value of the built-in <code>CODEBUILD_SRC_DIR</code> environment variable, or the path to an S3 bucket. The bucket must be in the same Amazon Web Services Region as the build project. Specify the buildspec file using its ARN (for example, <code>arn:aws:s3:::my-codebuild-sample2/buildspec.yml</code>). If this value is not provided or is set to an empty string, the source code must contain a buildspec file in its root directory. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html#build-spec-ref-name-storage\">Buildspec File Name and Storage Location</a>.</p> <note> <p>Since this property allows you to change the build commands that will run in the container, you should note that an IAM principal with the ability to call this API and set this parameter can override the default settings. Moreover, we encourage that you use a trustworthy buildspec location like a file in your source repository or a Amazon S3 bucket.</p> </note>"
         },
         "insecureSslOverride":{
           "shape":"WrapperBoolean",
@@ -4202,8 +4278,8 @@
           "documentation":"<p>Enable this flag to override privileged mode in the build project.</p>"
         },
         "timeoutInMinutesOverride":{
-          "shape":"TimeOut",
-          "documentation":"<p>The number of build timeout minutes, from 5 to 480 (8 hours), that overrides, for this build only, the latest setting already defined in the build project.</p>"
+          "shape":"BuildTimeOut",
+          "documentation":"<p>The number of build timeout minutes, from 5 to 2160 (36 hours), that overrides, for this build only, the latest setting already defined in the build project.</p>"
         },
         "queuedTimeoutInMinutesOverride":{
           "shape":"TimeOut",
@@ -4447,6 +4523,15 @@
           "shape":"ScalingConfigurationInput",
           "documentation":"<p>The scaling configuration of the compute fleet.</p>"
         },
+        "overflowBehavior":{
+          "shape":"FleetOverflowBehavior",
+          "documentation":"<p>The compute fleet overflow behavior.</p> <ul> <li> <p>For overflow behavior <code>QUEUE</code>, your overflow builds need to wait on the existing fleet instance to become available.</p> </li> <li> <p>For overflow behavior <code>ON_DEMAND</code>, your overflow builds run on CodeBuild on-demand.</p> <note> <p>If you choose to set your overflow behavior to on-demand while creating a VPC-connected fleet, make sure that you add the required VPC permissions to your project service role. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-create-vpc-network-interface\">Example policy statement to allow CodeBuild access to Amazon Web Services services required to create a VPC network interface</a>.</p> </note> </li> </ul>"
+        },
+        "vpcConfig":{"shape":"VpcConfig"},
+        "fleetServiceRole":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The service role associated with the compute fleet. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-permission-policy-fleet-service-role.html\"> Allow a user to add a permission policy for a fleet service role</a> in the <i>CodeBuild User Guide</i>.</p>"
+        },
         "tags":{
           "shape":"TagList",
           "documentation":"<p>A list of tag key and value pairs associated with this compute fleet.</p> <p>These tags are available for use by Amazon Web Services services that support CodeBuild build project tags.</p>"
@@ -4484,7 +4569,7 @@
         },
         "sourceVersion":{
           "shape":"String",
-          "documentation":"<p> A version of the build input to be built for this project. If not specified, the latest version is used. If specified, it must be one of: </p> <ul> <li> <p>For CodeCommit: the commit ID, branch, or Git tag to use.</p> </li> <li> <p>For GitHub: the commit ID, pull request ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a pull request ID is specified, it must use the format <code>pr/pull-request-ID</code> (for example <code>pr/25</code>). If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For Bitbucket: the commit ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For Amazon S3: the version ID of the object that represents the build input ZIP file to use.</p> </li> </ul> <p> If <code>sourceVersion</code> is specified at the build level, then that version takes precedence over this <code>sourceVersion</code> (at the project level). </p> <p> For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/sample-source-version.html\">Source Version Sample with CodeBuild</a> in the <i>CodeBuild User Guide</i>. </p>"
+          "documentation":"<p> A version of the build input to be built for this project. If not specified, the latest version is used. If specified, it must be one of: </p> <ul> <li> <p>For CodeCommit: the commit ID, branch, or Git tag to use.</p> </li> <li> <p>For GitHub: the commit ID, pull request ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a pull request ID is specified, it must use the format <code>pr/pull-request-ID</code> (for example <code>pr/25</code>). If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For GitLab: the commit ID, branch, or Git tag to use.</p> </li> <li> <p>For Bitbucket: the commit ID, branch name, or tag name that corresponds to the version of the source code you want to build. If a branch name is specified, the branch's HEAD commit ID is used. If not specified, the default branch's HEAD commit ID is used.</p> </li> <li> <p>For Amazon S3: the version ID of the object that represents the build input ZIP file to use.</p> </li> </ul> <p> If <code>sourceVersion</code> is specified at the build level, then that version takes precedence over this <code>sourceVersion</code> (at the project level). </p> <p> For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/sample-source-version.html\">Source Version Sample with CodeBuild</a> in the <i>CodeBuild User Guide</i>. </p>"
         },
         "secondarySourceVersions":{
           "shape":"ProjectSecondarySourceVersions",
@@ -4511,8 +4596,8 @@
           "documentation":"<p>The replacement ARN of the IAM role that enables CodeBuild to interact with dependent Amazon Web Services services on behalf of the Amazon Web Services account.</p>"
         },
         "timeoutInMinutes":{
-          "shape":"TimeOut",
-          "documentation":"<p>The replacement value in minutes, from 5 to 480 (8 hours), for CodeBuild to wait before timing out any related build that did not get marked as completed.</p>"
+          "shape":"BuildTimeOut",
+          "documentation":"<p>The replacement value in minutes, from 5 to 2160 (36 hours), for CodeBuild to wait before timing out any related build that did not get marked as completed.</p>"
         },
         "queuedTimeoutInMinutes":{
           "shape":"TimeOut",
@@ -4703,9 +4788,17 @@
           "shape":"WebhookBuildType",
           "documentation":"<p>Specifies the type of build this webhook will trigger.</p>"
         },
+        "manualCreation":{
+          "shape":"WrapperBoolean",
+          "documentation":"<p>If manualCreation is true, CodeBuild doesn't create a webhook in GitHub and instead returns <code>payloadUrl</code> and <code>secret</code> values for the webhook. The <code>payloadUrl</code> and <code>secret</code> values in the output can be used to manually create a webhook within GitHub.</p> <note> <p>manualCreation is only available for GitHub webhooks.</p> </note>"
+        },
         "lastModifiedSecret":{
           "shape":"Timestamp",
           "documentation":"<p>A timestamp that indicates the last time a repository's secret token was modified. </p>"
+        },
+        "scopeConfiguration":{
+          "shape":"ScopeConfiguration",
+          "documentation":"<p>The scope configuration for global or organization webhooks.</p> <note> <p>Global or organization webhooks are only available for GitHub and Github Enterprise webhooks.</p> </note>"
         }
       },
       "documentation":"<p>Information about a webhook that connects repository events to a build project in CodeBuild.</p>"
@@ -4726,7 +4819,7 @@
       "members":{
         "type":{
           "shape":"WebhookFilterType",
-          "documentation":"<p> The type of webhook filter. There are six webhook filter types: <code>EVENT</code>, <code>ACTOR_ACCOUNT_ID</code>, <code>HEAD_REF</code>, <code>BASE_REF</code>, <code>FILE_PATH</code>, and <code>COMMIT_MESSAGE</code>. </p> <dl> <dt> EVENT </dt> <dd> <p> A webhook event triggers a build when the provided <code>pattern</code> matches one of five event types: <code>PUSH</code>, <code>PULL_REQUEST_CREATED</code>, <code>PULL_REQUEST_UPDATED</code>, <code>PULL_REQUEST_REOPENED</code>, and <code>PULL_REQUEST_MERGED</code>. The <code>EVENT</code> patterns are specified as a comma-separated string. For example, <code>PUSH, PULL_REQUEST_CREATED, PULL_REQUEST_UPDATED</code> filters all push, pull request created, and pull request updated events. </p> <note> <p> The <code>PULL_REQUEST_REOPENED</code> works with GitHub and GitHub Enterprise only. </p> </note> </dd> <dt> ACTOR_ACCOUNT_ID </dt> <dd> <p> A webhook event triggers a build when a GitHub, GitHub Enterprise, or Bitbucket account ID matches the regular expression <code>pattern</code>. </p> </dd> <dt> HEAD_REF </dt> <dd> <p> A webhook event triggers a build when the head reference matches the regular expression <code>pattern</code>. For example, <code>refs/heads/branch-name</code> and <code>refs/tags/tag-name</code>. </p> <p> Works with GitHub and GitHub Enterprise push, GitHub and GitHub Enterprise pull request, Bitbucket push, and Bitbucket pull request events. </p> </dd> <dt> BASE_REF </dt> <dd> <p> A webhook event triggers a build when the base reference matches the regular expression <code>pattern</code>. For example, <code>refs/heads/branch-name</code>. </p> <note> <p> Works with pull request events only. </p> </note> </dd> <dt> FILE_PATH </dt> <dd> <p> A webhook triggers a build when the path of a changed file matches the regular expression <code>pattern</code>. </p> <note> <p> Works with GitHub and Bitbucket events push and pull requests events. Also works with GitHub Enterprise push events, but does not work with GitHub Enterprise pull request events. </p> </note> </dd> <dt>COMMIT_MESSAGE</dt> <dd> <p>A webhook triggers a build when the head commit message matches the regular expression <code>pattern</code>.</p> <note> <p> Works with GitHub and Bitbucket events push and pull requests events. Also works with GitHub Enterprise push events, but does not work with GitHub Enterprise pull request events. </p> </note> </dd> </dl>"
+          "documentation":"<p> The type of webhook filter. There are nine webhook filter types: <code>EVENT</code>, <code>ACTOR_ACCOUNT_ID</code>, <code>HEAD_REF</code>, <code>BASE_REF</code>, <code>FILE_PATH</code>, <code>COMMIT_MESSAGE</code>, <code>TAG_NAME</code>, <code>RELEASE_NAME</code>, and <code>WORKFLOW_NAME</code>. </p> <ul> <li> <p> EVENT </p> <ul> <li> <p> A webhook event triggers a build when the provided <code>pattern</code> matches one of nine event types: <code>PUSH</code>, <code>PULL_REQUEST_CREATED</code>, <code>PULL_REQUEST_UPDATED</code>, <code>PULL_REQUEST_CLOSED</code>, <code>PULL_REQUEST_REOPENED</code>, <code>PULL_REQUEST_MERGED</code>, <code>RELEASED</code>, <code>PRERELEASED</code>, and <code>WORKFLOW_JOB_QUEUED</code>. The <code>EVENT</code> patterns are specified as a comma-separated string. For example, <code>PUSH, PULL_REQUEST_CREATED, PULL_REQUEST_UPDATED</code> filters all push, pull request created, and pull request updated events. </p> <note> <p> Types <code>PULL_REQUEST_REOPENED</code> and <code>WORKFLOW_JOB_QUEUED</code> work with GitHub and GitHub Enterprise only. Types <code>RELEASED</code> and <code>PRERELEASED</code> work with GitHub only.</p> </note> </li> </ul> </li> <li> <p>ACTOR_ACCOUNT_ID</p> <ul> <li> <p> A webhook event triggers a build when a GitHub, GitHub Enterprise, or Bitbucket account ID matches the regular expression <code>pattern</code>. </p> </li> </ul> </li> <li> <p>HEAD_REF</p> <ul> <li> <p> A webhook event triggers a build when the head reference matches the regular expression <code>pattern</code>. For example, <code>refs/heads/branch-name</code> and <code>refs/tags/tag-name</code>. </p> <note> <p> Works with GitHub and GitHub Enterprise push, GitHub and GitHub Enterprise pull request, Bitbucket push, and Bitbucket pull request events.</p> </note> </li> </ul> </li> <li> <p>BASE_REF</p> <ul> <li> <p> A webhook event triggers a build when the base reference matches the regular expression <code>pattern</code>. For example, <code>refs/heads/branch-name</code>. </p> <note> <p> Works with pull request events only. </p> </note> </li> </ul> </li> <li> <p>FILE_PATH</p> <ul> <li> <p> A webhook triggers a build when the path of a changed file matches the regular expression <code>pattern</code>. </p> <note> <p> Works with GitHub and Bitbucket events push and pull requests events. Also works with GitHub Enterprise push events, but does not work with GitHub Enterprise pull request events. </p> </note> </li> </ul> </li> <li> <p>COMMIT_MESSAGE</p> <ul> <li> <p>A webhook triggers a build when the head commit message matches the regular expression <code>pattern</code>.</p> <note> <p> Works with GitHub and Bitbucket events push and pull requests events. Also works with GitHub Enterprise push events, but does not work with GitHub Enterprise pull request events. </p> </note> </li> </ul> </li> <li> <p>TAG_NAME</p> <ul> <li> <p>A webhook triggers a build when the tag name of the release matches the regular expression <code>pattern</code>.</p> <note> <p> Works with <code>RELEASED</code> and <code>PRERELEASED</code> events only. </p> </note> </li> </ul> </li> <li> <p>RELEASE_NAME</p> <ul> <li> <p>A webhook triggers a build when the release name matches the regular expression <code>pattern</code>.</p> <note> <p> Works with <code>RELEASED</code> and <code>PRERELEASED</code> events only. </p> </note> </li> </ul> </li> <li> <p>REPOSITORY_NAME</p> <ul> <li> <p>A webhook triggers a build when the repository name matches the regular expression pattern.</p> <note> <p> Works with GitHub global or organization webhooks only. </p> </note> </li> </ul> </li> <li> <p>WORKFLOW_NAME</p> <ul> <li> <p>A webhook triggers a build when the workflow name matches the regular expression <code>pattern</code>.</p> <note> <p> Works with <code>WORKFLOW_JOB_QUEUED</code> events only. </p> </note> </li> </ul> </li> </ul>"
         },
         "pattern":{
           "shape":"String",
@@ -4747,7 +4840,17 @@
         "HEAD_REF",
         "ACTOR_ACCOUNT_ID",
         "FILE_PATH",
-        "COMMIT_MESSAGE"
+        "COMMIT_MESSAGE",
+        "WORKFLOW_NAME",
+        "TAG_NAME",
+        "RELEASE_NAME"
+      ]
+    },
+    "WebhookScopeType":{
+      "type":"string",
+      "enum":[
+        "GITHUB_ORGANIZATION",
+        "GITHUB_GLOBAL"
       ]
     },
     "WrapperBoolean":{"type":"boolean"},

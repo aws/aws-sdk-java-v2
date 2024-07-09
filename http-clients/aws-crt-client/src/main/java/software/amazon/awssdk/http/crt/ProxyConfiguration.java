@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.http.crt;
 
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crtcore.CrtProxyConfiguration;
+import software.amazon.awssdk.utils.ProxyEnvironmentSetting;
 import software.amazon.awssdk.utils.ProxySystemSetting;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -116,8 +118,34 @@ public final class ProxyConfiguration extends CrtProxyConfiguration
         Builder useSystemPropertyValues(Boolean useSystemPropertyValues);
 
 
+        /**
+         * Set the option whether to use environment variable values for {@link ProxyEnvironmentSetting} if any of the config
+         * options are missing. The value is set to "true" by default, enabling the SDK to automatically use environment variable
+         * values for proxy configuration options that are not provided during building the {@link ProxyConfiguration} object. To
+         * disable this behavior, set this value to "false".It is important to note that when this property is set to "true," all
+         * proxy settings will exclusively originate from Environment Variable Values, and no partial settings will be obtained
+         * from System Property Values.
+         * <p>Comma-separated host names in the NO_PROXY environment variable indicate multiple hosts to exclude from
+         * proxy settings.
+         *
+         * @param useEnvironmentVariableValues The option whether to use environment variable values
+         * @return This object for method chaining.
+         */
         @Override
         Builder useEnvironmentVariableValues(Boolean useEnvironmentVariableValues);
+
+        /**
+         * Configure the hosts that the client is allowed to access without going through the proxy.
+         */
+        @Override
+        Builder nonProxyHosts(Set<String> nonProxyHosts);
+
+
+        /**
+         * Add a host that the client is allowed to access without going through the proxy.
+         */
+        @Override
+        Builder addNonProxyHost(String nonProxyHost);
 
         @Override
         ProxyConfiguration build();

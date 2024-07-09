@@ -28,6 +28,8 @@ import software.amazon.awssdk.utils.ToString;
 @SdkPublicApi
 public final class SystemPropertyCredentialsProvider extends SystemSettingsCredentialsProvider {
 
+    private static final String PROVIDER_NAME = "SystemPropertyCredentialsProvider";
+
     private SystemPropertyCredentialsProvider() {
     }
 
@@ -44,7 +46,12 @@ public final class SystemPropertyCredentialsProvider extends SystemSettingsCrede
     }
 
     @Override
+    protected String provider() {
+        return PROVIDER_NAME;
+    }
+
+    @Override
     public String toString() {
-        return ToString.create("SystemPropertyCredentialsProvider");
+        return ToString.create(PROVIDER_NAME);
     }
 }

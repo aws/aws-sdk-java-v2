@@ -21,6 +21,7 @@ import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isV1C
 import static software.amazon.awssdk.migration.internal.utils.SdkTypeUtils.isV1ModelClass;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -44,6 +45,7 @@ import org.openrewrite.java.tree.TypeTree;
 import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.java.tree.TypedTree;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -58,9 +60,14 @@ import software.amazon.awssdk.utils.Pair;
  */
 @SdkInternalApi
 public class ChangeSdkType extends Recipe {
+    private static final Logger log = Logger.loggerFor(ChangeSdkType.class);
     private static final String V1_SERVICE_MODEL_WILD_CARD_CLASS_PATTERN =
         "com\\.amazonaws\\.services\\.[a-zA-Z0-9]+\\.model\\.\\*";
     private static final String V1_SERVICE_WILD_CARD_CLASS_PATTERN = "com\\.amazonaws\\.services\\.[a-zA-Z0-9]+\\.\\*";
+
+    private static final Set<String> PACKAGES_TO_SKIP = new HashSet<>(
+        Arrays.asList("com.amazonaws.services.s3.transfer",
+                      "com.amazonaws.services.dynamodbv2.datamodeling"));
 
     @Override
     public String getDisplayName() {
@@ -131,7 +138,18 @@ public class ChangeSdkType extends Recipe {
         }
 
         private static boolean isV1Class(JavaType.FullyQualified fullyQualified) {
+            String fullyQualifiedName = fullyQualified.getFullyQualifiedName();
+            if (shouldSkip(fullyQualifiedName)) {
+                log.info(() -> String.format("Skipping transformation for %s because it is not supported in the migration "
+                                             + "tooling at the moment", fullyQualifiedName));
+                return false;
+            }
+
             return isV1ModelClass(fullyQualified) || isV1ClientClass(fullyQualified);
+        }
+
+        private static boolean shouldSkip(String fqcn) {
+            return PACKAGES_TO_SKIP.stream().anyMatch(fqcn::startsWith);
         }
 
         @Override
@@ -343,6 +361,10 @@ public class ChangeSdkType extends Recipe {
 
         @Override
         public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+            if (method.getMethodType() == null) {
+                return method;
+            }
+
             JavaType.FullyQualified declaringType = method.getMethodType().getDeclaringType();
             if (isV1Class(declaringType)) {
                 String fullyQualifiedName = declaringType.getFullyQualifiedName();
@@ -351,7 +373,7 @@ public class ChangeSdkType extends Recipe {
                 Pair<JavaType.Class, JavaType> oldTypeToNewTypePair = oldTypeToNewType.get(fullyQualifiedName);
                 JavaType.Class originalType = oldTypeToNewTypePair.left();
                 JavaType targetType = oldTypeToNewTypePair.right();
-                if (method.getMethodType() != null && method.getMethodType().hasFlags(Flag.Static)) {
+                if (method.getMethodType().hasFlags(Flag.Static)) {
                     if (method.getMethodType().getDeclaringType().isAssignableFrom(originalType)) {
                         JavaSourceFile cu = getCursor().firstEnclosingOrThrow(JavaSourceFile.class);
 

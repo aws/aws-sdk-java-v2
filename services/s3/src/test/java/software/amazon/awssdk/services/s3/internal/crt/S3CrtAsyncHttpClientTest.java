@@ -131,6 +131,7 @@ public class S3CrtAsyncHttpClientTest {
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.GET_OBJECT);
+        assertThat(actual.getOperationName()).isEqualTo("GetObject");
     }
 
     @Test
@@ -140,7 +141,19 @@ public class S3CrtAsyncHttpClientTest {
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.PUT_OBJECT);
+        assertThat(actual.getOperationName()).isEqualTo("PutObject");
     }
+
+    @Test
+    public void NonStreamingOperation_shouldSetMetaRequestTypeCorrectly() {
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "CreateBucket").build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.DEFAULT);
+        assertThat(actual.getOperationName()).isEqualTo("CreateBucket");
+    }
+
 
     @Test
     public void cancelRequest_shouldForwardCancellation() {
@@ -379,6 +392,8 @@ public class S3CrtAsyncHttpClientTest {
                                        .maxConcurrency(100)
                                        .signingRegion(signingRegion)
                                        .thresholdInBytes(1024L)
+                                       .targetThroughputInGbps(3.5)
+                                       .maxNativeMemoryLimitInBytes(5L * 1024 * 1024 * 1024)
                                        .standardRetryOptions(
                                            new StandardRetryOptions()
                                                .withBackoffRetryOptions(new ExponentialBackoffRetryOptions().withMaxRetries(7)))
@@ -409,6 +424,8 @@ public class S3CrtAsyncHttpClientTest {
                 assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1024);
             });
             assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
+            assertThat(clientOptions.getThroughputTargetGbps()).isEqualTo(3.5);
+            assertThat(clientOptions.getMemoryLimitInBytes()).isEqualTo(5L * 1024 * 1024 * 1024);
         }
     }
 

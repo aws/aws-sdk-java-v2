@@ -43,11 +43,13 @@ import software.amazon.awssdk.utils.SystemSetting;
  */
 @SdkInternalApi
 public abstract class SystemSettingsCredentialsProvider implements AwsCredentialsProvider {
+
     @Override
     public AwsCredentials resolveCredentials() {
         String accessKey = trim(loadSetting(SdkSystemSetting.AWS_ACCESS_KEY_ID).orElse(null));
         String secretKey = trim(loadSetting(SdkSystemSetting.AWS_SECRET_ACCESS_KEY).orElse(null));
         String sessionToken = trim(loadSetting(SdkSystemSetting.AWS_SESSION_TOKEN).orElse(null));
+        String accountId = trim(loadSetting(SdkSystemSetting.AWS_ACCOUNT_ID).orElse(null));
 
         if (StringUtils.isBlank(accessKey)) {
             throw SdkClientException.builder()
@@ -67,12 +69,25 @@ public abstract class SystemSettingsCredentialsProvider implements AwsCredential
                                     .build();
         }
 
-        return StringUtils.isBlank(sessionToken) ? AwsBasicCredentials.create(accessKey, secretKey)
-                                                 : AwsSessionCredentials.create(accessKey, secretKey, sessionToken);
+        return StringUtils.isBlank(sessionToken) ? AwsBasicCredentials.builder()
+                                                                      .accessKeyId(accessKey)
+                                                                      .secretAccessKey(secretKey)
+                                                                      .accountId(accountId)
+                                                                      .providerName(provider())
+                                                                      .build()
+                                                 : AwsSessionCredentials.builder()
+                                                                        .accessKeyId(accessKey)
+                                                                        .secretAccessKey(secretKey)
+                                                                        .sessionToken(sessionToken)
+                                                                        .accountId(accountId)
+                                                                        .providerName(provider())
+                                                                        .build();
     }
 
     /**
      * Implemented by child classes to load the requested setting.
      */
     protected abstract Optional<String> loadSetting(SystemSetting setting);
+
+    protected abstract String provider();
 }

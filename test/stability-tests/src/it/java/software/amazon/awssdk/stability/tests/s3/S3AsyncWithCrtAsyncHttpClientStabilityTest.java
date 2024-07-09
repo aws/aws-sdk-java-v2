@@ -3,9 +3,9 @@ package software.amazon.awssdk.stability.tests.s3;
 import java.time.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
 import software.amazon.awssdk.stability.tests.utils.RetryableTest;
@@ -29,7 +29,7 @@ public class S3AsyncWithCrtAsyncHttpClientStabilityTest extends S3AsyncBaseStabi
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMinutes(10))
                         // Retry at test level
-                        .retryPolicy(RetryPolicy.none()))
+                        .retryStrategy(DefaultRetryStrategy.doNotRetry()))
                 .build();
     }
 

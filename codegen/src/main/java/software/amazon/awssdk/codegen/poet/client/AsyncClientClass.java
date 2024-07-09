@@ -25,6 +25,7 @@ import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
+import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.addRequestModifierCode;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
 import com.squareup.javapoet.ClassName;
@@ -172,6 +173,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                 type.addMethod(isSignerOverriddenOnClientMethod());
             }
         }
+        type.addMethod(ClientClassUtils.updateRetryStrategyClientConfigurationMethod());
         type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName()));
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
     }
@@ -312,8 +314,9 @@ public final class AsyncClientClass extends AsyncClientInterface {
                .addStatement("$1T serviceConfigBuilder = new $1T(configuration)", serviceClientConfigurationBuilderClassName)
                .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
                .addStatement("plugin.configureClient(serviceConfigBuilder)")
-               .endControlFlow()
-               .addStatement("return configuration.build()");
+               .endControlFlow();
+        builder.addStatement("updateRetryStrategyClientConfiguration(configuration)");
+        builder.addStatement("return configuration.build()");
 
         return builder.build();
     }
@@ -332,6 +335,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
     @Override
     protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {
 
+        addRequestModifierCode(opModel, model).ifPresent(builder::addCode);
         builder.addModifiers(PUBLIC)
                .addAnnotation(Override.class);
         builder.addStatement("$T clientConfiguration = updateSdkClientConfiguration($L, this.clientConfiguration)",
@@ -429,14 +433,14 @@ public final class AsyncClientClass extends AsyncClientInterface {
                             AwsClientOption.class)
                    .addCode("    .resolveIdentity();");
 
-            builder.addCode("endpointFuture = identityFuture.thenApply(credentials -> {")
+            builder.addCode("endpointFuture = identityFuture.thenCompose(credentials -> {")
                    .addCode("    $1T endpointDiscoveryRequest = $1T.builder()", EndpointDiscoveryRequest.class)
                    .addCode("        .required($L)", opModel.getInputShape().getEndpointDiscovery().isRequired())
                    .addCode("        .defaultEndpoint(clientConfiguration.option($T.ENDPOINT))", SdkClientOption.class)
                    .addCode("        .overrideConfiguration($N.overrideConfiguration().orElse(null))",
                             opModel.getInput().getVariableName())
                    .addCode("        .build();")
-                   .addCode("    return endpointDiscoveryCache.get(credentials.accessKeyId(), endpointDiscoveryRequest);")
+                   .addCode("    return endpointDiscoveryCache.getAsync(credentials.accessKeyId(), endpointDiscoveryRequest);")
                    .addCode("});");
 
             builder.endControlFlow();

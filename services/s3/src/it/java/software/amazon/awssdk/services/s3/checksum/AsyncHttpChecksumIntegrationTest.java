@@ -36,17 +36,17 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsCrtS3V4aSigner;
+import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
+import software.amazon.awssdk.services.s3.internal.plugins.S3OverrideAuthSchemePropertiesPlugin;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -222,12 +222,10 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
     @Disabled("Http Async Signing is not supported for S3")
     void asyncValidSignedTrailerChecksumCalculatedBySdkClient() {
-        ExecutionAttributes executionAttributes = ExecutionAttributes.builder()
-                                                                     .put(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING,
-                                                                          true).build();
+        SdkPlugin enablePayloadSigningPlugin = S3OverrideAuthSchemePropertiesPlugin.enablePayloadSigningPlugin();
         s3HttpAsync.putObject(PutObjectRequest.builder()
                                               .bucket(BUCKET)
-                                              .overrideConfiguration(o -> o.executionAttributes(executionAttributes))
+                                              .overrideConfiguration(o -> o.addPlugin(enablePayloadSigningPlugin))
                                               .key(KEY)
                                               .build(), AsyncRequestBody.fromString("Hello world")).join();
         String response = s3HttpAsync.getObject(GetObjectRequest.builder().bucket(BUCKET)

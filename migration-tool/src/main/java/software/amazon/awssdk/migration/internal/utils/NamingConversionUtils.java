@@ -35,6 +35,7 @@ public final class NamingConversionUtils {
 
         String v2ClassName = CodegenNamingUtils.pascalCase(v1ClassName);
         String v2PackagePrefix = packagePrefix.replace(V1_PACKAGE_PREFIX, V2_PACKAGE_PREFIX);
+        v2PackagePrefix = checkPackageServiceNameForV2Suffix(v2PackagePrefix);
 
         if (Stream.of("Abstract", "Amazon", "AWS").anyMatch(v1ClassName::startsWith)) {
             v2ClassName = getV2ClientOrExceptionEquivalent(v1ClassName);
@@ -44,6 +45,19 @@ public final class NamingConversionUtils {
         }
 
         return v2PackagePrefix + "." + v2ClassName;
+    }
+
+    /**
+     * Edge cases in v1 package names
+     */
+    private static String checkPackageServiceNameForV2Suffix(String v2PackagePrefix) {
+        if (v2PackagePrefix.contains("dynamodbv2")) {
+            return v2PackagePrefix.replace("dynamodbv2", "dynamodb");
+        }
+        if (v2PackagePrefix.contains("cloudsearchv2")) {
+            return v2PackagePrefix.replace("cloudsearchv2", "cloudsearch");
+        }
+        return v2PackagePrefix;
     }
 
     public static String getV2ModelPackageWildCardEquivalent(String currentFqcn) {

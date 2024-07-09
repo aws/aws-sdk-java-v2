@@ -43,13 +43,6 @@ import software.amazon.awssdk.testutils.Waiter;
 
 public class S3ExpressIntegrationTestBase {
 
-    private static final String S3EXPRESS_BUCKET_PATTERN = "s3express-java-integ--%s--x-s3";
-    protected static final String STANDARD_BUCKET = "s3express-java-integ-tests";
-
-    protected static String getS3ExpressBucketNameForAz(String az) {
-        return String.format(S3EXPRESS_BUCKET_PATTERN, az);
-    }
-
     protected static S3ClientBuilder s3ClientBuilder(Region region) {
         return S3Client.builder()
                        .region(region)

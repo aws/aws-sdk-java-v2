@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.spi.internal.signer.DefaultAsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.internal.signer.DefaultSignRequest;
+import software.amazon.awssdk.http.auth.spi.internal.signer.NoOpHttpSigner;
 import software.amazon.awssdk.identity.spi.Identity;
 
 /**
@@ -31,7 +32,6 @@ import software.amazon.awssdk.identity.spi.Identity;
  */
 @SdkPublicApi
 public interface HttpSigner<IdentityT extends Identity> {
-
     /**
      * A {@link Clock} to be used to derive the signing time. This property defaults to the system clock.
      *
@@ -39,6 +39,13 @@ public interface HttpSigner<IdentityT extends Identity> {
      */
     SignerProperty<Clock> SIGNING_CLOCK = SignerProperty.create(HttpSigner.class, "SigningClock");
 
+    /**
+     * Retrieve a signer that returns the input message, without signing.
+     */
+    default <T extends Identity> HttpSigner<T> doNotSign() {
+        return new NoOpHttpSigner<>();
+    }
+    
     /**
      * Method that takes in inputs to sign a request with sync payload and returns a signed version of the request.
      *
@@ -84,4 +91,5 @@ public interface HttpSigner<IdentityT extends Identity> {
     default CompletableFuture<AsyncSignedRequest> signAsync(Consumer<AsyncSignRequest.Builder<IdentityT>> consumer) {
         return signAsync(DefaultAsyncSignRequest.<IdentityT>builder().applyMutation(consumer).build());
     }
+
 }

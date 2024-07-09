@@ -19,8 +19,8 @@ package software.amazon.awssdk.stability.tests.cloudwatch;
 import java.time.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
 import software.amazon.awssdk.stability.tests.utils.RetryableTest;
@@ -44,7 +44,7 @@ public class CloudWatchNettyAsyncStabilityTest extends CloudWatchBaseStabilityTe
                         .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                         .overrideConfiguration(b -> b
                                 // Retry at test level
-                                .retryPolicy(RetryPolicy.none())
+                                .retryStrategy(DefaultRetryStrategy.doNotRetry())
                                 .apiCallTimeout(Duration.ofMinutes(1)))
                         .build();
     }

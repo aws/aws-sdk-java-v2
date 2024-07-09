@@ -30,7 +30,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.function.Consumer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +38,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.internal.AbstractAwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
@@ -728,7 +728,7 @@ public class S3PresignerTest {
                                                                                // we set it in TestSigner
                                                                                .signatureDuration(urlDuration));
 
-        String expectedSignature = "7f93df0b81f80e590d95442d579bd6cf749a35ff4bbdc6373fa669b89c7fce4e";
+        String expectedSignature = "37fc84e69f32c828013021b313953b984d8d74a6d4e776751535e6d87e71a272";
         assertThat(presigned.url().toString()).contains("X-Amz-Signature=" + expectedSignature);
     }
 
@@ -932,6 +932,29 @@ public class S3PresignerTest {
         assertThat(presigned.isBrowserExecutable()).isTrue();
         boolean expectNoSessionHeader = true;
         verifyS3ExpressGetRequest(presigned, bucketName, expectNoSessionHeader);
+    }
+
+    @Test
+    public void presignedUrl_preSraSigner_expirationDurationDoesNotGetRoundedDown() {
+
+        int errorCount = 0;
+        int iterations = 3000;
+        for (int i = 0; i < iterations; i++ ) {
+            String url = generatePresignedUrlWith60SecondsLife();
+            if (!url.contains("Expires=60")) {
+                errorCount++;
+            }
+        }
+        assertThat(errorCount).isZero();
+    }
+
+    public String generatePresignedUrlWith60SecondsLife() {
+        PresignedGetObjectRequest presigned =
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofSeconds(60))
+                                             .getObjectRequest(go -> go.bucket("bucket")
+                                                                       .key("key")
+                                                                       .overrideConfiguration(c -> c.signer(AwsS3V4Signer.create()))));
+        return presigned.url().toString();
     }
 
     private void verifyS3ExpressGetRequest(PresignedGetObjectRequest presigned, String bucketName,

@@ -40,6 +40,11 @@ public final class ProfileProperty {
     public static final String AWS_SESSION_TOKEN = "aws_session_token";
 
     /**
+     * Property name for specifying the Amazon AWS Account ID associated with credentials
+     */
+    public static final String AWS_ACCOUNT_ID = "aws_account_id";
+
+    /**
      * Property name for specifying the IAM role to assume
      */
     public static final String ROLE_ARN = "role_arn";
@@ -114,6 +119,15 @@ public final class ProfileProperty {
     public static final String DEFAULTS_MODE = "defaults_mode";
 
     /**
+     * The "account id endpoint mode" to be used for clients created using the currently-configured profile.
+     * This setting can only be used by services that route user requests to account specific endpoints, and determines
+     * how endpoints should be resolved depending on the availability of an accountId for a request.
+     *
+     * See the {@code AccountIdEndpointMode} class javadoc for more information.
+     */
+    public static final String ACCOUNT_ID_ENDPOINT_MODE = "account_id_endpoint_mode";
+
+    /**
      * Aws region where the SSO directory for the given 'sso_start_url' is hosted. This is independent of the general 'region'.
      */
     public static final String SSO_REGION = "sso_region";
@@ -142,6 +156,8 @@ public final class ProfileProperty {
     public static final String EC2_METADATA_SERVICE_ENDPOINT_MODE = "ec2_metadata_service_endpoint_mode";
 
     public static final String EC2_METADATA_SERVICE_ENDPOINT = "ec2_metadata_service_endpoint";
+
+    public static final String EC2_METADATA_V1_DISABLED = "ec2_metadata_v1_disabled";
 
     /**
      * Whether request compression is disabled for operations marked with the RequestCompression trait. The default value is

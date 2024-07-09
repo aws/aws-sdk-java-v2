@@ -27,6 +27,7 @@
         "protocol-core": { "packageName": "AwsJavaSdk-Core-ProtocolCore" },
         "regions": { "packageName": "AwsJavaSdk-Core-Regions" },
         "s3-transfer-manager": { "packageName": "AwsJavaSdk-S3-TransferManager" },
+        "s3-event-notifications": { "packageName": "AwsJavaSdk-S3-EventNotifications" },
         "sdk-core": { "packageName": "AwsJavaSdk-Core" },
         "url-connection-client": { "packageName": "AwsJavaSdk-HttpClient-UrlConnectionClient" },
         "utils": { "packageName": "AwsJavaSdk-Core-Utils" },
@@ -40,6 +41,8 @@
         "http-auth-aws": { "packageName": "AwsJavaSdk-Core-HttpAuthAws" },
         "http-auth-aws-crt": { "packageName": "AwsJavaSdk-Core-HttpAuthAwsCrt" },
         "http-auth-aws-eventstream": { "packageName": "AwsJavaSdk-Core-HttpAuthAwsEventStream" },
+        "retries-spi": { "packageName": "AwsJavaSdk-Core-RetriesSpi" },
+        "retries": { "packageName": "AwsJavaSdk-Core-Retries" },
 
         "dynamodb": { "packageName": "AwsJavaSdk-DynamoDb" },
         "waf": { "packageName": "AwsJavaSdk-Waf" },
@@ -103,7 +106,9 @@
         "tests-coverage-reporting": { "skipImport": true },
         "third-party": { "skipImport": true },
         "third-party-slf4j-api": { "skipImport": true },
-        "migration-tool-tests": {"skipImport":  true}
+        "migration-tool-tests": {"skipImport":  true},
+        "crt-unavailable-tests": { "skipImport": true },
+        "bundle-shading-tests": { "skipImport": true }
     },
 
     "dependencies": {

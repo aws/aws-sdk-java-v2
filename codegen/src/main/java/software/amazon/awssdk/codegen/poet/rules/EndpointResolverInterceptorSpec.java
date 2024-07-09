@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.poet.rules;
 
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsString;
@@ -29,7 +30,9 @@ import com.squareup.javapoet.TypeVariableName;
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
@@ -45,6 +48,7 @@ import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
+import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.EndpointAuthSchemeConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -58,6 +62,8 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
+import software.amazon.awssdk.codegen.poet.auth.scheme.ModelAuthSchemeClassesKnowledgeIndex;
+import software.amazon.awssdk.codegen.poet.waiters.JmesPathAcceptorGenerator;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -79,24 +85,33 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public class EndpointResolverInterceptorSpec implements ClassSpec {
+
     private final IntermediateModel model;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
+    private final EndpointParamsKnowledgeIndex endpointParamsKnowledgeIndex;
     private final PoetExtension poetExtension;
+    private final JmesPathAcceptorGenerator jmesPathGenerator;
     private final boolean dependsOnHttpAuthAws;
     private final boolean useSraAuth;
+
 
     public EndpointResolverInterceptorSpec(IntermediateModel model) {
         this.model = model;
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
+        this.endpointParamsKnowledgeIndex = EndpointParamsKnowledgeIndex.of(model);
         this.poetExtension = new PoetExtension(model);
+        this.jmesPathGenerator = new JmesPathAcceptorGenerator(poetExtension.jmesPathRuntimeClass());
 
         // We need to know whether the service has a dependency on the http-auth-aws module. Because we can't check that
         // directly, assume that if they're using AwsV4AuthScheme or AwsV4aAuthScheme that it's available.
-        Set<Class<?>> supportedAuthSchemes = new AuthSchemeSpecUtils(model).allServiceConcreteAuthSchemeClasses();
+        Set<Class<?>> supportedAuthSchemes =
+            ModelAuthSchemeClassesKnowledgeIndex.of(model).serviceConcreteAuthSchemeClasses();
         this.dependsOnHttpAuthAws = supportedAuthSchemes.contains(AwsV4AuthScheme.class) ||
                                     supportedAuthSchemes.contains(AwsV4aAuthScheme.class);
 
@@ -131,12 +146,16 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
             b.addMethod(setClientContextParamsMethod());
         }
 
+        b.addMethod(setOperationContextParams());
+        addOperationContextParamMethods(b);
+
         b.addMethod(hostPrefixMethod());
 
         if (!useSraAuth) {
             b.addMethod(signerProviderMethod());
         }
 
+        endpointParamsKnowledgeIndex.accountIdFromIdentityMethod().ifPresent(b::addMethod);
         return b.build();
     }
 
@@ -269,41 +288,47 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
             if (m.getBuiltInEnum() == null) {
                 return;
             }
-
-            String setterName = endpointRulesSpecUtils.paramMethodName(n);
-            String builtInFn;
+            String setter = Utils.unCapitalize(CodegenNamingUtils.pascalCase(n));
             switch (m.getBuiltInEnum()) {
                 case AWS_REGION:
-                    builtInFn = "regionBuiltIn";
+                    b.addStatement(endpointProviderUtilsSetter("regionBuiltIn", setter));
                     break;
                 case AWS_USE_DUAL_STACK:
-                    builtInFn = "dualStackEnabledBuiltIn";
+                    b.addStatement(endpointProviderUtilsSetter("dualStackEnabledBuiltIn", setter));
                     break;
                 case AWS_USE_FIPS:
-                    builtInFn = "fipsEnabledBuiltIn";
+                    b.addStatement(endpointProviderUtilsSetter("fipsEnabledBuiltIn", setter));
                     break;
                 case SDK_ENDPOINT:
-                    builtInFn = "endpointBuiltIn";
+                    b.addStatement(endpointProviderUtilsSetter("endpointBuiltIn", setter));
+                    break;
+                case AWS_AUTH_ACCOUNT_ID:
+                    b.addStatement("builder.$N(accountIdFromIdentity(executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME)))",
+                                   setter, SdkInternalExecutionAttribute.class);
+                    break;
+                case AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE:
+                    b.addStatement("builder.$N(executionAttributes.getAttribute($T.$N).name().toLowerCase())",
+                                   setter, AwsExecutionAttribute.class,
+                                   model.getNamingStrategy().getEnumValueName(m.getBuiltInEnum().name()));
                     break;
                 case AWS_S3_USE_GLOBAL_ENDPOINT:
-                    builtInFn = "useGlobalEndpointBuiltIn";
+                    b.addStatement("builder.$N(executionAttributes.getAttribute($T.$N))",
+                                   setter, AwsExecutionAttribute.class, model.getNamingStrategy().getEnumValueName(n));
                     break;
-                // The S3 specific built-ins are set through the existing S3Configuration which is handled above
+                // The S3 specific built-ins are set through the existing S3Configuration and set through client context params
                 case AWS_S3_ACCELERATE:
                 case AWS_S3_DISABLE_MULTI_REGION_ACCESS_POINTS:
                 case AWS_S3_FORCE_PATH_STYLE:
                 case AWS_S3_USE_ARN_REGION:
                 case AWS_S3_CONTROL_USE_ARN_REGION:
-                    // end of S3 specific builtins
+                // end of S3 specific builtins
+
+                // V2 doesn't support this, only regional endpoints
                 case AWS_STS_USE_GLOBAL_ENDPOINT:
-                    // V2 doesn't support this, only regional endpoints
                     return;
                 default:
                     throw new RuntimeException("Don't know how to set built-in " + m.getBuiltInEnum());
             }
-
-            b.addStatement("builder.$N($T.$N(executionAttributes))", setterName,
-                           endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"), builtInFn);
         });
 
         if (hasClientContextParams()) {
@@ -313,9 +338,16 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                        AwsExecutionAttribute.class);
         b.addStatement("setStaticContextParams(builder, executionAttributes.getAttribute($T.OPERATION_NAME))",
                        AwsExecutionAttribute.class);
+        b.addStatement("setOperationContextParams(builder, executionAttributes.getAttribute($T.OPERATION_NAME), request)",
+                       AwsExecutionAttribute.class);
 
         b.addStatement("return builder.build()");
         return b.build();
+    }
+
+    private CodeBlock endpointProviderUtilsSetter(String builtInFn, String setterName) {
+        return CodeBlock.of("builder.$N($T.$N(executionAttributes))", setterName,
+                            endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"), builtInFn);
     }
 
     private ClassName paramsBuilderClass() {
@@ -358,6 +390,10 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         return staticContextParams != null && !staticContextParams.isEmpty();
     }
 
+    private boolean hasOperationContextParams(OperationModel opModel) {
+        return CollectionUtils.isNotEmpty(opModel.getOperationContextParams());
+    }
+
     private void addStaticContextParamMethods(TypeSpec.Builder classBuilder) {
         Map<String, OperationModel> operations = model.getOperations();
 
@@ -374,6 +410,15 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         operations.forEach((n, m) -> {
             if (hasContextParams(m)) {
                 classBuilder.addMethod(setContextParamsMethod(m));
+            }
+        });
+    }
+
+    private void addOperationContextParamMethods(TypeSpec.Builder classBuilder) {
+        Map<String, OperationModel> operations = model.getOperations();
+        operations.forEach((n, m) -> {
+            if (hasOperationContextParams(m)) {
+                classBuilder.addMethod(setOperationContextParamsMethod(m));
             }
         });
     }
@@ -442,6 +487,40 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         return b.build();
     }
 
+    private MethodSpec setOperationContextParams() {
+        Map<String, OperationModel> operations = model.getOperations();
+
+        MethodSpec.Builder b = MethodSpec.methodBuilder("setOperationContextParams")
+                                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                                         .addParameter(paramsBuilderClass(), "params")
+                                         .addParameter(String.class, "operationName")
+                                         .addParameter(SdkRequest.class, "request")
+                                         .returns(void.class);
+
+        boolean generateSwitch = operations.values().stream().anyMatch(this::hasOperationContextParams);
+        if (generateSwitch) {
+            b.beginControlFlow("switch (operationName)");
+
+            operations.forEach((n, m) -> {
+                if (!hasOperationContextParams(m)) {
+                    return;
+                }
+
+                String requestClassName = model.getNamingStrategy().getRequestClassName(m.getOperationName());
+                ClassName requestClass = poetExtension.getModelClass(requestClassName);
+
+                b.addCode("case $S:", n);
+                b.addStatement("setOperationContextParams(params, ($T) request)", requestClass);
+                b.addStatement("break");
+            });
+            b.addCode("default:");
+            b.addStatement("break");
+            b.endControlFlow();
+        }
+
+        return b.build();
+    }
+
     private MethodSpec setContextParamsMethod(OperationModel opModel) {
         String requestClassName = model.getNamingStrategy().getRequestClassName(opModel.getOperationName());
         ClassName requestClass = poetExtension.getModelClass(requestClassName);
@@ -464,6 +543,65 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         });
 
         return b.build();
+    }
+
+    private MethodSpec setOperationContextParamsMethod(OperationModel opModel) {
+        String requestClassName = model.getNamingStrategy().getRequestClassName(opModel.getOperationName());
+        ClassName requestClass = poetExtension.getModelClass(requestClassName);
+
+        MethodSpec.Builder b = MethodSpec.methodBuilder("setOperationContextParams")
+                                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                                         .addParameter(paramsBuilderClass(), "params")
+                                         .addParameter(requestClass, "request")
+                                         .returns(void.class);
+
+        b.addStatement("$1T input = new $1T(request)", poetExtension.jmesPathRuntimeClass().nestedClass("Value"));
+
+        opModel.getOperationContextParams().forEach((key, value) -> {
+            if (Objects.requireNonNull(value.getValue().asToken()) == JsonToken.VALUE_STRING) {
+                String setterName = endpointRulesSpecUtils.paramMethodName(key);
+
+                String jmesPathString = ((JrsString) value.getValue()).getValue();
+                CodeBlock addParam = CodeBlock.builder()
+                                              .add("params.$N(", setterName)
+                                              .add(jmesPathGenerator.interpret(jmesPathString, "input"))
+                                              .add(matchToParameterType(key))
+                                              .add(")")
+                                              .build();
+
+                b.addStatement(addParam);
+            } else {
+                throw new RuntimeException("Invalid operation context parameter path for " + opModel.getOperationName() +
+                                           ". Expected VALUE_STRING, but got " + value.getValue().asToken());
+            }
+
+        });
+
+        return b.build();
+    }
+
+    private CodeBlock matchToParameterType(String paramName) {
+        Map<String, ParameterModel> parameters = model.getEndpointRuleSetModel().getParameters();
+        Optional<ParameterModel> endpointParameter = parameters.entrySet().stream()
+                                                               .filter(e -> e.getKey().toLowerCase(Locale.US)
+                                                                             .equals(paramName.toLowerCase(Locale.US)))
+                                                               .map(Map.Entry::getValue)
+                                                               .findFirst();
+        return endpointParameter.map(this::convertValueToParameterType).orElseGet(() -> CodeBlock.of(""));
+    }
+
+    private CodeBlock convertValueToParameterType(ParameterModel parameterModel) {
+        switch (parameterModel.getType().toLowerCase(Locale.US)) {
+            case "boolean":
+                return CodeBlock.of(".booleanValue()");
+            case "string":
+                return CodeBlock.of(".stringValue()");
+            case "stringarray":
+                return CodeBlock.of(".stringValues()");
+            default:
+                throw new UnsupportedOperationException(
+                    "Supported types are boolean, string and stringarray. Given type was " + parameterModel.getType());
+        }
     }
 
     private boolean hasContextParams(OperationModel opModel) {
@@ -746,4 +884,5 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.addStatement("this.$N = $N.endpointAuthSchemeStrategy()", endpointAuthSchemeFieldName, factoryLocalVarName);
         return b.build();
     }
+
 }
