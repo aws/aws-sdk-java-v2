@@ -34,7 +34,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.utils.StringInputStream;
 
 public class ProfileFileRefresherTest {
 
@@ -247,13 +246,6 @@ public class ProfileFileRefresherTest {
         Assertions.assertThat(refreshOperationsCounter.get()).isEqualTo(actualRefreshOperations);
     }
 
-    private ProfileFile credentialFile(String credentialFile) {
-        return ProfileFile.builder()
-                          .content(new StringInputStream(credentialFile))
-                          .type(ProfileFile.Type.CREDENTIALS)
-                          .build();
-    }
-
     private Path generateTestFile(String contents, String filename) {
         try {
             Files.createDirectories(testDirectory);
@@ -310,10 +302,6 @@ public class ProfileFileRefresherTest {
 
         public void tickForward(TemporalAmount amount) {
             time = time.plus(amount);
-        }
-
-        public void tickBackward(TemporalAmount amount) {
-            time = time.minus(amount);
         }
     }
 }

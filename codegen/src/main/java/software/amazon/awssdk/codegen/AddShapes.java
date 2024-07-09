@@ -153,8 +153,7 @@ abstract class AddShapes {
         Shape shape = allC2jShapes.get(c2jShapeName);
         String variableName = getNamingStrategy().getVariableName(c2jMemberName);
         String variableType = getTypeUtils().getJavaDataType(allC2jShapes, c2jShapeName);
-        String variableDeclarationType = getTypeUtils()
-                .getJavaDataType(allC2jShapes, c2jShapeName, getCustomizationConfig());
+        String variableDeclarationType = getTypeUtils().getJavaDataType(allC2jShapes, c2jShapeName);
 
         //If member is idempotent, then it should be of string type
         //Else throw IllegalArgumentException.

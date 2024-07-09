@@ -79,7 +79,7 @@ public class JavaCodeFormatter implements CodeTransformer {
      * @param overrideOptions user provided options to apply on top of defaults
      */
     public JavaCodeFormatter(final Map<String, Object> overrideOptions) {
-        Map formatterOptions = new HashMap<>(DEFAULT_FORMATTER_OPTIONS);
+        Map<String, Object> formatterOptions = new HashMap<>(DEFAULT_FORMATTER_OPTIONS);
         if (overrideOptions != null) {
             formatterOptions.putAll(overrideOptions);
         }
