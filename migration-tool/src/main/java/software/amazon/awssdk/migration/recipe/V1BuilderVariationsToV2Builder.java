@@ -80,7 +80,7 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
             }
 
             if (isV2ClientBuilder(selectType)) {
-                return renameStandardToBuilder(method, selectType);
+                return renameStandardToBuilderOrDefaultClientToCreate(method, selectType);
             }
 
             return method;
@@ -90,18 +90,29 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
             return isV2ClientBuilder(selectType) || isV2AsyncClientClass(selectType);
         }
 
-        private J.MethodInvocation renameStandardToBuilder(J.MethodInvocation method, JavaType selectType) {
+        private J.MethodInvocation renameStandardToBuilderOrDefaultClientToCreate(J.MethodInvocation method,
+                                                                                  JavaType selectType) {
             String methodName = method.getSimpleName();
             JavaType.Method mt = method.getMethodType();
             JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(selectType);
 
-            if (mt == null || !"standard".equals(methodName) || fullyQualified == null) {
+            if (mt == null || fullyQualified == null) {
                 return method;
             }
 
-            methodName = "builder";
-
             JavaType.FullyQualified v2Client = SdkTypeUtils.v2ClientFromClientBuilder(fullyQualified);
+            JavaType.FullyQualified returnType;
+
+            if ("standard".equals(methodName)) {
+                methodName = "builder";
+                returnType = fullyQualified;
+            } else if ("defaultClient".equals(methodName)) {
+                methodName = "create";
+                returnType = v2Client;
+            } else {
+                return method;
+            }
+
             J.Identifier id = new J.Identifier(
                 Tree.randomId(),
                 Space.EMPTY,
@@ -112,7 +123,7 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
                 null
             );
 
-            J.Identifier builderMethod = new J.Identifier(
+            J.Identifier builderOrCreateMethod = new J.Identifier(
                 Tree.randomId(),
                 Space.EMPTY,
                 Markers.EMPTY,
@@ -127,7 +138,7 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
                 0L,
                 v2Client,
                 methodName,
-                v2Client,
+                returnType,
                 Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList(),
@@ -136,11 +147,11 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
 
             J.MethodInvocation builderInvoke = new J.MethodInvocation(
                 Tree.randomId(),
-                Space.EMPTY,
+                method.getPrefix(),
                 Markers.EMPTY,
                 JRightPadded.build(id),
                 null,
-                builderMethod,
+                builderOrCreateMethod,
                 JContainer.empty(),
                 methodType
             );
