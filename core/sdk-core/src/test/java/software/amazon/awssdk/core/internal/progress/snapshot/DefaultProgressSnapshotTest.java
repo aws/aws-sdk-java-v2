@@ -15,10 +15,8 @@
 
 package software.amazon.awssdk.core.internal.progress.snapshot;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -29,9 +27,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.core.internal.progress.snapshot.DefaultProgressSnapshot;
 
-public class DefaultProgressSnapshotTest {
+class DefaultProgressSnapshotTest {
 
     private static Stream<Arguments> getArgumentsForInvalidParameterValidationTests() {
         return Stream.of(Arguments.of("transferredBytes (2) must not be greater than totalBytes (1)",
@@ -112,7 +109,7 @@ public class DefaultProgressSnapshotTest {
 
     @ParameterizedTest
     @MethodSource("getArgumentsForInvalidParameterValidationTests")
-    public void test_invalid_arguments_shouldThrow(String expectedErrorMsg, DefaultProgressSnapshot.Builder builder,
+    void test_invalid_arguments_shouldThrow(String expectedErrorMsg, DefaultProgressSnapshot.Builder builder,
                                                    Exception e) {
         assertThatThrownBy(builder::build)
             .isInstanceOf(e.getClass())
@@ -121,12 +118,12 @@ public class DefaultProgressSnapshotTest {
 
     @ParameterizedTest
     @MethodSource("getArgumentsForMissingParameterValidationTests")
-    public void test_missing_params_shouldReturnEmpty(boolean condition) {
+    void test_missing_params_shouldReturnEmpty(boolean condition) {
         Assertions.assertFalse(condition);
     }
 
     @Test
-    public void ratioTransferred() {
+    void ratioTransferred() {
         DefaultProgressSnapshot snapshot = DefaultProgressSnapshot.builder()
                                                                   .transferredBytes(1L)
                                                                   .totalBytes(5L)
@@ -137,18 +134,18 @@ public class DefaultProgressSnapshotTest {
 
     @ParameterizedTest
     @MethodSource("getArgumentsForBytesTest")
-    public void test_estimatedBytesRemaining_and_totalBytes(long expectedBytes, long actualBytes) {
+    void test_estimatedBytesRemaining_and_totalBytes(long expectedBytes, long actualBytes) {
         Assertions.assertEquals(expectedBytes, actualBytes);
     }
 
     @ParameterizedTest
     @MethodSource("getArgumentsForTimeTest")
-    public void test_elapsedTime_and_estimatedTimeRemaining(long expected, long timeInMillis, long delta) {
+    void test_elapsedTime_and_estimatedTimeRemaining(long expected, long timeInMillis, long delta) {
         Assertions.assertEquals(expected, timeInMillis, delta);
     }
 
     @Test
-    public void averageBytesPer() {
+    void averageBytesPer() {
         DefaultProgressSnapshot snapshot = DefaultProgressSnapshot.builder()
                                                                   .transferredBytes(100L)
                                                                   .startTime(Instant.now().minusMillis(100))

@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,10 +31,8 @@ import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.core.internal.util.DownloadProgressUpdaterInvocation;
-import software.amazon.awssdk.core.internal.util.ProgressUpdaterInvoker;
 import software.amazon.awssdk.core.internal.util.UploadProgressUpdaterInvocation;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
  * Functional tests for {@link BytesReadTrackingPublisher}.
@@ -71,7 +68,7 @@ public class BytesReadTrackingPublisherTest {
     }
 
     @Test
-    public void progressUpdater_invokes_incrementBytesReceived() {
+    void progressUpdater_invokes_incrementBytesReceived() {
         int nElements = 8;
         int elementSize = 2;
 

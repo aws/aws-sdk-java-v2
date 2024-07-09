@@ -15,12 +15,10 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import static software.amazon.awssdk.core.internal.util.ProgressListenerTestUtils.REQUEST_BODY;
 import static software.amazon.awssdk.core.internal.util.ProgressListenerTestUtils.createSdkHttpRequest;
 import static software.amazon.awssdk.core.internal.util.ProgressListenerTestUtils.createSdkResponseBuilder;
 import static software.amazon.awssdk.core.internal.util.ProgressListenerTestUtils.progressListenerContext;
 
-import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.SdkRequest;
@@ -29,13 +27,11 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpMethod;
 
-public class AfterExecutionProgressReportingStageTest {
+class AfterExecutionProgressReportingStageTest {
 
     @Test
-    public void afterExecutionProgressListener_calledFrom_ExecutionPipeline() throws Exception {
+    void afterExecutionProgressListener_calledFrom_ExecutionPipeline() throws Exception {
         ProgressListener progressListener = Mockito.mock(ProgressListener.class);
 
         SdkRequestOverrideConfiguration config = SdkRequestOverrideConfiguration.builder()

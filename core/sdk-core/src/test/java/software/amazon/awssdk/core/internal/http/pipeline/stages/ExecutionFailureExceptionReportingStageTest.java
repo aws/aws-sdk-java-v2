@@ -35,11 +35,11 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import utils.ValidSdkObjects;
 
-public class ExecutionFailureExceptionReportingStageTest {
+class ExecutionFailureExceptionReportingStageTest {
 
 
     @Test
-    public void when_sync_executeThrowsException_attemptFailureInvoked() throws Exception {
+    void when_sync_executeThrowsException_attemptFailureInvoked() throws Exception {
 
         RequestPipeline<SdkHttpFullRequest, Response<String>> requestPipeline = Mockito.mock(RequestPipeline.class);
         ProgressListener progressListener = Mockito.mock(ProgressListener.class);
@@ -66,7 +66,7 @@ public class ExecutionFailureExceptionReportingStageTest {
     }
 
     @Test
-    public void when_async_executeThrowsException_attemptFailureInvoked() throws Exception {
+    void when_async_executeThrowsException_attemptFailureInvoked() throws Exception {
 
         RequestPipeline<SdkHttpFullRequest, CompletableFuture> requestPipeline = Mockito.mock(RequestPipeline.class);
         ProgressListener progressListener = Mockito.mock(ProgressListener.class);

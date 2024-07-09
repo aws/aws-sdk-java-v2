@@ -28,9 +28,9 @@ import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
-public class BeforeExecutionProgressReportingStageTest {
+class BeforeExecutionProgressReportingStageTest {
     @Test
-    public void beforeExecutionProgressListener_calledFrom_ExecutionPipeline() throws Exception {
+    void beforeExecutionProgressListener_calledFrom_ExecutionPipeline() throws Exception {
         ProgressListener progressListener = Mockito.mock(ProgressListener.class);
 
         SdkRequestOverrideConfiguration config = SdkRequestOverrideConfiguration.builder()

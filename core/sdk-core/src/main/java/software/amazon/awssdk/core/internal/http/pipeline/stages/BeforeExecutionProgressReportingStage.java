@@ -30,7 +30,7 @@ public class BeforeExecutionProgressReportingStage implements RequestToRequestPi
 
         if (ProgressListenerUtils.progressListenerAttached(context.originalRequest())) {
             Long requestContentLength =
-                context.requestProvider() != null && context.requestProvider().contentLength().isPresent() ?
+                (context.requestProvider() != null && context.requestProvider().contentLength().isPresent()) ?
                 context.requestProvider().contentLength().get() : null;
 
             ProgressUpdater progressUpdater = new ProgressUpdater(context.originalRequest(), requestContentLength);

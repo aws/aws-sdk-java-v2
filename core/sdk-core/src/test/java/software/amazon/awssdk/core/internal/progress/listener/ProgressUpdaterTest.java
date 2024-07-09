@@ -40,7 +40,7 @@ import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 
-public class ProgressUpdaterTest {
+class ProgressUpdaterTest {
     private CaptureProgressListener captureProgressListener;
     private static final long BYTES_TRANSFERRED = 5L;
     private static final Throwable attemptFailure = new Throwable("AttemptFailureException");
@@ -63,7 +63,7 @@ public class ProgressUpdaterTest {
     }
 
     @Test
-    public void requestPrepared_transferredBytes_equals_zero() {
+    void requestPrepared_transferredBytes_equals_zero() {
 
         CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
 
@@ -92,7 +92,7 @@ public class ProgressUpdaterTest {
     }
 
     @Test
-    public void requestHeaderSent_transferredBytes_equals_zero() {
+    void requestHeaderSent_transferredBytes_equals_zero() {
 
         CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
 
@@ -120,7 +120,7 @@ public class ProgressUpdaterTest {
     }
 
     @Test
-    public void requestBytesSent_transferredBytes() {
+    void requestBytesSent_transferredBytes() {
 
         CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
 
@@ -149,7 +149,7 @@ public class ProgressUpdaterTest {
     }
 
     @Test
-    public void validate_resetBytesSent() {
+    void validate_resetBytesSent() {
 
         CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
 
@@ -172,7 +172,7 @@ public class ProgressUpdaterTest {
     }
 
     @Test
-    public void validate_resetBytesReceived() {
+    void validate_resetBytesReceived() {
 
         CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
 
@@ -196,7 +196,7 @@ public class ProgressUpdaterTest {
 
     @ParameterizedTest
     @MethodSource("contentLength")
-    public void ratioTransferred_upload_transferredBytes(long contentLength) {
+    void ratioTransferred_upload_transferredBytes(long contentLength) {
 
         CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
 
@@ -219,7 +219,7 @@ public class ProgressUpdaterTest {
 
     @ParameterizedTest
     @MethodSource("contentLength")
-    public void ratioTransferred_download_transferredBytes(long contentLength) {
+    void ratioTransferred_download_transferredBytes(long contentLength) {
 
         CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
 
@@ -241,7 +241,7 @@ public class ProgressUpdaterTest {
     }
 
     @Test
-    public void responseHeaderReceived_transferredBytes_equals_zero() {
+    void responseHeaderReceived_transferredBytes_equals_zero() {
 
         CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
 
@@ -269,7 +269,7 @@ public class ProgressUpdaterTest {
     }
 
     @Test
-    public void executionSuccess_transferredBytes_valid() {
+    void executionSuccess_transferredBytes_valid() {
 
         CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
 
@@ -299,7 +299,7 @@ public class ProgressUpdaterTest {
     }
 
     @Test
-    public void attemptFailureResponseBytesReceived() {
+    void attemptFailureResponseBytesReceived() {
 
         CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
 
@@ -327,7 +327,7 @@ public class ProgressUpdaterTest {
     }
 
     @Test
-    public void attemptFailure() {
+    void attemptFailure() {
 
         CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
 
@@ -356,7 +356,7 @@ public class ProgressUpdaterTest {
     }
 
     @Test
-    public void executionFailure() {
+    void executionFailure() {
 
         CaptureProgressListener mockListener = Mockito.mock(CaptureProgressListener.class);
 
