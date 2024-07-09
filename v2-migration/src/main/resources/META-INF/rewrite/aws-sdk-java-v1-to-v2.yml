@@ -14,7 +14,7 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: software.amazon.awssdk.v2migration.AwsSdkForJavaV1ToV2
+name: software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2
 displayName: Migrate from the AWS SDK for Java v1 to the AWS SDK for Java v2
 description: This recipe will apply changes required for migrating from the AWS SDK for Java v1 to the AWS SDK for Java v2.
 tags:
