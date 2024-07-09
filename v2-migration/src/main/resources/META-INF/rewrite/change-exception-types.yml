@@ -52,10 +52,10 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.AmazonServiceException getRawResponseContent()
       newMethodName: awsErrorDetails().rawResponse().asUtf8String
-  - software.amazon.awssdk.migration.internal.recipe.AddCommentToMethod:
+  - software.amazon.awssdk.v2migration.AddCommentToMethod:
       methodPattern: com.amazonaws.AmazonServiceException getErrorType()
       comment: getErrorType is not supported in v2. AwsServiceException is a service error in v2. Consider removing it.
-  - software.amazon.awssdk.migration.internal.recipe.AddCommentToMethod:
+  - software.amazon.awssdk.v2migration.AddCommentToMethod:
       methodPattern: com.amazonaws.AmazonServiceException getProxyHost()
       comment: getProxyHost is not supported in v2. Please submit a feature request https://github.com/aws/aws-sdk-java-v2/issues
   - org.openrewrite.java.ChangeType:
