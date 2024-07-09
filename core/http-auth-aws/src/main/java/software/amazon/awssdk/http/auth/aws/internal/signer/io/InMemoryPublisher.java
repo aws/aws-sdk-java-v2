@@ -64,8 +64,8 @@ public class InMemoryPublisher implements Publisher<ByteBuffer> {
                 try {
                     demand.addAndGet(n);
                     fulfillDemand();
-                } catch (Exception e) {
-                    finish(() -> s.onError(e));
+                } catch (Throwable t) {
+                    finish(() -> s.onError(t));
                 }
             }
 
