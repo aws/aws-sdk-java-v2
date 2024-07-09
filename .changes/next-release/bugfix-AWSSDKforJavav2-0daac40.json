@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "fix SigV4a signer incorrectly interpreting query params with '&'"
+}
