@@ -23,6 +23,7 @@ import static software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOpti
 import static software.amazon.awssdk.awscore.client.config.AwsClientOption.DEFAULTS_MODE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.DEFAULT_RETRY_MODE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 import static software.amazon.awssdk.regions.ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT;
 
 import java.time.Duration;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDisc
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -75,7 +77,7 @@ public class DefaultsModeTest {
             .build();
 
         assertThat(client.clientConfiguration.option(DEFAULTS_MODE)).isEqualTo(DefaultsMode.LEGACY);
-        assertThat(client.clientConfiguration.option(RETRY_POLICY).retryMode()).isEqualTo(RetryMode.defaultRetryMode());
+        assertThat(SdkDefaultRetryStrategy.retryMode(client.clientConfiguration.option(RETRY_STRATEGY))).isEqualTo(RetryMode.defaultRetryMode());
         assertThat(client.clientConfiguration.option(DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT)).isNull();
     }
 
@@ -97,7 +99,7 @@ public class DefaultsModeTest {
 
         AttributeMap attributes = DefaultsModeConfiguration.defaultConfig(targetMode);
 
-        assertThat(client.clientConfiguration.option(RETRY_POLICY).retryMode()).isEqualTo(attributes.get(DEFAULT_RETRY_MODE));
+        assertThat(SdkDefaultRetryStrategy.retryMode(client.clientConfiguration.option(RETRY_STRATEGY))).isEqualTo(attributes.get(DEFAULT_RETRY_MODE));
         assertThat(client.clientConfiguration.option(DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT)).isEqualTo("regional");
     }
 
@@ -119,7 +121,7 @@ public class DefaultsModeTest {
 
         AttributeMap attributes = DefaultsModeConfiguration.defaultConfig(targetMode);
 
-        assertThat(client.clientConfiguration.option(RETRY_POLICY).retryMode()).isEqualTo(attributes.get(DEFAULT_RETRY_MODE));
+        assertThat(SdkDefaultRetryStrategy.retryMode(client.clientConfiguration.option(RETRY_STRATEGY))).isEqualTo(attributes.get(DEFAULT_RETRY_MODE));
     }
 
     @Test

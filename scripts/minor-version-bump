@@ -10,5 +10,6 @@ mvn versions:set -DnewVersion=$NEXT_VERSION_SNAPSHOT -DgenerateBackupPoms=false 
 mkdir -p .changes/$PREVIOUS_MINOR_VERSION.x
 mv .changes/*.json .changes/$PREVIOUS_MINOR_VERSION.x/
 mv CHANGELOG.md changelogs/$PREVIOUS_MINOR_VERSION.x-CHANGELOG.md
+echo " #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._" > CHANGELOG.md
 
 echo "Version bumped to $NEXT_VERSION_SNAPSHOT"

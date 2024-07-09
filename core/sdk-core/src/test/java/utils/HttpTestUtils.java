@@ -32,17 +32,18 @@ import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
-import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class HttpTestUtils {
     public static SdkHttpClient testSdkHttpClient() {
         return new DefaultSdkHttpClientBuilder().buildWithDefaults(
-                AttributeMap.empty().merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
+            AttributeMap.empty().merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
     }
 
     public static SdkAsyncHttpClient testSdkAsyncHttpClient() {
@@ -70,7 +71,8 @@ public class HttpTestUtils {
         return SdkClientConfiguration.builder()
                                      .option(SdkClientOption.EXECUTION_INTERCEPTORS, new ArrayList<>())
                                      .option(SdkClientOption.ENDPOINT, URI.create("http://localhost:8080"))
-                                     .option(SdkClientOption.RETRY_POLICY, RetryPolicy.defaultRetryPolicy())
+                                     .option(SdkClientOption.RETRY_STRATEGY,
+                                             SdkDefaultRetryStrategy.defaultRetryStrategy())
                                      .option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, new HashMap<>())
                                      .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
                                      .option(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
@@ -82,14 +84,14 @@ public class HttpTestUtils {
     }
 
     public static class TestClientBuilder {
-        private RetryPolicy retryPolicy;
+        private RetryStrategy retryStrategy;
         private SdkHttpClient httpClient;
         private Map<String, String> additionalHeaders = new HashMap<>();
         private Duration apiCallTimeout;
         private Duration apiCallAttemptTimeout;
 
-        public TestClientBuilder retryPolicy(RetryPolicy retryPolicy) {
-            this.retryPolicy = retryPolicy;
+        public TestClientBuilder retryStrategy(RetryStrategy retryStrategy) {
+            this.retryStrategy = retryStrategy;
             return this;
         }
 
@@ -117,37 +119,38 @@ public class HttpTestUtils {
             SdkHttpClient sdkHttpClient = this.httpClient != null ? this.httpClient : testSdkHttpClient();
             return new AmazonSyncHttpClient(testClientConfiguration().toBuilder()
                                                                      .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
-                                                                     .applyMutation(this::configureRetryPolicy)
+                                                                     .applyMutation(this::configureRetryStrategy)
                                                                      .applyMutation(this::configureAdditionalHeaders)
                                                                      .option(SdkClientOption.API_CALL_TIMEOUT, apiCallTimeout)
-                                                                     .option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT, apiCallAttemptTimeout)
+                                                                     .option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT,
+                                                                             apiCallAttemptTimeout)
                                                                      .build());
         }
 
         private void configureAdditionalHeaders(SdkClientConfiguration.Builder builder) {
             Map<String, List<String>> headers =
-                    this.additionalHeaders.entrySet().stream()
-                                          .collect(Collectors.toMap(Map.Entry::getKey, e -> Arrays.asList(e.getValue())));
+                this.additionalHeaders.entrySet().stream()
+                                      .collect(Collectors.toMap(Map.Entry::getKey, e -> Arrays.asList(e.getValue())));
 
             builder.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, headers);
         }
 
-        private void configureRetryPolicy(SdkClientConfiguration.Builder builder) {
-            if (retryPolicy != null) {
-                builder.option(SdkClientOption.RETRY_POLICY, retryPolicy);
+        private void configureRetryStrategy(SdkClientConfiguration.Builder builder) {
+            if (retryStrategy != null) {
+                builder.option(SdkClientOption.RETRY_STRATEGY, retryStrategy);
             }
         }
     }
 
     public static class TestAsyncClientBuilder {
-        private RetryPolicy retryPolicy;
+        private RetryStrategy retryStrategy;
         private SdkAsyncHttpClient asyncHttpClient;
         private Duration apiCallTimeout;
         private Duration apiCallAttemptTimeout;
         private Map<String, String> additionalHeaders = new HashMap<>();
 
-        public TestAsyncClientBuilder retryPolicy(RetryPolicy retryPolicy) {
-            this.retryPolicy = retryPolicy;
+        public TestAsyncClientBuilder retryStrategy(RetryStrategy retryStrategy) {
+            this.retryStrategy = retryStrategy;
             return this;
         }
 
@@ -176,8 +179,9 @@ public class HttpTestUtils {
             return new AmazonAsyncHttpClient(testClientConfiguration().toBuilder()
                                                                       .option(SdkClientOption.ASYNC_HTTP_CLIENT, asyncHttpClient)
                                                                       .option(SdkClientOption.API_CALL_TIMEOUT, apiCallTimeout)
-                                                                      .option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT, apiCallAttemptTimeout)
-                                                                      .applyMutation(this::configureRetryPolicy)
+                                                                      .option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT,
+                                                                              apiCallAttemptTimeout)
+                                                                      .applyMutation(this::configureRetryStrategy)
                                                                       .applyMutation(this::configureAdditionalHeaders)
                                                                       .build());
         }
@@ -190,9 +194,9 @@ public class HttpTestUtils {
             builder.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, headers);
         }
 
-        private void configureRetryPolicy(SdkClientConfiguration.Builder builder) {
-            if (retryPolicy != null) {
-                builder.option(SdkClientOption.RETRY_POLICY, retryPolicy);
+        private void configureRetryStrategy(SdkClientConfiguration.Builder builder) {
+            if (retryStrategy != null) {
+                builder.option(SdkClientOption.RETRY_STRATEGY, retryStrategy);
             }
         }
     }
