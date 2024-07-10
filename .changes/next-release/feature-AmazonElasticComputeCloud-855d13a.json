@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "Add parameters to enable provisioning IPAM BYOIPv4 space at a Local Zone Network Border Group level"
-}
