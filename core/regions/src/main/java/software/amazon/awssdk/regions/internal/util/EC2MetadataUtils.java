@@ -321,7 +321,7 @@ public final class EC2MetadataUtils {
                                         stringValue(jsonNode.get("accountId")),
                                         stringValue(jsonNode.get("kernelId")),
                                         stringValue(jsonNode.get("ramdiskId")),
-                                        stringValue(jsonNode.get("region")),
+                                        stringValue(jsonNode.get(REGION)),
                                         stringValue(jsonNode.get("version")),
                                         stringValue(jsonNode.get("availabilityZone")),
                                         stringValue(jsonNode.get("privateIp")),
