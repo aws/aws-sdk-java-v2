@@ -216,8 +216,8 @@
     <!-- Skip the warning since this source is forked from openrewrite -->
     <Match>
         <Or>
-            <Class name="software.amazon.awssdk.migration.recipe.ChangeSdkType"/>
-            <Class name="software.amazon.awssdk.migration.recipe.ChangeSdkType$ChangeTypeVisitor"/>
+            <Class name="software.amazon.awssdk.v2migration.ChangeSdkType"/>
+            <Class name="software.amazon.awssdk.v2migration.ChangeSdkType$ChangeTypeVisitor"/>
         </Or>
         <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
     </Match>
