@@ -150,6 +150,6 @@
         "org.assertj:assertj-core": { "packageName": "AssertJ", "packageVersion": "3.22.x" },
         "org.openrewrite:rewrite-java-8": {"packageName": "Maven-org-openrewrite_rewrite-java-8", "packageVersion": "8.x"},
         "org.openrewrite:rewrite-java": {"packageName": "Maven-org-openrewrite_rewrite-java", "packageVersion": "8.x"},
-        "org.openrewrite:rewrite-java-dependencies": {"packageName": "Maven-org-openrewrite-recipe_rewrite-java-dependencies", "packageVersion": "1.x"}
+        "org.openrewrite.recipe:rewrite-java-dependencies": {"packageName": "Maven-org-openrewrite-recipe_rewrite-java-dependencies", "packageVersion": "1.x"}
     }
 }
