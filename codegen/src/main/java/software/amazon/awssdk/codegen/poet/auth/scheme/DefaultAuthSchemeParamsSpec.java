@@ -22,6 +22,7 @@ import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -185,10 +186,12 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
             parameters().forEach((name, model) -> {
                 if (authSchemeSpecUtils.includeParam(name)) {
                     b.addField(endpointRulesSpecUtils.parameterClassField(name, model));
-                    b.addMethod(endpointRulesSpecUtils.parameterClassAccessorMethod(name, model)
-                                                      .toBuilder()
-                                                      .addAnnotation(Override.class)
-                                                      .build());
+                    b.addMethods(endpointRulesSpecUtils.parameterClassAccessorMethods(name, model)
+                                                       .stream()
+                                                       .map(m -> m.toBuilder()
+                                                                  .addAnnotation(Override.class)
+                                                                  .build())
+                                                       .collect(Collectors.toList()));
                 }
             });
             ClassName endpointProvider = endpointRulesSpecUtils.providerInterfaceName();

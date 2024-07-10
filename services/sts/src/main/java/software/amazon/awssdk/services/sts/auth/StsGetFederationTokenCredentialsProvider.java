@@ -24,7 +24,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.endpoints.internal.Arn;
+import software.amazon.awssdk.services.sts.endpoints.internal.RuleArn;
 import software.amazon.awssdk.services.sts.model.FederatedUser;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenRequest;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenResponse;
@@ -81,9 +81,11 @@ public class StsGetFederationTokenCredentialsProvider
         if (federatedUser == null) {
             return null;
         }
-        return Arn.parse(federatedUser.arn())
-                  .map(Arn::accountId)
-                  .orElse(null);
+        RuleArn arn = RuleArn.parse(federatedUser.arn());
+        if (arn == null) {
+            return null;
+        }
+        return arn.accountId();
     }
 
     @Override

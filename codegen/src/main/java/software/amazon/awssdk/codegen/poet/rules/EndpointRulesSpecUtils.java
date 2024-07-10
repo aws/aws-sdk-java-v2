@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -219,18 +220,6 @@ public class EndpointRulesSpecUtils {
         }
     }
 
-    public List<String> rulesEngineResourceFiles2() {
-        URL currentJarUrl = EndpointRulesSpecUtils.class.getProtectionDomain().getCodeSource().getLocation();
-        try (JarFile jarFile = new JarFile(currentJarUrl.getFile())) {
-            return jarFile.stream()
-                          .map(ZipEntry::getName)
-                          .filter(e -> e.startsWith("software/amazon/awssdk/codegen/rules2/"))
-                          .collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
     public Map<String, ParameterModel> parameters() {
         return intermediateModel.getEndpointRuleSetModel().getParameters();
     }
@@ -261,11 +250,25 @@ public class EndpointRulesSpecUtils {
      *     public Region region() {…};
      * </pre>
      */
-    public MethodSpec parameterClassAccessorMethod(String name, ParameterModel model) {
+    public List<MethodSpec> parameterClassAccessorMethods(String name, ParameterModel model) {
+        String variableName = variableName(name);
+
         MethodSpec.Builder b = parameterMethodBuilder(name, model);
         b.returns(parameterType(model));
-        b.addStatement("return $N", variableName(name));
-        return b.build();
+        b.addStatement("return $N", variableName);
+        MethodSpec method = b.build();
+
+        // Add a string-based getter for region parameters.
+        if (model.getBuiltInEnum() == BuiltInParameter.AWS_REGION) {
+            MethodSpec.Builder idB = parameterMethodBuilder(name + "Id", model);
+            idB.returns(String.class);
+            idB.addStatement("return $1N == null ? null : $1N.id()", variableName);
+
+            MethodSpec idMethod = idB.build();
+            return Arrays.asList(method, idMethod);
+        }
+
+        return Collections.singletonList(method);
     }
 
 
@@ -276,11 +279,21 @@ public class EndpointRulesSpecUtils {
      *     Region region();
      * </pre>
      */
-    public MethodSpec parameterInterfaceAccessorMethod(String name, ParameterModel model) {
-        MethodSpec.Builder b = parameterMethodBuilder(name, model);
-        b.returns(parameterType(model));
-        b.addModifiers(Modifier.ABSTRACT);
-        return b.build();
+    public List<MethodSpec> parameterInterfaceAccessorMethods(String name, ParameterModel model) {
+        MethodSpec.Builder methodBuilder = parameterMethodBuilder(name, model);
+        methodBuilder.returns(parameterType(model));
+        methodBuilder.addModifiers(Modifier.ABSTRACT);
+
+        // Add a string-based getter for region parameters.
+        if (model.getBuiltInEnum() == BuiltInParameter.AWS_REGION) {
+            MethodSpec.Builder idMethodBuilder = parameterMethodBuilder(name + "Id", model);
+            idMethodBuilder.returns(String.class);
+            idMethodBuilder.addModifiers(Modifier.ABSTRACT);
+
+            return Arrays.asList(methodBuilder.build(), idMethodBuilder.build());
+        }
+
+        return Collections.singletonList(methodBuilder.build());
     }
 
     /**

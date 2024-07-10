@@ -55,7 +55,7 @@ public class EndpointParametersClassSpec implements ClassSpec {
 
         parameters().forEach((name, model) -> {
             b.addField(endpointRulesSpecUtils.parameterClassField(name, model));
-            b.addMethod(endpointRulesSpecUtils.parameterClassAccessorMethod(name, model));
+            b.addMethods(endpointRulesSpecUtils.parameterClassAccessorMethods(name, model));
         });
 
         b.addMethod(toBuilderMethod());

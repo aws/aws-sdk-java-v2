@@ -279,7 +279,7 @@ public class CustomizationConfig {
     /**
      * Whether SRA based auth logic should be used.
      */
-    private boolean useSraAuth = false;
+    private boolean useSraAuth = true;
 
     /**
      * Whether to generate auth scheme params based on endpoint params.
@@ -302,11 +302,6 @@ public class CustomizationConfig {
     private Map<String, ClientContextParam> customClientContextParams;
 
     private boolean s3ExpressAuthSupport;
-
-    /**
-     * Set to true to enable compiled endpoint rules. Currently defaults to false.
-     */
-    private boolean enableGenerateCompiledEndpointRules = false;
 
     /**
      * Customization related to auth scheme derived from endpoints.
@@ -750,14 +745,6 @@ public class CustomizationConfig {
 
     public void setUseS3ExpressSessionAuth(boolean useS3ExpressSessionAuth) {
         this.useS3ExpressSessionAuth = useS3ExpressSessionAuth;
-    }
-
-    public boolean isEnableGenerateCompiledEndpointRules() {
-        return enableGenerateCompiledEndpointRules;
-    }
-
-    public void setEnableGenerateCompiledEndpointRules(boolean enableGenerateCompiledEndpointRules) {
-        this.enableGenerateCompiledEndpointRules = enableGenerateCompiledEndpointRules;
     }
 
     public Map<String, String> getSkipEndpointTests() {

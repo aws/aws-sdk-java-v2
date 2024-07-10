@@ -22,7 +22,9 @@ import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -123,11 +125,15 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
                 if (authSchemeSpecUtils.includeParam(name)) {
-                    MethodSpec accessor = endpointRulesSpecUtils.parameterInterfaceAccessorMethod(name, model);
+                    List<MethodSpec> methods = endpointRulesSpecUtils.parameterInterfaceAccessorMethods(name, model);
                     if (model.getDocumentation() != null) {
-                        accessor = accessor.toBuilder().addJavadoc(model.getDocumentation()).build();
+                        methods = methods.stream()
+                                         .map(m -> m.toBuilder()
+                                                    .addJavadoc(model.getDocumentation())
+                                                    .build())
+                                         .collect(Collectors.toList());
                     }
-                    b.addMethod(accessor);
+                    b.addMethods(methods);
                 }
             });
         }
