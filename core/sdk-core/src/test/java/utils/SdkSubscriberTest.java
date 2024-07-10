@@ -127,7 +127,7 @@ public class SdkSubscriberTest {
     }
 
     @Test
-    public void limit__subscriber_with_empty_input_and_zero_limit() throws InterruptedException, ExecutionException, TimeoutException {
+    public void limit__subscriber_with_empty_input_and_zero_limit() throws Exception {
         itemsPublisher = PaginatedItemsPublisher.builder().nextPageFetcher(asyncPageFetcher)
                 .iteratorFunction(EMPTY_ITERATOR).isLastPage(false).build();
 
@@ -135,7 +135,7 @@ public class SdkSubscriberTest {
         itemsPublisher.limit(0).subscribe(e -> zeroLimit.add(e)).get(5, TimeUnit.SECONDS);
         assertThat(zeroLimit).isEqualTo(Arrays.asList());
 
-        final List<Integer> nonZeroLimit = new ArrayList<>();
+        List<Integer> nonZeroLimit = new ArrayList<>();
         itemsPublisher.limit(10).subscribe(e -> nonZeroLimit.add(e)).get(5, TimeUnit.SECONDS);
         assertThat(zeroLimit).isEqualTo(Arrays.asList());
     }
@@ -146,10 +146,10 @@ public class SdkSubscriberTest {
         final int limitFactor = 5;
         LimitingSubscriber<Integer> limitingSubscriber = new LimitingSubscriber<>(mockSubscriber, limitFactor);
         limitingSubscriber.onSubscribe(new EmptySubscription(mockSubscriber));
-        final ExecutorService executorService = Executors.newFixedThreadPool(10);
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
         for (int i = 0; i < 10; i++) {
-            final Integer integer = Integer.valueOf(i);
-            executorService.submit(() -> limitingSubscriber.onNext(new Integer(integer)));
+            Integer boxed = i;
+            executorService.submit(() -> limitingSubscriber.onNext(boxed));
         }
         executorService.awaitTermination(300, TimeUnit.MILLISECONDS);
         Mockito.verify(mockSubscriber, times(limitFactor)).onNext(anyInt());
