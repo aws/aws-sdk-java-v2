@@ -57,7 +57,6 @@ public class ApacheClientTlsHalfCloseTest extends ClientTlsAuthTestBase {
             executeHttpRequest(httpClient);
         });
         assertEquals("Remote end is closed.", exception.getMessage());
-        // assertEquals("Socket input is already shutdown", exception.getCause().getMessage());
     }
 
     @Test
