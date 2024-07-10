@@ -18,8 +18,6 @@ package software.amazon.awssdk.protocols.json.internal.unmarshall;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.json.ErrorCodeParser;
@@ -38,8 +36,6 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
     static final String ERROR_CODE_HEADER = ":error-code";
 
     static final String EXCEPTION_TYPE_HEADER = ":exception-type";
-
-    private static final Logger log = LoggerFactory.getLogger(JsonErrorCodeParser.class);
 
     /**
      * List of header keys that represent the error code sent by service.

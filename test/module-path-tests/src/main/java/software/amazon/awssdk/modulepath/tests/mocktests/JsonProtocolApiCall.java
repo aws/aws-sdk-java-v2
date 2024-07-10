@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.modulepath.tests.mocktests;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -28,7 +26,6 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
  */
 public class JsonProtocolApiCall extends BaseMockApiCall {
 
-    private static final Logger logger = LoggerFactory.getLogger(JsonProtocolApiCall.class);
     private ProtocolRestJsonClient client;
     private ProtocolRestJsonAsyncClient asyncClient;
 

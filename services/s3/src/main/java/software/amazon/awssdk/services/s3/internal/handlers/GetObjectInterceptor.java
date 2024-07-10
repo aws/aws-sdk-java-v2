@@ -55,11 +55,10 @@ public class GetObjectInterceptor implements ExecutionInterceptor {
 
             // Multipart uploaded objects the received Checksum is the checksum of checksums of individual parts and part number.
             if (algorithmChecksumValuePair != null &&
-                algorithmChecksumValuePair.right() != null) {
-                if (MULTIPART_CHECKSUM_PATTERN.matcher(algorithmChecksumValuePair.right()).matches()) {
-                    executionAttributes.putAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION,
-                                                     ChecksumValidation.FORCE_SKIP);
-                }
+                algorithmChecksumValuePair.right() != null &&
+                MULTIPART_CHECKSUM_PATTERN.matcher(algorithmChecksumValuePair.right()).matches()) {
+                executionAttributes.putAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION,
+                                                 ChecksumValidation.FORCE_SKIP);
             }
         }
     }
