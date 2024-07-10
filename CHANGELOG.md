@@ -1,4 +1,28 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.18__ __2024-07-09__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Update way we build retry strategies to honor the `AWS_MAX_ATTEMPTS` system setting.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release deprecates dataProductItem field from SearchInventoryResultItem, along with some unused DataProduct shapes
+
+## __Amazon FSx__
+  - ### Features
+    - Adds support for FSx for NetApp ONTAP 2nd Generation file systems, and FSx for OpenZFS Single AZ HA file systems.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds support for enabling or disabling Natural Language Query Processing feature for Amazon OpenSearch Service domains, and provides visibility into the current state of the setup or tear-down.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release 1/ enables optimization jobs that allows customers to perform Ahead-of-time compilation and quantization. 2/ allows customers to control access to Amazon Q integration in SageMaker Studio. 3/ enables AdditionalModelDataSources for CreateModel action.
+
 # __2.26.17__ __2024-07-08__
 ## __AWS CodeDeploy__
   - ### Features
@@ -286,7 +310,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
+[@sullis](https://github.com/sullis), [@shetsa-amzn](https://github.com/shetsa-amzn)
 # __2.26.9__ __2024-06-25__
 ## __AWS Network Manager__
   - ### Features

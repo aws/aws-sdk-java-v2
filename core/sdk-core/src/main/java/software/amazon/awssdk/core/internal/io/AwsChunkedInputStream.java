@@ -50,8 +50,7 @@ public abstract class AwsChunkedInputStream extends SdkInputStream {
         int count = read(tmp, 0, 1);
         if (count > 0) {
             log.debug(() -> "One byte read from the stream.");
-            int unsignedByte = (int) tmp[0] & 0xFF;
-            return unsignedByte;
+            return tmp[0] & 0xFF;
         } else {
             return count;
         }
