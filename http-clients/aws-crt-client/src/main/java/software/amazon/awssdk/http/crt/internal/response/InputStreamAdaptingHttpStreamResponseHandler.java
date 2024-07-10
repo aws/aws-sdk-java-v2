@@ -46,7 +46,6 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
     private final SimplePublisher<ByteBuffer> simplePublisher;
 
     private final CompletableFuture<SdkHttpFullResponse> requestCompletionFuture;
-    private final HttpClientConnection crtConn;
 
     private final SdkHttpFullResponse.Builder responseBuilder;
     private final ResponseHandlerHelper responseHandlerHelper;
@@ -60,7 +59,6 @@ public final class InputStreamAdaptingHttpStreamResponseHandler implements HttpS
     public InputStreamAdaptingHttpStreamResponseHandler(HttpClientConnection crtConn,
                                                         CompletableFuture<SdkHttpFullResponse> requestCompletionFuture,
                                                         SimplePublisher<ByteBuffer> simplePublisher) {
-        this.crtConn = crtConn;
         this.requestCompletionFuture = requestCompletionFuture;
         this.responseBuilder = SdkHttpResponse.builder();
         this.responseHandlerHelper = new ResponseHandlerHelper(responseBuilder, crtConn);
