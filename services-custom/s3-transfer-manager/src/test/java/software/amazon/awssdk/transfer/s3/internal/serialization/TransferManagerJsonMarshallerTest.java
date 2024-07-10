@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,9 +67,4 @@ class TransferManagerJsonMarshallerTest {
                          }}, TransferManagerJsonMarshaller.MAP, "{\"key1\":100,\"key2\":200}")
         );
     }
-
-    private static String serializedValue(String paramValue) {
-        return String.format("{\"param\":%s}", paramValue);
-    }
-
 }

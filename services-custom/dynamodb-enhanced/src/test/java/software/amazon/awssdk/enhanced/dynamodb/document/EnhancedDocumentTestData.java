@@ -544,8 +544,6 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                         EnhancedType.of(SdkBytes.class)))
                                       .build());
         testScenarioMap = testDataList.stream().collect(Collectors.toMap(TestData::getScenario, Function.identity()));
-
-        // testScenarioMap = testDataList.stream().collect(Collectors.toMap(k->k.getScenario(), Function.identity()));
     }
 
     public TestData dataForScenario(String scenario) {
