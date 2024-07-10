@@ -35,32 +35,29 @@ import software.amazon.awssdk.utils.Logger;
 public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
 
     private static final Logger log = Logger.loggerFor(SdkTlsSocketFactory.class);
-    private final SSLContext sslContext;
 
-    public SdkTlsSocketFactory(final SSLContext sslContext, final HostnameVerifier hostnameVerifier) {
+    public SdkTlsSocketFactory(SSLContext sslContext, HostnameVerifier hostnameVerifier) {
         super(sslContext, hostnameVerifier);
         if (sslContext == null) {
             throw new IllegalArgumentException(
                     "sslContext must not be null. " + "Use SSLContext.getDefault() if you are unsure.");
         }
-        this.sslContext = sslContext;
     }
 
     @Override
-    protected final void prepareSocket(final SSLSocket socket) {
+    protected final void prepareSocket(SSLSocket socket) {
         log.debug(() -> String.format("socket.getSupportedProtocols(): %s, socket.getEnabledProtocols(): %s",
                                       Arrays.toString(socket.getSupportedProtocols()),
                                       Arrays.toString(socket.getEnabledProtocols())));
     }
 
     @Override
-    public Socket connectSocket(
-            final int connectTimeout,
-            final Socket socket,
-            final HttpHost host,
-            final InetSocketAddress remoteAddress,
-            final InetSocketAddress localAddress,
-            final HttpContext context) throws IOException {
+    public Socket connectSocket(int connectTimeout,
+            Socket socket,
+            HttpHost host,
+            InetSocketAddress remoteAddress,
+            InetSocketAddress localAddress,
+            HttpContext context) throws IOException {
         log.trace(() -> String.format("Connecting to %s:%s", remoteAddress.getAddress(), remoteAddress.getPort()));
 
         Socket connectedSocket = super.connectSocket(connectTimeout, socket, host, remoteAddress, localAddress, context);
