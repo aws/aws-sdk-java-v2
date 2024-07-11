@@ -62,9 +62,10 @@ public class ChangeAuthTypesTest implements RewriteTest {
                 + "\n"
                 + "public class Example {\n"
                 + "    public static void main(String[] args) {\n"
-                + "        DefaultCredentialsProvider credentials = DefaultCredentialsProvider.builder().build();\n"
+                + "        DefaultCredentialsProvider credentials = DefaultCredentialsProvider.builder()\n"
+                + "                .build();\n"
                 + "    }\n"
-                + "}\n"
+                + "}"
             )
         );
     }

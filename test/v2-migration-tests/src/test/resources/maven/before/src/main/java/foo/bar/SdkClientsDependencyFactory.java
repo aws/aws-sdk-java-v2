@@ -22,6 +22,7 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.AmazonSQSClient;
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 
 public final class SdkClientsDependencyFactory {
 
@@ -54,6 +55,12 @@ public final class SdkClientsDependencyFactory {
                               .withClientConfiguration(customClientConfiguration())
                               .withCredentials(CredentialsDependencyFactory.defaultCredentialsProviderChain())
                               .build();
+    }
+
+    public static AmazonSQSClientBuilder sqsClientBuilder() {
+        ClientConfiguration configuration = new ClientConfiguration().withMaxConnections(500);
+        return AmazonSQSClient.builder()
+                              .withClientConfiguration(configuration);
     }
 
     public static AmazonSQSAsync defaultSqsAsyncClient() {

@@ -22,6 +22,8 @@ import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.SqsClientBuilder;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 
@@ -31,7 +33,8 @@ public final class SdkClientsDependencyFactory {
     }
 
     public static SqsClient defaultSqsClient() {
-        return SqsClient.builder().build();
+        return SqsClient.builder()
+            .build();
     }
 
     public static ClientOverrideConfiguration customClientConfiguration() {
@@ -39,28 +42,39 @@ public final class SdkClientsDependencyFactory {
             .retryPolicy(RetryMode.STANDARD)
             .apiCallTimeout(Duration.ofMillis(1000))
             .apiCallAttemptTimeout(Duration.ofMillis(1001))
-            .putHeader("foo", "bar").build();
+            .putHeader("foo", "bar")
+            .build();
 
         return clientConfiguration;
     }
 
     public static SqsClient sqsClientWithAllSettings() {
         return SqsClient.builder()
-            .region(Region.of("us-west-2"))
-            .overrideConfiguration(customClientConfiguration())
+                .region(Region.of("us-west-2"))
+                .httpClientBuilder(ApacheHttpClient.builder()
+                    .connectionMaxIdleTime(Duration.ofMillis(1006))
+                    .tcpKeepAlive(true)
+                    .socketTimeout(Duration.ofMillis(1004))
+                    .connectionTimeToLive(Duration.ofMillis(1005))
+                    .connectionTimeout(Duration.ofMillis(1003))
+                    .maxConnections(1002))
+                .overrideConfiguration(customClientConfiguration())
             .credentialsProvider(CredentialsDependencyFactory.defaultCredentialsProviderChain())
-            .httpClientBuilder(ApacheHttpClient.builder()
-                .connectionMaxIdleTime(Duration.ofMillis(1006))
-                .tcpKeepAlive(true)
-                .socketTimeout(Duration.ofMillis(1004))
-                .connectionTimeToLive(Duration.ofMillis(1005))
-                .connectionTimeout(Duration.ofMillis(1003))
-                .maxConnections(1002))
             .build();
     }
 
+    public static SqsClientBuilder sqsClientBuilder() {
+        ClientOverrideConfiguration configuration = ClientOverrideConfiguration.builder()
+            .build();
+        return SqsClient.builder()
+            .httpClientBuilder(ApacheHttpClient.builder()
+                .maxConnections(500))
+            .overrideConfiguration(configuration);
+    }
+
     public static SqsAsyncClient defaultSqsAsyncClient() {
-        return SqsAsyncClient.builder().build();
+        return SqsAsyncClient.builder()
+            .build();
     }
 
     public static SqsAsyncClient sqsAsyncClientWithAllSettings() {
@@ -69,14 +83,15 @@ public final class SdkClientsDependencyFactory {
             .retryPolicy(RetryMode.STANDARD)
             .apiCallTimeout(Duration.ofMillis(2001))
             .apiCallAttemptTimeout(Duration.ofMillis(2002))
-            .putHeader("hello", "world").build();
+            .putHeader("hello", "world")
+            .build();
 
         return SqsAsyncClient.builder()
             .region(Region.US_WEST_2)
             .credentialsProvider(CredentialsDependencyFactory.defaultCredentialsProviderChain())
-            .overrideConfiguration(clientConfiguration)
             .httpClientBuilder(NettyNioAsyncHttpClient.builder()
                 .connectionTimeout(Duration.ofMillis(2004)))
+            .overrideConfiguration(clientConfiguration)
             .build();
     }
 }

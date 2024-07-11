@@ -82,7 +82,6 @@ public class HttpSettingsToHttpClient extends Recipe {
     private static final String CONFIG_VAR_TO_HTTP_SETTINGS_KEY = "software.amazon.awssdk.migration.variableReference";
     private static final String CONFIG_METHOD_TO_HTTP_SETTINGS_KEY = "software.amazon.awssdk.migration.configReference";
     private static final String OVERRIDE_CONFIG_BUILDER_HTTP_SETTINGS_CURSOR = "clientOverrideConfigBuilderHttpSettingsCursor";
-    private static final String HTTP_CLIENT_BUILDER_HTTP_SETTINGS_CURSOR = "httpClientBuilderHttpSettingsCursor";
 
     private static final Set<String> HTTP_SETTING_METHOD_NAMES = new HashSet<>(Arrays.asList("connectionTimeout",
                                                                                              "connectionTimeToLive",
@@ -151,14 +150,14 @@ public class HttpSettingsToHttpClient extends Recipe {
         }
 
         @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-            method = super.visitMethodInvocation(method, executionContext);
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation originalMethod, ExecutionContext executionContext) {
+            J.MethodInvocation method = super.visitMethodInvocation(originalMethod, executionContext);
             if (isClientOverrideConfigurationBuilder(method)) {
-                return handleClientOverrideConfiguration(method, executionContext);
+                return handleClientOverrideConfiguration(originalMethod, method, executionContext);
             }
 
             if (isSdkClientBuilder(method)) {
-                return configureHttpClientBuilder(method, executionContext);
+                return configureHttpClientBuilder(originalMethod, method, executionContext);
             }
 
             return method;
@@ -205,50 +204,103 @@ public class HttpSettingsToHttpClient extends Recipe {
                            .isPresent();
         }
 
-        private J.MethodInvocation configureHttpClientBuilder(J.MethodInvocation method,
-                                                              ExecutionContext executionContext) {
+        private J.MethodInvocation configureHttpClientBuilder(
+            J.MethodInvocation originalMethod, J.MethodInvocation method, ExecutionContext executionContext) {
             JavaType.Method methodType = method.getMethodType();
             if (methodType == null) {
                 return method;
             }
 
-            JavaType.FullyQualified classType = methodType.getDeclaringType();
+            if (method.getSimpleName().equals("overrideConfiguration")) {
+                return addHttpClientBuilderIfNeeded(Pair.of(originalMethod, method), executionContext);
+            }
+
+            return method;
+        }
+
+        /**
+         * This method adds ".httpClientBuilder(ApacheHttpClient.builder().xxx)" right
+         * before ".overrideConfiguration(xxx)" if there are HTTP settings stored in execution context
+         */
+        private J.@NotNull MethodInvocation addHttpClientBuilderIfNeeded(
+            Pair<J.MethodInvocation, J.MethodInvocation> methods, ExecutionContext executionContext) {
+            J.MethodInvocation method = methods.right();
+            Expression expression = method.getArguments().get(0);
+
+            // If a variable is passed to overrideConfiguration, i.e., clientBuilder.overrideConfiguration(config)
+            if (expression instanceof J.Identifier) {
+                J.Identifier id = (J.Identifier) expression;
+
+                Map<String, Map<String, Expression>> configToHttpSettings =
+                    executionContext.getMessage(CONFIG_VAR_TO_HTTP_SETTINGS_KEY);
+
+                return addHttpClientBuilderIfNeeded(methods, configToHttpSettings, id.getSimpleName(), executionContext);
+            }
+
+            // If a method invocation is passed to overrideConfiguration, i.e., clientBuilder.overrideConfiguration(getConfig())
+            if (expression instanceof J.MethodInvocation) {
+                J.MethodInvocation methodInvocation = (J.MethodInvocation) expression;
+                String methodInvocationName = methodInvocation.getName().getSimpleName();
+                Map<String, Map<String, Expression>> configToHttpSettings =
+                    executionContext.getMessage(CONFIG_METHOD_TO_HTTP_SETTINGS_KEY);
+
+                return addHttpClientBuilderIfNeeded(methods, configToHttpSettings, methodInvocationName, executionContext);
+
+            }
+
+            return method;
+        }
+
+        private J.MethodInvocation addHttpClientBuilderIfNeeded(
+            Pair<J.MethodInvocation, J.MethodInvocation> methods,
+            Map<String, Map<String, Expression>> configToHttpSettings,
+            String configKey,
+            ExecutionContext executionContext) {
+
+            J.MethodInvocation method = methods.right();
+            if (CollectionUtils.isNullOrEmpty(configToHttpSettings) ||
+                !configToHttpSettings.containsKey(configKey)) {
+                return method;
+            }
+
+            Map<String, Expression> httpSettings = configToHttpSettings.get(configKey);
+            JavaType.FullyQualified classType =
+                Optional.ofNullable(method.getMethodType())
+                        .map(JavaType.Method::getDeclaringType)
+                        .orElse(null);
+
+            if (classType == null) {
+                return method;
+            }
 
             JavaType.FullyQualified builderType = SdkTypeUtils.v2Builder(classType);
+            Expression expressionBeforeOverrideConfiguration = method.getSelect();
 
-            if (method.getSimpleName().equals("overrideConfiguration")) {
-                return saveHttpSettingsToHttpClientBuilderCursorIfNeeded(method, executionContext);
-            }
-
-            // Only add .httpClientBuilder method in the end
-            if (!method.getSimpleName().equals("build")) {
+            if (expressionBeforeOverrideConfiguration == null ||
+                !(expressionBeforeOverrideConfiguration instanceof J.MethodInvocation ||
+                  expressionBeforeOverrideConfiguration instanceof J.Identifier)) {
                 return method;
             }
 
-            Map<String, Expression> httpSettings = getCursor().getMessage(HTTP_CLIENT_BUILDER_HTTP_SETTINGS_CURSOR);
+            if (expressionBeforeOverrideConfiguration instanceof J.MethodInvocation) {
+                J.MethodInvocation selectInvoke = (J.MethodInvocation) expressionBeforeOverrideConfiguration;
 
-            // If there's no HTTP settings configured, skip
-            if (CollectionUtils.isNullOrEmpty(httpSettings)) {
-                return method;
+                // If we've already added httpClientBuilder, skip
+                if (selectInvoke.getSimpleName().equals("httpClientBuilder")) {
+                    return method;
+                }
             }
 
-            Expression expressionBeforeBuild = method.getSelect();
-
-            if (expressionBeforeBuild == null || !(expressionBeforeBuild instanceof J.MethodInvocation)) {
-                return method;
-            }
-
-            J.MethodInvocation selectInvoke = (J.MethodInvocation) expressionBeforeBuild;
-
-            // If we've already added httpClientBuilder, skip
-            if (selectInvoke.getSimpleName().equals("httpClientBuilder")) {
-                return method;
-            }
+            Space space = (expressionBeforeOverrideConfiguration instanceof J.MethodInvocation) ? Space.format("\n") :
+                          expressionBeforeOverrideConfiguration.getPrefix();
 
             Pair<Class, Class> httpClientClassNamePair = httpClientClassNamePair(classType);
 
             List<JavaType> parametersTypes = new ArrayList<>();
             parametersTypes.add(JavaType.buildType(httpClientClassNamePair.right().getCanonicalName()));
+
+            J.Identifier httpClientBuilderName =
+                IdentifierUtils.makeId("httpClientBuilder", builderType);
 
             JavaType.Method httpClientBuilderMethod = new JavaType.Method(
                 null,
@@ -262,14 +314,11 @@ public class HttpSettingsToHttpClient extends Recipe {
                 Collections.emptyList()
             );
 
-            J.Identifier httpClientBuilderName =
-                IdentifierUtils.makeId("httpClientBuilder", builderType);
-
             J.MethodInvocation httpClientBuilderMethodInvoke = new J.MethodInvocation(
                 Tree.randomId(),
                 Space.EMPTY,
                 Markers.EMPTY,
-                new JRightPadded(selectInvoke, Space.format("\n"), Markers.EMPTY),
+                new JRightPadded(expressionBeforeOverrideConfiguration, space, Markers.EMPTY),
                 null,
                 httpClientBuilderName,
                 httpClientBuilderInvoke(httpSettings, httpClientClassNamePair),
@@ -277,55 +326,8 @@ public class HttpSettingsToHttpClient extends Recipe {
             );
 
             method = method.withSelect(httpClientBuilderMethodInvoke);
-            method = autoFormat(method, executionContext);
             maybeAddImport(httpClientClassNamePair.left().getCanonicalName());
-            return method;
-        }
-
-        private J.@NotNull MethodInvocation saveHttpSettingsToHttpClientBuilderCursorIfNeeded(
-            J.MethodInvocation method, ExecutionContext executionContext) {
-            Expression expression = method.getArguments().get(0);
-
-            // If it is a variable
-            if (expression instanceof J.Identifier) {
-                J.Identifier id = (J.Identifier) expression;
-
-                Map<String, Map<String, Expression>> configToHttpSettings =
-                    executionContext.getMessage(CONFIG_VAR_TO_HTTP_SETTINGS_KEY);
-
-                return saveHttpSettingsToHttpClientBuilderCursorIfNeeded(method, configToHttpSettings, id.getSimpleName());
-            }
-
-            // If it is a method invocation
-            if (expression instanceof J.MethodInvocation) {
-                J.MethodInvocation methodInvocation = (J.MethodInvocation) expression;
-                String methodInvocationName = methodInvocation.getName().getSimpleName();
-                Map<String, Map<String, Expression>> configToHttpSettings =
-                    executionContext.getMessage(CONFIG_METHOD_TO_HTTP_SETTINGS_KEY);
-
-                return saveHttpSettingsToHttpClientBuilderCursorIfNeeded(method, configToHttpSettings, methodInvocationName);
-
-            }
-
-            return method;
-        }
-
-        private J.MethodInvocation saveHttpSettingsToHttpClientBuilderCursorIfNeeded(
-            J.MethodInvocation method,
-            Map<String, Map<String, Expression>> configToHttpSettings,
-            String configKey) {
-
-            if (CollectionUtils.isNullOrEmpty(configToHttpSettings) ||
-                !configToHttpSettings.containsKey(configKey)) {
-                return method;
-            }
-
-            Cursor parentCursor = getCursor().dropParentUntil(
-                parent -> (parent instanceof J.MethodInvocation) && ((J.MethodInvocation) parent)
-                    .getSimpleName().equals("build"));
-
-            parentCursor.putMessage(HTTP_CLIENT_BUILDER_HTTP_SETTINGS_CURSOR, configToHttpSettings.get(configKey));
-            return method;
+            return maybeAutoFormat(methods.left(), method, executionContext);
         }
 
         private Pair<Class, Class> httpClientClassNamePair(JavaType.FullyQualified classType) {
@@ -427,8 +429,11 @@ public class HttpSettingsToHttpClient extends Recipe {
             return settingsInvoke;
         }
 
-        private J.@NotNull MethodInvocation handleClientOverrideConfiguration(J.MethodInvocation method,
-                                                                              ExecutionContext executionContext) {
+        private J.@NotNull MethodInvocation handleClientOverrideConfiguration(
+            J.MethodInvocation originalMethod,
+            J.MethodInvocation method,
+            ExecutionContext executionContext) {
+
             Expression methodSelectExpression = method.getSelect();
             if (methodSelectExpression == null || !(methodSelectExpression instanceof J.MethodInvocation)) {
                 return method;
@@ -455,12 +460,13 @@ public class HttpSettingsToHttpClient extends Recipe {
 
             // new method: ClientOverrideConfiguration.builder().aNonHttpSetting(xx)
             method = method.withSelect(selectInvokeSelect);
-            method = autoFormat(method, executionContext);
 
             if (method.getSimpleName().equals("build")) {
                 method = method.withPrefix(Space.SINGLE_SPACE);
             }
-            return method;
+
+
+            return maybeAutoFormat(originalMethod, method, executionContext);
         }
 
         /**
@@ -478,7 +484,7 @@ public class HttpSettingsToHttpClient extends Recipe {
                 parentCursor = getCursor().dropParentUntil(parent -> isClientOverrideConfigurationNamedVariableType(parent));
             } catch (Exception e) {
                 // Ignore if it's not a variable
-                log.trace(() -> "Cannot find named variable type", e);
+                log.debug(() -> "Cannot find named variable type", e);
 
             }
 
@@ -488,7 +494,7 @@ public class HttpSettingsToHttpClient extends Recipe {
                                                returnClientOverrideConfiguration(((J.MethodDeclaration) parent).getMethodType()));
             } catch (Exception e) {
                 // Ignore if it's not a method declaration
-                log.trace(() -> "Cannot find method declaration type", e);
+                log.debug(() -> "Cannot find method declaration type", e);
             }
 
             Map<String, Expression> httpSettings =

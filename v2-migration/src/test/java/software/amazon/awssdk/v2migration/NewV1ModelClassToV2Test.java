@@ -64,7 +64,8 @@ public class NewV1ModelClassToV2Test implements RewriteTest {
                 + "        SendMessageRequest sendMessage = SendMessageRequest.builder()\n"
                 + "                .queueUrl(\"url\")\n"
                 + "                .messageBody(\"hello world\")\n"
-                + "                .messageGroupId(\"my-group\").build();\n"
+                + "                .messageGroupId(\"my-group\")\n"
+                + "                .build();\n"
                 + "\n"
                 + "        sqs.sendMessage(sendMessage);\n"
                 + "    }\n"
@@ -101,7 +102,8 @@ public class NewV1ModelClassToV2Test implements RewriteTest {
                 + "        sqs.sendMessage(SendMessageRequest.builder()\n"
                 + "                .queueUrl(\"url\")\n"
                 + "                .messageBody(\"hello world\")\n"
-                + "                .messageGroupId(\"my-group\").build());\n"
+                + "                .messageGroupId(\"my-group\")\n"
+                + "                .build());\n"
                 + "    }\n"
                 + "}"
             )
@@ -144,7 +146,8 @@ public class NewV1ModelClassToV2Test implements RewriteTest {
                 + "        return SendMessageRequest.builder()\n"
                 + "                .queueUrl(\"url\")\n"
                 + "                .messageBody(\"hello world\")\n"
-                + "                .messageGroupId(\"my-group\").build();\n"
+                + "                .messageGroupId(\"my-group\")\n"
+                + "                .build();\n"
                 + "    }\n"
                 + "}"
             )
@@ -163,12 +166,13 @@ public class NewV1ModelClassToV2Test implements RewriteTest {
                 + "    }\n"
                 + "}\n",
                  "import software.amazon.awssdk.services.sqs.model.SendMessageRequest;\n"
-                + "\n"
-                + "public class SqsExample {\n"
-                + "    public static void main(String[] args) {\n"
-                + "        SendMessageRequest sendMessage = SendMessageRequest.builder().build();\n"
-                + "    }\n"
-                + "}"
+                 + "\n"
+                 + "public class SqsExample {\n"
+                 + "    public static void main(String[] args) {\n"
+                 + "        SendMessageRequest sendMessage = SendMessageRequest.builder()\n"
+                 + "                .build();\n"
+                 + "    }\n"
+                 + "}"
             )
         );
     }
