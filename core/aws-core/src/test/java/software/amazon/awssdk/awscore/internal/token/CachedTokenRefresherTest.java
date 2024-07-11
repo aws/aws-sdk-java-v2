@@ -230,11 +230,6 @@ public class CachedTokenRefresherTest {
         assertThat(secondRefreshToken).isEqualTo(token2);
     }
 
-    private TestAwsResponse.Builder getDefaultTestAwsResponseBuilder() {
-        return TestAwsResponse.builder().accessToken("serviceToken")
-                              .expiryTime(Instant.ofEpochMilli(1743680000000L)).startUrl("new_start_url");
-    }
-
     private CachedTokenRefresher.Builder tokenRefresherBuilder() {
         return CachedTokenRefresher.builder();
     }

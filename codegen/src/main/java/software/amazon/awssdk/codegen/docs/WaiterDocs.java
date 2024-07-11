@@ -180,7 +180,6 @@ public final class WaiterDocs {
     }
 
     public static CodeBlock waiterOperationWithOverrideConfigConsumerBuilder(ClassName clientClassName,
-                                                                             ClassName requestClassName,
                                                                              Map.Entry<String, WaiterDefinition> waiterDefinition,
                                                                              OperationModel opModel) {
         String javadocs = new DocumentationBuilder().description("Polls {@link $T#$N} API until the desired condition "
