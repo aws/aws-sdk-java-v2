@@ -80,7 +80,7 @@ public final class AwsExecutionContextBuilder {
 
         executionAttributes
             .putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, 1)
-            .putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG,
+            .putAttribute(SdkExecutionAttribute.SERVICE_CONFIG,
                           clientConfig.option(SdkClientOption.SERVICE_CONFIGURATION))
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME,
                           clientConfig.option(AwsClientOption.SERVICE_SIGNING_NAME))
