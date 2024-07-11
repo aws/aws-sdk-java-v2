@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "anirudh9391",
+    "description": "Modify Enhanced Client to work on successfully updating nested attributes without loss of information"
+}
