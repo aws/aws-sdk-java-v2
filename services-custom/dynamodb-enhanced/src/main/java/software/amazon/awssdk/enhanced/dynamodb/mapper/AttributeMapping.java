@@ -16,9 +16,26 @@
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.StringUtils;
 
 @SdkPublicApi
 public enum AttributeMapping {
     SHALLOW,
-    NESTED
+    NESTED;
+
+    public static AttributeMapping fromValue(String attributeMapping) {
+        if (attributeMapping == null) {
+            return null;
+        }
+        switch (StringUtils.capitalize(attributeMapping)) {
+            case "SHALLOW" : return SHALLOW;
+            case "NESTED" : return NESTED;
+            default:
+                return null;
+        }
+    }
+
+    public static String toString(AttributeMapping attributeMapping) {
+        return String.valueOf(attributeMapping);
+    }
 }
