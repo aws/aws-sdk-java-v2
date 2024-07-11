@@ -31,7 +31,9 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getMappingConfiguration;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.NESTED;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,7 +55,7 @@ import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.MappingConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.update.DeleteAction;
@@ -284,10 +286,10 @@ public class UpdateItemOperationTest {
         FakeItem baseFakeItem = createUniqueFakeItem();
         FakeItem fakeItem = createUniqueFakeItem();
 
-        Map<String, AttributeValue> baseMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, false,
-                                                                                  new DynamoDBEnhancedRequestConfiguration(NESTED));
-        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, false,
-                                                                                  new DynamoDBEnhancedRequestConfiguration(NESTED));
+        Map<String, AttributeValue> baseMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, getMappingConfiguration(false,
+                                                                                                                        NESTED));
+        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, getMappingConfiguration(false,
+                                                                                                                    NESTED));
         Map<String, AttributeValue> keyMap = FakeItem.getTableSchema().itemToMap(fakeItem, singletonList("id"));
 
         when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
@@ -309,10 +311,8 @@ public class UpdateItemOperationTest {
         FakeItem baseFakeItem = createUniqueFakeItem();
         FakeItem fakeItem = createUniqueFakeItem();
 
-        Map<String, AttributeValue> baseMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, false,
-                                                                                  new DynamoDBEnhancedRequestConfiguration(NESTED));
-        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, false,
-                                                                                  new DynamoDBEnhancedRequestConfiguration(NESTED));
+        Map<String, AttributeValue> baseMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, getMappingConfiguration(false, NESTED));
+        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, getMappingConfiguration(false, NESTED));
         Map<String, AttributeValue> keyMap = FakeItem.getTableSchema().itemToMap(fakeItem, singletonList("id"));
 
         when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
@@ -332,8 +332,9 @@ public class UpdateItemOperationTest {
     @Test
     public void generateRequest_withExtension_transformedItemModifiesUpdateExpression() {
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> baseMap = new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true,
-                                                                                                new DynamoDBEnhancedRequestConfiguration(NESTED)));
+        Map<String, AttributeValue> baseMap = new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem,
+                                                                                                getMappingConfiguration(true,
+                                                                                                                        SHALLOW)));
 
         Map<String, AttributeValue> fakeMap = new HashMap<>(baseMap);
         fakeMap.put("subclass_attribute", AttributeValue.builder().s("1").build());
@@ -358,8 +359,8 @@ public class UpdateItemOperationTest {
     public void generateRequest_withExtensions_singleCondition() {
         FakeItem baseFakeItem = createUniqueFakeItem();
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, true,
-                                                                                  new DynamoDBEnhancedRequestConfiguration(NESTED));
+        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, getMappingConfiguration(true,
+                                                                                                                    SHALLOW));
         Expression condition = Expression.builder().expression("condition").expressionValues(fakeMap).build();
         when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition).build());
@@ -401,8 +402,8 @@ public class UpdateItemOperationTest {
     public void generateRequest_withExtensions_conditionAndUpdateExpression() {
         FakeItem baseFakeItem = createUniqueFakeItem();
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, true,
-                                                                                  new DynamoDBEnhancedRequestConfiguration(NESTED));
+        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, getMappingConfiguration(true,
+                                                                                                                    SHALLOW));
         Expression condition = Expression.builder().expression("condition").expressionValues(fakeMap).build();
 
         Map<String, AttributeValue> deleteActionMap = singletonMap(":val", AttributeValue.builder().s("s").build());
@@ -530,8 +531,9 @@ public class UpdateItemOperationTest {
     @Test
     public void generateRequest_withExtension_conditionAndModification() {
         FakeItem baseFakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> baseMap = new HashMap<>(FakeItem.getTableSchema().itemToMap(baseFakeItem, true,
-                                                                                                new DynamoDBEnhancedRequestConfiguration(NESTED)));
+        Map<String, AttributeValue> baseMap = new HashMap<>(FakeItem.getTableSchema().itemToMap(baseFakeItem,
+                                                                                                getMappingConfiguration(true,
+                                                                                                                        NESTED)));
 
         Map<String, AttributeValue> fakeMap = new HashMap<>(baseMap);
         fakeMap.put("subclass_attribute", AttributeValue.builder().s("1").build());
@@ -670,10 +672,10 @@ public class UpdateItemOperationTest {
     public void transformResponse_withExtension_returnsCorrectTransformedItem() {
         FakeItem baseFakeItem = createUniqueFakeItem();
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> baseFakeMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, true,
-                                                                                      new DynamoDBEnhancedRequestConfiguration(NESTED));
-        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, true,
-                                                                                  new DynamoDBEnhancedRequestConfiguration(NESTED));
+        Map<String, AttributeValue> baseFakeMap = FakeItem.getTableSchema().itemToMap(baseFakeItem,
+                                                                                      getMappingConfiguration(true, NESTED));
+        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, getMappingConfiguration(true,
+                                                                                                                    NESTED));
 
         when(mockDynamoDbEnhancedClientExtension.afterRead(any(DynamoDbExtensionContext.AfterRead.class))).thenReturn(
             ReadModification.builder().transformedItem(fakeMap).build());
@@ -690,8 +692,8 @@ public class UpdateItemOperationTest {
             .thenReturn(ReadModification.builder().build());
 
         FakeItem baseFakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> baseFakeMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, true,
-                                                                                      new DynamoDBEnhancedRequestConfiguration(NESTED));
+        Map<String, AttributeValue> baseFakeMap = FakeItem.getTableSchema().itemToMap(baseFakeItem,
+                                                                                      getMappingConfiguration(true, NESTED));
 
         FakeItem resultItem = transformResponse(baseFakeItem);
 
@@ -788,7 +790,7 @@ public class UpdateItemOperationTest {
         UpdateItemOperation<FakeItem> updateItemOperation =
             UpdateItemOperation.create(requestFakeItem(item, b -> b.ignoreNulls(true)));
 
-        Map<String, AttributeValue> itemMap = FakeItem.getTableSchema().itemToMap(item, true, new DynamoDBEnhancedRequestConfiguration(NESTED));
+        Map<String, AttributeValue> itemMap = FakeItem.getTableSchema().itemToMap(item, getMappingConfiguration(true, NESTED));
         return updateItemOperation.transformResponse(UpdateItemResponse.builder().attributes(itemMap).build(),
                                                      FakeItem.getTableSchema(),
                                                      PRIMARY_CONTEXT,

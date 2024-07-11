@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getMappingConfiguration;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.Map;
@@ -28,7 +29,6 @@ import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
@@ -90,8 +90,8 @@ public class PutItemOperation<T>
 
         boolean alwaysIgnoreNulls = true;
         T item = request.map(PutItemEnhancedRequest::item, TransactPutItemEnhancedRequest::item);
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item, alwaysIgnoreNulls,
-                                                                    new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item,
+                                                                    getMappingConfiguration(alwaysIgnoreNulls, SHALLOW));
 
         WriteModification transformation =
             extension != null ? extension.beforeWrite(

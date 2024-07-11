@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import static java.util.Collections.unmodifiableMap;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getMappingConfiguration;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.NESTED;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
@@ -43,7 +44,6 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterProviderResolver;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.ResolvedImmutableAttribute;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -128,14 +128,14 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         }
 
         private Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls,
-                                                      DynamoDBEnhancedRequestConfiguration requestConfiguration) {
+                                                      MappingConfiguration configuration) {
             T1 otherItem = this.otherItemGetter.apply(item);
 
             if (otherItem == null) {
                 return Collections.emptyMap();
             }
 
-            return this.otherItemTableSchema.itemToMap(otherItem, ignoreNulls, requestConfiguration);
+            return this.otherItemTableSchema.itemToMap(otherItem, configuration);
         }
 
         private AttributeValue attributeValue(T item, String attributeName) {
@@ -515,8 +515,9 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
     }
 
     @Override
-    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls,
-                                                 DynamoDBEnhancedRequestConfiguration requestConfiguration) {
+    public Map<String, AttributeValue> itemToMap(T item,
+                                                 MappingConfiguration configuration) {
+        boolean ignoreNulls = configuration.ignoreNulls();
         Map<String, AttributeValue> attributeValueMap = new HashMap<>();
 
         attributeMappers.forEach(attributeMapper -> {
@@ -524,7 +525,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
             AttributeValue attributeValue = attributeMapper.attributeGetterMethod().apply(item);
 
             if (attributeValueNonNullOrShouldWriteNull(ignoreNulls, attributeValue)) {
-                if (requestConfiguration.attributeMapping() == NESTED && attributeValue.hasM()) {
+                if (configuration.attributeMapping() == NESTED && attributeValue.hasM()) {
                     nestedItemToMap(attributeValueMap, attributeValue.m(), attributeKey, ignoreNulls);
                 } else {
                     attributeValueMap.put(attributeKey, attributeValue);
@@ -533,7 +534,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         });
 
         indexedFlattenedMappers.forEach((name, flattenedMapper) -> {
-            attributeValueMap.putAll(flattenedMapper.itemToMap(item, ignoreNulls, requestConfiguration));
+            attributeValueMap.putAll(flattenedMapper.itemToMap(item, ignoreNulls, configuration));
         });
 
         return unmodifiableMap(attributeValueMap);
@@ -541,7 +542,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
 
     @Override
     public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
-        return itemToMap(item, ignoreNulls, new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        return itemToMap(item, getMappingConfiguration(ignoreNulls, SHALLOW));
     }
 
     private void nestedItemToMap(Map<String, AttributeValue> resultAttributeValueMap,

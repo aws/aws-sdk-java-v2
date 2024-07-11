@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.document;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getMappingConfiguration;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.ArrayList;
@@ -37,9 +38,9 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterProviderResolver;
 import software.amazon.awssdk.enhanced.dynamodb.internal.document.DefaultEnhancedDocument;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.MappingConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -108,8 +109,7 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
      *
      */
     @Override
-    public Map<String, AttributeValue> itemToMap(EnhancedDocument item, boolean ignoreNulls,
-                                                 DynamoDBEnhancedRequestConfiguration requestConfiguration) {
+    public Map<String, AttributeValue> itemToMap(EnhancedDocument item, MappingConfiguration configuration) {
         if (item == null) {
             return null;
         }
@@ -119,7 +119,7 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
 
     @Override
     public Map<String, AttributeValue> itemToMap(EnhancedDocument item, boolean ignoreNulls) {
-        return itemToMap(item, ignoreNulls, new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        return itemToMap(item, getMappingConfiguration(ignoreNulls, SHALLOW));
     }
 
     private List<AttributeConverterProvider> mergeAttributeConverterProviders(EnhancedDocument item) {

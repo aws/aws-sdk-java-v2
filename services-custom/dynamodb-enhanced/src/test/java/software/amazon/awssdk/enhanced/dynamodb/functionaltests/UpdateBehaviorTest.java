@@ -2,6 +2,7 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getMappingConfiguration;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.NESTED;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
@@ -20,7 +21,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.Composite
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FlattenRecord;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedRecordWithUpdateBehavior;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecordWithUpdateBehaviors;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.MappingConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.ExtensionResolver;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
@@ -250,7 +251,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void when_updatingNestedObjectWithSingleLevelFlattened_existingInformationIsPreserved1() {
+    public void when_updatingNestedObjectWithSingleLevelFlattened_existingInformationIsPreserved() {
         TableSchema<FlattenRecord> tableSchema = TableSchema.fromClass(FlattenRecord.class);
 
         NestedRecordWithUpdateBehavior nestedRecord = createNestedWithDefaults("id123", 10L);
@@ -264,11 +265,9 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         flattenRecord.setId("id456");
 
 
-        Map<String, AttributeValue> itemMapShallow = tableSchema.itemToMap(flattenRecord, true,
-                                                                           new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        Map<String, AttributeValue> itemMapShallow = tableSchema.itemToMap(flattenRecord, getMappingConfiguration(true, SHALLOW));
 
-        Map<String, AttributeValue> itemMapNested = tableSchema.itemToMap(flattenRecord, true,
-                                                                          new DynamoDBEnhancedRequestConfiguration(NESTED));
+        Map<String, AttributeValue> itemMapNested = tableSchema.itemToMap(flattenRecord, getMappingConfiguration(true, NESTED));
 
 
         assertThat(itemMapShallow).hasSize(2);
@@ -276,7 +275,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void when_updatingNestedObjectWithMultipleLevelsFlattened_existingInformationIsPreserved1() {
+    public void when_updatingNestedObjectWithMultipleLevelsFlattened_existingInformationIsPreserved() {
         TableSchema<FlattenRecord> tableSchema = TableSchema.fromClass(FlattenRecord.class);
 
         NestedRecordWithUpdateBehavior outerNestedRecord = createNestedWithDefaults("id123", 10L);
@@ -292,11 +291,9 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         flattenRecord.setId("id456");
 
 
-        Map<String, AttributeValue> itemMapShallow = tableSchema.itemToMap(flattenRecord, true,
-                                                                           new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        Map<String, AttributeValue> itemMapShallow = tableSchema.itemToMap(flattenRecord, getMappingConfiguration(true, SHALLOW));
 
-        Map<String, AttributeValue> itemMapNested = tableSchema.itemToMap(flattenRecord, true,
-                                                                          new DynamoDBEnhancedRequestConfiguration(NESTED));
+        Map<String, AttributeValue> itemMapNested = tableSchema.itemToMap(flattenRecord, getMappingConfiguration(true, NESTED));
 
 
         assertThat(itemMapShallow).hasSize(2);

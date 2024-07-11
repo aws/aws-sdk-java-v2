@@ -23,7 +23,6 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.Arrays;
 import java.util.List;
@@ -40,7 +39,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.ExtensionResolver;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TransactWriteItemsOperation;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -187,8 +185,7 @@ public class TransactWriteItemsEnhancedRequestTest {
     }
 
     private List<TransactWriteItem> getTransactWriteItems(FakeItem fakeItem) {
-        final Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true,
-                                                                                            new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        final Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
 
         TransactWriteItem putWriteItem = TransactWriteItem.builder()
                                                           .put(Put.builder()

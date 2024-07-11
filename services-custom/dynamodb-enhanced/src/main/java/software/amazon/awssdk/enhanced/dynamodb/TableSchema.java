@@ -22,9 +22,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.document.DocumentTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.MappingConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
@@ -238,19 +238,17 @@ public interface TableSchema<T> {
      * SDK can work with.
      *
      * @param item The modelled Java object to convert into a map of attributes.
-     * @param ignoreNulls If set to true; any null values in the Java object will not be added to the output map.
-     *                    If set to false; null values in the Java object will be added as {@link AttributeValue} of
-     *                    type 'nul' to the output map.
-     * @param requestConfiguration denotes the level of nesting, i.e. SHALLOW or NESTED, contained in the request params based
-     * which nested update query parameters would be dealt with
+     * @param configuration configuration options for mapping an object to a map with attribute values
      * @return A map of String to {@link AttributeValue} representing all the modelled attributes in the model object.
      */
-    Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls,
-                                          DynamoDBEnhancedRequestConfiguration requestConfiguration);
+    default Map<String, AttributeValue> itemToMap(T item,
+                                          MappingConfiguration configuration) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
-     * This is deprecated in favour of itemToMap(T item, boolean ignoreNulls, DynamoDBEnhancedRequestOverrideConfiguration
-     * ddbRequestOverrideConfiguration) This method takes a modelled object and converts it into a raw map of
+     * This is deprecated in favour of itemToMap(T item, MappingConfiguration
+     * configuration) This method takes a modelled object and converts it into a raw map of
      * {@link AttributeValue} that the DynamoDb low-level SDK can work with.
      *
      * @param item        The modelled Java object to convert into a map of attributes.

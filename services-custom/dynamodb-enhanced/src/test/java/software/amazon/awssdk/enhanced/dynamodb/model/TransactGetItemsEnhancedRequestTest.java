@@ -19,7 +19,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.NESTED;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,7 +31,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Get;
@@ -96,8 +94,7 @@ public class TransactGetItemsEnhancedRequestTest {
 
     
     private List<TransactGetItem> getTransactGetItems(FakeItem fakeItem) {
-        final Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true,
-                                                                                            new DynamoDBEnhancedRequestConfiguration(NESTED));
+        final Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
 
         TransactGetItem getItem = TransactGetItem.builder()
                                                       .get(Get.builder()

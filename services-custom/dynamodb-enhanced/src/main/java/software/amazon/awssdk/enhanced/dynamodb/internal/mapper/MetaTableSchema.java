@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getMappingConfiguration;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +26,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.MappingConfiguration;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -52,14 +54,13 @@ public class MetaTableSchema<T> implements TableSchema<T> {
     }
 
     @Override
-    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls,
-                                                 DynamoDBEnhancedRequestConfiguration requestConfiguration) {
-        return concreteTableSchema().itemToMap(item, ignoreNulls, requestConfiguration);
+    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
+        return itemToMap(item, getMappingConfiguration(ignoreNulls, SHALLOW));
     }
 
     @Override
-    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
-        return itemToMap(item, ignoreNulls, new DynamoDBEnhancedRequestConfiguration(AttributeMapping.SHALLOW));
+    public Map<String, AttributeValue> itemToMap(T item, MappingConfiguration configuration) {
+        return concreteTableSchema().itemToMap(item, configuration);
     }
 
     @Override

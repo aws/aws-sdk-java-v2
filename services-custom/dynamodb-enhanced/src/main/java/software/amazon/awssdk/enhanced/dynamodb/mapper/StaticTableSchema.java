@@ -18,7 +18,6 @@ package software.amazon.awssdk.enhanced.dynamodb.mapper;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -32,8 +31,6 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Implementation of {@link TableSchema} that builds a schema based on directly declared attributes and methods to
@@ -88,11 +85,6 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
      */
     public static <T> Builder<T> builder(EnhancedType<T> itemType) {
         return new Builder<>(itemType);
-    }
-
-    @Override
-    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
-        return itemToMap(item, ignoreNulls, new DynamoDBEnhancedRequestConfiguration(AttributeMapping.SHALLOW));
     }
 
     /**

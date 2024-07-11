@@ -30,7 +30,6 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.versionAttribute;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.math.BigDecimal;
@@ -60,7 +59,6 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testimmutables.EntityEnvelopeImmutable;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -825,8 +823,7 @@ public class StaticImmutableTableSchemaTest {
 
     @Test
     public void itemToMap_returnsCorrectMapWithMultipleAttributes() {
-        Map<String, AttributeValue> attributeMap = createSimpleTableSchema().itemToMap(FAKE_ITEM, false,
-                                                                                       new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        Map<String, AttributeValue> attributeMap = createSimpleTableSchema().itemToMap(FAKE_ITEM, false);
 
         assertThat(attributeMap.size(), is(3));
         assertThat(attributeMap, hasEntry("a_boolean", ATTRIBUTE_VALUE_B));
@@ -837,8 +834,7 @@ public class StaticImmutableTableSchemaTest {
     @Test
     public void itemToMap_omitsNullAttributes() {
         FakeMappedItem fakeMappedItemWithNulls = FakeMappedItem.builder().aPrimitiveBoolean(true).build();
-        Map<String, AttributeValue> attributeMap = createSimpleTableSchema().itemToMap(fakeMappedItemWithNulls, true,
-                                                                                       new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        Map<String, AttributeValue> attributeMap = createSimpleTableSchema().itemToMap(fakeMappedItemWithNulls, true);
 
         assertThat(attributeMap.size(), is(1));
         assertThat(attributeMap, hasEntry("a_primitive_boolean", ATTRIBUTE_VALUE_B));
@@ -1295,8 +1291,7 @@ public class StaticImmutableTableSchemaTest {
     public void mapToItem_preserveEmptyBean_shouldInitializeEmptyBean() {
         FakeItem fakeItem = new FakeItem();
 
-        Map<String, AttributeValue> itemMap = FakeItem.getTableSchema().itemToMap(fakeItem, false,
-                                                                                  new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        Map<String, AttributeValue> itemMap = FakeItem.getTableSchema().itemToMap(fakeItem, false);
 
         FakeItem result = FakeItem.getTableSchema().mapToItem(itemMap, true);
         assertThat(result, is(fakeItem));
@@ -1329,8 +1324,7 @@ public class StaticImmutableTableSchemaTest {
         FakeItemComposedClass nestedBean = new FakeItemComposedClass();
         FakeItem fakeItem = new FakeItem("1", 1, nestedBean);
 
-        Map<String, AttributeValue> itemMap = staticTableSchema.itemToMap(fakeItem, false,
-                                                                          new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        Map<String, AttributeValue> itemMap = staticTableSchema.itemToMap(fakeItem, false);
 
         FakeItem result = staticTableSchema.mapToItem(itemMap);
         assertThat(result.getComposedObject(), is(nestedBean));
@@ -1355,8 +1349,7 @@ public class StaticImmutableTableSchemaTest {
         FakeItemComposedClass nestedBean = new FakeItemComposedClass();
         FakeItem fakeItem = new FakeItem("1", 1, nestedBean);
 
-        Map<String, AttributeValue> itemMap = staticTableSchema.itemToMap(fakeItem, true,
-                                                                          new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        Map<String, AttributeValue> itemMap = staticTableSchema.itemToMap(fakeItem, true);
         AttributeValue expectedAttributeValue = AttributeValue.builder().m(new HashMap<>()).build();
         assertThat(itemMap.size(), is(2));
         System.out.println(itemMap);
@@ -1372,8 +1365,7 @@ public class StaticImmutableTableSchemaTest {
                                                                .setter(FakeMappedItem::setAString))
                              .build();
 
-        assertThat(tableSchema.itemToMap(FAKE_ITEM, false, new DynamoDBEnhancedRequestConfiguration(SHALLOW)), is(singletonMap(
-            "aString", stringValue("test-string"))));
+        assertThat(tableSchema.itemToMap(FAKE_ITEM, false), is(singletonMap("aString", stringValue("test-string"))));
 
         exception.expect(UnsupportedOperationException.class);
         exception.expectMessage("abstract");
@@ -1392,7 +1384,7 @@ public class StaticImmutableTableSchemaTest {
         FakeDocument document = FakeDocument.of("test-string", null);
         FakeMappedItem item = FakeMappedItem.builder().aFakeDocument(document).build();
 
-        assertThat(tableSchema.itemToMap(item, true, new DynamoDBEnhancedRequestConfiguration(SHALLOW)),
+        assertThat(tableSchema.itemToMap(item, true),
                    is(singletonMap("documentString", AttributeValue.builder().s("test-string").build())));
     }
 
@@ -1413,7 +1405,7 @@ public class StaticImmutableTableSchemaTest {
         FakeAbstractSubclass item = new FakeAbstractSubclass();
         item.setAString("test-string");
 
-        assertThat(subclassTableSchema.itemToMap(item, true, new DynamoDBEnhancedRequestConfiguration(SHALLOW)),
+        assertThat(subclassTableSchema.itemToMap(item, true),
                    is(singletonMap("aString", AttributeValue.builder().s("test-string").build())));
     }
 
@@ -1496,8 +1488,7 @@ public class StaticImmutableTableSchemaTest {
                              .build();
 
         Map<String, AttributeValue> resultMap =
-            tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(), false,
-                                  new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+                tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(), false);
         assertThat(resultMap.get("aString").s(), is(expectedString));
     }
 
@@ -1519,8 +1510,7 @@ public class StaticImmutableTableSchemaTest {
                              .build();
 
         Map<String, AttributeValue> resultMap =
-            tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(), false,
-                                  new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+                tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(), false);
         assertThat(resultMap.get("aString").s(), is(expectedString));
     }
 
@@ -1556,7 +1546,7 @@ public class StaticImmutableTableSchemaTest {
                         .build();
 
         Map<String, AttributeValue> resultMap = tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(),
-                                                                      false, new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+                                                                      false);
         assertThat(resultMap.get("aString").s(), is(expectedString));
     }
 
@@ -1577,8 +1567,7 @@ public class StaticImmutableTableSchemaTest {
         Map<String, AttributeValue> expectedMap =
             Collections.singletonMap("entity", AttributeValue.fromS("test-value"));
 
-        assertThat(envelopeTableSchema.itemToMap(testEnvelope, false, new DynamoDBEnhancedRequestConfiguration(SHALLOW)),
-                   equalTo(expectedMap));
+        assertThat(envelopeTableSchema.itemToMap(testEnvelope, false), equalTo(expectedMap));
         assertThat(envelopeTableSchema.mapToItem(expectedMap).entity(), equalTo("test-value"));
     }
 
@@ -1593,8 +1582,7 @@ public class StaticImmutableTableSchemaTest {
                                                                          .build();
         Map<String, AttributeValue> expectedMap = singletonMap("value", attributeValue);
 
-        Map<String, AttributeValue> resultMap = tableSchema.itemToMap(fakeMappedItem, false,
-                                                                      new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        Map<String, AttributeValue> resultMap = tableSchema.itemToMap(fakeMappedItem, false);
         assertThat(resultMap, is(expectedMap));
 
         FakeMappedItem resultItem = tableSchema.mapToItem(expectedMap);
@@ -1611,8 +1599,7 @@ public class StaticImmutableTableSchemaTest {
                                                                          .build();
         Map<String, AttributeValue> expectedMap = singletonMap("value", nullAttributeValue());
 
-        Map<String, AttributeValue> resultMap = tableSchema.itemToMap(fakeMappedItem, false,
-                                                                      new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        Map<String, AttributeValue> resultMap = tableSchema.itemToMap(fakeMappedItem, false);
         assertThat(resultMap, is(expectedMap));
 
         FakeMappedItem resultItem = tableSchema.mapToItem(expectedMap);

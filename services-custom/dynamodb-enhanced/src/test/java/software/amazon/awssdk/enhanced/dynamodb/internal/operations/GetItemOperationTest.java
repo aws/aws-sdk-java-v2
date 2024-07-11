@@ -27,6 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getMappingConfiguration;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.HashMap;
@@ -45,7 +46,7 @@ import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.MappingConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedResponse;
@@ -247,10 +248,11 @@ public class GetItemOperationTest {
     public void transformResponse_withExtension_appliesItemModification() {
         FakeItem baseFakeItem = createUniqueFakeItem();
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> baseFakeItemMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, false,
-                                                                                          new DynamoDBEnhancedRequestConfiguration(SHALLOW));
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, false,
-                                                                                      new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        Map<String, AttributeValue> baseFakeItemMap = FakeItem.getTableSchema().itemToMap(baseFakeItem,
+                                                                                          getMappingConfiguration(false,
+                                                                                                                  SHALLOW));
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, getMappingConfiguration(false,
+                                                                                                                        SHALLOW));
         GetItemOperation<FakeItem> getItemOperation =
             GetItemOperation.create(GetItemEnhancedRequest.builder().key(k -> k.partitionValue(baseFakeItem.getId())).build());
         GetItemResponse response = GetItemResponse.builder()

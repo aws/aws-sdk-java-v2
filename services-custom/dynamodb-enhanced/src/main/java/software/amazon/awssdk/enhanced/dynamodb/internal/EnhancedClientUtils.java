@@ -34,6 +34,8 @@ import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.MappingConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
@@ -93,7 +95,7 @@ public final class EnhancedClientUtils {
         String cleanAttributeName = cleanAttributeName(value);
         cleanAttributeName = isNestedAttribute(cleanAttributeName) ?
                              PATTERN.matcher(cleanAttributeName).replaceAll("_")
-                                                      : cleanAttributeName;
+                                                                   : cleanAttributeName;
         return ":AMZN_MAPPED_" + cleanAttributeName;
     }
 
@@ -203,5 +205,12 @@ public final class EnhancedClientUtils {
      */
     public static boolean isNullAttributeValue(AttributeValue attributeValue) {
         return attributeValue.nul() != null && attributeValue.nul();
+    }
+
+    public static MappingConfiguration getMappingConfiguration(boolean ignoreNulls, AttributeMapping attributeMapping) {
+        return MappingConfiguration.builder()
+                                   .ignoreNulls(ignoreNulls)
+                                   .attributeMapping(attributeMapping)
+                                   .build();
     }
 }

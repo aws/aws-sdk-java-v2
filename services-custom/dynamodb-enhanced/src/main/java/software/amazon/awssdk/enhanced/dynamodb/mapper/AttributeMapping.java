@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
+@SdkPublicApi
 public enum AttributeMapping {
     SHALLOW,
     NESTED

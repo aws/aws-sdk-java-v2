@@ -17,12 +17,13 @@ package software.amazon.awssdk.enhanced.dynamodb.extensions;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,7 +42,6 @@ import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.ChainExtension;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
@@ -76,8 +76,7 @@ public class ChainExtensionTest {
     private final List<Map<String, AttributeValue>> fakeItems =
         IntStream.range(0, 4)
                  .mapToObj($ -> createUniqueFakeItem())
-                 .map(fakeItem -> FakeItem.getTableSchema().itemToMap(fakeItem, true,
-                                                                      new DynamoDBEnhancedRequestConfiguration(SHALLOW)))
+                 .map(fakeItem -> FakeItem.getTableSchema().itemToMap(fakeItem, true))
                  .collect(toList());
 
     @Test

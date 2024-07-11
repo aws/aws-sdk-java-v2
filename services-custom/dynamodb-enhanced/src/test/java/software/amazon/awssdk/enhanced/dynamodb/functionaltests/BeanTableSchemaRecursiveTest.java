@@ -16,7 +16,6 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.Collections;
 import java.util.Map;
@@ -24,7 +23,6 @@ import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecursiveRecordBean;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecursiveRecordImmutable;
-import software.amazon.awssdk.enhanced.dynamodb.internal.DynamoDBEnhancedRequestConfiguration;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class BeanTableSchemaRecursiveTest {
@@ -50,8 +48,7 @@ public class BeanTableSchemaRecursiveTest {
         recursiveRecordBean1.setAttribute(1);
         recursiveRecordBean1.setRecursiveRecordBean(recursiveRecordBean2);
 
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(recursiveRecordBean1, true,
-                                                                    new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(recursiveRecordBean1, true);
 
         assertThat(itemMap).hasSize(2);
         assertThat(itemMap).containsEntry("attribute", AttributeValue.builder().n("1").build());
@@ -80,8 +77,7 @@ public class BeanTableSchemaRecursiveTest {
         recursiveRecordBean1.setAttribute(1);
         recursiveRecordBean1.setRecursiveRecordList(Collections.singletonList(recursiveRecordBean2));
 
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(recursiveRecordBean1, true,
-                                                                    new DynamoDBEnhancedRequestConfiguration(SHALLOW));
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(recursiveRecordBean1, true);
 
         assertThat(itemMap).hasSize(2);
         assertThat(itemMap).containsEntry("attribute", AttributeValue.builder().n("1").build());
