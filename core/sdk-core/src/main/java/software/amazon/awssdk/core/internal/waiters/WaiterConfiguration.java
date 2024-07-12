@@ -36,7 +36,7 @@ public final class WaiterConfiguration {
     public WaiterConfiguration(WaiterOverrideConfiguration overrideConfiguration) {
         Optional<WaiterOverrideConfiguration> configuration = Optional.ofNullable(overrideConfiguration);
         this.backoffStrategy =
-            configuration.flatMap(WaiterOverrideConfiguration::backoffStrategy2).orElse(DEFAULT_BACKOFF_STRATEGY);
+            configuration.flatMap(WaiterOverrideConfiguration::backoffStrategyV2).orElse(DEFAULT_BACKOFF_STRATEGY);
         this.waitTimeout = configuration.flatMap(WaiterOverrideConfiguration::waitTimeout).orElse(null);
         this.maxAttempts = configuration.flatMap(WaiterOverrideConfiguration::maxAttempts).orElse(DEFAULT_MAX_ATTEMPTS);
     }

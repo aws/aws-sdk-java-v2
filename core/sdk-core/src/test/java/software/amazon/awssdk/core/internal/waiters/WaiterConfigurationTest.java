@@ -37,7 +37,7 @@ public class WaiterConfigurationTest {
     @Test
     public void overrideConfigurationNotAllValuesProvided_shouldUseDefaultValue() {
         WaiterConfiguration waiterConfiguration = new WaiterConfiguration(WaiterOverrideConfiguration.builder()
-                                                                                                     .backoffStrategy(BackoffStrategy.retryImmediately())
+                                                                                                     .backoffStrategyV2(BackoffStrategy.retryImmediately())
                                                                                                      .build());
 
         assertThat(waiterConfiguration.backoffStrategy().computeDelay(2))
@@ -50,7 +50,7 @@ public class WaiterConfigurationTest {
     public void overrideConfigurationProvided_shouldTakesPrecedence() {
         WaiterConfiguration waiterConfiguration =
             new WaiterConfiguration(WaiterOverrideConfiguration.builder()
-                                                               .backoffStrategy(BackoffStrategy.retryImmediately())
+                                                               .backoffStrategyV2(BackoffStrategy.retryImmediately())
                                                                .maxAttempts(10)
                                                                .waitTimeout(Duration.ofMinutes(3))
                                                                .build());

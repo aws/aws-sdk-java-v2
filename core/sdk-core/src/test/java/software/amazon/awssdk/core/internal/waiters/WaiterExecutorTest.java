@@ -32,7 +32,7 @@ class WaiterExecutorTest {
         WaiterOverrideConfiguration conf =
             WaiterOverrideConfiguration.builder()
                                        .maxAttempts(expectedAttempts)
-                                       .backoffStrategy(BackoffStrategy.retryImmediately())
+                                       .backoffStrategyV2(BackoffStrategy.retryImmediately())
                                        .build();
 
         WaiterExecutor<Integer> sut =

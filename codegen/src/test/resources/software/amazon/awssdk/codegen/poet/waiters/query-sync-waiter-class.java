@@ -89,10 +89,10 @@ final class DefaultQueryWaiter implements QueryWaiter {
     private static WaiterOverrideConfiguration postOperationSuccessWaiterConfig(WaiterOverrideConfiguration overrideConfig) {
         Optional<WaiterOverrideConfiguration> optionalOverrideConfig = Optional.ofNullable(overrideConfig);
         int maxAttempts = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::maxAttempts).orElse(40);
-        BackoffStrategy backoffStrategy = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::backoffStrategy2).orElse(
+        BackoffStrategy backoffStrategy = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::backoffStrategyV2).orElse(
             BackoffStrategy.fixedDelayWithoutJitter(Duration.ofSeconds(1)));
         Duration waitTimeout = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::waitTimeout).orElse(null);
-        return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategy(backoffStrategy)
+        return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategyV2(backoffStrategy)
                                           .waitTimeout(waitTimeout).build();
     }
 

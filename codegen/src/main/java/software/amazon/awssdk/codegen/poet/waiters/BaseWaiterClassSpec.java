@@ -202,7 +202,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                                   + ".orElse($L)",
                                   waiterDefinition.getMaxAttempts());
         configMethod.addStatement("$T backoffStrategy = optionalOverrideConfig."
-                                  + "flatMap(WaiterOverrideConfiguration::backoffStrategy2)"
+                                  + "flatMap(WaiterOverrideConfiguration::backoffStrategyV2)"
                                   + ".orElse($T.fixedDelayWithoutJitter($T.ofSeconds($L)))",
                                   BackoffStrategy.class,
                                   BackoffStrategy.class,
