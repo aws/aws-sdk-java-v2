@@ -212,7 +212,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                                   + ".orElse(null)",
                                   Duration.class);
 
-        configMethod.addStatement("return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategy"
+        configMethod.addStatement("return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategyV2"
                                   + "(backoffStrategy).waitTimeout(waitTimeout).build()");
         return configMethod.build();
     }
