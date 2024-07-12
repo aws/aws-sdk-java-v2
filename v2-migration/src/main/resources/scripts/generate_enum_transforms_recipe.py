@@ -55,14 +55,13 @@ def write_getters_recipe(f, service, model_data, shapes_with_enums):
     collection_shapes_with_enum = set()
     shapes = model_data.get("shapes").items()
     for shape_name, shape_data in shapes:
-        key_shape = shape_data.get("key", {}).get("shape")
-        member_shape = shape_data.get("member", {}).get("shape")
         members = shape_data.get("members", {})
-
         for member_name, member_data in members.items():
             if member_data.get("shape") in shapes_with_enums:
                 write_change_getters_recipe(f, service, shape_name, member_name, False)
 
+        key_shape = shape_data.get("key", {}).get("shape")
+        member_shape = shape_data.get("member", {}).get("shape")
         if key_shape in shapes_with_enums or member_shape in shapes_with_enums:
             if shape_data.get("type") in ["map", "list"]:
                 collection_shapes_with_enum.add(shape_name)
@@ -77,12 +76,12 @@ def write_getters_recipe(f, service, model_data, shapes_with_enums):
 
 def write_change_getters_recipe(f, service, pojo, getter, isCollection):
     if isCollection:
-        postfix = "AsStrings"
+        suffix = "AsStrings"
     else:
-        postfix = "AsString"
+        suffix = "AsString"
 
     v2_getter = lowercase_first_letter(getter)
-    v1_getter = v2_getter + postfix
+    v1_getter = v2_getter + suffix
 
     change_getter = '''
   - org.openrewrite.java.ChangeMethodName:

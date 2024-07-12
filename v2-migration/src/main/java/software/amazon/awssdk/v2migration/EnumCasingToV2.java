@@ -61,7 +61,7 @@ public class EnumCasingToV2 extends Recipe {
         public J.FieldAccess visitFieldAccess(J.FieldAccess fieldAccess, ExecutionContext ctx) {
             J.FieldAccess fa = super.visitFieldAccess(fieldAccess, ctx);
 
-            if (isEnumValue(fa)) {
+            if (isV2EnumValue(fa)) {
                 String v2Casing = v2Casing(fa.getSimpleName());
                 ENUMS.add(v2Casing);
                 return fa.withName(fa.getName().withSimpleName(v2Casing));
@@ -81,13 +81,18 @@ public class EnumCasingToV2 extends Recipe {
             return id;
         }
 
-        public boolean isEnumValue(J.FieldAccess fa) {
+        public boolean isV2EnumValue(J.FieldAccess fa) {
             JavaType javaType = fa.getTarget().getType();
             JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(javaType);
             if (fullyQualified != null) {
-                return fullyQualified.getKind() == JavaType.FullyQualified.Kind.Enum;
+                return isV2ModelClass(fullyQualified.getFullyQualifiedName())
+                       && fullyQualified.getKind() == JavaType.FullyQualified.Kind.Enum;
             }
             return false;
+        }
+
+        public boolean isV2ModelClass(String fcqn) {
+            return fcqn.startsWith("software.amazon.awssdk.services.") && fcqn.contains(".model.");
         }
     }
 }
