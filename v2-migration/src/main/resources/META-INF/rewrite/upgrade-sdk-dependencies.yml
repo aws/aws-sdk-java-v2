@@ -798,6 +798,12 @@ recipeList:
       newVersion: 2.26.16-SNAPSHOT
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: com.amazonaws
+      oldArtifactId: aws-java-sdk-iotroborunner
+      newGroupId: software.amazon.awssdk
+      newArtifactId: iotroborunner
+      newVersion: 2.26.16-SNAPSHOT
+  - org.openrewrite.java.dependencies.ChangeDependency:
+      oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-lightsail
       newGroupId: software.amazon.awssdk
       newArtifactId: lightsail

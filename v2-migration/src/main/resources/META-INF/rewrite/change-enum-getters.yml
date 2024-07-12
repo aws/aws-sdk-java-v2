@@ -1,0 +1,378 @@
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+#
+#  http://aws.amazon.com/apache2.0
+#
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: software.amazon.awssdk.v2migration.EnumGettersToV2
+displayName: Change v1 enum getters to v2
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.sqs.model.CreateQueueRequest attributes()
+      newMethodName: attributesAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest attributeNames()
+      newMethodName: attributeNamesAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.sqs.model.GetQueueAttributesResult attributes()
+      newMethodName: attributesAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.sqs.model.Message attributes()
+      newMethodName: attributesAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest attributeNames()
+      newMethodName: attributeNamesAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest messageSystemAttributeNames()
+      newMethodName: messageSystemAttributeNamesAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry messageSystemAttributes()
+      newMethodName: messageSystemAttributesAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.sqs.model.SendMessageRequest messageSystemAttributes()
+      newMethodName: messageSystemAttributesAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest attributes()
+      newMethodName: attributesAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.sns.model.CreateSMSSandboxPhoneNumberInput languageCode()
+      newMethodName: languageCodeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.sns.model.PhoneNumberInformation routeType()
+      newMethodName: routeTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.sns.model.SMSSandboxPhoneNumber status()
+      newMethodName: statusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.sns.model.PhoneNumberInformation numberCapabilities()
+      newMethodName: numberCapabilitiesAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.AttributeDefinition attributeType()
+      newMethodName: attributeTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate action()
+      newMethodName: actionAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.BackupDetails backupStatus()
+      newMethodName: backupStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.BackupDetails backupType()
+      newMethodName: backupTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.BackupSummary backupStatus()
+      newMethodName: backupStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.BackupSummary backupType()
+      newMethodName: backupTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.BatchExecuteStatementInput returnConsumedCapacity()
+      newMethodName: returnConsumedCapacityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.BatchGetItemInput returnConsumedCapacity()
+      newMethodName: returnConsumedCapacityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.BatchStatementError code()
+      newMethodName: codeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.BatchStatementRequest returnValuesOnConditionCheckFailure()
+      newMethodName: returnValuesOnConditionCheckFailureAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.BatchWriteItemInput returnConsumedCapacity()
+      newMethodName: returnConsumedCapacityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.BatchWriteItemInput returnItemCollectionMetrics()
+      newMethodName: returnItemCollectionMetricsAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.BillingModeSummary billingMode()
+      newMethodName: billingModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.Condition comparisonOperator()
+      newMethodName: comparisonOperatorAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ConditionCheck returnValuesOnConditionCheckFailure()
+      newMethodName: returnValuesOnConditionCheckFailureAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ContinuousBackupsDescription continuousBackupsStatus()
+      newMethodName: continuousBackupsStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ContributorInsightsSummary contributorInsightsStatus()
+      newMethodName: contributorInsightsStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.CreateReplicationGroupMemberAction tableClassOverride()
+      newMethodName: tableClassOverrideAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.CreateTableInput billingMode()
+      newMethodName: billingModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.CreateTableInput tableClass()
+      newMethodName: tableClassAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.Delete returnValuesOnConditionCheckFailure()
+      newMethodName: returnValuesOnConditionCheckFailureAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.DeleteItemInput conditionalOperator()
+      newMethodName: conditionalOperatorAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.DeleteItemInput returnValues()
+      newMethodName: returnValuesAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.DeleteItemInput returnConsumedCapacity()
+      newMethodName: returnConsumedCapacityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.DeleteItemInput returnItemCollectionMetrics()
+      newMethodName: returnItemCollectionMetricsAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.DeleteItemInput returnValuesOnConditionCheckFailure()
+      newMethodName: returnValuesOnConditionCheckFailureAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.DescribeContributorInsightsOutput contributorInsightsStatus()
+      newMethodName: contributorInsightsStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.EnableKinesisStreamingConfiguration approximateCreationDateTimePrecision()
+      newMethodName: approximateCreationDateTimePrecisionAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ExecuteStatementInput returnConsumedCapacity()
+      newMethodName: returnConsumedCapacityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ExecuteStatementInput returnValuesOnConditionCheckFailure()
+      newMethodName: returnValuesOnConditionCheckFailureAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ExecuteTransactionInput returnConsumedCapacity()
+      newMethodName: returnConsumedCapacityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue comparisonOperator()
+      newMethodName: comparisonOperatorAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ExportDescription exportStatus()
+      newMethodName: exportStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ExportDescription s3SseAlgorithm()
+      newMethodName: s3SseAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ExportDescription exportFormat()
+      newMethodName: exportFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ExportDescription exportType()
+      newMethodName: exportTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ExportSummary exportStatus()
+      newMethodName: exportStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ExportSummary exportType()
+      newMethodName: exportTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ExportTableToPointInTimeInput s3SseAlgorithm()
+      newMethodName: s3SseAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ExportTableToPointInTimeInput exportFormat()
+      newMethodName: exportFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ExportTableToPointInTimeInput exportType()
+      newMethodName: exportTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.GetItemInput returnConsumedCapacity()
+      newMethodName: returnConsumedCapacityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndexDescription indexStatus()
+      newMethodName: indexStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.GlobalTableDescription globalTableStatus()
+      newMethodName: globalTableStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ImportSummary importStatus()
+      newMethodName: importStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ImportSummary inputFormat()
+      newMethodName: inputFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ImportTableDescription importStatus()
+      newMethodName: importStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ImportTableDescription inputFormat()
+      newMethodName: inputFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ImportTableDescription inputCompressionType()
+      newMethodName: inputCompressionTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ImportTableInput inputFormat()
+      newMethodName: inputFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ImportTableInput inputCompressionType()
+      newMethodName: inputCompressionTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.IncrementalExportSpecification exportViewType()
+      newMethodName: exportViewTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.KeySchemaElement keyType()
+      newMethodName: keyTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.KinesisDataStreamDestination destinationStatus()
+      newMethodName: destinationStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.KinesisDataStreamDestination approximateCreationDateTimePrecision()
+      newMethodName: approximateCreationDateTimePrecisionAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.KinesisStreamingDestinationOutput destinationStatus()
+      newMethodName: destinationStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ListBackupsInput backupType()
+      newMethodName: backupTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ParameterizedStatement returnValuesOnConditionCheckFailure()
+      newMethodName: returnValuesOnConditionCheckFailureAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.PointInTimeRecoveryDescription pointInTimeRecoveryStatus()
+      newMethodName: pointInTimeRecoveryStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.Projection projectionType()
+      newMethodName: projectionTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.Put returnValuesOnConditionCheckFailure()
+      newMethodName: returnValuesOnConditionCheckFailureAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.PutItemInput returnValues()
+      newMethodName: returnValuesAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.PutItemInput returnConsumedCapacity()
+      newMethodName: returnConsumedCapacityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.PutItemInput returnItemCollectionMetrics()
+      newMethodName: returnItemCollectionMetricsAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.PutItemInput conditionalOperator()
+      newMethodName: conditionalOperatorAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.PutItemInput returnValuesOnConditionCheckFailure()
+      newMethodName: returnValuesOnConditionCheckFailureAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.QueryInput select()
+      newMethodName: selectAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.QueryInput conditionalOperator()
+      newMethodName: conditionalOperatorAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.QueryInput returnConsumedCapacity()
+      newMethodName: returnConsumedCapacityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ReplicaAutoScalingDescription replicaStatus()
+      newMethodName: replicaStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ReplicaDescription replicaStatus()
+      newMethodName: replicaStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ReplicaGlobalSecondaryIndexAutoScalingDescription indexStatus()
+      newMethodName: indexStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ReplicaGlobalSecondaryIndexSettingsDescription indexStatus()
+      newMethodName: indexStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ReplicaSettingsDescription replicaStatus()
+      newMethodName: replicaStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ReplicaSettingsUpdate replicaTableClass()
+      newMethodName: replicaTableClassAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.RestoreTableFromBackupInput billingModeOverride()
+      newMethodName: billingModeOverrideAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.RestoreTableToPointInTimeInput billingModeOverride()
+      newMethodName: billingModeOverrideAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.SSEDescription status()
+      newMethodName: statusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.SSEDescription sSEType()
+      newMethodName: sSETypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.SSESpecification sSEType()
+      newMethodName: sSETypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ScanInput select()
+      newMethodName: selectAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ScanInput conditionalOperator()
+      newMethodName: conditionalOperatorAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.ScanInput returnConsumedCapacity()
+      newMethodName: returnConsumedCapacityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.SourceTableDetails billingMode()
+      newMethodName: billingModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.StreamSpecification streamViewType()
+      newMethodName: streamViewTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.TableAutoScalingDescription tableStatus()
+      newMethodName: tableStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.TableClassSummary tableClass()
+      newMethodName: tableClassAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.TableCreationParameters billingMode()
+      newMethodName: billingModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.TableDescription tableStatus()
+      newMethodName: tableStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.TimeToLiveDescription timeToLiveStatus()
+      newMethodName: timeToLiveStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.TransactGetItemsInput returnConsumedCapacity()
+      newMethodName: returnConsumedCapacityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsInput returnConsumedCapacity()
+      newMethodName: returnConsumedCapacityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsInput returnItemCollectionMetrics()
+      newMethodName: returnItemCollectionMetricsAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.Update returnValuesOnConditionCheckFailure()
+      newMethodName: returnValuesOnConditionCheckFailureAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.UpdateContributorInsightsInput contributorInsightsAction()
+      newMethodName: contributorInsightsActionAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.UpdateContributorInsightsOutput contributorInsightsStatus()
+      newMethodName: contributorInsightsStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.UpdateGlobalTableSettingsInput globalTableBillingMode()
+      newMethodName: globalTableBillingModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.UpdateItemInput conditionalOperator()
+      newMethodName: conditionalOperatorAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.UpdateItemInput returnValues()
+      newMethodName: returnValuesAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.UpdateItemInput returnConsumedCapacity()
+      newMethodName: returnConsumedCapacityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.UpdateItemInput returnItemCollectionMetrics()
+      newMethodName: returnItemCollectionMetricsAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.UpdateItemInput returnValuesOnConditionCheckFailure()
+      newMethodName: returnValuesOnConditionCheckFailureAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.UpdateKinesisStreamingConfiguration approximateCreationDateTimePrecision()
+      newMethodName: approximateCreationDateTimePrecisionAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.UpdateKinesisStreamingDestinationOutput destinationStatus()
+      newMethodName: destinationStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.UpdateReplicationGroupMemberAction tableClassOverride()
+      newMethodName: tableClassOverrideAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.UpdateTableInput billingMode()
+      newMethodName: billingModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.services.dynamodb.model.UpdateTableInput tableClass()
+      newMethodName: tableClassAsString
