@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "Update path for CreateDBCluster resource identifier, and Add v2 smoke tests and smithy smokeTests trait for SDK testing."
-}
