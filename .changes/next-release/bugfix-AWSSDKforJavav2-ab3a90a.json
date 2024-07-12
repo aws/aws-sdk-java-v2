@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Do not serialize empty lists for the EC2 variant of the Query protocol. The service returns exceptions if it gets query parameters with no values."
-}
