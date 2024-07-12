@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS ARC - Zonal Shift",
+    "contributor": "",
+    "description": "Adds the option to subscribe to get notifications when a zonal autoshift occurs in a region."
+}
