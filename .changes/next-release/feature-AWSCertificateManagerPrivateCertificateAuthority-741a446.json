@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Certificate Manager Private Certificate Authority",
+    "contributor": "",
+    "description": "Minor refactoring of C2J model for AWS Private CA"
+}
