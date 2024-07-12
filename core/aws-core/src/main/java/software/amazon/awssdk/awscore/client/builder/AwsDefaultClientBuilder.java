@@ -176,7 +176,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                             .lazyOptionIfAbsent(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED, this::resolveDualstackEndpointEnabled)
                             .lazyOptionIfAbsent(AwsClientOption.FIPS_ENDPOINT_ENABLED, this::resolveFipsEndpointEnabled)
                             .lazyOption(AwsClientOption.DEFAULTS_MODE, this::resolveDefaultsMode)
-                            .lazyOption(SdkClientOption.DEFAULT_RETRY_MODE, this::resolveDefaultRetryMode)
+                            .lazyOptionIfAbsent(SdkClientOption.DEFAULT_RETRY_MODE, this::resolveDefaultRetryMode)
                             .lazyOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
                                         this::resolveDefaultS3UsEast1RegionalEndpoint)
                             .lazyOptionIfAbsent(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER,
