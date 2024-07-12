@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeBuild",
+    "contributor": "",
+    "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
+}
