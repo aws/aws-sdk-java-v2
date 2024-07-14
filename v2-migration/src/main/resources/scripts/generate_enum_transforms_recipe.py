@@ -67,11 +67,10 @@ def write_getters_recipe(f, service, model_data, shapes_with_enums):
                 collection_shapes_with_enum.add(shape_name)
 
     for shape_name, shape_data in shapes:
-        members = shape_data.get("members")
-        if members:
-            for member_name, member_data in members.items():
-                if member_data.get("shape") in collection_shapes_with_enum:
-                    write_change_getters_recipe(f, service, shape_name, member_name, True)
+        members = shape_data.get("members", {})
+        for member_name, member_data in members.items():
+            if member_data.get("shape") in collection_shapes_with_enum:
+                write_change_getters_recipe(f, service, shape_name, member_name, True)
 
 
 def write_change_getters_recipe(f, service, pojo, getter, isCollection):
@@ -80,14 +79,14 @@ def write_change_getters_recipe(f, service, pojo, getter, isCollection):
     else:
         suffix = "AsString"
 
-    v2_getter = lowercase_first_letter(getter)
-    v1_getter = v2_getter + suffix
+    v1_getter = lowercase_first_letter(getter)
+    v2_getter = v1_getter + suffix
 
     change_getter = '''
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: software.amazon.awssdk.services.{0}.model.{1} {2}()
       newMethodName: {3}'''
-    f.write(change_getter.format(service, pojo, v2_getter, v1_getter))
+    f.write(change_getter.format(service, pojo, v1_getter, v2_getter))
 
 
 def lowercase_first_letter(s):
