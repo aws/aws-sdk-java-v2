@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.metrics;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.internal.util.ProgressUpdaterInvoker;
 import software.amazon.awssdk.core.io.SdkFilterInputStream;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -26,11 +27,14 @@ import software.amazon.awssdk.http.AbortableInputStream;
 public final class BytesReadTrackingInputStream extends SdkFilterInputStream implements Abortable {
     private final Abortable abortableIs;
     private final AtomicLong bytesRead;
+    private final ProgressUpdaterInvoker progressUpdaterInvoker;
 
-    public BytesReadTrackingInputStream(AbortableInputStream in, AtomicLong bytesRead) {
+    public BytesReadTrackingInputStream(AbortableInputStream in, AtomicLong bytesRead,
+                                        ProgressUpdaterInvoker progressUpdaterInvoker) {
         super(in);
         this.abortableIs = in;
         this.bytesRead = bytesRead;
+        this.progressUpdaterInvoker = progressUpdaterInvoker;
     }
 
     public long bytesRead() {
@@ -68,6 +72,10 @@ public final class BytesReadTrackingInputStream extends SdkFilterInputStream imp
     private void updateBytesRead(long read) {
         if (read > 0) {
             bytesRead.addAndGet(read);
+
+            if (progressUpdaterInvoker != null && progressUpdaterInvoker.progressUpdater() != null) {
+                progressUpdaterInvoker.updateBytesTransferred(bytesRead.get());
+            }
         }
     }
 

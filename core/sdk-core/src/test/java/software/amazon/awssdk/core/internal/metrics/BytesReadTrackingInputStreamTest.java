@@ -26,9 +26,22 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
+import org.reactivestreams.Publisher;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
+import software.amazon.awssdk.core.http.NoopTestRequest;
+import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
+import software.amazon.awssdk.core.internal.util.DownloadProgressUpdaterInvocation;
+import software.amazon.awssdk.core.internal.util.ProgressUpdaterInvoker;
+import software.amazon.awssdk.core.internal.util.UploadProgressUpdaterInvocation;
+import software.amazon.awssdk.core.progress.listener.ProgressListener;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.AbortableInputStream;
 
@@ -151,20 +164,72 @@ public class BytesReadTrackingInputStreamTest {
     }
 
     @Test
+    void readByteArrayRange_withProgressListener_invokesResponseBytesReceived() throws IOException {
+
+        ProgressListener progressListener = mock(ProgressListener.class);
+
+        SdkRequestOverrideConfiguration config = SdkRequestOverrideConfiguration.builder()
+                                                                                .addProgressListener(progressListener)
+                                                                                .build();
+
+        SdkRequest request = NoopTestRequest.builder()
+                                            .overrideConfiguration(config)
+                                            .build();
+
+        ProgressUpdater progressUpdater = new ProgressUpdater(request, null);
+
+        when(mockStream.read(any(byte[].class), eq(2), eq(2))).thenReturn(2);
+
+        BytesReadTrackingInputStream trackingInputStream = newTrackingStreamWithProgressUpdater(new AtomicLong(0L),
+                                                                                                new DownloadProgressUpdaterInvocation(progressUpdater));
+        trackingInputStream.read(new byte[8], 2, 2);
+
+        verify(progressListener, Mockito.times(1)).responseBytesReceived(any());
+    }
+
+    @Test
+    void writeByteArrayRange_withProgressListener_invokesRequestBytesSent() throws IOException {
+
+        ProgressListener progressListener = mock(ProgressListener.class);
+
+        SdkRequestOverrideConfiguration config = SdkRequestOverrideConfiguration.builder()
+                                                                                .addProgressListener(progressListener)
+                                                                                .build();
+
+        SdkRequest request = NoopTestRequest.builder()
+                                            .overrideConfiguration(config)
+                                            .build();
+
+        ProgressUpdater progressUpdater = new ProgressUpdater(request, null);
+
+        when(mockStream.read(any(byte[].class), eq(2), eq(2))).thenReturn(2);
+
+        BytesReadTrackingInputStream trackingInputStream = newTrackingStreamWithProgressUpdater(new AtomicLong(0L),
+                                                                                                new UploadProgressUpdaterInvocation(progressUpdater));
+        trackingInputStream.read(new byte[8], 2, 2);
+
+        verify(progressListener, Mockito.times(1)).requestBytesSent(any());
+    }
+
+    @Test
     public void abort_abortsDelegate() {
         Abortable mockAbortable = mock(Abortable.class);
         AbortableInputStream abortableIs = AbortableInputStream.create(mockStream, mockAbortable);
-        BytesReadTrackingInputStream trackingInputStream = new BytesReadTrackingInputStream(abortableIs, new AtomicLong(0));
+        BytesReadTrackingInputStream trackingInputStream = new BytesReadTrackingInputStream(abortableIs, new AtomicLong(0), null);
         trackingInputStream.abort();
 
         verify(mockAbortable).abort();
     }
 
     private BytesReadTrackingInputStream newTrackingStream(AtomicLong read) {
-        return new BytesReadTrackingInputStream(abortableStream, read);
+        return new BytesReadTrackingInputStream(abortableStream, read, null);
     }
 
     private BytesReadTrackingInputStream newTrackingStream() {
         return newTrackingStream(new AtomicLong(0));
+    }
+
+    private BytesReadTrackingInputStream newTrackingStreamWithProgressUpdater(AtomicLong read, ProgressUpdaterInvoker progressUpdaterInvoker) {
+        return new BytesReadTrackingInputStream(abortableStream, read, progressUpdaterInvoker);
     }
 }

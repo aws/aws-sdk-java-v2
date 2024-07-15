@@ -24,6 +24,8 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingInputStream;
+import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
+import software.amazon.awssdk.core.internal.util.DownloadProgressUpdaterInvocation;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -85,7 +87,13 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
 
     private AbortableInputStream trackBytesRead(AbortableInputStream content, RequestExecutionContext context) {
         AtomicLong bytesRead = context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ);
-        BytesReadTrackingInputStream bytesReadTrackedStream = new BytesReadTrackingInputStream(content, bytesRead);
+
+        ProgressUpdater progressUpdater = context.progressUpdater().isPresent() ?
+                                          context.progressUpdater().get() : null;
+
+        BytesReadTrackingInputStream bytesReadTrackedStream =
+            new BytesReadTrackingInputStream(content, bytesRead,
+                                             new DownloadProgressUpdaterInvocation(progressUpdater));
         return AbortableInputStream.create(bytesReadTrackedStream);
     }
 }

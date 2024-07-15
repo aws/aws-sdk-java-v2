@@ -44,7 +44,8 @@ public class BytesReadTrackingPublisherTest {
         long nElements = 1024;
         int elementSize = 4;
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
-        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0), new UploadProgressUpdaterInvocation(null));
+        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0),
+                                                                                      new DownloadProgressUpdaterInvocation(null));
         readFully(trackingPublisher);
 
         assertThat(trackingPublisher.bytesRead()).isEqualTo(nElements * elementSize);
@@ -59,7 +60,8 @@ public class BytesReadTrackingPublisherTest {
         AtomicLong bytesRead = new AtomicLong(baseBytesRead);
 
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
-        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, bytesRead, new UploadProgressUpdaterInvocation(null));
+        BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, bytesRead,
+                                                                                      new DownloadProgressUpdaterInvocation(null));
         readFully(trackingPublisher);
 
         long expectedRead = baseBytesRead + nElements * elementSize;

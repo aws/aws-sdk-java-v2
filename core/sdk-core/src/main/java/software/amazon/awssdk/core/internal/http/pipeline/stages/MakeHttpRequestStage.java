@@ -24,7 +24,9 @@ import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
+import software.amazon.awssdk.core.internal.util.ProgressListenerUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -61,15 +63,23 @@ public class MakeHttpRequestStage
     }
 
     private HttpExecuteResponse executeHttpRequest(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
+
         MetricCollector attemptMetricCollector = context.attemptMetricCollector();
 
         MetricCollector httpMetricCollector = MetricUtils.createHttpMetricsCollector(context);
+
+        ContentStreamProvider contentStreamProvider = null;
+        if (request.contentStreamProvider().isPresent()) {
+            contentStreamProvider =
+                ProgressListenerUtils.wrapContentStreamProviderWithBytePublishTrackingIfProgressListenerAttached(
+                    request.contentStreamProvider().get(), context);
+        }
 
         ExecutableHttpRequest requestCallable = sdkHttpClient
             .prepareRequest(HttpExecuteRequest.builder()
                                               .request(request)
                                               .metricCollector(httpMetricCollector)
-                                              .contentStreamProvider(request.contentStreamProvider().orElse(null))
+                                              .contentStreamProvider(contentStreamProvider)
                                               .build());
 
         context.apiCallTimeoutTracker().abortable(requestCallable);
