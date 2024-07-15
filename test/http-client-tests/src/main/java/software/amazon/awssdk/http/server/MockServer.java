@@ -49,7 +49,13 @@ public class MockServer {
     public static MockServer createMockServer(ServerBehavior serverBehavior) {
         switch (serverBehavior) {
             case HALF_CLOSE:
+                if (!isTlsHalfCloseSupported()) {
+                    throw new UnsupportedOperationException("Half close is not supported in the current Java Version "
+                                                            + getJavaVersion());
+                }
                 return new MockServer(new HalfCloseServerBehavior());
+            case FULL_CLOSE_IN_BETWEEN:
+                return new MockServer(new FullCloseInBetweenServerBehavior());
             case FULL_CLOSE_AT_THE_END:
                 return new MockServer(new FullCloseAtTheEndServerBehavior());
             default:
@@ -91,11 +97,10 @@ public class MockServer {
     public void stopServer() {
         listenerThread.interrupt();
         try {
-            listenerThread.join(10 * 1000);
+            listenerThread.join(5 * 1000);
         } catch (InterruptedException e1) {
             logger.error(() -> "The listener thread didn't terminate after waiting for 10 seconds.");
         }
-
         if (serverSocket != null) {
             try {
                 serverSocket.close();
@@ -121,6 +126,7 @@ public class MockServer {
 
     public enum ServerBehavior {
         HALF_CLOSE,
+        FULL_CLOSE_IN_BETWEEN,
         FULL_CLOSE_AT_THE_END
     }
 
@@ -150,9 +156,10 @@ public class MockServer {
 
         @Override
         public void runServer(ServerSocket serverSocket) {
+            Socket socket = null;
             try {
                 while (true) {
-                    Socket socket = null;
+
                     try {
                         socket = serverSocket.accept();
                         byte[] buff = new byte[4096];
@@ -173,14 +180,58 @@ public class MockServer {
                             out.writeBytes("Content-Length: 0\r\n\r\n");
                             out.flush();
                         }
+
                     } catch (SocketException se) {
-                        // Ignored or expected.
+                        // Socket is already closed so expected
+                        return;
                     } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                        return;
                     }
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Error when waiting for new socket connection.", e);
+            } finally {
+                closeQuietly(socket);
+            }
+        }
+    }
+
+    public static class FullCloseInBetweenServerBehavior implements ServerBehaviorStrategy {
+
+        @Override
+        public void runServer(ServerSocket serverSocket) {
+            Socket socket = null;
+            try {
+                while (true) {
+
+                    try {
+                        socket = serverSocket.accept();
+                        byte[] buff = new byte[4096];
+                        ByteArrayOutputStream headerStream = new ByteArrayOutputStream();
+                        int read;
+                        while ((read = socket.getInputStream().read(buff)) != -1) {
+                            headerStream.write(buff, 0, read);
+                            String headers = toByteToString(headerStream);
+                            if (headers.contains("\r\n\r\n")) {
+                                break;
+                            }
+                        }
+                        socket.close();
+                        try (DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
+                            out.writeBytes("HTTP/1.1 200 OK\r\n");
+                            out.writeBytes("Content-Type: text/html\r\n");
+                            out.writeBytes("Content-Length: 0\r\n\r\n");
+                            out.flush();
+                        }
+                    } catch (SocketException se) {
+                        // Socket is already closed so expected
+                        return;
+                    }
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Error when waiting for new socket connection.", e);
+            } finally {
+                closeQuietly(socket);
             }
         }
     }
@@ -189,9 +240,10 @@ public class MockServer {
 
         @Override
         public void runServer(ServerSocket serverSocket) {
+            Socket socket = null;
             try {
                 while (true) {
-                    Socket socket = null;
+
                     try {
                         socket = serverSocket.accept();
                         ByteArrayOutputStream headerStream = new ByteArrayOutputStream();
@@ -222,17 +274,59 @@ public class MockServer {
                             out.writeBytes("Content-Length: 0\r\n\r\n");
                             out.flush();
                         }
-                    } catch (SocketException se) {
-                        // Ignored or expected.
-                    } finally {
-                        if (socket != null) {
-                            socket.close();
+                        while (true) {
+                            // Stop server will interrupt to stop this thread.
+                            Thread.sleep(1000);
                         }
+
+                    } catch (SocketException se) {
+                        return;
+                    } catch (InterruptedException e) {
+                        return;
                     }
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Error when waiting for new socket connection.", e);
+            } finally {
+                closeQuietly(socket);
             }
         }
     }
+
+
+    //  TLS1.3 enbaled by default for 8u341 onwards.
+    //  https://www.oracle.com/java/technologies/javase/8u341-relnotes.html
+    public static boolean isTlsHalfCloseSupported() {
+        String javaVersion = getJavaVersion();
+        String[] versionComponents = javaVersion.split("_");
+        if (versionComponents.length == 2) {
+            try {
+                int buildNumber = Integer.parseInt(versionComponents[1].split("-")[0]);
+                if (javaVersion.startsWith("1.8.0") && buildNumber < 341) {
+                    return false;
+                }
+            } catch (NumberFormatException e) {
+                logger.error(() -> "Invalid Java version format: " + javaVersion);
+                throw e;
+            }
+        }
+        return true;
+    }
+
+    public static void closeQuietly(Socket socket) {
+        if (socket != null) {
+            try {
+                socket.close();
+            } catch (Exception ex) {
+                logger.debug(() -> "Ignore failure in closing the socket", ex);
+            }
+        }
+    }
+
+    private static String getJavaVersion() {
+        // CHECKSTYLE:OFF
+        return System.getProperty("java.version");
+        // CHECKSTYLE:ON
+    }
+
 }

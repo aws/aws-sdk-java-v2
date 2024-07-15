@@ -21,9 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.FileStoreTlsKeyManagersProvider;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -45,8 +47,25 @@ public class ApacheClientTlsHalfCloseTest extends ClientTlsAuthTestBase {
     private static final byte[] CONTENT = new byte[TWO_MB];
 
     @Test
-    public void errorWhenServerHalfClosesSocketWhileStreamIsOpened() throws IOException {
+    @EnabledIf("halfCloseSupported")
+    public void errorWhenServerHalfClosesSocketWhileStreamIsOpened() {
+
         mockServer = MockServer.createMockServer(MockServer.ServerBehavior.HALF_CLOSE);
+        mockServer.startServer(tlsKeyManagersProvider);
+
+        httpClient = ApacheHttpClient.builder()
+                                     .tlsKeyManagersProvider(tlsKeyManagersProvider)
+                                     .build();
+        IOException exception = assertThrows(IOException.class, () -> {
+            executeHttpRequest(httpClient);
+        });
+        assertEquals("Remote end is closed.", exception.getMessage());
+    }
+
+
+    @Test
+    public void errorWhenServerFullClosesSocketWhileStreamIsOpened() throws IOException {
+        mockServer = MockServer.createMockServer(MockServer.ServerBehavior.FULL_CLOSE_IN_BETWEEN);
         mockServer.startServer(tlsKeyManagersProvider);
 
         httpClient = ApacheHttpClient.builder()
@@ -56,7 +75,14 @@ public class ApacheClientTlsHalfCloseTest extends ClientTlsAuthTestBase {
         IOException exception = assertThrows(IOException.class, () -> {
             executeHttpRequest(httpClient);
         });
-        assertEquals("Remote end is closed.", exception.getMessage());
+
+        if(halfCloseSupported()){
+            assertEquals("Remote end is closed.", exception.getMessage());
+
+        }else {
+            assertEquals("Socket is closed", exception.getMessage());
+
+        }
     }
 
     @Test
@@ -89,6 +115,13 @@ public class ApacheClientTlsHalfCloseTest extends ClientTlsAuthTestBase {
         tlsKeyManagersProvider = FileStoreTlsKeyManagersProvider.create(clientKeyStore, CLIENT_STORE_TYPE, STORE_PASSWORD);
     }
 
+    @AfterAll
+    public static void clear(){
+        System.clearProperty("javax.net.ssl.trustStore");
+        System.clearProperty("javax.net.ssl.trustStorePassword");
+        System.clearProperty("javax.net.ssl.trustStoreType");
+    }
+
     private static HttpExecuteResponse executeHttpRequest(SdkHttpClient client) throws IOException {
         ContentStreamProvider contentStreamProvider = () -> new ByteArrayInputStream(CONTENT);
         SdkHttpRequest httpRequest = SdkHttpFullRequest.builder()
@@ -102,5 +135,9 @@ public class ApacheClientTlsHalfCloseTest extends ClientTlsAuthTestBase {
                                                        .build();
 
         return client.prepareRequest(request).call();
+    }
+
+    public static boolean halfCloseSupported(){
+        return MockServer.isTlsHalfCloseSupported();
     }
 }
