@@ -489,8 +489,9 @@ public class ValidateTest  {
     public void paramNotNull_NullParam_ThrowsException() {
         try {
             Validate.paramNotNull(null, "someField");
-        } catch (NullPointerException e) {
-            assertEquals(e.getMessage(), "someField must not be null.");
+        } catch (Exception e) {
+            assertThat(e).isInstanceOf(NullPointerException.class);
+            assertEquals("someField must not be null.", e.getMessage());
         }
     }
 
