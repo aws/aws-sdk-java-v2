@@ -1,4 +1,58 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.20__ __2024-07-12__
+## __AWS ARC - Zonal Shift__
+  - ### Features
+    - Adds the option to subscribe to get notifications when a zonal autoshift occurs in a region.
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Minor refactoring of C2J model for AWS Private CA
+
+## __AWS CodeBuild__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Global Accelerator__
+  - ### Features
+    - This feature adds exceptions to the Customer API to avoid throwing Internal Service errors
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Do not serialize empty lists for the EC2 variant of the Query protocol. The service returns exceptions if it gets query parameters with no values.
+    - fix SigV4a signer incorrectly interpreting query params with '&'
+    - prevent defaultRetryMode in customization.config from not being taken into account
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Vega ally control options and Support for Reviewed Answers in Topics
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Update path for CreateDBCluster resource identifier, and Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Apache HTTP Client__
+  - ### Bugfixes
+    - Added fix to handle TLS half-close scenarios by throwing an exception. In TLS 1.3, the inbound and outbound close_notify alerts are independent. When the client receives a close_notify alert, it only closes the inbound stream but continues to send data to the server. Previously, the SDK could not detect that the connection was closed on the server side, causing it to get stuck while writing to the socket and eventually timing out. With this bug fix, the SDK will now detect the closed connection and throw an appropriate exception, preventing client hangs and improving overall reliability.
+
+## __Auto Scaling__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
 # __2.26.19__ __2024-07-10__
 ## __AWS Batch__
   - ### Features
@@ -355,7 +409,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
+[@sullis](https://github.com/sullis), [@shetsa-amzn](https://github.com/shetsa-amzn)
 # __2.26.9__ __2024-06-25__
 ## __AWS Network Manager__
   - ### Features
