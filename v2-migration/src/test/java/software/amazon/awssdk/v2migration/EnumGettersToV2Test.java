@@ -75,9 +75,7 @@ public class EnumGettersToV2Test implements RewriteTest {
         );
     }
 
-    // TODO - transform succeeds on separate sample project, fails in unit test due to
-    //  J.MethodInvocation.getMethodType() == null for phoneNumberInformation.numberCapabilities()
-    /*@Test
+    @Test
     @EnabledOnJre({JRE.JAVA_8})
     void shouldChangeCollectionItemEnumGetter() {
         rewriteRun(
@@ -87,7 +85,7 @@ public class EnumGettersToV2Test implements RewriteTest {
                 "class Test {\n" +
                 "    static void method() {\n" +
                 "        PhoneNumberInformation phoneNumberInformation = new PhoneNumberInformation();\n" +
-                "        List<String> numberCapabilities = phoneNumberInformation.numberCapabilities();\n" +
+                "        List<String> numberCapabilities = phoneNumberInformation.getNumberCapabilities();\n" +
                 "    }\n" +
                 "}\n",
                 "import software.amazon.awssdk.services.sns.model.PhoneNumberInformation;\n" +
@@ -100,5 +98,5 @@ public class EnumGettersToV2Test implements RewriteTest {
                 "}\n"
             )
         );
-    }*/
+    }
 }
