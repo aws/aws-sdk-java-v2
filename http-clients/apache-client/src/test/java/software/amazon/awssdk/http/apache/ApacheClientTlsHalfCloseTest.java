@@ -116,10 +116,12 @@ public class ApacheClientTlsHalfCloseTest extends ClientTlsAuthTestBase {
     }
 
     @AfterAll
-    public static void clear(){
+    public static void clear() throws IOException {
         System.clearProperty("javax.net.ssl.trustStore");
         System.clearProperty("javax.net.ssl.trustStorePassword");
         System.clearProperty("javax.net.ssl.trustStoreType");
+        ClientTlsAuthTestBase.teardown();
+
     }
 
     private static HttpExecuteResponse executeHttpRequest(SdkHttpClient client) throws IOException {
