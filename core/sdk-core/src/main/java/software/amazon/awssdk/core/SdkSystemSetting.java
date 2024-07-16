@@ -220,6 +220,12 @@ public enum SdkSystemSetting implements SystemSetting {
      */
     AWS_REQUEST_MIN_COMPRESSION_SIZE_BYTES("aws.requestMinCompressionSizeBytes", null),
 
+    /**
+     * Defines a file path from which partition metadata should be loaded. If this isn't specified, the partition
+     * metadata deployed with the SDK client will be used instead.
+     */
+    AWS_PARTITIONS_FILE("aws.partitionsFile", null)
+
     ;
 
     private final String systemProperty;
