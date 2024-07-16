@@ -14,6 +14,7 @@ BEFORE_DIR_MAVEN = os.path.join(RESOURCE_DIR, "maven/before")
 AFTER_DIR_MAVEN = os.path.join(RESOURCE_DIR, "maven/after")
 TARGET_DIR_MAVEN = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(os.path.join(__file__, "../../")))), "target/generated-test-sources/maven/project")
 TARGET_AFTER_DIR_MAVEN = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(os.path.join(__file__, "../../")))), "target/generated-test-sources/maven/after")
+BEFORE_POM = os.path.join(TARGET_DIR_MAVEN, "pom.xml")
 AFTER_POM = os.path.join(TARGET_AFTER_DIR_MAVEN, "pom.xml")
 
 BEFORE_DIR_GRADLE = os.path.join(RESOURCE_DIR, "gradle/before")
@@ -43,19 +44,27 @@ def run_maven_test(version):
     copy_directory(BEFORE_DIR_MAVEN, TARGET_DIR_MAVEN)
     copy_directory(AFTER_DIR_MAVEN, TARGET_AFTER_DIR_MAVEN)
 
+    before_pom_file = Path(BEFORE_POM)
+    write_version_to_pom(before_pom_file, version)
+
     subprocess.run(["mvn", "org.openrewrite.maven:rewrite-maven-plugin:run",
                     "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration:"+ version,
                     "-Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2"], cwd=TARGET_DIR_MAVEN, check=True)
     shutil.rmtree(os.path.join(TARGET_DIR_MAVEN, "target"))
 
-    pom_file = Path(AFTER_POM)
-    pom_file.write_text(pom_file.read_text().replace('V2_VERSION', version))
+    after_pom_file = Path(AFTER_POM)
+    write_version_to_pom(after_pom_file, version)
 
     is_same = compare_directory(filecmp.dircmp(TARGET_DIR_MAVEN, TARGET_AFTER_DIR_MAVEN))
     if not is_same:
         raise Exception("The transformed directory({}) does not match with the expected one({})".format(TARGET_DIR_MAVEN, TARGET_AFTER_DIR_MAVEN))
     result = subprocess.run(["mvn", "package"], cwd=TARGET_DIR_MAVEN, capture_output=True, check=True)
     print(result)
+
+
+def write_version_to_pom(pom_file, version):
+    pom_file.write_text(pom_file.read_text().replace('V2_VERSION', version))
+
 
 def run_gradle_test(version):
     if os.path.exists(TARGET_DIR_GRADLE) and os.path.isdir(TARGET_DIR_GRADLE):

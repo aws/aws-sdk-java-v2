@@ -35,13 +35,12 @@ public class EnumGettersToV2Test implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         try (InputStream stream = getClass().getResourceAsStream("/META-INF/rewrite/change-enum-getters.yml")) {
-            spec.recipes(new ChangeSdkType(),
-                         new NewClassToBuilder(),
-                         new V1GetterToV2(),
-                         Environment.builder()
+            spec.recipes(Environment.builder()
                                     .load(new YamlResourceLoader(stream, URI.create("rewrite.yml"), new Properties()))
                                     .build()
-                                    .activateRecipes("software.amazon.awssdk.v2migration.EnumGettersToV2"));
+                                    .activateRecipes("software.amazon.awssdk.v2migration.EnumGettersToV2"),
+                         new ChangeSdkType(),
+                         new NewClassToBuilder());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

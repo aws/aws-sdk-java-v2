@@ -79,12 +79,12 @@ def write_change_getters_recipe(f, service, pojo, getter, isCollection):
     else:
         suffix = "AsString"
 
-    v1_getter = lowercase_first_letter(getter)
-    v2_getter = v1_getter + suffix
+    v1_getter = "get" + getter
+    v2_getter = lowercase_first_letter(getter) + suffix
 
     change_getter = '''
   - org.openrewrite.java.ChangeMethodName:
-      methodPattern: software.amazon.awssdk.services.{0}.model.{1} {2}()
+      methodPattern: com.amazonaws.services.{0}.model.{1} {2}()
       newMethodName: {3}'''
     f.write(change_getter.format(service, pojo, v1_getter, v2_getter))
 
