@@ -65,6 +65,7 @@ public class LoggingProgressListenerTest {
             List<LogEvent> events = logCaptor.loggedEvents();
             assertLogged(events, Level.INFO, "Request Prepared...");
             assertLogged(events, Level.INFO, "|                    | 0.0%");
+            assertLogged(events, Level.INFO, "Started Upload...");
             assertLogged(events, Level.INFO, "|=                   | 5.0%");
             assertLogged(events, Level.INFO, "|==                  | 10.0%");
             assertLogged(events, Level.INFO, "|===                 | 15.0%");
@@ -120,6 +121,7 @@ public class LoggingProgressListenerTest {
             List<LogEvent> events = logCaptor.loggedEvents();
             assertLogged(events, Level.INFO, "Request Prepared...");
             assertLogged(events, Level.INFO, "|     | 0.0%");
+            assertLogged(events, Level.INFO, "Started Upload...");
             assertLogged(events, Level.INFO, "|=    | 20.0%");
             assertLogged(events, Level.INFO, "|==   | 40.0%");
             assertLogged(events, Level.INFO, "|===  | 60.0%");

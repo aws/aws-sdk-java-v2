@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.internal.util.ProgressListenerUtils.wrapContentStreamProviderWithByteReadTrackingIfProgressListenerAttached;
+
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -24,9 +26,8 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingInputStream;
-import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
-import software.amazon.awssdk.core.internal.util.DownloadProgressUpdaterInvocation;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
+import software.amazon.awssdk.core.internal.util.ProgressListenerUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -47,6 +48,11 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
 
     @Override
     public Response<OutputT> execute(SdkHttpFullResponse httpResponse, RequestExecutionContext context) throws Exception {
+
+        context.progressUpdater().ifPresent(progressUpdater -> {
+            ProgressListenerUtils.updateProgressListenersWithResponseStatus(progressUpdater, httpResponse);
+        });
+
         SdkHttpFullResponse bytesReadTracking = trackBytesRead(httpResponse, context);
 
         Response<OutputT> response = responseHandler.handle(bytesReadTracking, context.executionAttributes());
@@ -88,12 +94,9 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
     private AbortableInputStream trackBytesRead(AbortableInputStream content, RequestExecutionContext context) {
         AtomicLong bytesRead = context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ);
 
-        ProgressUpdater progressUpdater = context.progressUpdater().isPresent() ?
-                                          context.progressUpdater().get() : null;
-
         BytesReadTrackingInputStream bytesReadTrackedStream =
-            new BytesReadTrackingInputStream(content, bytesRead,
-                                             new DownloadProgressUpdaterInvocation(progressUpdater));
+            wrapContentStreamProviderWithByteReadTrackingIfProgressListenerAttached(content, bytesRead, context);
+
         return AbortableInputStream.create(bytesReadTrackedStream);
     }
 }

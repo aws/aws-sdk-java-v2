@@ -57,7 +57,7 @@ public final class ProgressListenerUtils {
         if (progressUpdater != null) {
             wrappedContentStreamProvider =
                 ContentStreamProvider.fromInputStream(new BytesReadTrackingInputStream(
-                    (AbortableInputStream) contentStreamProvider.newStream(),
+                    AbortableInputStream.create(contentStreamProvider.newStream()),
                     new AtomicLong(0L),
                     new UploadProgressUpdaterInvocation(progressUpdater)));
         }
