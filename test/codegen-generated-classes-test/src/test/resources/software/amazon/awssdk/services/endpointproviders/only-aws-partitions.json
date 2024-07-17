@@ -1,0 +1,18 @@
+{
+  "partitions" : [
+    {
+      "id": "aws",
+      "outputs": {
+        "dnsSuffix": "amazonaws.com",
+        "dualStackDnsSuffix": "api.aws",
+        "implicitGlobalRegion": "us-east-1",
+        "name": "aws",
+        "supportsDualStack": true,
+        "supportsFIPS": true
+      },
+      "regionRegex": "^(us|eu|ap|sa|ca|me|af|il)\\-\\w+\\-\\d+$",
+      "regions": {
+      }
+    }
+  ]
+}
