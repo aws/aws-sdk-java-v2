@@ -121,8 +121,7 @@ public class UpdateItemOperation<T>
 
         UpdateItemRequest.Builder requestBuilder = UpdateItemRequest.builder()
             .tableName(operationContext.tableName())
-            .key(keyAttributes)
-            .returnValues(ReturnValue.ALL_NEW);
+            .key(keyAttributes);
 
         if (request.left().isPresent()) {
             addPlainUpdateItemParameters(requestBuilder, request.left().get());
@@ -253,6 +252,14 @@ public class UpdateItemOperation<T>
         requestBuilder = requestBuilder.returnItemCollectionMetrics(enhancedRequest.returnItemCollectionMetricsAsString());
         requestBuilder =
             requestBuilder.returnValuesOnConditionCheckFailure(enhancedRequest.returnValuesOnConditionCheckFailureAsString());
+
+        // Set the default returnValue to ReturnValue.ALL_NEW if not specified
+        ReturnValue returnValue = enhancedRequest.returnValuesAsString() == null
+                                  ? ReturnValue.ALL_NEW
+                                  : ReturnValue.fromValue(enhancedRequest.returnValuesAsString());
+
+        requestBuilder.returnValues(returnValue.toString());
+
         return requestBuilder;
     }
 

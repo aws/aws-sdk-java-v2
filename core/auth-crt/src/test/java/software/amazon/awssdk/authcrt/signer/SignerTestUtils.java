@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.authcrt.signer;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.authcrt.signer.internal.SigningUtils.SIGNING_CLOCK;
 
 import java.io.ByteArrayInputStream;

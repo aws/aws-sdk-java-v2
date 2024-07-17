@@ -45,7 +45,7 @@ public class ResponseHandlerHelper {
         this.connection = connection;
     }
 
-    public void onResponseHeaders(HttpStream stream, int responseStatusCode, int headerType, HttpHeader[] nextHeaders) {
+    public void onResponseHeaders(int responseStatusCode, int headerType, HttpHeader[] nextHeaders) {
         if (headerType == HttpHeaderBlock.MAIN.getValue()) {
             for (HttpHeader h : nextHeaders) {
                 responseBuilder.appendHeader(h.getName(), h.getValue());

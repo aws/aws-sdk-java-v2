@@ -26,8 +26,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -55,8 +53,6 @@ import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
  */
 public class NewServiceMain extends Cli {
 
-    private static final Set<String> DEFAULT_INTERNAL_DEPENDENCIES = defaultInternalDependencies();
-
     private NewServiceMain() {
         super(requiredOption("service-module-name", "The name of the service module to be created."),
               requiredOption("service-id", "The service ID of the service module to be created."),
@@ -69,12 +65,6 @@ public class NewServiceMain extends Cli {
 
     public static void main(String[] args) {
         new NewServiceMain().run(args);
-    }
-
-    private static Set<String> defaultInternalDependencies() {
-        Set<String> defaultInternalDependencies = new LinkedHashSet<>();
-        defaultInternalDependencies.add("http-auth-aws");
-        return Collections.unmodifiableSet(defaultInternalDependencies);
     }
 
     @Override

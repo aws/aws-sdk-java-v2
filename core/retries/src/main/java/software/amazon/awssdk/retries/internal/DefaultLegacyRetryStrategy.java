@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.retries.internal;
 
-import java.time.Duration;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.retries.LegacyRetryStrategy;
@@ -29,28 +28,11 @@ import software.amazon.awssdk.utils.Validate;
 public final class DefaultLegacyRetryStrategy
     extends BaseRetryStrategy implements LegacyRetryStrategy {
     private static final Logger LOG = Logger.loggerFor(LegacyRetryStrategy.class);
-    private final BackoffStrategy throttlingBackoffStrategy;
     private final int throttlingExceptionCost;
-    private final Predicate<Throwable> treatAsThrottling;
 
     DefaultLegacyRetryStrategy(Builder builder) {
         super(LOG, builder);
         this.throttlingExceptionCost = Validate.paramNotNull(builder.throttlingExceptionCost, "throttlingExceptionCost");
-        this.throttlingBackoffStrategy = Validate.paramNotNull(builder.throttlingBackoffStrategy, "throttlingBackoffStrategy");
-        this.treatAsThrottling = Validate.paramNotNull(builder.treatAsThrottling, "treatAsThrottling");
-    }
-
-    @Override
-    protected Duration computeBackoff(RefreshRetryTokenRequest request, DefaultRetryToken token) {
-        Duration backoff;
-        if (treatAsThrottling.test(request.failure())) {
-            backoff = throttlingBackoffStrategy.computeDelay(token.attempt());
-        } else {
-            backoff = backoffStrategy.computeDelay(token.attempt());
-        }
-        // Take the max delay between the suggested delay and the backoff delay.
-        Duration suggested = request.suggestedDelay().orElse(Duration.ZERO);
-        return maxOf(suggested, backoff);
     }
 
     @Override
@@ -74,17 +56,13 @@ public final class DefaultLegacyRetryStrategy
     }
 
     public static class Builder extends BaseRetryStrategy.Builder implements LegacyRetryStrategy.Builder {
-        private BackoffStrategy throttlingBackoffStrategy;
         private Integer throttlingExceptionCost;
-        private Predicate<Throwable> treatAsThrottling;
 
         Builder() {
         }
 
         Builder(DefaultLegacyRetryStrategy strategy) {
             super(strategy);
-            this.throttlingBackoffStrategy = strategy.throttlingBackoffStrategy;
-            this.treatAsThrottling = strategy.treatAsThrottling;
             this.throttlingExceptionCost = strategy.throttlingExceptionCost;
         }
 
@@ -108,7 +86,7 @@ public final class DefaultLegacyRetryStrategy
 
         @Override
         public Builder throttlingBackoffStrategy(BackoffStrategy throttlingBackoffStrategy) {
-            this.throttlingBackoffStrategy = throttlingBackoffStrategy;
+            setThrottlingBackoffStrategy(throttlingBackoffStrategy);
             return this;
         }
 
@@ -120,7 +98,7 @@ public final class DefaultLegacyRetryStrategy
 
         @Override
         public Builder treatAsThrottling(Predicate<Throwable> treatAsThrottling) {
-            this.treatAsThrottling = treatAsThrottling;
+            setTreatAsThrottling(treatAsThrottling);
             return this;
         }
 

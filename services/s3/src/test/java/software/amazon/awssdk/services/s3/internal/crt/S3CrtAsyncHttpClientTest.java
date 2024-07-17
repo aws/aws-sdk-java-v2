@@ -131,6 +131,7 @@ public class S3CrtAsyncHttpClientTest {
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.GET_OBJECT);
+        assertThat(actual.getOperationName()).isEqualTo("GetObject");
     }
 
     @Test
@@ -140,7 +141,19 @@ public class S3CrtAsyncHttpClientTest {
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.PUT_OBJECT);
+        assertThat(actual.getOperationName()).isEqualTo("PutObject");
     }
+
+    @Test
+    public void NonStreamingOperation_shouldSetMetaRequestTypeCorrectly() {
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "CreateBucket").build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.DEFAULT);
+        assertThat(actual.getOperationName()).isEqualTo("CreateBucket");
+    }
+
 
     @Test
     public void cancelRequest_shouldForwardCancellation() {
