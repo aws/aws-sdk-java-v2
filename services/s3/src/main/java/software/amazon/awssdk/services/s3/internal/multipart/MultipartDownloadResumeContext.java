@@ -108,6 +108,8 @@ public class MultipartDownloadResumeContext {
             return 1;
         }
 
+        // for sequential operation, make sure we don't skip any non-completed part by returning the
+        // highest sequentially completed part
         int previous = completedParts.first();
         for (Integer i : completedParts) {
             if (i - previous > 1) {
