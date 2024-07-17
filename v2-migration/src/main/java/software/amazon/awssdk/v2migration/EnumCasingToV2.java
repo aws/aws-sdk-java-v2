@@ -28,6 +28,7 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils;
 
 @SdkInternalApi
 public class EnumCasingToV2 extends Recipe {
@@ -85,14 +86,10 @@ public class EnumCasingToV2 extends Recipe {
             JavaType javaType = fa.getTarget().getType();
             JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(javaType);
             if (fullyQualified != null) {
-                return isV2ModelClass(fullyQualified.getFullyQualifiedName())
+                return SdkTypeUtils.isV2ModelClass(javaType)
                        && fullyQualified.getKind() == JavaType.FullyQualified.Kind.Enum;
             }
             return false;
-        }
-
-        public boolean isV2ModelClass(String fcqn) {
-            return fcqn.startsWith("software.amazon.awssdk.services.") && fcqn.contains(".model.");
         }
     }
 }
