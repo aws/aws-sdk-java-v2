@@ -510,6 +510,17 @@ public class ChangeSdkType extends Recipe {
 
             Pair<JavaType.Class, JavaType> oldToNewPair = oldTypeToNewType.get(fullyQualifiedName);
             JavaType targetType = oldToNewPair.right();
+
+            if (original.getKind() == JavaType.FullyQualified.Kind.Enum) {
+                JavaType.FullyQualified targetTypeEnum = TypeUtils.asFullyQualified(targetType);
+                if (targetTypeEnum != null) {
+                    JavaType enumType = JavaType.ShallowClass.build(targetTypeEnum.getFullyQualifiedName())
+                                                             .withKind(JavaType.FullyQualified.Kind.Enum);
+                    oldNameToChangedType.put(currentType, enumType);
+                    return enumType;
+                }
+            }
+
             oldNameToChangedType.put(currentType, targetType);
             return targetType;
         }

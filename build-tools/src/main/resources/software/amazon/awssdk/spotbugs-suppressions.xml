@@ -312,4 +312,10 @@
      <Match>
         <Bug pattern="EI_EXPOSE_REP2,EI_EXPOSE_REP,MS_EXPOSE_REP,MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR,SA_FIELD_SELF_ASSIGNMENT,DCN_NULLPOINTER_EXCEPTION"/>
     </Match>
+
+    <!-- False positive -->
+    <Match>
+        <Class name="software.amazon.awssdk.v2migration.EnumCasingToV2$Visitor"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
 </FindBugsFilter>

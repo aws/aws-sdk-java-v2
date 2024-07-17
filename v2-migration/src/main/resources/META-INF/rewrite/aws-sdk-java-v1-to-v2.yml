@@ -24,6 +24,7 @@ recipeList:
   - software.amazon.awssdk.v2migration.UpgradeSdkDependencies
   - software.amazon.awssdk.v2migration.S3GetObjectConstructorToFluent
   - software.amazon.awssdk.v2migration.S3StreamingResponseToV2
+  - software.amazon.awssdk.v2migration.EnumGettersToV2
   - software.amazon.awssdk.v2migration.ChangeSdkType
   - software.amazon.awssdk.v2migration.ChangeSdkCoreTypes
   # At this point, all classes should be changed to v2 equivalents
@@ -33,3 +34,4 @@ recipeList:
   - software.amazon.awssdk.v2migration.V1GetterToV2
   - software.amazon.awssdk.v2migration.HttpSettingsToHttpClient
   - software.amazon.awssdk.v2migration.WrapSdkClientBuilderRegionStr
+  - software.amazon.awssdk.v2migration.EnumCasingToV2
