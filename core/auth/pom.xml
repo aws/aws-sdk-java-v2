@@ -80,6 +80,11 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth-aws-eventstream</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>http-auth</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
@@ -193,6 +198,17 @@
     </dependencies>
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <configuration>
+                    <ignoredUnusedDeclaredDependencies>
+                        <!-- auth depends on http-auth-aws-eventstream without using it. This is so that older event
+                        stream services, which only depend on auth, can continue to sign event stream messages. -->
+                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth-aws-eventstream:*</ignoredUnusedDeclaredDependency>
+                    </ignoredUnusedDeclaredDependencies>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
