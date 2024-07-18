@@ -96,9 +96,7 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
             return;
         }
 
-        for (ShapeModel shapeModel : intermediateModel.getShapes().values()) {
-            postprocessHandleEmitAsMember(shapeModel, intermediateModel);
-        }
+        postprocessHandleEmitAsMember(intermediateModel);
     }
 
     private void preprocessAssertNoSubstitutedShapeReferenceInOperation(Operation operation) {
@@ -219,8 +217,7 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
         return null;
     }
 
-    private void postprocessHandleEmitAsMember(
-            ShapeModel shape, IntermediateModel intermediateModel) {
+    private void postprocessHandleEmitAsMember(IntermediateModel intermediateModel) {
 
         /*
          * For structure members whose shape is substituted, we need to add the
@@ -271,29 +268,25 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
          * additional path into the "http" metadata of all the shape members
          * that reference to this list-type shape.
          */
-        for (Entry<String, Map<String, String>> ref : substitutedListMemberReferences.entrySet()) {
-            String parentShapeC2jName = ref.getKey();
+        substitutedListMemberReferences.forEach((parentShapeC2jName, nestedListMemberOriginalShapeMap) -> {
             // {listTypeMemberName -> nestedListMemberOriginalShape}
-            Map<String, String> nestedListMemberOriginalShapeMap = ref.getValue();
 
             ShapeModel parentShape = Utils.findShapeModelByC2jName(
-                    intermediateModel, parentShapeC2jName);
+                intermediateModel, parentShapeC2jName);
 
-            for (Entry<String, String> entry : nestedListMemberOriginalShapeMap.entrySet()) {
-                String listTypeMemberC2jName = entry.getKey();
-                String nestedListMemberOriginalShapeC2jName = entry.getValue();
+            nestedListMemberOriginalShapeMap.forEach((listTypeMemberC2jName, nestedListMemberOriginalShapeC2jName) -> {
 
                 MemberModel listTypeMember = parentShape.findMemberModelByC2jName(listTypeMemberC2jName);
 
-                ShapeModel nestedListMemberOriginalShape = Utils.findShapeModelByC2jName(intermediateModel,
-                        nestedListMemberOriginalShapeC2jName);
+                ShapeModel nestedListMemberOriginalShape =
+                    Utils.findShapeModelByC2jName(intermediateModel, nestedListMemberOriginalShapeC2jName);
 
                 MemberModel emitFromMember =
-                        nestedListMemberOriginalShape.findMemberModelByC2jName(
-                                shapeSubstitutions
-                                        .get(nestedListMemberOriginalShapeC2jName)
-                                        .getEmitFromMember()
-                                                                              );
+                    nestedListMemberOriginalShape.findMemberModelByC2jName(
+                        shapeSubstitutions
+                            .get(nestedListMemberOriginalShapeC2jName)
+                            .getEmitFromMember()
+                    );
 
                 /**
                  * This customization is specifically added for
@@ -305,37 +298,32 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
                  * version bump.
                  */
                 if (!shouldSkipAddingMarshallingPath(shapeSubstitutions.get(nestedListMemberOriginalShapeC2jName),
-                        parentShapeC2jName)) {
+                                                     parentShapeC2jName)) {
                     listTypeMember.getListModel().setMemberAdditionalMarshallingPath(
-                            emitFromMember.getHttp().getMarshallLocationName());
+                        emitFromMember.getHttp().getMarshallLocationName());
                 }
                 listTypeMember.getListModel().setMemberAdditionalUnmarshallingPath(
-                        emitFromMember.getHttp().getUnmarshallLocationName());
-            }
-        }
+                    emitFromMember.getHttp().getUnmarshallLocationName());
+            });
+        });
     }
 
     private void trackShapeMemberSubstitution(String shapeName, String memberName, String originalShape) {
         log.info("{} -> ({} -> {})", shapeName, memberName, originalShape);
-        if (!substitutedShapeMemberReferences.containsKey(shapeName)) {
-            substitutedShapeMemberReferences.put(shapeName, new HashMap<>());
-        }
+        substitutedShapeMemberReferences.computeIfAbsent(shapeName, k -> new HashMap<>());
         substitutedShapeMemberReferences.get(shapeName).put(memberName, originalShape);
     }
 
     private void trackListMemberSubstitution(String shapeName, String listTypeMemberName, String nestedListMemberOriginalShape) {
         log.info("{} -> ({} -> {})", shapeName, listTypeMemberName, nestedListMemberOriginalShape);
-        if (!substitutedListMemberReferences.containsKey(shapeName)) {
-            substitutedListMemberReferences.put(shapeName, new HashMap<>());
-        }
+        substitutedListMemberReferences.computeIfAbsent(shapeName, k -> new HashMap<>());
         substitutedListMemberReferences.get(shapeName).put(listTypeMemberName, nestedListMemberOriginalShape);
     }
 
     private boolean shouldSkipAddingMarshallingPath(ShapeSubstitution substitutionConfig,
                                                     String parentShapeName) {
-        return substitutionConfig.getSkipMarshallPathForShapes() == null
-               ? false
-               : substitutionConfig.getSkipMarshallPathForShapes().contains(parentShapeName);
+        return substitutionConfig.getSkipMarshallPathForShapes() != null &&
+               substitutionConfig.getSkipMarshallPathForShapes().contains(parentShapeName);
     }
 
 }

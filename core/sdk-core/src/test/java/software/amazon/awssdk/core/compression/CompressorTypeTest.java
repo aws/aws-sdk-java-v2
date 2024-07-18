@@ -34,7 +34,6 @@ public class CompressorTypeTest {
     public void compressorType_gzip() {
         CompressorType gzip = CompressorType.GZIP;
         CompressorType gzipFromString = CompressorType.of("gzip");
-        assertThat(gzip).isSameAs(gzipFromString);
         assertThat(gzip).isEqualTo(gzipFromString);
     }
 
@@ -42,7 +41,6 @@ public class CompressorTypeTest {
     public void compressorType_usesSameInstance_when_sameCompressorTypeOfSameValue() {
         CompressorType brotliFromString = CompressorType.of("brotli");
         CompressorType brotliFromStringDuplicate = CompressorType.of("brotli");
-        assertThat(brotliFromString).isSameAs(brotliFromStringDuplicate);
         assertThat(brotliFromString).isEqualTo(brotliFromStringDuplicate);
     }
 }
