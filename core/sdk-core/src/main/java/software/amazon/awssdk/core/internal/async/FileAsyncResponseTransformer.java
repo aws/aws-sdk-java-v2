@@ -163,6 +163,9 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         }
         if (cf != null) {
             cf.completeExceptionally(throwable);
+        } else {
+            log.warn(() -> "An exception occurred before the call to prepare() was able to instantiate the CompletableFuture."
+                           + "The future cannot be completed exceptionally because it is null");
         }
     }
 

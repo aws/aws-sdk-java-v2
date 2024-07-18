@@ -142,6 +142,15 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
                                             .build();
     }
 
+    /**
+     * Creates an {@link SplitResult} which contains an {@link SplittingTransformer} that splits the
+     * {@link AsyncResponseTransformer} into multiple ones, publishing them as a {@link SdkPublisher}.
+     *
+     * @param splitConfig configuration for the split transformer
+     * @return SplitAsyncResponseTransformer instance.
+     * @see SplittingTransformer
+     * @see SplitResult
+     */
     default SplitResult<ResponseT, ResultT> split(Consumer<SplittingTransformerConfiguration.Builder> splitConfig) {
         SplittingTransformerConfiguration conf = SplittingTransformerConfiguration.builder()
                                                                                   .applyMutation(splitConfig)

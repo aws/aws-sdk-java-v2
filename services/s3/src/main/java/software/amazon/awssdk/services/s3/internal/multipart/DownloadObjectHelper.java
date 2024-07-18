@@ -63,15 +63,16 @@ public class DownloadObjectHelper {
     }
 
     private void logSinglePartMessage(GetObjectRequest getObjectRequest) {
-        String reason = "";
-        if (getObjectRequest.range() != null) {
-            reason = " because getObjectRequest range is included in the request."
-                     + " range = " + getObjectRequest.range();
-        } else if (getObjectRequest.partNumber() != null) {
-            reason = " because getObjectRequest part number is included in the request."
-                     + " part number = " + getObjectRequest.partNumber();
-        }
-        String finalReason = reason;
-        log.debug(() -> "Using single part download" + finalReason);
+        log.debug(() -> {
+            String reason = "";
+            if (getObjectRequest.range() != null) {
+                reason = " because getObjectRequest range is included in the request."
+                         + " range = " + getObjectRequest.range();
+            } else if (getObjectRequest.partNumber() != null) {
+                reason = " because getObjectRequest part number is included in the request."
+                         + " part number = " + getObjectRequest.partNumber();
+            }
+            return "Using single part download" + reason;
+        });
     }
 }
