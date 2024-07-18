@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "Updates Amazon RDS documentation to specify an eventual consistency model for DescribePendingMaintenanceActions."
-}
