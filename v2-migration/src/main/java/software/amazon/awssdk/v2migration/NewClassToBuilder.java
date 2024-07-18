@@ -63,8 +63,8 @@ public class NewClassToBuilder extends Recipe {
     private static class NewV1ClassToBuilderVisitor extends JavaVisitor<ExecutionContext> {
         // Rearrange a [...].build().with*() to [...].with*().build()
         @Override
-        public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-            method = super.visitMethodInvocation(method, executionContext).cast();
+        public J visitMethodInvocation(J.MethodInvocation previousMethod, ExecutionContext executionContext) {
+            J.MethodInvocation method = super.visitMethodInvocation(previousMethod, executionContext).cast();
 
             // [...].with*()
             if (!NamingUtils.isWither(method.getSimpleName())) {
@@ -90,13 +90,13 @@ public class NewClassToBuilder extends Recipe {
 
             J.MethodInvocation newWith = method.withSelect(selectInvokeSelect);
 
-            return selectInvoke.withSelect(newWith);
+            return maybeAutoFormat(previousMethod, selectInvoke.withSelect(newWith), executionContext);
         }
 
         // new Foo() -> Foo.builder().build()
         @Override
-        public J visitNewClass(J.NewClass newClass, ExecutionContext executionContext) {
-            newClass = super.visitNewClass(newClass, executionContext).cast();
+        public J visitNewClass(J.NewClass previousNewClass, ExecutionContext executionContext) {
+            J.NewClass newClass = super.visitNewClass(previousNewClass, executionContext).cast();
 
             if (!(newClass.getType() instanceof JavaType.FullyQualified)) {
                 return newClass;
@@ -179,14 +179,14 @@ public class NewClassToBuilder extends Recipe {
                 Tree.randomId(),
                 newClass.getPrefix(),
                 Markers.EMPTY,
-                JRightPadded.build(builderInvoke),
+                new JRightPadded(builderInvoke, Space.format("\n"), Markers.EMPTY),
                 null,
                 buildName,
                 JContainer.empty(),
                 buildMethodType
             );
 
-            return buildInvoke;
+            return maybeAutoFormat(previousNewClass, buildInvoke, executionContext);
         }
     }
 }

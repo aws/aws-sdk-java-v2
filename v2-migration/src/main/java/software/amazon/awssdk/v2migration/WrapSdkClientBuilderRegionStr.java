@@ -68,8 +68,8 @@ public class WrapSdkClientBuilderRegionStr extends Recipe {
     private static class V1GetterToV2Visitor extends JavaIsoVisitor<ExecutionContext> {
 
         @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-            method = super.visitMethodInvocation(method, executionContext);
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation originalMethod, ExecutionContext executionContext) {
+            J.MethodInvocation method = super.visitMethodInvocation(originalMethod, executionContext);
 
             if (!isSdkClientBuilder(method)) {
                 return method;

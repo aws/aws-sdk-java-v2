@@ -31,7 +31,8 @@ public final class CredentialsDependencyFactory {
     }
 
     public static AwsCredentialsProvider defaultCredentialsProviderChain() {
-        return DefaultCredentialsProvider.builder().build();
+        return DefaultCredentialsProvider.builder()
+            .build();
     }
 
     public static AwsCredentialsProvider environmentCredentialsProvider() {
@@ -43,7 +44,8 @@ public final class CredentialsDependencyFactory {
     }
 
     public static AwsCredentialsProvider profileCredentialsProvider() {
-        return ProfileCredentialsProvider.builder().build();
+        return ProfileCredentialsProvider.builder()
+            .build();
     }
 
     public static AwsCredentialsProvider staticCredentialsProvider() {

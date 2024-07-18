@@ -21,7 +21,8 @@ import software.amazon.awssdk.services.dynamodb.model.CreateTableResponse;
 public class Library {
     public void someMethod() {
         DynamoDbClient dynamoDB = DynamoDbClient.builder().build();
-        CreateTableResponse createTableResult = dynamoDB.createTable(CreateTableRequest.builder().tableName("test").build());
+        CreateTableResponse createTableResult = dynamoDB.createTable(CreateTableRequest.builder().tableName("test")
+                .build());
         System.out.println(createTableResult);
     }
 }

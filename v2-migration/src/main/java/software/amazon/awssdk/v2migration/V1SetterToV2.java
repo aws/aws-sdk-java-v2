@@ -67,8 +67,9 @@ public class V1SetterToV2 extends Recipe {
     private static class V1SetterToV2Visitor extends JavaIsoVisitor<ExecutionContext> {
 
         @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-            method = super.visitMethodInvocation(method, executionContext);
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation previousMethodInvocation,
+                                                        ExecutionContext executionContext) {
+            J.MethodInvocation method = super.visitMethodInvocation(previousMethodInvocation, executionContext);
 
             JavaType selectType = null;
 
@@ -113,8 +114,7 @@ public class V1SetterToV2 extends Recipe {
                                                .withType(mt))
                                .withMethodType(mt);
             }
-
-            return method;
+            return maybeAutoFormat(previousMethodInvocation, method, executionContext);
         }
 
         private static boolean shouldChangeSetter(JavaType.FullyQualified selectType) {

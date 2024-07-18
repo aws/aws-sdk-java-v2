@@ -51,7 +51,8 @@ public class NewV1ClientClassToV2Test implements RewriteTest {
                 + "\n"
                 + "public class SqsExample {\n"
                 + "    public static void main(String[] args) {\n"
-                + "        SqsClient sqs = SqsClient.builder().build();\n"
+                + "        SqsClient sqs = SqsClient.builder()\n"
+                + "                .build();\n"
                 + "    }\n"
                 + "}"
             )

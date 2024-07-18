@@ -45,7 +45,8 @@ public class Application {
         ListQueuesRequest request = ListQueuesRequest.builder()
             .maxResults(5)
             .queueNamePrefix("MyQueue-")
-            .nextToken("token").build();
+            .nextToken("token")
+            .build();
 
         try {
 
@@ -65,8 +66,8 @@ public class Application {
 
         } catch (SqsException exception) {
             System.out.println(String.format("Error code: %s. RequestId: %s. Raw response content: %s",
-                                             exception.awsErrorDetails().errorCode(), exception.requestId(),
-                                             exception.awsErrorDetails().rawResponse().asUtf8String()));
+                exception.awsErrorDetails().errorCode(), exception.requestId(),
+                exception.awsErrorDetails().rawResponse().asUtf8String()));
         } catch (AwsServiceException exception) {
             System.out.println(String.format("Error message: %s. Service Name: %s",
                                              exception.awsErrorDetails().errorMessage(), exception.awsErrorDetails().serviceName()));
@@ -76,7 +77,8 @@ public class Application {
     }
 
     private static Path downloadFile(S3Client s3, String bucket, String key, Path dst) throws IOException {
-        GetObjectRequest getObject = GetObjectRequest.builder().bucket(bucket).key(key).build();
+        GetObjectRequest getObject = GetObjectRequest.builder().bucket(bucket).key(key)
+            .build();
 
         ResponseInputStream<GetObjectResponse> s3Object = s3.getObject(getObject);
 
