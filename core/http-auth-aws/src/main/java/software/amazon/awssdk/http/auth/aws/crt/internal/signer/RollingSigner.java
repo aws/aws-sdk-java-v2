@@ -91,13 +91,14 @@ public final class RollingSigner {
         previousSignature = seedSignature;
     }
 
-    private static class ByteBufferBackedInputStream extends InputStream {
+    private static final class ByteBufferBackedInputStream extends InputStream {
         private final ByteBuffer buf;
 
         private ByteBufferBackedInputStream(ByteBuffer buf) {
             this.buf = buf;
         }
 
+        @Override
         public int read() {
             if (!buf.hasRemaining()) {
                 return -1;
@@ -105,6 +106,7 @@ public final class RollingSigner {
             return buf.get() & 0xFF;
         }
 
+        @Override
         public int read(byte[] bytes, int off, int len) {
             if (!buf.hasRemaining()) {
                 return -1;

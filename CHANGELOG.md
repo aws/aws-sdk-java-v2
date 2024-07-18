@@ -1,4 +1,172 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.20__ __2024-07-12__
+## __AWS ARC - Zonal Shift__
+  - ### Features
+    - Adds the option to subscribe to get notifications when a zonal autoshift occurs in a region.
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Minor refactoring of C2J model for AWS Private CA
+
+## __AWS CodeBuild__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Global Accelerator__
+  - ### Features
+    - This feature adds exceptions to the Customer API to avoid throwing Internal Service errors
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Do not serialize empty lists for the EC2 variant of the Query protocol. The service returns exceptions if it gets query parameters with no values.
+    - fix SigV4a signer incorrectly interpreting query params with '&'
+    - prevent defaultRetryMode in customization.config from not being taken into account
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Vega ally control options and Support for Reviewed Answers in Topics
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Update path for CreateDBCluster resource identifier, and Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Apache HTTP Client__
+  - ### Bugfixes
+    - Added fix to handle TLS half-close scenarios by throwing an exception. In TLS 1.3, the inbound and outbound close_notify alerts are independent. When the client receives a close_notify alert, it only closes the inbound stream but continues to send data to the server. Previously, the SDK could not detect that the connection was closed on the server side, causing it to get stuck while writing to the socket and eventually timing out. With this bug fix, the SDK will now detect the closed connection and throw an appropriate exception, preventing client hangs and improving overall reliability.
+
+## __Auto Scaling__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+# __2.26.19__ __2024-07-10__
+## __AWS Batch__
+  - ### Features
+    - This feature allows AWS Batch Jobs with EKS container orchestration type to be run as Multi-Node Parallel Jobs.
+
+## __AWS Glue__
+  - ### Features
+    - Add recipe step support for recipe node
+
+## __AWS Ground Station__
+  - ### Features
+    - Documentation update specifying OEM ephemeris units of measurement
+
+## __AWS License Manager Linux Subscriptions__
+  - ### Features
+    - Add support for third party subscription providers, starting with RHEL subscriptions through Red Hat Subscription Manager (RHSM). Additionally, add support for tagging subscription provider resources, and detect when an instance has more than one Linux subscription and notify the customer.
+
+## __AWS MediaConnect__
+  - ### Features
+    - AWS Elemental MediaConnect introduces the ability to disable outputs. Disabling an output allows you to keep the output attached to the flow, but stop streaming to the output destination. A disabled output does not incur data transfer costs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Introduces new data sources and chunking strategies for Knowledge bases, advanced parsing logic using FMs, session summary generation, and code interpretation (preview) for Claude V3 Sonnet and Haiku models. Also introduces Prompt Flows (preview) to link prompts, foundational models, and resources.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Introduces query decomposition, enhanced Agents integration with Knowledge bases, session summary generation, and code interpretation (preview) for Claude V3 Sonnet and Haiku models. Also introduces Prompt Flows (preview) to link prompts, foundational models, and resources for end-to-end solutions.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Add support for contextual grounding check for Guardrails for Amazon Bedrock.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Add support for contextual grounding check and ApplyGuardrail API for Guardrails for Amazon Bedrock.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add parameters to enable provisioning IPAM BYOIPv4 space at a Local Zone Network Border Group level
+
+# __2.26.18__ __2024-07-09__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Update way we build retry strategies to honor the `AWS_MAX_ATTEMPTS` system setting.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release deprecates dataProductItem field from SearchInventoryResultItem, along with some unused DataProduct shapes
+
+## __Amazon FSx__
+  - ### Features
+    - Adds support for FSx for NetApp ONTAP 2nd Generation file systems, and FSx for OpenZFS Single AZ HA file systems.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds support for enabling or disabling Natural Language Query Processing feature for Amazon OpenSearch Service domains, and provides visibility into the current state of the setup or tear-down.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release 1/ enables optimization jobs that allows customers to perform Ahead-of-time compilation and quantization. 2/ allows customers to control access to Amazon Q integration in SageMaker Studio. 3/ enables AdditionalModelDataSources for CreateModel action.
+
+# __2.26.17__ __2024-07-08__
+## __AWS CodeDeploy__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Device Farm__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Elastic Beanstalk__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon GameLift__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __QApps__
+  - ### Features
+    - This is a general availability (GA) release of Amazon Q Apps, a capability of Amazon Q Business. Q Apps leverages data sources your company has provided to enable users to build, share, and customize apps within your organization.
+
 # __2.26.16__ __2024-07-05__
 ## __AWS Certificate Manager__
   - ### Features
@@ -241,7 +409,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
+[@sullis](https://github.com/sullis), [@shetsa-amzn](https://github.com/shetsa-amzn)
 # __2.26.9__ __2024-06-25__
 ## __AWS Network Manager__
   - ### Features

@@ -19,21 +19,32 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
+import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
+import software.amazon.awssdk.utils.ClassLoaderHelper;
+import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.OptionalUtils;
 import software.amazon.awssdk.utils.Validate;
 
 public class DefaultPartitionDataProviderSpec implements ClassSpec {
+    private static final String PARTITIONS_FILE_CLASSPATH_LOCATION = "software/amazon/awssdk/global/partitions.json";
+
     // partitions
     private static final String VERSION = "version";
     private static final String PARTITIONS = "partitions";
@@ -73,9 +84,19 @@ public class DefaultPartitionDataProviderSpec implements ClassSpec {
                                             .addSuperinterface(
                                                 endpointRulesSpecUtils.rulesRuntimeClassName("PartitionDataProvider"));
 
+        builder.addField(jsonNodeParserField());
         builder.addType(lazyPartitionsContainer());
         builder.addMethod(loadPartitionsMethod());
+        builder.addMethod(systemSettingPartitionsFileMethod());
+        builder.addMethod(classpathPartitionsFileMethod());
+        builder.addMethod(readPartitionsFileMethod());
         return builder.build();
+    }
+
+    private FieldSpec jsonNodeParserField() {
+        return FieldSpec.builder(JsonNodeParser.class, "PARSER", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                        .initializer("$T.create()", JsonNodeParser.class)
+                        .build();
     }
 
     @Override
@@ -84,13 +105,51 @@ public class DefaultPartitionDataProviderSpec implements ClassSpec {
     }
 
     private MethodSpec loadPartitionsMethod() {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("loadPartitions")
-                                               .addAnnotation(Override.class)
-                                               .addModifiers(Modifier.PUBLIC)
-                                               .returns(partitionsClass);
+        return MethodSpec.methodBuilder("loadPartitions")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(partitionsClass)
+                         .addCode("return $T.firstPresent(systemSettingPartitionsFile(),", OptionalUtils.class)
+                         .addCode("    this::classpathPartitionsFile,")
+                         .addCode("    () -> Optional.of(LazyPartitionsContainer.PARTITIONS))")
+                         .addCode(".orElseThrow(() -> new $T(\"Unable to find partition metadata.\"));",
+                                  IllegalStateException.class)
+                         .build();
+    }
 
-        builder.addStatement("return LazyPartitionsContainer.PARTITIONS");
-        return builder.build();
+    private MethodSpec systemSettingPartitionsFileMethod() {
+        return MethodSpec.methodBuilder("systemSettingPartitionsFile")
+                         .addModifiers(Modifier.PRIVATE)
+                         .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), partitionsClass))
+                         .addCode("return $T.AWS_PARTITIONS_FILE.getStringValue()", SdkSystemSetting.class)
+                         .addCode(".map($T::get)", Paths.class)
+                         .addCode(".map(p -> $T.invokeSafely(() -> $T.newInputStream(p)))",
+                                  FunctionalUtils.class, Files.class)
+                         .addCode(".map(this::readPartitionsFile);")
+                         .build();
+    }
+
+    private MethodSpec classpathPartitionsFileMethod() {
+        return MethodSpec.methodBuilder("classpathPartitionsFile")
+                         .addModifiers(Modifier.PRIVATE)
+                         .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), partitionsClass))
+                         .addCode("return $T.ofNullable($T.classLoader(getClass()).getResourceAsStream($S))",
+                                  Optional.class, ClassLoaderHelper.class, PARTITIONS_FILE_CLASSPATH_LOCATION)
+                         .addCode(".map(this::readPartitionsFile);")
+                         .build();
+    }
+
+    private MethodSpec readPartitionsFileMethod() {
+        return MethodSpec.methodBuilder("readPartitionsFile")
+                         .addModifiers(Modifier.PRIVATE)
+                         .returns(partitionsClass)
+                         .addParameter(InputStream.class, "partitionsFile")
+                         .addCode("try {")
+                         .addCode("return $T.fromNode(PARSER.parse(partitionsFile));", partitionsClass)
+                         .addCode("} finally {")
+                         .addCode("$T.closeQuietly(partitionsFile, null);", IoUtils.class)
+                         .addCode("}")
+                         .build();
     }
 
     private TypeSpec lazyPartitionsContainer() {
@@ -177,7 +236,7 @@ public class DefaultPartitionDataProviderSpec implements ClassSpec {
             Map<String, JsonNode> regionsObj = regions.asObject();
             regionsObj.forEach((k, v) -> {
                 builder.add(".putRegion($S, ", k);
-                codegenRegionOverride(builder, v);
+                codegenRegionOverride(builder);
                 builder.add(")");
             });
         }
@@ -191,7 +250,7 @@ public class DefaultPartitionDataProviderSpec implements ClassSpec {
         builder.add(".build()");
     }
 
-    private void codegenRegionOverride(CodeBlock.Builder builder, JsonNode node) {
+    private void codegenRegionOverride(CodeBlock.Builder builder) {
         builder.add("$T.builder().build()", regionOverrideClass);
     }
 
