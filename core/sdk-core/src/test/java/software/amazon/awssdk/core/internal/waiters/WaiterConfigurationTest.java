@@ -19,9 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
-import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
+import software.amazon.awssdk.retries.api.BackoffStrategy;
 
 public class WaiterConfigurationTest {
 
@@ -29,8 +28,8 @@ public class WaiterConfigurationTest {
     public void overrideConfigurationNull_shouldUseDefaultValue() {
         WaiterConfiguration waiterConfiguration = new WaiterConfiguration(null);
 
-        assertThat(waiterConfiguration.backoffStrategy())
-            .isEqualTo(FixedDelayBackoffStrategy.create(Duration.ofSeconds(5)));
+        assertThat(waiterConfiguration.backoffStrategy().computeDelay(5))
+            .isEqualTo(Duration.ofSeconds(5));
         assertThat(waiterConfiguration.maxAttempts()).isEqualTo(3);
         assertThat(waiterConfiguration.waitTimeout()).isNull();
     }
@@ -38,11 +37,11 @@ public class WaiterConfigurationTest {
     @Test
     public void overrideConfigurationNotAllValuesProvided_shouldUseDefaultValue() {
         WaiterConfiguration waiterConfiguration = new WaiterConfiguration(WaiterOverrideConfiguration.builder()
-                                                                                                     .backoffStrategy(BackoffStrategy.none())
+                                                                                                     .backoffStrategyV2(BackoffStrategy.retryImmediately())
                                                                                                      .build());
 
-        assertThat(waiterConfiguration.backoffStrategy())
-            .isEqualTo(BackoffStrategy.none());
+        assertThat(waiterConfiguration.backoffStrategy().computeDelay(2))
+            .isEqualTo(Duration.ZERO);
         assertThat(waiterConfiguration.maxAttempts()).isEqualTo(3);
         assertThat(waiterConfiguration.waitTimeout()).isNull();
     }
@@ -51,13 +50,13 @@ public class WaiterConfigurationTest {
     public void overrideConfigurationProvided_shouldTakesPrecedence() {
         WaiterConfiguration waiterConfiguration =
             new WaiterConfiguration(WaiterOverrideConfiguration.builder()
-                                                               .backoffStrategy(BackoffStrategy.none())
+                                                               .backoffStrategyV2(BackoffStrategy.retryImmediately())
                                                                .maxAttempts(10)
                                                                .waitTimeout(Duration.ofMinutes(3))
                                                                .build());
 
-        assertThat(waiterConfiguration.backoffStrategy())
-            .isEqualTo(BackoffStrategy.none());
+        assertThat(waiterConfiguration.backoffStrategy().computeDelay(3))
+            .isEqualTo(Duration.ZERO);
         assertThat(waiterConfiguration.maxAttempts()).isEqualTo(10);
         assertThat(waiterConfiguration.waitTimeout()).isEqualTo(Duration.ofMinutes(3));
     }

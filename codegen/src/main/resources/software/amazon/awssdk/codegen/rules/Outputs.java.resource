@@ -1,6 +1,7 @@
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
+import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
 public class Outputs {
@@ -85,13 +86,13 @@ public class Outputs {
 
     @Override
     public String toString() {
-        return "Outputs{" +
-               "dnsSuffix='" + dnsSuffix + '\'' +
-               ", dualStackDnsSuffix='" + dualStackDnsSuffix + '\'' +
-               ", supportsFips=" + supportsFips +
-               ", supportsDualStack=" + supportsDualStack +
-               ", implicitGlobalRegion=" + implicitGlobalRegion +
-               '}';
+        return ToString.builder("Outputs")
+                       .add("dnsSuffix", dnsSuffix)
+                       .add("dualStackDnsSuffix", dualStackDnsSuffix)
+                       .add("supportsFips", supportsFips)
+                       .add("supportsDualStack", supportsDualStack)
+                       .add("implicitGlobalRegion", implicitGlobalRegion)
+                       .build();
     }
 
     public static Builder builder() {
