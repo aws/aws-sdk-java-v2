@@ -15,9 +15,10 @@
 
 package foo.bar;
 
-import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
@@ -32,6 +33,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 public class Application {
@@ -89,5 +92,12 @@ public class Application {
         s3Object.close();
 
         return dst;
+    }
+
+    private static PutObjectResponse uploadFile(S3Client s3, String bucket, String key, Path source) throws IOException {
+        PutObjectResponse result = s3.putObject(PutObjectRequest.builder()
+            .build(), RequestBody.fromFile(source.toFile()));
+
+        return result;
     }
 }

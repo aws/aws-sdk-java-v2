@@ -19,6 +19,8 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.AmazonSQSException;
@@ -85,5 +87,11 @@ public class Application {
         s3Object.getObjectContent().close();
 
         return dst;
+    }
+
+    private static PutObjectResult uploadFile(AmazonS3 s3, String bucket, String key, Path source) throws IOException {
+        PutObjectResult result = s3.putObject(bucket, key, source.toFile());
+
+        return result;
     }
 }

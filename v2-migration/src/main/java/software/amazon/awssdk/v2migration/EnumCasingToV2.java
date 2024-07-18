@@ -76,7 +76,12 @@ public class EnumCasingToV2 extends Recipe {
             J.Identifier id = super.visitIdentifier(identifier, ctx);
 
             if (ENUMS.contains(id.getSimpleName())) {
-                return id.withFieldType(id.getFieldType().withName(id.getSimpleName()));
+                JavaType.Variable fieldType = id.getFieldType();
+                if (fieldType == null) {
+                    return id;
+                }
+                JavaType.Variable variable = fieldType.withName(id.getSimpleName());
+                return id.withFieldType(variable);
             }
 
             return id;
