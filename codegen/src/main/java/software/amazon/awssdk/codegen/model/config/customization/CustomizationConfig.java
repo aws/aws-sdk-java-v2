@@ -279,7 +279,7 @@ public class CustomizationConfig {
     /**
      * Whether SRA based auth logic should be used.
      */
-    private boolean useSraAuth = false;
+    private boolean useSraAuth = true;
 
     /**
      * Whether to generate auth scheme params based on endpoint params.
