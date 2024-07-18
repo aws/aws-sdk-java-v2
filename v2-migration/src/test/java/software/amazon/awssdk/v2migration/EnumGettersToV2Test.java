@@ -62,14 +62,15 @@ public class EnumGettersToV2Test implements RewriteTest {
                 "        String routeType = phoneNumberInformation.getRouteType();\n" +
                 "    }\n" +
                 "}\n",
-                "import software.amazon.awssdk.services.sns.model.PhoneNumberInformation;\n" +
-                "\n" +
-                "class Test {\n" +
-                "    static void method() {\n" +
-                "        PhoneNumberInformation phoneNumberInformation = PhoneNumberInformation.builder().build();\n" +
-                "        String routeType = phoneNumberInformation.routeTypeAsString();\n" +
-                "    }\n" +
-                "}\n"
+                "import software.amazon.awssdk.services.sns.model.PhoneNumberInformation;\n"
+                + "\n"
+                + "class Test {\n"
+                + "    static void method() {\n"
+                + "        PhoneNumberInformation phoneNumberInformation = PhoneNumberInformation.builder()\n"
+                + "                .build();\n"
+                + "        String routeType = phoneNumberInformation.routeTypeAsString();\n"
+                + "    }\n"
+                + "}"
             )
         );
     }
@@ -87,14 +88,15 @@ public class EnumGettersToV2Test implements RewriteTest {
                 "        List<String> numberCapabilities = phoneNumberInformation.getNumberCapabilities();\n" +
                 "    }\n" +
                 "}\n",
-                "import software.amazon.awssdk.services.sns.model.PhoneNumberInformation;\n" +
-                "\n" +
-                "class Test {\n" +
-                "    static void method() {\n" +
-                "        PhoneNumberInformation phoneNumberInformation = PhoneNumberInformation.builder().build();\n" +
-                "        List<String> numberCapabilities = phoneNumberInformation.numberCapabilitiesAsStrings();\n" +
-                "    }\n" +
-                "}\n"
+                "import software.amazon.awssdk.services.sns.model.PhoneNumberInformation;\n"
+                + "\n"
+                + "class Test {\n"
+                + "    static void method() {\n"
+                + "        PhoneNumberInformation phoneNumberInformation = PhoneNumberInformation.builder()\n"
+                + "                .build();\n"
+                + "        List<String> numberCapabilities = phoneNumberInformation.numberCapabilitiesAsStrings();\n"
+                + "    }\n"
+                + "}"
             )
         );
     }

@@ -29,7 +29,8 @@ public class Enums {
         System.out.println(qan);
         System.out.println(qan2);
 
-        ReceiveMessageRequest v1Request = ReceiveMessageRequest.builder().build();
+        ReceiveMessageRequest v1Request = ReceiveMessageRequest.builder()
+            .build();
         List<String> attributes = v1Request.attributeNamesAsStrings();
         System.out.println(attributes);
 
