@@ -21,20 +21,19 @@ import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
-import software.amazon.awssdk.codegen.poet.rules2.EndpointProviderSpec2;
 
 class EndpointProviderCompiledRulesClassSpecTest {
 
     @Test
     public void endpointProviderClass() {
-        ClassSpec endpointProviderSpec = new EndpointProviderSpec2(ClientTestModels.queryServiceModels());
+        ClassSpec endpointProviderSpec = new EndpointProviderSpec(ClientTestModels.queryServiceModels());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-class.java"));
     }
 
     @Test
     void knowPropertiesOverride() {
         ClassSpec endpointProviderSpec =
-            new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithOverrideKnowProperties());
+            new EndpointProviderSpec(ClientTestModels.queryServiceModelsWithOverrideKnowProperties());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-know-prop-override-class.java"));
     }
 }

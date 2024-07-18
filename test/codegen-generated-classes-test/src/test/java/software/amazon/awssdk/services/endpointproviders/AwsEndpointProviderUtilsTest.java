@@ -19,17 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
-import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
-import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
-import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
@@ -38,9 +29,6 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.AwsEndpointProviderUtils;
-import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Identifier;
-import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Value;
-import software.amazon.awssdk.utils.MapUtils;
 
 public class AwsEndpointProviderUtilsTest {
     @Test

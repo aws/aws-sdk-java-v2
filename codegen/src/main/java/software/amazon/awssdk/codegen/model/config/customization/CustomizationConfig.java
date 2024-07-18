@@ -304,11 +304,6 @@ public class CustomizationConfig {
     private boolean s3ExpressAuthSupport;
 
     /**
-     * Set to true to enable compiled endpoint rules. Currently defaults to false.
-     */
-    private boolean enableGenerateCompiledEndpointRules = false;
-
-    /**
      * Customization related to auth scheme derived from endpoints.
      */
     private EndpointAuthSchemeConfig endpointAuthSchemeConfig;
@@ -750,14 +745,6 @@ public class CustomizationConfig {
 
     public void setUseS3ExpressSessionAuth(boolean useS3ExpressSessionAuth) {
         this.useS3ExpressSessionAuth = useS3ExpressSessionAuth;
-    }
-
-    public boolean isEnableGenerateCompiledEndpointRules() {
-        return enableGenerateCompiledEndpointRules;
-    }
-
-    public void setEnableGenerateCompiledEndpointRules(boolean enableGenerateCompiledEndpointRules) {
-        this.enableGenerateCompiledEndpointRules = enableGenerateCompiledEndpointRules;
     }
 
     public Map<String, String> getSkipEndpointTests() {
