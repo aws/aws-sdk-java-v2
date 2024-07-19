@@ -45,7 +45,11 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public abstract class BaseRetryStrategy implements RetryStrategy {
-
+    private static final String EMPTY_RETRY_PREDICATES_ERROR = "The retry predicates are empty, this means that this retry "
+                                                               + "strategy will not retry ever. Please consider adding at least "
+                                                               + "one retry predicate, or using the preconfigured retry "
+                                                               + "strategies in the AwsRetryStrategy package, or add just one "
+                                                               + "predicate `t -> false` if you want to disable retries.";
     protected final Logger log;
     protected final List<Predicate<Throwable>> retryPredicates;
     protected final int maxAttempts;
@@ -58,7 +62,8 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
 
     BaseRetryStrategy(Logger log, Builder builder) {
         this.log = log;
-        this.retryPredicates = Collections.unmodifiableList(Validate.paramNotNull(builder.retryPredicates, "retryPredicates"));
+        this.retryPredicates = Collections.unmodifiableList(Validate.notEmpty(builder.retryPredicates,
+                                                                              EMPTY_RETRY_PREDICATES_ERROR));
         this.maxAttempts = Validate.isPositive(builder.maxAttempts, "maxAttempts");
         this.circuitBreakerEnabled = builder.circuitBreakerEnabled == null || builder.circuitBreakerEnabled;
         this.backoffStrategy = Validate.paramNotNull(builder.backoffStrategy, "backoffStrategy");

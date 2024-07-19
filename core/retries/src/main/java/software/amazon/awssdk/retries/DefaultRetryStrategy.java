@@ -35,6 +35,7 @@ public final class DefaultRetryStrategy {
     public static StandardRetryStrategy doNotRetry() {
         return standardStrategyBuilder()
             .maxAttempts(1)
+            .retryOnException(t -> false)
             .build();
     }
 
