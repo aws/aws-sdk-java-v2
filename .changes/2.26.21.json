@@ -1,0 +1,102 @@
+{
+    "version": "2.26.21",
+    "date": "2024-07-18",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Apache HTTP Client",
+            "contributor": "",
+            "description": "Added fix to handle TLS half-close scenarios by throwing an exception. In TLS 1.3, the inbound and outbound close_notify alerts are independent. When the client receives a close_notify alert, it only closes the inbound stream but continues to send data to the server. Previously, the SDK could not detect that the connection was closed on the server side, causing it to get stuck while writing to the socket and eventually timing out. With this bug fix, the SDK will now detect the closed connection and throw an appropriate exception, preventing client hangs and improving overall reliability."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager Private Certificate Authority",
+            "contributor": "",
+            "description": "Fix broken waiters for the acm-pca client. Waiters broke in version 1.13.144 of the Boto3 SDK."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "AWS Elemental MediaLive now supports the SRT protocol via the new SRT Caller input type."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "The partitions.json that ships with the SDK can now be overridden using one of the following means (in priority order):\n1. Specify a file path using the system property `aws.partitionsFile`\n2. Specify a file path using the environment variable `AWS_PARTITIONS_FILE`\n3. Add a resource to the classpath under the name `software/amazon/awssdk/global/partitions.json`"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Make Waiters use the new Backoff Strategy"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Secrets Manager",
+            "contributor": "",
+            "description": "Doc only update for Secrets Manager"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect expands search API coverage for additional resources. Search for hierarchy groups by name, ID, tag, or other criteria (new endpoint). Search for agent statuses by name, ID, tag, or other criteria (new endpoint). Search for users by their assigned proficiencies (enhanced endpoint)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Amazon VPC IP Address Manager (IPAM) now supports Bring-Your-Own-IP (BYOIP) for IP addresses registered with any Internet Registry. This feature uses DNS TXT records to validate ownership of a public IP address range."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service Chat",
+            "contributor": "",
+            "description": "Documentation update for IVS Chat API Reference."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Firehose",
+            "contributor": "",
+            "description": "This release 1) Add configurable buffering hints for Snowflake as destination. 2) Add ReadFromTimestamp for MSK As Source. Firehose will start reading data from MSK Cluster using offset associated with this timestamp. 3) Gated public beta release to add Apache Iceberg tables as destination."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Updates Amazon RDS documentation to specify an eventual consistency model for DescribePendingMaintenanceActions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "SageMaker Training supports R5, T3 and R5D instances family. And SageMaker Processing supports G5 and R5D instances family."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Timestream Query",
+            "contributor": "",
+            "description": "Doc-only update for TimestreamQuery. Added guidance about the accepted valid value for the QueryPricingModel parameter."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Thin Client",
+            "contributor": "",
+            "description": "Documentation update for WorkSpaces Thin Client."
+        },
+        {
+            "type": "feature",
+            "category": "Tax Settings",
+            "contributor": "",
+            "description": "Set default endpoint for aws partition. Requests from all regions in aws partition will be forward to us-east-1 endpoint."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
