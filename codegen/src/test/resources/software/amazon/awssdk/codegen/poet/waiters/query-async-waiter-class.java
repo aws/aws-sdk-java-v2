@@ -16,13 +16,12 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
-import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
-import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.AsyncWaiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.core.waiters.WaiterState;
+import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.services.query.QueryAsyncClient;
 import software.amazon.awssdk.services.query.jmespath.internal.JmesPathRuntime;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
@@ -108,10 +107,10 @@ final class DefaultQueryAsyncWaiter implements QueryAsyncWaiter {
     private static WaiterOverrideConfiguration postOperationSuccessWaiterConfig(WaiterOverrideConfiguration overrideConfig) {
         Optional<WaiterOverrideConfiguration> optionalOverrideConfig = Optional.ofNullable(overrideConfig);
         int maxAttempts = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::maxAttempts).orElse(40);
-        BackoffStrategy backoffStrategy = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::backoffStrategy).orElse(
-            FixedDelayBackoffStrategy.create(Duration.ofSeconds(1)));
+        BackoffStrategy backoffStrategy = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::backoffStrategyV2).orElse(
+            BackoffStrategy.fixedDelayWithoutJitter(Duration.ofSeconds(1)));
         Duration waitTimeout = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::waitTimeout).orElse(null);
-        return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategy(backoffStrategy)
+        return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategyV2(backoffStrategy)
                                           .waitTimeout(waitTimeout).build();
     }
 
