@@ -163,7 +163,8 @@ public final class QueryEnhancedRequest {
      */
     public List<String> attributesToProject() {
         return attributesToProject != null ? attributesToProject.stream()
-                                                                .map(item -> String.join(".", item.elements())).collect(Collectors.toList()) : null;
+                                                                .map(item -> String.join(".", item.elements()))
+                                                                .collect(Collectors.toList()) : null;
     }
 
     /**
@@ -219,8 +220,8 @@ public final class QueryEnhancedRequest {
             return false;
         }
 
-        if(select != null ? ! select.equals(query.select) :
-           query.select != null) {
+        if (select != null ? ! select.equals(query.select) :
+            query.select != null) {
             return false;
         }
 
