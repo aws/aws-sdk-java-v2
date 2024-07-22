@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.rules;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
@@ -27,9 +28,9 @@ public final class SymbolTable {
     private final Map<String, BuiltInParameter> builtInParamTypes;
 
     SymbolTable(Builder builder) {
-        this.params = Collections.unmodifiableMap(new LinkedHashMap<>(builder.params));
-        this.locals = Collections.unmodifiableMap(new LinkedHashMap<>(builder.locals));
-        this.builtInParamTypes = Collections.unmodifiableMap(new LinkedHashMap<>(builder.builtInParamTypes));
+        this.params = Collections.unmodifiableMap(new HashMap<>(builder.params));
+        this.locals = Collections.unmodifiableMap(new HashMap<>(builder.locals));
+        this.builtInParamTypes = Collections.unmodifiableMap(new HashMap<>(builder.builtInParamTypes));
     }
 
     public static Builder builder() {
