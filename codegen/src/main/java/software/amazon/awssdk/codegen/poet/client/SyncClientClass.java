@@ -137,10 +137,8 @@ public class SyncClientClass extends SyncClientInterface {
 
     @Override
     protected void addAdditionalMethods(TypeSpec.Builder type) {
-        if (!useSraAuth) {
-            if (model.containsRequestSigners()) {
-                type.addMethod(applySignerOverrideMethod(poetExtensions, model));
-            }
+        if (!useSraAuth && model.containsRequestSigners()) {
+            type.addMethod(applySignerOverrideMethod(poetExtensions, model));
         }
 
         model.getEndpointOperation().ifPresent(
@@ -152,6 +150,7 @@ public class SyncClientClass extends SyncClientInterface {
             .addMethod(resolveMetricPublishersMethod());
 
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
+        type.addMethod(ClientClassUtils.updateRetryStrategyClientConfigurationMethod());
         type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName()));
         type.addMethod(protocolSpec.initProtocolFactory(model));
     }
@@ -478,6 +477,7 @@ public class SyncClientClass extends SyncClientInterface {
 
         if (model.getCustomizationConfig() == null ||
             CollectionUtils.isNullOrEmpty(model.getCustomizationConfig().getCustomClientContextParams())) {
+            builder.addStatement("updateRetryStrategyClientConfiguration(configuration)");
             builder.addStatement("return configuration.build()");
             return builder.build();
         }
@@ -499,7 +499,7 @@ public class SyncClientClass extends SyncClientInterface {
                                  Validate.class, Objects.class, endpointRulesSpecUtils.clientContextParamsName(), keyName,
                                  keyName + " cannot be modified by request level plugins");
         });
-
+        builder.addStatement("updateRetryStrategyClientConfiguration(configuration)");
         builder.addStatement("return configuration.build()");
         return builder.build();
     }

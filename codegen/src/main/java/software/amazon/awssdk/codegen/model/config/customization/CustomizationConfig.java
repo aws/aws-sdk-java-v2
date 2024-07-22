@@ -142,6 +142,11 @@ public class CustomizationConfig {
      */
     private String customRetryPolicy;
 
+    /**
+     * Custom Retry strategy
+     */
+    private String customRetryStrategy;
+
     private boolean skipSyncClientGeneration;
 
     /**
@@ -274,7 +279,7 @@ public class CustomizationConfig {
     /**
      * Whether SRA based auth logic should be used.
      */
-    private boolean useSraAuth = false;
+    private boolean useSraAuth = true;
 
     /**
      * Whether to generate auth scheme params based on endpoint params.
@@ -533,8 +538,16 @@ public class CustomizationConfig {
         return customRetryPolicy;
     }
 
+    public String getCustomRetryStrategy() {
+        return customRetryStrategy;
+    }
+
     public void setCustomRetryPolicy(String customRetryPolicy) {
         this.customRetryPolicy = customRetryPolicy;
+    }
+
+    public void setCustomRetryStrategy(String customRetryStrategy) {
+        this.customRetryStrategy = customRetryStrategy;
     }
 
     public boolean isSkipSyncClientGeneration() {

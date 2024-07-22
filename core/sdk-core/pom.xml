@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>core</artifactId>
-        <version>2.25.68-SNAPSHOT</version>
+        <version>2.26.23-SNAPSHOT</version>
     </parent>
     <artifactId>sdk-core</artifactId>
     <name>AWS Java SDK :: SDK Core</name>
@@ -85,6 +85,16 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>profiles</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>retries-spi</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>retries</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>

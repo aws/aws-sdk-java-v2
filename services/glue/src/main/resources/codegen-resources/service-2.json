@@ -728,6 +728,24 @@
       ],
       "documentation":"<p>Creates a new trigger.</p>"
     },
+    "CreateUsageProfile":{
+      "name":"CreateUsageProfile",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateUsageProfileRequest"},
+      "output":{"shape":"CreateUsageProfileResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"AlreadyExistsException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"ResourceNumberLimitExceededException"},
+        {"shape":"OperationNotSupportedException"}
+      ],
+      "documentation":"<p>Creates an Glue usage profile.</p>"
+    },
     "CreateUserDefinedFunction":{
       "name":"CreateUserDefinedFunction",
       "http":{
@@ -1153,6 +1171,22 @@
         {"shape":"ConcurrentModificationException"}
       ],
       "documentation":"<p>Deletes a specified trigger. If the trigger is not found, no exception is thrown.</p>"
+    },
+    "DeleteUsageProfile":{
+      "name":"DeleteUsageProfile",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteUsageProfileRequest"},
+      "output":{"shape":"DeleteUsageProfileResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"OperationNotSupportedException"}
+      ],
+      "documentation":"<p>Deletes the Glue specified usage profile.</p>"
     },
     "DeleteUserDefinedFunction":{
       "name":"DeleteUserDefinedFunction",
@@ -1632,7 +1666,7 @@
         {"shape":"InternalServiceException"},
         {"shape":"OperationTimeoutException"}
       ],
-      "documentation":"<p>Retrieves the metadata for a given job run.</p>"
+      "documentation":"<p>Retrieves the metadata for a given job run. Job run history is accessible for 90 days for your workflow and job run.</p>"
     },
     "GetJobRuns":{
       "name":"GetJobRuns",
@@ -2194,6 +2228,23 @@
       ],
       "documentation":"<p>Allows a third-party analytical engine to retrieve unfiltered table metadata from the Data Catalog.</p> <p>For IAM authorization, the public IAM action associated with this API is <code>glue:GetTable</code>.</p>"
     },
+    "GetUsageProfile":{
+      "name":"GetUsageProfile",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetUsageProfileRequest"},
+      "output":{"shape":"GetUsageProfileResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"OperationNotSupportedException"}
+      ],
+      "documentation":"<p>Retrieves information about the specified Glue usage profile.</p>"
+    },
     "GetUserDefinedFunction":{
       "name":"GetUserDefinedFunction",
       "http":{
@@ -2258,7 +2309,7 @@
         {"shape":"InternalServiceException"},
         {"shape":"OperationTimeoutException"}
       ],
-      "documentation":"<p>Retrieves the metadata for a given workflow run. </p>"
+      "documentation":"<p>Retrieves the metadata for a given workflow run. Job run history is accessible for 90 days for your workflow and job run.</p>"
     },
     "GetWorkflowRunProperties":{
       "name":"GetWorkflowRunProperties",
@@ -2598,6 +2649,22 @@
         {"shape":"OperationTimeoutException"}
       ],
       "documentation":"<p>Retrieves the names of all trigger resources in this Amazon Web Services account, or the resources with the specified tag. This operation allows you to see which resources are available in your account, and their names.</p> <p>This operation takes the optional <code>Tags</code> field, which you can use as a filter on the response so that tagged resources can be retrieved as a group. If you choose to use tags filtering, only resources with the tag are retrieved.</p>"
+    },
+    "ListUsageProfiles":{
+      "name":"ListUsageProfiles",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListUsageProfilesRequest"},
+      "output":{"shape":"ListUsageProfilesResponse"},
+      "errors":[
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationNotSupportedException"}
+      ],
+      "documentation":"<p>List all the Glue usage profiles.</p>"
     },
     "ListWorkflows":{
       "name":"ListWorkflows",
@@ -3505,6 +3572,24 @@
       ],
       "documentation":"<p>Updates a trigger definition.</p>"
     },
+    "UpdateUsageProfile":{
+      "name":"UpdateUsageProfile",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateUsageProfileRequest"},
+      "output":{"shape":"UpdateUsageProfileResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"OperationNotSupportedException"},
+        {"shape":"ConcurrentModificationException"}
+      ],
+      "documentation":"<p>Update an Glue usage profile.</p>"
+    },
     "UpdateUserDefinedFunction":{
       "name":"UpdateUserDefinedFunction",
       "http":{
@@ -3689,6 +3774,10 @@
       "member":{"shape":"AggregateOperation"},
       "max":30,
       "min":1
+    },
+    "AllowedValuesStringList":{
+      "type":"list",
+      "member":{"shape":"ConfigValueString"}
     },
     "AlreadyExistsException":{
       "type":"structure",
@@ -6287,9 +6376,68 @@
       "documentation":"<p>A specified condition was not satisfied.</p>",
       "exception":true
     },
+    "ConditionExpression":{
+      "type":"structure",
+      "required":[
+        "Condition",
+        "TargetColumn"
+      ],
+      "members":{
+        "Condition":{
+          "shape":"DatabrewCondition",
+          "documentation":"<p>The condition of the condition expression.</p>"
+        },
+        "Value":{
+          "shape":"DatabrewConditionValue",
+          "documentation":"<p>The value of the condition expression.</p>"
+        },
+        "TargetColumn":{
+          "shape":"TargetColumn",
+          "documentation":"<p>The target column of the condition expressions.</p>"
+        }
+      },
+      "documentation":"<p>Condition expression defined in the Glue Studio data preparation recipe node.</p>"
+    },
+    "ConditionExpressionList":{
+      "type":"list",
+      "member":{"shape":"ConditionExpression"}
+    },
     "ConditionList":{
       "type":"list",
       "member":{"shape":"Condition"}
+    },
+    "ConfigValueString":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"[a-zA-Z0-9_.-]+"
+    },
+    "ConfigurationMap":{
+      "type":"map",
+      "key":{"shape":"NameString"},
+      "value":{"shape":"ConfigurationObject"}
+    },
+    "ConfigurationObject":{
+      "type":"structure",
+      "members":{
+        "DefaultValue":{
+          "shape":"ConfigValueString",
+          "documentation":"<p>A default value for the parameter.</p>"
+        },
+        "AllowedValues":{
+          "shape":"AllowedValuesStringList",
+          "documentation":"<p>A list of allowed values for the parameter.</p>"
+        },
+        "MinValue":{
+          "shape":"ConfigValueString",
+          "documentation":"<p>A minimum allowed value for the parameter.</p>"
+        },
+        "MaxValue":{
+          "shape":"ConfigValueString",
+          "documentation":"<p>A maximum allowed value for the parameter.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the values that an admin sets for each job or session parameter configured in a Glue usage profile.</p>"
     },
     "ConflictException":{
       "type":"structure",
@@ -8138,6 +8286,40 @@
         }
       }
     },
+    "CreateUsageProfileRequest":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Configuration"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the usage profile.</p>"
+        },
+        "Description":{
+          "shape":"DescriptionString",
+          "documentation":"<p>A description of the usage profile.</p>"
+        },
+        "Configuration":{
+          "shape":"ProfileConfiguration",
+          "documentation":"<p>A <code>ProfileConfiguration</code> object specifying the job and session values for the profile.</p>"
+        },
+        "Tags":{
+          "shape":"TagsMap",
+          "documentation":"<p>A list of tags applied to the usage profile.</p>"
+        }
+      }
+    },
+    "CreateUsageProfileResponse":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the usage profile that was created.</p>"
+        }
+      }
+    },
     "CreateUserDefinedFunctionRequest":{
       "type":"structure",
       "required":[
@@ -8393,6 +8575,13 @@
       "key":{"shape":"AdditionalOptionKeys"},
       "value":{"shape":"GenericString"}
     },
+    "DQCompositeRuleEvaluationMethod":{
+      "type":"string",
+      "enum":[
+        "COLUMN",
+        "ROW"
+      ]
+    },
     "DQDLAliases":{
       "type":"map",
       "key":{"shape":"NodeName"},
@@ -8533,6 +8722,10 @@
         "ResultsS3Prefix":{
           "shape":"UriString",
           "documentation":"<p>Prefix for Amazon S3 to store results.</p>"
+        },
+        "CompositeRuleEvaluationMethod":{
+          "shape":"DQCompositeRuleEvaluationMethod",
+          "documentation":"<p>Set the evaluation method for composite rules in the ruleset to ROW/COLUMN</p>"
         }
       },
       "documentation":"<p>Additional run options you can specify for an evaluation run.</p>"
@@ -9009,6 +9202,14 @@
       },
       "documentation":"<p>The <code>Database</code> object represents a logical grouping of tables that might reside in a Hive metastore or an RDBMS.</p>"
     },
+    "DatabaseAttributes":{
+      "type":"string",
+      "enum":["NAME"]
+    },
+    "DatabaseAttributesList":{
+      "type":"list",
+      "member":{"shape":"DatabaseAttributes"}
+    },
     "DatabaseIdentifier":{
       "type":"structure",
       "members":{
@@ -9067,6 +9268,16 @@
       "member":{"shape":"Database"}
     },
     "DatabaseName":{"type":"string"},
+    "DatabrewCondition":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"^[A-Z\\_]+$"
+    },
+    "DatabrewConditionValue":{
+      "type":"string",
+      "max":1024
+    },
     "Datatype":{
       "type":"structure",
       "required":[
@@ -9720,6 +9931,21 @@
         }
       }
     },
+    "DeleteUsageProfileRequest":{
+      "type":"structure",
+      "required":["Name"],
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the usage profile to delete.</p>"
+        }
+      }
+    },
+    "DeleteUsageProfileResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "DeleteUserDefinedFunctionRequest":{
       "type":"structure",
       "required":[
@@ -10289,11 +10515,11 @@
     },
     "EnclosedInStringProperty":{
       "type":"string",
-      "pattern":"([\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF]|[^\\S\\r\\n\"'])*"
+      "pattern":"([\\u0009\\u000B\\u000C\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF])*"
     },
     "EnclosedInStringPropertyWithQuote":{
       "type":"string",
-      "pattern":"([\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF]|[^\\S\\r\\n])*"
+      "pattern":"([\\u0009\\u000B\\u000C\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF])*"
     },
     "EncryptionAtRest":{
       "type":"structure",
@@ -11570,7 +11796,7 @@
         },
         "RulesetNames":{
           "shape":"RulesetNames",
-          "documentation":"<p>A list of ruleset names for the run.</p>"
+          "documentation":"<p>A list of ruleset names for the run. Currently, this parameter takes only one Ruleset name.</p>"
         },
         "ResultIds":{
           "shape":"DataQualityResultIdList",
@@ -11666,6 +11892,10 @@
         "ResourceShareType":{
           "shape":"ResourceShareType",
           "documentation":"<p>Allows you to specify that you want to list the databases shared with your account. The allowable values are <code>FEDERATED</code>, <code>FOREIGN</code> or <code>ALL</code>. </p> <ul> <li> <p>If set to <code>FEDERATED</code>, will list the federated databases (referencing an external entity) shared with your account.</p> </li> <li> <p>If set to <code>FOREIGN</code>, will list the databases shared with your account. </p> </li> <li> <p>If set to <code>ALL</code>, will list the databases shared with your account, as well as the databases in yor local account. </p> </li> </ul>"
+        },
+        "AttributesToGet":{
+          "shape":"DatabaseAttributesList",
+          "documentation":"<p>Specifies the database fields returned by the <code>GetDatabases</code> call. This parameter doesn’t accept an empty list. The request must include the <code>NAME</code>.</p>"
         }
       }
     },
@@ -13217,6 +13447,41 @@
         }
       }
     },
+    "GetUsageProfileRequest":{
+      "type":"structure",
+      "required":["Name"],
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the usage profile to retrieve.</p>"
+        }
+      }
+    },
+    "GetUsageProfileResponse":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the usage profile.</p>"
+        },
+        "Description":{
+          "shape":"DescriptionString",
+          "documentation":"<p>A description of the usage profile.</p>"
+        },
+        "Configuration":{
+          "shape":"ProfileConfiguration",
+          "documentation":"<p>A <code>ProfileConfiguration</code> object specifying the job and session values for the profile.</p>"
+        },
+        "CreatedOn":{
+          "shape":"TimestampValue",
+          "documentation":"<p>The date and time when the usage profile was created.</p>"
+        },
+        "LastModifiedOn":{
+          "shape":"TimestampValue",
+          "documentation":"<p>The date and time when the usage profile was last modified.</p>"
+        }
+      }
+    },
     "GetUserDefinedFunctionRequest":{
       "type":"structure",
       "required":[
@@ -14200,6 +14465,10 @@
         "MaintenanceWindow":{
           "shape":"MaintenanceWindow",
           "documentation":"<p>This field specifies a day of the week and hour for a maintenance window for streaming jobs. Glue periodically performs maintenance activities. During these maintenance windows, Glue will need to restart your streaming jobs.</p> <p>Glue will restart the job within 3 hours of the specified maintenance window. For instance, if you set up the maintenance window for Monday at 10:00AM GMT, your jobs will be restarted between 10:00AM GMT to 1:00PM GMT.</p>"
+        },
+        "ProfileName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of an Glue usage profile associated with the job.</p>"
         }
       },
       "documentation":"<p>Specifies a job definition.</p>"
@@ -14416,6 +14685,10 @@
         "MaintenanceWindow":{
           "shape":"MaintenanceWindow",
           "documentation":"<p>This field specifies a day of the week and hour for a maintenance window for streaming jobs. Glue periodically performs maintenance activities. During these maintenance windows, Glue will need to restart your streaming jobs.</p> <p>Glue will restart the job within 3 hours of the specified maintenance window. For instance, if you set up the maintenance window for Monday at 10:00AM GMT, your jobs will be restarted between 10:00AM GMT to 1:00PM GMT.</p>"
+        },
+        "ProfileName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of an Glue usage profile associated with the job run.</p>"
         }
       },
       "documentation":"<p>Contains information about a job run.</p>"
@@ -15581,6 +15854,32 @@
         }
       }
     },
+    "ListUsageProfilesRequest":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"OrchestrationToken",
+          "documentation":"<p>A continuation token, included if this is a continuation call.</p>"
+        },
+        "MaxResults":{
+          "shape":"OrchestrationPageSize200",
+          "documentation":"<p>The maximum number of usage profiles to return in a single response.</p>"
+        }
+      }
+    },
+    "ListUsageProfilesResponse":{
+      "type":"structure",
+      "members":{
+        "Profiles":{
+          "shape":"UsageProfileDefinitionList",
+          "documentation":"<p>A list of usage profile (<code>UsageProfileDefinition</code>) objects.</p>"
+        },
+        "NextToken":{
+          "shape":"OrchestrationToken",
+          "documentation":"<p>A continuation token, present if the current list segment is not the last.</p>"
+        }
+      }
+    },
     "ListWorkflowsRequest":{
       "type":"structure",
       "members":{
@@ -16219,7 +16518,7 @@
     },
     "NodeName":{
       "type":"string",
-      "pattern":"([\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF]|[^\\r\\n])*"
+      "pattern":"([^\\r\\n])*"
     },
     "NodeType":{
       "type":"string",
@@ -16403,6 +16702,23 @@
         }
       },
       "documentation":"<p>A structure representing an open format table.</p>"
+    },
+    "Operation":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"^[A-Z\\_]+$"
+    },
+    "OperationNotSupportedException":{
+      "type":"structure",
+      "members":{
+        "Message":{
+          "shape":"MessageString",
+          "documentation":"<p>A message describing the problem.</p>"
+        }
+      },
+      "documentation":"<p>The operation is not available in the region.</p>",
+      "exception":true
     },
     "OperationTimeoutException":{
       "type":"structure",
@@ -16651,6 +16967,22 @@
         "list",
         "null"
       ]
+    },
+    "ParameterMap":{
+      "type":"map",
+      "key":{"shape":"ParameterName"},
+      "value":{"shape":"ParameterValue"}
+    },
+    "ParameterName":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"^[A-Za-z0-9]+$"
+    },
+    "ParameterValue":{
+      "type":"string",
+      "max":32768,
+      "min":1
     },
     "ParametersMap":{
       "type":"map",
@@ -17056,6 +17388,20 @@
       "max":1,
       "min":0
     },
+    "ProfileConfiguration":{
+      "type":"structure",
+      "members":{
+        "SessionConfiguration":{
+          "shape":"ConfigurationMap",
+          "documentation":"<p>A key-value map of configuration parameters for Glue sessions. </p>"
+        },
+        "JobConfiguration":{
+          "shape":"ConfigurationMap",
+          "documentation":"<p>A key-value map of configuration parameters for Glue jobs. </p>"
+        }
+      },
+      "documentation":"<p>Specifies the job and session values that an admin configures in an Glue usage profile.</p>"
+    },
     "PropertyPredicate":{
       "type":"structure",
       "members":{
@@ -17314,8 +17660,7 @@
       "type":"structure",
       "required":[
         "Name",
-        "Inputs",
-        "RecipeReference"
+        "Inputs"
       ],
       "members":{
         "Name":{
@@ -17329,9 +17674,28 @@
         "RecipeReference":{
           "shape":"RecipeReference",
           "documentation":"<p>A reference to the DataBrew recipe used by the node.</p>"
+        },
+        "RecipeSteps":{
+          "shape":"RecipeSteps",
+          "documentation":"<p>Transform steps used in the recipe node.</p>"
         }
       },
       "documentation":"<p>A Glue Studio node that uses a Glue DataBrew recipe in Glue jobs.</p>"
+    },
+    "RecipeAction":{
+      "type":"structure",
+      "required":["Operation"],
+      "members":{
+        "Operation":{
+          "shape":"Operation",
+          "documentation":"<p>The operation of the recipe action.</p>"
+        },
+        "Parameters":{
+          "shape":"ParameterMap",
+          "documentation":"<p>The parameters of the recipe action.</p>"
+        }
+      },
+      "documentation":"<p>Actions defined in the Glue Studio data preparation recipe node.</p>"
     },
     "RecipeReference":{
       "type":"structure",
@@ -17350,6 +17714,25 @@
         }
       },
       "documentation":"<p>A reference to a Glue DataBrew recipe.</p>"
+    },
+    "RecipeStep":{
+      "type":"structure",
+      "required":["Action"],
+      "members":{
+        "Action":{
+          "shape":"RecipeAction",
+          "documentation":"<p>The transformation action of the recipe step.</p>"
+        },
+        "ConditionExpressions":{
+          "shape":"ConditionExpressionList",
+          "documentation":"<p>The condition expressions for the recipe step.</p>"
+        }
+      },
+      "documentation":"<p>A recipe step used in a Glue Studio data preparation recipe node.</p>"
+    },
+    "RecipeSteps":{
+      "type":"list",
+      "member":{"shape":"RecipeStep"}
     },
     "RecipeVersion":{
       "type":"string",
@@ -19116,6 +19499,10 @@
         "IdleTimeout":{
           "shape":"IdleTimeout",
           "documentation":"<p>The number of minutes when idle before the session times out.</p>"
+        },
+        "ProfileName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of an Glue usage profile associated with the session.</p>"
         }
       },
       "documentation":"<p>The period in which a remote Spark runtime environment is running.</p>"
@@ -20530,6 +20917,10 @@
         "TargetTable":{
           "shape":"TableIdentifier",
           "documentation":"<p>A <code>TableIdentifier</code> structure that describes a target table for resource linking.</p>"
+        },
+        "ViewDefinition":{
+          "shape":"ViewDefinitionInput",
+          "documentation":"<p>A structure that contains all the information that defines the view, including the dialect or dialects for the view, and the query.</p>"
         }
       },
       "documentation":"<p>A structure used to define a table.</p>"
@@ -20704,6 +21095,11 @@
       "value":{"shape":"TagValue"},
       "max":50,
       "min":0
+    },
+    "TargetColumn":{
+      "type":"string",
+      "max":1024,
+      "min":1
     },
     "TargetFormat":{
       "type":"string",
@@ -22091,6 +22487,14 @@
         "VersionId":{
           "shape":"VersionString",
           "documentation":"<p>The version ID at which to update the table contents. </p>"
+        },
+        "ViewUpdateAction":{
+          "shape":"ViewUpdateAction",
+          "documentation":"<p>The operation to be performed when updating the view.</p>"
+        },
+        "Force":{
+          "shape":"Boolean",
+          "documentation":"<p>A flag that can be set to true to ignore matching storage descriptor and subobject matching requirements.</p>"
         }
       }
     },
@@ -22122,6 +22526,36 @@
         "Trigger":{
           "shape":"Trigger",
           "documentation":"<p>The resulting trigger definition.</p>"
+        }
+      }
+    },
+    "UpdateUsageProfileRequest":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Configuration"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the usage profile.</p>"
+        },
+        "Description":{
+          "shape":"DescriptionString",
+          "documentation":"<p>A description of the usage profile.</p>"
+        },
+        "Configuration":{
+          "shape":"ProfileConfiguration",
+          "documentation":"<p>A <code>ProfileConfiguration</code> object specifying the job and session values for the profile.</p>"
+        }
+      }
+    },
+    "UpdateUsageProfileResponse":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the usage profile that was updated.</p>"
         }
       }
     },
@@ -22226,6 +22660,32 @@
       "documentation":"<p>The options to configure an upsert operation when writing to a Redshift target .</p>"
     },
     "UriString":{"type":"string"},
+    "UsageProfileDefinition":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the usage profile.</p>"
+        },
+        "Description":{
+          "shape":"DescriptionString",
+          "documentation":"<p>A description of the usage profile.</p>"
+        },
+        "CreatedOn":{
+          "shape":"TimestampValue",
+          "documentation":"<p>The date and time when the usage profile was created.</p>"
+        },
+        "LastModifiedOn":{
+          "shape":"TimestampValue",
+          "documentation":"<p>The date and time when the usage profile was last modified.</p>"
+        }
+      },
+      "documentation":"<p>Describes an Glue usage profile.</p>"
+    },
+    "UsageProfileDefinitionList":{
+      "type":"list",
+      "member":{"shape":"UsageProfileDefinition"}
+    },
     "UserDefinedFunction":{
       "type":"structure",
       "members":{
@@ -22369,6 +22829,28 @@
       },
       "documentation":"<p>A structure containing details for representations.</p>"
     },
+    "ViewDefinitionInput":{
+      "type":"structure",
+      "members":{
+        "IsProtected":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>You can set this flag as true to instruct the engine not to push user-provided operations into the logical plan of the view during query planning. However, setting this flag does not guarantee that the engine will comply. Refer to the engine's documentation to understand the guarantees provided, if any.</p>"
+        },
+        "Definer":{
+          "shape":"ArnString",
+          "documentation":"<p>The definer of a view in SQL.</p>"
+        },
+        "Representations":{
+          "shape":"ViewRepresentationInputList",
+          "documentation":"<p>A list of structures that contains the dialect of the view, and the query that defines the view.</p>"
+        },
+        "SubObjects":{
+          "shape":"ViewSubObjectsList",
+          "documentation":"<p>A list of base table ARNs that make up the view.</p>"
+        }
+      },
+      "documentation":"<p>A structure containing details for creating or updating an Glue view.</p>"
+    },
     "ViewDialect":{
       "type":"string",
       "enum":[
@@ -22401,12 +22883,48 @@
           "shape":"ViewTextString",
           "documentation":"<p>The expanded SQL for the view. This SQL is used by engines while processing a query on a view. Engines may perform operations during view creation to transform <code>ViewOriginalText</code> to <code>ViewExpandedText</code>. For example:</p> <ul> <li> <p>Fully qualified identifiers: <code>SELECT * from table1 -&gt; SELECT * from db1.table1</code> </p> </li> </ul>"
         },
+        "ValidationConnection":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the connection to be used to validate the specific representation of the view.</p>"
+        },
         "IsStale":{
           "shape":"NullableBoolean",
           "documentation":"<p>Dialects marked as stale are no longer valid and must be updated before they can be queried in their respective query engines.</p>"
         }
       },
       "documentation":"<p>A structure that contains the dialect of the view, and the query that defines the view.</p>"
+    },
+    "ViewRepresentationInput":{
+      "type":"structure",
+      "members":{
+        "Dialect":{
+          "shape":"ViewDialect",
+          "documentation":"<p>A parameter that specifies the engine type of a specific representation.</p>"
+        },
+        "DialectVersion":{
+          "shape":"ViewDialectVersionString",
+          "documentation":"<p>A parameter that specifies the version of the engine of a specific representation.</p>"
+        },
+        "ViewOriginalText":{
+          "shape":"ViewTextString",
+          "documentation":"<p>A string that represents the original SQL query that describes the view.</p>"
+        },
+        "ValidationConnection":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the connection to be used to validate the specific representation of the view.</p>"
+        },
+        "ViewExpandedText":{
+          "shape":"ViewTextString",
+          "documentation":"<p>A string that represents the SQL query that describes the view with expanded resource ARNs</p>"
+        }
+      },
+      "documentation":"<p>A structure containing details of a representation to update or create a Lake Formation view.</p>"
+    },
+    "ViewRepresentationInputList":{
+      "type":"list",
+      "member":{"shape":"ViewRepresentationInput"},
+      "max":10,
+      "min":1
     },
     "ViewRepresentationList":{
       "type":"list",
@@ -22423,6 +22941,15 @@
     "ViewTextString":{
       "type":"string",
       "max":409600
+    },
+    "ViewUpdateAction":{
+      "type":"string",
+      "enum":[
+        "ADD",
+        "REPLACE",
+        "ADD_OR_REPLACE",
+        "DROP"
+      ]
     },
     "WorkerType":{
       "type":"string",

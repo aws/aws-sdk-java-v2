@@ -19,8 +19,8 @@ import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AWS_
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
@@ -110,14 +110,18 @@ public final class ChecksumsEnabledValidator {
         }
 
         //Checksum validation is done at Service side when HTTP Checksum algorithm attribute is set.
-        if (isHttpCheckSumValidationEnabled(executionAttributes)) {
+        if (isHttpCheckSumValidationEnabled(executionAttributes, sdkRequest)) {
             return false;
         }
 
         return checksumEnabledPerConfig(executionAttributes);
     }
 
-    private static boolean isHttpCheckSumValidationEnabled(ExecutionAttributes executionAttributes) {
+    private static boolean isHttpCheckSumValidationEnabled(ExecutionAttributes executionAttributes, SdkRequest request) {
+        if (isChecksumValueSpecified(request)) {
+            return true;
+        }
+
         Optional<ChecksumSpecs> resolvedChecksum =
             executionAttributes.getOptionalAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS);
         if (resolvedChecksum.isPresent()) {
@@ -125,6 +129,11 @@ public final class ChecksumsEnabledValidator {
             return checksumSpecs.algorithm() != null;
         }
         return false;
+    }
+
+    private static boolean isChecksumValueSpecified(SdkRequest request) {
+        return Stream.of("ChecksumCRC32", "ChecksumCRC32C", "ChecksumSHA1", "ChecksumSHA256")
+                     .anyMatch(s -> request.getValueForField(s, String.class).isPresent());
     }
 
     public static boolean responseChecksumIsValid(SdkHttpResponse httpResponse) {
@@ -190,7 +199,7 @@ public final class ChecksumsEnabledValidator {
      */
     private static boolean checksumEnabledPerConfig(ExecutionAttributes executionAttributes) {
         S3Configuration serviceConfiguration =
-            (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
+            (S3Configuration) executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_CONFIG);
 
         return serviceConfiguration == null || serviceConfiguration.checksumValidationEnabled();
     }

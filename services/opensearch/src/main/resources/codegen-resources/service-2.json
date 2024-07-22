@@ -8,7 +8,8 @@
     "serviceFullName":"Amazon OpenSearch Service",
     "serviceId":"OpenSearch",
     "signatureVersion":"v4",
-    "uid":"opensearch-2021-01-01"
+    "uid":"opensearch-2021-01-01",
+    "auth":["aws.auth#sigv4"]
   },
   "operations":{
     "AcceptInboundConnection":{
@@ -1062,6 +1063,37 @@
     }
   },
   "shapes":{
+    "AIMLOptionsInput":{
+      "type":"structure",
+      "members":{
+        "NaturalLanguageQueryGenerationOptions":{
+          "shape":"NaturalLanguageQueryGenerationOptionsInput",
+          "documentation":"<p>Container for parameters required for natural language query generation on the specified domain.</p>"
+        }
+      },
+      "documentation":"<p>Container for parameters required to enable all machine learning features.</p>"
+    },
+    "AIMLOptionsOutput":{
+      "type":"structure",
+      "members":{
+        "NaturalLanguageQueryGenerationOptions":{
+          "shape":"NaturalLanguageQueryGenerationOptionsOutput",
+          "documentation":"<p>Container for parameters required for natural language query generation on the specified domain.</p>"
+        }
+      },
+      "documentation":"<p>Container for parameters representing the state of machine learning features on the specified domain.</p>"
+    },
+    "AIMLOptionsStatus":{
+      "type":"structure",
+      "members":{
+        "Options":{
+          "shape":"AIMLOptionsOutput",
+          "documentation":"<p>Machine learning options on the specified domain.</p>"
+        },
+        "Status":{"shape":"OptionStatus"}
+      },
+      "documentation":"<p>The status of machine learning options on the specified domain.</p>"
+    },
     "ARN":{
       "type":"string",
       "documentation":"<p>The Amazon Resource Name (ARN) of the domain. See <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/index.html\">Identifiers for IAM Entities </a> in <i>Using Amazon Web Services Identity and Access Management</i> for more information. </p>",
@@ -1282,6 +1314,10 @@
           "shape":"SAMLOptionsOutput",
           "documentation":"<p>Container for information about the SAML configuration for OpenSearch Dashboards.</p>"
         },
+        "JWTOptions":{
+          "shape":"JWTOptionsOutput",
+          "documentation":"<p>Container for information about the JWT configuration of the Amazon OpenSearch Service.</p>"
+        },
         "AnonymousAuthDisableDate":{
           "shape":"DisableTimestamp",
           "documentation":"<p>Date and time when the migration period will be disabled. Only necessary when <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html#fgac-enabling-existing\">enabling fine-grained access control on an existing domain</a>.</p>"
@@ -1311,6 +1347,10 @@
         "SAMLOptions":{
           "shape":"SAMLOptionsInput",
           "documentation":"<p>Container for information about the SAML configuration for OpenSearch Dashboards.</p>"
+        },
+        "JWTOptions":{
+          "shape":"JWTOptionsInput",
+          "documentation":"<p>Container for information about the JWT configuration of the Amazon OpenSearch Service. </p>"
         },
         "AnonymousAuthEnabled":{
           "shape":"Boolean",
@@ -2146,6 +2186,10 @@
         "SoftwareUpdateOptions":{
           "shape":"SoftwareUpdateOptions",
           "documentation":"<p>Software update options for the domain.</p>"
+        },
+        "AIMLOptions":{
+          "shape":"AIMLOptionsInput",
+          "documentation":"<p>Options for all machine learning features for the specified domain.</p>"
         }
       }
     },
@@ -3198,6 +3242,10 @@
         "ModifyingProperties":{
           "shape":"ModifyingPropertiesList",
           "documentation":"<p>Information about the domain properties that are currently being modified.</p>"
+        },
+        "AIMLOptions":{
+          "shape":"AIMLOptionsStatus",
+          "documentation":"<p>Container for parameters required to enable all machine learning features.</p>"
         }
       },
       "documentation":"<p>Container for the configuration of an OpenSearch Service domain.</p>"
@@ -3605,6 +3653,10 @@
         "ModifyingProperties":{
           "shape":"ModifyingPropertiesList",
           "documentation":"<p>Information about the domain properties that are currently being modified.</p>"
+        },
+        "AIMLOptions":{
+          "shape":"AIMLOptionsOutput",
+          "documentation":"<p>Container for parameters required to enable all machine learning features.</p>"
         }
       },
       "documentation":"<p>The current status of an OpenSearch Service domain.</p>"
@@ -3904,7 +3956,7 @@
         },
         "Status":{
           "shape":"DataSourceStatus",
-          "documentation":"<p>The status of the data source response.</p>"
+          "documentation":"<p>The status of the data source.</p>"
         }
       },
       "documentation":"<p>The result of a <code>GetDataSource</code> operation.</p>"
@@ -4279,6 +4331,50 @@
     "Issues":{
       "type":"list",
       "member":{"shape":"Issue"}
+    },
+    "JWTOptionsInput":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>True to enable JWT authentication and authorization for a domain.</p>"
+        },
+        "SubjectKey":{
+          "shape":"SubjectKey",
+          "documentation":"<p>Element of the JWT assertion to use for the user name.</p>"
+        },
+        "RolesKey":{
+          "shape":"RolesKey",
+          "documentation":"<p>Element of the JWT assertion to use for roles.</p>"
+        },
+        "PublicKey":{
+          "shape":"String",
+          "documentation":"<p>Element of the JWT assertion used by the cluster to verify JWT signatures.</p>"
+        }
+      },
+      "documentation":"<p>The JWT authentication and authorization configuration for an Amazon OpenSearch Service domain.</p>"
+    },
+    "JWTOptionsOutput":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>True if JWT use is enabled.</p>"
+        },
+        "SubjectKey":{
+          "shape":"String",
+          "documentation":"<p>The key used for matching the JWT subject attribute.</p>"
+        },
+        "RolesKey":{
+          "shape":"String",
+          "documentation":"<p>The key used for matching the JWT roles attribute.</p>"
+        },
+        "PublicKey":{
+          "shape":"String",
+          "documentation":"<p>The key used to verify the signature of incoming JWT requests.</p>"
+        }
+      },
+      "documentation":"<p>Describes the JWT options configured for the domain.</p>"
     },
     "KmsKeyId":{
       "type":"string",
@@ -4880,6 +4976,49 @@
     "ModifyingPropertiesList":{
       "type":"list",
       "member":{"shape":"ModifyingProperties"}
+    },
+    "NaturalLanguageQueryGenerationCurrentState":{
+      "type":"string",
+      "enum":[
+        "NOT_ENABLED",
+        "ENABLE_COMPLETE",
+        "ENABLE_IN_PROGRESS",
+        "ENABLE_FAILED",
+        "DISABLE_COMPLETE",
+        "DISABLE_IN_PROGRESS",
+        "DISABLE_FAILED"
+      ]
+    },
+    "NaturalLanguageQueryGenerationDesiredState":{
+      "type":"string",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
+    "NaturalLanguageQueryGenerationOptionsInput":{
+      "type":"structure",
+      "members":{
+        "DesiredState":{
+          "shape":"NaturalLanguageQueryGenerationDesiredState",
+          "documentation":"<p>The desired state of the natural language query generation feature. Valid values are ENABLED and DISABLED.</p>"
+        }
+      },
+      "documentation":"<p>Container for parameters required to enable the natural language query generation feature.</p>"
+    },
+    "NaturalLanguageQueryGenerationOptionsOutput":{
+      "type":"structure",
+      "members":{
+        "DesiredState":{
+          "shape":"NaturalLanguageQueryGenerationDesiredState",
+          "documentation":"<p>The desired state of the natural language query generation feature. Valid values are ENABLED and DISABLED.</p>"
+        },
+        "CurrentState":{
+          "shape":"NaturalLanguageQueryGenerationCurrentState",
+          "documentation":"<p>The current state of the natural language query generation feature, indicating completion, in progress, or failure.</p>"
+        }
+      },
+      "documentation":"<p>Container for parameters representing the state of the natural language query generation feature on the specified domain.</p>"
     },
     "NextToken":{
       "type":"string",
@@ -5704,6 +5843,11 @@
       "min":20,
       "pattern":"arn:(aws|aws\\-cn|aws\\-us\\-gov|aws\\-iso|aws\\-iso\\-b):iam::[0-9]+:role\\/.*"
     },
+    "RolesKey":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
     "RollbackOnDisable":{
       "type":"string",
       "documentation":"<p>The rollback state while disabling Auto-Tune for the domain.</p>",
@@ -6176,6 +6320,11 @@
       "type":"list",
       "member":{"shape":"String"}
     },
+    "SubjectKey":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
     "TLSSecurityPolicy":{
       "type":"string",
       "enum":[
@@ -6262,7 +6411,7 @@
         },
         "Status":{
           "shape":"DataSourceStatus",
-          "documentation":"<p>The status of the data source update request.</p>"
+          "documentation":"<p>The status of the data source update.</p>"
         }
       },
       "documentation":"<p>Container for the parameters to the <code>UpdateDataSource</code> operation.</p>"
@@ -6358,6 +6507,10 @@
         "SoftwareUpdateOptions":{
           "shape":"SoftwareUpdateOptions",
           "documentation":"<p>Service software update options for the domain.</p>"
+        },
+        "AIMLOptions":{
+          "shape":"AIMLOptionsInput",
+          "documentation":"<p>Options for all machine learning features for the specified domain.</p>"
         }
       },
       "documentation":"<p>Container for the request parameters to the <code>UpdateDomain</code> operation.</p>"

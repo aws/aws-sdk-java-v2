@@ -167,5 +167,26 @@
         }
       }
     }
+  },
+  {
+    "description": "An empty list is not marshalled in EC2/Query",
+    "given": {
+      "input": {
+        "ListMemberWithOnlyMemberLocation": []
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "Ec2Types"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "doesNotContain": [
+            "Item"
+          ]
+        }
+      }
+    }
   }
 ]

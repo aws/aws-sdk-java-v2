@@ -205,7 +205,7 @@ public class ClockSkewAdjustmentTest {
                                     .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                                     .region(Region.US_EAST_1)
                                     .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                    .overrideConfiguration(c -> c.retryPolicy(r -> r.numRetries(retryCount)))
+                                    .overrideConfiguration(c -> c.retryStrategy(r -> r.maxAttempts(retryCount + 1)))
                                     .build();
     }
 
@@ -214,7 +214,7 @@ public class ClockSkewAdjustmentTest {
                                          .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                                          .region(Region.US_EAST_1)
                                          .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                         .overrideConfiguration(c -> c.retryPolicy(r -> r.numRetries(retryCount)))
+                                         .overrideConfiguration(c -> c.retryStrategy(r -> r.maxAttempts(retryCount + 1)))
                                          .build();
     }
 }
