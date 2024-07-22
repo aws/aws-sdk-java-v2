@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.retry;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryMode;
@@ -132,8 +133,7 @@ public final class SdkDefaultRetryStrategy {
      */
     public static LegacyRetryStrategy.Builder legacyRetryStrategyBuilder() {
         LegacyRetryStrategy.Builder builder = DefaultRetryStrategy.legacyStrategyBuilder();
-        return configure(builder)
-            .treatAsThrottling(SdkDefaultRetryStrategy::treatAsThrottling);
+        return configure(builder);
     }
 
     /**
@@ -143,8 +143,7 @@ public final class SdkDefaultRetryStrategy {
      */
     public static AdaptiveRetryStrategy.Builder adaptiveRetryStrategyBuilder() {
         AdaptiveRetryStrategy.Builder builder = DefaultRetryStrategy.adaptiveStrategyBuilder();
-        return configure(builder)
-            .treatAsThrottling(SdkDefaultRetryStrategy::treatAsThrottling);
+        return configure(builder);
     }
 
     /**
@@ -161,6 +160,11 @@ public final class SdkDefaultRetryStrategy {
                .retryOnException(SdkDefaultRetryStrategy::retryOnClockSkewException)
                .retryOnException(SdkDefaultRetryStrategy::retryOnThrottlingCondition);
         SdkDefaultRetrySetting.RETRYABLE_EXCEPTIONS.forEach(builder::retryOnExceptionOrCauseInstanceOf);
+        builder.treatAsThrottling(SdkDefaultRetryStrategy::treatAsThrottling);
+        Integer maxAttempts = SdkSystemSetting.AWS_MAX_ATTEMPTS.getIntegerValue().orElse(null);
+        if (maxAttempts != null) {
+            builder.maxAttempts(maxAttempts);
+        }
         return builder;
     }
 

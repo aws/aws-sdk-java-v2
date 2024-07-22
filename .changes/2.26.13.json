@@ -1,0 +1,78 @@
+{
+    "version": "2.26.13",
+    "date": "2024-07-01",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "The retry strategies implementation was not backwards compatible with the retry policies in regards of throttled exceptions, for these the retry policies had a different backoff strategy that is much more slower. This change retrofits the retry strategies to have also a different backoff strategy for throttling errors that has the same base and max delay values as the legacy retry policy."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Step Functions",
+            "contributor": "",
+            "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "JSON body inspection: Update documentation to clarify that JSON parsing doesn't include full validation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon API Gateway",
+            "contributor": "",
+            "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity",
+            "contributor": "",
+            "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Authentication profiles are Amazon Connect resources (in gated preview) that allow you to configure authentication settings for users in your contact center. This release adds support for new ListAuthenticationProfiles, DescribeAuthenticationProfile and UpdateAuthenticationProfile APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB with MongoDB compatibility",
+            "contributor": "",
+            "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Updates EKS managed node groups to support EC2 Capacity Blocks for ML"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Workflow Service",
+            "contributor": "",
+            "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Control Plane",
+            "contributor": "",
+            "description": "Added further restrictions on logging of potentially sensitive inputs and outputs."
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Data Plane",
+            "contributor": "",
+            "description": "Adding support for dynamic keys for encrypt, decrypt, re-encrypt and translate pin functions. With this change, customers can use one-time TR-31 keys directly in dataplane operations without the need to first import them into the service."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

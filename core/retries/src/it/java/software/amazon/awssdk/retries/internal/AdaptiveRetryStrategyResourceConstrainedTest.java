@@ -71,6 +71,7 @@ class AdaptiveRetryStrategyResourceConstrainedTest {
             .tokenBucketStore(TokenBucketStore.builder().tokenBucketMaxCapacity(10_000).build())
             // Just wait for the rate limiter delays.
             .backoffStrategy(BackoffStrategy.retryImmediately())
+            .throttlingBackoffStrategy(BackoffStrategy.retryImmediately())
             .rateLimiterTokenBucketStore(RateLimiterTokenBucketStore.builder().build())
             .retryOnExceptionInstanceOf(ThrottlingException.class)
             .treatAsThrottling(x -> x instanceof ThrottlingException)

@@ -370,7 +370,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                                ? presignRequest(execCtx, httpRequest)
                                                : sraPresignRequest(execCtx, httpRequest, signingClock, expirationDuration);
 
-        initializePresignedRequest(presignedRequest, execCtx, signedHttpRequest, expiration);
+        initializePresignedRequest(presignedRequest, signedHttpRequest, expiration);
 
         return presignedRequest;
     }
@@ -618,7 +618,6 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      * Initialize the provided presigned request.
      */
     private void initializePresignedRequest(PresignedRequest.Builder presignedRequest,
-                                            ExecutionContext execCtx,
                                             SdkHttpFullRequest signedHttpRequest,
                                             Instant expiration) {
         SdkBytes signedPayload = signedHttpRequest.contentStreamProvider()
