@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.22__ __2024-07-22__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release adds 1/ support of register S3 locations of assets in AWS Lake Formation hybrid access mode for DefaultDataLake blueprint. 2/ support of CRUD operations for Asset Filters.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Documentation update for IVS Low Latency API Reference.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Amazon Neptune Analytics provides new options for customers to start with smaller graphs at a lower cost. CreateGraph, CreaateGraphImportTask, UpdateGraph and StartImportTask APIs will now allow 32 and 64 for `provisioned-memory`
+
+## __Redshift Serverless__
+  - ### Features
+    - Adds dualstack support for Redshift Serverless workgroup.
+
 # __2.26.21__ __2024-07-18__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features
@@ -471,7 +492,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@sullis](https://github.com/sullis), [@shetsa-amzn](https://github.com/shetsa-amzn)
+[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
 # __2.26.9__ __2024-06-25__
 ## __AWS Network Manager__
   - ### Features
