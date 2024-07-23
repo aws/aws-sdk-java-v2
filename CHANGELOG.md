@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.23__ __2024-07-23__
+## __AWS AppSync__
+  - ### Features
+    - Adding support for paginators in AppSync list APIs
+
+## __AWS Clean Rooms ML__
+  - ### Features
+    - Adds SQL query as the source of seed audience for audience generation job.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release adds AWS Entity Resolution integration to associate ID namespaces & ID mapping workflow resources as part of ID namespace association and ID mapping table in AWS Clean Rooms. It also introduces a new ID_MAPPING_TABLE analysis rule to manage the protection on ID mapping table.
+
+## __AWS EntityResolution__
+  - ### Features
+    - Support First Party ID Mapping
+
+## __Amazon Connect Contact Lens__
+  - ### Features
+    - Added PostContactSummary segment type on ListRealTimeContactAnalysisSegments API
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added PostContactSummary segment type on ListRealTimeContactAnalysisSegmentsV2 API
+
+## __Amazon DataZone__
+  - ### Features
+    - This release removes the deprecated dataProductItem field from Search API output.
+
 # __2.26.22__ __2024-07-22__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -492,7 +521,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
+[@sullis](https://github.com/sullis), [@shetsa-amzn](https://github.com/shetsa-amzn)
 # __2.26.9__ __2024-06-25__
 ## __AWS Network Manager__
   - ### Features
