@@ -157,8 +157,11 @@ public final class ProfileCredentialsUtils {
     private AwsCredentialsProvider basicProfileCredentialsProvider() {
         requireProperties(ProfileProperty.AWS_ACCESS_KEY_ID,
                           ProfileProperty.AWS_SECRET_ACCESS_KEY);
-        AwsCredentials credentials = AwsBasicCredentials.create(properties.get(ProfileProperty.AWS_ACCESS_KEY_ID),
-                                                                     properties.get(ProfileProperty.AWS_SECRET_ACCESS_KEY));
+        AwsCredentials credentials = AwsBasicCredentials.builder()
+                                                        .accessKeyId(properties.get(ProfileProperty.AWS_ACCESS_KEY_ID))
+                                                        .secretAccessKey(properties.get(ProfileProperty.AWS_SECRET_ACCESS_KEY))
+                                                        .accountId(properties.get(ProfileProperty.AWS_ACCOUNT_ID))
+                                                        .build();
         return StaticCredentialsProvider.create(credentials);
     }
 
@@ -169,9 +172,12 @@ public final class ProfileCredentialsUtils {
         requireProperties(ProfileProperty.AWS_ACCESS_KEY_ID,
                           ProfileProperty.AWS_SECRET_ACCESS_KEY,
                           ProfileProperty.AWS_SESSION_TOKEN);
-        AwsCredentials credentials = AwsSessionCredentials.create(properties.get(ProfileProperty.AWS_ACCESS_KEY_ID),
-                                                                  properties.get(ProfileProperty.AWS_SECRET_ACCESS_KEY),
-                                                                  properties.get(ProfileProperty.AWS_SESSION_TOKEN));
+        AwsCredentials credentials = AwsSessionCredentials.builder()
+                                                          .accessKeyId(properties.get(ProfileProperty.AWS_ACCESS_KEY_ID))
+                                                          .secretAccessKey(properties.get(ProfileProperty.AWS_SECRET_ACCESS_KEY))
+                                                          .sessionToken(properties.get(ProfileProperty.AWS_SESSION_TOKEN))
+                                                          .accountId(properties.get(ProfileProperty.AWS_ACCOUNT_ID))
+                                                          .build();
         return StaticCredentialsProvider.create(credentials);
     }
 
@@ -180,6 +186,7 @@ public final class ProfileCredentialsUtils {
 
         return ProcessCredentialsProvider.builder()
                                          .command(properties.get(ProfileProperty.CREDENTIAL_PROCESS))
+                                         .staticAccountId(properties.get(ProfileProperty.AWS_ACCOUNT_ID))
                                          .build();
     }
 

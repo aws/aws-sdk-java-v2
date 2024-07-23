@@ -80,7 +80,7 @@ public final class AwsExecutionContextBuilder {
 
         executionAttributes
             .putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, 1)
-            .putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG,
+            .putAttribute(SdkExecutionAttribute.SERVICE_CONFIG,
                           clientConfig.option(SdkClientOption.SERVICE_CONFIGURATION))
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME,
                           clientConfig.option(AwsClientOption.SERVICE_SIGNING_NAME))
@@ -114,6 +114,8 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN, clientConfig.option(SdkClientOption.SIGNER_OVERRIDDEN))
             .putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT,
                           clientConfig.option(AwsClientOption.USE_GLOBAL_ENDPOINT))
+            .putAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE,
+                          clientConfig.option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE))
             .putAttribute(RESOLVED_CHECKSUM_SPECS, HttpChecksumResolver.resolveChecksumSpecs(executionAttributes));
 
         // Auth Scheme resolution related attributes

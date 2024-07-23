@@ -16,7 +16,7 @@ package software.amazon.awssdk.auth.credentials;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.within;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,11 +26,16 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.Instant;
-import org.assertj.core.api.Assertions;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Platform;
@@ -39,17 +44,23 @@ public class ProcessCredentialsProviderTest {
 
     private static final String PROCESS_RESOURCE_PATH = "/resources/process/";
     private static final String RANDOM_SESSION_TOKEN = "RANDOM_TOKEN";
+
+    private static final String ACCESS_KEY_ID = "accessKeyId";
+    private static final String SECRET_ACCESS_KEY = "secretAccessKey";
+    private static final String SESSION_TOKEN = "sessionToken";
+    private static final String ACCOUNT_ID = "01234567891111";
+
     private static String scriptLocation;
     private static String errorScriptLocation;
  
-    @BeforeClass
-    public static void setup()  {
+    @BeforeAll
+    static void setup()  {
         scriptLocation = copyHappyCaseProcessCredentialsScript();
         errorScriptLocation = copyErrorCaseProcessCredentialsScript();
     }
  
-    @AfterClass
-    public static void teardown() {
+    @AfterAll
+    static void teardown() {
         if (scriptLocation != null && !new File(scriptLocation).delete()) {
             throw new IllegalStateException("Failed to delete file: " + scriptLocation);
         }
@@ -58,61 +69,168 @@ public class ProcessCredentialsProviderTest {
             throw new IllegalStateException("Failed to delete file: " + errorScriptLocation);
         }
     }
- 
-    @Test
-    public void staticCredentialsCanBeLoaded() {
-        AwsCredentials credentials =
-                ProcessCredentialsProvider.builder()
-                                          .command(scriptLocation + " accessKeyId secretAccessKey")
-                                          .build()
-                                          .resolveCredentials();
- 
-        Assert.assertFalse(credentials instanceof AwsSessionCredentials);
-        Assert.assertEquals("accessKeyId", credentials.accessKeyId());
-        Assert.assertEquals("secretAccessKey", credentials.secretAccessKey());
+
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("staticCredentialsValues")
+    void staticCredentialsCanBeLoaded(String description, String staticAccountId, Optional<String> expectedValue,
+                                      String cmd) {
+        ProcessCredentialsProvider.Builder providerBuilder = ProcessCredentialsProvider.builder().command(cmd);
+        if (staticAccountId != null) {
+            providerBuilder.staticAccountId(staticAccountId);
+        }
+        AwsCredentials credentials = providerBuilder.build().resolveCredentials();
+
+        verifyCredentials(credentials);
+        assertThat(credentials).isNotInstanceOf(AwsSessionCredentials.class);
+
+        if (expectedValue.isPresent()) {
+            assertThat(credentials.accountId()).isPresent().hasValue(expectedValue.get());
+        } else {
+            assertThat(credentials.accountId()).isNotPresent();
+        }
+    }
+
+    private static List<Arguments> staticCredentialsValues() {
+        return Arrays.asList(
+            Arguments.of("when only containing access key id, secret", null, Optional.empty(),
+                         String.format("%s accessKeyId secretAccessKey", scriptLocation)),
+            Arguments.of("when output has account id", null, Optional.of(ACCOUNT_ID),
+                         String.format("%s %s %s acctid=%s", scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, ACCOUNT_ID)),
+            Arguments.of("when output has account id, static account id configured", "staticAccountId", Optional.of(ACCOUNT_ID),
+                         String.format("%s %s %s acctid=%s", scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, ACCOUNT_ID)),
+            Arguments.of("when only static account id is configured", "staticAccountId", Optional.of("staticAccountId"),
+                         String.format("%s %s %s", scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY))
+        );
     }
  
     @Test
-    public void sessionCredentialsCanBeLoaded() {
+    void staticCredentialsCanBeLoaded() {
+        AwsCredentials credentials =
+                ProcessCredentialsProvider.builder()
+                                          .command(String.format("%s accessKeyId secretAccessKey", scriptLocation))
+                                          .build()
+                                          .resolveCredentials();
+ 
+        assertThat(credentials).isNotInstanceOf(AwsSessionCredentials.class);
+        assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+        assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
+        assertThat(credentials.accountId()).isNotPresent();
+    }
+
+    @Test
+    void staticCredentialsWithAccountIdCanBeLoaded() {
+        AwsCredentials credentials =
+            ProcessCredentialsProvider.builder()
+                                      .command(String.format("%s %s %s acctid=%s",
+                                                             scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, ACCOUNT_ID))
+                                      .build()
+                                      .resolveCredentials();
+
+        assertThat(credentials).isNotInstanceOf(AwsSessionCredentials.class);
+        assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+        assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
+        assertThat(credentials.accountId()).isPresent().isEqualTo(Optional.of(ACCOUNT_ID));
+    }
+
+    @Test
+    public void staticCredentials_commandAsListOfStrings_CanBeLoaded() {
+        AwsCredentials credentials =
+            ProcessCredentialsProvider.builder()
+                                      .command(Arrays.asList(scriptLocation, "accessKeyId", "secretAccessKey"))
+                                      .build()
+                                      .resolveCredentials();
+
+        assertThat(credentials).isInstanceOf(AwsBasicCredentials.class);
+        assertThat(credentials.accessKeyId()).isEqualTo("accessKeyId");
+        assertThat(credentials.secretAccessKey()).isEqualTo("secretAccessKey");
+        assertThat(credentials.providerName()).isPresent().contains("ProcessCredentialsProvider");
+    }
+ 
+    @Test
+    void sessionCredentialsCanBeLoaded() {
+        String expiration = DateUtils.formatIso8601Date(Instant.now());
         ProcessCredentialsProvider credentialsProvider =
                 ProcessCredentialsProvider.builder()
-                                          .command(scriptLocation + " accessKeyId secretAccessKey sessionToken " +
-                                                   DateUtils.formatIso8601Date(Instant.now()))
+                                          .command(String.format("%s %s %s token=%s exp=%s",
+                                                                 scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY,
+                                                                 SESSION_TOKEN, expiration))
                                           .credentialRefreshThreshold(Duration.ofSeconds(1))
                                           .build();
 
         AwsCredentials credentials = credentialsProvider.resolveCredentials();
-
-        Assert.assertTrue(credentials instanceof AwsSessionCredentials);
-
-        AwsSessionCredentials sessionCredentials = (AwsSessionCredentials) credentials;
-
-        Assert.assertEquals("accessKeyId", sessionCredentials.accessKeyId());
-        Assert.assertEquals("secretAccessKey", sessionCredentials.secretAccessKey());
-        assertNotNull(sessionCredentials.sessionToken());
+        verifySessionCredentials(credentials, expiration);
+        assertThat(credentials.accountId()).isNotPresent();
     }
 
     @Test
-    public void resultsAreCached() {
+    void sessionCredentialsWithAccountIdCanBeLoaded() {
+        String expiration = DateUtils.formatIso8601Date(Instant.now());
         ProcessCredentialsProvider credentialsProvider =
             ProcessCredentialsProvider.builder()
-                                      .command(scriptLocation + " accessKeyId secretAccessKey sessionToken " +
-                                               DateUtils.formatIso8601Date(Instant.now().plusSeconds(20)))
+                                      .command(String.format("%s %s %s token=sessionToken exp=%s acctid=%s",
+                                                             scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, expiration, ACCOUNT_ID))
+                                      .credentialRefreshThreshold(Duration.ofSeconds(1))
+                                      .build();
+
+        AwsCredentials credentials = credentialsProvider.resolveCredentials();
+        verifySessionCredentials(credentials, expiration);
+        assertThat(credentials.accountId()).isPresent().isEqualTo(Optional.of(ACCOUNT_ID));
+    }
+
+    @Test
+    void sessionCredentialsWithStaticAccountIdCanBeLoaded() {
+        String expiration = DateUtils.formatIso8601Date(Instant.now());
+        ProcessCredentialsProvider credentialsProvider =
+            ProcessCredentialsProvider.builder()
+                                      .command(String.format("%s %s %s token=sessionToken exp=%s",
+                                                             scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, expiration))
+                                      .credentialRefreshThreshold(Duration.ofSeconds(1))
+                                      .staticAccountId("staticAccountId")
+                                      .build();
+
+        AwsCredentials credentials = credentialsProvider.resolveCredentials();
+        verifySessionCredentials(credentials, expiration);
+        assertThat(credentials.accountId()).isPresent().hasValue("staticAccountId");
+    }
+
+    private void verifySessionCredentials(AwsCredentials credentials, String expiration) {
+        verifyCredentials(credentials);
+
+        assertThat(credentials).isInstanceOf(AwsSessionCredentials.class);
+        AwsSessionCredentials sessionCredentials = (AwsSessionCredentials) credentials;
+        assertThat(sessionCredentials.sessionToken()).isEqualTo(SESSION_TOKEN);
+
+        assertThat(sessionCredentials.expirationTime()).isPresent();
+        Instant exp = sessionCredentials.expirationTime().get();
+        assertThat(exp).isCloseTo(expiration, within(1, ChronoUnit.MICROS));
+    }
+
+    private void verifyCredentials(AwsCredentials credentials) {
+        assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+        assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
+    }
+
+    @Test
+    void resultsAreCached() {
+        ProcessCredentialsProvider credentialsProvider =
+            ProcessCredentialsProvider.builder()
+                                      .command(String.format("%s %s %s token=%s exp=%s",
+                                                             scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, SESSION_TOKEN,
+                                                             DateUtils.formatIso8601Date(Instant.now().plusSeconds(20))))
                                       .build();
 
         AwsCredentials request1 = credentialsProvider.resolveCredentials();
         AwsCredentials request2 = credentialsProvider.resolveCredentials();
 
-        Assert.assertEquals(request1, request2);
+        assertThat(request1).isEqualTo(request2);
     }
 
     @Test
-    public void expirationBufferOverrideIsApplied() {
+    void expirationBufferOverrideIsApplied() {
         ProcessCredentialsProvider credentialsProvider =
                 ProcessCredentialsProvider.builder()
-                                          .command(String.format("%s accessKeyId secretAccessKey %s %s",
-                                                         scriptLocation,
-                                                         RANDOM_SESSION_TOKEN,
+                                          .command(String.format("%s %s %s token=%s exp=%s",
+                                                         scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, RANDOM_SESSION_TOKEN,
                                                          DateUtils.formatIso8601Date(Instant.now().plusSeconds(20))))
                                           .credentialRefreshThreshold(Duration.ofSeconds(20))
                                           .build();
@@ -120,11 +238,11 @@ public class ProcessCredentialsProviderTest {
         AwsCredentials request1 = credentialsProvider.resolveCredentials();
         AwsCredentials request2 = credentialsProvider.resolveCredentials();
 
-        Assert.assertNotEquals(request1, request2);
+        assertThat(request1).isNotEqualTo(request2);
     }
 
     @Test
-    public void processFailed_shouldContainErrorMessage() {
+    void processFailed_shouldContainErrorMessage() {
         ProcessCredentialsProvider credentialsProvider =
             ProcessCredentialsProvider.builder()
                                       .command(errorScriptLocation)
@@ -137,32 +255,36 @@ public class ProcessCredentialsProviderTest {
     }
 
     @Test
-    public void lackOfExpirationIsCachedForever() {
+    void lackOfExpirationIsCachedForever() {
         ProcessCredentialsProvider credentialsProvider =
             ProcessCredentialsProvider.builder()
-                                      .command(scriptLocation + " accessKeyId secretAccessKey sessionToken")
+                                      .command(String.format("%s %s %s token=%s",
+                                                             scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, SESSION_TOKEN))
                                       .credentialRefreshThreshold(Duration.ofSeconds(20))
                                       .build();
 
         AwsCredentials request1 = credentialsProvider.resolveCredentials();
         AwsCredentials request2 = credentialsProvider.resolveCredentials();
 
-        Assert.assertEquals(request1, request2);
+        assertThat(request1).isEqualTo(request2);
     }
  
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void processOutputLimitIsEnforced() {
-        ProcessCredentialsProvider.builder()
-                                  .command(scriptLocation + " accessKeyId secretAccessKey")
-                                  .processOutputLimit(1)
-                                  .build()
-                                  .resolveCredentials();
+        ProcessCredentialsProvider credentialsProvider =
+            ProcessCredentialsProvider.builder()
+                                      .command(String.format("%s %s %s",
+                                                             scriptLocation,
+                                                             ACCESS_KEY_ID,
+                                                             SECRET_ACCESS_KEY))
+                                      .processOutputLimit(1)
+                                      .build();
+        assertThatThrownBy(() -> credentialsProvider.resolveCredentials()).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
-    public void processOutputLimitDefaultPassesLargeInput() {
-
-        String LONG_SESSION_TOKEN = "lYzvmByqdS1E69QQVEavDDHabQ2GuYKYABKRA4xLbAXpdnFtV030UH4" +
+    void processOutputLimitDefaultPassesLargeInput() {
+        String longSessionToken = "lYzvmByqdS1E69QQVEavDDHabQ2GuYKYABKRA4xLbAXpdnFtV030UH4" +
                 "bQoZWCDcfADFvBwBm3ixEFTYMjn5XQozpFV2QAsWHirCVcEJ5DC60KPCNBcDi4KLNJfbsp3r6kKTOmYOeqhEyiC4emDX33X2ppZsa5" +
                 "1iwr6ShIZPOUPmuR4WDglmWubgO2q5tZv48xA5idkcHEmtGdoL343sY24q4gMh21eeBnF6ikjZdfvZ0Mn86UQ8r05AD346rSwM5bFs" +
                 "t019ZkJIjLHD3HoKJ44EndRvSvQClXfJCmmQDH5INiXdFLLNm0dzT3ynbVIW5x1YYBWptyts4NUSy2eJ3dTPjYICpQVCkbuNVA7PqR" +
@@ -175,24 +297,58 @@ public class ProcessCredentialsProviderTest {
                 "Iu1sEFlKvPdfF1uefbTj6YdjUciWu1UBH47VbIcTbvbwmUiu2javB21kOenyDoelK5GUM4u0uPeXIOOhtZsJb8kz88h1joWkaKr2fc" +
                 "jrIS08FM47Y4Z2Mi4zfwyN54L";
 
-        ProcessCredentialsProvider credentialsProvider = ProcessCredentialsProvider.builder()
-                .command(scriptLocation + " accessKeyId secretAccessKey " + LONG_SESSION_TOKEN)
+        ProcessCredentialsProvider credentialsProvider =
+            ProcessCredentialsProvider.builder()
+                                      .command(String.format("%s %s %s token=%s",
+                                                             scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, longSessionToken))
                 .build();
 
         AwsSessionCredentials sessionCredentials = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
 
-        Assertions.assertThat(sessionCredentials.accessKeyId()).isEqualTo("accessKeyId");
-        Assertions.assertThat(sessionCredentials.sessionToken()).isNotNull();
+        assertThat(sessionCredentials.accessKeyId()).isEqualTo("accessKeyId");
+        assertThat(sessionCredentials.sessionToken()).isNotNull();
     }
     
     @Test
-    public void closeDoesNotRaise() {
+    void closeDoesNotRaise() {
         ProcessCredentialsProvider credentialsProvider =
             ProcessCredentialsProvider.builder()
-                                      .command(scriptLocation + " accessKeyId secretAccessKey sessionToken")
+                                      .command(String.format("%s %s %s token=%s",
+                                                             scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, SESSION_TOKEN))
                                       .build();
         credentialsProvider.resolveCredentials();
         credentialsProvider.close();
+    }
+
+    @Test
+    void commandAsListOfStrings_isNotExecutedInAShell() {
+        ProcessCredentialsProvider providerWithSingleStringCommand =
+            ProcessCredentialsProvider.builder()
+                                      .command("echo \"Hello, World!\" > output.txt; rm output.txt")
+                                      .build();
+
+        try {
+            providerWithSingleStringCommand.resolveCredentials();
+        } catch (IllegalStateException e) {
+            // executed in a shell
+            assertThat(e.getCause()).isInstanceOf(NullPointerException.class);
+            assertThat(e.getMessage()).isEqualTo("Failed to refresh process-based credentials.");
+        }
+
+        ProcessCredentialsProvider providerWithCommandAsListOfStrings =
+            ProcessCredentialsProvider.builder()
+                                      .command(Arrays.asList("echo \"Hello, World!\" > output.txt; rm output.txt"))
+                                      .build();
+
+        try {
+            providerWithCommandAsListOfStrings.resolveCredentials();
+        } catch (IllegalStateException e) {
+            // executed not in a shell
+            assertThat(e.getCause()).isInstanceOf(IOException.class);
+            assertThat(e.getCause().getMessage())
+                .isEqualTo("Cannot run program \"echo \"Hello, World!\" > output.txt; rm output.txt\": error=2, "
+                           + "No such file or directory");
+        }
     }
 
     public static String copyHappyCaseProcessCredentialsScript() {
@@ -209,7 +365,7 @@ public class ProcessCredentialsProviderTest {
         return copyProcessCredentialsScript(scriptClasspathFilename);
     }
 
-    public static String copyProcessCredentialsScript(String scriptClasspathFilename) {
+    private static String copyProcessCredentialsScript(String scriptClasspathFilename) {
         String scriptClasspathLocation = PROCESS_RESOURCE_PATH + scriptClasspathFilename;
 
         InputStream scriptInputStream = null;

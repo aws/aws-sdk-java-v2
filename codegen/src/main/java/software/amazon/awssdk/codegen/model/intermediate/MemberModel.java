@@ -115,6 +115,8 @@ public class MemberModel extends DocumentationModel {
 
     private ContextParam contextParam;
 
+    private boolean ignoreDataTypeConversionFailures;
+
     public String getName() {
         return name;
     }
@@ -774,5 +776,13 @@ public class MemberModel extends DocumentationModel {
 
     public void setContextParam(ContextParam contextParam) {
         this.contextParam = contextParam;
+    }
+
+    public void ignoreDataTypeConversionFailures(boolean ignoreDataTypeConversionFailures) {
+        this.ignoreDataTypeConversionFailures = ignoreDataTypeConversionFailures;
+    }
+
+    public boolean ignoreDataTypeConversionFailures() {
+        return ignoreDataTypeConversionFailures;
     }
 }

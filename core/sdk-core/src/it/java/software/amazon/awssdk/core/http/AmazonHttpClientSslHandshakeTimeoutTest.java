@@ -28,10 +28,10 @@ import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import utils.HttpTestUtils;
 
 /**
@@ -48,7 +48,7 @@ public class AmazonHttpClientSslHandshakeTimeoutTest extends UnresponsiveMockSer
     @Test(timeout = 60 * 1000)
     public void testSslHandshakeTimeout() {
         AmazonSyncHttpClient httpClient = HttpTestUtils.testClientBuilder()
-                                                       .retryPolicy(RetryPolicy.none())
+                                                       .retryStrategy(DefaultRetryStrategy.doNotRetry())
                                                        .httpClient(ApacheHttpClient.builder()
                                                                                .socketTimeout(CLIENT_SOCKET_TO)
                                                                                .build())

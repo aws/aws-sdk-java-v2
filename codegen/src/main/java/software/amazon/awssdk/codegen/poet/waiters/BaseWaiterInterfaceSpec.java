@@ -28,7 +28,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.codegen.docs.WaiterDocs;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -57,6 +59,8 @@ public abstract class BaseWaiterInterfaceSpec implements ClassSpec {
     public TypeSpec poetSpec() {
         TypeSpec.Builder result = PoetUtils.createInterfaceBuilder(className());
         result.addAnnotation(SdkPublicApi.class);
+        result.addAnnotation(ThreadSafe.class);
+        result.addAnnotation(Immutable.class);
         result.addMethods(waiterOperations());
         result.addSuperinterface(SdkAutoCloseable.class);
         result.addMethod(MethodSpec.methodBuilder("builder")
@@ -147,8 +151,8 @@ public abstract class BaseWaiterInterfaceSpec implements ClassSpec {
             ParameterizedTypeName.get(ClassName.get(Consumer.class),
                                       ClassName.get(WaiterOverrideConfiguration.class).nestedClass("Builder"));
 
-        CodeBlock javadoc = WaiterDocs.waiterOperationWithOverrideConfigConsumerBuilder(
-            clientClassName(), requestClass, waiterDefinition, opModel);
+        CodeBlock javadoc = WaiterDocs.waiterOperationWithOverrideConfigConsumerBuilder(clientClassName(), waiterDefinition,
+                                                                                        opModel);
 
         String inputVariable = opModel.getInput().getVariableName();
 

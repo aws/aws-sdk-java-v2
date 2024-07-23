@@ -39,8 +39,12 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *
  * This is in contrast to {@link FullJitterBackoffStrategy} where the final computed delay before the next retry will be
  * between 0 and the computed exponential delay.
+ *
+ * @deprecated Use instead {@link software.amazon.awssdk.retries.api.BackoffStrategy} and
+ * {@link software.amazon.awssdk.retries.api.BackoffStrategy#exponentialDelayHalfJitter(Duration, Duration)}
  */
 @SdkPublicApi
+@Deprecated
 public final class EqualJitterBackoffStrategy implements BackoffStrategy,
                                                          ToCopyableBuilder<EqualJitterBackoffStrategy.Builder,
                                                              EqualJitterBackoffStrategy> {
@@ -65,7 +69,7 @@ public final class EqualJitterBackoffStrategy implements BackoffStrategy,
     @Override
     public Duration computeDelayBeforeNextRetry(RetryPolicyContext context) {
         int ceil = calculateExponentialDelay(context.retriesAttempted(), baseDelay, maxBackoffTime);
-        return Duration.ofMillis((ceil / 2) + random.nextInt((ceil / 2) + 1));
+        return Duration.ofMillis((long) (ceil / 2) + random.nextInt((ceil / 2) + 1));
     }
 
     @Override

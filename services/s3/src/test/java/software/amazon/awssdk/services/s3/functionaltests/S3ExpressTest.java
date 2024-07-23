@@ -70,11 +70,12 @@ import software.amazon.awssdk.services.s3.model.Protocol;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @WireMockTest(httpsEnabled = true)
 public class S3ExpressTest extends BaseRuleSetClientTest {
-
+    private static final Logger log = Logger.loggerFor(S3ExpressTest.class);
     private static final Function<WireMockRuntimeInfo, URI> WM_HTTP_ENDPOINT = wm -> URI.create(wm.getHttpBaseUrl());
     private static final Function<WireMockRuntimeInfo, URI> WM_HTTPS_ENDPOINT = wm -> URI.create(wm.getHttpsBaseUrl());
     private static final AwsCredentialsProvider CREDENTIALS_PROVIDER =
@@ -136,7 +137,7 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         createClientAndCallGetObject(clientType, protocol, s3ExpressSessionAuth, checksumAlgorithm, wm);
 
         verifyGetObject(s3ExpressSessionAuth);
-        verifyGetObjectHeaders(protocol);
+        verifyGetObjectHeaders();
     }
 
     @ParameterizedTest
@@ -184,10 +185,10 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         Map<String, List<String>> headers = CAPTURING_INTERCEPTOR.headers;
         assertThat(headers.get("x-amz-sdk-checksum-algorithm")).isNull();
         assertThat(headers.get("Content-MD5")).isNull();
-        assertSignatureHeader(protocol, headers);
+        assertSignatureHeader(headers);
     }
 
-    private void assertSignatureHeader(Protocol protocol, Map<String, List<String>> headers) {
+    private void assertSignatureHeader(Map<String, List<String>> headers) {
         assertThat(headers.get("x-amz-content-sha256")).isNotNull();
         assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase("UNSIGNED-PAYLOAD");
     }
@@ -308,9 +309,9 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         }
     }
 
-    void verifyGetObjectHeaders(Protocol protocol) {
+    void verifyGetObjectHeaders() {
         Map<String, List<String>> headers = CAPTURING_INTERCEPTOR.headers;
-        assertSignatureHeader(protocol, headers);
+        assertSignatureHeader(headers);
         assertThat(headers.get("x-amz-te")).isNull();
     }
 
@@ -431,9 +432,8 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
             SdkHttpRequest sdkHttpRequest = context.httpRequest();
             this.headers = sdkHttpRequest.headers();
-            System.out.printf("%s %s%n", sdkHttpRequest.method(), sdkHttpRequest.encodedPath());
-            headers.forEach((k, strings) -> System.out.printf("%s, %s%n", k, strings));
-            System.out.println();
+            log.debug(() -> String.format("%s %s%n", sdkHttpRequest.method(), sdkHttpRequest.encodedPath()));
+            headers.forEach((k, strings) -> log.debug(() -> String.format("%s, %s%n", k, strings)));
         }
     }
 }

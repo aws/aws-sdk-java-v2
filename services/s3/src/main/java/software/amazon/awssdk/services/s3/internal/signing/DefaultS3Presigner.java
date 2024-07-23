@@ -356,7 +356,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         Instant expiration = signingInstant.plus(expirationDuration);
 
         ExecutionContext execCtx =
-            invokeInterceptorsAndCreateExecutionContext(requestToPresign, operationName, expiration);
+            invokeInterceptorsAndCreateExecutionContext(requestToPresign, operationName, expiration, signingClock);
 
         callBeforeMarshallingHooks(execCtx);
         marshalRequestAndUpdateContext(execCtx, requestToPresignType, requestMarshaller);
@@ -370,7 +370,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                                ? presignRequest(execCtx, httpRequest)
                                                : sraPresignRequest(execCtx, httpRequest, signingClock, expirationDuration);
 
-        initializePresignedRequest(presignedRequest, execCtx, signedHttpRequest, expiration);
+        initializePresignedRequest(presignedRequest, signedHttpRequest, expiration);
 
         return presignedRequest;
     }
@@ -380,7 +380,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      */
     private ExecutionContext invokeInterceptorsAndCreateExecutionContext(SdkRequest sdkRequest,
                                                                          String operationName,
-                                                                         Instant expiration) {
+                                                                         Instant expiration,
+                                                                         Clock signingClock) {
 
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
             .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, SIGNING_NAME)
@@ -392,6 +393,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, operationName)
             .putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, serviceConfiguration())
             .putAttribute(PRESIGNER_EXPIRATION, expiration)
+            .putAttribute(AwsSignerExecutionAttribute.SIGNING_CLOCK, signingClock)
             .putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, clientConfiguration.option(SdkClientOption.ENDPOINT))
             .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN,
                           clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
@@ -616,7 +618,6 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      * Initialize the provided presigned request.
      */
     private void initializePresignedRequest(PresignedRequest.Builder presignedRequest,
-                                            ExecutionContext execCtx,
                                             SdkHttpFullRequest signedHttpRequest,
                                             Instant expiration) {
         SdkBytes signedPayload = signedHttpRequest.contentStreamProvider()

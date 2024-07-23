@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
@@ -98,6 +99,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  */
 @Immutable
 @SdkPublicApi
+@ThreadSafe
 public final class S3Utilities {
     private static final String SERVICE_NAME = "s3";
     private static final Pattern ENDPOINT_PATTERN = Pattern.compile("^(.+\\.)?s3[.-]([a-z0-9-]+)\\.");

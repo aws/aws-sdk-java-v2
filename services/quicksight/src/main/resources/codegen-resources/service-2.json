@@ -5,12 +5,49 @@
     "endpointPrefix":"quicksight",
     "jsonVersion":"1.0",
     "protocol":"rest-json",
+    "protocols":["rest-json"],
     "serviceFullName":"Amazon QuickSight",
     "serviceId":"QuickSight",
     "signatureVersion":"v4",
-    "uid":"quicksight-2018-04-01"
+    "uid":"quicksight-2018-04-01",
+    "auth":["aws.auth#sigv4"]
   },
   "operations":{
+    "BatchCreateTopicReviewedAnswer":{
+      "name":"BatchCreateTopicReviewedAnswer",
+      "http":{
+        "method":"POST",
+        "requestUri":"/accounts/{AwsAccountId}/topics/{TopicId}/batch-create-reviewed-answers"
+      },
+      "input":{"shape":"BatchCreateTopicReviewedAnswerRequest"},
+      "output":{"shape":"BatchCreateTopicReviewedAnswerResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Creates new reviewed answers for a Q Topic.</p>"
+    },
+    "BatchDeleteTopicReviewedAnswer":{
+      "name":"BatchDeleteTopicReviewedAnswer",
+      "http":{
+        "method":"POST",
+        "requestUri":"/accounts/{AwsAccountId}/topics/{TopicId}/batch-delete-reviewed-answers"
+      },
+      "input":{"shape":"BatchDeleteTopicReviewedAnswerRequest"},
+      "output":{"shape":"BatchDeleteTopicReviewedAnswerResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Deletes reviewed answers for Q Topic.</p>"
+    },
     "CancelIngestion":{
       "name":"CancelIngestion",
       "http":{
@@ -1420,6 +1457,22 @@
       ],
       "documentation":"<p>Provides a summary and status of IP rules.</p>"
     },
+    "DescribeKeyRegistration":{
+      "name":"DescribeKeyRegistration",
+      "http":{
+        "method":"GET",
+        "requestUri":"/accounts/{AwsAccountId}/key-registration"
+      },
+      "input":{"shape":"DescribeKeyRegistrationRequest"},
+      "output":{"shape":"DescribeKeyRegistrationResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Describes all customer managed key registrations in a Amazon QuickSight account.</p>"
+    },
     "DescribeNamespace":{
       "name":"DescribeNamespace",
       "http":{
@@ -2273,6 +2326,23 @@
       ],
       "documentation":"<p>Lists all of the refresh schedules for a topic.</p>"
     },
+    "ListTopicReviewedAnswers":{
+      "name":"ListTopicReviewedAnswers",
+      "http":{
+        "method":"GET",
+        "requestUri":"/accounts/{AwsAccountId}/topics/{TopicId}/reviewed-answers"
+      },
+      "input":{"shape":"ListTopicReviewedAnswersRequest"},
+      "output":{"shape":"ListTopicReviewedAnswersResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Lists all reviewed answers for a Q Topic.</p>"
+    },
     "ListTopics":{
       "name":"ListTopics",
       "http":{
@@ -2575,7 +2645,7 @@
         {"shape":"UnsupportedPricingPlanException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Starts an asynchronous job that generates a dashboard snapshot. You can request one of the following format configurations per API call.</p> <ul> <li> <p>1 paginated PDF</p> </li> <li> <p>1 Excel workbook</p> </li> <li> <p>5 CSVs</p> </li> </ul> <p>Poll job descriptions with a <code>DescribeDashboardSnapshotJob</code> API call. Once the job succeeds, use the <code>DescribeDashboardSnapshotJobResult</code> API to obtain the download URIs that the job generates.</p>"
+      "documentation":"<p>Starts an asynchronous job that generates a snapshot of a dashboard's output. You can request one or several of the following format configurations in each API call.</p> <ul> <li> <p>1 Paginated PDF</p> </li> <li> <p>1 Excel workbook that includes up to 5 table or pivot table visuals</p> </li> <li> <p>5 CSVs from table or pivot table visuals</p> </li> </ul> <p>The status of a submitted job can be polled with the <code>DescribeDashboardSnapshotJob</code> API. When you call the <code>DescribeDashboardSnapshotJob</code> API, check the <code>JobStatus</code> field in the response. Once the job reaches a <code>COMPLETED</code> or <code>FAILED</code> status, use the <code>DescribeDashboardSnapshotJobResult</code> API to obtain the URLs for the generated files. If the job fails, the <code>DescribeDashboardSnapshotJobResult</code> API returns detailed information about the error that occurred.</p> <p> <b>StartDashboardSnapshotJob API throttling</b> </p> <p>Amazon QuickSight utilizes API throttling to create a more consistent user experience within a time span for customers when they call the <code>StartDashboardSnapshotJob</code>. By default, 12 jobs can run simlutaneously in one Amazon Web Services account and users can submit up 10 API requests per second before an account is throttled. If an overwhelming number of API requests are made by the same user in a short period of time, Amazon QuickSight throttles the API calls to maintin an optimal experience and reliability for all Amazon QuickSight users.</p> <p> <b>Common throttling scenarios</b> </p> <p>The following list provides information about the most commin throttling scenarios that can occur.</p> <ul> <li> <p> <b>A large number of <code>SnapshotExport</code> API jobs are running simultaneously on an Amazon Web Services account.</b> When a new <code>StartDashboardSnapshotJob</code> is created and there are already 12 jobs with the <code>RUNNING</code> status, the new job request fails and returns a <code>LimitExceededException</code> error. Wait for a current job to comlpete before you resubmit the new job.</p> </li> <li> <p> <b>A large number of API requests are submitted on an Amazon Web Services account.</b> When a user makes more than 10 API calls to the Amazon QuickSight API in one second, a <code>ThrottlingException</code> is returned.</p> </li> </ul> <p>If your use case requires a higher throttling limit, contact your account admin or <a href=\"http://aws.amazon.com/contact-us/\">Amazon Web ServicesSupport</a> to explore options to tailor a more optimal expereince for your account.</p> <p> <b>Best practices to handle throttling</b> </p> <p>If your use case projects high levels of API traffic, try to reduce the degree of frequency and parallelism of API calls as much as you can to avoid throttling. You can also perform a timing test to calculate an estimate for the total processing time of your projected load that stays within the throttling limits of the Amazon QuickSight APIs. For example, if your projected traffic is 100 snapshot jobs before 12:00 PM per day, start 12 jobs in parallel and measure the amount of time it takes to proccess all 12 jobs. Once you obtain the result, multiply the duration by 9, for example <code>(12 minutes * 9 = 108 minutes)</code>. Use the new result to determine the latest time at which the jobs need to be started to meet your target deadline.</p> <p>The time that it takes to process a job can be impacted by the following factors:</p> <ul> <li> <p>The dataset type (Direct Query or SPICE).</p> </li> <li> <p>The size of the dataset.</p> </li> <li> <p>The complexity of the calculated fields that are used in the dashboard.</p> </li> <li> <p>The number of visuals that are on a sheet.</p> </li> <li> <p>The types of visuals that are on the sheet.</p> </li> <li> <p>The number of formats and snapshots that are requested in the job configuration.</p> </li> <li> <p>The size of the generated snapshots.</p> </li> </ul>"
     },
     "TagResource":{
       "name":"TagResource",
@@ -2946,7 +3016,23 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Updates the content and status of IP rules. To use this operation, you must provide the entire map of rules. You can use the <code>DescribeIpRestriction</code> operation to get the current rule map.</p>"
+      "documentation":"<p>Updates the content and status of IP rules. Traffic from a source is allowed when the source satisfies either the <code>IpRestrictionRule</code>, <code>VpcIdRestrictionRule</code>, or <code>VpcEndpointIdRestrictionRule</code>. To use this operation, you must provide the entire map of rules. You can use the <code>DescribeIpRestriction</code> operation to get the current rule map.</p>"
+    },
+    "UpdateKeyRegistration":{
+      "name":"UpdateKeyRegistration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/accounts/{AwsAccountId}/key-registration"
+      },
+      "input":{"shape":"UpdateKeyRegistrationRequest"},
+      "output":{"shape":"UpdateKeyRegistrationResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Updates a customer managed key in a Amazon QuickSight account.</p>"
     },
     "UpdatePublicSharingSettings":{
       "name":"UpdatePublicSharingSettings",
@@ -3003,6 +3089,23 @@
         {"shape":"ResourceUnavailableException"}
       ],
       "documentation":"<p>Updates the custom permissions that are associated with a role.</p>"
+    },
+    "UpdateSPICECapacityConfiguration":{
+      "name":"UpdateSPICECapacityConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/accounts/{AwsAccountId}/spice-capacity-configuration"
+      },
+      "input":{"shape":"UpdateSPICECapacityConfigurationRequest"},
+      "output":{"shape":"UpdateSPICECapacityConfigurationResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Updates the SPICE capacity configuration for a Amazon QuickSight account.</p>"
     },
     "UpdateTemplate":{
       "name":"UpdateTemplate",
@@ -3353,6 +3456,67 @@
       "max":20,
       "min":1
     },
+    "AggFunction":{
+      "type":"structure",
+      "members":{
+        "Aggregation":{
+          "shape":"AggType",
+          "documentation":"<p>The aggregation of an Agg function.</p>"
+        },
+        "AggregationFunctionParameters":{
+          "shape":"AggFunctionParamMap",
+          "documentation":"<p>The aggregation parameters for an Agg function.</p>"
+        },
+        "Period":{
+          "shape":"TopicTimeGranularity",
+          "documentation":"<p>The period of an Agg function.</p>"
+        },
+        "PeriodField":{
+          "shape":"LimitedString",
+          "documentation":"<p>The period field for an Agg function.</p>"
+        }
+      },
+      "documentation":"<p>The definition of an Agg function.</p>"
+    },
+    "AggFunctionParamKey":{
+      "type":"string",
+      "max":256,
+      "min":1
+    },
+    "AggFunctionParamMap":{
+      "type":"map",
+      "key":{"shape":"AggFunctionParamKey"},
+      "value":{"shape":"AggFunctionParamValue"}
+    },
+    "AggFunctionParamValue":{
+      "type":"string",
+      "max":1024
+    },
+    "AggType":{
+      "type":"string",
+      "enum":[
+        "SUM",
+        "MIN",
+        "MAX",
+        "COUNT",
+        "AVERAGE",
+        "DISTINCT_COUNT",
+        "STDEV",
+        "STDEVP",
+        "VAR",
+        "VARP",
+        "PERCENTILE",
+        "MEDIAN",
+        "PTD_SUM",
+        "PTD_MIN",
+        "PTD_MAX",
+        "PTD_COUNT",
+        "PTD_DISTINCT_COUNT",
+        "PTD_AVERAGE",
+        "COLUMN",
+        "CUSTOM"
+      ]
+    },
     "AggregationFunction":{
       "type":"structure",
       "members":{
@@ -3379,6 +3543,25 @@
       "type":"map",
       "key":{"shape":"LimitedString"},
       "value":{"shape":"LimitedString"}
+    },
+    "AggregationPartitionBy":{
+      "type":"structure",
+      "members":{
+        "FieldName":{
+          "shape":"LimitedString",
+          "documentation":"<p>The field Name for an <code>AggregationPartitionBy</code>.</p>"
+        },
+        "TimeGranularity":{
+          "shape":"TimeGranularity",
+          "documentation":"<p>The <code>TimeGranularity</code> for an <code>AggregationPartitionBy</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition of an <code>AggregationPartitionBy</code>.</p>"
+    },
+    "AggregationPartitionByList":{
+      "type":"list",
+      "member":{"shape":"AggregationPartitionBy"},
+      "max":50
     },
     "AggregationSortConfiguration":{
       "type":"structure",
@@ -3417,7 +3600,7 @@
       "type":"structure",
       "members":{
       },
-      "documentation":"<p>The configuration for applying a filter to all sheets. You can apply this filter to all visuals on every sheet.</p> <p>This is a union type structure. For this structure to be valid, only one of the attributes can be defined.</p>"
+      "documentation":"<p>An empty object that represents that the <code>AllSheets</code> option is the chosen value for the <code>FilterScopeConfiguration</code> parameter. This structure applies the filter to all visuals on all sheets of an Analysis, Dashboard, or Template.</p> <p>This is a union type structure. For this structure to be valid, only one of the attributes can be defined.</p>"
     },
     "AmazonElasticsearchParameters":{
       "type":"structure",
@@ -3676,6 +3859,24 @@
       "member":{"shape":"AnalysisSummary"},
       "max":100
     },
+    "Anchor":{
+      "type":"structure",
+      "members":{
+        "AnchorType":{
+          "shape":"AnchorType",
+          "documentation":"<p>The <code>AnchorType</code> for the Anchor.</p>"
+        },
+        "TimeGranularity":{
+          "shape":"TimeGranularity",
+          "documentation":"<p>The <code>TimeGranularity</code> of the Anchor.</p>"
+        },
+        "Offset":{
+          "shape":"Integer",
+          "documentation":"<p>The offset of the Anchor.</p>"
+        }
+      },
+      "documentation":"<p>The definition of the Anchor.</p>"
+    },
     "AnchorDateConfiguration":{
       "type":"structure",
       "members":{
@@ -3693,6 +3894,10 @@
     "AnchorOption":{
       "type":"string",
       "enum":["NOW"]
+    },
+    "AnchorType":{
+      "type":"string",
+      "enum":["TODAY"]
     },
     "AnonymousUserDashboardEmbeddingConfiguration":{
       "type":"structure",
@@ -3730,9 +3935,24 @@
         "QSearchBar":{
           "shape":"AnonymousUserQSearchBarEmbeddingConfiguration",
           "documentation":"<p>The Q search bar that you want to use for anonymous user embedding.</p>"
+        },
+        "GenerativeQnA":{
+          "shape":"AnonymousUserGenerativeQnAEmbeddingConfiguration",
+          "documentation":"<p>The Generative Q&amp;A experience that you want to use for anonymous user embedding.</p>"
         }
       },
       "documentation":"<p>The type of experience you want to embed. For anonymous users, you can embed Amazon QuickSight dashboards.</p>"
+    },
+    "AnonymousUserGenerativeQnAEmbeddingConfiguration":{
+      "type":"structure",
+      "required":["InitialTopicId"],
+      "members":{
+        "InitialTopicId":{
+          "shape":"RestrictiveResourceId",
+          "documentation":"<p>The Amazon QuickSight Q topic ID of the new reader experience topic that you want the anonymous user to see first. This ID is included in the output URL. When the URL in response is accessed, Amazon QuickSight renders the Generative Q&amp;A experience with this new reader experience topic pre selected.</p> <p>The Amazon Resource Name (ARN) of this Q new reader experience topic must be included in the <code>AuthorizedResourceArns</code> parameter. Otherwise, the request fails with an <code>InvalidParameterValueException</code> error.</p>"
+        }
+      },
+      "documentation":"<p>The settings that you want to use for the Generative Q&amp;A experience.</p>"
     },
     "AnonymousUserQSearchBarEmbeddingConfiguration":{
       "type":"structure",
@@ -3740,7 +3960,7 @@
       "members":{
         "InitialTopicId":{
           "shape":"RestrictiveResourceId",
-          "documentation":"<p>The QuickSight Q topic ID of the topic that you want the anonymous user to see first. This ID is included in the output URL. When the URL in response is accessed, Amazon QuickSight renders the Q search bar with this topic pre-selected.</p> <p>The Amazon Resource Name (ARN) of this Q topic must be included in the <code>AuthorizedResourceArns</code> parameter. Otherwise, the request will fail with <code>InvalidParameterValueException</code>.</p>"
+          "documentation":"<p>The Amazon QuickSight Q topic ID of the legacy topic that you want the anonymous user to see first. This ID is included in the output URL. When the URL in response is accessed, Amazon QuickSight renders the Q search bar with this legacy topic pre-selected.</p> <p>The Amazon Resource Name (ARN) of this Q legacy topic must be included in the <code>AuthorizedResourceArns</code> parameter. Otherwise, the request fails with an <code>InvalidParameterValueException</code> error.</p>"
         }
       },
       "documentation":"<p>The settings that you want to use with the Q search bar.</p>"
@@ -3758,6 +3978,15 @@
     "AnonymousUserSnapshotJobResultList":{
       "type":"list",
       "member":{"shape":"AnonymousUserSnapshotJobResult"}
+    },
+    "AnswerId":{
+      "type":"string",
+      "max":256,
+      "pattern":"^[A-Za-z0-9-_.\\\\+]*$"
+    },
+    "AnswerIds":{
+      "type":"list",
+      "member":{"shape":"AnswerId"}
     },
     "ArcAxisConfiguration":{
       "type":"structure",
@@ -4026,7 +4255,8 @@
         "ClusterId",
         "ManifestFileLocation",
         "Warehouse",
-        "RoleArn"
+        "RoleArn",
+        "ProductType"
       ]
     },
     "AssetBundleExportJobDataSourcePropertyToOverrideList":{
@@ -4232,7 +4462,7 @@
           "documentation":"<p>A Boolean value that indicates whether to export resources under strict or lenient mode.</p>"
         }
       },
-      "documentation":"<p>The option to relax the validation that is required to export each asset. When <code>StrictModeForAllResource</code> is set to true, validation is skipped for specific UI errors.</p>"
+      "documentation":"<p>The option to relax the validation that is required to export each asset. When <code>StrictModeForAllResource</code> is set to <code>false</code>, validation is skipped for specific UI errors.</p>"
     },
     "AssetBundleExportJobWarning":{
       "type":"structure",
@@ -4918,6 +5148,24 @@
       "max":5,
       "min":1
     },
+    "AssetBundleImportJobWarning":{
+      "type":"structure",
+      "members":{
+        "Arn":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the resource that the warning occurred for.</p>"
+        },
+        "Message":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>A description of the warning that occurred during an Asset Bundle import job.</p>"
+        }
+      },
+      "documentation":"<p>Describes a warning that occurred during an Asset Bundle import job.</p>"
+    },
+    "AssetBundleImportJobWarningList":{
+      "type":"list",
+      "member":{"shape":"AssetBundleImportJobWarning"}
+    },
     "AssetBundleImportSource":{
       "type":"structure",
       "members":{
@@ -5540,6 +5788,117 @@
         "IMAGERY"
       ]
     },
+    "BatchCreateTopicReviewedAnswerRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "TopicId",
+        "Answers"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that you want to create a reviewed answer in.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "TopicId":{
+          "shape":"TopicId",
+          "documentation":"<p>The ID for the topic reviewed answer that you want to create. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>",
+          "location":"uri",
+          "locationName":"TopicId"
+        },
+        "Answers":{
+          "shape":"CreateTopicReviewedAnswers",
+          "documentation":"<p>The definition of the Answers to be created.</p>"
+        }
+      }
+    },
+    "BatchCreateTopicReviewedAnswerResponse":{
+      "type":"structure",
+      "members":{
+        "TopicId":{
+          "shape":"TopicId",
+          "documentation":"<p>The ID for the topic reviewed answer that you want to create. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>"
+        },
+        "TopicArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the topic.</p>"
+        },
+        "SucceededAnswers":{
+          "shape":"SucceededTopicReviewedAnswers",
+          "documentation":"<p>The definition of Answers that are successfully created.</p>"
+        },
+        "InvalidAnswers":{
+          "shape":"InvalidTopicReviewedAnswers",
+          "documentation":"<p>The definition of Answers that are invalid and not created.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        },
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        }
+      }
+    },
+    "BatchDeleteTopicReviewedAnswerRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "TopicId"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that you want to delete a reviewed answers in.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "TopicId":{
+          "shape":"TopicId",
+          "documentation":"<p>The ID for the topic reviewed answer that you want to delete. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>",
+          "location":"uri",
+          "locationName":"TopicId"
+        },
+        "AnswerIds":{
+          "shape":"AnswerIds",
+          "documentation":"<p>The Answer IDs of the Answers to be deleted.</p>"
+        }
+      }
+    },
+    "BatchDeleteTopicReviewedAnswerResponse":{
+      "type":"structure",
+      "members":{
+        "TopicId":{
+          "shape":"TopicId",
+          "documentation":"<p>The ID of the topic reviewed answer that you want to delete. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>"
+        },
+        "TopicArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the topic.</p>"
+        },
+        "SucceededAnswers":{
+          "shape":"SucceededTopicReviewedAnswers",
+          "documentation":"<p>The definition of Answers that are successfully deleted.</p>"
+        },
+        "InvalidAnswers":{
+          "shape":"InvalidTopicReviewedAnswers",
+          "documentation":"<p>The definition of Answers that are invalid and not deleted.</p>"
+        },
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        }
+      }
+    },
     "BigQueryParameters":{
       "type":"structure",
       "required":["ProjectId"],
@@ -5614,6 +5973,10 @@
         "PageBreakConfiguration":{
           "shape":"SectionPageBreakConfiguration",
           "documentation":"<p>The configuration of a page break for a section.</p>"
+        },
+        "RepeatConfiguration":{
+          "shape":"BodySectionRepeatConfiguration",
+          "documentation":"<p>Describes the configurations that are required to declare a section as repeating.</p>"
         }
       },
       "documentation":"<p>The configuration of a body section.</p>"
@@ -5632,6 +5995,94 @@
         }
       },
       "documentation":"<p>The configuration of content in a body section.</p>"
+    },
+    "BodySectionDynamicCategoryDimensionConfiguration":{
+      "type":"structure",
+      "required":["Column"],
+      "members":{
+        "Column":{"shape":"ColumnIdentifier"},
+        "Limit":{
+          "shape":"BodySectionDynamicDimensionLimit",
+          "documentation":"<p>Number of values to use from the column for repetition.</p>",
+          "box":true
+        },
+        "SortByMetrics":{
+          "shape":"BodySectionDynamicDimensionSortConfigurationList",
+          "documentation":"<p>Sort criteria on the column values that you use for repetition. </p>"
+        }
+      },
+      "documentation":"<p>Describes the <b>Category</b> dataset column and constraints for the dynamic values used to repeat the contents of a section.</p>"
+    },
+    "BodySectionDynamicDimensionLimit":{
+      "type":"integer",
+      "max":1000,
+      "min":1
+    },
+    "BodySectionDynamicDimensionSortConfigurationList":{
+      "type":"list",
+      "member":{"shape":"ColumnSort"},
+      "max":100
+    },
+    "BodySectionDynamicNumericDimensionConfiguration":{
+      "type":"structure",
+      "required":["Column"],
+      "members":{
+        "Column":{"shape":"ColumnIdentifier"},
+        "Limit":{
+          "shape":"BodySectionDynamicDimensionLimit",
+          "documentation":"<p>Number of values to use from the column for repetition.</p>",
+          "box":true
+        },
+        "SortByMetrics":{
+          "shape":"BodySectionDynamicDimensionSortConfigurationList",
+          "documentation":"<p>Sort criteria on the column values that you use for repetition. </p>"
+        }
+      },
+      "documentation":"<p>Describes the <b>Numeric</b> dataset column and constraints for the dynamic values used to repeat the contents of a section.</p>"
+    },
+    "BodySectionRepeatConfiguration":{
+      "type":"structure",
+      "members":{
+        "DimensionConfigurations":{
+          "shape":"BodySectionRepeatDimensionConfigurationList",
+          "documentation":"<p>List of <code>BodySectionRepeatDimensionConfiguration</code> values that describe the dataset column and constraints for the column used to repeat the contents of a section.</p>"
+        },
+        "PageBreakConfiguration":{
+          "shape":"BodySectionRepeatPageBreakConfiguration",
+          "documentation":"<p>Page break configuration to apply for each repeating instance.</p>"
+        },
+        "NonRepeatingVisuals":{
+          "shape":"NonRepeatingVisualsList",
+          "documentation":"<p>List of visuals to exclude from repetition in repeating sections. The visuals will render identically, and ignore the repeating configurations in all repeating instances.</p>"
+        }
+      },
+      "documentation":"<p>Describes the configurations that are required to declare a section as repeating.</p>"
+    },
+    "BodySectionRepeatDimensionConfiguration":{
+      "type":"structure",
+      "members":{
+        "DynamicCategoryDimensionConfiguration":{
+          "shape":"BodySectionDynamicCategoryDimensionConfiguration",
+          "documentation":"<p>Describes the <b>Category</b> dataset column and constraints around the dynamic values that will be used in repeating the section contents.</p>"
+        },
+        "DynamicNumericDimensionConfiguration":{
+          "shape":"BodySectionDynamicNumericDimensionConfiguration",
+          "documentation":"<p>Describes the <b>Numeric</b> dataset column and constraints around the dynamic values used to repeat the contents of a section.</p>"
+        }
+      },
+      "documentation":"<p>Describes the dataset column and constraints for the dynamic values used to repeat the contents of a section. The dataset column is either <b>Category</b> or <b>Numeric</b> column configuration</p>"
+    },
+    "BodySectionRepeatDimensionConfigurationList":{
+      "type":"list",
+      "member":{"shape":"BodySectionRepeatDimensionConfiguration"},
+      "max":3
+    },
+    "BodySectionRepeatPageBreakConfiguration":{
+      "type":"structure",
+      "members":{
+        "After":{"shape":"SectionAfterPageBreak"}
+      },
+      "documentation":"<p>The page break configuration to apply for each repeating instance.</p>"
     },
     "BookmarksConfigurations":{
       "type":"structure",
@@ -5884,6 +6335,11 @@
       "min":1,
       "sensitive":true
     },
+    "CalculatedFieldReferenceList":{
+      "type":"list",
+      "member":{"shape":"Identifier"},
+      "max":250
+    },
     "CalculatedFields":{
       "type":"list",
       "member":{"shape":"CalculatedField"},
@@ -6091,7 +6547,7 @@
           "documentation":"<p>A list of the string inputs that are the values of the category drill down filter.</p>"
         }
       },
-      "documentation":"<p>The numeric equality type drill down filter.</p>"
+      "documentation":"<p>The category drill down filter.</p>"
     },
     "CategoryFilter":{
       "type":"structure",
@@ -6112,6 +6568,10 @@
         "Configuration":{
           "shape":"CategoryFilterConfiguration",
           "documentation":"<p>The configuration for a <code>CategoryFilter</code>.</p>"
+        },
+        "DefaultFilterControlConfiguration":{
+          "shape":"DefaultFilterControlConfiguration",
+          "documentation":"<p>The default configurations for the associated controls. This applies only for filters that are scoped to multiple sheets.</p>"
         }
       },
       "documentation":"<p>A <code>CategoryFilter</code> filters text values.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/add-a-text-filter-data-prep.html\">Adding text filters</a> in the <i>Amazon QuickSight User Guide</i>.</p>"
@@ -6163,6 +6623,19 @@
         "CUSTOM_FILTER_LIST",
         "FILTER_LIST"
       ]
+    },
+    "CategoryInnerFilter":{
+      "type":"structure",
+      "required":[
+        "Column",
+        "Configuration"
+      ],
+      "members":{
+        "Column":{"shape":"ColumnIdentifier"},
+        "Configuration":{"shape":"CategoryFilterConfiguration"},
+        "DefaultFilterControlConfiguration":{"shape":"DefaultFilterControlConfiguration"}
+      },
+      "documentation":"<p>A <code>CategoryInnerFilter</code> filters text values for the <code>NestedFilter</code>.</p>"
     },
     "CategoryValue":{
       "type":"string",
@@ -6244,6 +6717,25 @@
       },
       "documentation":"<p>A structure that represents a collective constant.</p>"
     },
+    "CollectiveConstantEntry":{
+      "type":"structure",
+      "members":{
+        "ConstantType":{
+          "shape":"ConstantType",
+          "documentation":"<p>The <code>ConstantType</code> of a <code>CollectiveConstantEntry</code>.</p>"
+        },
+        "Value":{
+          "shape":"ConstantValueString",
+          "documentation":"<p>The value of a <code>CollectiveConstantEntry</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for a <code>CollectiveConstantEntry</code>.</p>"
+    },
+    "CollectiveConstantEntryList":{
+      "type":"list",
+      "member":{"shape":"CollectiveConstantEntry"},
+      "max":2000
+    },
     "ColorFillType":{
       "type":"string",
       "enum":[
@@ -6320,7 +6812,7 @@
     "ColumnConfigurationList":{
       "type":"list",
       "member":{"shape":"ColumnConfiguration"},
-      "max":200
+      "max":2000
     },
     "ColumnDataRole":{
       "type":"string",
@@ -6603,6 +7095,10 @@
         "Aggregation":{
           "shape":"AggregationFunction",
           "documentation":"<p>The aggregation function of the column tooltip item.</p>"
+        },
+        "TooltipTarget":{
+          "shape":"TooltipTarget",
+          "documentation":"<p>Determines the target of the column tooltip item in a combo chart visual.</p>"
         }
       },
       "documentation":"<p>The tooltip item for the columns that are not part of a field well.</p>"
@@ -6819,6 +7315,21 @@
         "DIFFERENCE",
         "PERCENT_DIFFERENCE",
         "PERCENT"
+      ]
+    },
+    "ComparisonMethodType":{
+      "type":"string",
+      "enum":[
+        "DIFF",
+        "PERC_DIFF",
+        "DIFF_AS_PERC",
+        "POP_CURRENT_DIFF_AS_PERC",
+        "POP_CURRENT_DIFF",
+        "POP_OVERTIME_DIFF_AS_PERC",
+        "POP_OVERTIME_DIFF",
+        "PERCENT_OF_TOTAL",
+        "RUNNING_SUM",
+        "MOVING_AVERAGE"
       ]
     },
     "Computation":{
@@ -7049,6 +7560,10 @@
         "COLLECTIVE"
       ]
     },
+    "ConstantValueString":{
+      "type":"string",
+      "max":1024
+    },
     "ContextMenuOption":{
       "type":"structure",
       "members":{
@@ -7082,6 +7597,52 @@
       "member":{"shape":"ContributionAnalysisDefault"},
       "max":200,
       "min":1
+    },
+    "ContributionAnalysisDirection":{
+      "type":"string",
+      "enum":[
+        "INCREASE",
+        "DECREASE",
+        "NEUTRAL"
+      ]
+    },
+    "ContributionAnalysisFactor":{
+      "type":"structure",
+      "members":{
+        "FieldName":{
+          "shape":"LimitedString",
+          "documentation":"<p>The field name of the <code>ContributionAnalysisFactor</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for the <code>ContributionAnalysisFactor</code>.</p>"
+    },
+    "ContributionAnalysisFactorsList":{
+      "type":"list",
+      "member":{"shape":"ContributionAnalysisFactor"},
+      "max":50
+    },
+    "ContributionAnalysisSortType":{
+      "type":"string",
+      "enum":[
+        "ABSOLUTE_DIFFERENCE",
+        "CONTRIBUTION_PERCENTAGE",
+        "DEVIATION_FROM_EXPECTED",
+        "PERCENTAGE_DIFFERENCE"
+      ]
+    },
+    "ContributionAnalysisTimeRanges":{
+      "type":"structure",
+      "members":{
+        "StartRange":{
+          "shape":"TopicIRFilterOption",
+          "documentation":"<p>The start range for the <code>ContributionAnalysisTimeRanges</code>.</p>"
+        },
+        "EndRange":{
+          "shape":"TopicIRFilterOption",
+          "documentation":"<p>The end range for the <code>ContributionAnalysisTimeRanges</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for the <code>ContributionAnalysisTimeRanges</code>.</p>"
     },
     "ContributorDimensionList":{
       "type":"list",
@@ -7155,7 +7716,6 @@
     "CreateAccountSubscriptionRequest":{
       "type":"structure",
       "required":[
-        "Edition",
         "AuthenticationMethod",
         "AwsAccountId",
         "AccountName",
@@ -7198,7 +7758,7 @@
         },
         "AdminGroup":{
           "shape":"GroupsList",
-          "documentation":"<p>The admin group associated with your Active Directory or IAM Identity Center account. This field is required if <code>ACTIVE_DIRECTORY</code> or <code>IAM_IDENTITY_CENTER</code> is the selected authentication method of the new Amazon QuickSight account.</p> <p>For more information about using IAM Identity Center in Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/sec-identity-management-identity-center.html\">Using IAM Identity Center with Amazon QuickSight Enterprise Edition</a> in the Amazon QuickSight User Guide. For more information about using Active Directory in Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html\">Using Active Directory with Amazon QuickSight Enterprise Edition</a> in the Amazon QuickSight User Guide.</p>"
+          "documentation":"<p>The admin group associated with your Active Directory or IAM Identity Center account. Either this field or the <code>AdminProGroup</code> field is required if <code>ACTIVE_DIRECTORY</code> or <code>IAM_IDENTITY_CENTER</code> is the selected authentication method of the new Amazon QuickSight account.</p> <p>For more information about using IAM Identity Center in Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/sec-identity-management-identity-center.html\">Using IAM Identity Center with Amazon QuickSight Enterprise Edition</a> in the Amazon QuickSight User Guide. For more information about using Active Directory in Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html\">Using Active Directory with Amazon QuickSight Enterprise Edition</a> in the Amazon QuickSight User Guide.</p>"
         },
         "AuthorGroup":{
           "shape":"GroupsList",
@@ -7207,6 +7767,18 @@
         "ReaderGroup":{
           "shape":"GroupsList",
           "documentation":"<p>The reader group associated with your Active Directory or IAM Identity Center account.</p> <p>For more information about using IAM Identity Center in Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/sec-identity-management-identity-center.html\">Using IAM Identity Center with Amazon QuickSight Enterprise Edition</a> in the Amazon QuickSight User Guide. For more information about using Active Directory in Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html\">Using Active Directory with Amazon QuickSight Enterprise Edition</a> in the Amazon QuickSight User Guide.</p>"
+        },
+        "AdminProGroup":{
+          "shape":"GroupsList",
+          "documentation":"<p>The admin pro group associated with your Active Directory or IAM Identity Center account. Either this field or the <code>AdminGroup</code> field is required if <code>ACTIVE_DIRECTORY</code> or <code>IAM_IDENTITY_CENTER</code> is the selected authentication method of the new Amazon QuickSight account.</p> <p>For more information about using IAM Identity Center in Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/sec-identity-management-identity-center.html\">Using IAM Identity Center with Amazon QuickSight Enterprise Edition</a> in the Amazon QuickSight User Guide. For more information about using Active Directory in Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html\">Using Active Directory with Amazon QuickSight Enterprise Edition</a> in the Amazon QuickSight User Guide.</p>"
+        },
+        "AuthorProGroup":{
+          "shape":"GroupsList",
+          "documentation":"<p>The author pro group associated with your Active Directory or IAM Identity Center account.</p> <p>For more information about using IAM Identity Center in Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/sec-identity-management-identity-center.html\">Using IAM Identity Center with Amazon QuickSight Enterprise Edition</a> in the Amazon QuickSight User Guide. For more information about using Active Directory in Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html\">Using Active Directory with Amazon QuickSight Enterprise Edition</a> in the Amazon QuickSight User Guide.</p>"
+        },
+        "ReaderProGroup":{
+          "shape":"GroupsList",
+          "documentation":"<p>The reader pro group associated with your Active Directory or IAM Identity Center account.</p> <p>For more information about using IAM Identity Center in Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/sec-identity-management-identity-center.html\">Using IAM Identity Center with Amazon QuickSight Enterprise Edition</a> in the Amazon QuickSight User Guide. For more information about using Active Directory in Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/aws-directory-service.html\">Using Active Directory with Amazon QuickSight Enterprise Edition</a> in the Amazon QuickSight User Guide.</p>"
         },
         "FirstName":{
           "shape":"String",
@@ -7223,6 +7795,10 @@
         "ContactNumber":{
           "shape":"String",
           "documentation":"<p>A 10-digit phone number for the author of the Amazon QuickSight account to use for future communications. This field is required if <code>ENTERPPRISE_AND_Q</code> is the selected edition of the new Amazon QuickSight account.</p>"
+        },
+        "IAMIdentityCenterInstanceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) for the IAM Identity Center instance.</p>"
         }
       }
     },
@@ -8516,6 +9092,47 @@
           "location":"statusCode"
         }
       }
+    },
+    "CreateTopicReviewedAnswer":{
+      "type":"structure",
+      "required":[
+        "AnswerId",
+        "DatasetArn",
+        "Question"
+      ],
+      "members":{
+        "AnswerId":{
+          "shape":"AnswerId",
+          "documentation":"<p>The answer ID for the <code>CreateTopicReviewedAnswer</code>.</p>"
+        },
+        "DatasetArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Dataset arn for the <code>CreateTopicReviewedAnswer</code>.</p>"
+        },
+        "Question":{
+          "shape":"LimitedString",
+          "documentation":"<p>The Question to be created.</p>"
+        },
+        "Mir":{
+          "shape":"TopicIR",
+          "documentation":"<p>The Mir for the <code>CreateTopicReviewedAnswer</code>.</p>"
+        },
+        "PrimaryVisual":{
+          "shape":"TopicVisual",
+          "documentation":"<p>The <code>PrimaryVisual</code> for the <code>CreateTopicReviewedAnswer</code>.</p>"
+        },
+        "Template":{
+          "shape":"TopicTemplate",
+          "documentation":"<p>The template for the <code>CreateTopicReviewedAnswer</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for a <code>CreateTopicReviewedAnswer</code>.</p>"
+    },
+    "CreateTopicReviewedAnswers":{
+      "type":"list",
+      "member":{"shape":"CreateTopicReviewedAnswer"},
+      "max":100,
+      "min":0
     },
     "CreateVPCConnectionRequest":{
       "type":"structure",
@@ -10408,7 +11025,7 @@
           "documentation":"<p>A date time parameter that is created in the dataset.</p>"
         }
       },
-      "documentation":"<p>A dataset parameter.</p>"
+      "documentation":"<p>A parameter that is created in a dataset. The parameter can be a string, integer, decimal, or datetime data type.</p>"
     },
     "DatasetParameterId":{
       "type":"string",
@@ -10430,6 +11047,7 @@
     },
     "DatasetParameterValueType":{
       "type":"string",
+      "documentation":"<p>The value type of the parameter. The value type is used to validate the parameter before it is evaluated.</p>",
       "enum":[
         "MULTI_VALUED",
         "SINGLE_VALUED"
@@ -10687,6 +11305,14 @@
         "InfoIconLabelOptions":{
           "shape":"SheetControlInfoIconLabelOptions",
           "documentation":"<p>The configuration of info icon label options.</p>"
+        },
+        "HelperTextVisibility":{
+          "shape":"Visibility",
+          "documentation":"<p>The helper text visibility of the <code>DateTimePickerControlDisplayOptions</code>.</p>"
+        },
+        "DateIconVisibility":{
+          "shape":"Visibility",
+          "documentation":"<p>The date icon visibility of the <code>DateTimePickerControlDisplayOptions</code>.</p>"
         }
       },
       "documentation":"<p>The display options of a control.</p>"
@@ -10903,6 +11529,108 @@
         "VARP"
       ]
     },
+    "DefaultDateTimePickerControlOptions":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"SheetControlDateTimePickerType",
+          "documentation":"<p>The date time picker type of the <code>DefaultDateTimePickerControlOptions</code>. Choose one of the following options:</p> <ul> <li> <p> <code>SINGLE_VALUED</code>: The filter condition is a fixed date.</p> </li> <li> <p> <code>DATE_RANGE</code>: The filter condition is a date time range.</p> </li> </ul>"
+        },
+        "DisplayOptions":{
+          "shape":"DateTimePickerControlDisplayOptions",
+          "documentation":"<p>The display options of a control.</p>"
+        }
+      },
+      "documentation":"<p>The default options that correspond to the filter control type of a <code>DateTimePicker</code>.</p>"
+    },
+    "DefaultFilterControlConfiguration":{
+      "type":"structure",
+      "required":[
+        "Title",
+        "ControlOptions"
+      ],
+      "members":{
+        "Title":{
+          "shape":"SheetControlTitle",
+          "documentation":"<p>The title of the <code>DefaultFilterControlConfiguration</code>. This title is shared by all controls that are tied to this filter.</p>"
+        },
+        "ControlOptions":{
+          "shape":"DefaultFilterControlOptions",
+          "documentation":"<p>The control option for the <code>DefaultFilterControlConfiguration</code>.</p>"
+        }
+      },
+      "documentation":"<p>The default configuration for all dependent controls of the filter.</p>"
+    },
+    "DefaultFilterControlOptions":{
+      "type":"structure",
+      "members":{
+        "DefaultDateTimePickerOptions":{
+          "shape":"DefaultDateTimePickerControlOptions",
+          "documentation":"<p>The default options that correspond to the filter control type of a <code>DateTimePicker</code>.</p>"
+        },
+        "DefaultListOptions":{
+          "shape":"DefaultFilterListControlOptions",
+          "documentation":"<p>The default options that correspond to the <code>List</code> filter control type.</p>"
+        },
+        "DefaultDropdownOptions":{
+          "shape":"DefaultFilterDropDownControlOptions",
+          "documentation":"<p>The default options that correspond to the <code>Dropdown</code> filter control type.</p>"
+        },
+        "DefaultTextFieldOptions":{
+          "shape":"DefaultTextFieldControlOptions",
+          "documentation":"<p>The default options that correspond to the <code>TextField</code> filter control type.</p>"
+        },
+        "DefaultTextAreaOptions":{
+          "shape":"DefaultTextAreaControlOptions",
+          "documentation":"<p>The default options that correspond to the <code>TextArea</code> filter control type.</p>"
+        },
+        "DefaultSliderOptions":{
+          "shape":"DefaultSliderControlOptions",
+          "documentation":"<p>The default options that correspond to the <code>Slider</code> filter control type.</p>"
+        },
+        "DefaultRelativeDateTimeOptions":{
+          "shape":"DefaultRelativeDateTimeControlOptions",
+          "documentation":"<p>The default options that correspond to the <code>RelativeDateTime</code> filter control type.</p>"
+        }
+      },
+      "documentation":"<p>The option that corresponds to the control type of the filter.</p>"
+    },
+    "DefaultFilterDropDownControlOptions":{
+      "type":"structure",
+      "members":{
+        "DisplayOptions":{
+          "shape":"DropDownControlDisplayOptions",
+          "documentation":"<p>The display options of a control.</p>"
+        },
+        "Type":{
+          "shape":"SheetControlListType",
+          "documentation":"<p>The type of the <code>FilterDropDownControl</code>. Choose one of the following options:</p> <ul> <li> <p> <code>MULTI_SELECT</code>: The user can select multiple entries from a dropdown menu.</p> </li> <li> <p> <code>SINGLE_SELECT</code>: The user can select a single entry from a dropdown menu.</p> </li> </ul>"
+        },
+        "SelectableValues":{
+          "shape":"FilterSelectableValues",
+          "documentation":"<p>A list of selectable values that are used in a control.</p>"
+        }
+      },
+      "documentation":"<p>The default options that correspond to the <code>Dropdown</code> filter control type.</p>"
+    },
+    "DefaultFilterListControlOptions":{
+      "type":"structure",
+      "members":{
+        "DisplayOptions":{
+          "shape":"ListControlDisplayOptions",
+          "documentation":"<p>The display options of a control.</p>"
+        },
+        "Type":{
+          "shape":"SheetControlListType",
+          "documentation":"<p>The type of the <code>DefaultFilterListControlOptions</code>. Choose one of the following options:</p> <ul> <li> <p> <code>MULTI_SELECT</code>: The user can select multiple entries from the list.</p> </li> <li> <p> <code>SINGLE_SELECT</code>: The user can select a single entry from the list.</p> </li> </ul>"
+        },
+        "SelectableValues":{
+          "shape":"FilterSelectableValues",
+          "documentation":"<p>A list of selectable values that are used in a control.</p>"
+        }
+      },
+      "documentation":"<p>The default options that correspond to the <code>List</code> filter control type.</p>"
+    },
     "DefaultFormatting":{
       "type":"structure",
       "members":{
@@ -10981,6 +11709,16 @@
       },
       "documentation":"<p>The options that determine the default settings for a paginated layout configuration.</p>"
     },
+    "DefaultRelativeDateTimeControlOptions":{
+      "type":"structure",
+      "members":{
+        "DisplayOptions":{
+          "shape":"RelativeDateTimeControlDisplayOptions",
+          "documentation":"<p>The display options of a control.</p>"
+        }
+      },
+      "documentation":"<p>The default options that correspond to the <code>RelativeDateTime</code> filter control type.</p>"
+    },
     "DefaultSectionBasedLayoutConfiguration":{
       "type":"structure",
       "required":["CanvasSizeOptions"],
@@ -10991,6 +11729,61 @@
         }
       },
       "documentation":"<p>The options that determine the default settings for a section-based layout configuration.</p>"
+    },
+    "DefaultSliderControlOptions":{
+      "type":"structure",
+      "required":[
+        "MaximumValue",
+        "MinimumValue",
+        "StepSize"
+      ],
+      "members":{
+        "DisplayOptions":{
+          "shape":"SliderControlDisplayOptions",
+          "documentation":"<p>The display options of a control.</p>"
+        },
+        "Type":{
+          "shape":"SheetControlSliderType",
+          "documentation":"<p>The type of the <code>DefaultSliderControlOptions</code>. Choose one of the following options:</p> <ul> <li> <p> <code>SINGLE_POINT</code>: Filter against(equals) a single data point.</p> </li> <li> <p> <code>RANGE</code>: Filter data that is in a specified range.</p> </li> </ul>"
+        },
+        "MaximumValue":{
+          "shape":"Double",
+          "documentation":"<p>The larger value that is displayed at the right of the slider.</p>"
+        },
+        "MinimumValue":{
+          "shape":"Double",
+          "documentation":"<p>The smaller value that is displayed at the left of the slider.</p>"
+        },
+        "StepSize":{
+          "shape":"Double",
+          "documentation":"<p>The number of increments that the slider bar is divided into.</p>"
+        }
+      },
+      "documentation":"<p>The default options that correspond to the <code>Slider</code> filter control type.</p>"
+    },
+    "DefaultTextAreaControlOptions":{
+      "type":"structure",
+      "members":{
+        "Delimiter":{
+          "shape":"TextAreaControlDelimiter",
+          "documentation":"<p>The delimiter that is used to separate the lines in text.</p>"
+        },
+        "DisplayOptions":{
+          "shape":"TextAreaControlDisplayOptions",
+          "documentation":"<p>The display options of a control.</p>"
+        }
+      },
+      "documentation":"<p>The default options that correspond to the <code>TextArea</code> filter control type.</p>"
+    },
+    "DefaultTextFieldControlOptions":{
+      "type":"structure",
+      "members":{
+        "DisplayOptions":{
+          "shape":"TextFieldControlDisplayOptions",
+          "documentation":"<p>The display options of a control.</p>"
+        }
+      },
+      "documentation":"<p>The default options that correspond to the <code>TextField</code> filter control type.</p>"
     },
     "DeleteAccountCustomizationRequest":{
       "type":"structure",
@@ -12599,6 +13392,10 @@
         "OverrideValidationStrategy":{
           "shape":"AssetBundleImportJobOverrideValidationStrategy",
           "documentation":"<p>An optional validation strategy override for all analyses and dashboards to be applied to the resource configuration before import.</p>"
+        },
+        "Warnings":{
+          "shape":"AssetBundleImportJobWarningList",
+          "documentation":"<p>An array of warning records that describe all permitted errors that are encountered during the import job.</p>"
         }
       }
     },
@@ -13523,6 +14320,14 @@
           "shape":"IpRestrictionRuleMap",
           "documentation":"<p>A map that describes the IP rules with CIDR range and description.</p>"
         },
+        "VpcIdRestrictionRuleMap":{
+          "shape":"VpcIdRestrictionRuleMap",
+          "documentation":"<p>A map of allowed VPC IDs and their rule descriptions.</p>"
+        },
+        "VpcEndpointIdRestrictionRuleMap":{
+          "shape":"VpcEndpointIdRestrictionRuleMap",
+          "documentation":"<p>A map of allowed VPC endpoint IDs and their rule descriptions.</p>"
+        },
         "Enabled":{
           "shape":"NullableBoolean",
           "documentation":"<p>A value that specifies whether IP rules are turned on.</p>"
@@ -13535,6 +14340,45 @@
           "shape":"StatusCode",
           "documentation":"<p>The HTTP status of the request. </p>",
           "location":"statusCode"
+        }
+      }
+    },
+    "DescribeKeyRegistrationRequest":{
+      "type":"structure",
+      "required":["AwsAccountId"],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that contains the customer managed key registration that you want to describe.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "DefaultKeyOnly":{
+          "shape":"Boolean",
+          "documentation":"<p>Determines whether the request returns the default key only.</p>",
+          "location":"querystring",
+          "locationName":"default-key-only"
+        }
+      }
+    },
+    "DescribeKeyRegistrationResponse":{
+      "type":"structure",
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that contains the customer managed key registration specified in the request.</p>"
+        },
+        "KeyRegistration":{
+          "shape":"KeyRegistration",
+          "documentation":"<p>A list of <code>RegisteredCustomerManagedKey</code> objects in a Amazon QuickSight account.</p>"
+        },
+        "RequestId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>"
         }
       }
     },
@@ -14732,6 +15576,37 @@
       "min":1,
       "sensitive":true
     },
+    "FailedKeyRegistrationEntries":{
+      "type":"list",
+      "member":{"shape":"FailedKeyRegistrationEntry"}
+    },
+    "FailedKeyRegistrationEntry":{
+      "type":"structure",
+      "required":[
+        "Message",
+        "StatusCode",
+        "SenderFault"
+      ],
+      "members":{
+        "KeyArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the KMS key that failed to update.</p>"
+        },
+        "Message":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>A message that provides information about why a <code>FailedKeyRegistrationEntry</code> error occurred.</p>"
+        },
+        "StatusCode":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of a <code>FailedKeyRegistrationEntry</code> error.</p>"
+        },
+        "SenderFault":{
+          "shape":"Boolean",
+          "documentation":"<p>A boolean that indicates whether a <code>FailedKeyRegistrationEntry</code> resulted from user error. If the value of this property is <code>True</code>, the error was caused by user error. If the value of this property is <code>False</code>, the error occurred on the backend. If your job continues fail and with a <code>False</code> <code>SenderFault</code> value, contact Amazon Web Services Support.</p>"
+        }
+      },
+      "documentation":"<p>An entry that appears when a <code>KeyRegistration</code> update to Amazon QuickSight fails.</p>"
+    },
     "FieldBasedTooltip":{
       "type":"structure",
       "members":{
@@ -14876,6 +15751,10 @@
         "Visibility":{
           "shape":"Visibility",
           "documentation":"<p>The visibility of the tooltip item.</p>"
+        },
+        "TooltipTarget":{
+          "shape":"TooltipTarget",
+          "documentation":"<p>Determines the target of the field tooltip item in a combo chart visual.</p>"
         }
       },
       "documentation":"<p>The tooltip item for the fields.</p>"
@@ -15081,9 +15960,36 @@
         "TopBottomFilter":{
           "shape":"TopBottomFilter",
           "documentation":"<p>A <code>TopBottomFilter</code> filters data to the top or bottom values for a given column.</p>"
+        },
+        "NestedFilter":{
+          "shape":"NestedFilter",
+          "documentation":"<p>A <code>NestedFilter</code> filters data with a subset of data that is defined by the nested inner filter.</p>"
         }
       },
       "documentation":"<p>With a <code>Filter</code>, you can remove portions of data from a particular visual or view.</p> <p>This is a union type structure. For this structure to be valid, only one of the attributes can be defined.</p>"
+    },
+    "FilterAggMetrics":{
+      "type":"structure",
+      "members":{
+        "MetricOperand":{
+          "shape":"Identifier",
+          "documentation":"<p>The metric operand of the <code>FilterAggMetrics</code>.</p>"
+        },
+        "Function":{
+          "shape":"AggType",
+          "documentation":"<p>The function for the <code>FilterAggMetrics</code>.</p>"
+        },
+        "SortDirection":{
+          "shape":"TopicSortDirection",
+          "documentation":"<p>The sort direction for <code>FilterAggMetrics</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for the <code>FilterAggMetrics</code>.</p>"
+    },
+    "FilterAggMetricsList":{
+      "type":"list",
+      "member":{"shape":"FilterAggMetrics"},
+      "max":100
     },
     "FilterClass":{
       "type":"string",
@@ -15123,6 +16029,10 @@
         "RelativeDateTime":{
           "shape":"FilterRelativeDateTimeControl",
           "documentation":"<p>A control from a date filter that is used to specify the relative date.</p>"
+        },
+        "CrossSheet":{
+          "shape":"FilterCrossSheetControl",
+          "documentation":"<p>A control from a filter that is scoped across more than one sheet. This represents your filter control on a sheet</p>"
         }
       },
       "documentation":"<p>The control of a filter that is used to interact with a dashboard or an analysis.</p> <p>This is a union type structure. For this structure to be valid, only one of the attributes can be defined.</p>"
@@ -15131,6 +16041,28 @@
       "type":"list",
       "member":{"shape":"FilterControl"},
       "max":200
+    },
+    "FilterCrossSheetControl":{
+      "type":"structure",
+      "required":[
+        "FilterControlId",
+        "SourceFilterId"
+      ],
+      "members":{
+        "FilterControlId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>The ID of the <code>FilterCrossSheetControl</code>.</p>"
+        },
+        "SourceFilterId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>The source filter ID of the <code>FilterCrossSheetControl</code>.</p>"
+        },
+        "CascadingControlConfiguration":{
+          "shape":"CascadingControlConfiguration",
+          "documentation":"<p>The values that are displayed in a control can be configured to only show values that are valid based on what's selected in other controls.</p>"
+        }
+      },
+      "documentation":"<p>A control from a filter that is scoped across more than one sheet. This represents your filter control on a sheet</p>"
     },
     "FilterDateTimePickerControl":{
       "type":"structure",
@@ -15158,7 +16090,7 @@
         },
         "Type":{
           "shape":"SheetControlDateTimePickerType",
-          "documentation":"<p>The date time picker type of a <code>FilterDateTimePickerControl</code>. Choose one of the following options:</p> <ul> <li> <p> <code>SINGLE_VALUED</code>: The filter condition is a fixed date.</p> </li> <li> <p> <code>DATE_RANGE</code>: The filter condition is a date time range.</p> </li> </ul>"
+          "documentation":"<p>The type of the <code>FilterDropDownControl</code>. Choose one of the following options:</p> <ul> <li> <p> <code>MULTI_SELECT</code>: The user can select multiple entries from a dropdown menu.</p> </li> <li> <p> <code>SINGLE_SELECT</code>: The user can select a single entry from a dropdown menu.</p> </li> </ul>"
         }
       },
       "documentation":"<p>A control from a date filter that is used to specify date and time.</p>"
@@ -15293,7 +16225,7 @@
         },
         "Type":{
           "shape":"SheetControlListType",
-          "documentation":"<p>The type of <code>FilterListControl</code>. Choose one of the following options:</p> <ul> <li> <p> <code>MULTI_SELECT</code>: The user can select multiple entries from the list.</p> </li> <li> <p> <code>SINGLE_SELECT</code>: The user can select a single entry from the list.</p> </li> </ul>"
+          "documentation":"<p>The type of the <code>FilterListControl</code>. Choose one of the following options:</p> <ul> <li> <p> <code>MULTI_SELECT</code>: The user can select multiple entries from the list.</p> </li> <li> <p> <code>SINGLE_SELECT</code>: The user can select a single entry from the list.</p> </li> </ul>"
         },
         "SelectableValues":{
           "shape":"FilterSelectableValues",
@@ -15396,7 +16328,7 @@
         },
         "AllSheets":{
           "shape":"AllSheetsFilterScopeConfiguration",
-          "documentation":"<p>The configuration for applying a filter to all sheets.</p>"
+          "documentation":"<p>The configuration that applies a filter to all sheets. When you choose <code>AllSheets</code> as the value for a <code>FilterScopeConfiguration</code>, this filter is applied to all visuals of all sheets in an Analysis, Dashboard, or Template. The <code>AllSheetsFilterScopeConfiguration</code> is chosen.</p>"
         }
       },
       "documentation":"<p>The scope configuration for a <code>FilterGroup</code>.</p> <p>This is a union type structure. For this structure to be valid, only one of the attributes can be defined.</p>"
@@ -15440,15 +16372,15 @@
         },
         "Type":{
           "shape":"SheetControlSliderType",
-          "documentation":"<p>The type of <code>FilterSliderControl</code>. Choose one of the following options:</p> <ul> <li> <p> <code>SINGLE_POINT</code>: Filter against(equals) a single data point.</p> </li> <li> <p> <code>RANGE</code>: Filter data that is in a specified range.</p> </li> </ul>"
+          "documentation":"<p>The type of the <code>FilterSliderControl</code>. Choose one of the following options:</p> <ul> <li> <p> <code>SINGLE_POINT</code>: Filter against(equals) a single data point.</p> </li> <li> <p> <code>RANGE</code>: Filter data that is in a specified range.</p> </li> </ul>"
         },
         "MaximumValue":{
           "shape":"Double",
-          "documentation":"<p>The smaller value that is displayed at the left of the slider.</p>"
+          "documentation":"<p>The larger value that is displayed at the right of the slider.</p>"
         },
         "MinimumValue":{
           "shape":"Double",
-          "documentation":"<p>The larger value that is displayed at the right of the slider.</p>"
+          "documentation":"<p>The smaller value that is displayed at the left of the slider.</p>"
         },
         "StepSize":{
           "shape":"Double",
@@ -16190,6 +17122,20 @@
       },
       "documentation":"<p>The options that determine the presentation of the arc of a <code>GaugeChartVisual</code>.</p>"
     },
+    "GaugeChartColorConfiguration":{
+      "type":"structure",
+      "members":{
+        "ForegroundColor":{
+          "shape":"HexColor",
+          "documentation":"<p>The foreground color configuration of a <code>GaugeChartVisual</code>.</p>"
+        },
+        "BackgroundColor":{
+          "shape":"HexColor",
+          "documentation":"<p>The background color configuration of a <code>GaugeChartVisual</code>.</p>"
+        }
+      },
+      "documentation":"<p>The color configuration of a <code>GaugeChartVisual</code>.</p>"
+    },
     "GaugeChartConditionalFormatting":{
       "type":"structure",
       "members":{
@@ -16241,6 +17187,10 @@
         "VisualPalette":{
           "shape":"VisualPalette",
           "documentation":"<p>The visual palette configuration of a <code>GaugeChartVisual</code>.</p>"
+        },
+        "ColorConfiguration":{
+          "shape":"GaugeChartColorConfiguration",
+          "documentation":"<p>The color configuration of a <code>GaugeChartVisual</code>.</p>"
         },
         "Interactions":{
           "shape":"VisualInteractionOptions",
@@ -16363,7 +17313,7 @@
         },
         "AuthorizedResourceArns":{
           "shape":"ArnList",
-          "documentation":"<p>The Amazon Resource Names (ARNs) for the Amazon QuickSight resources that the user is authorized to access during the lifetime of the session. If you choose <code>Dashboard</code> embedding experience, pass the list of dashboard ARNs in the account that you want the user to be able to view. Currently, you can pass up to 25 dashboard ARNs in each API call.</p>"
+          "documentation":"<p>The Amazon Resource Names (ARNs) for the Amazon QuickSight resources that the user is authorized to access during the lifetime of the session.</p> <p>If you choose <code>Dashboard</code> embedding experience, pass the list of dashboard ARNs in the account that you want the user to be able to view.</p> <p>If you want to make changes to the theme of your embedded content, pass a list of theme ARNs that the anonymous users need access to.</p> <p>Currently, you can pass up to 25 theme ARNs in each API call.</p>"
         },
         "ExperienceConfiguration":{
           "shape":"AnonymousUserEmbeddingExperienceConfiguration",
@@ -16427,7 +17377,7 @@
         },
         "ExperienceConfiguration":{
           "shape":"RegisteredUserEmbeddingExperienceConfiguration",
-          "documentation":"<p>The experience you are embedding. For registered users, you can embed Amazon QuickSight dashboards, Amazon QuickSight visuals, the Amazon QuickSight Q search bar, or the entire Amazon QuickSight console.</p>"
+          "documentation":"<p>The experience that you want to embed. For registered users, you can embed Amazon QuickSight dashboards, Amazon QuickSight visuals, the Amazon QuickSight Q search bar, the Amazon QuickSight Generative Q&amp;A experience, or the entire Amazon QuickSight console.</p>"
         },
         "AllowedDomains":{
           "shape":"StringList",
@@ -16445,7 +17395,7 @@
       "members":{
         "EmbedUrl":{
           "shape":"EmbeddingUrl",
-          "documentation":"<p>The embed URL for the Amazon QuickSight dashboard, visual, Q search bar, or console.</p>"
+          "documentation":"<p>The embed URL for the Amazon QuickSight dashboard, visual, Q search bar, Generative Q&amp;A experience, or console.</p>"
         },
         "Status":{
           "shape":"StatusCode",
@@ -17534,6 +18484,17 @@
         "X"
       ]
     },
+    "Identifier":{
+      "type":"structure",
+      "required":["Identity"],
+      "members":{
+        "Identity":{
+          "shape":"LimitedString",
+          "documentation":"<p>The identity of the identifier.</p>"
+        }
+      },
+      "documentation":"<p>The definition for the identifier.</p>"
+    },
     "IdentityCenterConfiguration":{
       "type":"structure",
       "members":{
@@ -17746,6 +18707,16 @@
     "Ingestions":{
       "type":"list",
       "member":{"shape":"Ingestion"}
+    },
+    "InnerFilter":{
+      "type":"structure",
+      "members":{
+        "CategoryInnerFilter":{
+          "shape":"CategoryInnerFilter",
+          "documentation":"<p>A <code>CategoryInnerFilter</code> filters text values for the <code>NestedFilter</code>.</p>"
+        }
+      },
+      "documentation":"<p>The <code>InnerFilter</code> defines the subset of data to be used with the <code>NestedFilter</code>.</p>"
     },
     "InputColumn":{
       "type":"structure",
@@ -18028,6 +18999,24 @@
       "documentation":"<p>You don't have this feature activated for your account. To fix this issue, contact Amazon Web Services support.</p>",
       "error":{"httpStatusCode":400},
       "exception":true
+    },
+    "InvalidTopicReviewedAnswer":{
+      "type":"structure",
+      "members":{
+        "AnswerId":{
+          "shape":"AnswerId",
+          "documentation":"<p>The answer ID for the <code>InvalidTopicReviewedAnswer</code>.</p>"
+        },
+        "Error":{
+          "shape":"ReviewedAnswerErrorCode",
+          "documentation":"<p>The error that is returned for the <code>InvalidTopicReviewedAnswer</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for a <code>InvalidTopicReviewedAnswer</code>.</p>"
+    },
+    "InvalidTopicReviewedAnswers":{
+      "type":"list",
+      "member":{"shape":"InvalidTopicReviewedAnswer"}
     },
     "IpRestrictionRuleDescription":{
       "type":"string",
@@ -18394,6 +19383,10 @@
         "CLASSIC",
         "VERTICAL"
       ]
+    },
+    "KeyRegistration":{
+      "type":"list",
+      "member":{"shape":"RegisteredCustomerManagedKey"}
     },
     "LabelOptions":{
       "type":"structure",
@@ -20228,6 +21221,53 @@
         }
       }
     },
+    "ListTopicReviewedAnswersRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "TopicId"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that containd the reviewed answers that you want listed.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "TopicId":{
+          "shape":"TopicId",
+          "documentation":"<p>The ID for the topic that contains the reviewed answer that you want to list. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>",
+          "location":"uri",
+          "locationName":"TopicId"
+        }
+      }
+    },
+    "ListTopicReviewedAnswersResponse":{
+      "type":"structure",
+      "members":{
+        "TopicId":{
+          "shape":"TopicId",
+          "documentation":"<p>The ID for the topic that contains the reviewed answer that you want to list. This ID is unique per Amazon Web Services Region for each Amazon Web Services account.</p>"
+        },
+        "TopicArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the topic.</p>"
+        },
+        "Answers":{
+          "shape":"TopicReviewedAnswers",
+          "documentation":"<p>The definition of all Answers in the topic.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        },
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        }
+      }
+    },
     "ListTopicsRequest":{
       "type":"structure",
       "required":["AwsAccountId"],
@@ -20914,6 +21954,16 @@
       "type":"list",
       "member":{"shape":"NamedEntityDefinition"}
     },
+    "NamedEntityRef":{
+      "type":"structure",
+      "members":{
+        "NamedEntityName":{
+          "shape":"LimitedString",
+          "documentation":"<p>The <code>NamedEntityName</code> for the <code>NamedEntityRef</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for a <code>NamedEntityRef</code>.</p>"
+    },
     "NamedFilterAggType":{
       "type":"string",
       "enum":[
@@ -21047,6 +22097,34 @@
         "NEGATIVE"
       ]
     },
+    "NestedFilter":{
+      "type":"structure",
+      "required":[
+        "FilterId",
+        "Column",
+        "IncludeInnerSet",
+        "InnerFilter"
+      ],
+      "members":{
+        "FilterId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>An identifier that uniquely identifies a filter within a dashboard, analysis, or template.</p>"
+        },
+        "Column":{
+          "shape":"ColumnIdentifier",
+          "documentation":"<p>The column that the filter is applied to.</p>"
+        },
+        "IncludeInnerSet":{
+          "shape":"Boolean",
+          "documentation":"<p>A boolean condition to include or exclude the subset that is defined by the values of the nested inner filter.</p>"
+        },
+        "InnerFilter":{
+          "shape":"InnerFilter",
+          "documentation":"<p>The <code>InnerFilter</code> defines the subset of data to be used with the <code>NestedFilter</code>.</p>"
+        }
+      },
+      "documentation":"<p>A <code>NestedFilter</code> filters data with a subset of data that is defined by the nested inner filter.</p>"
+    },
     "NetworkInterface":{
       "type":"structure",
       "members":{
@@ -21122,6 +22200,19 @@
     "NonEmptyString":{
       "type":"string",
       "pattern":".*\\S.*"
+    },
+    "NonRepeatingVisualsList":{
+      "type":"list",
+      "member":{"shape":"ShortRestrictiveResourceId"},
+      "max":20
+    },
+    "NullFilterOption":{
+      "type":"string",
+      "enum":[
+        "ALL_VALUES",
+        "NON_NULLS_ONLY",
+        "NULLS_ONLY"
+      ]
     },
     "NullString":{
       "type":"string",
@@ -21226,7 +22317,7 @@
           "documentation":"<p>The value of the double input numeric drill down filter.</p>"
         }
       },
-      "documentation":"<p>The category drill down filter.</p>"
+      "documentation":"<p>The numeric equality type drill down filter.</p>"
     },
     "NumericEqualityFilter":{
       "type":"structure",
@@ -21269,6 +22360,10 @@
         "NullOption":{
           "shape":"FilterNullOption",
           "documentation":"<p>This option determines how null values should be treated when filtering data.</p> <ul> <li> <p> <code>ALL_VALUES</code>: Include null values in filtered results.</p> </li> <li> <p> <code>NULLS_ONLY</code>: Only include null values in filtered results.</p> </li> <li> <p> <code>NON_NULLS_ONLY</code>: Exclude null values from filtered results.</p> </li> </ul>"
+        },
+        "DefaultFilterControlConfiguration":{
+          "shape":"DefaultFilterControlConfiguration",
+          "documentation":"<p>The default configurations for the associated controls. This applies only for filters that are scoped to multiple sheets.</p>"
         }
       },
       "documentation":"<p>A <code>NumericEqualityFilter</code> filters values that are equal to the specified value.</p>"
@@ -21349,6 +22444,10 @@
         "NullOption":{
           "shape":"FilterNullOption",
           "documentation":"<p>This option determines how null values should be treated when filtering data.</p> <ul> <li> <p> <code>ALL_VALUES</code>: Include null values in filtered results.</p> </li> <li> <p> <code>NULLS_ONLY</code>: Only include null values in filtered results.</p> </li> <li> <p> <code>NON_NULLS_ONLY</code>: Exclude null values from filtered results.</p> </li> </ul>"
+        },
+        "DefaultFilterControlConfiguration":{
+          "shape":"DefaultFilterControlConfiguration",
+          "documentation":"<p>The default configurations for the associated controls. This applies only for filters that are scoped to multiple sheets.</p>"
         }
       },
       "documentation":"<p>A <code>NumericRangeFilter</code> filters values that are within the value range.</p>"
@@ -21460,6 +22559,11 @@
       "type":"string",
       "max":512,
       "min":1
+    },
+    "OperandList":{
+      "type":"list",
+      "member":{"shape":"Identifier"},
+      "max":25
     },
     "OptionalPort":{
       "type":"integer",
@@ -21873,11 +22977,11 @@
         },
         "MaximumValue":{
           "shape":"Double",
-          "documentation":"<p>The smaller value that is displayed at the left of the slider.</p>"
+          "documentation":"<p>The larger value that is displayed at the right of the slider.</p>"
         },
         "MinimumValue":{
           "shape":"Double",
-          "documentation":"<p>The larger value that is displayed at the right of the slider.</p>"
+          "documentation":"<p>The smaller value that is displayed at the left of the slider.</p>"
         },
         "StepSize":{
           "shape":"Double",
@@ -22368,7 +23472,7 @@
     "PivotTableConditionalFormattingOptionList":{
       "type":"list",
       "member":{"shape":"PivotTableConditionalFormattingOption"},
-      "max":100
+      "max":500
     },
     "PivotTableConditionalFormattingScope":{
       "type":"structure",
@@ -22981,6 +24085,13 @@
         "MEASURE"
       ]
     },
+    "PurchaseMode":{
+      "type":"string",
+      "enum":[
+        "MANUAL",
+        "AUTO_PURCHASE"
+      ]
+    },
     "PutDataSetRefreshPropertiesRequest":{
       "type":"structure",
       "required":[
@@ -23312,10 +24423,7 @@
     },
     "RedshiftIAMParameters":{
       "type":"structure",
-      "required":[
-        "RoleArn",
-        "DatabaseUser"
-      ],
+      "required":["RoleArn"],
       "members":{
         "RoleArn":{
           "shape":"RoleArn",
@@ -23651,7 +24759,7 @@
       "members":{
         "IdentityType":{
           "shape":"IdentityType",
-          "documentation":"<p>Amazon QuickSight supports several ways of managing the identity of users. This parameter accepts two values:</p> <ul> <li> <p> <code>IAM</code>: A user whose identity maps to an existing IAM user or role. </p> </li> <li> <p> <code>QUICKSIGHT</code>: A user whose identity is owned and managed internally by Amazon QuickSight. </p> </li> </ul>"
+          "documentation":"<p>The identity type that your Amazon QuickSight account uses to manage the identity of users.</p>"
         },
         "Email":{
           "shape":"String",
@@ -23659,7 +24767,7 @@
         },
         "UserRole":{
           "shape":"UserRole",
-          "documentation":"<p>The Amazon QuickSight role for the user. The user role can be one of the following:</p> <ul> <li> <p> <code>READER</code>: A user who has read-only access to dashboards.</p> </li> <li> <p> <code>AUTHOR</code>: A user who can create data sources, datasets, analyses, and dashboards.</p> </li> <li> <p> <code>ADMIN</code>: A user who is an author, who can also manage Amazon QuickSight settings.</p> </li> <li> <p> <code>RESTRICTED_READER</code>: This role isn't currently available for use.</p> </li> <li> <p> <code>RESTRICTED_AUTHOR</code>: This role isn't currently available for use.</p> </li> </ul>"
+          "documentation":"<p>The Amazon QuickSight role for the user. The user role can be one of the following:</p> <ul> <li> <p> <code>READER</code>: A user who has read-only access to dashboards.</p> </li> <li> <p> <code>AUTHOR</code>: A user who can create data sources, datasets, analyses, and dashboards.</p> </li> <li> <p> <code>ADMIN</code>: A user who is an author, who can also manage Amazon QuickSight settings.</p> </li> <li> <p> <code>READER_PRO</code>: Reader Pro adds Generative BI capabilities to the Reader role. Reader Pros have access to Amazon Q in Amazon QuickSight, can build stories with Amazon Q, and can generate executive summaries from dashboards.</p> </li> <li> <p> <code>AUTHOR_PRO</code>: Author Pro adds Generative BI capabilities to the Author role. Author Pros can author dashboards with natural language with Amazon Q, build stories with Amazon Q, create Topics for Q&amp;A, and generate executive summaries from dashboards.</p> </li> <li> <p> <code>ADMIN_PRO</code>: Admin Pros are Author Pros who can also manage Amazon QuickSight administrative settings. Admin Pro users are billed at Author Pro pricing.</p> </li> <li> <p> <code>RESTRICTED_READER</code>: This role isn't currently available for use.</p> </li> <li> <p> <code>RESTRICTED_AUTHOR</code>: This role isn't currently available for use.</p> </li> </ul>"
         },
         "IamArn":{
           "shape":"String",
@@ -23687,7 +24795,7 @@
         },
         "CustomPermissionsName":{
           "shape":"RoleName",
-          "documentation":"<p>(Enterprise edition only) The name of the custom permissions profile that you want to assign to this user. Customized permissions allows you to control a user's access by restricting access the following operations:</p> <ul> <li> <p>Create and update data sources</p> </li> <li> <p>Create and update datasets</p> </li> <li> <p>Create and update email reports</p> </li> <li> <p>Subscribe to email reports</p> </li> </ul> <p>To add custom permissions to an existing user, use <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_UpdateUser.html\">UpdateUser</a> </code> instead.</p> <p>A set of custom permissions includes any combination of these restrictions. Currently, you need to create the profile names for custom permission sets by using the Amazon QuickSight console. Then, you use the <code>RegisterUser</code> API operation to assign the named set of permissions to a Amazon QuickSight user. </p> <p>Amazon QuickSight custom permissions are applied through IAM policies. Therefore, they override the permissions typically granted by assigning Amazon QuickSight users to one of the default security cohorts in Amazon QuickSight (admin, author, reader).</p> <p>This feature is available only to Amazon QuickSight Enterprise edition subscriptions.</p>"
+          "documentation":"<p>(Enterprise edition only) The name of the custom permissions profile that you want to assign to this user. Customized permissions allows you to control a user's access by restricting access the following operations:</p> <ul> <li> <p>Create and update data sources</p> </li> <li> <p>Create and update datasets</p> </li> <li> <p>Create and update email reports</p> </li> <li> <p>Subscribe to email reports</p> </li> </ul> <p>To add custom permissions to an existing user, use <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_UpdateUser.html\">UpdateUser</a> </code> instead.</p> <p>A set of custom permissions includes any combination of these restrictions. Currently, you need to create the profile names for custom permission sets by using the Amazon QuickSight console. Then, you use the <code>RegisterUser</code> API operation to assign the named set of permissions to a Amazon QuickSight user. </p> <p>Amazon QuickSight custom permissions are applied through IAM policies. Therefore, they override the permissions typically granted by assigning Amazon QuickSight users to one of the default security cohorts in Amazon QuickSight (admin, author, reader, admin pro, author pro, reader pro).</p> <p>This feature is available only to Amazon QuickSight Enterprise edition subscriptions.</p>"
         },
         "ExternalLoginFederationProviderType":{
           "shape":"String",
@@ -23728,6 +24836,20 @@
           "location":"statusCode"
         }
       }
+    },
+    "RegisteredCustomerManagedKey":{
+      "type":"structure",
+      "members":{
+        "KeyArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the KMS key that is registered to a Amazon QuickSight account for encryption and decryption use.</p>"
+        },
+        "DefaultKey":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether a <code>RegisteredCustomerManagedKey</code> is set as the default key for encryption and decryption use.</p>"
+        }
+      },
+      "documentation":"<p>A customer managed key structure that contains the information listed below: </p> <ul> <li> <p> <code>KeyArn</code> - The ARN of a KMS key that is registered to a Amazon QuickSight account for encryption and decryption use.</p> </li> <li> <p> <code>DefaultKey</code> - Indicates whether the current key is set as the default key for encryption and decryption use.</p> </li> </ul>"
     },
     "RegisteredUserConsoleFeatureConfigurations":{
       "type":"structure",
@@ -23797,16 +24919,30 @@
         "DashboardVisual":{
           "shape":"RegisteredUserDashboardVisualEmbeddingConfiguration",
           "documentation":"<p>The type of embedding experience. In this case, Amazon QuickSight visuals.</p>"
+        },
+        "GenerativeQnA":{
+          "shape":"RegisteredUserGenerativeQnAEmbeddingConfiguration",
+          "documentation":"<p>The configuration details for embedding the Generative Q&amp;A experience.</p> <p>For more information about embedding the Generative Q&amp;A experience, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedding-overview.html\">Embedding Overview</a> in the <i>Amazon QuickSight User Guide</i>.</p>"
         }
       },
       "documentation":"<p>The type of experience you want to embed. For registered users, you can embed Amazon QuickSight dashboards or the Amazon QuickSight console.</p> <note> <p>Exactly one of the experience configurations is required. You can choose <code>Dashboard</code> or <code>QuickSightConsole</code>. You cannot choose more than one experience configuration.</p> </note>"
+    },
+    "RegisteredUserGenerativeQnAEmbeddingConfiguration":{
+      "type":"structure",
+      "members":{
+        "InitialTopicId":{
+          "shape":"RestrictiveResourceId",
+          "documentation":"<p>The ID of the new Q reader experience topic that you want to make the starting topic in the Generative Q&amp;A experience. You can find a topic ID by navigating to the Topics pane in the Amazon QuickSight application and opening a topic. The ID is in the URL for the topic that you open.</p> <p>If you don't specify an initial topic or you specify a legacy topic, a list of all shared new reader experience topics is shown in the Generative Q&amp;A experience for your readers. When you select an initial new reader experience topic, you can specify whether or not readers are allowed to select other new reader experience topics from the available ones in the list.</p>"
+        }
+      },
+      "documentation":"<p>An object that provides information about the configuration of a Generative Q&amp;A experience.</p>"
     },
     "RegisteredUserQSearchBarEmbeddingConfiguration":{
       "type":"structure",
       "members":{
         "InitialTopicId":{
           "shape":"RestrictiveResourceId",
-          "documentation":"<p>The ID of the Q topic that you want to make the starting topic in the Q search bar. You can find a topic ID by navigating to the Topics pane in the Amazon QuickSight application and opening a topic. The ID is in the URL for the topic that you open.</p> <p>If you don't specify an initial topic, a list of all shared topics is shown in the Q bar for your readers. When you select an initial topic, you can specify whether or not readers are allowed to select other topics from the available ones in the list.</p>"
+          "documentation":"<p>The ID of the legacy Q topic that you want to use as the starting topic in the Q search bar. To locate the topic ID of the topic that you want to use, open the <a href=\"https://quicksight.aws.amazon.com/\">Amazon QuickSight console</a>, navigate to the <b>Topics</b> pane, and choose thre topic that you want to use. The <code>TopicID</code> is located in the URL of the topic that opens. When you select an initial topic, you can specify whether or not readers are allowed to select other topics from the list of available topics.</p> <p>If you don't specify an initial topic or if you specify a new reader experience topic, a list of all shared legacy topics is shown in the Q bar. </p>"
         }
       },
       "documentation":"<p>Information about the Q search bar embedding experience.</p>"
@@ -23948,6 +25084,10 @@
         "ExcludePeriodConfiguration":{
           "shape":"ExcludePeriodConfiguration",
           "documentation":"<p>The configuration for the exclude period of the filter.</p>"
+        },
+        "DefaultFilterControlConfiguration":{
+          "shape":"DefaultFilterControlConfiguration",
+          "documentation":"<p>The default configurations for the associated controls. This applies only for filters that are scoped to multiple sheets.</p>"
         }
       },
       "documentation":"<p>A <code>RelativeDatesFilter</code> filters relative dates values.</p>"
@@ -24129,12 +25269,27 @@
       "min":1,
       "pattern":"[\\w\\-]+"
     },
+    "ReviewedAnswerErrorCode":{
+      "type":"string",
+      "enum":[
+        "INTERNAL_ERROR",
+        "MISSING_ANSWER",
+        "DATASET_DOES_NOT_EXIST",
+        "INVALID_DATASET_ARN",
+        "DUPLICATED_ANSWER",
+        "INVALID_DATA",
+        "MISSING_REQUIRED_FIELDS"
+      ]
+    },
     "Role":{
       "type":"string",
       "enum":[
         "ADMIN",
         "AUTHOR",
-        "READER"
+        "READER",
+        "ADMIN_PRO",
+        "AUTHOR_PRO",
+        "READER_PRO"
       ]
     },
     "RoleArn":{
@@ -25295,7 +26450,7 @@
     "SeriesItemList":{
       "type":"list",
       "member":{"shape":"SeriesItem"},
-      "max":10
+      "max":2000
     },
     "ServiceNowParameters":{
       "type":"structure",
@@ -25824,6 +26979,24 @@
       },
       "documentation":"<p>The display options of a control.</p>"
     },
+    "Slot":{
+      "type":"structure",
+      "members":{
+        "SlotId":{
+          "shape":"LimitedString",
+          "documentation":"<p>The slot ID of the slot.</p>"
+        },
+        "VisualId":{
+          "shape":"LimitedString",
+          "documentation":"<p>The visual ID for the slot.</p>"
+        }
+      },
+      "documentation":"<p>The definition for the slot.</p>"
+    },
+    "Slots":{
+      "type":"list",
+      "member":{"shape":"Slot"}
+    },
     "SmallMultiplesAxisPlacement":{
       "type":"string",
       "enum":[
@@ -26243,7 +27416,7 @@
     },
     "SqlQuery":{
       "type":"string",
-      "max":65536,
+      "max":168000,
       "min":1
     },
     "SqlServerParameters":{
@@ -26736,6 +27909,42 @@
       },
       "documentation":"<p>The subtotal options.</p>"
     },
+    "SucceededTopicReviewedAnswer":{
+      "type":"structure",
+      "members":{
+        "AnswerId":{
+          "shape":"AnswerId",
+          "documentation":"<p>The answer ID for the <code>SucceededTopicReviewedAnswer</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for a <code>SucceededTopicReviewedAnswer</code>.</p>"
+    },
+    "SucceededTopicReviewedAnswers":{
+      "type":"list",
+      "member":{"shape":"SucceededTopicReviewedAnswer"}
+    },
+    "SuccessfulKeyRegistrationEntries":{
+      "type":"list",
+      "member":{"shape":"SuccessfulKeyRegistrationEntry"}
+    },
+    "SuccessfulKeyRegistrationEntry":{
+      "type":"structure",
+      "required":[
+        "KeyArn",
+        "StatusCode"
+      ],
+      "members":{
+        "KeyArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the KMS key that is associated with the <code>SuccessfulKeyRegistrationEntry</code> entry.</p>"
+        },
+        "StatusCode":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of a <code>SuccessfulKeyRegistrationEntry</code> entry.</p>"
+        }
+      },
+      "documentation":"<p>A success entry that occurs when a <code>KeyRegistration</code> job is successfully applied to the Amazon QuickSight account.</p>"
+    },
     "Suffix":{
       "type":"string",
       "max":128,
@@ -26888,7 +28097,7 @@
     "TableConditionalFormattingOptionList":{
       "type":"list",
       "member":{"shape":"TableConditionalFormattingOption"},
-      "max":100
+      "max":500
     },
     "TableConfiguration":{
       "type":"structure",
@@ -28100,6 +29309,10 @@
         "RollingDate":{
           "shape":"RollingDateConfiguration",
           "documentation":"<p>The rolling date input for the <code>TimeEquality</code> filter.</p> <p>This field is mutually exclusive to <code>Value</code> and <code>ParameterName</code>.</p>"
+        },
+        "DefaultFilterControlConfiguration":{
+          "shape":"DefaultFilterControlConfiguration",
+          "documentation":"<p>The default configurations for the associated controls. This applies only for filters that are scoped to multiple sheets.</p>"
         }
       },
       "documentation":"<p>A <code>TimeEqualityFilter</code> filters values that are equal to a given value.</p>"
@@ -28191,6 +29404,10 @@
         "TimeGranularity":{
           "shape":"TimeGranularity",
           "documentation":"<p>The level of time precision that is used to aggregate <code>DateTime</code> values.</p>"
+        },
+        "DefaultFilterControlConfiguration":{
+          "shape":"DefaultFilterControlConfiguration",
+          "documentation":"<p>The default configurations for the associated controls. This applies only for filters that are scoped to multiple sheets.</p>"
         }
       },
       "documentation":"<p>A <code>TimeRangeFilter</code> filters values that are between two specified values.</p>"
@@ -28251,6 +29468,14 @@
       },
       "documentation":"<p>The display options for the visual tooltip.</p>"
     },
+    "TooltipTarget":{
+      "type":"string",
+      "enum":[
+        "BOTH",
+        "BAR",
+        "LINE"
+      ]
+    },
     "TooltipTitleType":{
       "type":"string",
       "enum":[
@@ -28297,6 +29522,10 @@
         "ParameterName":{
           "shape":"ParameterName",
           "documentation":"<p>The parameter whose value should be used for the filter value.</p>"
+        },
+        "DefaultFilterControlConfiguration":{
+          "shape":"DefaultFilterControlConfiguration",
+          "documentation":"<p>The default configurations for the associated controls. This applies only for filters that are scoped to multiple sheets.</p>"
         }
       },
       "documentation":"<p>A <code>TopBottomFilter</code> filters values that are at the top or the bottom.</p>"
@@ -28596,6 +29825,32 @@
       "type":"list",
       "member":{"shape":"TopicColumn"}
     },
+    "TopicConstantValue":{
+      "type":"structure",
+      "members":{
+        "ConstantType":{
+          "shape":"ConstantType",
+          "documentation":"<p>The constant type of a <code>TopicConstantValue</code>.</p>"
+        },
+        "Value":{
+          "shape":"ConstantValueString",
+          "documentation":"<p>The value of the <code>TopicConstantValue</code>.</p>"
+        },
+        "Minimum":{
+          "shape":"ConstantValueString",
+          "documentation":"<p>The minimum for the <code>TopicConstantValue</code>.</p>"
+        },
+        "Maximum":{
+          "shape":"ConstantValueString",
+          "documentation":"<p>The maximum for the <code>TopicConstantValue</code>.</p>"
+        },
+        "ValueList":{
+          "shape":"CollectiveConstantEntryList",
+          "documentation":"<p>The value list of the <code>TopicConstantValue</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for a <code>TopicConstantValue</code>.</p>"
+    },
     "TopicDateRangeFilter":{
       "type":"structure",
       "members":{
@@ -28689,6 +29944,269 @@
     "TopicFilters":{
       "type":"list",
       "member":{"shape":"TopicFilter"}
+    },
+    "TopicIR":{
+      "type":"structure",
+      "members":{
+        "Metrics":{
+          "shape":"TopicIRMetricList",
+          "documentation":"<p>The metrics for the <code>TopicIR</code>.</p>"
+        },
+        "GroupByList":{
+          "shape":"TopicIRGroupByList",
+          "documentation":"<p>The GroupBy list for the <code>TopicIR</code>.</p>"
+        },
+        "Filters":{
+          "shape":"TopicIRFilterList",
+          "documentation":"<p>The filters for the <code>TopicIR</code>.</p>"
+        },
+        "Sort":{
+          "shape":"TopicSortClause",
+          "documentation":"<p>The sort for the <code>TopicIR</code>.</p>"
+        },
+        "ContributionAnalysis":{
+          "shape":"TopicIRContributionAnalysis",
+          "documentation":"<p>The contribution analysis for the <code>TopicIR</code>.</p>"
+        },
+        "Visual":{
+          "shape":"VisualOptions",
+          "documentation":"<p>The visual for the <code>TopicIR</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for a <code>TopicIR</code>.</p>"
+    },
+    "TopicIRComparisonMethod":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"ComparisonMethodType",
+          "documentation":"<p>The type for the <code>TopicIRComparisonMethod</code>.</p>"
+        },
+        "Period":{
+          "shape":"TopicTimeGranularity",
+          "documentation":"<p>The period for the <code>TopicIRComparisonMethod</code>.</p>"
+        },
+        "WindowSize":{
+          "shape":"Integer",
+          "documentation":"<p>The window size for the <code>TopicIRComparisonMethod</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition of a <code>TopicIRComparisonMethod</code>.</p>"
+    },
+    "TopicIRContributionAnalysis":{
+      "type":"structure",
+      "members":{
+        "Factors":{
+          "shape":"ContributionAnalysisFactorsList",
+          "documentation":"<p>The factors for a <code>TopicIRContributionAnalysis</code>.</p>"
+        },
+        "TimeRanges":{
+          "shape":"ContributionAnalysisTimeRanges",
+          "documentation":"<p>The time ranges for the <code>TopicIRContributionAnalysis</code>.</p>"
+        },
+        "Direction":{
+          "shape":"ContributionAnalysisDirection",
+          "documentation":"<p>The direction for the <code>TopicIRContributionAnalysis</code>.</p>"
+        },
+        "SortType":{
+          "shape":"ContributionAnalysisSortType",
+          "documentation":"<p>The sort type for the <code>TopicIRContributionAnalysis</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for a <code>TopicIRContributionAnalysis</code>.</p>"
+    },
+    "TopicIRFilterEntry":{
+      "type":"list",
+      "member":{"shape":"TopicIRFilterOption"},
+      "max":2000
+    },
+    "TopicIRFilterFunction":{
+      "type":"string",
+      "enum":[
+        "CONTAINS",
+        "EXACT",
+        "STARTS_WITH",
+        "ENDS_WITH",
+        "CONTAINS_STRING",
+        "PREVIOUS",
+        "THIS",
+        "LAST",
+        "NEXT",
+        "NOW"
+      ]
+    },
+    "TopicIRFilterList":{
+      "type":"list",
+      "member":{"shape":"TopicIRFilterEntry"},
+      "max":2000
+    },
+    "TopicIRFilterOption":{
+      "type":"structure",
+      "members":{
+        "FilterType":{
+          "shape":"TopicIRFilterType",
+          "documentation":"<p>The filter type for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "FilterClass":{
+          "shape":"FilterClass",
+          "documentation":"<p>The filter class for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "OperandField":{
+          "shape":"Identifier",
+          "documentation":"<p>The operand field for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "Function":{
+          "shape":"TopicIRFilterFunction",
+          "documentation":"<p>The function for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "Constant":{
+          "shape":"TopicConstantValue",
+          "documentation":"<p>The constant for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "Inverse":{
+          "shape":"Boolean",
+          "documentation":"<p>The inverse for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "NullFilter":{
+          "shape":"NullFilterOption",
+          "documentation":"<p>The null filter for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "Aggregation":{
+          "shape":"AggType",
+          "documentation":"<p>The aggregation for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "AggregationFunctionParameters":{
+          "shape":"AggFunctionParamMap",
+          "documentation":"<p>The aggregation function parameters for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "AggregationPartitionBy":{
+          "shape":"AggregationPartitionByList",
+          "documentation":"<p>The <code>AggregationPartitionBy</code> for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "Range":{
+          "shape":"TopicConstantValue",
+          "documentation":"<p>The range for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "Inclusive":{
+          "shape":"Boolean",
+          "documentation":"<p>The inclusive for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "TimeGranularity":{
+          "shape":"TimeGranularity",
+          "documentation":"<p>The time granularity for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "LastNextOffset":{
+          "shape":"TopicConstantValue",
+          "documentation":"<p>The last next offset for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "AggMetrics":{
+          "shape":"FilterAggMetricsList",
+          "documentation":"<p>The agg metrics for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "TopBottomLimit":{
+          "shape":"TopicConstantValue",
+          "documentation":"<p>The <code>TopBottomLimit</code> for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "SortDirection":{
+          "shape":"TopicSortDirection",
+          "documentation":"<p>The sort direction for the <code>TopicIRFilterOption</code>.</p>"
+        },
+        "Anchor":{
+          "shape":"Anchor",
+          "documentation":"<p>The anchor for the <code>TopicIRFilterOption</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for a <code>TopicIRFilterOption</code>.</p>"
+    },
+    "TopicIRFilterType":{
+      "type":"string",
+      "enum":[
+        "CATEGORY_FILTER",
+        "NUMERIC_EQUALITY_FILTER",
+        "NUMERIC_RANGE_FILTER",
+        "DATE_RANGE_FILTER",
+        "RELATIVE_DATE_FILTER",
+        "TOP_BOTTOM_FILTER",
+        "EQUALS",
+        "RANK_LIMIT_FILTER",
+        "ACCEPT_ALL_FILTER"
+      ]
+    },
+    "TopicIRGroupBy":{
+      "type":"structure",
+      "members":{
+        "FieldName":{
+          "shape":"Identifier",
+          "documentation":"<p>The field name for the <code>TopicIRGroupBy</code>.</p>"
+        },
+        "TimeGranularity":{
+          "shape":"TopicTimeGranularity",
+          "documentation":"<p>The time granularity for the <code>TopicIRGroupBy</code>.</p>"
+        },
+        "Sort":{
+          "shape":"TopicSortClause",
+          "documentation":"<p>The sort for the <code>TopicIRGroupBy</code>.</p>"
+        },
+        "DisplayFormat":{
+          "shape":"DisplayFormat",
+          "documentation":"<p>The display format for the <code>TopicIRGroupBy</code>.</p>"
+        },
+        "DisplayFormatOptions":{"shape":"DisplayFormatOptions"},
+        "NamedEntity":{
+          "shape":"NamedEntityRef",
+          "documentation":"<p>The named entity for the <code>TopicIRGroupBy</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for a <code>TopicIRGroupBy</code>.</p>"
+    },
+    "TopicIRGroupByList":{
+      "type":"list",
+      "member":{"shape":"TopicIRGroupBy"},
+      "max":2000
+    },
+    "TopicIRMetric":{
+      "type":"structure",
+      "members":{
+        "MetricId":{
+          "shape":"Identifier",
+          "documentation":"<p>The metric ID for the <code>TopicIRMetric</code>.</p>"
+        },
+        "Function":{
+          "shape":"AggFunction",
+          "documentation":"<p>The function for the <code>TopicIRMetric</code>.</p>"
+        },
+        "Operands":{
+          "shape":"OperandList",
+          "documentation":"<p>The operands for the <code>TopicIRMetric</code>.</p>"
+        },
+        "ComparisonMethod":{
+          "shape":"TopicIRComparisonMethod",
+          "documentation":"<p>The comparison method for the <code>TopicIRMetric</code>.</p>"
+        },
+        "Expression":{
+          "shape":"Expression",
+          "documentation":"<p>The expression for the <code>TopicIRMetric</code>.</p>"
+        },
+        "CalculatedFieldReferences":{
+          "shape":"CalculatedFieldReferenceList",
+          "documentation":"<p>The calculated field references for the <code>TopicIRMetric</code>.</p>"
+        },
+        "DisplayFormat":{
+          "shape":"DisplayFormat",
+          "documentation":"<p>The display format for the <code>TopicIRMetric</code>.</p>"
+        },
+        "DisplayFormatOptions":{"shape":"DisplayFormatOptions"},
+        "NamedEntity":{
+          "shape":"NamedEntityRef",
+          "documentation":"<p>The named entity for the <code>TopicIRMetric</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for a <code>TopicIRMetric</code>.</p>"
+    },
+    "TopicIRMetricList":{
+      "type":"list",
+      "member":{"shape":"TopicIRMetric"},
+      "max":2000
     },
     "TopicId":{
       "type":"string",
@@ -28896,6 +30414,49 @@
         "NOW"
       ]
     },
+    "TopicReviewedAnswer":{
+      "type":"structure",
+      "required":[
+        "AnswerId",
+        "DatasetArn",
+        "Question"
+      ],
+      "members":{
+        "Arn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the reviewed answer.</p>"
+        },
+        "AnswerId":{
+          "shape":"AnswerId",
+          "documentation":"<p>The answer ID of the reviewed answer.</p>"
+        },
+        "DatasetArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Dataset ARN for the <code>TopicReviewedAnswer</code>.</p>"
+        },
+        "Question":{
+          "shape":"LimitedString",
+          "documentation":"<p>The question for the <code>TopicReviewedAnswer</code>.</p>"
+        },
+        "Mir":{
+          "shape":"TopicIR",
+          "documentation":"<p>The mir for the <code>TopicReviewedAnswer</code>.</p>"
+        },
+        "PrimaryVisual":{
+          "shape":"TopicVisual",
+          "documentation":"<p>The primary visual for the <code>TopicReviewedAnswer</code>.</p>"
+        },
+        "Template":{
+          "shape":"TopicTemplate",
+          "documentation":"<p>The template for the <code>TopicReviewedAnswer</code>.</p>"
+        }
+      },
+      "documentation":"<p>The deinition for a <code>TopicReviewedAnswer</code>.</p>"
+    },
+    "TopicReviewedAnswers":{
+      "type":"list",
+      "member":{"shape":"TopicReviewedAnswer"}
+    },
     "TopicScheduleType":{
       "type":"string",
       "enum":[
@@ -28920,6 +30481,27 @@
       "documentation":"<p>A structure that represents a singular filter constant, used in filters to specify a single value to match against.</p>",
       "sensitive":true
     },
+    "TopicSortClause":{
+      "type":"structure",
+      "members":{
+        "Operand":{
+          "shape":"Identifier",
+          "documentation":"<p>The operand for a <code>TopicSortClause</code>.</p>"
+        },
+        "SortDirection":{
+          "shape":"TopicSortDirection",
+          "documentation":"<p>The sort direction for the <code>TopicSortClause</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for a <code>TopicSortClause</code>.</p>"
+    },
+    "TopicSortDirection":{
+      "type":"string",
+      "enum":[
+        "ASCENDING",
+        "DESCENDING"
+      ]
+    },
     "TopicSummaries":{
       "type":"list",
       "member":{"shape":"TopicSummary"}
@@ -28938,9 +30520,27 @@
         "Name":{
           "shape":"ResourceName",
           "documentation":"<p>The name of the topic.</p>"
+        },
+        "UserExperienceVersion":{
+          "shape":"TopicUserExperienceVersion",
+          "documentation":"<p>The user experience version of the topic.</p>"
         }
       },
       "documentation":"<p>A topic summary.</p>"
+    },
+    "TopicTemplate":{
+      "type":"structure",
+      "members":{
+        "TemplateType":{
+          "shape":"LimitedString",
+          "documentation":"<p>The template type for the <code>TopicTemplate</code>.</p>"
+        },
+        "Slots":{
+          "shape":"Slots",
+          "documentation":"<p>The slots for the <code>TopicTemplate</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for a <code>TopicTemplate</code>.</p>"
     },
     "TopicTimeGranularity":{
       "type":"string",
@@ -28961,6 +30561,32 @@
         "LEGACY",
         "NEW_READER_EXPERIENCE"
       ]
+    },
+    "TopicVisual":{
+      "type":"structure",
+      "members":{
+        "VisualId":{
+          "shape":"LimitedString",
+          "documentation":"<p>The visual ID for the <code>TopicVisual</code>.</p>"
+        },
+        "Role":{
+          "shape":"VisualRole",
+          "documentation":"<p>The role for the <code>TopicVisual</code>.</p>"
+        },
+        "Ir":{
+          "shape":"TopicIR",
+          "documentation":"<p>The ir for the <code>TopicVisual</code>.</p>"
+        },
+        "SupportingVisuals":{
+          "shape":"TopicVisuals",
+          "documentation":"<p>The supporting visuals for the <code>TopicVisual</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for a <code>TopicVisual</code>.</p>"
+    },
+    "TopicVisuals":{
+      "type":"list",
+      "member":{"shape":"TopicVisual"}
     },
     "TotalAggregationComputation":{
       "type":"structure",
@@ -30519,6 +32145,14 @@
           "shape":"IpRestrictionRuleMap",
           "documentation":"<p>A map that describes the updated IP rules with CIDR ranges and descriptions.</p>"
         },
+        "VpcIdRestrictionRuleMap":{
+          "shape":"VpcIdRestrictionRuleMap",
+          "documentation":"<p>A map of VPC IDs and their corresponding rules. When you configure this parameter, traffic from all VPC endpoints that are present in the specified VPC is allowed.</p>"
+        },
+        "VpcEndpointIdRestrictionRuleMap":{
+          "shape":"VpcEndpointIdRestrictionRuleMap",
+          "documentation":"<p>A map of allowed VPC endpoint IDs and their corresponding rule descriptions.</p>"
+        },
         "Enabled":{
           "shape":"NullableBoolean",
           "documentation":"<p>A value that specifies whether IP rules are turned on.</p>"
@@ -30540,6 +32174,42 @@
           "shape":"StatusCode",
           "documentation":"<p>The HTTP status of the request. </p>",
           "location":"statusCode"
+        }
+      }
+    },
+    "UpdateKeyRegistrationRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "KeyRegistration"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that contains the customer managed key registration that you want to update.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "KeyRegistration":{
+          "shape":"KeyRegistration",
+          "documentation":"<p>A list of <code>RegisteredCustomerManagedKey</code> objects to be updated to the Amazon QuickSight account.</p>"
+        }
+      }
+    },
+    "UpdateKeyRegistrationResponse":{
+      "type":"structure",
+      "members":{
+        "FailedKeyRegistration":{
+          "shape":"FailedKeyRegistrationEntries",
+          "documentation":"<p>A list of all customer managed key registrations that failed to update.</p>"
+        },
+        "SuccessfulKeyRegistration":{
+          "shape":"SuccessfulKeyRegistrationEntries",
+          "documentation":"<p>A list of all customer managed key registrations that were successfully updated.</p>"
+        },
+        "RequestId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
         }
       }
     },
@@ -30674,6 +32344,39 @@
         "Status":{
           "shape":"StatusCode",
           "documentation":"<p>The HTTP status of the request.</p>"
+        }
+      }
+    },
+    "UpdateSPICECapacityConfigurationRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "PurchaseMode"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that contains the SPICE configuration that you want to update.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "PurchaseMode":{
+          "shape":"PurchaseMode",
+          "documentation":"<p>Determines how SPICE capacity can be purchased. The following options are available. </p> <ul> <li> <p> <code>MANUAL</code>: SPICE capacity can only be purchased manually.</p> </li> <li> <p> <code>AUTO_PURCHASE</code>: Extra SPICE capacity is automatically purchased on your behalf as needed. SPICE capacity can also be purchased manually with this option.</p> </li> </ul>"
+        }
+      }
+    },
+    "UpdateSPICECapacityConfigurationResponse":{
+      "type":"structure",
+      "members":{
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
         }
       }
     },
@@ -31228,7 +32931,7 @@
         },
         "Role":{
           "shape":"UserRole",
-          "documentation":"<p>The Amazon QuickSight role of the user. The role can be one of the following default security cohorts:</p> <ul> <li> <p> <code>READER</code>: A user who has read-only access to dashboards.</p> </li> <li> <p> <code>AUTHOR</code>: A user who can create data sources, datasets, analyses, and dashboards.</p> </li> <li> <p> <code>ADMIN</code>: A user who is an author, who can also manage Amazon QuickSight settings.</p> </li> </ul> <p>The name of the Amazon QuickSight role is invisible to the user except for the console screens dealing with permissions.</p>"
+          "documentation":"<p>The Amazon QuickSight role of the user. The role can be one of the following default security cohorts:</p> <ul> <li> <p> <code>READER</code>: A user who has read-only access to dashboards.</p> </li> <li> <p> <code>AUTHOR</code>: A user who can create data sources, datasets, analyses, and dashboards.</p> </li> <li> <p> <code>ADMIN</code>: A user who is an author, who can also manage Amazon QuickSight settings.</p> </li> <li> <p> <code>READER_PRO</code>: Reader Pro adds Generative BI capabilities to the Reader role. Reader Pros have access to Amazon Q in Amazon QuickSight, can build stories with Amazon Q, and can generate executive summaries from dashboards.</p> </li> <li> <p> <code>AUTHOR_PRO</code>: Author Pro adds Generative BI capabilities to the Author role. Author Pros can author dashboards with natural language with Amazon Q, build stories with Amazon Q, create Topics for Q&amp;A, and generate executive summaries from dashboards.</p> </li> <li> <p> <code>ADMIN_PRO</code>: Admin Pros are Author Pros who can also manage Amazon QuickSight administrative settings. Admin Pro users are billed at Author Pro pricing.</p> </li> </ul> <p>The name of the Amazon QuickSight role is invisible to the user except for the console screens dealing with permissions.</p>"
         },
         "CustomPermissionsName":{
           "shape":"RoleName",
@@ -31390,7 +33093,7 @@
         },
         "Role":{
           "shape":"UserRole",
-          "documentation":"<p>The Amazon QuickSight role for the user. The user role can be one of the following:.</p> <ul> <li> <p> <code>READER</code>: A user who has read-only access to dashboards.</p> </li> <li> <p> <code>AUTHOR</code>: A user who can create data sources, datasets, analyses, and dashboards.</p> </li> <li> <p> <code>ADMIN</code>: A user who is an author, who can also manage Amazon Amazon QuickSight settings.</p> </li> <li> <p> <code>RESTRICTED_READER</code>: This role isn't currently available for use.</p> </li> <li> <p> <code>RESTRICTED_AUTHOR</code>: This role isn't currently available for use.</p> </li> </ul>"
+          "documentation":"<p>The Amazon QuickSight role for the user. The user role can be one of the following:.</p> <ul> <li> <p> <code>READER</code>: A user who has read-only access to dashboards.</p> </li> <li> <p> <code>AUTHOR</code>: A user who can create data sources, datasets, analyses, and dashboards.</p> </li> <li> <p> <code>ADMIN</code>: A user who is an author, who can also manage Amazon Amazon QuickSight settings.</p> </li> <li> <p> <code>READER_PRO</code>: Reader Pro adds Generative BI capabilities to the Reader role. Reader Pros have access to Amazon Q in Amazon QuickSight, can build stories with Amazon Q, and can generate executive summaries from dashboards.</p> </li> <li> <p> <code>AUTHOR_PRO</code>: Author Pro adds Generative BI capabilities to the Author role. Author Pros can author dashboards with natural language with Amazon Q, build stories with Amazon Q, create Topics for Q&amp;A, and generate executive summaries from dashboards.</p> </li> <li> <p> <code>ADMIN_PRO</code>: Admin Pros are Author Pros who can also manage Amazon QuickSight administrative settings. Admin Pro users are billed at Author Pro pricing.</p> </li> <li> <p> <code>RESTRICTED_READER</code>: This role isn't currently available for use.</p> </li> <li> <p> <code>RESTRICTED_AUTHOR</code>: This role isn't currently available for use.</p> </li> </ul>"
         },
         "IdentityType":{
           "shape":"IdentityType",
@@ -31439,7 +33142,10 @@
         "AUTHOR",
         "READER",
         "RESTRICTED_AUTHOR",
-        "RESTRICTED_READER"
+        "RESTRICTED_READER",
+        "ADMIN_PRO",
+        "AUTHOR_PRO",
+        "READER_PRO"
       ]
     },
     "VPCConnection":{
@@ -31871,6 +33577,16 @@
       },
       "documentation":"<p>The menu options for a visual.</p>"
     },
+    "VisualOptions":{
+      "type":"structure",
+      "members":{
+        "type":{
+          "shape":"LimitedString",
+          "documentation":"<p>The type for a <code>VisualOptions</code>.</p>"
+        }
+      },
+      "documentation":"<p>The definition for a <code>VisualOptions</code>.</p>"
+    },
     "VisualPalette":{
       "type":"structure",
       "members":{
@@ -31884,6 +33600,16 @@
         }
       },
       "documentation":"<p>The visual display options for the visual palette.</p>"
+    },
+    "VisualRole":{
+      "type":"string",
+      "enum":[
+        "PRIMARY",
+        "COMPLIMENTARY",
+        "MULTI_INTENT",
+        "FALLBACK",
+        "FRAGMENT"
+      ]
     },
     "VisualSubtitleLabelOptions":{
       "type":"structure",
@@ -31923,6 +33649,38 @@
         }
       },
       "documentation":"<p>VPC connection properties.</p>"
+    },
+    "VpcEndpointId":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"^vpce-[0-9a-z]*$"
+    },
+    "VpcEndpointIdRestrictionRuleDescription":{
+      "type":"string",
+      "max":150,
+      "min":0
+    },
+    "VpcEndpointIdRestrictionRuleMap":{
+      "type":"map",
+      "key":{"shape":"VpcEndpointId"},
+      "value":{"shape":"VpcEndpointIdRestrictionRuleDescription"}
+    },
+    "VpcId":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"^vpc-[0-9a-z]*$"
+    },
+    "VpcIdRestrictionRuleDescription":{
+      "type":"string",
+      "max":150,
+      "min":0
+    },
+    "VpcIdRestrictionRuleMap":{
+      "type":"map",
+      "key":{"shape":"VpcId"},
+      "value":{"shape":"VpcIdRestrictionRuleDescription"}
     },
     "Warehouse":{
       "type":"string",

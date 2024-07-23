@@ -45,7 +45,6 @@ import software.amazon.awssdk.crt.s3.ChecksumConfig;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
-import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
@@ -54,7 +53,6 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -64,7 +62,6 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  */
 @SdkInternalApi
 public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
-    private static final Logger log = Logger.loggerFor(S3CrtAsyncHttpClient.class);
 
     private final S3Client crtS3Client;
 
@@ -133,12 +130,15 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         URI uri = asyncRequest.request().getUri();
         HttpRequest httpRequest = toCrtRequest(asyncRequest);
         SdkHttpExecutionAttributes httpExecutionAttributes = asyncRequest.httpExecutionAttributes();
+        CompletableFuture<S3MetaRequestWrapper> s3MetaRequestFuture = new CompletableFuture<>();
         S3CrtResponseHandlerAdapter responseHandler =
             new S3CrtResponseHandlerAdapter(executeFuture,
                                             asyncRequest.responseHandler(),
-                                            httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER));
+                                            httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
+                                            s3MetaRequestFuture);
 
-        S3MetaRequestOptions.MetaRequestType requestType = requestType(asyncRequest);
+        String operationName = asyncRequest.httpExecutionAttributes().getAttribute(OPERATION_NAME);
+        S3MetaRequestOptions.MetaRequestType requestType = requestType(operationName);
 
         HttpChecksum httpChecksum = httpExecutionAttributes.getAttribute(HTTP_CHECKSUM);
         ResumeToken resumeToken = httpExecutionAttributes.getAttribute(CRT_PAUSE_RESUME_TOKEN);
@@ -157,19 +157,23 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             .withEndpoint(endpoint)
             .withResponseHandler(responseHandler)
             .withResumeToken(resumeToken)
+            .withOperationName(operationName)
             .withRequestFilePath(requestFilePath)
             .withSigningConfig(signingConfig);
 
-        S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions);
-        S3MetaRequestPauseObservable observable =
-            httpExecutionAttributes.getAttribute(METAREQUEST_PAUSE_OBSERVABLE);
+        try {
+            S3MetaRequestWrapper requestWrapper = new S3MetaRequestWrapper(crtS3Client.makeMetaRequest(requestOptions));
+            s3MetaRequestFuture.complete(requestWrapper);
 
-        responseHandler.metaRequest(s3MetaRequest);
+            S3MetaRequestPauseObservable observable =
+                httpExecutionAttributes.getAttribute(METAREQUEST_PAUSE_OBSERVABLE);
 
-        if (observable != null) {
-            observable.subscribe(s3MetaRequest);
+            if (observable != null) {
+                observable.subscribe(requestWrapper);
+            }
+        } finally {
+            signingConfig.close();
         }
-        closeResourceCallback(executeFuture, s3MetaRequest, responseHandler, signingConfig);
 
         return executeFuture;
     }
@@ -200,8 +204,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         return "s3crt";
     }
 
-    private static S3MetaRequestOptions.MetaRequestType requestType(AsyncExecuteRequest asyncRequest) {
-        String operationName = asyncRequest.httpExecutionAttributes().getAttribute(OPERATION_NAME);
+    private static S3MetaRequestOptions.MetaRequestType requestType(String operationName) {
         if (operationName != null) {
             switch (operationName) {
                 case "GetObject":
@@ -213,23 +216,6 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             }
         }
         return S3MetaRequestOptions.MetaRequestType.DEFAULT;
-    }
-
-    private static void closeResourceCallback(CompletableFuture<Void> executeFuture,
-                                              S3MetaRequest s3MetaRequest,
-                                              S3CrtResponseHandlerAdapter responseHandler,
-                                              AwsSigningConfig signingConfig) {
-        executeFuture.whenComplete((r, t) -> {
-            if (executeFuture.isCancelled()) {
-                log.debug(() -> "The request is cancelled, cancelling meta request");
-                responseHandler.cancelRequest();
-                s3MetaRequest.cancel();
-                signingConfig.close();
-            } else {
-                s3MetaRequest.close();
-                signingConfig.close();
-            }
-        });
     }
 
     private static HttpRequest toCrtRequest(AsyncExecuteRequest asyncRequest) {

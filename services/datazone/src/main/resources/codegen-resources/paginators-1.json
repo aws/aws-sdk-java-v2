@@ -1,5 +1,11 @@
 {
   "pagination": {
+    "ListAssetFilters": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "limit_key": "maxResults",
+      "result_key": "items"
+    },
     "ListAssetRevisions": {
       "input_token": "nextToken",
       "output_token": "nextToken",
@@ -30,6 +36,12 @@
       "limit_key": "maxResults",
       "result_key": "items"
     },
+    "ListEnvironmentActions": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "limit_key": "maxResults",
+      "result_key": "items"
+    },
     "ListEnvironmentBlueprintConfigurations": {
       "input_token": "nextToken",
       "output_token": "nextToken",
@@ -49,6 +61,18 @@
       "result_key": "items"
     },
     "ListEnvironments": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "limit_key": "maxResults",
+      "result_key": "items"
+    },
+    "ListLineageNodeHistory": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "limit_key": "maxResults",
+      "result_key": "nodes"
+    },
+    "ListMetadataGenerationRuns": {
       "input_token": "nextToken",
       "output_token": "nextToken",
       "limit_key": "maxResults",
@@ -91,6 +115,12 @@
       "result_key": "items"
     },
     "ListSubscriptions": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "limit_key": "maxResults",
+      "result_key": "items"
+    },
+    "ListTimeSeriesDataPoints": {
       "input_token": "nextToken",
       "output_token": "nextToken",
       "limit_key": "maxResults",

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.core.rules.testing.AsyncTestCase;
 import software.amazon.awssdk.core.rules.testing.BaseRuleSetClientTest;
 import software.amazon.awssdk.core.rules.testing.SyncTestCase;
@@ -67,6 +68,17 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
                 builder.build().operationWithContextParam(request);
             }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://myservice.aws")).build()).build(),
                              "Does not work"),
+            new SyncTestCase("test case 5", () -> {
+                QueryClientBuilder builder = QueryClient.builder();
+                builder.credentialsProvider(BaseRuleSetClientTest.credentialsProviderWithAccountId("012345678901"));
+                builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
+                builder.httpClient(getSyncHttpClient());
+                builder.accountIdEndpointMode(AccountIdEndpointMode.fromValue("required"));
+                OperationWithContextParamRequest request = OperationWithContextParamRequest.builder()
+                                                                                           .stringMember("this is a test with AccountId and AccountIdEndpointMode").build();
+                builder.build().operationWithContextParam(request);
+            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://012345678901.myservice.aws")).build())
+                     .build()),
             new SyncTestCase("Has complex operation input", () -> {
                 QueryClientBuilder builder = QueryClient.builder();
                 builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
@@ -101,6 +113,17 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
                 return builder.build().operationWithContextParam(request);
             }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://myservice.aws")).build()).build(),
                               "Does not work"),
+            new AsyncTestCase("test case 5", () -> {
+                QueryAsyncClientBuilder builder = QueryAsyncClient.builder();
+                builder.credentialsProvider(BaseRuleSetClientTest.credentialsProviderWithAccountId("012345678901"));
+                builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
+                builder.httpClient(getAsyncHttpClient());
+                builder.accountIdEndpointMode(AccountIdEndpointMode.fromValue("required"));
+                OperationWithContextParamRequest request = OperationWithContextParamRequest.builder()
+                                                                                           .stringMember("this is a test with AccountId and AccountIdEndpointMode").build();
+                return builder.build().operationWithContextParam(request);
+            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://012345678901.myservice.aws")).build())
+                     .build()),
             new AsyncTestCase("Has complex operation input", () -> {
                 QueryAsyncClientBuilder builder = QueryAsyncClient.builder();
                 builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);

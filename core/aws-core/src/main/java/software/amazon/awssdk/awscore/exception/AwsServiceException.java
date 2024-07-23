@@ -107,6 +107,11 @@ public class AwsServiceException extends SdkServiceException {
                                                                    ClockSkew.getServerTime(sdkHttpResponse).orElse(null));
     }
 
+    /**
+     * Checks if the exception is caused by throttling, considering both generic SDK and AWS-specific error code details.
+     *
+     * @return true if the status code is 429 or if the AWS error code indicates throttling, otherwise false.
+     * */
     @Override
     public boolean isThrottlingException() {
         return super.isThrottlingException() ||

@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
-import static software.amazon.awssdk.services.s3.multipart.S3PauseResumeExecutionAttribute.PAUSE_OBSERVABLE;
-import static software.amazon.awssdk.services.s3.multipart.S3PauseResumeExecutionAttribute.RESUME_TOKEN;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.PAUSE_OBSERVABLE;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.RESUME_TOKEN;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -136,7 +136,6 @@ public final class UploadWithKnownContentLengthHelper {
                                                                .contentLength(contentLength)
                                                                .partSize(partSize)
                                                                .uploadId(uploadId)
-                                                               .existingParts(new ConcurrentHashMap<>())
                                                                .numPartsCompleted(numPartsCompleted)
                                                                .build();
 

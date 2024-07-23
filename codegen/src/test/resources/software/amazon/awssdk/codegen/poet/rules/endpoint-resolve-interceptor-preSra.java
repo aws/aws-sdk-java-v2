@@ -31,13 +31,18 @@ import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
+import software.amazon.awssdk.services.query.jmespath.internal.JmesPathRuntime;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
+import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperationContextParamRequest;
+import software.amazon.awssdk.services.query.model.OperationWithOperationContextParamRequest;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
@@ -113,9 +118,14 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         builder.region(AwsEndpointProviderUtils.regionBuiltIn(executionAttributes));
         builder.useDualStackEndpoint(AwsEndpointProviderUtils.dualStackEnabledBuiltIn(executionAttributes));
         builder.useFipsEndpoint(AwsEndpointProviderUtils.fipsEnabledBuiltIn(executionAttributes));
+        builder.accountId(accountIdFromIdentity(executionAttributes
+                                                    .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)));
+        builder.accountIdEndpointMode(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE)
+                                                         .name().toLowerCase());
         setClientContextParams(builder, executionAttributes);
         setContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), request);
         setStaticContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME));
+        setOperationContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), request);
         return builder.build();
     }
 
@@ -192,6 +202,31 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             params::stringContextParam);
     }
 
+    private static void setOperationContextParams(QueryEndpointParams.Builder params, String operationName, SdkRequest request) {
+        switch (operationName) {
+            case "OperationWithCustomizedOperationContextParam":
+                setOperationContextParams(params, (OperationWithCustomizedOperationContextParamRequest) request);
+                break;
+            case "OperationWithOperationContextParam":
+                setOperationContextParams(params, (OperationWithOperationContextParamRequest) request);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private static void setOperationContextParams(QueryEndpointParams.Builder params,
+                                                  OperationWithCustomizedOperationContextParamRequest request) {
+        JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
+        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString").stringValues());
+    }
+
+    private static void setOperationContextParams(QueryEndpointParams.Builder params,
+                                                  OperationWithOperationContextParamRequest request) {
+        JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
+        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString").stringValues());
+    }
+
     private static Optional<String> hostPrefix(String operationName, SdkRequest request) {
         switch (operationName) {
             case "APostOperation": {
@@ -212,5 +247,14 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 break;
         }
         throw SdkClientException.create("Don't know how to create signer for auth scheme: " + authScheme.name());
+    }
+
+    private static <T extends Identity> String accountIdFromIdentity(SelectedAuthScheme<T> selectedAuthScheme) {
+        T identity = CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity());
+        String accountId = null;
+        if (identity instanceof AwsCredentialsIdentity) {
+            accountId = ((AwsCredentialsIdentity) identity).accountId().orElse(null);
+        }
+        return accountId;
     }
 }

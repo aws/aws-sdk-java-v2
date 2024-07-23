@@ -18,8 +18,9 @@ package software.amazon.awssdk.services.s3.s3express;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.CHECKSUM;
 import static software.amazon.awssdk.testutils.service.AwsTestBase.CREDENTIALS_PROVIDER_CHAIN;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -100,6 +101,12 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
     private static S3AsyncClient s3Async;
     private static S3AsyncClient s3CrtAsync;
     private static String testBucket;
+
+    private static final String S3EXPRESS_BUCKET_PATTERN = temporaryBucketName(S3ExpressIntegrationTest.class) +"--%s--x-s3";
+
+    private static String getS3ExpressBucketNameForAz(String az) {
+        return String.format(S3EXPRESS_BUCKET_PATTERN, az);
+    }
 
     @BeforeAll
     static void setup() {
@@ -200,7 +207,7 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
     }
 
     @Test
-    public void putObject_withUserCalculatedChecksum_doesNotAddMultipleHeaders() throws NoSuchAlgorithmException {
+    public void putObject_withUserCalculatedChecksum_doesNotAddMultipleHeadersOrPerformMd5Validation() throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-1");
         byte[] data = CONTENTS.getBytes(StandardCharsets.UTF_8);
 
@@ -214,11 +221,9 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
                                                    .checksumSHA1(checksumVal)
                                                    .build();
 
-        // TODO (s3Express) - checksum calculation incorrect, but original bug is fixed
-        RetryableException exception = assertThrows(RetryableException.class, () ->
-            s3.putObject(request, RequestBody.fromString(CONTENTS)));
-        assertThat(exception.getMessage()).doesNotContain("Expecting a single x-amz-checksum- header");
-        assertThat(exception.getMessage()).contains("Data read has a different checksum than expected");
+        s3.putObject(request, RequestBody.fromString(CONTENTS));
+        assertThat(capturingInterceptor.capturedRequests()).hasSize(1);
+        assertThat(capturingInterceptor.isMd5Enabled).isFalse();
     }
 
     @Test
@@ -464,10 +469,12 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
 
     private static class CapturingInterceptor implements ExecutionInterceptor {
         private final List<SdkHttpRequest> capturedRequests = new ArrayList<>();
+        private boolean isMd5Enabled;
 
         @Override
         public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
             capturedRequests.add(context.httpRequest());
+            isMd5Enabled = executionAttributes.getAttribute(CHECKSUM) != null;
         }
 
         public void reset() {
@@ -476,6 +483,10 @@ public class S3ExpressIntegrationTest extends S3ExpressIntegrationTestBase {
 
         public List<SdkHttpRequest> capturedRequests() {
             return Collections.unmodifiableList(capturedRequests);
+        }
+
+        public boolean isMd5Enabled() {
+            return isMd5Enabled;
         }
     }
 }

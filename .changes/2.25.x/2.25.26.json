@@ -1,0 +1,30 @@
+{
+    "version": "2.25.26",
+    "date": "2024-04-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Resource Groups",
+            "contributor": "",
+            "description": "Added a new QueryErrorCode RESOURCE_TYPE_NOT_SUPPORTED that is returned by the ListGroupResources operation if the group query contains unsupported resource types."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Adding IAMIdentityCenterInstanceArn parameter to CreateAccountSubscription"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Verified Permissions",
+            "contributor": "",
+            "description": "Adding BatchIsAuthorizedWithToken API which supports multiple authorization requests against a PolicyStore given a bearer token."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

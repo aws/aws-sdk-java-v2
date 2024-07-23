@@ -1,0 +1,42 @@
+{
+    "version": "2.24.10",
+    "date": "2024-02-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "contributor": "",
+            "description": "Documentation only updates for AppSync"
+        },
+        {
+            "type": "feature",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Make Transfer Manager work by default with S3AsyncClient when multipart configuration is enabled."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QLDB",
+            "contributor": "",
+            "description": "Clarify possible values for KmsKeyArn and EncryptionDescription."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Add pattern and length based validations for DBShardGroupIdentifier"
+        },
+        {
+            "type": "feature",
+            "category": "CloudWatch RUM",
+            "contributor": "",
+            "description": "Doc-only update for new RUM metrics that were added"
+        },
+        {
+            "type": "feature",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Enable multipart configuration by default when creating a new S3TranferManager instance using the .create() method"
+        }
+    ]
+}

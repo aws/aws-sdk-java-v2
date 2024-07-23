@@ -32,8 +32,11 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  * <p>
  * Payloads are still signed for requests over HTTP to preserve the request
  * integrity over a non-secure transport.
+ *
+ * @deprecated Use {@code software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner} from the 'http-auth-aws' module.
  */
 @SdkPublicApi
+@Deprecated
 public final class Aws4UnsignedPayloadSigner extends BaseAws4Signer {
 
     public static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";

@@ -46,6 +46,11 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_SESSION_TOKEN("aws.sessionToken", null),
 
     /**
+     * Configure the AWS account id associated with credentials supplied through system properties.
+     */
+    AWS_ACCOUNT_ID("aws.accountId", null),
+
+    /**
      * Configure the AWS web identity token file path.
      */
     AWS_WEB_IDENTITY_TOKEN_FILE("aws.webIdentityTokenFile", null),
@@ -188,6 +193,11 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_DEFAULTS_MODE("aws.defaultsMode", null),
 
     /**
+     * Which {@code AccountIdEndpointMode} to use, case insensitive
+     */
+    AWS_ACCOUNT_ID_ENDPOINT_MODE("aws.accountIdEndpointMode", null),
+
+    /**
      * Defines whether dualstack endpoints should be resolved during default endpoint resolution instead of non-dualstack
      * endpoints.
      */
@@ -209,6 +219,12 @@ public enum SdkSystemSetting implements SystemSetting {
      * The value must be non-negative and no greater than 10_485_760.
      */
     AWS_REQUEST_MIN_COMPRESSION_SIZE_BYTES("aws.requestMinCompressionSizeBytes", null),
+
+    /**
+     * Defines a file path from which partition metadata should be loaded. If this isn't specified, the partition
+     * metadata deployed with the SDK client will be used instead.
+     */
+    AWS_PARTITIONS_FILE("aws.partitionsFile", null)
 
     ;
 

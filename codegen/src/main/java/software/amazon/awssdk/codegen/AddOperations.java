@@ -47,12 +47,14 @@ final class AddOperations {
     private final NamingStrategy namingStrategy;
     private final Map<String, PaginatorDefinition> paginators;
     private final List<String> deprecatedShapes;
+    private final boolean useMultiAuth;
 
     AddOperations(IntermediateModelBuilder builder) {
         this.serviceModel = builder.getService();
         this.namingStrategy = builder.getNamingStrategy();
         this.paginators = builder.getPaginators().getPagination();
         this.deprecatedShapes = builder.getCustomConfig().getDeprecatedShapes();
+        this.useMultiAuth = builder.getCustomConfig().useMultiAuth();
     }
 
     private static boolean isAuthenticated(Operation op) {
@@ -178,6 +180,7 @@ final class AddOperations {
             operationModel.setHttpChecksum(op.getHttpChecksum());
             operationModel.setRequestcompression(op.getRequestcompression());
             operationModel.setStaticContextParams(op.getStaticContextParams());
+            operationModel.setOperationContextParams(op.getOperationContextParams());
             operationModel.setAuth(getAuthFromOperation(op));
 
             Input input = op.getInput();
@@ -234,13 +237,16 @@ final class AddOperations {
     }
 
     /**
-     * Returns the list of authTypes defined for an operation. If the new auth member is defined we use it, otherwise we retrofit
-     * the list with the value of the authType member if present or return an empty list if not.
+     * Returns the list of authTypes defined for an operation. If useMultiAuth is enabled, then
+     * {@code operation.auth} will be used in the conversion if present. Otherwise, use
+     * {@code operation.authtype} if present.
      */
     private List<AuthType> getAuthFromOperation(Operation op) {
-        List<String> opAuth = op.getAuth();
-        if (opAuth != null) {
-            return opAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
+        if (useMultiAuth) {
+            List<String> opAuth = op.getAuth();
+            if (opAuth != null) {
+                return opAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
+            }
         }
         AuthType legacyAuthType = op.getAuthtype();
         if (legacyAuthType != null) {

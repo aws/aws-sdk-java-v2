@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
@@ -97,10 +98,8 @@ public final class S3ExpressChecksumInterceptor implements ExecutionInterceptor 
     }
 
     private boolean requestContainsUserCalculatedChecksum(SdkRequest request) {
-        return request.getValueForField("ChecksumCRC32", String.class).isPresent()
-               || request.getValueForField("ChecksumCRC32C", String.class).isPresent()
-               || request.getValueForField("ChecksumSHA1", String.class).isPresent()
-               || request.getValueForField("ChecksumSHA256", String.class).isPresent();
+        return Stream.of("ChecksumCRC32", "ChecksumCRC32C", "ChecksumSHA1", "ChecksumSHA256")
+                     .anyMatch(s -> request.getValueForField(s, String.class).isPresent());
     }
 
     private boolean shouldAlwaysAddChecksum(ChecksumSpecs checksumSpecs, SdkRequest request) {
