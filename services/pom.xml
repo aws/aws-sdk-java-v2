@@ -135,7 +135,6 @@
         <module>mediapackage</module>
         <module>mediastore</module>
         <module>mediastoredata</module>
-        <module>mobile</module>
         <module>mq</module>
         <module>pricing</module>
         <module>resourcegroups</module>
