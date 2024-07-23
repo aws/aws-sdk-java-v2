@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.26.22</version>
+    <version>2.26.23</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -97,14 +97,14 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.26.21</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.26.22</awsjavasdk.previous.version>
         <jackson.version>2.15.2</jackson.version>
         <jackson.databind.version>2.15.2</jackson.databind.version>
         <jacksonjr.version>2.13.2</jacksonjr.version>
         <eventstream.version>1.0.1</eventstream.version>
         <commons.lang.version>3.14.0</commons.lang.version>
         <wiremock.version>2.32.0</wiremock.version>
-        <slf4j.version>1.7.30</slf4j.version>
+        <slf4j.version>1.7.36</slf4j.version>
         <log4j.version>2.17.1</log4j.version>
         <commons.io.version>2.11.0</commons.io.version>
         <equalsverifier.version>3.15.1</equalsverifier.version>
@@ -174,7 +174,7 @@
 
         <jre.version>1.8</jre.version>
         <httpcomponents.httpclient.version>4.5.13</httpcomponents.httpclient.version>
-        <httpcomponents.httpcore.version>4.4.13</httpcomponents.httpcore.version>
+        <httpcomponents.httpcore.version>4.4.16</httpcomponents.httpcore.version>
 
         <!-- Reactive Streams version -->
         <reactive-streams.version>1.0.4</reactive-streams.version>
