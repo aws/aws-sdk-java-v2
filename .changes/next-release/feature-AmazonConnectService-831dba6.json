@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "Added PostContactSummary segment type on ListRealTimeContactAnalysisSegmentsV2 API"
+}
