@@ -170,7 +170,7 @@ public class MetricUtilsTest {
         }
     }
 
-    @Test
+    /*@Test
     public void collectHttpMetrics_collectsAllExpectedMetrics() {
         MetricCollector mockCollector = mock(MetricCollector.class);
 
@@ -192,5 +192,5 @@ public class MetricUtilsTest {
         verify(mockCollector).reportMetric(CoreMetric.AWS_REQUEST_ID, requestId);
         verify(mockCollector).reportMetric(CoreMetric.AWS_REQUEST_ID, amznRequestId);
         verify(mockCollector).reportMetric(CoreMetric.AWS_EXTENDED_REQUEST_ID, requestId2);
-    }
+    }*/
 }

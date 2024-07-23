@@ -44,8 +44,11 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.SslProvider;
 import java.net.URI;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2GoAwayEventListener;
@@ -66,6 +69,8 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     private final AtomicReference<ChannelPool> channelPoolRef;
     private final NettyConfiguration configuration;
     private final URI poolKey;
+
+    static final Logger log = LoggerFactory.getLogger(ChannelPipelineInitializer.class);
 
     public ChannelPipelineInitializer(Protocol protocol,
                                       SslContext sslCtx,
@@ -89,6 +94,9 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
 
     @Override
     public void channelCreated(Channel ch) {
+
+        log.info(Arrays.toString(Thread.currentThread().getStackTrace()));
+
         ch.attr(CHANNEL_DIAGNOSTICS).set(new ChannelDiagnostics(ch));
         ch.attr(PROTOCOL_FUTURE).set(new CompletableFuture<>());
         ChannelPipeline pipeline = ch.pipeline();
