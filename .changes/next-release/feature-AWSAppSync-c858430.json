@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS AppSync",
+    "contributor": "",
+    "description": "Adding support for paginators in AppSync list APIs"
+}
