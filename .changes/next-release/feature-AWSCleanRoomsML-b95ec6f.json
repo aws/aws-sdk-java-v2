@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Clean Rooms ML",
+    "contributor": "",
+    "description": "Adds SQL query as the source of seed audience for audience generation job."
+}
