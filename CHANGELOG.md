@@ -1,4 +1,116 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.23__ __2024-07-23__
+## __AWS AppSync__
+  - ### Features
+    - Adding support for paginators in AppSync list APIs
+
+## __AWS Clean Rooms ML__
+  - ### Features
+    - Adds SQL query as the source of seed audience for audience generation job.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release adds AWS Entity Resolution integration to associate ID namespaces & ID mapping workflow resources as part of ID namespace association and ID mapping table in AWS Clean Rooms. It also introduces a new ID_MAPPING_TABLE analysis rule to manage the protection on ID mapping table.
+
+## __AWS EntityResolution__
+  - ### Features
+    - Support First Party ID Mapping
+
+## __Amazon Connect Contact Lens__
+  - ### Features
+    - Added PostContactSummary segment type on ListRealTimeContactAnalysisSegments API
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added PostContactSummary segment type on ListRealTimeContactAnalysisSegmentsV2 API
+
+## __Amazon DataZone__
+  - ### Features
+    - This release removes the deprecated dataProductItem field from Search API output.
+
+# __2.26.22__ __2024-07-22__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release adds 1/ support of register S3 locations of assets in AWS Lake Formation hybrid access mode for DefaultDataLake blueprint. 2/ support of CRUD operations for Asset Filters.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Documentation update for IVS Low Latency API Reference.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Amazon Neptune Analytics provides new options for customers to start with smaller graphs at a lower cost. CreateGraph, CreaateGraphImportTask, UpdateGraph and StartImportTask APIs will now allow 32 and 64 for `provisioned-memory`
+
+## __Redshift Serverless__
+  - ### Features
+    - Adds dualstack support for Redshift Serverless workgroup.
+
+# __2.26.21__ __2024-07-18__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Fix broken waiters for the acm-pca client. Waiters broke in version 1.13.144 of the Boto3 SDK.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports the SRT protocol via the new SRT Caller input type.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Make Waiters use the new Backoff Strategy
+    - The partitions.json that ships with the SDK can now be overridden using one of the following means (in priority order):
+      1. Specify a file path using the system property `aws.partitionsFile`
+      2. Specify a file path using the environment variable `AWS_PARTITIONS_FILE`
+      3. Add a resource to the classpath under the name `software/amazon/awssdk/global/partitions.json`
+    - Updated endpoint and partition metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Doc only update for Secrets Manager
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect expands search API coverage for additional resources. Search for hierarchy groups by name, ID, tag, or other criteria (new endpoint). Search for agent statuses by name, ID, tag, or other criteria (new endpoint). Search for users by their assigned proficiencies (enhanced endpoint)
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon VPC IP Address Manager (IPAM) now supports Bring-Your-Own-IP (BYOIP) for IP addresses registered with any Internet Registry. This feature uses DNS TXT records to validate ownership of a public IP address range.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Documentation update for IVS Chat API Reference.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - This release 1) Add configurable buffering hints for Snowflake as destination. 2) Add ReadFromTimestamp for MSK As Source. Firehose will start reading data from MSK Cluster using offset associated with this timestamp. 3) Gated public beta release to add Apache Iceberg tables as destination.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation to specify an eventual consistency model for DescribePendingMaintenanceActions.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Training supports R5, T3 and R5D instances family. And SageMaker Processing supports G5 and R5D instances family.
+
+## __Amazon Timestream Query__
+  - ### Features
+    - Doc-only update for TimestreamQuery. Added guidance about the accepted valid value for the QueryPricingModel parameter.
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Documentation update for WorkSpaces Thin Client.
+
+## __Apache HTTP Client__
+  - ### Bugfixes
+    - Added fix to handle TLS half-close scenarios by throwing an exception. In TLS 1.3, the inbound and outbound close_notify alerts are independent. When the client receives a close_notify alert, it only closes the inbound stream but continues to send data to the server. Previously, the SDK could not detect that the connection was closed on the server side, causing it to get stuck while writing to the socket and eventually timing out. With this bug fix, the SDK will now detect the closed connection and throw an appropriate exception, preventing client hangs and improving overall reliability.
+
+## __Tax Settings__
+  - ### Features
+    - Set default endpoint for aws partition. Requests from all regions in aws partition will be forward to us-east-1 endpoint.
+
 # __2.26.20__ __2024-07-12__
 ## __AWS ARC - Zonal Shift__
   - ### Features
