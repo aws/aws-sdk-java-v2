@@ -89,8 +89,6 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
 
     @Override
     public void channelCreated(Channel ch) {
-        Thread.currentThread().getStackTrace();
-
         ch.attr(CHANNEL_DIAGNOSTICS).set(new ChannelDiagnostics(ch));
         ch.attr(PROTOCOL_FUTURE).set(new CompletableFuture<>());
         ChannelPipeline pipeline = ch.pipeline();
