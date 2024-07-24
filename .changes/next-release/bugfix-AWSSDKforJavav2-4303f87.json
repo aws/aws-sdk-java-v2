@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Fixed the issue where request-level signer override provided through ExecutionInterceptor is not honored."
-}
