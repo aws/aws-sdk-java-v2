@@ -21,23 +21,13 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 @DynamoDbBean
 public class CompositeRecord {
     private NestedRecordWithUpdateBehavior nestedRecord;
-    private String composedAttribute;
 
     public void setNestedRecord(NestedRecordWithUpdateBehavior nestedRecord) {
         this.nestedRecord = nestedRecord;
     }
 
-    public CompositeRecord setComposedAttribute(String composedAttribute) {
-        this.composedAttribute = composedAttribute;
-        return this;
-    }
-
     public NestedRecordWithUpdateBehavior getNestedRecord() {
         return nestedRecord;
-    }
-
-    public String getComposedAttribute() {
-        return composedAttribute;
     }
 
     @Override
@@ -54,6 +44,6 @@ public class CompositeRecord {
 
     @Override
     public int hashCode() {
-        return Objects.hash(nestedRecord, composedAttribute);
+        return Objects.hash(nestedRecord);
     }
 }

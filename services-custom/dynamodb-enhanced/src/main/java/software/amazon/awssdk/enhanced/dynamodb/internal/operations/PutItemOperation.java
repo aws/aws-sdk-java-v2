@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
-import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getMappingConfiguration;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -90,8 +87,7 @@ public class PutItemOperation<T>
 
         boolean alwaysIgnoreNulls = true;
         T item = request.map(PutItemEnhancedRequest::item, TransactPutItemEnhancedRequest::item);
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item,
-                                                                    getMappingConfiguration(alwaysIgnoreNulls, SHALLOW));
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item, alwaysIgnoreNulls);
 
         WriteModification transformation =
             extension != null ? extension.beforeWrite(

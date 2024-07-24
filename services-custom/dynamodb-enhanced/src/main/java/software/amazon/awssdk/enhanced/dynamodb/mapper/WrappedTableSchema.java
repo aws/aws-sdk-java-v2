@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
-import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getMappingConfiguration;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -67,12 +64,7 @@ public abstract class WrappedTableSchema<T, R extends TableSchema<T>> implements
 
     @Override
     public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
-        return this.delegateTableSchema.itemToMap(item, getMappingConfiguration(ignoreNulls, SHALLOW));
-    }
-
-    @Override
-    public Map<String, AttributeValue> itemToMap(T item, MappingConfiguration configuration) {
-        return this.delegateTableSchema.itemToMap(item, configuration);
+        return this.delegateTableSchema.itemToMap(item, ignoreNulls);
     }
 
     @Override

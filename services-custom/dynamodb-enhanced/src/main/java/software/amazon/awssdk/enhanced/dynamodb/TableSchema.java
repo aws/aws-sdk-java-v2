@@ -24,7 +24,6 @@ import software.amazon.awssdk.enhanced.dynamodb.document.DocumentTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.MappingConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
@@ -238,25 +237,11 @@ public interface TableSchema<T> {
      * SDK can work with.
      *
      * @param item The modelled Java object to convert into a map of attributes.
-     * @param configuration configuration options for mapping an object to a map with attribute values
+     * @param ignoreNulls If set to true; any null values in the Java object will not be added to the output map.
+     *                    If set to false; null values in the Java object will be added as {@link AttributeValue} of
+     *                    type 'nul' to the output map.
      * @return A map of String to {@link AttributeValue} representing all the modelled attributes in the model object.
      */
-    default Map<String, AttributeValue> itemToMap(T item,
-                                          MappingConfiguration configuration) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * This is deprecated in favour of itemToMap(T item, MappingConfiguration
-     * configuration) This method takes a modelled object and converts it into a raw map of
-     * {@link AttributeValue} that the DynamoDb low-level SDK can work with.
-     *
-     * @param item        The modelled Java object to convert into a map of attributes.
-     * @param ignoreNulls If set to true; any null values in the Java object will not be added to the output map. If set to false;
-     *                    null values in the Java object will be added as {@link AttributeValue} of type 'nul' to the output map.
-     * @return A map of String to {@link AttributeValue} representing all the modelled attributes in the model object.
-     */
-    @Deprecated
     Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls);
 
     /**

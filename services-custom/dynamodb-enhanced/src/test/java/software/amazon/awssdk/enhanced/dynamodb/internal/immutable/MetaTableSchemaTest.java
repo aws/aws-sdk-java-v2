@@ -20,8 +20,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getMappingConfiguration;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -40,7 +38,6 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.MetaTableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.MappingConfiguration;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -76,15 +73,12 @@ public class MetaTableSchemaTest {
     @Test
     public void itemToMap_ignoreNulls() {
         metaTableSchema.initialize(mockTableSchema);
+        when(mockTableSchema.itemToMap(any(FakeItem.class), any(boolean.class))).thenReturn(fakeMap);
 
-        MappingConfiguration ignoreNullsConfiguration = getMappingConfiguration(true,SHALLOW);
-        MappingConfiguration ignoreNullsFalseConfiguration = getMappingConfiguration(false,SHALLOW);
-        when(mockTableSchema.itemToMap(any(FakeItem.class), any(MappingConfiguration.class))).thenReturn(fakeMap);
-
-        assertThat(metaTableSchema.itemToMap(fakeItem, ignoreNullsConfiguration)).isSameAs(fakeMap);
-        verify(mockTableSchema).itemToMap(fakeItem, ignoreNullsConfiguration);
-        assertThat(metaTableSchema.itemToMap(fakeItem, ignoreNullsFalseConfiguration)).isSameAs(fakeMap);
-        verify(mockTableSchema).itemToMap(fakeItem, ignoreNullsFalseConfiguration);
+        assertThat(metaTableSchema.itemToMap(fakeItem, true)).isSameAs(fakeMap);
+        verify(mockTableSchema).itemToMap(fakeItem, true);
+        assertThat(metaTableSchema.itemToMap(fakeItem, false)).isSameAs(fakeMap);
+        verify(mockTableSchema).itemToMap(fakeItem, false);
     }
 
     @Test
@@ -97,7 +91,7 @@ public class MetaTableSchemaTest {
         Collection<String> attributes = Collections.singletonList("test-attribute");
 
         metaTableSchema.initialize(mockTableSchema);
-        when(mockTableSchema.itemToMap(any(FakeItem.class), any(Collection.class))).thenReturn(fakeMap);
+        when(mockTableSchema.itemToMap(any(FakeItem.class), any())).thenReturn(fakeMap);
 
         assertThat(metaTableSchema.itemToMap(fakeItem, attributes)).isSameAs(fakeMap);
         verify(mockTableSchema).itemToMap(fakeItem, attributes);
@@ -105,7 +99,7 @@ public class MetaTableSchemaTest {
 
     @Test
     public void itemToMap_attributes_notInitialized() {
-        assertUninitialized(t -> t.itemToMap(fakeItem, (Collection<String>) null));
+        assertUninitialized(t -> t.itemToMap(fakeItem, null));
     }
 
     @Test

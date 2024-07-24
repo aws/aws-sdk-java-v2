@@ -2,12 +2,8 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getMappingConfiguration;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.NESTED;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.time.Instant;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.After;
@@ -21,10 +17,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.Composite
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FlattenRecord;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedRecordWithUpdateBehavior;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecordWithUpdateBehaviors;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.MappingConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.ExtensionResolver;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 
 public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     private static final Instant INSTANT_1 = Instant.parse("2020-05-03T10:00:00Z");
@@ -34,6 +27,9 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
 
     private static final TableSchema<RecordWithUpdateBehaviors> TABLE_SCHEMA =
             TableSchema.fromClass(RecordWithUpdateBehaviors.class);
+    
+    private static final TableSchema<FlattenRecord> TABLE_SCHEMA_FLATTEN_RECORD =
+        TableSchema.fromClass(FlattenRecord.class);
 
     private final DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
             .dynamoDbClient(getDynamoDbClient()).extensions(
@@ -43,6 +39,9 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
 
     private final DynamoDbTable<RecordWithUpdateBehaviors> mappedTable =
             enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+    
+    private final DynamoDbTable<FlattenRecord> flattenedMappedTable =
+        enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA_FLATTEN_RECORD);
 
     @Before
     public void createTable() {
@@ -175,7 +174,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         update_record.setId("id123");
         update_record.setVersion(1L);
         update_record.setNestedRecord(updatedNestedRecord);
-
+        
         mappedTable.updateItem(r -> r.item(update_record).ignoreNulls(true));
 
         RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
@@ -252,59 +251,77 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void when_updatingNestedObjectWithSingleLevelFlattened_existingInformationIsPreserved() {
-        TableSchema<FlattenRecord> tableSchema = TableSchema.fromClass(FlattenRecord.class);
 
         NestedRecordWithUpdateBehavior nestedRecord = createNestedWithDefaults("id123", 10L);
 
         CompositeRecord compositeRecord = new CompositeRecord();
-        compositeRecord.setComposedAttribute("Composite_Attribute");
         compositeRecord.setNestedRecord(nestedRecord);
 
         FlattenRecord flattenRecord = new FlattenRecord();
         flattenRecord.setCompositeRecord(compositeRecord);
         flattenRecord.setId("id456");
-
-
-        Map<String, AttributeValue> itemMapShallow = tableSchema.itemToMap(flattenRecord, getMappingConfiguration(true, SHALLOW));
-
-        Map<String, AttributeValue> itemMapNested = tableSchema.itemToMap(flattenRecord, getMappingConfiguration(true, NESTED));
-
-
-        assertThat(itemMapShallow).hasSize(2);
-        assertThat(itemMapNested).hasSize(5);
+        
+        flattenedMappedTable.putItem(r -> r.item(flattenRecord));
+        
+        NestedRecordWithUpdateBehavior updateNestedRecord = new NestedRecordWithUpdateBehavior();
+        updateNestedRecord.setNestedCounter(100L);
+        
+        CompositeRecord updateCompositeRecord = new CompositeRecord();
+        updateCompositeRecord.setNestedRecord(updateNestedRecord);
+        
+        FlattenRecord updatedFlattenRecord = new FlattenRecord();
+        updatedFlattenRecord.setId("id456");
+        updatedFlattenRecord.setCompositeRecord(updateCompositeRecord);
+        
+        FlattenRecord persistedFlattenedRecord = flattenedMappedTable.updateItem(r -> r.item(updatedFlattenRecord).ignoreNulls(true));
+        
+        assertThat(persistedFlattenedRecord.getCompositeRecord()).isNotNull();
+        assertThat(persistedFlattenedRecord.getCompositeRecord().getNestedRecord().getNestedCounter()).isEqualTo(100L);
     }
-
+    
     @Test
-    public void when_updatingNestedObjectWithMultipleLevelsFlattened_existingInformationIsPreserved() {
-        TableSchema<FlattenRecord> tableSchema = TableSchema.fromClass(FlattenRecord.class);
+    public void when_updatingNestedObjectWithMultipleLevelFlattened_existingInformationIsPreserved() {
 
         NestedRecordWithUpdateBehavior outerNestedRecord = createNestedWithDefaults("id123", 10L);
-        NestedRecordWithUpdateBehavior innerNestedRecord = createNestedWithDefaults("id456", 11L);
+        NestedRecordWithUpdateBehavior innerNestedRecord = createNestedWithDefaults("id456", 5L);
         outerNestedRecord.setNestedRecord(innerNestedRecord);
 
         CompositeRecord compositeRecord = new CompositeRecord();
-        compositeRecord.setComposedAttribute("Composite_Attribute");
         compositeRecord.setNestedRecord(outerNestedRecord);
 
         FlattenRecord flattenRecord = new FlattenRecord();
         flattenRecord.setCompositeRecord(compositeRecord);
-        flattenRecord.setId("id456");
-
-
-        Map<String, AttributeValue> itemMapShallow = tableSchema.itemToMap(flattenRecord, getMappingConfiguration(true, SHALLOW));
-
-        Map<String, AttributeValue> itemMapNested = tableSchema.itemToMap(flattenRecord, getMappingConfiguration(true, NESTED));
-
-
-        assertThat(itemMapShallow).hasSize(2);
-        assertThat(itemMapNested).hasSize(9);
+        flattenRecord.setId("id789");
+        
+        flattenedMappedTable.putItem(r -> r.item(flattenRecord));
+        
+        NestedRecordWithUpdateBehavior updateOuterNestedRecord = new NestedRecordWithUpdateBehavior();
+        updateOuterNestedRecord.setNestedCounter(100L);
+        
+        NestedRecordWithUpdateBehavior updateInnerNestedRecord = new NestedRecordWithUpdateBehavior();
+        updateInnerNestedRecord.setNestedCounter(50L);
+        
+        updateOuterNestedRecord.setNestedRecord(updateInnerNestedRecord);
+        
+        CompositeRecord updateCompositeRecord = new CompositeRecord();
+        updateCompositeRecord.setNestedRecord(updateOuterNestedRecord);
+        
+        FlattenRecord updateFlattenRecord = new FlattenRecord();
+        updateFlattenRecord.setCompositeRecord(updateCompositeRecord);
+        updateFlattenRecord.setId("id789");
+        
+        FlattenRecord persistedFlattenedRecord = flattenedMappedTable.updateItem(r -> r.item(updateFlattenRecord).ignoreNulls(true));
+        
+        assertThat(persistedFlattenedRecord.getCompositeRecord()).isNotNull();
+        assertThat(persistedFlattenedRecord.getCompositeRecord().getNestedRecord().getNestedCounter()).isEqualTo(100L);
+        assertThat(persistedFlattenedRecord.getCompositeRecord().getNestedRecord().getNestedRecord().getNestedCounter()).isEqualTo(50L);
     }
 
     /**
      * Currently, nested records are not updated through extensions.
      */
     @Test
-    public void updateNonexistentField_nested() {
+    public void updateBehaviors_nested() {
         NestedRecordWithUpdateBehavior nestedRecord = new NestedRecordWithUpdateBehavior();
         nestedRecord.setId("id456");
 
@@ -313,8 +330,15 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         record.setCreatedOn(INSTANT_1);
         record.setLastUpdatedOn(INSTANT_2);
         record.setNestedRecord(nestedRecord);
-        assertThatThrownBy(() -> mappedTable.updateItem(record))
-            .isInstanceOf(DynamoDbException.class)
-            .hasMessageContaining("The document path provided in the update expression is invalid for update");
+        mappedTable.updateItem(record);
+
+        RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(record);
+
+        assertThat(persistedRecord.getVersion()).isEqualTo(1L);
+        assertThat(persistedRecord.getNestedRecord()).isNotNull();
+        assertThat(persistedRecord.getNestedRecord().getNestedVersionedAttribute()).isNull();
+        assertThat(persistedRecord.getNestedRecord().getNestedCounter()).isNull();
+        assertThat(persistedRecord.getNestedRecord().getNestedUpdateBehaviorAttribute()).isNull();
+        assertThat(persistedRecord.getNestedRecord().getNestedTimeAttribute()).isNull();
     }
 }

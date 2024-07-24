@@ -28,8 +28,6 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getMappingConfiguration;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,7 +45,6 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.MappingConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactPutItemEnhancedRequest;
@@ -477,10 +474,8 @@ public class PutItemOperationTest {
     public void generateRequest_withExtension_modifiesItemToPut() {
         FakeItem baseFakeItem = createUniqueFakeItem();
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> baseMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, getMappingConfiguration(true,
-                                                                                                                        SHALLOW));
-        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, getMappingConfiguration(true,
-                                                                                                                    SHALLOW));
+        Map<String, AttributeValue> baseMap = FakeItem.getTableSchema().itemToMap(baseFakeItem, true);
+        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().transformedItem(fakeMap).build());
         PutItemOperation<FakeItem> putItemOperation = PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
@@ -505,8 +500,7 @@ public class PutItemOperationTest {
     public void generateRequest_withExtension_singleCondition() {
         FakeItem baseFakeItem = createUniqueFakeItem();
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, getMappingConfiguration(true,
-                                                                                                                    SHALLOW));
+        Map<String, AttributeValue> fakeMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         Expression condition = Expression.builder().expression("condition").expressionValues(fakeMap).build();
         when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class)))
             .thenReturn(WriteModification.builder().additionalConditionalExpression(condition).build());
@@ -541,8 +535,7 @@ public class PutItemOperationTest {
     @Test
     public void generateTransactWriteItem_basicRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, getMappingConfiguration(true,
-                                                                                                                        SHALLOW));
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         PutItemOperation<FakeItem> putItemOperation = spy(PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
                                                                                                         .item(fakeItem)
                                                                                                         .build()));
@@ -571,8 +564,7 @@ public class PutItemOperationTest {
     @Test
     public void generateTransactWriteItem_conditionalRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, getMappingConfiguration(true,
-                                                                                                                        SHALLOW));
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         PutItemOperation<FakeItem> putItemOperation = spy(PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
                                                                                                         .item(fakeItem)
                                                                                                         .build()));
@@ -611,8 +603,7 @@ public class PutItemOperationTest {
     @Test
     public void generateTransactWriteItem_returnValuesOnConditionCheckFailure_generatesCorrectRequest() {
         FakeItem fakeItem = createUniqueFakeItem();
-        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, getMappingConfiguration(true,
-                                                                                                                        SHALLOW));
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
         String returnValues = "return-values";
 
         PutItemOperation<FakeItem> putItemOperation =

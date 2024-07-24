@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal;
 
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema.NESTED_OBJECT_UPDATE;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation.NESTED_OBJECT_UPDATE;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,8 +34,6 @@ import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.MappingConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
@@ -205,12 +203,5 @@ public final class EnhancedClientUtils {
      */
     public static boolean isNullAttributeValue(AttributeValue attributeValue) {
         return attributeValue.nul() != null && attributeValue.nul();
-    }
-
-    public static MappingConfiguration getMappingConfiguration(boolean ignoreNulls, AttributeMapping attributeMapping) {
-        return MappingConfiguration.builder()
-                                   .ignoreNulls(ignoreNulls)
-                                   .attributeMapping(attributeMapping)
-                                   .build();
     }
 }

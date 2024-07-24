@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.valueRef;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema.NESTED_OBJECT_UPDATE;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation.NESTED_OBJECT_UPDATE;
 import static software.amazon.awssdk.utils.CollectionUtils.filterMap;
 
 import java.util.Collections;

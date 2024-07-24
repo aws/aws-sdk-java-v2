@@ -16,10 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import static java.util.Collections.unmodifiableMap;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getMappingConfiguration;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.NESTED;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.AttributeMapping.SHALLOW;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -81,7 +78,6 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @SdkPublicApi
 @ThreadSafe
 public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
-    public static final String NESTED_OBJECT_UPDATE = "_NESTED_OBJECT_UPDATE_";
     private final List<ResolvedImmutableAttribute<T, B>> attributeMappers;
     private final Supplier<B> newBuilderSupplier;
     private final Function<B, T> buildItemFunction;
@@ -127,15 +123,14 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
             return thisBuilder;
         }
 
-        private Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls,
-                                                      MappingConfiguration configuration) {
+        private Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
             T1 otherItem = this.otherItemGetter.apply(item);
 
             if (otherItem == null) {
                 return Collections.emptyMap();
             }
 
-            return this.otherItemTableSchema.itemToMap(otherItem, configuration);
+            return this.otherItemTableSchema.itemToMap(otherItem, ignoreNulls);
         }
 
         private AttributeValue attributeValue(T item, String attributeName) {
@@ -515,51 +510,23 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
     }
 
     @Override
-    public Map<String, AttributeValue> itemToMap(T item,
-                                                 MappingConfiguration configuration) {
-        boolean ignoreNulls = configuration.ignoreNulls();
+    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
         Map<String, AttributeValue> attributeValueMap = new HashMap<>();
 
         attributeMappers.forEach(attributeMapper -> {
             String attributeKey = attributeMapper.attributeName();
             AttributeValue attributeValue = attributeMapper.attributeGetterMethod().apply(item);
 
-            if (attributeValueNonNullOrShouldWriteNull(ignoreNulls, attributeValue)) {
-                if (configuration.attributeMapping() == NESTED && attributeValue.hasM()) {
-                    nestedItemToMap(attributeValueMap, attributeValue.m(), attributeKey, ignoreNulls);
-                } else {
-                    attributeValueMap.put(attributeKey, attributeValue);
-                }
+            if (!ignoreNulls || !isNullAttributeValue(attributeValue)) {
+                attributeValueMap.put(attributeKey, attributeValue);
             }
         });
 
         indexedFlattenedMappers.forEach((name, flattenedMapper) -> {
-            attributeValueMap.putAll(flattenedMapper.itemToMap(item, ignoreNulls, configuration));
+            attributeValueMap.putAll(flattenedMapper.itemToMap(item, ignoreNulls));
         });
 
         return unmodifiableMap(attributeValueMap);
-    }
-
-    @Override
-    public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
-        return itemToMap(item, getMappingConfiguration(ignoreNulls, SHALLOW));
-    }
-
-    private void nestedItemToMap(Map<String, AttributeValue> resultAttributeValueMap,
-                                 Map<String, AttributeValue> updatedItemValuesAttributeMap,
-                                 String attributeKey,
-                                 boolean ignoreNulls) {
-        updatedItemValuesAttributeMap.forEach((mapKey, mapValue) -> {
-            String nestedAttributeKey = attributeKey + NESTED_OBJECT_UPDATE + mapKey;
-            if (attributeValueNonNullOrShouldWriteNull(ignoreNulls, mapValue)) {
-                if (mapValue.hasM()) {
-                    nestedItemToMap(resultAttributeValueMap, mapValue.m(), nestedAttributeKey,
-                                    ignoreNulls);
-                } else {
-                    resultAttributeValueMap.put(nestedAttributeKey, mapValue);
-                }
-            }
-        });
     }
 
     @Override
@@ -643,9 +610,5 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
             return (AttributeConverter) flattenedMapper.getOtherItemTableSchema().converterForAttribute(key);
         }
         return null;
-    }
-
-    private boolean attributeValueNonNullOrShouldWriteNull(boolean ignoreNulls, AttributeValue attributeValue) {
-        return !ignoreNulls || !isNullAttributeValue(attributeValue);
     }
 }
