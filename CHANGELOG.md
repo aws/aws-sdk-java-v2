@@ -1,4 +1,36 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.24__ __2024-07-24__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Three enhancements to the AWS Clean Rooms: Disallowed Output Columns, Flexible Result Receivers, SQL as a Seed
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release adds support for Irdeto DRM encryption in DASH manifests.
+
+## __AWS Health Imaging__
+  - ### Features
+    - CopyImageSet API adds copying selected instances between image sets, and overriding inconsistent metadata with a force parameter. UpdateImageSetMetadata API enables reverting to prior versions; updates to Study, Series, and SOP Instance UIDs; and updates to private elements, with a force parameter.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Adds support for creating SiteWise Edge gateways that run on a Siemens Industrial Edge Device.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed the issue where request-level signer override provided through ExecutionInterceptor is not honored.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - DynamoDB doc only update for July
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - Update for rebrand to AWS End User Messaging SMS and Voice.
+
 # __2.26.23__ __2024-07-23__
 ## __AWS AppSync__
   - ### Features

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT SiteWise",
-    "contributor": "",
-    "description": "Adds support for creating SiteWise Edge gateways that run on a Siemens Industrial Edge Device."
-}
