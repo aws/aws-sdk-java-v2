@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaPackage v2",
+    "contributor": "",
+    "description": "This release adds support for Irdeto DRM encryption in DASH manifests."
+}
