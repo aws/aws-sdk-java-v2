@@ -34,6 +34,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -52,6 +53,7 @@ public final class QueryEnhancedRequest {
     private final QueryConditional queryConditional;
     private final Map<String, AttributeValue> exclusiveStartKey;
     private final Boolean scanIndexForward;
+    private final Select select;
     private final Integer limit;
     private final Boolean consistentRead;
     private final Expression filterExpression;
@@ -62,13 +64,14 @@ public final class QueryEnhancedRequest {
         this.queryConditional = builder.queryConditional;
         this.exclusiveStartKey = builder.exclusiveStartKey;
         this.scanIndexForward = builder.scanIndexForward;
+        this.select = builder.select;
         this.limit = builder.limit;
         this.consistentRead = builder.consistentRead;
         this.filterExpression = builder.filterExpression;
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
         this.attributesToProject = builder.attributesToProject != null
-                ? Collections.unmodifiableList(builder.attributesToProject)
-                : null;
+                                   ? Collections.unmodifiableList(builder.attributesToProject)
+                                   : null;
     }
 
     /**
@@ -85,6 +88,7 @@ public final class QueryEnhancedRequest {
         return builder().queryConditional(queryConditional)
                         .exclusiveStartKey(exclusiveStartKey)
                         .scanIndexForward(scanIndexForward)
+                        .select(select)
                         .limit(limit)
                         .consistentRead(consistentRead)
                         .filterExpression(filterExpression)
@@ -112,6 +116,22 @@ public final class QueryEnhancedRequest {
      */
     public Boolean scanIndexForward() {
         return scanIndexForward;
+    }
+
+    /**
+     * Returns the value of select, or null if it doesn't exist.
+     * @return
+     */
+    public Select select() {
+        return select;
+    }
+
+    /**
+     * Returns the value of select as a string, or null if it doesn't exist.
+     * @return
+     */
+    public String selectAsString() {
+        return String.valueOf(select);
     }
 
     /**
@@ -143,7 +163,8 @@ public final class QueryEnhancedRequest {
      */
     public List<String> attributesToProject() {
         return attributesToProject != null ? attributesToProject.stream()
-                .map(item -> String.join(".", item.elements())).collect(Collectors.toList()) : null;
+                                                                .map(item -> String.join(".", item.elements()))
+                                                                .collect(Collectors.toList()) : null;
     }
 
     /**
@@ -198,6 +219,12 @@ public final class QueryEnhancedRequest {
             query.scanIndexForward != null) {
             return false;
         }
+
+        if (select != null ? ! select.equals(query.select) :
+            query.select != null) {
+            return false;
+        }
+
         if (limit != null ? ! limit.equals(query.limit) : query.limit != null) {
             return false;
         }
@@ -205,7 +232,7 @@ public final class QueryEnhancedRequest {
             return false;
         }
         if (attributesToProject != null
-                ? !attributesToProject.equals(query.attributesToProject) : query.attributesToProject != null) {
+            ? !attributesToProject.equals(query.attributesToProject) : query.attributesToProject != null) {
             return false;
         }
         if (returnConsumedCapacity != null
@@ -220,6 +247,7 @@ public final class QueryEnhancedRequest {
         int result = queryConditional != null ? queryConditional.hashCode() : 0;
         result = 31 * result + (exclusiveStartKey != null ? exclusiveStartKey.hashCode() : 0);
         result = 31 * result + (scanIndexForward != null ? scanIndexForward.hashCode() : 0);
+        result = 31 * result + (select != null ? select.hashCode() : 0);
         result = 31 * result + (limit != null ? limit.hashCode() : 0);
         result = 31 * result + (consistentRead != null ? consistentRead.hashCode() : 0);
         result = 31 * result + (filterExpression != null ? filterExpression.hashCode() : 0);
@@ -238,6 +266,7 @@ public final class QueryEnhancedRequest {
         private QueryConditional queryConditional;
         private Map<String, AttributeValue> exclusiveStartKey;
         private Boolean scanIndexForward;
+        private Select select;
         private Integer limit;
         private Boolean consistentRead;
         private Expression filterExpression;
@@ -268,6 +297,17 @@ public final class QueryEnhancedRequest {
          */
         public Builder scanIndexForward(Boolean scanIndexForward) {
             this.scanIndexForward = scanIndexForward;
+            return this;
+        }
+
+        /**
+         * Determines the attributes to be returned in the result. See {@link Select} for examples and constraints.
+         * By default, all attributes are returned.
+         * @param select
+         * @return a builder of this type
+         */
+        public Builder select(Select select) {
+            this.select = select;
             return this;
         }
 
@@ -353,8 +393,10 @@ public final class QueryEnhancedRequest {
                 this.attributesToProject.clear();
             }
             if (attributesToProject != null) {
-                addNestedAttributesToProject(new ArrayList<>(attributesToProject).stream()
-                        .map(NestedAttributeName::create).collect(Collectors.toList()));
+                addNestedAttributesToProject(new ArrayList<>(attributesToProject)
+                                                 .stream()
+                                                 .map(NestedAttributeName::create)
+                                                 .collect(Collectors.toList()));
             }
             return this;
         }
@@ -409,7 +451,7 @@ public final class QueryEnhancedRequest {
         public Builder addNestedAttributesToProject(Collection<NestedAttributeName> nestedAttributeNames) {
             if (nestedAttributeNames != null) {
                 Validate.noNullElements(nestedAttributeNames,
-                        "nestedAttributeNames list must not contain null elements");
+                                        "nestedAttributeNames list must not contain null elements");
                 if (attributesToProject == null) {
                     this.attributesToProject = new ArrayList<>(nestedAttributeNames);
                 } else {
