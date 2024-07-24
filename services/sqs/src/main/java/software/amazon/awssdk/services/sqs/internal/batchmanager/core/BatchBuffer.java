@@ -16,123 +16,65 @@
 package software.amazon.awssdk.services.sqs.internal.batchmanager.core;
 
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
+
+/**
+ * Interface representing a buffer that handles batching of requests and responses.
+ *
+ * @param <RequestT>  the type of the request
+ * @param <ResponseT> the type of the response
+ */
 @SdkInternalApi
-public final class BatchBuffer<RequestT, ResponseT> {
-    private final Object flushLock = new Object();
-
-    private final Map<String, BatchingExecutionContext<RequestT, ResponseT>> idToBatchContext;
+public interface BatchBuffer<RequestT, ResponseT> {
+    /**
+     * Retrieves a map of flushable requests up to the specified maximum number of batch items.
+     *
+     * @param maxBatchItems the maximum number of items to be included in the flushed batch
+     * @return a map of batch execution contexts for flushable requests
+     */
+    Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests(int maxBatchItems);
 
     /**
-     * Maximum number of elements that can be included in the BatchBuffer.
+     * Retrieves a map of flushable scheduled requests up to the specified maximum number of batch items.
+     *
+     * @param maxBatchItems the maximum number of items to be included in the flushed batch
+     * @return a map of batch execution contexts for flushable scheduled requests
      */
-    private final int maxBufferSize;
-
-    // TODO: Figure out better name for nextId and nextBatchEntry.
-    /**
-     * Batch entries in a batch request require a unique ID so nextId keeps track of the ID to assign to the next
-     * BatchingExecutionContext. For simplicity, the ID is just an integer that is incremented everytime a new request and
-     * response pair is received.
-     */
-    private int nextId;
+    Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableScheduledRequests(int maxBatchItems);
 
     /**
-     * Keeps track of the ID of the next entry to be added in a batch request. This ID does not necessarily correlate to a
-     * request that already exists in the idToBatchContext map since it refers to the next entry (ex. if the last entry added
-     * to idToBatchContext had an id of 22, nextBatchEntry will have a value of 23).
+     * Adds a request and its corresponding response future to the batch buffer.
+     *
+     * @param request  the request to be added to the buffer
+     * @param response the future response associated with the request
      */
-    private int nextBatchEntry;
+    void put(RequestT request, CompletableFuture<ResponseT> response);
 
     /**
-     * The scheduled flush tasks associated with this batchBuffer.
+     * Sets the scheduled flush task for the batch buffer.
+     *
+     * @param scheduledFlush the scheduled future representing the flush task
      */
-    private ScheduledFuture<?> scheduledFlush;
+    void putScheduledFlush(ScheduledFuture<?> scheduledFlush);
 
-    public BatchBuffer(int maxBufferSize, ScheduledFuture<?> scheduledFlush) {
-        this.idToBatchContext = new ConcurrentHashMap<>();
-        this.maxBufferSize = maxBufferSize;
-        this.nextId = 0;
-        this.nextBatchEntry = 0;
-        this.scheduledFlush = scheduledFlush;
-    }
+    /**
+     * Cancels the scheduled flush task for the batch buffer.
+     */
+    void cancelScheduledFlush();
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests(int maxBatchItems) {
-        synchronized (flushLock) {
-            if (idToBatchContext.size() >= maxBatchItems) {
-                return extractFlushedEntries(maxBatchItems);
-            }
-            return new ConcurrentHashMap<>();
-        }
-    }
+    /**
+     * Retrieves a collection of response futures from the batch buffer.
+     *
+     * @return a collection of CompletableFuture objects representing the responses
+     */
+    Collection<CompletableFuture<ResponseT>> responses();
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableScheduledRequests(int maxBatchItems) {
-        synchronized (flushLock) {
-            if (idToBatchContext.size() > 0) {
-                return extractFlushedEntries(maxBatchItems);
-            }
-            return new ConcurrentHashMap<>();
-        }
-    }
-
-    private Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractFlushedEntries(int maxBatchItems) {
-        LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> requestEntries = new LinkedHashMap<>();
-        String nextEntry;
-        while (requestEntries.size() < maxBatchItems && hasNextBatchEntry()) {
-            nextEntry = nextBatchEntry();
-            requestEntries.put(nextEntry, idToBatchContext.get(nextEntry));
-            idToBatchContext.remove(nextEntry);
-        }
-        return requestEntries;
-    }
-
-    public void put(RequestT request, CompletableFuture<ResponseT> response) {
-        synchronized (this) {
-            if (idToBatchContext.size() == maxBufferSize) {
-                throw new IllegalStateException("Reached MaxBufferSize of: " + maxBufferSize);
-            }
-
-            if (nextId == Integer.MAX_VALUE) {
-                nextId = 0;
-            }
-            String id = Integer.toString(nextId++);
-            idToBatchContext.put(id, new BatchingExecutionContext<>(request, response));
-        }
-    }
-
-    private boolean hasNextBatchEntry() {
-        return idToBatchContext.containsKey(Integer.toString(nextBatchEntry));
-    }
-
-    private String nextBatchEntry() {
-        if (nextBatchEntry == Integer.MAX_VALUE) {
-            nextBatchEntry = 0;
-        }
-        return Integer.toString(nextBatchEntry++);
-    }
-
-    public void putScheduledFlush(ScheduledFuture<?> scheduledFlush) {
-        this.scheduledFlush = scheduledFlush;
-    }
-
-    public void cancelScheduledFlush() {
-        scheduledFlush.cancel(false);
-    }
-
-    public Collection<CompletableFuture<ResponseT>> responses() {
-        return idToBatchContext.values()
-                               .stream()
-                               .map(BatchingExecutionContext::response)
-                               .collect(Collectors.toList());
-    }
-
-    public void clear() {
-        idToBatchContext.clear();
-    }
+    /**
+     * Clears all entries from the batch buffer.
+     */
+    void clear();
 }

@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.sqs.internal.batchmanager.core;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Takes a request and extracts a batchKey as determined by the caller.

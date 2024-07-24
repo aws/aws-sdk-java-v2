@@ -16,11 +16,11 @@
 package software.amazon.awssdk.services.sqs.internal.batchmanager.core;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Validate;
 
 /**
  * Wrapper class for a message (either request/response) and its associated batch id.
+ *
  * @param <MessageT> The message
  */
 @SdkInternalApi

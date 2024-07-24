@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager.core;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Takes a list of identified requests in addition to a batchKey and batches the requests into a batch request.

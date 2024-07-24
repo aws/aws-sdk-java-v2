@@ -66,9 +66,5 @@ public interface BatchManagerBuilder<RequestT, ResponseT, BatchResponseT, B> {
      */
     B batchKeyMapper(BatchKeyMapper<RequestT> batchKeyMapper);
 
-    //TODO :
-    B batchManagerType(BatchManagerType batchManagerType);
-
-
 
 }

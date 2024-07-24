@@ -20,11 +20,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Outer map maps a batchKey (ex. queueUrl, overrideConfig etc.) to a nested BatchingGroupMap map.
+ *
  * @param <RequestT> the type of an outgoing response
  */
 @SdkInternalApi
@@ -32,23 +34,26 @@ public final class BatchingMap<RequestT, ResponseT> {
 
     private final int maxBatchKeys;
     private final int maxBufferSize;
+
+    private final BiFunction<Integer, ScheduledFuture<?>, BatchBuffer<RequestT, ResponseT>> bufferSupplier;
     private final Map<String, BatchBuffer<RequestT, ResponseT>> batchContextMap;
 
-    public BatchingMap(int maxBatchKeys, int maxBufferSize) {
+    public BatchingMap(int maxBatchKeys, int maxBufferSize,
+                       BiFunction<Integer, ScheduledFuture<?>, BatchBuffer<RequestT, ResponseT>> bufferSupplier) {
         this.batchContextMap = new ConcurrentHashMap<>();
         this.maxBatchKeys = maxBatchKeys;
         this.maxBufferSize = maxBufferSize;
+        this.bufferSupplier = bufferSupplier;
     }
 
     public void put(String batchKey, Supplier<ScheduledFuture<?>> scheduleFlush, RequestT request,
-                     CompletableFuture<ResponseT> response) throws IllegalStateException {
+                    CompletableFuture<ResponseT> response) throws IllegalStateException {
         batchContextMap.computeIfAbsent(batchKey, k -> {
             if (batchContextMap.size() == maxBatchKeys) {
                 throw new IllegalStateException("Reached MaxBatchKeys of: " + maxBatchKeys);
             }
-            return new BatchBuffer<>(maxBufferSize, scheduleFlush.get());
-        })
-                       .put(request, response);
+            return bufferSupplier.apply(maxBufferSize, scheduleFlush.get());
+        }).put(request, response);
     }
 
     public void putScheduledFlush(String batchKey, ScheduledFuture<?> scheduledFlush) {
@@ -74,7 +79,7 @@ public final class BatchingMap<RequestT, ResponseT> {
     }
 
     public void clear() {
-        for (Map.Entry<String, BatchBuffer<RequestT, ResponseT>> entry: batchContextMap.entrySet()) {
+        for (Map.Entry<String, BatchBuffer<RequestT, ResponseT>> entry : batchContextMap.entrySet()) {
             String key = entry.getKey();
             entry.getValue().clear();
             batchContextMap.remove(key);

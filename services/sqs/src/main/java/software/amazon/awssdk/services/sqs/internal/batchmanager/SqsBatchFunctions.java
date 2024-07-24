@@ -21,7 +21,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
-import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
@@ -53,7 +52,6 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SqsException;
 import software.amazon.awssdk.utils.Either;
 
-@Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public final class SqsBatchFunctions {
     private SqsBatchFunctions() {

@@ -30,11 +30,10 @@ import java.util.stream.Stream;
 
 import software.amazon.awssdk.services.sqs.BatchManager.common.BatchManagerTestUtils;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestsBatchManager;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponsesBatchManager;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchManager;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.core.BatchAndSend;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.core.BatchManager;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.core.BatchManagerType;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.core.RequestBatchManager;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -63,7 +62,7 @@ class BatchManagerBuilderTest {
 
     @Test
     void creationOfRequestBatchManager() {
-        BatchManager<String, String, BatchManagerTestUtils.BatchResponse> batchManager = BatchManager.builder(String.class,
+        BatchManager<String, String, BatchManagerTestUtils.BatchResponse> batchManager = BatchManager.requestBatchManagerBuilder(String.class,
                                                                                                               String.class,
                                                                                                               BatchManagerTestUtils.BatchResponse.class)
                                                                                                      .overrideConfiguration(overrideConfiguration)
@@ -71,15 +70,14 @@ class BatchManagerBuilderTest {
                                                                                                      .batchFunction(batchFunction)
                                                                                                      .responseMapper(responseMapper)
                                                                                                      .batchKeyMapper(batchKeyMapper)
-                                                                                                     .batchManagerType(BatchManagerType.REQUEST)
                                                                                                      .build();
 
-        assertInstanceOf(RequestsBatchManager.class, batchManager);
+        assertInstanceOf(RequestBatchManager.class, batchManager);
     }
 
     @Test
     void creationOfResponseBatchManager() {
-        BatchManager<String, String, BatchManagerTestUtils.BatchResponse> batchManager = BatchManager.builder(String.class,
+        BatchManager<String, String, BatchManagerTestUtils.BatchResponse> batchManager = BatchManager.responseBatchManagerBuilder(String.class,
                                                                                                               String.class,
                                                                                                               BatchManagerTestUtils.BatchResponse.class)
                                                                                                      .overrideConfiguration(overrideConfiguration)
@@ -87,10 +85,9 @@ class BatchManagerBuilderTest {
                                                                                                      .batchFunction(batchFunction)
                                                                                                      .responseMapper(responseMapper)
                                                                                                      .batchKeyMapper(batchKeyMapper)
-                                                                                                     .batchManagerType(BatchManagerType.RESPONSE)
                                                                                                      .build();
 
-        assertInstanceOf(ResponsesBatchManager.class, batchManager);
+        assertInstanceOf(ResponseBatchManager.class, batchManager);
     }
 
     @ParameterizedTest
@@ -114,48 +111,35 @@ class BatchManagerBuilderTest {
 
         return Stream.of(
             Arguments.of((Runnable) () ->
-                             BatchManager.builder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
-                                         .overrideConfiguration(overrideConfiguration)
-                                         .scheduledExecutor(scheduledExecutor)
-                                         .batchFunction(batchFunction)
-                                         .responseMapper(responseMapper)
-                                         .batchKeyMapper(batchKeyMapper)
-                                         .build(),
-                         IllegalArgumentException.class, "Type must be specified as either RESPONSE or REQUEST"),
-            Arguments.of((Runnable) () ->
-                             BatchManager.builder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
+                             BatchManager.requestBatchManagerBuilder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
                                          .overrideConfiguration(overrideConfiguration)
                                          .scheduledExecutor(scheduledExecutor)
                                          .responseMapper(responseMapper)
                                          .batchKeyMapper(batchKeyMapper)
-                                         .batchManagerType(BatchManagerType.REQUEST)
                                          .build(),
                          NullPointerException.class, "Null batchFunction"),
             Arguments.of((Runnable) () ->
-                             BatchManager.builder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
+                             BatchManager.requestBatchManagerBuilder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
                                          .overrideConfiguration(overrideConfiguration)
                                          .scheduledExecutor(scheduledExecutor)
                                          .batchFunction(batchFunction)
                                          .batchKeyMapper(batchKeyMapper)
-                                         .batchManagerType(BatchManagerType.REQUEST)
                                          .build(),
                          NullPointerException.class, "Null responseMapper"),
             Arguments.of((Runnable) () ->
-                             BatchManager.builder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
+                             BatchManager.requestBatchManagerBuilder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
                                          .overrideConfiguration(overrideConfiguration)
                                          .scheduledExecutor(scheduledExecutor)
                                          .batchFunction(batchFunction)
                                          .responseMapper(responseMapper)
-                                         .batchManagerType(BatchManagerType.REQUEST)
                                          .build(),
                          NullPointerException.class, "Null batchKeyMapper"),
             Arguments.of((Runnable) () ->
-                             BatchManager.builder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
+                             BatchManager.requestBatchManagerBuilder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
                                          .overrideConfiguration(overrideConfiguration)
                                          .batchFunction(batchFunction)
                                          .responseMapper(responseMapper)
                                          .batchKeyMapper(batchKeyMapper)
-                                         .batchManagerType(BatchManagerType.REQUEST)
                                          .build(),
                          NullPointerException.class, "Null scheduledExecutor")
         );

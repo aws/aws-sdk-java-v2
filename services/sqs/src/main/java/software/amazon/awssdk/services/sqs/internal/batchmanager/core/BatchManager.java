@@ -16,15 +16,16 @@
 package software.amazon.awssdk.services.sqs.internal.batchmanager.core;
 
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.AbstractBatchManager;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
-@SdkPublicApi
+@SdkInternalApi
 public interface BatchManager<RequestT, ResponseT, BatchResponseT> extends SdkAutoCloseable {
 
     /**
-     * Buffers outgoing requests on the client and sends them as batch requests to the service. Requests are batched together
+     * Buffers outgoing requests and incoming responses on the client and sends them as batch requests to the service. Requests
+     * are batched together
      * according to a batchKey and are sent periodically to the service as determined by a configured timeout. If the
      * number of requests for a batchKey reaches or exceeds a configured limit, then the requests are immediately flushed
      * and the timeout on the periodic flush is reset.
@@ -35,7 +36,7 @@ public interface BatchManager<RequestT, ResponseT, BatchResponseT> extends SdkAu
      * @param request the outgoing request.
      * @return a CompletableFuture of the corresponding response.
      */
-    CompletableFuture<ResponseT> sendRequest(RequestT request);
+    CompletableFuture<ResponseT> batchRequest(RequestT request);
 
     /**
      * Creates a newly initialized BatchManager builder object.
@@ -44,10 +45,20 @@ public interface BatchManager<RequestT, ResponseT, BatchResponseT> extends SdkAu
      * @param <ResponseT> the type of an outgoing response.
      * @param <BatchResponseT> the type of an outgoing batch response.
      */
-    static <RequestT, ResponseT, BatchResponseT> AbstractBatchManager.Builder<RequestT, ResponseT, BatchResponseT> builder(
+    static <RequestT, ResponseT, BatchResponseT> BatchManager.Builder<RequestT, ResponseT,
+        BatchResponseT> requestBatchManagerBuilder(
         Class<? extends RequestT> requestClass, Class<? extends ResponseT> responseClass,
         Class<? extends BatchResponseT> batchResponseClass) {
-        return AbstractBatchManager.builder();
+        return RequestBatchManager.builder();
+    }
+
+
+
+    static <RequestT, ResponseT, BatchResponseT> BatchManager.Builder<RequestT,
+        ResponseT, BatchResponseT> responseBatchManagerBuilder(
+        Class<? extends RequestT> requestClass, Class<? extends ResponseT> responseClass,
+        Class<? extends BatchResponseT> batchResponseClass) {
+        return ResponseBatchManager.builder();
     }
 
     /**

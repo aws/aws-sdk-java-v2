@@ -22,21 +22,21 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.core.BatchBuffer;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.core.RequestBatchBuffer;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.core.BatchingExecutionContext;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class BatchBufferTest {
+class RequestBatchBufferTest {
 
-    private BatchBuffer<String, String> batchBuffer;
+    private RequestBatchBuffer<String, String> batchBuffer;
     private ScheduledFuture<?> scheduledFlush;
 
     @BeforeEach
     void setUp() {
         scheduledFlush = mock(ScheduledFuture.class);
-        batchBuffer = new BatchBuffer<>(10, scheduledFlush);
+        batchBuffer = new RequestBatchBuffer<>(10, scheduledFlush);
     }
 
     @Test

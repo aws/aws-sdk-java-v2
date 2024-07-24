@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager.core;
 
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Either;
 
 /**
