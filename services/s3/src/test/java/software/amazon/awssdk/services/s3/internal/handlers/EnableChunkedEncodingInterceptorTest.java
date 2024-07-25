@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SERVICE_CONFIG;
 
-import java.net.URI;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkRequest;
@@ -27,8 +26,6 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -140,12 +137,5 @@ public class EnableChunkedEncodingInterceptorTest {
                 return request;
             }
         };
-    }
-
-    private SdkHttpFullRequest sdkHttpFullRequest() {
-        return SdkHttpFullRequest.builder()
-                                 .uri(URI.create("http://test.com:80"))
-                                 .method(SdkHttpMethod.GET)
-                                 .build();
     }
 }

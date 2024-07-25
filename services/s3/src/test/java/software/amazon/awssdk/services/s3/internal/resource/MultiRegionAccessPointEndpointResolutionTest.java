@@ -68,17 +68,6 @@ public class MultiRegionAccessPointEndpointResolutionTest {
         assertEndpointMatches(mockHttpClient.getLastRequest(), MULTI_REGION_ENDPOINT.toString());
     }
 
-/*    @Test
-    public void multiRegionArn_customEndpoint_throwsIllegalArgumentException() throws Exception {
-        URI customEndpoint = URI.create("https://foobar.amazonaws.com");
-        mockHttpClient.stubNextResponse(mockListObjectsResponse());
-        S3Client s3Client = clientBuilder().endpointOverride(customEndpoint).build();
-
-        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(MULTI_REGION_ARN).build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("endpoint override");
-    }*/
-
     @Test
     public void multiRegionArn_dualstackEnabled_throwsIllegalArgumentException() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());

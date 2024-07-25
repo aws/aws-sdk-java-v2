@@ -137,10 +137,8 @@ public class SyncClientClass extends SyncClientInterface {
 
     @Override
     protected void addAdditionalMethods(TypeSpec.Builder type) {
-        if (!useSraAuth) {
-            if (model.containsRequestSigners()) {
-                type.addMethod(applySignerOverrideMethod(poetExtensions, model));
-            }
+        if (!useSraAuth && model.containsRequestSigners()) {
+            type.addMethod(applySignerOverrideMethod(poetExtensions, model));
         }
 
         model.getEndpointOperation().ifPresent(

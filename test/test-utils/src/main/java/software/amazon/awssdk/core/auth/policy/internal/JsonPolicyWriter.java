@@ -246,9 +246,7 @@ public class JsonPolicyWriter {
         List<String> principalValues;
         for (Principal principal : principals) {
             provider = principal.getProvider();
-            if (!principalsByScheme.containsKey(provider)) {
-                principalsByScheme.put(provider, new ArrayList<>());
-            }
+            principalsByScheme.computeIfAbsent(provider, k -> new ArrayList<>());
             principalValues = principalsByScheme.get(provider);
             principalValues.add(principal.getId());
         }
@@ -274,11 +272,7 @@ public class JsonPolicyWriter {
         for (Condition condition : conditions) {
             type = condition.getType();
             key = condition.getConditionKey();
-
-            if (!(conditionsByType.containsKey(type))) {
-                conditionsByType.put(type, new ConditionsByKey());
-            }
-
+            conditionsByType.computeIfAbsent(type, k -> new ConditionsByKey());
             conditionsByKey = conditionsByType.get(type);
             conditionsByKey.addValuesToKey(key, condition.getValues());
         }

@@ -65,25 +65,23 @@ public class PaginatorsGeneratorTasks extends BaseGeneratorTasks {
         return Stream.of(createSyncTask(entry), createAsyncTask(entry));
     }
 
-    private GeneratorTask createSyncTask(Map.Entry<String, PaginatorDefinition> entry) throws IOException {
+    private GeneratorTask createSyncTask(Map.Entry<String, PaginatorDefinition> entry) {
         ClassSpec classSpec = new SyncResponseClassSpec(model, entry.getKey(), entry.getValue());
 
-        if (customization != null && customization.containsKey(entry.getKey())) {
-            if (SAME_TOKEN_CUSTOMIZATION.equals(customization.get(entry.getKey()))) {
-                classSpec = new SameTokenSyncResponseClassSpec(model, entry.getKey(), entry.getValue());
-            }
+        if (customization != null && customization.containsKey(entry.getKey())
+            && SAME_TOKEN_CUSTOMIZATION.equals(customization.get(entry.getKey()))) {
+            classSpec = new SameTokenSyncResponseClassSpec(model, entry.getKey(), entry.getValue());
         }
 
         return new PoetGeneratorTask(paginatorsClassDir, model.getFileHeader(), classSpec);
     }
 
-    private GeneratorTask createAsyncTask(Map.Entry<String, PaginatorDefinition> entry) throws IOException {
+    private GeneratorTask createAsyncTask(Map.Entry<String, PaginatorDefinition> entry) {
         ClassSpec classSpec = new AsyncResponseClassSpec(model, entry.getKey(), entry.getValue());
 
-        if (customization != null && customization.containsKey(entry.getKey())) {
-            if (SAME_TOKEN_CUSTOMIZATION.equals(customization.get(entry.getKey()))) {
-                classSpec = new SameTokenAsyncResponseClassSpec(model, entry.getKey(), entry.getValue());
-            }
+        if (customization != null && customization.containsKey(entry.getKey())
+            && SAME_TOKEN_CUSTOMIZATION.equals(customization.get(entry.getKey()))) {
+            classSpec = new SameTokenAsyncResponseClassSpec(model, entry.getKey(), entry.getValue());
         }
 
         return new PoetGeneratorTask(paginatorsClassDir, model.getFileHeader(), classSpec);
