@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.v2migration.internal.recipe;
+package software.amazon.awssdk.v2migration;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -23,7 +23,6 @@ import org.junit.jupiter.api.condition.EnabledOnJre;
 import org.junit.jupiter.api.condition.JRE;
 import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RewriteTest;
-import software.amazon.awssdk.v2migration.NumberToDuration;
 
 public class NumberToDurationTest implements RewriteTest {
 

@@ -95,7 +95,7 @@ public class Application {
     }
 
     private static PutObjectResponse uploadFile(S3Client s3, String bucket, String key, Path source) throws IOException {
-        PutObjectResponse result = s3.putObject(PutObjectRequest.builder()
+        PutObjectResponse result = s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key)
             .build(), RequestBody.fromFile(source.toFile()));
 
         return result;
