@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeCommit",
+    "contributor": "",
+    "description": "CreateRepository API now throws OperationNotAllowedException when the account has been restricted from creating a repository."
+}
