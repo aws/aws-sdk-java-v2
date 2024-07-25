@@ -14,10 +14,10 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: software.amazon.awssdk.S3PutObjectConstructorToFluent
+name: software.amazon.awssdk.v2migration.S3PutObjectConstructorToFluent
 displayName: Change PutObject constructors to fluent builder calls
 recipeList:
-  - software.amazon.awssdk.migration.internal.recipe.ConstructorToFluent:
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.PutObjectRequest
       parameterTypes:
         - java.lang.String

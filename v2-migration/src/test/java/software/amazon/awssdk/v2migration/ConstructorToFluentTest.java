@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.v2migration.internal.recipe;
+package software.amazon.awssdk.v2migration;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.openrewrite.java.Assertions.java;
@@ -26,7 +26,6 @@ import org.junit.jupiter.api.condition.JRE;
 import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import software.amazon.awssdk.v2migration.ConstructorToFluent;
 
 /**
  * Recipe that remaps invocations of model constructors that take some members as constructor parameters, so that the

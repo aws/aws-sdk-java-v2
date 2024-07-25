@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.v2migration.internal.recipe;
+package software.amazon.awssdk.v2migration;
 
 import static org.openrewrite.java.Assertions.java;
 
@@ -23,7 +23,6 @@ import org.junit.jupiter.api.condition.JRE;
 import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-import software.amazon.awssdk.v2migration.S3StreamingResponseToV2;
 
 public class S3StreamingResponseToV2Test implements RewriteTest {
     @Override
