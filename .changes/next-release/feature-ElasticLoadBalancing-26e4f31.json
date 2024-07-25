@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Elastic Load Balancing",
+    "contributor": "",
+    "description": "This release adds support for sharing trust stores across accounts and organizations through integration with AWS Resource Access Manager."
+}
