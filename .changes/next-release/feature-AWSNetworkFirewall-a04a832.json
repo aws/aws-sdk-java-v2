@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Network Firewall",
-    "contributor": "",
-    "description": "You can now log events that are related to TLS inspection, in addition to the existing alert and flow logging."
-}
