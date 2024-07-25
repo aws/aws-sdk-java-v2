@@ -100,4 +100,11 @@ public class Application {
 
         return result;
     }
+
+    private static PutObjectResponse uploadString(S3Client s3, String bucket, String key, String content) {
+        PutObjectResponse result = s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key)
+            .build(), RequestBody.fromString(content));
+
+        return result;
+    }
 }

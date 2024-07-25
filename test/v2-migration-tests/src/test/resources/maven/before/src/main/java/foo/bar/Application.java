@@ -94,4 +94,10 @@ public class Application {
 
         return result;
     }
+
+    private static PutObjectResult uploadString(AmazonS3 s3, String bucket, String key, String content) {
+        PutObjectResult result = s3.putObject(bucket, key, content);
+
+        return result;
+    }
 }
