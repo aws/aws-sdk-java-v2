@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Step Functions",
+    "contributor": "",
+    "description": "This release adds support to customer managed KMS key encryption in AWS Step Functions."
+}
