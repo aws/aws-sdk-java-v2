@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DataZone",
+    "contributor": "",
+    "description": "Introduces GetEnvironmentCredentials operation to SDK"
+}
