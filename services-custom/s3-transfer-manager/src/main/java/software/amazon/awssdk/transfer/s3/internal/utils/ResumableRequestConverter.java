@@ -92,7 +92,7 @@ public final class ResumableRequestConverter {
             return Pair.of(originalDownloadRequest, responseTransformer);
         }
 
-        // ranged GET for the remaining bytes.
+        // ranged GET for the remaining bytes (as a single request, no multipart)
         newDownloadFileRequest = resumedDownloadFileRequest(resumableFileDownload,
                                                             originalDownloadRequest,
                                                             getObjectRequest,

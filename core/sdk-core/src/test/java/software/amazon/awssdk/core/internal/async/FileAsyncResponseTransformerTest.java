@@ -52,6 +52,7 @@ import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.util.FileUtils;
 
 /**
  * Tests for {@link FileAsyncResponseTransformer}.
@@ -334,9 +335,9 @@ class FileAsyncResponseTransformerTest {
         transformer.onStream(SdkPublisher.adapt(Flowable.just(content, content)));
         transformer.exceptionOccurred(runtimeException);
 
-        assertThat(future).failsWithin(1, TimeUnit.SECONDS)
-            .withThrowableOfType(ExecutionException.class)
-            .withCause(runtimeException);
+        assertThatThrownBy(() -> future.get(10, TimeUnit.SECONDS))
+            .hasRootCause(runtimeException);
+        assertThat(future.isCompletedExceptionally()).isTrue();
     }
 
     private static SdkPublisher<ByteBuffer> testPublisher(String content) {

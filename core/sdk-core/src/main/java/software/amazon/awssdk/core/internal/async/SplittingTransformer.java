@@ -155,6 +155,9 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 downstreamSubscriber.onError(new IllegalArgumentException("Amount requested must be positive"));
                 return;
             }
+            if (isCancelled.get()) {
+                return;
+            }
             long newDemand = outstandingDemand.updateAndGet(current -> {
                 if (Long.MAX_VALUE - current < n) {
                     return Long.MAX_VALUE;
