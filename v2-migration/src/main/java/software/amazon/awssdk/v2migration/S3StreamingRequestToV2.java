@@ -94,6 +94,7 @@ public class S3StreamingRequestToV2 extends Recipe {
             Expression getObjectExpr = bucketAndKeyToPutObject(bucketExpr, keyExpr);
             newArgs.add(getObjectExpr);
 
+            // This is to maintain the formatting/spacing of original code, getPrefix() retrieves the leading whitespace
             Space stringArgPrefix = stringExpr.getPrefix();
             stringExpr = stringToRequestBody(stringExpr.withPrefix(Space.EMPTY)).withPrefix(stringArgPrefix);
             newArgs.add(stringExpr);
