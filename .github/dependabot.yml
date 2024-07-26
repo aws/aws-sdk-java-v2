@@ -55,3 +55,4 @@ updates:
       - dependency-name: "org.graalvm.buildtools:*"
       - dependency-name: "org.jacoco:jacoco-maven-plugin"
       - dependency-name: "org.apache.commons:commons-lang3"
+      - dependency-name: "org.codehaus.plexus:plexus-utils"
