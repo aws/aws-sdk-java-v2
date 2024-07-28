@@ -24,6 +24,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     private static final Instant INSTANT_2 = Instant.parse("2020-05-03T10:05:00Z");
     private static final Instant FAR_FUTURE_INSTANT = Instant.parse("9999-05-03T10:05:00Z");
     private static final String TEST_BEHAVIOUR_ATTRIBUTE = "testBehaviourAttribute";
+    private static final String TEST_ATTRIBUTE = "testAttribute";
 
     private static final TableSchema<RecordWithUpdateBehaviors> TABLE_SCHEMA =
             TableSchema.fromClass(RecordWithUpdateBehaviors.class);
@@ -203,6 +204,8 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         assertThat(persistedRecord.getNestedRecord().getNestedRecord().getNestedCounter()).isEqualTo(updatedInnerNestedCounter);
         assertThat(persistedRecord.getNestedRecord().getNestedRecord().getNestedUpdateBehaviorAttribute()).isEqualTo(
             TEST_BEHAVIOUR_ATTRIBUTE);
+        assertThat(persistedRecord.getNestedRecord().getNestedRecord().getAttribute()).isEqualTo(
+            TEST_ATTRIBUTE);
         assertThat(persistedRecord.getNestedRecord().getNestedRecord().getNestedTimeAttribute()).isEqualTo(INSTANT_1);
     }
 
@@ -231,6 +234,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         NestedRecordWithUpdateBehavior updatedNestedRecord2 = new NestedRecordWithUpdateBehavior();
         long innerNestedCounter = 100L;
         updatedNestedRecord2.setNestedCounter(innerNestedCounter);
+        updatedNestedRecord2.setAttribute(TEST_ATTRIBUTE);
 
         NestedRecordWithUpdateBehavior updatedNestedRecord1 = new NestedRecordWithUpdateBehavior();
         updatedNestedRecord1.setNestedRecord(updatedNestedRecord2);

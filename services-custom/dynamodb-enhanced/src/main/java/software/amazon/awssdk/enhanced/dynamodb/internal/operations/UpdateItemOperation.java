@@ -98,8 +98,7 @@ public class UpdateItemOperation<T>
         // If ignoreNulls is set to true, check for nested params to be updated
         // If needed, Transform itemMap for it to be able to handle them.
         Map<String, AttributeValue> itemMap = Boolean.TRUE.equals(ignoreNulls) ?
-                                              transformItemToMapForUpdateExpression(itemMapImmutable,
-                                                                                    Boolean.TRUE) : itemMapImmutable;
+                                              transformItemToMapForUpdateExpression(itemMapImmutable) : itemMapImmutable;
         
         TableMetadata tableMetadata = tableSchema.tableMetadata();
 
@@ -157,8 +156,7 @@ public class UpdateItemOperation<T>
      * If so flattens out nested params separated by "_NESTED_ATTR_UPDATE_"
      * this is consumed by @link EnhancedClientUtils to form the appropriate UpdateExpression
      */
-    public Map<String, AttributeValue> transformItemToMapForUpdateExpression(Map<String, AttributeValue> itemToMap,
-                                                                             boolean ignoreNulls) {
+    public Map<String, AttributeValue> transformItemToMapForUpdateExpression(Map<String, AttributeValue> itemToMap) {
         
         Map<String, AttributeValue> nestedAttributes = new HashMap<>();
         
@@ -172,7 +170,7 @@ public class UpdateItemOperation<T>
             Map<String, AttributeValue> itemToMapMutable = new HashMap<>(itemToMap);
             nestedAttributes.forEach((key, value) -> {
                 itemToMapMutable.remove(key);
-                nestedItemToMap(itemToMapMutable, key, value, ignoreNulls);
+                nestedItemToMap(itemToMapMutable, key, value);
             });
             return itemToMapMutable;
         }
@@ -182,14 +180,12 @@ public class UpdateItemOperation<T>
     
     private Map<String, AttributeValue> nestedItemToMap(Map<String, AttributeValue> itemToMap,
                                  String key,
-                                 AttributeValue attributeValue,
-                                 boolean ignoreNulls) {
+                                 AttributeValue attributeValue) {
         attributeValue.m().forEach((mapKey, mapValue) -> {
             String nestedAttributeKey = key + NESTED_OBJECT_UPDATE + mapKey;
-            if (attributeValueNonNullOrShouldWriteNull(ignoreNulls, mapValue)) {
+            if (attributeValueNonNullOrShouldWriteNull(mapValue)) {
                 if (mapValue.hasM()) {
-                    nestedItemToMap(itemToMap, nestedAttributeKey, mapValue,
-                                    ignoreNulls);
+                    nestedItemToMap(itemToMap, nestedAttributeKey, mapValue);
                 } else {
                     itemToMap.put(nestedAttributeKey, mapValue);
                 }
@@ -198,8 +194,9 @@ public class UpdateItemOperation<T>
         return itemToMap;
     }
     
-    private boolean attributeValueNonNullOrShouldWriteNull(boolean ignoreNulls, AttributeValue attributeValue) {
-        return !ignoreNulls || !isNullAttributeValue(attributeValue);
+    private boolean attributeValueNonNullOrShouldWriteNull(AttributeValue attributeValue) {
+        return !isNullAttributeValue(attributeValue);
+        //return true;
     }
 
     @Override
