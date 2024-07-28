@@ -160,6 +160,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     public void when_updatingNestedObjectWithSingleLevel_existingInformationIsPreserved_ignoreNulls() {
 
         NestedRecordWithUpdateBehavior nestedRecord = createNestedWithDefaults("id456", 5L);
+        nestedRecord.setAttribute(TEST_ATTRIBUTE);
 
         RecordWithUpdateBehaviors record = new RecordWithUpdateBehaviors();
         record.setId("id123");
@@ -170,6 +171,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         NestedRecordWithUpdateBehavior updatedNestedRecord = new NestedRecordWithUpdateBehavior();
         long updatedNestedCounter = 10L;
         updatedNestedRecord.setNestedCounter(updatedNestedCounter);
+        updatedNestedRecord.setAttribute("");
 
         RecordWithUpdateBehaviors update_record = new RecordWithUpdateBehaviors();
         update_record.setId("id123");
@@ -215,6 +217,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         assertThat(persistedRecord.getNestedRecord().getNestedCounter()).isEqualTo(updatedNestedCounter);
         assertThat(persistedRecord.getNestedRecord().getNestedUpdateBehaviorAttribute()).isEqualTo(TEST_BEHAVIOUR_ATTRIBUTE);
         assertThat(persistedRecord.getNestedRecord().getNestedTimeAttribute()).isEqualTo(INSTANT_1);
+        assertThat(persistedRecord.getNestedRecord().getAttribute()).isEqualTo("");
     }
 
     @Test
