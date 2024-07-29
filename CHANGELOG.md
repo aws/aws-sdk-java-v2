@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.26__ __2024-07-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Renaming full service name as it appears in developer documentation.
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Renaming full service name as it appears in developer documentation.
+
 # __2.26.25__ __2024-07-25__
 ## __AWS CodeCommit__
   - ### Features
@@ -615,7 +628,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@sullis](https://github.com/sullis), [@shetsa-amzn](https://github.com/shetsa-amzn)
+[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
 # __2.26.9__ __2024-06-25__
 ## __AWS Network Manager__
   - ### Features
