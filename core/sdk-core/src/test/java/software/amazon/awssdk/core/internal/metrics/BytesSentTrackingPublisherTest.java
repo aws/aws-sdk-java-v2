@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,7 +29,7 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.http.NoopTestRequest;
-import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
+import software.amazon.awssdk.core.internal.progress.listener.DeafultProgressUpdater;
 import software.amazon.awssdk.core.internal.util.UploadProgressUpdaterInvocation;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
 
@@ -41,11 +40,11 @@ public class BytesSentTrackingPublisherTest {
         int nElements = 8;
         int elementSize = 2;
 
-        ProgressUpdater progressUpdater = Mockito.mock(ProgressUpdater.class);
+        DeafultProgressUpdater deafultProgressUpdater = Mockito.mock(DeafultProgressUpdater.class);
 
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
         BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0),
-                                                                                      new UploadProgressUpdaterInvocation(progressUpdater));
+                                                                                      new UploadProgressUpdaterInvocation(deafultProgressUpdater));
         readFully(trackingPublisher);
 
         long expectedSent = nElements * elementSize;
@@ -68,11 +67,11 @@ public class BytesSentTrackingPublisherTest {
                                             .overrideConfiguration(config)
                                             .build();
 
-        ProgressUpdater progressUpdater = new ProgressUpdater(request, null);
+        DeafultProgressUpdater deafultProgressUpdater = new DeafultProgressUpdater(request, null);
 
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
         BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0L),
-                                                                                      new UploadProgressUpdaterInvocation(progressUpdater));
+                                                                                      new UploadProgressUpdaterInvocation(deafultProgressUpdater));
         readFully(trackingPublisher);
 
         long expectedSent = nElements * elementSize;

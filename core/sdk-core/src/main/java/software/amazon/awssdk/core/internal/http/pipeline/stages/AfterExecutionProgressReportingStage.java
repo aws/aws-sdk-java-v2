@@ -26,7 +26,7 @@ public class AfterExecutionProgressReportingStage<OutputT> implements RequestPip
     @Override
     public OutputT execute(OutputT input, RequestExecutionContext context) throws Exception {
         if (input instanceof SdkResponse) {
-            ProgressListenerUtils.updateProgressListenersWithSuccessResponse((SdkResponse) input, context);
+            ProgressListenerUtils.updateProgressListenersWithSuccessResponse((SdkResponse) input, context.progressUpdater());
         }
 
         return input;

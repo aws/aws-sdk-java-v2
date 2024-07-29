@@ -25,7 +25,7 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
-import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
+import software.amazon.awssdk.core.internal.progress.listener.DeafultProgressUpdater;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
 
 class AfterExecutionProgressReportingStageTest {
@@ -40,10 +40,10 @@ class AfterExecutionProgressReportingStageTest {
 
         SdkRequest request = createSdkHttpRequest(config).build();
 
-        ProgressUpdater progressUpdater = new ProgressUpdater(request, null);
+        DeafultProgressUpdater deafultProgressUpdater = new DeafultProgressUpdater(request, null);
 
         RequestExecutionContext requestExecutionContext = progressListenerContext(false, request,
-                                                                                  progressUpdater);
+                                                                                  deafultProgressUpdater);
 
         SdkResponse response = createSdkResponseBuilder().build();
 

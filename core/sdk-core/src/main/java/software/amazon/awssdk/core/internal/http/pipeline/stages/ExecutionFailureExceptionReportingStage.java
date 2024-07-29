@@ -39,7 +39,7 @@ public final class ExecutionFailureExceptionReportingStage<OutputT> implements R
         } catch (Exception e) {
             Throwable throwable = reportFailureToInterceptors(context, e);
 
-            context.progressUpdater().ifPresent(progressUpdater -> reportFailureToProgressListeners(progressUpdater, throwable));
+            reportFailureToProgressListeners(context.progressUpdater(), throwable);
             throw failure(throwable);
         }
     }

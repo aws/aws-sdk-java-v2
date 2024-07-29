@@ -18,6 +18,8 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToRequestPipeline;
+import software.amazon.awssdk.core.internal.progress.listener.DeafultProgressUpdater;
+import software.amazon.awssdk.core.internal.progress.listener.NoOpProgressUpdater;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.core.internal.util.ProgressListenerUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -33,9 +35,11 @@ public class BeforeExecutionProgressReportingStage implements RequestToRequestPi
                 (context.requestProvider() != null && context.requestProvider().contentLength().isPresent()) ?
                 context.requestProvider().contentLength().get() : null;
 
-            ProgressUpdater progressUpdater = new ProgressUpdater(context.originalRequest(), requestContentLength);
+            ProgressUpdater progressUpdater = new DeafultProgressUpdater(context.originalRequest(), requestContentLength);
             progressUpdater.requestPrepared(input);
             context.progressUpdater(progressUpdater);
+        } else {
+            context.progressUpdater(new NoOpProgressUpdater());
         }
 
         return input;

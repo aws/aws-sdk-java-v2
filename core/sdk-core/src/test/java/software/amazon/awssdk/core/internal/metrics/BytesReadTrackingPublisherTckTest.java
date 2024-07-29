@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
+import software.amazon.awssdk.core.internal.progress.listener.NoOpProgressUpdater;
 import software.amazon.awssdk.core.internal.util.UploadProgressUpdaterInvocation;
 
 /**
@@ -35,7 +36,7 @@ public class BytesReadTrackingPublisherTckTest extends PublisherVerification<Byt
 
     @Override
     public Publisher<ByteBuffer> createPublisher(long l) {
-        return new BytesReadTrackingPublisher(createUpstreamPublisher(l), new AtomicLong(0), new UploadProgressUpdaterInvocation(null));
+        return new BytesReadTrackingPublisher(createUpstreamPublisher(l), new AtomicLong(0), new UploadProgressUpdaterInvocation(new NoOpProgressUpdater()));
     }
 
     @Override

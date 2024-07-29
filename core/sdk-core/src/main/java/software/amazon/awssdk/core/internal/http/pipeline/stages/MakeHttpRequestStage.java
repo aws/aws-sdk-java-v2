@@ -72,7 +72,7 @@ public class MakeHttpRequestStage
         if (request.contentStreamProvider().isPresent()) {
             contentStreamProvider =
                 ProgressListenerUtils.wrapContentStreamProviderWithBytePublishTrackingIfProgressListenerAttached(
-                    request.contentStreamProvider().get(), context);
+                    request.contentStreamProvider().get(), context.progressUpdater());
         }
 
         ExecutableHttpRequest requestCallable = sdkHttpClient

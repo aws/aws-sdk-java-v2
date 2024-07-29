@@ -20,14 +20,14 @@ import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 
 @SdkInternalApi
 public class UploadProgressUpdaterInvocation implements ProgressUpdaterInvoker {
-    ProgressUpdater progressUpdater;
+    private final ProgressUpdater progressUpdater;
 
     public UploadProgressUpdaterInvocation(ProgressUpdater progressUpdater) {
         this.progressUpdater = progressUpdater;
     }
 
     @Override
-    public void updateBytesTransferred(long bytes) {
+    public void incrementBytesTransferred(long bytes) {
         progressUpdater.incrementBytesSent(bytes);
     }
 

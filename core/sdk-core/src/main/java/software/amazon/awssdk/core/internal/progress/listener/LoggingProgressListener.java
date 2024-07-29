@@ -64,7 +64,6 @@ public final class LoggingProgressListener implements ProgressListener {
 
     @Override
     public void requestHeaderSent(Context.RequestHeaderSent context) {
-        log.info(() -> "Started Upload...");
         context.uploadProgressSnapshot().ratioTransferred().ifPresent(progressBar::update);
     }
 

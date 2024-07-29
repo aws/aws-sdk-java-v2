@@ -20,7 +20,7 @@ import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 
 @SdkInternalApi
 public interface ProgressUpdaterInvoker {
-    void updateBytesTransferred(long bytes);
+    void incrementBytesTransferred(long bytes);
 
     void resetBytes();
 

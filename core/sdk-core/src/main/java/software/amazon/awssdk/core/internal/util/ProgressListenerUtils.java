@@ -22,13 +22,12 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingInputStream;
 import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingPublisher;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.http.SdkHttpHeaders;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -39,41 +38,32 @@ public final class ProgressListenerUtils {
     }
 
     public static SdkHttpContentPublisher wrapRequestProviderWithByteTrackingIfProgressListenerAttached(
-        SdkHttpContentPublisher requestProvider, RequestExecutionContext context) {
-        ProgressUpdater progressUpdater = getProgressUpdaterIfAttached(context);
-        SdkHttpContentPublisher wrappedHttpContentPublisher = requestProvider;
-        if (progressUpdater != null) {
-            wrappedHttpContentPublisher = new BytesReadTrackingPublisher(requestProvider, new AtomicLong(0L),
-                                                                         new UploadProgressUpdaterInvocation(progressUpdater));
-        }
-        return wrappedHttpContentPublisher;
+        SdkHttpContentPublisher requestProvider, ProgressUpdater progressUpdater) {
+        return new BytesReadTrackingPublisher(requestProvider, new AtomicLong(0L),
+                                              new UploadProgressUpdaterInvocation(progressUpdater));
     }
 
     public static ContentStreamProvider wrapContentStreamProviderWithBytePublishTrackingIfProgressListenerAttached(
-        ContentStreamProvider contentStreamProvider, RequestExecutionContext context) {
+        ContentStreamProvider contentStreamProvider, ProgressUpdater progressUpdater) {
 
-        ProgressUpdater progressUpdater = getProgressUpdaterIfAttached(context);
-        ContentStreamProvider wrappedContentStreamProvider = contentStreamProvider;
-        if (progressUpdater != null) {
-            wrappedContentStreamProvider =
-                ContentStreamProvider.fromInputStream(new BytesReadTrackingInputStream(
-                    AbortableInputStream.create(contentStreamProvider.newStream()),
-                    new AtomicLong(0L),
-                    new UploadProgressUpdaterInvocation(progressUpdater)));
-        }
-        return wrappedContentStreamProvider;
+        AbortableInputStream progressUpdaterWrappedcontentStream = AbortableInputStream.create(contentStreamProvider.newStream());
+
+        BytesReadTrackingInputStream progressUpdaterWrappedContentStreamProvider =
+            new BytesReadTrackingInputStream(progressUpdaterWrappedcontentStream,
+                                             new AtomicLong(0L),
+                                             new UploadProgressUpdaterInvocation(progressUpdater));
+
+        return ContentStreamProvider.fromInputStream(progressUpdaterWrappedContentStreamProvider);
     }
 
     public static BytesReadTrackingInputStream wrapContentStreamProviderWithByteReadTrackingIfProgressListenerAttached(
-        AbortableInputStream content, AtomicLong bytesRead, RequestExecutionContext context) {
-        ProgressUpdater progressUpdater = getProgressUpdaterIfAttached(context);
-
+        AbortableInputStream content, AtomicLong bytesRead, ProgressUpdater progressUpdater) {
         return new BytesReadTrackingInputStream(content, bytesRead,
-                                                new DownloadProgressUpdaterInvocation(progressUpdater));
+                                                new ResponseProgressUpdaterInvocation(progressUpdater));
     }
 
     public static void updateProgressListenersWithResponseStatus(ProgressUpdater progressUpdater,
-                                                                 SdkHttpResponse headers) {
+                                                                 SdkHttpHeaders headers) {
         progressUpdater.responseHeaderReceived();
         headers.firstMatchingHeader(CONTENT_LENGTH).ifPresent(value -> {
             if (!StringUtils.isNotBlank(value)) {
@@ -83,20 +73,12 @@ public final class ProgressListenerUtils {
     }
 
     public static void updateProgressListenersWithSuccessResponse(SdkResponse response,
-                                                                  RequestExecutionContext context) {
-
-        context.progressUpdater().ifPresent(progressUpdater -> progressUpdater.executionSuccess(response));
+                                                                  ProgressUpdater progressUpdater) {
+        progressUpdater.executionSuccess(response);
     }
 
     public static boolean progressListenerAttached(SdkRequest request) {
         return request.overrideConfiguration()
                       .map(RequestOverrideConfiguration::progressListeners).isPresent();
-    }
-
-    public static ProgressUpdater getProgressUpdaterIfAttached(RequestExecutionContext context) {
-        if (context.progressUpdater().isPresent()) {
-            return context.progressUpdater().get();
-        }
-        return null;
     }
 }

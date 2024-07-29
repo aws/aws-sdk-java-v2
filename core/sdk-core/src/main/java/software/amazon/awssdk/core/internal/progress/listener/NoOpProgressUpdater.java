@@ -15,43 +15,40 @@
 
 package software.amazon.awssdk.core.internal.progress.listener;
 
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.progress.listener.SdkExchangeProgress;
 import software.amazon.awssdk.http.SdkHttpRequest;
 
-@SdkPublicApi
-public interface ProgressUpdater {
-    default void updateRequestContentLength(Long requestContentLength) {
+@SdkInternalApi
+public class NoOpProgressUpdater implements ProgressUpdater {
+
+    public SdkExchangeProgress requestBodyProgress() {
+        return null;
     }
 
-    default void updateResponseContentLength(Long responseContentLength) {
+    public SdkExchangeProgress responseBodyProgress() {
+        return null;
     }
 
-    void requestPrepared(SdkHttpRequest httpRequest);
-
-    default void requestHeaderSent() {
+    @Override
+    public void requestPrepared(SdkHttpRequest httpRequest) {
     }
 
-    default void resetBytesSent() {
+    @Override
+    public void responseHeaderReceived() {
     }
 
-    default void resetBytesReceived() {
+    @Override
+    public void executionSuccess(SdkResponse response) {
     }
 
-    default void incrementBytesSent(long numBytes) {
+    @Override
+    public void executionFailure(Throwable t) {
     }
 
-    default void incrementBytesReceived(long numBytes) {
-    }
-
-    void responseHeaderReceived();
-
-    void executionSuccess(SdkResponse response);
-
-    void executionFailure(Throwable t);
-
-    void attemptFailure(Throwable t);
-
-    default void attemptFailureResponseBytesReceived(Throwable t){
+    @Override
+    public void attemptFailure(Throwable t) {
     }
 }
+

@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.resolveTimeoutInMillis;
+import static software.amazon.awssdk.core.internal.util.ProgressListenerUtils.updateProgressListenersWithResponseStatus;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 
 import java.nio.ByteBuffer;
@@ -47,10 +48,9 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.TimerUtils;
 import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingPublisher;
-import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
-import software.amazon.awssdk.core.internal.util.DownloadProgressUpdaterInvocation;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.internal.util.ProgressListenerUtils;
+import software.amazon.awssdk.core.internal.util.ResponseProgressUpdaterInvocation;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -135,8 +135,8 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
                                                   ? new SimpleHttpContentPublisher(request)
                                                   : new SdkHttpContentPublisherAdapter(context.requestProvider());
-        requestProvider = ProgressListenerUtils.wrapRequestProviderWithByteTrackingIfProgressListenerAttached(requestProvider,
-                                                                                                              context);
+        requestProvider = ProgressListenerUtils.wrapRequestProviderWithByteTrackingIfProgressListenerAttached(
+                                                                    requestProvider, context.progressUpdater());
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
@@ -309,9 +309,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             context.attemptMetricCollector().reportMetric(CoreMetric.TIME_TO_FIRST_BYTE, Duration.ofNanos(d));
             super.onHeaders(headers);
 
-            context.progressUpdater().ifPresent(progressUpdater -> {
-                ProgressListenerUtils.updateProgressListenersWithResponseStatus(progressUpdater, headers);
-            });
+            updateProgressListenersWithResponseStatus(context.progressUpdater(), headers);
         }
 
         @Override
@@ -319,11 +317,10 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             AtomicLong bytesReadCounter = context.executionAttributes()
                                                  .getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ);
 
-            ProgressUpdater progressUpdater = context.progressUpdater().isPresent() ?
-                                              context.progressUpdater().get() : null;
-            Publisher<ByteBuffer> bytesReadTrackingPublisher = new BytesReadTrackingPublisher(stream,
-                                                       bytesReadCounter,
-                                                       new DownloadProgressUpdaterInvocation(progressUpdater));
+            Publisher<ByteBuffer> bytesReadTrackingPublisher =
+                new BytesReadTrackingPublisher(stream,
+                                               bytesReadCounter,
+                                               new ResponseProgressUpdaterInvocation(context.progressUpdater()));
 
             super.onStream(bytesReadTrackingPublisher);
         }

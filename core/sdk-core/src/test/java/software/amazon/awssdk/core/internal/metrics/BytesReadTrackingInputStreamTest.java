@@ -26,19 +26,15 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-import org.reactivestreams.Publisher;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.http.NoopTestRequest;
-import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
-import software.amazon.awssdk.core.internal.util.DownloadProgressUpdaterInvocation;
+import software.amazon.awssdk.core.internal.progress.listener.DeafultProgressUpdater;
+import software.amazon.awssdk.core.internal.util.ResponseProgressUpdaterInvocation;
 import software.amazon.awssdk.core.internal.util.ProgressUpdaterInvoker;
 import software.amazon.awssdk.core.internal.util.UploadProgressUpdaterInvocation;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
@@ -176,12 +172,12 @@ public class BytesReadTrackingInputStreamTest {
                                             .overrideConfiguration(config)
                                             .build();
 
-        ProgressUpdater progressUpdater = new ProgressUpdater(request, null);
+        DeafultProgressUpdater deafultProgressUpdater = new DeafultProgressUpdater(request, null);
 
         when(mockStream.read(any(byte[].class), eq(2), eq(2))).thenReturn(2);
 
         BytesReadTrackingInputStream trackingInputStream = newTrackingStreamWithProgressUpdater(new AtomicLong(0L),
-                                                                                                new DownloadProgressUpdaterInvocation(progressUpdater));
+                                                                                                new ResponseProgressUpdaterInvocation(deafultProgressUpdater));
         trackingInputStream.read(new byte[8], 2, 2);
 
         verify(progressListener, Mockito.times(1)).responseBytesReceived(any());
@@ -200,12 +196,12 @@ public class BytesReadTrackingInputStreamTest {
                                             .overrideConfiguration(config)
                                             .build();
 
-        ProgressUpdater progressUpdater = new ProgressUpdater(request, null);
+        DeafultProgressUpdater deafultProgressUpdater = new DeafultProgressUpdater(request, null);
 
         when(mockStream.read(any(byte[].class), eq(2), eq(2))).thenReturn(2);
 
         BytesReadTrackingInputStream trackingInputStream = newTrackingStreamWithProgressUpdater(new AtomicLong(0L),
-                                                                                                new UploadProgressUpdaterInvocation(progressUpdater));
+                                                                                                new UploadProgressUpdaterInvocation(deafultProgressUpdater));
         trackingInputStream.read(new byte[8], 2, 2);
 
         verify(progressListener, Mockito.times(1)).requestBytesSent(any());

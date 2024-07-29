@@ -82,8 +82,8 @@ public final class BytesReadTrackingPublisher implements SdkHttpContentPublisher
             long byteBufferSize = byteBuffer.remaining();
             bytesRead.addAndGet(byteBufferSize);
             downstream.onNext(byteBuffer);
-            if (progressUpdaterInvoker != null && progressUpdaterInvoker.progressUpdater() != null) {
-                progressUpdaterInvoker.updateBytesTransferred(byteBufferSize);
+            if (progressUpdaterInvoker != null) {
+                progressUpdaterInvoker.incrementBytesTransferred(byteBufferSize);
             }
         }
 

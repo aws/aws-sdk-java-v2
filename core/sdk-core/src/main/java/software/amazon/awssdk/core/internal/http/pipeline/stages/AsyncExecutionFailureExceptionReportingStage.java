@@ -49,9 +49,7 @@ public final class AsyncExecutionFailureExceptionReportingStage<OutputT>
                 toReport = reportFailureToInterceptors(context, toReport);
 
                 // If Progress Listeners are attached to the request, update them with the throwable
-                if (context.progressUpdater().isPresent()) {
-                    reportFailureToProgressListeners(context.progressUpdater().get(), toReport);
-                }
+                reportFailureToProgressListeners(context.progressUpdater(), toReport);
 
                 throw CompletableFutureUtils.errorAsCompletionException(ThrowableUtils.asSdkException(toReport));
             }

@@ -51,7 +51,7 @@ public final class ExceptionReportingUtils {
     /**
      * Report the failure to the Progress Listeners if they are present
      *
-     * @param context The execution context.
+     * @param progressUpdater The execution context.
      * @param failure The execution failure.
      */
     public static void reportFailureToProgressListeners(ProgressUpdater progressUpdater, Throwable failure) {

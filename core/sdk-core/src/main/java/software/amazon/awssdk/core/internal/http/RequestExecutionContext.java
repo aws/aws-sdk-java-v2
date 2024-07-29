@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.internal.http;
 
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -130,8 +129,8 @@ public final class RequestExecutionContext {
         this.attemptMetricCollector = metricCollector;
     }
 
-    public Optional<ProgressUpdater> progressUpdater() {
-        return progressUpdater != null ? Optional.of(progressUpdater) : Optional.empty();
+    public ProgressUpdater progressUpdater() {
+        return progressUpdater;
     }
 
     public void progressUpdater(ProgressUpdater progressUpdater) {
