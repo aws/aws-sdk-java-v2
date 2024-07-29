@@ -18,10 +18,15 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.SocketException;
+import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +40,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkInterruptedException;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -42,7 +48,9 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.ApiCallTimeoutTracker;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTask;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -60,6 +68,8 @@ public class TimeoutExceptionHandlingStageTest {
     @Mock
     private ScheduledFuture scheduledFuture;
 
+    @Mock
+    private InputStream responseStream;
 
     private TimeoutExceptionHandlingStage<String> stage;
 
@@ -115,6 +125,18 @@ public class TimeoutExceptionHandlingStageTest {
         when(apiCallTimeoutTask.hasExecuted()).thenReturn(true);
         when(requestPipeline.execute(any(), any())).thenThrow(AbortedException.create(""));
         verifyExceptionThrown(InterruptedException.class);
+    }
+
+    @Test
+    public void timeoutException_streamCloseFailed_shouldNotSurface() throws Exception {
+        when(apiCallAttemptTimeoutTask.hasExecuted()).thenReturn(true);
+        SdkHttpFullResponse response = SdkHttpFullResponse.builder().content(AbortableInputStream.create(responseStream,
+                                                                                                         () -> {})).build();
+        when(requestPipeline.execute(any(), any())).thenThrow(new SdkInterruptedException(response));
+
+        doThrow(new IOException()).when(responseStream).close();
+        verifyExceptionThrown(ApiCallAttemptTimeoutException.class);
+        verify(responseStream).close();
     }
 
     @Test
@@ -187,9 +209,6 @@ public class TimeoutExceptionHandlingStageTest {
         when(requestPipeline.execute(any(), any())).thenThrow(AbortedException.class);
         verifyExceptionThrown(ApiCallAttemptTimeoutException.class);
     }
-
-
-
 
     private void verifyInterruptStatusPreserved() {
         assertThat(Thread.currentThread().isInterrupted()).isTrue();
