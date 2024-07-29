@@ -39,10 +39,13 @@ import software.amazon.awssdk.v2migration.internal.utils.IdentifierUtils;
 
 @SdkInternalApi
 public class S3StreamingRequestToV2 extends Recipe {
-    private static final MethodMatcher PUT_OBJECT =
+    private static final MethodMatcher PUT_OBJECT_FILE =
         new MethodMatcher("com.amazonaws.services.s3.AmazonS3 "
-                          + "putObject(java.lang.String, java.lang.String, java.io.File)",
-                          true);
+                          + "putObject(java.lang.String, java.lang.String, java.io.File)", true);
+    private static final MethodMatcher PUT_OBJECT_STRING =
+        new MethodMatcher("com.amazonaws.services.s3.AmazonS3 "
+                          + "putObject(java.lang.String, java.lang.String, java.lang.String)", true);
+
     private static final JavaType.FullyQualified V1_PUT_OBJECT_REQUEST =
         TypeUtils.asFullyQualified(JavaType.buildType("com.amazonaws.services.s3.model.PutObjectRequest"));
     private static final JavaType.FullyQualified REQUEST_BODY =
@@ -66,10 +69,77 @@ public class S3StreamingRequestToV2 extends Recipe {
     private static final class Visitor extends JavaIsoVisitor<ExecutionContext> {
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
-            if (PUT_OBJECT.matches(method, false)) {
+            if (PUT_OBJECT_FILE.matches(method, false)) {
                 method = transformPutFileOverload(method);
             }
+            if (PUT_OBJECT_STRING.matches(method, false)) {
+                method = transformPutStringOverload(method);
+            }
             return super.visitMethodInvocation(method, executionContext);
+        }
+
+        private J.MethodInvocation transformPutStringOverload(J.MethodInvocation method) {
+            JavaType.Method methodType = method.getMethodType();
+            if (methodType == null) {
+                return method;
+            }
+
+            List<Expression> originalArgs = method.getArguments();
+
+            Expression bucketExpr = originalArgs.get(0);
+            Expression keyExpr = originalArgs.get(1);
+            Expression stringExpr = originalArgs.get(2);
+
+            List<Expression> newArgs = new ArrayList<>();
+            Expression getObjectExpr = bucketAndKeyToPutObject(bucketExpr, keyExpr);
+            newArgs.add(getObjectExpr);
+
+            // This is to maintain the formatting/spacing of original code, getPrefix() retrieves the leading whitespace
+            Space stringArgPrefix = stringExpr.getPrefix();
+            stringExpr = stringToRequestBody(stringExpr.withPrefix(Space.EMPTY)).withPrefix(stringArgPrefix);
+            newArgs.add(stringExpr);
+
+            List<String> paramNames = Arrays.asList("request", "stringContent");
+            List<JavaType> paramTypes = newArgs.stream()
+                                               .map(Expression::getType)
+                                               .collect(Collectors.toList());
+
+
+            methodType = methodType.withParameterTypes(paramTypes)
+                                   .withParameterNames(paramNames);
+
+            return method.withMethodType(methodType).withArguments(newArgs);
+        }
+
+        private J.MethodInvocation stringToRequestBody(Expression fileExpr) {
+            maybeAddImport(REQUEST_BODY);
+
+            J.Identifier requestBodyId = IdentifierUtils.makeId(REQUEST_BODY.getClassName(), REQUEST_BODY);
+
+            JavaType.Method fromStringType = new JavaType.Method(
+                null,
+                0L,
+                REQUEST_BODY,
+                "fromString",
+                REQUEST_BODY,
+                Collections.singletonList("stringContent"),
+                Collections.singletonList(JavaType.buildType("java.lang.String")),
+                null,
+                null
+            );
+
+            J.Identifier fromFileId = IdentifierUtils.makeId("fromString", fromStringType);
+
+            return new J.MethodInvocation(
+                Tree.randomId(),
+                Space.EMPTY,
+                Markers.EMPTY,
+                JRightPadded.build(requestBodyId),
+                null,
+                fromFileId,
+                JContainer.build(Collections.singletonList(JRightPadded.build(fileExpr))),
+                fromStringType
+            );
         }
 
         private J.MethodInvocation transformPutFileOverload(J.MethodInvocation method) {
