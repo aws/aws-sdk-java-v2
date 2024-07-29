@@ -23,11 +23,11 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import com.amazonaws.services.sqs.model.AmazonSQSException;
 import com.amazonaws.services.sqs.model.ListQueuesRequest;
 import com.amazonaws.services.sqs.model.ListQueuesResult;
 
-import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -99,5 +99,13 @@ public class Application {
         PutObjectResult result = s3.putObject(bucket, key, content);
 
         return result;
+    }
+
+    private static void createBucket(AmazonS3 s3, String bucket) {
+        s3.createBucket(bucket);
+    }
+
+    private static void deleteBucket(AmazonS3 s3, String bucket) {
+        s3.deleteBucket(bucket);
     }
 }
