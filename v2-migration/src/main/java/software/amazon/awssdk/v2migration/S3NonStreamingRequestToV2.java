@@ -49,12 +49,12 @@ public class S3NonStreamingRequestToV2 extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "S3NonStreamingRequestToV2";
+        return "V1 S3 non-streaming requests to V2";
     }
 
     @Override
     public String getDescription() {
-        return "S3NonStreamingRequestToV2.";
+        return "Transform usage of V1 S3 non-streaming requests such as CreateBucket and DeleteBucket to V2.";
     }
 
     @Override
@@ -67,8 +67,7 @@ public class S3NonStreamingRequestToV2 extends Recipe {
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
             if (CREATE_BUCKET.matches(method, false)) {
                 method = transformBucketNameArgOverload(method, V1_CREATE_BUCKET_REQUEST);
-            }
-            if (DELETE_BUCKET.matches(method, false)) {
+            } else if (DELETE_BUCKET.matches(method, false)) {
                 method = transformBucketNameArgOverload(method, V1_DELETE_BUCKET_REQUEST);
             }
             return super.visitMethodInvocation(method, executionContext);

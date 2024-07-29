@@ -53,12 +53,12 @@ public class S3StreamingRequestToV2 extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "S3StreamingRequestToV2";
+        return "V1 S3 streaming requests to V2";
     }
 
     @Override
     public String getDescription() {
-        return "S3StreamingRequestToV2.";
+        return "Transform usage of V1 S3 streaming requests such as PutObject to V2.";
     }
 
     @Override
@@ -71,8 +71,7 @@ public class S3StreamingRequestToV2 extends Recipe {
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
             if (PUT_OBJECT_FILE.matches(method, false)) {
                 method = transformPutFileOverload(method);
-            }
-            if (PUT_OBJECT_STRING.matches(method, false)) {
+            } else if (PUT_OBJECT_STRING.matches(method, false)) {
                 method = transformPutStringOverload(method);
             }
             return super.visitMethodInvocation(method, executionContext);
