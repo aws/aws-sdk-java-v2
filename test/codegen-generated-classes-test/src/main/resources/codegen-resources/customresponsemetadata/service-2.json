@@ -338,6 +338,15 @@
         "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"]
       }
     },
+    "GetOperationWithMapEndpointParam":{
+      "name":"GetOperationWithMapEndpointParam",
+      "http":{
+        "method":"GET",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetOperationWithMapEndpointParamInput"},
+      "output":{"shape":"GetOperationWithMapEndpointParamOutput"}
+    },
     "OperationWithChecksumNonStreaming":{
       "name":"OperationWithChecksumNonStreaming",
       "http":{
@@ -1114,6 +1123,28 @@
         }
       },
       "payload":"Body"
+    },
+    "GetOperationWithMapEndpointParamInput": {
+      "type": "structure",
+      "required":["MapOfStrings"],
+      "members": {
+        "MapOfStrings":{
+          "shape":"MapOfStrings"
+        }
+      }
+    },
+    "GetOperationWithMapEndpointParamOutput": {
+      "type": "structure",
+      "members": {
+        "MapOfStrings":{
+          "shape":"MapOfStrings"
+        }
+      }
+    },
+    "MapOfStrings":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"String"}
     }
   }
 }

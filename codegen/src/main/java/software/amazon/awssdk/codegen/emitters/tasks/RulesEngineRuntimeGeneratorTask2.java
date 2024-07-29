@@ -32,7 +32,6 @@ import software.amazon.awssdk.utils.Validate;
 
 public final class RulesEngineRuntimeGeneratorTask2 extends BaseGeneratorTasks {
     private final String engineInternalClassDir;
-    private final String engineInternalResourcesDir;
     private final String engineInternalPackageName;
     private final String fileHeader;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
@@ -40,7 +39,6 @@ public final class RulesEngineRuntimeGeneratorTask2 extends BaseGeneratorTasks {
     public RulesEngineRuntimeGeneratorTask2(GeneratorTaskParams generatorTaskParams) {
         super(generatorTaskParams);
         this.engineInternalClassDir = generatorTaskParams.getPathProvider().getEndpointRulesInternalDirectory();
-        this.engineInternalResourcesDir = generatorTaskParams.getPathProvider().getEndpointRulesInternalResourcesDirectory();
         this.engineInternalPackageName = generatorTaskParams.getModel().getMetadata().getFullInternalEndpointRulesPackageName();
         this.fileHeader = generatorTaskParams.getModel().getFileHeader();
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(generatorTaskParams.getModel());

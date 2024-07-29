@@ -1,14 +1,16 @@
 {
   "pagination": {
-    "ListBundles": {
+    "ListLibraryItems": {
       "input_token": "nextToken",
       "output_token": "nextToken",
-      "limit_key": "maxResults"
+      "limit_key": "limit",
+      "result_key": "libraryItems"
     },
-    "ListProjects": {
+    "ListQApps": {
       "input_token": "nextToken",
       "output_token": "nextToken",
-      "limit_key": "maxResults"
+      "limit_key": "limit",
+      "result_key": "apps"
     }
   }
 }

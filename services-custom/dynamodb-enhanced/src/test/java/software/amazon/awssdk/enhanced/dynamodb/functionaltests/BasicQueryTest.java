@@ -56,6 +56,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 
 public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
 
@@ -573,5 +574,70 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
                     Page<NestedTestRecord> page = results.next();
 
                 });
+    }
+
+    @Test
+    public void queryAllRecordsDefaultSettings_withSelect_specificAttributes() {
+        insertRecords();
+
+        Iterator<Page<Record>> results =
+            mappedTable.query(b -> b
+                .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                .attributesToProject("value")
+                .select(Select.SPECIFIC_ATTRIBUTES)
+            ).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<Record> page = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page.items().size(), is(RECORDS.size()));
+
+        Record firstRecord = page.items().get(0);
+        assertThat(firstRecord.id, is(nullValue()));
+        assertThat(firstRecord.sort, is(nullValue()));
+        assertThat(firstRecord.value, is(0));
+    }
+
+    @Test
+    public void queryAllRecordsDefaultSettings_withSelect_allAttributes() {
+        insertRecords();
+
+        Iterator<Page<Record>> results =
+            mappedTable.query(b -> b
+                .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                .select(Select.ALL_ATTRIBUTES)
+            ).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<Record> page = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page.items().size(), is(RECORDS.size()));
+
+        Record firstRecord = page.items().get(0);
+        assertThat(firstRecord.id, is("id-value"));
+        assertThat(firstRecord.sort, is(0));
+        assertThat(firstRecord.value, is(0));
+    }
+
+    @Test
+    public void queryAllRecordsDefaultSettings_withSelect_count() {
+        insertRecords();
+
+        Iterator<Page<Record>> results =
+            mappedTable.query(b -> b
+                .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                .select(Select.COUNT)
+            ).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<Record> page = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page.count(), is(RECORDS.size()));
+        assertThat(page.scannedCount(), is(RECORDS.size()));
+        assertThat(page.items(), is(empty()));
+        assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 }
