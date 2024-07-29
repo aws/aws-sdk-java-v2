@@ -16,6 +16,8 @@
 package foo.bar;
 
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -106,5 +108,15 @@ public class Application {
             .build(), RequestBody.fromString(content));
 
         return result;
+    }
+
+    private static void createBucket(S3Client s3, String bucket) {
+        s3.createBucket(CreateBucketRequest.builder().bucket(bucket)
+            .build());
+    }
+
+    private static void deleteBucket(S3Client s3, String bucket) {
+        s3.deleteBucket(DeleteBucketRequest.builder().bucket(bucket)
+            .build());
     }
 }
