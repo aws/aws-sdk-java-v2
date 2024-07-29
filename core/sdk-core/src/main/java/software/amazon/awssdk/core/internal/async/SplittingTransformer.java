@@ -225,6 +225,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 downstreamSubscriber = null;
                 return;
             }
+            log.trace(() -> "publisherToUpstream.complete()");
             publisherToUpstream.complete().whenComplete((v, t) -> {
                 if (downstreamSubscriber == null) {
                     log.trace(() -> "[in future] downstreamSubscriber already null, skipping downstreamSubscriber.onComplete()");
@@ -312,11 +313,11 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             synchronized (cancelLock) {
                 if (onStreamCalled.compareAndSet(false, true)) {
                     log.trace(() -> "calling onStream on the upstream transformer");
-                    upstreamResponseTransformer.onStream(upstreamSubscriber -> publisherToUpstream.subscribe(upstreamSubscriber)
-                        // DelegatingBufferingSubscriber.builder()
-                        //                              .maximumBufferInBytes(maximumBufferInBytes)
-                        //                              .delegate(upstreamSubscriber)
-                        //                              .build())
+                    upstreamResponseTransformer.onStream(upstreamSubscriber -> publisherToUpstream.subscribe(
+                        DelegatingBufferingSubscriber.builder()
+                                                     .maximumBufferInBytes(maximumBufferInBytes)
+                                                     .delegate(upstreamSubscriber)
+                                                     .build())
                     );
                 }
             }
