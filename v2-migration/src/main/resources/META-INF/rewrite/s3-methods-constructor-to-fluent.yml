@@ -14,9 +14,17 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: software.amazon.awssdk.v2migration.S3PutObjectConstructorToFluent
-displayName: Change PutObject constructors to fluent builder calls
+name: software.amazon.awssdk.v2migration.S3MethodsConstructorToFluent
+displayName: Change S3 method constructors to fluent builder calls
 recipeList:
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetObjectRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withKey
   - software.amazon.awssdk.v2migration.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.PutObjectRequest
       parameterTypes:
@@ -25,3 +33,15 @@ recipeList:
       fluentNames:
         - withBucket
         - withKey
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.CreateBucketRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteBucketRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
