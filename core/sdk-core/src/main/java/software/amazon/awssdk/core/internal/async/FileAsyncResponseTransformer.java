@@ -249,11 +249,14 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
 
         @Override
         public void onComplete() {
+            log.trace(() -> "onComplete");
             // if write in progress, tell write to close on finish.
             synchronized (this) {
                 if (writeInProgress) {
+                    log.trace(() -> "writeInProgress = true, not closing");
                     closeOnLastWrite = true;
                 } else {
+                    log.trace(() -> "writeInProgress = false, closing");
                     close();
                 }
             }
@@ -264,6 +267,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                 if (fileChannel != null) {
                     invokeSafely(fileChannel::close);
                 }
+                log.trace(() -> "Completing File async transformer future future");
                 future.complete(null);
             } catch (RuntimeException exception) {
                 future.completeExceptionally(exception);
