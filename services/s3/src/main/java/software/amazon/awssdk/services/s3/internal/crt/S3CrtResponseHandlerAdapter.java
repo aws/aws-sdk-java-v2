@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.nio.ByteBuffer;
