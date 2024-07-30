@@ -182,7 +182,34 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
 
         RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
 
-        verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord, updatedNestedCounter);
+        verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord, updatedNestedCounter, "");
+    }
+
+    @Test
+    public void when_updatingNestedObjectToEmptyWithSingleLevel_existingInformationIsPreserved_ignoreNulls() {
+
+        NestedRecordWithUpdateBehavior nestedRecord = createNestedWithDefaults("id456", 5L);
+        nestedRecord.setAttribute(TEST_ATTRIBUTE);
+
+        RecordWithUpdateBehaviors record = new RecordWithUpdateBehaviors();
+        record.setId("id123");
+        record.setNestedRecord(nestedRecord);
+
+        mappedTable.putItem(record);
+
+        NestedRecordWithUpdateBehavior updatedNestedRecord = new NestedRecordWithUpdateBehavior();
+
+        RecordWithUpdateBehaviors update_record = new RecordWithUpdateBehaviors();
+        update_record.setId("id123");
+        update_record.setVersion(1L);
+        update_record.setNestedRecord(updatedNestedRecord);
+
+        mappedTable.updateItem(r -> r.item(update_record).ignoreNulls(true));
+
+        RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
+
+        verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord, nestedRecord.getNestedCounter(),
+                                                       nestedRecord.getAttribute());
     }
 
     private NestedRecordWithUpdateBehavior createNestedWithDefaults(String id, Long counter) {
@@ -212,12 +239,12 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     }
 
     private void verifySingleLevelNestingTargetedUpdateBehavior(RecordWithUpdateBehaviors persistedRecord,
-                                                                  long updatedNestedCounter) {
+                                                                  long updatedNestedCounter, String testAttribute) {
         assertThat(persistedRecord.getNestedRecord()).isNotNull();
         assertThat(persistedRecord.getNestedRecord().getNestedCounter()).isEqualTo(updatedNestedCounter);
         assertThat(persistedRecord.getNestedRecord().getNestedUpdateBehaviorAttribute()).isEqualTo(TEST_BEHAVIOUR_ATTRIBUTE);
         assertThat(persistedRecord.getNestedRecord().getNestedTimeAttribute()).isEqualTo(INSTANT_1);
-        assertThat(persistedRecord.getNestedRecord().getAttribute()).isEqualTo("");
+        assertThat(persistedRecord.getNestedRecord().getAttribute()).isEqualTo(testAttribute);
     }
 
     @Test
