@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer.util;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32C;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.MD5;
@@ -26,7 +28,11 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.Checksum
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.readAll;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc32CChecksum;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc32Checksum;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Md5Checksum;
@@ -62,5 +68,21 @@ public class ChecksumUtilTest {
         readAll(inputStream);
 
         assertEquals(0, inputStream.available());
+    }
+
+    @Test
+    public void readAll_throwIoException_shouldWrapWithIoException() throws IOException {
+        IOException ioException = new IOException();
+        InputStream mock = Mockito.mock(InputStream.class);
+        Mockito.when(mock.read(Mockito.any(byte[].class))).thenThrow(ioException);
+        assertThatThrownBy(() -> readAll(mock)).isInstanceOf(UncheckedIOException.class).hasCause(ioException);
+    }
+
+    @Test
+    public void readAll_throwNonIoException_shouldNotWrap() throws IOException {
+        NullPointerException npe = new NullPointerException();
+        InputStream mock = Mockito.mock(InputStream.class);
+        Mockito.when(mock.read(Mockito.any(byte[].class))).thenThrow(npe);
+        assertThatThrownBy(() -> readAll(mock)).isEqualTo(npe);
     }
 }
