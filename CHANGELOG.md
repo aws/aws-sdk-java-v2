@@ -1,4 +1,213 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.27__ __2024-07-30__
+## __AWS CodePipeline__
+  - ### Features
+    - AWS CodePipeline V2 type pipelines now support stage level conditions to enable development teams to safely release changes that meet quality and compliance requirements.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue in the SDK that caused a generic `RuntimeException` to be thrown instead of `ApiCallTimeoutException`/`ApiCallAttemptTimeoutException` when API call/API call attempt timeout is breached.
+
+## __AWS Telco Network Builder__
+  - ### Features
+    - This release adds Network Service Update, through which customers will be able to update their instantiated networks to a new network package. See the documentation for limitations. The release also enhances the Get network operation API to return parameter overrides used during the operation.
+
+## __Amazon AppStream__
+  - ### Features
+    - Added support for Red Hat Enterprise Linux 8 on Amazon AppStream 2.0
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Doc only update for changes to deletion API.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release adds new capabilities to the AMAZON.QnAIntent: Custom prompting, Guardrails integration and ExactResponse support for Bedrock Knowledge Base.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Removing multi-session as it isn't supported for pools
+
+## __Auto Scaling__
+  - ### Features
+    - Increase the length limit for VPCZoneIdentifier from 2047 to 5000
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - IAM RolesAnywhere now supports custom role session name on the CreateSession. This release adds the acceptRoleSessionName option to a profile to control whether a role session name will be accepted in a session request with a given profile.
+
+# __2.26.26__ __2024-07-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Renaming full service name as it appears in developer documentation.
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Renaming full service name as it appears in developer documentation.
+
+# __2.26.25__ __2024-07-25__
+## __AWS CodeCommit__
+  - ### Features
+    - CreateRepository API now throws OperationNotAllowedException when the account has been restricted from creating a repository.
+
+## __AWS Network Firewall__
+  - ### Features
+    - You can now log events that are related to TLS inspection, in addition to the existing alert and flow logging.
+
+## __AWS Outposts__
+  - ### Features
+    - Adding default vCPU information to GetOutpostSupportedInstanceTypes and GetOutpostInstanceTypes responses
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds support for Map type to JmesPathRuntime
+
+## __AWS Step Functions__
+  - ### Features
+    - This release adds support to customer managed KMS key encryption in AWS Step Functions.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Provides ServiceUnavailableException error message
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - CloudWatch Application Signals now supports application logs correlation with traces and operational health metrics of applications running on EC2 instances. Users can view the most relevant telemetry to troubleshoot application health anomalies such as spikes in latency, errors, and availability.
+
+## __Amazon DataZone__
+  - ### Features
+    - Introduces GetEnvironmentCredentials operation to SDK
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - API and documentation updates for Amazon ECR, adding support for creating, updating, describing and deleting ECR Repository Creation Template.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EC2 Fleet now supports using custom identifiers to reference Amazon Machine Images (AMI) in launch requests that are configured to choose from a diversified list of instance types.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - This release adds support for EKS cluster to manage extended support.
+
+## __Application Auto Scaling__
+  - ### Features
+    - Application Auto Scaling is now more responsive to the changes in demand of your SageMaker Inference endpoints. To get started, create or update a Target Tracking policy based on High Resolution CloudWatch metrics.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Adding support for Select in QueryEnhancedRequest
+        - Contributed by: [@shetsa-amzn](https://github.com/shetsa-amzn)
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for sharing trust stores across accounts and organizations through integration with AWS Resource Access Manager.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@shetsa-amzn](https://github.com/shetsa-amzn)
+# __2.26.24__ __2024-07-24__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Three enhancements to the AWS Clean Rooms: Disallowed Output Columns, Flexible Result Receivers, SQL as a Seed
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release adds support for Irdeto DRM encryption in DASH manifests.
+
+## __AWS Health Imaging__
+  - ### Features
+    - CopyImageSet API adds copying selected instances between image sets, and overriding inconsistent metadata with a force parameter. UpdateImageSetMetadata API enables reverting to prior versions; updates to Study, Series, and SOP Instance UIDs; and updates to private elements, with a force parameter.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Adds support for creating SiteWise Edge gateways that run on a Siemens Industrial Edge Device.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed the issue where request-level signer override provided through ExecutionInterceptor is not honored.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - DynamoDB doc only update for July
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - Update for rebrand to AWS End User Messaging SMS and Voice.
+
+# __2.26.23__ __2024-07-23__
+## __AWS AppSync__
+  - ### Features
+    - Adding support for paginators in AppSync list APIs
+
+## __AWS Clean Rooms ML__
+  - ### Features
+    - Adds SQL query as the source of seed audience for audience generation job.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release adds AWS Entity Resolution integration to associate ID namespaces & ID mapping workflow resources as part of ID namespace association and ID mapping table in AWS Clean Rooms. It also introduces a new ID_MAPPING_TABLE analysis rule to manage the protection on ID mapping table.
+
+## __AWS EntityResolution__
+  - ### Features
+    - Support First Party ID Mapping
+
+## __Amazon Connect Contact Lens__
+  - ### Features
+    - Added PostContactSummary segment type on ListRealTimeContactAnalysisSegments API
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added PostContactSummary segment type on ListRealTimeContactAnalysisSegmentsV2 API
+
+## __Amazon DataZone__
+  - ### Features
+    - This release removes the deprecated dataProductItem field from Search API output.
+
+# __2.26.22__ __2024-07-22__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release adds 1/ support of register S3 locations of assets in AWS Lake Formation hybrid access mode for DefaultDataLake blueprint. 2/ support of CRUD operations for Asset Filters.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Documentation update for IVS Low Latency API Reference.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Amazon Neptune Analytics provides new options for customers to start with smaller graphs at a lower cost. CreateGraph, CreaateGraphImportTask, UpdateGraph and StartImportTask APIs will now allow 32 and 64 for `provisioned-memory`
+
+## __Redshift Serverless__
+  - ### Features
+    - Adds dualstack support for Redshift Serverless workgroup.
+
 # __2.26.21__ __2024-07-18__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features
@@ -471,7 +680,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@sullis](https://github.com/sullis), [@shetsa-amzn](https://github.com/shetsa-amzn)
+[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
 # __2.26.9__ __2024-06-25__
 ## __AWS Network Manager__
   - ### Features
