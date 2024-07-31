@@ -363,7 +363,7 @@ public abstract class SdkHttpClientTestSuite {
     }
 
     private WireMockRule createWireMockRule() {
-        int maxAttempts = 5;
+        int maxAttempts = 10;
         for (int i = 0; i < maxAttempts; ++i) {
             try {
                 return new WireMockRule(wireMockConfig().dynamicPort()
