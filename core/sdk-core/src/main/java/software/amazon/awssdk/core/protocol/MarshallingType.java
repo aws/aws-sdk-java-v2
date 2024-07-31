@@ -63,6 +63,8 @@ public interface MarshallingType<T> {
 
     MarshallingType<Short> SHORT = newType(Short.class);
 
+    MarshallingType<Byte> BYTE = newType(Byte.class);
+
     MarshallingType<Document> DOCUMENT = newType(Document.class);
 
     Class<? super T> getTargetClass();

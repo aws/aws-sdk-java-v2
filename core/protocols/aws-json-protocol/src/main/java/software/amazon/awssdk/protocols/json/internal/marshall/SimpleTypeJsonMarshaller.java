@@ -82,6 +82,13 @@ public final class SimpleTypeJsonMarshaller {
         }
     };
 
+    public static final JsonMarshaller<Byte> BYTE = new BaseJsonMarshaller<Byte>() {
+        @Override
+        public void marshall(Byte val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
+            jsonGenerator.writeValue(val);
+        }
+    };
+
     public static final JsonMarshaller<Float> FLOAT = new BaseJsonMarshaller<Float>() {
         @Override
         public void marshall(Float val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
