@@ -97,8 +97,8 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         return JsonMarshallerRegistry
             .builder()
             .payloadMarshaller(MarshallingType.STRING, SimpleTypeJsonMarshaller.STRING)
-            .payloadMarshaller(MarshallingType.INTEGER, SimpleTypeJsonMarshaller.INTEGER)
             .payloadMarshaller(MarshallingType.LONG, SimpleTypeJsonMarshaller.LONG)
+            .payloadMarshaller(MarshallingType.INTEGER, SimpleTypeJsonMarshaller.INTEGER)
             .payloadMarshaller(MarshallingType.SHORT, SimpleTypeJsonMarshaller.SHORT)
             .payloadMarshaller(MarshallingType.BYTE, SimpleTypeJsonMarshaller.BYTE)
             .payloadMarshaller(MarshallingType.DOUBLE, SimpleTypeJsonMarshaller.DOUBLE)
