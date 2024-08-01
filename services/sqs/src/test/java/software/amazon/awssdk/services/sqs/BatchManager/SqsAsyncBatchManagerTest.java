@@ -36,15 +36,10 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 import software.amazon.awssdk.services.sqs.batchmanager.SqsAsyncBatchManager;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.DefaultSqsAsyncBatchManager;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.core.BatchManager;
-import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
-import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
@@ -58,15 +53,6 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
     @Mock
     private SqsAsyncClient mockClient;
 
-    @Mock
-    private BatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> mockSendMessageBatchManager;
-
-    @Mock
-    private BatchManager<DeleteMessageRequest, DeleteMessageResponse, DeleteMessageBatchResponse> mockDeleteMessageBatchManager;
-
-    @Mock
-    private BatchManager<ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse,
-        ChangeMessageVisibilityBatchResponse> mockChangeVisibilityBatchManager;
 
     private static SqsAsyncClientBuilder getAsyncClientBuilder(URI http_localhost_uri) {
         return SqsAsyncClient.builder()
@@ -78,7 +64,6 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
 
     @BeforeAll
     public static void oneTimeSetUp() {
-        SqsAsyncClient sqsAsyncClient = SqsAsyncClient.create();
         URI http_localhost_uri = URI.create(String.format("http://localhost:%s/", wireMock.getPort()));
         client = getAsyncClientBuilder(http_localhost_uri).build();
     }
@@ -92,23 +77,12 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
     public void setUp() {
         batchManager = client.batchManager();
     }
+
     @AfterEach
     public void tearDown() {
         batchManager.close();
     }
 
-    @Test
-    public void closeBatchManager_shouldNotCloseExecutorsOrClient() {
-        SqsAsyncBatchManager batchManager = new DefaultSqsAsyncBatchManager(mockClient,
-                                                                            mockSendMessageBatchManager,
-                                                                            mockDeleteMessageBatchManager,
-                                                                            mockChangeVisibilityBatchManager);
-        batchManager.close();
-        verify(mockSendMessageBatchManager).close();
-        verify(mockDeleteMessageBatchManager).close();
-        verify(mockChangeVisibilityBatchManager).close();
-        verify(mockClient, never()).close();;
-    }
 
     @Override
     public List<CompletableFuture<SendMessageResponse>> createAndSendSendMessageRequests(String message1, String message2) {
