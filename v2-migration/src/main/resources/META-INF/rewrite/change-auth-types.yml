@@ -16,7 +16,7 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: software.amazon.awssdk.v2migration.ChangeAuthTypes
-displayName: Change auth related classes
+displayName: Change auth related classes from v1 to v2
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.auth.DefaultAWSCredentialsProviderChain getInstance()
