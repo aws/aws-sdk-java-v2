@@ -22,8 +22,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.core.RequestBatchBuffer;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.core.BatchingExecutionContext;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchBuffer;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchingExecutionContext;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

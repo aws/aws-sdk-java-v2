@@ -20,10 +20,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.core.BatchAndSend;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.core.BatchKeyMapper;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.core.BatchResponseMapper;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.core.IdentifiableMessage;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchAndSend;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchKeyMapper;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchResponseMapper;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Logger;
 

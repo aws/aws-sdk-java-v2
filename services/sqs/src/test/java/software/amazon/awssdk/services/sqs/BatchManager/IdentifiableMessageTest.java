@@ -20,7 +20,7 @@ package software.amazon.awssdk.services.sqs.BatchManager;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.core.IdentifiableMessage;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.IdentifiableMessage;
 
 public class IdentifiableMessageTest {
 

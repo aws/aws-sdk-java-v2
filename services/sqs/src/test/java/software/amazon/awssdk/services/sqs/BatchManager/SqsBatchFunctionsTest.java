@@ -33,7 +33,7 @@ import org.junit.Test;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.core.IdentifiableMessage;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;

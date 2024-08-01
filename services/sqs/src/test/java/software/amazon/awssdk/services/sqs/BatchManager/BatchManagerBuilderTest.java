@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.sqs.BatchManager;
 
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -30,8 +29,7 @@ import java.util.stream.Stream;
 
 import software.amazon.awssdk.services.sqs.BatchManager.common.BatchManagerTestUtils;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchManager;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.core.BatchAndSend;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchAndSend;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -81,36 +79,36 @@ class BatchManagerBuilderTest {
 
         return Stream.of(
             Arguments.of((Runnable) () ->
-                             RequestBatchManager.builder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
-                                         .overrideConfiguration(overrideConfiguration)
-                                         .scheduledExecutor(scheduledExecutor)
-                                         .responseMapper(responseMapper)
-                                         .batchKeyMapper(batchKeyMapper)
-                                         .build(),
+                             software.amazon.awssdk.services.sqs.internal.batchmanager.core.RequestBatchManager.builder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
+                                                                                                               .overrideConfiguration(overrideConfiguration)
+                                                                                                               .scheduledExecutor(scheduledExecutor)
+                                                                                                               .responseMapper(responseMapper)
+                                                                                                               .batchKeyMapper(batchKeyMapper)
+                                                                                                               .build(),
                          NullPointerException.class, "Null batchFunction"),
             Arguments.of((Runnable) () ->
-                             RequestBatchManager.builder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
-                                         .overrideConfiguration(overrideConfiguration)
-                                         .scheduledExecutor(scheduledExecutor)
-                                         .batchFunction(batchFunction)
-                                         .batchKeyMapper(batchKeyMapper)
-                                         .build(),
+                             software.amazon.awssdk.services.sqs.internal.batchmanager.core.RequestBatchManager.builder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
+                                                                                                               .overrideConfiguration(overrideConfiguration)
+                                                                                                               .scheduledExecutor(scheduledExecutor)
+                                                                                                               .batchFunction(batchFunction)
+                                                                                                               .batchKeyMapper(batchKeyMapper)
+                                                                                                               .build(),
                          NullPointerException.class, "Null responseMapper"),
             Arguments.of((Runnable) () ->
-                             RequestBatchManager.builder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
-                                         .overrideConfiguration(overrideConfiguration)
-                                         .scheduledExecutor(scheduledExecutor)
-                                         .batchFunction(batchFunction)
-                                         .responseMapper(responseMapper)
-                                         .build(),
+                             software.amazon.awssdk.services.sqs.internal.batchmanager.core.RequestBatchManager.builder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
+                                                                                                               .overrideConfiguration(overrideConfiguration)
+                                                                                                               .scheduledExecutor(scheduledExecutor)
+                                                                                                               .batchFunction(batchFunction)
+                                                                                                               .responseMapper(responseMapper)
+                                                                                                               .build(),
                          NullPointerException.class, "Null batchKeyMapper"),
             Arguments.of((Runnable) () ->
-                             RequestBatchManager.builder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
-                                         .overrideConfiguration(overrideConfiguration)
-                                         .batchFunction(batchFunction)
-                                         .responseMapper(responseMapper)
-                                         .batchKeyMapper(batchKeyMapper)
-                                         .build(),
+                             software.amazon.awssdk.services.sqs.internal.batchmanager.core.RequestBatchManager.builder(String.class, String.class, BatchManagerTestUtils.BatchResponse.class)
+                                                                                                               .overrideConfiguration(overrideConfiguration)
+                                                                                                               .batchFunction(batchFunction)
+                                                                                                               .responseMapper(responseMapper)
+                                                                                                               .batchKeyMapper(batchKeyMapper)
+                                                                                                               .build(),
                          NullPointerException.class, "Null scheduledExecutor")
         );
     }
