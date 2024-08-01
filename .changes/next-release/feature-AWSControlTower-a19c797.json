@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Control Tower",
-    "contributor": "",
-    "description": "Updated Control Tower service documentation for controlcatalog control ARN support with existing Control Tower public APIs"
-}
