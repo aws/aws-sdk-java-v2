@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.28__ __2024-08-01__
+## __AWS Control Catalog__
+  - ### Features
+    - AWS Control Tower provides two new public APIs controlcatalog:ListControls and controlcatalog:GetControl under controlcatalog service namespace, which enable customers to programmatically retrieve control metadata of available controls.
+
+## __AWS Control Tower__
+  - ### Features
+    - Updated Control Tower service documentation for controlcatalog control ARN support with existing Control Tower public APIs
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue in the SDK that caused `UncheckedIOException` to be thrown instead of `ApiCallTimeoutException`/`ApiCallAttemptTimeoutException` when API call/API call attempt timeout is breached.
+
+## __AWS Support__
+  - ### Features
+    - Doc only updates to CaseDetails
+
+## __AWS Systems Manager QuickSetup__
+  - ### Features
+    - This release adds API support for the QuickSetup feature of AWS Systems Manager
+
+## __Amazon Bedrock__
+  - ### Features
+    - API and Documentation for Bedrock Model Copy feature. This feature lets you share and copy a custom model from one region to another or one account to another.
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Doc only update for changes to deletion API.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for specifying optional MinACU parameter in CreateDBShardGroup and ModifyDBShardGroup API. DBShardGroup response will contain MinACU if specified.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for Amazon EMR Serverless applications in SageMaker Studio for running data processing jobs.
+
 # __2.26.27__ __2024-07-30__
 ## __AWS CodePipeline__
   - ### Features
