@@ -108,10 +108,9 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
         int nextPartToGet = completedParts.get() + 1;
 
         if (totalParts != null && nextPartToGet > totalParts) {
-            synchronized (lock) {
-                logMulitpartComplete(totalParts);
-                subscription.cancel();
-            }
+            log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
+            subscription.cancel();
+            log.trace(() -> "Cancel complete");
             return;
         }
 
@@ -126,10 +125,6 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
             }
             requestMoreIfNeeded(response);
         });
-    }
-
-    private void logMulitpartComplete(int totalParts) {
-        log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
     }
 
     private void requestMoreIfNeeded(GetObjectResponse response) {
@@ -153,16 +148,17 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
         if (partCount != null && totalParts == null) {
             log.debug(() -> String.format("Total amount of parts of the object to download: %d", partCount));
             MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
-                .ifPresent(ctx -> ctx.totalParts(partCount));
+                                  .ifPresent(ctx -> ctx.totalParts(partCount));
             totalParts = partCount;
         }
-        synchronized (lock) {
-            if (totalParts != null && totalParts > 1 && totalComplete < totalParts) {
-                subscription.request(1);
-            } else {
-                logMulitpartComplete(totalParts);
-                subscription.cancel();
-            }
+
+        if (totalParts != null && totalParts > 1 && totalComplete < totalParts) {
+            log.trace(() -> "requesting more because totalParts=" + totalParts + " and totalComplete=" + totalComplete);
+            subscription.request(1);
+        } else {
+            log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
+            subscription.cancel();
+            log.trace(() -> "Cancel complete");
         }
     }
 
