@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Systems Manager QuickSetup",
+    "contributor": "",
+    "description": "This release adds API support for the QuickSetup feature of AWS Systems Manager"
+}
