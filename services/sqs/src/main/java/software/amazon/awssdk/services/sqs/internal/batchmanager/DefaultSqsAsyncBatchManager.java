@@ -52,18 +52,21 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
         this.sendMessageBatchManager = SendMessageBatchManager
             .builder()
             .client(client)
-            .overrideConfiguration(sendMessageConfig(builder.overrideConfiguration)).scheduledExecutor(scheduledExecutor)
+            .overrideConfiguration(createConfig(builder.overrideConfiguration))
+            .scheduledExecutor(scheduledExecutor)
             .build();
         this.deleteMessageBatchManager = DeleteMessageBatchManager
             .builder()
             .client(client)
-            .overrideConfiguration(sendMessageConfig(builder.overrideConfiguration)).scheduledExecutor(scheduledExecutor)
+            .overrideConfiguration(createConfig(builder.overrideConfiguration))
+            .scheduledExecutor(scheduledExecutor)
             .build();
         this.changeMessageVisibilityBatchManager = ChangeMessageVisibilityBatchManager
             .builder()
             .client(client)
-            .overrideConfiguration(changeMessageVisibilityConfig(builder.overrideConfiguration))
-            .scheduledExecutor(scheduledExecutor).build();
+            .overrideConfiguration(createConfig(builder.overrideConfiguration))
+            .scheduledExecutor(scheduledExecutor)
+            .build();
 
         //TODO : this will be updated while implementing the Receive Message Batch Manager
     }
@@ -121,18 +124,6 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
             config.maxBatchOpenInMs(overrideConfiguration.maxBatchOpenInMs().orElse(Duration.ofMillis(200)));
         }
         return config.build();
-    }
-
-    private BatchOverrideConfiguration sendMessageConfig(BatchOverrideConfiguration overrideConfiguration) {
-        return createConfig(overrideConfiguration);
-    }
-
-    private BatchOverrideConfiguration deleteMessageConfig(BatchOverrideConfiguration overrideConfiguration) {
-        return createConfig(overrideConfiguration);
-    }
-
-    private BatchOverrideConfiguration changeMessageVisibilityConfig(BatchOverrideConfiguration overrideConfiguration) {
-        return createConfig(overrideConfiguration);
     }
 
     public static final class DefaultBuilder implements SqsAsyncBatchManager.Builder {
