@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs.internal.batchmanager.core;
+package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public final class RequestBatchBuffer<RequestT, ResponseT> implements BatchBuffer<RequestT, ResponseT>  {
+public final class RequestBatchBuffer<RequestT, ResponseT>  {
     private final Object flushLock = new Object();
 
     private final Map<String, BatchingExecutionContext<RequestT, ResponseT>> idToBatchContext;

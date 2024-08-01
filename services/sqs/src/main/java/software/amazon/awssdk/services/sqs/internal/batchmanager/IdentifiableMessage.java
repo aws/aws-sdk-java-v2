@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs.internal.batchmanager.core;
+package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;

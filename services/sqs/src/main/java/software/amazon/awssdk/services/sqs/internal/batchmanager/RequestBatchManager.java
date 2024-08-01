@@ -25,6 +25,15 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchAndSend;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchConfiguration;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchKeyMapper;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchManagerBuilder;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchResponseMapper;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchingExecutionContext;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchingMap;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.IdentifiableMessage;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchBuffer;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -73,8 +82,12 @@ public final class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
         this.scheduledExecutor = Validate.notNull(builder.scheduledExecutor, "Null scheduledExecutor");
     }
 
-    public static <RequestT, ResponseT, BatchResponseT> DefaultBuilder<RequestT, ResponseT, BatchResponseT> builder() {
-        return new DefaultBuilder<>();
+
+    public static <RequestT, ResponseT, BatchResponseT> DefaultBuilder<RequestT, ResponseT,
+        BatchResponseT> builder(
+        Class<? extends RequestT> requestClass, Class<? extends ResponseT> responseClass,
+        Class<? extends BatchResponseT> batchResponseClass) {
+        return new DefaultBuilder<RequestT, ResponseT, BatchResponseT>();
     }
 
 
@@ -167,8 +180,8 @@ public final class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
     }
 
     public static final class DefaultBuilder<RequestT, ResponseT, BatchResponseT> implements BatchManagerBuilder<RequestT,
-        ResponseT,
-        BatchResponseT, DefaultBuilder> {
+            ResponseT,
+            BatchResponseT, DefaultBuilder> {
 
         private BatchOverrideConfiguration overrideConfiguration;
         private ScheduledExecutorService scheduledExecutor;

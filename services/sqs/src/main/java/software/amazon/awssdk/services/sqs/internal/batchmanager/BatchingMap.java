@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs.internal.batchmanager.core;
+package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -35,11 +35,11 @@ public final class BatchingMap<RequestT, ResponseT> {
     private final int maxBatchKeys;
     private final int maxBufferSize;
 
-    private final BiFunction<Integer, ScheduledFuture<?>, BatchBuffer<RequestT, ResponseT>> bufferSupplier;
-    private final Map<String, BatchBuffer<RequestT, ResponseT>> batchContextMap;
+    private final BiFunction<Integer, ScheduledFuture<?>, RequestBatchBuffer<RequestT, ResponseT>> bufferSupplier;
+    private final Map<String, RequestBatchBuffer<RequestT, ResponseT>> batchContextMap;
 
     public BatchingMap(int maxBatchKeys, int maxBufferSize,
-                       BiFunction<Integer, ScheduledFuture<?>, BatchBuffer<RequestT, ResponseT>> bufferSupplier) {
+                       BiFunction<Integer, ScheduledFuture<?>, RequestBatchBuffer<RequestT, ResponseT>> bufferSupplier) {
         this.batchContextMap = new ConcurrentHashMap<>();
         this.maxBatchKeys = maxBatchKeys;
         this.maxBufferSize = maxBufferSize;
@@ -60,7 +60,7 @@ public final class BatchingMap<RequestT, ResponseT> {
         batchContextMap.get(batchKey).putScheduledFlush(scheduledFlush);
     }
 
-    public void forEach(BiConsumer<String, BatchBuffer<RequestT, ResponseT>> action) {
+    public void forEach(BiConsumer<String, RequestBatchBuffer<RequestT, ResponseT>> action) {
         batchContextMap.forEach(action);
     }
 
@@ -79,7 +79,7 @@ public final class BatchingMap<RequestT, ResponseT> {
     }
 
     public void clear() {
-        for (Map.Entry<String, BatchBuffer<RequestT, ResponseT>> entry : batchContextMap.entrySet()) {
+        for (Map.Entry<String, RequestBatchBuffer<RequestT, ResponseT>> entry : batchContextMap.entrySet()) {
             String key = entry.getKey();
             entry.getValue().clear();
             batchContextMap.remove(key);
