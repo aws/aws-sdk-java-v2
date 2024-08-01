@@ -45,6 +45,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.InnerAttributeRecord;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedTestRecord;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
@@ -52,6 +53,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 
 public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     private static class Record {
@@ -644,5 +646,99 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
             final boolean b = resultsAttributeToProject.hasNext();
             Page<NestedTestRecord> next = resultsAttributeToProject.next();
         });
+    }
+
+    @Test
+    public void scanAllRecordsWithSelect_specific_attr() {
+        insertRecords();
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                                          .expression("#sort >= :min_value AND #sort <= :max_value")
+                                          .expressionValues(expressionValues)
+                                          .putExpressionName("#sort", "sort")
+                                          .build();
+
+        Iterator<Page<Record>> results =
+            mappedTable.scan(
+                ScanEnhancedRequest.builder()
+                                   .attributesToProject("sort")
+                                   .select(Select.SPECIFIC_ATTRIBUTES)
+                                   .filterExpression(expression)
+                                   .build()
+            ).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<Record> page = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page.items(), hasSize(3));
+
+        Record record = page.items().get(0);
+
+        assertThat(record.id, is(nullValue()));
+        assertThat(record.sort, is(3));
+    }
+
+    @Test
+    public void scanAllRecordsWithSelect_All_Attr() {
+        insertRecords();
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                                          .expression("#sort >= :min_value AND #sort <= :max_value")
+                                          .expressionValues(expressionValues)
+                                          .putExpressionName("#sort", "sort")
+                                          .build();
+
+        Iterator<Page<Record>> results =
+            mappedTable.scan(
+                ScanEnhancedRequest.builder()
+                                   .select(Select.ALL_ATTRIBUTES)
+                                   .filterExpression(expression)
+                                   .build()
+            ).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<Record> page = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page.items(), hasSize(3));
+
+        Record record = page.items().get(0);
+
+        assertThat(record.id, is("id-value"));
+        assertThat(record.sort, is(3));
+    }
+
+    @Test
+    public void scanAllRecordsWithSelect_Count() {
+        insertRecords();
+        Map<String, AttributeValue> expressionValues = new HashMap<>();
+        expressionValues.put(":min_value", numberValue(3));
+        expressionValues.put(":max_value", numberValue(5));
+        Expression expression = Expression.builder()
+                                          .expression("#sort >= :min_value AND #sort <= :max_value")
+                                          .expressionValues(expressionValues)
+                                          .putExpressionName("#sort", "sort")
+                                          .build();
+
+        Iterator<Page<Record>> results =
+            mappedTable.scan(
+                ScanEnhancedRequest.builder()
+                                   .select(Select.COUNT)
+                                   .filterExpression(expression)
+                                   .build()
+            ).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<Record> page = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page.count(), is(3));
+
+        assertThat(page.items().size(), is(0));
     }
 }

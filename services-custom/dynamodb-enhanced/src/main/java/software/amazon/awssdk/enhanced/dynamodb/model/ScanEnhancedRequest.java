@@ -32,6 +32,7 @@ import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -48,6 +49,7 @@ public final class ScanEnhancedRequest {
     private final Integer limit;
     private final Boolean consistentRead;
     private final Expression filterExpression;
+    private final Select select;
     private final List<NestedAttributeName> attributesToProject;
     private final Integer segment;
     private final Integer totalSegments;
@@ -60,6 +62,7 @@ public final class ScanEnhancedRequest {
         this.totalSegments = builder.totalSegments;
         this.consistentRead = builder.consistentRead;
         this.filterExpression = builder.filterExpression;
+        this.select = builder.select;
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
         this.attributesToProject = builder.attributesToProject != null
                 ? Collections.unmodifiableList(builder.attributesToProject)
@@ -83,6 +86,7 @@ public final class ScanEnhancedRequest {
                         .totalSegments(totalSegments)
                         .consistentRead(consistentRead)
                         .filterExpression(filterExpression)
+                        .select(select)
                         .returnConsumedCapacity(returnConsumedCapacity)
                         .addNestedAttributesToProject(attributesToProject);
     }
@@ -128,6 +132,24 @@ public final class ScanEnhancedRequest {
     public Expression filterExpression() {
         return filterExpression;
     }
+
+    /**
+     * Returns the value of select, or null if it doesn't exist.
+     * @return
+     */
+    public Select select() {
+        return select;
+    }
+
+    /**
+     * Returns the value of select as a string, or null if it doesn't exist.
+     * @return
+     */
+    public String selectAsString() {
+        return String.valueOf(select);
+    }
+
+    /**
 
     /**
      * Returns the list of projected attributes on this request object, or an null if no projection is specified.
@@ -204,6 +226,11 @@ public final class ScanEnhancedRequest {
             ? !returnConsumedCapacity.equals(scan.returnConsumedCapacity) : scan.returnConsumedCapacity != null) {
             return false;
         }
+
+        if (select != null ? ! select.equals(scan.select) : scan.select != null) {
+            return false;
+        }
+
         return filterExpression != null ? filterExpression.equals(scan.filterExpression) : scan.filterExpression == null;
     }
 
@@ -215,6 +242,7 @@ public final class ScanEnhancedRequest {
         result = 31 * result + (totalSegments != null ? totalSegments.hashCode() : 0);
         result = 31 * result + (consistentRead != null ? consistentRead.hashCode() : 0);
         result = 31 * result + (filterExpression != null ? filterExpression.hashCode() : 0);
+        result = 31 * result + (select != null ? select.hashCode() : 0);
         result = 31 * result + (attributesToProject != null ? attributesToProject.hashCode() : 0);
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
         return result;
@@ -229,6 +257,7 @@ public final class ScanEnhancedRequest {
         private Integer limit;
         private Boolean consistentRead;
         private Expression filterExpression;
+        private Select select;
         private List<NestedAttributeName> attributesToProject;
         private Integer segment;
         private Integer totalSegments;
@@ -334,6 +363,18 @@ public final class ScanEnhancedRequest {
             this.filterExpression = filterExpression;
             return this;
         }
+
+        /**
+         * Determines the attributes to be returned in the result. See {@link Select} for examples and constraints.
+         * By default, all attributes are returned.
+         * @param select
+         * @return a builder of this type
+         */
+        public Builder select(Select select) {
+            this.select = select;
+            return this;
+        }
+
 
         /**
          * <p>

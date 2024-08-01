@@ -82,6 +82,7 @@ public class ScanOperation<T> implements PaginatedTableOperation<T, ScanRequest,
             .exclusiveStartKey(this.request.exclusiveStartKey())
             .consistentRead(this.request.consistentRead())
             .returnConsumedCapacity(this.request.returnConsumedCapacity())
+            .select(this.request.select())
             .expressionAttributeValues(expressionValues)
             .expressionAttributeNames(expressionNames)
             .projectionExpression(projectionExpressionAsString);
