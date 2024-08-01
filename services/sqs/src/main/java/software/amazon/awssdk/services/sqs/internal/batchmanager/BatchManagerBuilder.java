@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 
@@ -29,6 +30,10 @@ public interface BatchManagerBuilder<RequestT, ResponseT, BatchResponseT, B> {
      * @return a reference to this object so that method calls can be chained together.
      */
     B overrideConfiguration(BatchOverrideConfiguration overrideConfiguration);
+
+
+    B overrideConfiguration(Consumer<BatchOverrideConfiguration.Builder> overrideConfigurationConsumer);
+
 
     /**
      * Adds a {@link ScheduledExecutorService} to be used by the BatchManager to schedule periodic flushes of the underlying

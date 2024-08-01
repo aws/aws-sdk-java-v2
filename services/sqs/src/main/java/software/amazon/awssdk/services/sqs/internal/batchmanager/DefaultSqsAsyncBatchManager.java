@@ -23,16 +23,12 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.batchmanager.SqsAsyncBatchManager;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.core.RequestBatchManager;
-import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
-import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.utils.Validate;
@@ -42,52 +38,42 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
     // TODO : update the validation here while implementing this class in next PR
     private final SqsAsyncClient client;
 
-    private final RequestBatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> sendMessageBatchManager;
+    private final SendMessageBatchManager sendMessageBatchManager;
 
-    private final RequestBatchManager<DeleteMessageRequest, DeleteMessageResponse, DeleteMessageBatchResponse> deleteMessageBatchManager;
+    private final DeleteMessageBatchManager deleteMessageBatchManager;
 
-    private final RequestBatchManager<ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse,
-            ChangeMessageVisibilityBatchResponse> changeMessageVisibilityBatchManager;
+    private final ChangeMessageVisibilityBatchManager changeMessageVisibilityBatchManager;
 
     private DefaultSqsAsyncBatchManager(DefaultBuilder builder) {
         this.client = Validate.notNull(builder.client, "client cannot be null");
 
         ScheduledExecutorService scheduledExecutor = builder.scheduledExecutor;
 
-        this.sendMessageBatchManager = RequestBatchManager
-            .builder(SendMessageRequest.class, SendMessageResponse.class, SendMessageBatchResponse.class)
-            .batchFunction(SqsBatchFunctions.sendMessageBatchAsyncFunction(client))
-            .responseMapper(SqsBatchFunctions.sendMessageResponseMapper())
-            .batchKeyMapper(SqsBatchFunctions.sendMessageBatchKeyMapper())
+        this.sendMessageBatchManager = SendMessageBatchManager
+            .builder()
+            .client(client)
             .overrideConfiguration(sendMessageConfig(builder.overrideConfiguration)).scheduledExecutor(scheduledExecutor)
             .build();
-        this.deleteMessageBatchManager = RequestBatchManager
-            .builder(DeleteMessageRequest.class, DeleteMessageResponse.class, DeleteMessageBatchResponse.class)
-            .batchFunction(SqsBatchFunctions.deleteMessageBatchAsyncFunction(client))
-            .responseMapper(SqsBatchFunctions.deleteMessageResponseMapper())
-            .batchKeyMapper(SqsBatchFunctions.deleteMessageBatchKeyMapper())
-            .overrideConfiguration(deleteMessageConfig(builder.overrideConfiguration)).scheduledExecutor(scheduledExecutor)
+        this.deleteMessageBatchManager = DeleteMessageBatchManager
+            .builder()
+            .client(client)
+            .overrideConfiguration(sendMessageConfig(builder.overrideConfiguration)).scheduledExecutor(scheduledExecutor)
             .build();
-        this.changeMessageVisibilityBatchManager = RequestBatchManager
-            .builder(ChangeMessageVisibilityRequest.class, ChangeMessageVisibilityResponse.class,
-                     ChangeMessageVisibilityBatchResponse.class)
-            .batchFunction(SqsBatchFunctions.changeMessageVisibilityBatchAsyncFunction(client))
-            .responseMapper(SqsBatchFunctions.changeMessageVisibilityResponseMapper())
-            .batchKeyMapper(SqsBatchFunctions.changeMessageVisibilityBatchKeyMapper())
+        this.changeMessageVisibilityBatchManager = ChangeMessageVisibilityBatchManager
+            .builder()
+            .client(client)
             .overrideConfiguration(changeMessageVisibilityConfig(builder.overrideConfiguration))
             .scheduledExecutor(scheduledExecutor).build();
 
         //TODO : this will be updated while implementing the Receive Message Batch Manager
     }
 
-
     @SdkTestInternalApi
     public DefaultSqsAsyncBatchManager(
         SqsAsyncClient client,
-        RequestBatchManager<SendMessageRequest, SendMessageResponse, SendMessageBatchResponse> sendMessageBatchManager,
-        RequestBatchManager<DeleteMessageRequest, DeleteMessageResponse, DeleteMessageBatchResponse> deleteMessageBatchManager,
-        RequestBatchManager<ChangeMessageVisibilityRequest, ChangeMessageVisibilityResponse,
-            ChangeMessageVisibilityBatchResponse> changeMessageVisibilityBatchManager) {
+        SendMessageBatchManager sendMessageBatchManager,
+        DeleteMessageBatchManager deleteMessageBatchManager,
+        ChangeMessageVisibilityBatchManager changeMessageVisibilityBatchManager) {
         this.sendMessageBatchManager = sendMessageBatchManager;
         this.deleteMessageBatchManager = deleteMessageBatchManager;
         this.changeMessageVisibilityBatchManager = changeMessageVisibilityBatchManager;

@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -114,8 +115,8 @@ public abstract class BaseSqsBatchManagerTest {
 
         CompletableFuture<SendMessageResponse> response1 = responses.get(0);
         CompletableFuture<SendMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(response1::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
-        assertThatThrownBy(response2::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(() -> response1.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(() -> response2.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
     }
 
     @Test
@@ -132,8 +133,8 @@ public abstract class BaseSqsBatchManagerTest {
 
         CompletableFuture<SendMessageResponse> response1 = responses.get(0);
         CompletableFuture<SendMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(response1::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
-        assertThatThrownBy(response2::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(() -> response1.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(() -> response2.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
     }
 
     @Test
@@ -147,8 +148,8 @@ public abstract class BaseSqsBatchManagerTest {
 
         CompletableFuture<SendMessageResponse> response1 = responses.get(0);
         CompletableFuture<SendMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(response1::join).hasCauseInstanceOf(SdkClientException.class).hasMessageContaining(errorMessage);
-        assertThatThrownBy(response2::join).hasCauseInstanceOf(SdkClientException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(() -> response1.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SdkClientException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(() -> response2.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SdkClientException.class).hasMessageContaining(errorMessage);
     }
 
     @Test
@@ -197,8 +198,8 @@ public abstract class BaseSqsBatchManagerTest {
 
         CompletableFuture<DeleteMessageResponse> response1 = responses.get(0);
         CompletableFuture<DeleteMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(response1::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
-        assertThatThrownBy(response2::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(() -> response1.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(() -> response2.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
     }
 
     @Test
@@ -212,8 +213,8 @@ public abstract class BaseSqsBatchManagerTest {
 
         CompletableFuture<DeleteMessageResponse> response1 = responses.get(0);
         CompletableFuture<DeleteMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(response1::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
-        assertThatThrownBy(response2::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(() -> response1.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(() -> response2.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
     }
 
     @Test
@@ -261,8 +262,9 @@ public abstract class BaseSqsBatchManagerTest {
 
         CompletableFuture<ChangeMessageVisibilityResponse> response1 = responses.get(0);
         CompletableFuture<ChangeMessageVisibilityResponse> response2 = responses.get(1);
-        assertThatThrownBy(response1::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
-        assertThatThrownBy(response2::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+
+        assertThatThrownBy(() -> response1.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(() -> response2.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
     }
 
     @Test
@@ -277,8 +279,8 @@ public abstract class BaseSqsBatchManagerTest {
 
         CompletableFuture<ChangeMessageVisibilityResponse> response1 = responses.get(0);
         CompletableFuture<ChangeMessageVisibilityResponse> response2 = responses.get(1);
-        assertThatThrownBy(response1::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
-        assertThatThrownBy(response2::join).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(() -> response1.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(() -> response2.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
     }
 
     public abstract List<CompletableFuture<SendMessageResponse>> createAndSendSendMessageRequests(String message1,
