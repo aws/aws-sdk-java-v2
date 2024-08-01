@@ -128,7 +128,6 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
                                  .orElse(request.queueUrl());
     }
 
-
     public static class DefaultBuilder extends RequestBatchManager.DefaultBuilder<DeleteMessageRequest,
         DeleteMessageResponse,
         DeleteMessageBatchResponse, DefaultBuilder> {

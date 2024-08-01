@@ -65,9 +65,4 @@ public final class IdentifiableMessage<MessageT> {
         result = 31 * result + message.hashCode();
         return result;
     }
-
-    // For debugging purposes only
-    public String toString() {
-        return "Id: " + id;
-    }
 }
