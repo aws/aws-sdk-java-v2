@@ -17,10 +17,10 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 
-@SdkPublicApi
+@SdkInternalApi
 public interface BatchManagerBuilder<RequestT, ResponseT, BatchResponseT, B> {
 
     /**

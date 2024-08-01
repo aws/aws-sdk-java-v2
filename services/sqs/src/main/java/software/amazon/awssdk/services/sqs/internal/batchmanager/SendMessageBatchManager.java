@@ -71,9 +71,13 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
 
     private static IdentifiableMessage<Throwable> sendMessageCreateThrowable(BatchResultErrorEntry failedEntry) {
         String key = failedEntry.id();
-        AwsErrorDetails errorDetailsBuilder = AwsErrorDetails.builder().errorCode(failedEntry.code())
-                                                             .errorMessage(failedEntry.message()).build();
-        Throwable response = SqsException.builder().awsErrorDetails(errorDetailsBuilder).build();
+        AwsErrorDetails errorDetailsBuilder = AwsErrorDetails.builder()
+                                                             .errorCode(failedEntry.code())
+                                                             .errorMessage(failedEntry.message())
+                                                             .build();
+        Throwable response = SqsException.builder()
+                                         .awsErrorDetails(errorDetailsBuilder)
+                                         .build();
         return new IdentifiableMessage<Throwable>(key, response);
     }
 
@@ -102,7 +106,7 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
                                  .orElse(request.queueUrl());
     }
 
-    public static BatchAndSend<SendMessageRequest,
+    private static BatchAndSend<SendMessageRequest,
         SendMessageBatchResponse> sendMessageBatchAsyncFunction(SqsAsyncClient client) {
         return (identifiedRequests, batchKey) -> {
             SendMessageBatchRequest batchRequest = createSendMessageBatchRequest(identifiedRequests, batchKey);
@@ -153,6 +157,4 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
             return new SendMessageBatchManager(this);
         }
     }
-
-
 }

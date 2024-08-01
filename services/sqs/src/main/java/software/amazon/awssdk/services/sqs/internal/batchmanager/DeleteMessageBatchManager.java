@@ -18,14 +18,11 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
@@ -56,16 +53,7 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
         };
     }
 
-
-    public static BatchAndSend<DeleteMessageRequest, DeleteMessageBatchResponse> deleteMessageBatchFunction(SqsClient client,
-                                                                                                            Executor executor) {
-        return (identifiedRequests, batchKey) -> {
-            DeleteMessageBatchRequest batchRequest = createDeleteMessageBatchRequest(identifiedRequests, batchKey);
-            return CompletableFuture.supplyAsync(() -> client.deleteMessageBatch(batchRequest), executor);
-        };
-    }
-
-    public static BatchAndSend<DeleteMessageRequest, DeleteMessageBatchResponse> deleteMessageBatchAsyncFunction(
+    private static BatchAndSend<DeleteMessageRequest, DeleteMessageBatchResponse> deleteMessageBatchAsyncFunction(
         SqsAsyncClient client) {
         return (identifiedRequests, batchKey) -> {
             DeleteMessageBatchRequest batchRequest = createDeleteMessageBatchRequest(identifiedRequests, batchKey);

@@ -18,14 +18,11 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
@@ -56,18 +53,7 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
         };
     }
 
-
-    public static BatchAndSend<ChangeMessageVisibilityRequest,
-        ChangeMessageVisibilityBatchResponse> changeMessageVisibilityBatchFunction(
-        SqsClient client, Executor executor) {
-        return (identifiedRequests, batchKey) -> {
-            ChangeMessageVisibilityBatchRequest batchRequest = createChangeMessageVisibilityBatchRequest(identifiedRequests,
-                                                                                                         batchKey);
-            return CompletableFuture.supplyAsync(() -> client.changeMessageVisibilityBatch(batchRequest), executor);
-        };
-    }
-
-    public static BatchAndSend<ChangeMessageVisibilityRequest,
+    private static BatchAndSend<ChangeMessageVisibilityRequest,
         ChangeMessageVisibilityBatchResponse> changeMessageVisibilityBatchAsyncFunction(
         SqsAsyncClient client) {
         return (identifiedRequests, batchKey) -> {
@@ -95,10 +81,10 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
                                                                  .overrideConfiguration(overrideConfig)
                                                                  .entries(entries)
                                                                  .build())
-                                    .orElse(ChangeMessageVisibilityBatchRequest.builder()
-                                                                               .queueUrl(batchKey)
-                                                                               .entries(entries)
-                                                                               .build());
+                                    .orElseGet(() -> ChangeMessageVisibilityBatchRequest.builder()
+                                                                                        .queueUrl(batchKey)
+                                                                                        .entries(entries)
+                                                                                        .build());
     }
 
     private static ChangeMessageVisibilityBatchRequestEntry createChangeMessageVisibilityBatchRequestEntry(String id,
