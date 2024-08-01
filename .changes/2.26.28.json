@@ -1,0 +1,66 @@
+{
+    "version": "2.26.28",
+    "date": "2024-08-01",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed an issue in the SDK that caused `UncheckedIOException` to be thrown instead of `ApiCallTimeoutException`/`ApiCallAttemptTimeoutException` when API call/API call attempt timeout is breached."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Control Catalog",
+            "contributor": "",
+            "description": "AWS Control Tower provides two new public APIs controlcatalog:ListControls and controlcatalog:GetControl under controlcatalog service namespace, which enable customers to programmatically retrieve control metadata of available controls."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Control Tower",
+            "contributor": "",
+            "description": "Updated Control Tower service documentation for controlcatalog control ARN support with existing Control Tower public APIs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Support",
+            "contributor": "",
+            "description": "Doc only updates to CaseDetails"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager QuickSetup",
+            "contributor": "",
+            "description": "This release adds API support for the QuickSetup feature of AWS Systems Manager"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock",
+            "contributor": "",
+            "description": "API and Documentation for Bedrock Model Copy feature. This feature lets you share and copy a custom model from one region to another or one account to another."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon MemoryDB",
+            "contributor": "",
+            "description": "Doc only update for changes to deletion API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release adds support for specifying optional MinACU parameter in CreateDBShardGroup and ModifyDBShardGroup API. DBShardGroup response will contain MinACU if specified."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds support for Amazon EMR Serverless applications in SageMaker Studio for running data processing jobs."
+        }
+    ]
+}
