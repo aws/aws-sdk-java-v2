@@ -1,4 +1,53 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.29__ __2024-08-02__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Fixed a race condition in AWS CRT-based S3 client that could cause `s3metaRequest is not initialized yet` error to be thrown.
+
+## __AWS Glue__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - Customers are presented with the grouping recommendations and can determine if the recommendations are accurate and apply to their case. This feature simplifies onboarding by organizing resources into appropriate AppComponents.
+
+## __AWS WAF Regional__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - updates cloudtrail event source for SDKs
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - updates cloudtrail event source for SDKs
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - updates cloudtrail event source for SDKs
+
+## __Amazon Kinesis__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Route 53__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
 # __2.26.28__ __2024-08-01__
 ## __AWS Control Catalog__
   - ### Features
@@ -721,7 +770,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
+[@sullis](https://github.com/sullis), [@shetsa-amzn](https://github.com/shetsa-amzn)
 # __2.26.9__ __2024-06-25__
 ## __AWS Network Manager__
   - ### Features
