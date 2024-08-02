@@ -112,7 +112,7 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
             builder.sdkHttpResponse(batchResponse.sdkHttpResponse());
         }
         DeleteMessageResponse response = builder.build();
-        return new IdentifiableMessage<DeleteMessageResponse>(key, response);
+        return new IdentifiableMessage<>(key, response);
     }
 
     private static IdentifiableMessage<Throwable> deleteMessageCreateThrowable(BatchResultErrorEntry failedEntry) {
@@ -120,7 +120,7 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
         AwsErrorDetails errorDetailsBuilder = AwsErrorDetails.builder().errorCode(failedEntry.code())
                                                              .errorMessage(failedEntry.message()).build();
         Throwable response = SqsException.builder().awsErrorDetails(errorDetailsBuilder).build();
-        return new IdentifiableMessage<Throwable>(key, response);
+        return new IdentifiableMessage<>(key, response);
     }
 
     private static BatchKeyMapper<DeleteMessageRequest> deleteMessageBatchKeyMapper() {

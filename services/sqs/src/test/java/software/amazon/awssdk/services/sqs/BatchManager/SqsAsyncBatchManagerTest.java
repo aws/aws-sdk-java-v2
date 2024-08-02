@@ -51,10 +51,10 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
     private SqsAsyncClient mockClient;
 
 
-    private static SqsAsyncClientBuilder getAsyncClientBuilder(URI http_localhost_uri) {
+    private static SqsAsyncClientBuilder getAsyncClientBuilder(URI httpLocalhostUri) {
         return SqsAsyncClient.builder()
                              .region(Region.US_EAST_1)
-                             .endpointOverride(http_localhost_uri)
+                             .endpointOverride(httpLocalhostUri)
                              .credentialsProvider(
                                  StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")));
     }

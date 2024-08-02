@@ -45,7 +45,7 @@ import software.amazon.awssdk.utils.Md5Utils;
 
 public abstract class BaseSqsBatchManagerTest {
 
-    private static final String DEFAULT_QUEUE_URl = "SomeQueueUrl";
+    private static final String DEFAULT_QUEUE_URL = "SomeQueueUrl";
     private static final int DEFAULT_MAX_BATCH_OPEN = 200;
 
 
@@ -293,19 +293,19 @@ public abstract class BaseSqsBatchManagerTest {
     SendMessageRequest createSendMessageRequest(String messageBody) {
         return SendMessageRequest.builder()
                                  .messageBody(messageBody)
-                                 .queueUrl(DEFAULT_QUEUE_URl)
+                                 .queueUrl(DEFAULT_QUEUE_URL)
                                  .build();
     }
 
     DeleteMessageRequest createDeleteMessageRequest() {
         return DeleteMessageRequest.builder()
-                                   .queueUrl(DEFAULT_QUEUE_URl)
+                                   .queueUrl(DEFAULT_QUEUE_URL)
                                    .build();
     }
 
     ChangeMessageVisibilityRequest createChangeVisibilityRequest() {
         return ChangeMessageVisibilityRequest.builder()
-                                             .queueUrl(DEFAULT_QUEUE_URl)
+                                             .queueUrl(DEFAULT_QUEUE_URL)
                                              .build();
     }
 

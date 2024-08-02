@@ -38,7 +38,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
     private final BatchKeyMapper<RequestT> batchKeyMapper;
     private final ScheduledExecutorService scheduledExecutor;
 
-    protected RequestBatchManager(DefaultBuilder builder) {
+    protected RequestBatchManager(DefaultBuilder<RequestT, ResponseT, BatchResponseT, ?> builder) {
         BatchConfiguration batchConfiguration = new BatchConfiguration(builder.overrideConfiguration);
         this.requestsAndResponsesMaps = new BatchingMap<>(batchConfiguration.maxBatchKeys(),
                                                           batchConfiguration.maxBufferSize(),

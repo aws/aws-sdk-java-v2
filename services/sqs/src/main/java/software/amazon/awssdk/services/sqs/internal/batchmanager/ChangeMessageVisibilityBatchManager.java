@@ -123,7 +123,7 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
             builder.sdkHttpResponse(batchResponse.sdkHttpResponse());
         }
         ChangeMessageVisibilityResponse response = builder.build();
-        return new IdentifiableMessage<ChangeMessageVisibilityResponse>(key, response);
+        return new IdentifiableMessage<>(key, response);
     }
 
     private static IdentifiableMessage<Throwable> changeMessageVisibilityCreateThrowable(BatchResultErrorEntry failedEntry) {
@@ -131,7 +131,7 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
         AwsErrorDetails errorDetailsBuilder = AwsErrorDetails.builder().errorCode(failedEntry.code())
                                                              .errorMessage(failedEntry.message()).build();
         Throwable response = SqsException.builder().awsErrorDetails(errorDetailsBuilder).build();
-        return new IdentifiableMessage<Throwable>(key, response);
+        return new IdentifiableMessage<>(key, response);
     }
 
     private static BatchKeyMapper<ChangeMessageVisibilityRequest> changeMessageVisibilityBatchKeyMapper() {
