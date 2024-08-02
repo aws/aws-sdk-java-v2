@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -37,11 +38,15 @@ import software.amazon.awssdk.utils.Either;
 public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<ChangeMessageVisibilityRequest,
     ChangeMessageVisibilityResponse,
     ChangeMessageVisibilityBatchResponse> {
+
+    private final BatchAndSend<ChangeMessageVisibilityRequest, ChangeMessageVisibilityBatchResponse> batchFunction;
+    private final BatchResponseMapper<ChangeMessageVisibilityBatchResponse, ChangeMessageVisibilityResponse> responseMapper;
+    private final BatchKeyMapper<ChangeMessageVisibilityRequest> batchKeyMapper;
     protected ChangeMessageVisibilityBatchManager(DefaultBuilder builder) {
-        super(builder
-                  .batchFunction(changeMessageVisibilityBatchAsyncFunction(builder.client))
-                  .responseMapper(changeMessageVisibilityResponseMapper())
-                  .batchKeyMapper(changeMessageVisibilityBatchKeyMapper()));
+        super(builder);
+        batchKeyMapper = changeMessageVisibilityBatchKeyMapper();
+        batchFunction = changeMessageVisibilityBatchAsyncFunction(builder.client);
+        responseMapper = changeMessageVisibilityResponseMapper();
     }
 
     public static DefaultBuilder builder() {
@@ -139,10 +144,23 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
                                  .orElse(request.queueUrl());
     }
 
-    public static class DefaultBuilder extends RequestBatchManager.DefaultBuilder<ChangeMessageVisibilityRequest,
-        ChangeMessageVisibilityResponse,
-        ChangeMessageVisibilityBatchResponse,
-        DefaultBuilder> {
+    @Override
+    protected CompletableFuture<ChangeMessageVisibilityBatchResponse> batchAndSend(
+        List<IdentifiableMessage<ChangeMessageVisibilityRequest>> identifiedRequests, String batchKey) {
+        return this.batchFunction.batchAndSend(identifiedRequests, batchKey);
+    }
+
+    @Override
+    protected String getBatchKey(ChangeMessageVisibilityRequest request) {
+        return this.batchKeyMapper.getBatchKey(request);
+    }
+
+    @Override
+    protected List<Either<IdentifiableMessage<ChangeMessageVisibilityResponse>, IdentifiableMessage<Throwable>>> mapBatchResponse(ChangeMessageVisibilityBatchResponse batchResponse) {
+        return this.mapBatchResponse(batchResponse);
+    }
+
+    public static class DefaultBuilder extends RequestBatchManager.DefaultBuilder<DefaultBuilder> {
         private SqsAsyncClient client;
 
         public DefaultBuilder client(SqsAsyncClient client) {

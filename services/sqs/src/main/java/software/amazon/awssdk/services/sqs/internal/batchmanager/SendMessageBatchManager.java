@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -37,11 +38,18 @@ import software.amazon.awssdk.utils.Either;
 public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequest,
     SendMessageResponse,
     SendMessageBatchResponse> {
+
+
+    private final BatchAndSend<SendMessageRequest, SendMessageBatchResponse> batchFunction;
+    private final BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> responseMapper;
+    private final BatchKeyMapper<SendMessageRequest> batchKeyMapper;
+
+
     protected SendMessageBatchManager(DefaultBuilder builder) {
-        super(builder
-                  .batchFunction(sendMessageBatchAsyncFunction(builder.client))
-                  .responseMapper(sendMessageResponseMapper())
-                  .batchKeyMapper(sendMessageBatchKeyMapper()));
+        super(builder);
+        batchKeyMapper = sendMessageBatchKeyMapper();
+        batchFunction = sendMessageBatchAsyncFunction(builder.client);
+        responseMapper = sendMessageResponseMapper();
     }
 
     public static DefaultBuilder builder() {
@@ -78,7 +86,7 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
         Throwable response = SqsException.builder()
                                          .awsErrorDetails(errorDetailsBuilder)
                                          .build();
-        return new IdentifiableMessage<Throwable>(key, response);
+        return new IdentifiableMessage<>(key, response);
     }
 
     private static IdentifiableMessage<SendMessageResponse> createSendMessageResponse(
@@ -98,7 +106,7 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
             builder.sdkHttpResponse(batchResponse.sdkHttpResponse());
         }
         SendMessageResponse response = builder.build();
-        return new IdentifiableMessage<SendMessageResponse>(key, response);
+        return new IdentifiableMessage<>(key, response);
     }
 
     private static BatchKeyMapper<SendMessageRequest> sendMessageBatchKeyMapper() {
@@ -143,8 +151,22 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
                                            .build();
     }
 
-    public static class DefaultBuilder extends RequestBatchManager.DefaultBuilder<SendMessageRequest, SendMessageResponse,
-        SendMessageBatchResponse, DefaultBuilder> {
+    @Override
+    protected CompletableFuture<SendMessageBatchResponse> batchAndSend(List<IdentifiableMessage<SendMessageRequest>> identifiedRequests, String batchKey) {
+        return null;
+    }
+
+    @Override
+    protected String getBatchKey(SendMessageRequest request) {
+        return null;
+    }
+
+    @Override
+    protected List<Either<IdentifiableMessage<SendMessageResponse>, IdentifiableMessage<Throwable>>> mapBatchResponse(SendMessageBatchResponse batchResponse) {
+        return null;
+    }
+
+    public static class DefaultBuilder extends RequestBatchManager.DefaultBuilder<DefaultBuilder> {
         private SqsAsyncClient client;
 
         public DefaultBuilder client(SqsAsyncClient client) {

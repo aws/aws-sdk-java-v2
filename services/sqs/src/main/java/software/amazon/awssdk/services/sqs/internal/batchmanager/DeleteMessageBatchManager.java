@@ -18,12 +18,16 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchResponse;
@@ -37,11 +41,16 @@ import software.amazon.awssdk.utils.Either;
 @SdkInternalApi
 public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessageRequest, DeleteMessageResponse,
     DeleteMessageBatchResponse> {
+
+    private final BatchAndSend<DeleteMessageRequest, DeleteMessageBatchResponse> batchFunction;
+    private final BatchResponseMapper<DeleteMessageBatchResponse, DeleteMessageResponse> responseMapper;
+    private final BatchKeyMapper<DeleteMessageRequest> batchKeyMapper;
+
     protected DeleteMessageBatchManager(DefaultBuilder builder) {
-        super(builder
-                  .batchFunction(deleteMessageBatchAsyncFunction(builder.client))
-                  .responseMapper(deleteMessageResponseMapper())
-                  .batchKeyMapper(deleteMessageBatchKeyMapper()));
+        super(builder);
+        batchKeyMapper = deleteMessageBatchKeyMapper();
+        batchFunction = deleteMessageBatchAsyncFunction(builder.client);
+        responseMapper = deleteMessageResponseMapper();
     }
 
     public static DefaultBuilder builder() {
@@ -128,9 +137,23 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
                                  .orElse(request.queueUrl());
     }
 
-    public static class DefaultBuilder extends RequestBatchManager.DefaultBuilder<DeleteMessageRequest,
-        DeleteMessageResponse,
-        DeleteMessageBatchResponse, DefaultBuilder> {
+    @Override
+    protected CompletableFuture<DeleteMessageBatchResponse> batchAndSend(List<IdentifiableMessage<DeleteMessageRequest>> identifiedRequests, String batchKey) {
+        return this.batchFunction.batchAndSend(identifiedRequests, batchKey);
+    }
+
+    @Override
+    protected String getBatchKey(DeleteMessageRequest request) {
+        return this.batchKeyMapper.getBatchKey(request);
+    }
+
+    @Override
+    protected List<Either<IdentifiableMessage<DeleteMessageResponse>, IdentifiableMessage<Throwable>>> mapBatchResponse(DeleteMessageBatchResponse batchResponse) {
+        return this.mapBatchResponse(batchResponse);
+    }
+
+
+    public static class DefaultBuilder extends RequestBatchManager.DefaultBuilder<DefaultBuilder> {
         private SqsAsyncClient client;
 
         public DefaultBuilder client(SqsAsyncClient client) {

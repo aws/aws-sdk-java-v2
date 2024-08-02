@@ -17,27 +17,52 @@ package software.amazon.awssdk.services.sqs.BatchManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchAndSend;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchKeyMapper;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchResponseMapper;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchManager;
+import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.utils.Either;
 
 public class SampleBatchManager extends RequestBatchManager<String, String, BatchResponse> {
+
+    private final BatchAndSend<String, BatchResponse> batchFunction;
+    private final BatchResponseMapper<BatchResponse, String> responseMapper;
+    private final BatchKeyMapper<String> batchKeyMapper;
+
+
     protected SampleBatchManager(DefaultBuilder builder) {
-        super(builder
-                  .batchFunction(SampleBatchManager.sampleBatchAsyncFunction(builder.client))
-                  .responseMapper(SampleBatchManager.sampleResponseMapper())
-                  .batchKeyMapper(SampleBatchManager.sampleBatchKeyMapper()));
+        super(builder);
+        this.batchFunction = sampleBatchAsyncFunction(builder.client);
+        this.responseMapper = sampleResponseMapper();
+        this.batchKeyMapper = sampleBatchKeyMapper();
     }
 
     public static DefaultBuilder builder() {
         return new DefaultBuilder();
     }
 
-    public static class DefaultBuilder extends RequestBatchManager.DefaultBuilder<String, String, BatchResponse, DefaultBuilder> {
+    @Override
+    protected CompletableFuture<BatchResponse> batchAndSend(List<IdentifiableMessage<String>> identifiedRequests, String batchKey) {
+        return this.batchFunction.batchAndSend(identifiedRequests, batchKey);
+    }
+
+    @Override
+    protected String getBatchKey(String request) {
+        return null;
+    }
+
+    @Override
+    protected List<Either<IdentifiableMessage<String>, IdentifiableMessage<Throwable>>> mapBatchResponse(BatchResponse batchResponse) {
+        return null;
+    }
+
+    public static class DefaultBuilder extends RequestBatchManager.DefaultBuilder<DefaultBuilder> {
         private CustomClient client;
 
         public DefaultBuilder client(CustomClient client) {
