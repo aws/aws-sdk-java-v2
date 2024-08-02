@@ -69,8 +69,6 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
      */
     private final CompletableFuture<Void> future = new CompletableFuture<>();
 
-    private final Object lock = new Object();
-
     /**
      * The etag of the object being downloaded.
      */
@@ -88,7 +86,6 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
 
     @Override
     public void onSubscribe(Subscription s) {
-        log.trace(() -> "onSubscribe");
         if (this.subscription != null) {
             s.cancel();
             return;
@@ -99,7 +96,6 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
 
     @Override
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
-        log.trace(() -> String.format("onNext, completed part = %d", completedParts.get()));
         if (asyncResponseTransformer == null) {
             subscription.cancel();
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
@@ -110,7 +106,6 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
         if (totalParts != null && nextPartToGet > totalParts) {
             log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
             subscription.cancel();
-            log.trace(() -> "Cancel complete");
             return;
         }
 
@@ -153,12 +148,10 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
         }
 
         if (totalParts != null && totalParts > 1 && totalComplete < totalParts) {
-            log.trace(() -> "requesting more because totalParts=" + totalParts + " and totalComplete=" + totalComplete);
             subscription.request(1);
         } else {
             log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
             subscription.cancel();
-            log.trace(() -> "Cancel complete");
         }
     }
 
