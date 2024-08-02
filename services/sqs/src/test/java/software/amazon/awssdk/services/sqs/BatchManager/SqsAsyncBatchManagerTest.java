@@ -47,8 +47,6 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
     private static SqsAsyncClient client;
     private SqsAsyncBatchManager batchManager;
 
-    @Mock
-    private SqsAsyncClient mockClient;
 
 
     private static SqsAsyncClientBuilder getAsyncClientBuilder(URI httpLocalhostUri) {
