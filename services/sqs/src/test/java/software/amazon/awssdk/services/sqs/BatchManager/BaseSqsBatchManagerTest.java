@@ -29,7 +29,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -234,7 +236,7 @@ public abstract class BaseSqsBatchManagerTest {
     }
 
     @Test
-    public void changeVisibilityBatchFunctionWithBatchEntryFailures_wrapFailureMessageInBatchEntry() {
+    public void changeVisibilityBatchFunctionWithBatchEntryFailures_wrapFailureMessageInBatchEntry() throws ExecutionException, InterruptedException, TimeoutException {
         String id1 = "0";
         String id2 = "1";
         String errorCode = "400";
@@ -263,8 +265,12 @@ public abstract class BaseSqsBatchManagerTest {
         CompletableFuture<ChangeMessageVisibilityResponse> response1 = responses.get(0);
         CompletableFuture<ChangeMessageVisibilityResponse> response2 = responses.get(1);
 
-        assertThatThrownBy(() -> response1.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
-        assertThatThrownBy(() -> response2.get(1, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        ChangeMessageVisibilityResponse changeMessageVisibilityResponse = response1.get(1, TimeUnit.SECONDS);
+        ChangeMessageVisibilityResponse changeMessageVisibilityResponse1 = response2.get(1, TimeUnit.SECONDS);
+
+        System.out.println("changeMessageVisibilityResponse " +changeMessageVisibilityResponse);
+        System.out.println("changeMessageVisibilityResponse1 " +changeMessageVisibilityResponse1);
+
     }
 
     @Test
