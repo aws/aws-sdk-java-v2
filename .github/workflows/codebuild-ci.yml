@@ -1,6 +1,7 @@
 name: AWS CodeBuild CI
 on:
   pull_request:
+  merge_group:
   push:
     branches:
       - master
