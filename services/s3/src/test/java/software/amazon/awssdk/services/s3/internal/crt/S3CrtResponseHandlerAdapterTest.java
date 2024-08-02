@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
@@ -89,6 +90,21 @@ public class S3CrtResponseHandlerAdapterTest {
         verify(s3MetaRequest, times(2)).incrementReadWindow(11L);
         verify(s3MetaRequest).close();
         verify(sdkResponseHandler).onHeaders(any(SdkHttpResponse.class));
+    }
+
+    @Test
+    public void s3MetaRequestNotFinish_shouldFailFuture() throws Exception {
+        S3CrtResponseHandlerAdapter responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
+                                                                                             sdkResponseHandler,
+                                                                                             null,
+                                                                                             new CompletableFuture<>(),
+                                                                                             Duration.ofMillis(10));
+        int statusCode = 200;
+        responseHandlerAdapter.onResponseHeaders(statusCode, new HttpHeader[0]);
+        responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld1".getBytes()), 1, 2);
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+            .hasMessageContaining("Timeout waiting for metaRequest");
     }
 
     @Test
