@@ -18,8 +18,13 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.CRT;
@@ -38,6 +43,7 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
 @SdkInternalApi
 public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseHandler {
     private static final Logger log = Logger.loggerFor(S3CrtResponseHandlerAdapter.class);
+    private static final Duration META_REQUEST_TIMEOUT = Duration.ofSeconds(10);
     private final CompletableFuture<Void> resultFuture;
     private final SdkAsyncHttpResponseHandler responseHandler;
 
@@ -47,6 +53,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     private final CompletableFuture<S3MetaRequestWrapper> metaRequestFuture;
 
     private final PublisherListener<S3MetaRequestProgress> progressListener;
+    private final Duration s3MetaRequestTimeout;
 
     private volatile boolean responseHandlingInitiated;
 
@@ -54,6 +61,15 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                                        SdkAsyncHttpResponseHandler responseHandler,
                                        PublisherListener<S3MetaRequestProgress> progressListener,
                                        CompletableFuture<S3MetaRequestWrapper> metaRequestFuture) {
+        this(executeFuture, responseHandler, progressListener, metaRequestFuture, META_REQUEST_TIMEOUT);
+    }
+
+    @SdkTestInternalApi
+    public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture,
+                                       SdkAsyncHttpResponseHandler responseHandler,
+                                       PublisherListener<S3MetaRequestProgress> progressListener,
+                                       CompletableFuture<S3MetaRequestWrapper> metaRequestFuture,
+                                       Duration s3MetaRequestTimeout) {
         this.resultFuture = executeFuture;
         this.metaRequestFuture = metaRequestFuture;
 
@@ -71,14 +87,20 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
 
         this.responseHandler = responseHandler;
         this.progressListener = progressListener == null ? new NoOpPublisherListener() : progressListener;
+        this.s3MetaRequestTimeout = s3MetaRequestTimeout;
     }
 
     private S3MetaRequestWrapper s3MetaRequest() {
-        if (!metaRequestFuture.isDone()) {
-            return null;
+        try {
+            return metaRequestFuture.get(s3MetaRequestTimeout.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (ExecutionException | TimeoutException e) {
+            failResponseHandlerAndFuture(
+                new RuntimeException("Timeout waiting for metaRequest to be ready", e));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            failResponseHandlerAndFuture(new RuntimeException(e));
         }
-
-        return metaRequestFuture.join();
+        return null;
     }
 
     @Override
@@ -110,9 +132,6 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
 
             S3MetaRequestWrapper metaRequest = s3MetaRequest();
             if (metaRequest == null) {
-                // should not happen
-                failResponseHandlerAndFuture(SdkClientException.create("Unexpected exception occurred: s3metaRequest is not "
-                                                                       + "initialized yet"));
                 return;
             }
             metaRequest.incrementReadWindow(bytesReceived);
