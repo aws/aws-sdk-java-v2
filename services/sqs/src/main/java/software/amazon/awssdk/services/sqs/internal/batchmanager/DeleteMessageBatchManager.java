@@ -83,7 +83,7 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
         return DeleteMessageBatchRequestEntry.builder().id(id).receiptHandle(request.receiptHandle()).build();
     }
 
-    public static BatchResponseMapper<DeleteMessageBatchResponse, DeleteMessageResponse> deleteMessageResponseMapper() {
+    private static BatchResponseMapper<DeleteMessageBatchResponse, DeleteMessageResponse> deleteMessageResponseMapper() {
         return batchResponse -> {
             List<Either<IdentifiableMessage<DeleteMessageResponse>, IdentifiableMessage<Throwable>>> mappedResponses =
                 new ArrayList<>();
@@ -123,7 +123,7 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
         return new IdentifiableMessage<Throwable>(key, response);
     }
 
-    public static BatchKeyMapper<DeleteMessageRequest> deleteMessageBatchKeyMapper() {
+    private static BatchKeyMapper<DeleteMessageRequest> deleteMessageBatchKeyMapper() {
         return request -> request.overrideConfiguration().map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
                                  .orElse(request.queueUrl());
     }

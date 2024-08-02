@@ -93,7 +93,7 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
                                                        .visibilityTimeout(request.visibilityTimeout()).build();
     }
 
-    public static BatchResponseMapper<ChangeMessageVisibilityBatchResponse,
+    private static BatchResponseMapper<ChangeMessageVisibilityBatchResponse,
         ChangeMessageVisibilityResponse> changeMessageVisibilityResponseMapper() {
         return batchResponse -> {
             List<Either<IdentifiableMessage<ChangeMessageVisibilityResponse>, IdentifiableMessage<Throwable>>> mappedResponses =
@@ -134,7 +134,7 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
         return new IdentifiableMessage<Throwable>(key, response);
     }
 
-    public static BatchKeyMapper<ChangeMessageVisibilityRequest> changeMessageVisibilityBatchKeyMapper() {
+    private static BatchKeyMapper<ChangeMessageVisibilityRequest> changeMessageVisibilityBatchKeyMapper() {
         return request -> request.overrideConfiguration().map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
                                  .orElse(request.queueUrl());
     }

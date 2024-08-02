@@ -19,7 +19,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Takes a request and extracts a batchKey as determined by the caller.
- * TODO: For right now, the batchKey is a String but this may change as needed in the future.
  * @param <RequestT> the request.
  */
 @FunctionalInterface

@@ -53,7 +53,7 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
         };
     }
 
-    public static BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> sendMessageResponseMapper() {
+    private static BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> sendMessageResponseMapper() {
         return batchResponse -> {
             List<Either<IdentifiableMessage<SendMessageResponse>, IdentifiableMessage<Throwable>>> mappedResponses =
                 new ArrayList<>();
@@ -101,7 +101,7 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
         return new IdentifiableMessage<SendMessageResponse>(key, response);
     }
 
-    public static BatchKeyMapper<SendMessageRequest> sendMessageBatchKeyMapper() {
+    private static BatchKeyMapper<SendMessageRequest> sendMessageBatchKeyMapper() {
         return request -> request.overrideConfiguration().map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
                                  .orElse(request.queueUrl());
     }

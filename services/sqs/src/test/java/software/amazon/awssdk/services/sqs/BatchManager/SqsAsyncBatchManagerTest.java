@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.services.sqs.BatchManager;
 
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -26,7 +24,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
