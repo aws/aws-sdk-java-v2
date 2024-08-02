@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
-import java.time.Duration;
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.BatchConfiguration.DEFAULT_MAX_BATCH_ITEMS;
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.BatchConfiguration.DEFAULT_MAX_BATCH_OPEN_IN_MS;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -52,19 +54,19 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
         this.sendMessageBatchManager = SendMessageBatchManager
             .builder()
             .client(client)
-            .overrideConfiguration(createConfig(builder.overrideConfiguration))
+            .overrideConfiguration(createRequestBatchManagerConfig(builder.overrideConfiguration))
             .scheduledExecutor(scheduledExecutor)
             .build();
         this.deleteMessageBatchManager = DeleteMessageBatchManager
             .builder()
             .client(client)
-            .overrideConfiguration(createConfig(builder.overrideConfiguration))
+            .overrideConfiguration(createRequestBatchManagerConfig(builder.overrideConfiguration))
             .scheduledExecutor(scheduledExecutor)
             .build();
         this.changeMessageVisibilityBatchManager = ChangeMessageVisibilityBatchManager
             .builder()
             .client(client)
-            .overrideConfiguration(createConfig(builder.overrideConfiguration))
+            .overrideConfiguration(createRequestBatchManagerConfig(builder.overrideConfiguration))
             .scheduledExecutor(scheduledExecutor)
             .build();
 
@@ -114,14 +116,14 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
         changeMessageVisibilityBatchManager.close();
     }
 
-    private BatchOverrideConfiguration createConfig(BatchOverrideConfiguration overrideConfiguration) {
+    private BatchOverrideConfiguration createRequestBatchManagerConfig(BatchOverrideConfiguration overrideConfiguration) {
         BatchOverrideConfiguration.Builder config = BatchOverrideConfiguration.builder();
         if (overrideConfiguration == null) {
-            config.maxBatchItems(10);
-            config.maxBatchOpenInMs(Duration.ofMillis(200));
+            config.maxBatchItems(DEFAULT_MAX_BATCH_ITEMS);
+            config.maxBatchOpenInMs(DEFAULT_MAX_BATCH_OPEN_IN_MS);
         } else {
-            config.maxBatchItems(overrideConfiguration.maxBatchItems().orElse(10));
-            config.maxBatchOpenInMs(overrideConfiguration.maxBatchOpenInMs().orElse(Duration.ofMillis(200)));
+            config.maxBatchItems(overrideConfiguration.maxBatchItems().orElse(DEFAULT_MAX_BATCH_ITEMS));
+            config.maxBatchOpenInMs(overrideConfiguration.maxBatchOpenInMs().orElse(DEFAULT_MAX_BATCH_OPEN_IN_MS));
         }
         return config.build();
     }

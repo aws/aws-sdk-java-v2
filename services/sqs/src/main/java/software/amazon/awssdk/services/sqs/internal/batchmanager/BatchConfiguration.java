@@ -23,10 +23,10 @@ import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfigurati
 @SdkInternalApi
 public final class BatchConfiguration {
 
-    private static final int DEFAULT_MAX_BATCH_ITEMS = 10;
-    private static final int DEFAULT_MAX_BATCH_KEYS = 100;
-    private static final int DEFAULT_MAX_BUFFER_SIZE = 500;
-    private static final Duration DEFAULT_MAX_BATCH_OPEN_IN_MS = Duration.ofMillis(200);
+    public static final int DEFAULT_MAX_BATCH_ITEMS = 10;
+    public static final int DEFAULT_MAX_BATCH_KEYS = 100;
+    public static final int DEFAULT_MAX_BUFFER_SIZE = 500;
+    public static final Duration DEFAULT_MAX_BATCH_OPEN_IN_MS = Duration.ofMillis(200);
 
     private final Integer maxBatchItems;
     private final Integer maxBatchKeys;
