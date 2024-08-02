@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT-based S3 Client",
-    "contributor": "",
-    "description": "Fixed a race condition in AWS CRT-based S3 client that could cause `s3metaRequest is not initialized yet` error to be thrown."
-}
