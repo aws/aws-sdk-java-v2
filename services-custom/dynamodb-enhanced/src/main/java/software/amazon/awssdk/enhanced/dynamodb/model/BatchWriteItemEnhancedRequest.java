@@ -20,10 +20,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 
 /**
  * Defines parameters used for the batchWriteItem() operation (such as
@@ -37,9 +40,11 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 public final class BatchWriteItemEnhancedRequest {
 
     private final List<WriteBatch> writeBatches;
+    private final String returnConsumedCapacity;
 
     private BatchWriteItemEnhancedRequest(Builder builder) {
         this.writeBatches = getListIfExist(builder.writeBatches);
+        this.returnConsumedCapacity = builder.returnConsumedCapacity;
     }
 
     /**
@@ -50,10 +55,19 @@ public final class BatchWriteItemEnhancedRequest {
     }
 
     /**
-     * Returns a builder initialized with all existing values on the request object.
+     * @return a builder with all existing values set
      */
     public Builder toBuilder() {
-        return new Builder().writeBatches(writeBatches);
+        return builder().writeBatches(writeBatches).returnConsumedCapacity(returnConsumedCapacity);
+    }
+
+    /**
+     * Whether to return the capacity consumed by this operation.
+     *
+     * @see BatchWriteItemEnhancedRequest#returnConsumedCapacity()
+     */
+    public ReturnConsumedCapacity returnConsumedCapacity() {
+        return ReturnConsumedCapacity.fromValue(returnConsumedCapacity);
     }
 
     /**
@@ -71,15 +85,13 @@ public final class BatchWriteItemEnhancedRequest {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         BatchWriteItemEnhancedRequest that = (BatchWriteItemEnhancedRequest) o;
-
-        return writeBatches != null ? writeBatches.equals(that.writeBatches) : that.writeBatches == null;
+        return Objects.equals(writeBatches, that.writeBatches) && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity);
     }
 
     @Override
     public int hashCode() {
-        return writeBatches != null ? writeBatches.hashCode() : 0;
+        return Objects.hash(writeBatches, returnConsumedCapacity);
     }
 
     private static List<WriteBatch> getListIfExist(List<WriteBatch> writeBatches) {
@@ -92,8 +104,29 @@ public final class BatchWriteItemEnhancedRequest {
     @NotThreadSafe
     public static final class Builder {
         private List<WriteBatch> writeBatches;
+        private String returnConsumedCapacity;
 
         private Builder() {
+        }
+
+        /**
+         * Whether to return the capacity consumed by this operation.
+         *
+         * @see Builder#returnConsumedCapacity(ReturnConsumedCapacity)
+         */
+        public Builder returnConsumedCapacity(ReturnConsumedCapacity returnConsumedCapacity) {
+            this.returnConsumedCapacity = returnConsumedCapacity == null ? null : returnConsumedCapacity.toString();
+            return this;
+        }
+
+        /**
+         * Whether to return the capacity consumed by this operation.
+         *
+         * @see Builder#returnConsumedCapacity(String)
+         */
+        public Builder returnConsumedCapacity(String returnConsumedCapacity) {
+            this.returnConsumedCapacity = returnConsumedCapacity;
+            return this;
         }
 
         /**
