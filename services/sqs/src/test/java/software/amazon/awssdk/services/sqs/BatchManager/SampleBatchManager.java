@@ -18,7 +18,10 @@ package software.amazon.awssdk.services.sqs.BatchManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchAndSend;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchKeyMapper;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchResponseMapper;
@@ -32,19 +35,13 @@ import software.amazon.awssdk.utils.Either;
 public class SampleBatchManager extends RequestBatchManager<String, String, BatchResponse> {
 
     private final BatchAndSend<String, BatchResponse> batchFunction;
-    private final BatchResponseMapper<BatchResponse, String> responseMapper;
-    private final BatchKeyMapper<String> batchKeyMapper;
 
 
-    protected SampleBatchManager(DefaultBuilder builder) {
-        super(builder);
-        this.batchFunction = sampleBatchAsyncFunction(builder.client);
-        this.responseMapper = sampleResponseMapper();
-        this.batchKeyMapper = sampleBatchKeyMapper();
-    }
-
-    public static DefaultBuilder builder() {
-        return new DefaultBuilder();
+    protected SampleBatchManager(BatchOverrideConfiguration batchOverrideConfiguration,
+                                 ScheduledExecutorService executorService,
+                                 CustomClient client) {
+        super(batchOverrideConfiguration, executorService);
+        this.batchFunction = sampleBatchAsyncFunction(client);
     }
 
     @Override
@@ -54,26 +51,12 @@ public class SampleBatchManager extends RequestBatchManager<String, String, Batc
 
     @Override
     protected String getBatchKey(String request) {
-        return null;
+        return sampleBatchKeyMapper().getBatchKey(request);
     }
 
     @Override
     protected List<Either<IdentifiableMessage<String>, IdentifiableMessage<Throwable>>> mapBatchResponse(BatchResponse batchResponse) {
-        return null;
-    }
-
-    public static class DefaultBuilder extends RequestBatchManager.DefaultBuilder<DefaultBuilder> {
-        private CustomClient client;
-
-        public DefaultBuilder client(CustomClient client) {
-            this.client = client;
-            return this;
-        }
-
-        @Override
-        public SampleBatchManager build() {
-            return new SampleBatchManager(this);
-        }
+        return sampleResponseMapper().mapBatchResponse(batchResponse);
     }
 
     public static BatchAndSend<String, BatchResponse> sampleBatchAsyncFunction(CustomClient client) {

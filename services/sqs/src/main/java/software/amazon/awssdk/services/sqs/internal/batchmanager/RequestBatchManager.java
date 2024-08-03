@@ -23,7 +23,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.utils.Either;
@@ -36,14 +35,13 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
     private final BatchingMap<RequestT, ResponseT> requestsAndResponsesMaps;
     private final ScheduledExecutorService scheduledExecutor;
 
-    protected RequestBatchManager(DefaultBuilder<?> builder) {
-        BatchConfiguration batchConfiguration = new BatchConfiguration(builder.overrideConfiguration);
+    protected RequestBatchManager(BatchOverrideConfiguration overrideConfiguration, ScheduledExecutorService scheduledExecutor) {
+        BatchConfiguration batchConfiguration = new BatchConfiguration(overrideConfiguration);
         this.requestsAndResponsesMaps = new BatchingMap<>(batchConfiguration.maxBatchKeys(),
-                                                          batchConfiguration.maxBufferSize(),
-                                                          RequestBatchBuffer::new);
+                                                          batchConfiguration.maxBufferSize(), RequestBatchBuffer::new);
         this.maxBatchItems = batchConfiguration.maxBatchItems();
         this.maxBatchOpenInMs = batchConfiguration.maxBatchOpenInMs();
-        this.scheduledExecutor = Validate.notNull(builder.scheduledExecutor, "Null scheduledExecutor");
+        this.scheduledExecutor = Validate.notNull(scheduledExecutor, "Null scheduledExecutor");
     }
 
     public CompletableFuture<ResponseT> batchRequest(RequestT request) {
@@ -139,65 +137,5 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
             }
         });
         requestsAndResponsesMaps.clear();
-    }
-
-    interface BatchManagerBuilder<B> {
-
-        /**
-         * Defines overrides to the default BatchManager configuration that should be used.
-         *
-         * @param overrideConfiguration the override configuration.
-         * @return a reference to this object so that method calls can be chained together.
-         */
-        B overrideConfiguration(BatchOverrideConfiguration overrideConfiguration);
-
-
-        B overrideConfiguration(Consumer<BatchOverrideConfiguration.Builder> overrideConfigurationConsumer);
-
-        /**
-         * Adds a {@link ScheduledExecutorService} to be used by the BatchManager to schedule periodic flushes of the underlying
-         * buffers.
-         * <p>
-         * Creating a BatchManager directly from a service client will use the service client's scheduled executor. If supplied by
-         * the user, this ScheduledExecutorService must be closed by the caller when it is ready to be shut down.
-         *
-         * @param scheduledExecutor the provided scheduled executor.
-         * @return a reference to this object so that method calls can be chained together.
-         */
-        B scheduledExecutor(ScheduledExecutorService scheduledExecutor);
-
-    }
-
-    public abstract static class DefaultBuilder< B extends DefaultBuilder<B>>
-        implements BatchManagerBuilder<B> {
-
-        private BatchOverrideConfiguration overrideConfiguration;
-        private ScheduledExecutorService scheduledExecutor;
-
-
-        protected DefaultBuilder() {
-        }
-
-        @Override
-        public B overrideConfiguration(BatchOverrideConfiguration overrideConfiguration) {
-            this.overrideConfiguration = overrideConfiguration;
-            return (B) this;
-        }
-
-        @Override
-        public B overrideConfiguration(Consumer<BatchOverrideConfiguration.Builder> overrideConfigurationConsumer) {
-            BatchOverrideConfiguration.Builder builder = BatchOverrideConfiguration.builder();
-            overrideConfigurationConsumer.accept(builder);
-            this.overrideConfiguration = builder.build();
-            return (B) this;
-        }
-
-        @Override
-        public B scheduledExecutor(ScheduledExecutorService scheduledExecutor) {
-            this.scheduledExecutor = scheduledExecutor;
-            return (B) this;
-        }
-
-        public abstract RequestBatchManager build();
     }
 }

@@ -117,8 +117,8 @@ public abstract class BaseSqsBatchManagerTest {
 
         CompletableFuture<SendMessageResponse> response1 = responses.get(0);
         CompletableFuture<SendMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(() -> response1.get(10, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
-        assertThatThrownBy(() -> response2.get(10, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(() -> response1.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(() -> response2.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
     }
 
     @Test
@@ -135,8 +135,8 @@ public abstract class BaseSqsBatchManagerTest {
 
         CompletableFuture<SendMessageResponse> response1 = responses.get(0);
         CompletableFuture<SendMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(() -> response1.get(10, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
-        assertThatThrownBy(() -> response2.get(10, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(() -> response1.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(() -> response2.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
     }
 
     @Test
@@ -150,12 +150,12 @@ public abstract class BaseSqsBatchManagerTest {
 
         CompletableFuture<SendMessageResponse> response1 = responses.get(0);
         CompletableFuture<SendMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(() -> response1.get(10, TimeUnit.SECONDS)).hasCauseInstanceOf(SdkClientException.class).hasMessageContaining(errorMessage);
-        assertThatThrownBy(() -> response2.get(10, TimeUnit.SECONDS)).hasCauseInstanceOf(SdkClientException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(() -> response1.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(SdkClientException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(() -> response2.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(SdkClientException.class).hasMessageContaining(errorMessage);
     }
 
     @Test
-    public void deleteMessageBatchFunction_batchMessageCorrectly() {
+    public void deleteMessageBatchFunction_batchMessageCorrectly() throws ExecutionException, InterruptedException, TimeoutException {
         String id1 = "0";
         String id2 = "1";
         String responseBody = String.format(
@@ -166,7 +166,7 @@ public abstract class BaseSqsBatchManagerTest {
         long startTime = System.nanoTime();
         List<CompletableFuture<DeleteMessageResponse>> responses = createAndSendDeleteMessageRequests();
         long endTime = System.nanoTime();
-        CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
+        CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).get(3, TimeUnit.SECONDS);
 
         assertThat(Duration.ofNanos(endTime - startTime).toMillis()).isLessThan(DEFAULT_MAX_BATCH_OPEN + 100);
     }
@@ -200,8 +200,8 @@ public abstract class BaseSqsBatchManagerTest {
 
         CompletableFuture<DeleteMessageResponse> response1 = responses.get(0);
         CompletableFuture<DeleteMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(() -> response1.get(10, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
-        assertThatThrownBy(() -> response2.get(10, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(() -> response1.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(() -> response2.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
     }
 
     @Test
@@ -215,12 +215,12 @@ public abstract class BaseSqsBatchManagerTest {
 
         CompletableFuture<DeleteMessageResponse> response1 = responses.get(0);
         CompletableFuture<DeleteMessageResponse> response2 = responses.get(1);
-        assertThatThrownBy(() -> response1.get(10, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
-        assertThatThrownBy(() -> response2.get(10, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(() -> response1.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(() -> response2.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
     }
 
     @Test
-    public void changeVisibilityBatchFunction_batchMessageCorrectly() {
+    public void changeVisibilityBatchFunction_batchMessageCorrectly() throws ExecutionException, InterruptedException, TimeoutException {
         String id1 = "0";
         String id2 = "1";
         String responseBody = String.format(
@@ -230,7 +230,7 @@ public abstract class BaseSqsBatchManagerTest {
         long startTime = System.nanoTime();
         List<CompletableFuture<ChangeMessageVisibilityResponse>> responses = createAndSendChangeVisibilityRequests();
         long endTime = System.nanoTime();
-        CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).join();
+        CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).get(5, TimeUnit.SECONDS);
 
         assertThat(Duration.ofNanos(endTime - startTime).toMillis()).isLessThan(DEFAULT_MAX_BATCH_OPEN + 100);
     }
@@ -265,8 +265,8 @@ public abstract class BaseSqsBatchManagerTest {
         CompletableFuture<ChangeMessageVisibilityResponse> response1 = responses.get(0);
         CompletableFuture<ChangeMessageVisibilityResponse> response2 = responses.get(1);
 
-        assertThatThrownBy(() -> response1.get(10, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
-        assertThatThrownBy(() -> response2.get(10, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(() -> response1.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
+        assertThatThrownBy(() -> response2.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining(errorMessage);
 
     }
 
@@ -282,8 +282,8 @@ public abstract class BaseSqsBatchManagerTest {
 
         CompletableFuture<ChangeMessageVisibilityResponse> response1 = responses.get(0);
         CompletableFuture<ChangeMessageVisibilityResponse> response2 = responses.get(1);
-        assertThatThrownBy(() -> response1.get(10, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
-        assertThatThrownBy(() -> response2.get(10, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(() -> response1.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
+        assertThatThrownBy(() -> response2.get(3, TimeUnit.SECONDS)).hasCauseInstanceOf(SqsException.class).hasMessageContaining("Status Code: 400");
     }
 
     public abstract List<CompletableFuture<SendMessageResponse>> createAndSendSendMessageRequests(String message1,

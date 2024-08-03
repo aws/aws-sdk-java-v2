@@ -19,11 +19,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
@@ -39,26 +41,13 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
     SendMessageResponse,
     SendMessageBatchResponse> {
 
+    private final SqsAsyncClient asyncClient;
 
-    private final BatchAndSend<SendMessageRequest, SendMessageBatchResponse> batchFunction;
-    private final BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> responseMapper;
-    private final BatchKeyMapper<SendMessageRequest> batchKeyMapper;
-
-
-    protected SendMessageBatchManager(DefaultBuilder builder) {
-        super(builder);
-        batchKeyMapper = sendMessageBatchKeyMapper();
-        batchFunction = sendMessageBatchAsyncFunction(builder.client);
-        responseMapper = sendMessageResponseMapper();
-    }
-
-    public static DefaultBuilder builder() {
-        return new DefaultBuilder() {
-            @Override
-            public SendMessageBatchManager build() {
-                return new SendMessageBatchManager(this);
-            }
-        };
+    protected SendMessageBatchManager(BatchOverrideConfiguration overrideConfiguration,
+                                      ScheduledExecutorService scheduledExecutor,
+                                      SqsAsyncClient asyncClient) {
+        super(overrideConfiguration, scheduledExecutor);
+        this.asyncClient = asyncClient;
     }
 
     private static BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> sendMessageResponseMapper() {
@@ -152,31 +141,19 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
     }
 
     @Override
-    protected CompletableFuture<SendMessageBatchResponse> batchAndSend(List<IdentifiableMessage<SendMessageRequest>> identifiedRequests, String batchKey) {
-        return null;
+    protected CompletableFuture<SendMessageBatchResponse> batchAndSend(List<IdentifiableMessage<SendMessageRequest>>
+                                                                               identifiedRequests, String batchKey) {
+        return sendMessageBatchAsyncFunction(this.asyncClient).batchAndSend(identifiedRequests, batchKey);
     }
 
     @Override
     protected String getBatchKey(SendMessageRequest request) {
-        return null;
+        return sendMessageBatchKeyMapper().getBatchKey(request);
     }
 
     @Override
-    protected List<Either<IdentifiableMessage<SendMessageResponse>, IdentifiableMessage<Throwable>>> mapBatchResponse(SendMessageBatchResponse batchResponse) {
-        return null;
-    }
-
-    public static class DefaultBuilder extends RequestBatchManager.DefaultBuilder<DefaultBuilder> {
-        private SqsAsyncClient client;
-
-        public DefaultBuilder client(SqsAsyncClient client) {
-            this.client = client;
-            return this;
-        }
-
-        @Override
-        public SendMessageBatchManager build() {
-            return new SendMessageBatchManager(this);
-        }
+    protected List<Either<IdentifiableMessage<SendMessageResponse>,
+        IdentifiableMessage<Throwable>>> mapBatchResponse(SendMessageBatchResponse batchResponse) {
+        return sendMessageResponseMapper().mapBatchResponse(batchResponse);
     }
 }

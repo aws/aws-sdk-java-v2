@@ -19,11 +19,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
@@ -39,23 +41,13 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
     ChangeMessageVisibilityResponse,
     ChangeMessageVisibilityBatchResponse> {
 
-    private final BatchAndSend<ChangeMessageVisibilityRequest, ChangeMessageVisibilityBatchResponse> batchFunction;
-    private final BatchResponseMapper<ChangeMessageVisibilityBatchResponse, ChangeMessageVisibilityResponse> responseMapper;
-    private final BatchKeyMapper<ChangeMessageVisibilityRequest> batchKeyMapper;
-    protected ChangeMessageVisibilityBatchManager(DefaultBuilder builder) {
-        super(builder);
-        batchKeyMapper = changeMessageVisibilityBatchKeyMapper();
-        batchFunction = changeMessageVisibilityBatchAsyncFunction(builder.client);
-        responseMapper = changeMessageVisibilityResponseMapper();
-    }
+    private final SqsAsyncClient sqsAsyncClient;
 
-    public static DefaultBuilder builder() {
-        return new DefaultBuilder() {
-            @Override
-            public ChangeMessageVisibilityBatchManager build() {
-                return new ChangeMessageVisibilityBatchManager(this);
-            }
-        };
+    protected ChangeMessageVisibilityBatchManager(BatchOverrideConfiguration overrideConfiguration,
+                                                  ScheduledExecutorService scheduledExecutor,
+                                                  SqsAsyncClient sqsAsyncClient) {
+        super(overrideConfiguration, scheduledExecutor);
+        this.sqsAsyncClient = sqsAsyncClient;
     }
 
     private static BatchAndSend<ChangeMessageVisibilityRequest,
@@ -81,19 +73,20 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
         Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0).message()
                                                                                             .overrideConfiguration();
         return overrideConfiguration.map(
-            overrideConfig -> ChangeMessageVisibilityBatchRequest.builder()
-                                                                 .queueUrl(batchKey)
-                                                                 .overrideConfiguration(overrideConfig)
-                                                                 .entries(entries)
-                                                                 .build())
+                                        config -> ChangeMessageVisibilityBatchRequest.builder()
+                                                                                             .queueUrl(batchKey)
+                                                                                             .overrideConfiguration(config)
+                                                                                             .entries(entries)
+                                                                                             .build())
                                     .orElseGet(() -> ChangeMessageVisibilityBatchRequest.builder()
                                                                                         .queueUrl(batchKey)
                                                                                         .entries(entries)
                                                                                         .build());
     }
 
-    private static ChangeMessageVisibilityBatchRequestEntry createChangeMessageVisibilityBatchRequestEntry(String id,
-                                                   ChangeMessageVisibilityRequest request) {
+    private static ChangeMessageVisibilityBatchRequestEntry createChangeMessageVisibilityBatchRequestEntry(
+        String id,
+        ChangeMessageVisibilityRequest request) {
         return ChangeMessageVisibilityBatchRequestEntry.builder().id(id).receiptHandle(request.receiptHandle())
                                                        .visibilityTimeout(request.visibilityTimeout()).build();
     }
@@ -147,30 +140,17 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
     @Override
     protected CompletableFuture<ChangeMessageVisibilityBatchResponse> batchAndSend(
         List<IdentifiableMessage<ChangeMessageVisibilityRequest>> identifiedRequests, String batchKey) {
-        return this.batchFunction.batchAndSend(identifiedRequests, batchKey);
+        return changeMessageVisibilityBatchAsyncFunction(sqsAsyncClient).batchAndSend(identifiedRequests, batchKey);
     }
 
     @Override
     protected String getBatchKey(ChangeMessageVisibilityRequest request) {
-        return this.batchKeyMapper.getBatchKey(request);
+        return changeMessageVisibilityBatchKeyMapper().getBatchKey(request);
     }
 
     @Override
-    protected List<Either<IdentifiableMessage<ChangeMessageVisibilityResponse>, IdentifiableMessage<Throwable>>> mapBatchResponse(ChangeMessageVisibilityBatchResponse batchResponse) {
-        return this.mapBatchResponse(batchResponse);
-    }
-
-    public static class DefaultBuilder extends RequestBatchManager.DefaultBuilder<DefaultBuilder> {
-        private SqsAsyncClient client;
-
-        public DefaultBuilder client(SqsAsyncClient client) {
-            this.client = client;
-            return this;
-        }
-
-        @Override
-        public ChangeMessageVisibilityBatchManager build() {
-            return new ChangeMessageVisibilityBatchManager(this);
-        }
+    protected List<Either<IdentifiableMessage<ChangeMessageVisibilityResponse>,
+        IdentifiableMessage<Throwable>>> mapBatchResponse(ChangeMessageVisibilityBatchResponse batchResponse) {
+        return changeMessageVisibilityResponseMapper().mapBatchResponse(batchResponse);
     }
 }

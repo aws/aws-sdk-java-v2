@@ -36,8 +36,6 @@ class RequestBatchManagerTest {
 
     private ScheduledExecutorService scheduledExecutor;
 
-    private SampleBatchManager.DefaultBuilder sampleBatchManagerBuilder;
-
     public static BatchResponse batchedResponse(int count, String responseMessage) {
         List<BatchResponseEntry> entries = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -50,11 +48,6 @@ class RequestBatchManagerTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         scheduledExecutor = Executors.newScheduledThreadPool(1);
-        sampleBatchManagerBuilder =
-            new SampleBatchManager.DefaultBuilder()
-                .client(mockClient)
-                .overrideConfiguration(BatchOverrideConfiguration.builder().maxBatchItems(10).build())
-                .scheduledExecutor(scheduledExecutor);
     }
 
     @Test
@@ -66,11 +59,9 @@ class RequestBatchManagerTest {
 
         when(mockClient.sendBatchAsync(any(), eq(batchKey))).thenReturn(batchResponseFuture);
 
-
-        SampleBatchManager batchManager = sampleBatchManagerBuilder.overrideConfiguration(t -> t.maxBatchItems(1)).build();
+        SampleBatchManager batchManager =
+        new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchItems(1).build(), scheduledExecutor, mockClient);
         CompletableFuture<String> response = batchManager.batchRequest(request);
-
-
         assertEquals("testResponse0", response.get(1, TimeUnit.SECONDS));
     }
 
@@ -82,8 +73,8 @@ class RequestBatchManagerTest {
         CompletableFuture<BatchResponse> batchResponseFuture = CompletableFuture.completedFuture(batchedResponse(2,
                                                                                                                  "testResponse"));
         when(mockClient.sendBatchAsync(any(), eq(batchKey1))).thenReturn(batchResponseFuture);
-        SampleBatchManager batchManager = sampleBatchManagerBuilder
-            .overrideConfiguration(t -> t.maxBatchItems(2).maxBatchOpenInMs(Duration.ofHours(1))).build();
+        SampleBatchManager batchManager=
+            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchItems(2).maxBatchOpenInMs(Duration.ofHours(1)).build(), scheduledExecutor, mockClient);
         CompletableFuture<String> response1 = batchManager.batchRequest(request1);
         CompletableFuture<String> response2 = batchManager.batchRequest(request2);
         assertEquals("testResponse0", response1.get(1, TimeUnit.SECONDS));
@@ -102,10 +93,8 @@ class RequestBatchManagerTest {
         when(mockClient.sendBatchAsync(any(), eq(KEY_ONE))).thenReturn(batchResponseFutureOne);
         when(mockClient.sendBatchAsync(any(), eq(KEY_TWO))).thenReturn(batchResponseFutureTwo);
 
-        SampleBatchManager batchManager = sampleBatchManagerBuilder
-            .overrideConfiguration(config -> config.maxBatchItems(2).maxBatchOpenInMs(Duration.ofHours(1)))
-            .build();
-
+        SampleBatchManager batchManager=
+            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchItems(2).maxBatchOpenInMs(Duration.ofHours(1)).build(), scheduledExecutor, mockClient);
         CompletableFuture<String> response1 = batchManager.batchRequest(KEY_ONE + ":0");
         CompletableFuture<String> response2 = batchManager.batchRequest(KEY_TWO + ":0");
         CompletableFuture<String> response3 = batchManager.batchRequest(KEY_ONE + ":1");
@@ -125,8 +114,8 @@ class RequestBatchManagerTest {
         batchResponseFuture.completeExceptionally(new RuntimeException("testException"));
 
         when(mockClient.sendBatchAsync(any(), eq(batchKey))).thenReturn(batchResponseFuture);
-
-        SampleBatchManager batchManager = sampleBatchManagerBuilder.build();
+        SampleBatchManager batchManager=
+            new SampleBatchManager(BatchOverrideConfiguration.builder().build(), scheduledExecutor, mockClient);
         CompletableFuture<String> response = batchManager.batchRequest(request);
 
         assertThrows(ExecutionException.class, () -> response.get(1, TimeUnit.SECONDS));
@@ -141,7 +130,8 @@ class RequestBatchManagerTest {
 
         when(mockClient.sendBatchAsync(any(), eq(batchKey))).thenReturn(batchResponseFuture);
 
-        SampleBatchManager batchManager = sampleBatchManagerBuilder.build();
+        SampleBatchManager batchManager=
+            new SampleBatchManager(BatchOverrideConfiguration.builder().build(), scheduledExecutor, mockClient);
         CompletableFuture<String> response = batchManager.batchRequest(request);
 
         assertThrows(ExecutionException.class, () -> response.get(1, TimeUnit.SECONDS));
@@ -157,8 +147,10 @@ class RequestBatchManagerTest {
 
         when(mockClient.sendBatchAsync(any(), eq(batchKey))).thenReturn(batchResponseFuture);
 
-        SampleBatchManager batchManager = sampleBatchManagerBuilder
-            .overrideConfiguration(t -> t.maxBatchItems(2).maxBatchOpenInMs(Duration.ofHours(1))).build();
+        SampleBatchManager batchManager=
+            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchItems(2).maxBatchOpenInMs(Duration.ofHours(1)).build(), scheduledExecutor, mockClient);
+
+
 
         CompletableFuture<String> response1 = batchManager.batchRequest(request1);
         CompletableFuture<String> response2 = batchManager.batchRequest(request2);

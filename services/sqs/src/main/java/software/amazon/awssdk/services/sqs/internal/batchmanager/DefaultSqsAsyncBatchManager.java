@@ -51,25 +51,15 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
 
         ScheduledExecutorService scheduledExecutor = builder.scheduledExecutor;
 
-        this.sendMessageBatchManager = SendMessageBatchManager
-            .builder()
-            .client(client)
-            .overrideConfiguration(createRequestBatchManagerConfig(builder.overrideConfiguration))
-            .scheduledExecutor(scheduledExecutor)
-            .build();
-        this.deleteMessageBatchManager = DeleteMessageBatchManager
-            .builder()
-            .client(client)
-            .overrideConfiguration(createRequestBatchManagerConfig(builder.overrideConfiguration))
-            .scheduledExecutor(scheduledExecutor)
-            .build();
-        this.changeMessageVisibilityBatchManager = ChangeMessageVisibilityBatchManager
-            .builder()
-            .client(client)
-            .overrideConfiguration(createRequestBatchManagerConfig(builder.overrideConfiguration))
-            .scheduledExecutor(scheduledExecutor)
-            .build();
-
+        this.sendMessageBatchManager = new SendMessageBatchManager(builder.overrideConfiguration,
+                                                                   scheduledExecutor,
+                                                                   client);
+        this.deleteMessageBatchManager = new DeleteMessageBatchManager(builder.overrideConfiguration,
+                                                                       scheduledExecutor,
+                                                                       client);
+        this.changeMessageVisibilityBatchManager = new ChangeMessageVisibilityBatchManager(builder.overrideConfiguration,
+                                                                                           scheduledExecutor,
+                                                                                           client);
         //TODO : this will be updated while implementing the Receive Message Batch Manager
     }
 

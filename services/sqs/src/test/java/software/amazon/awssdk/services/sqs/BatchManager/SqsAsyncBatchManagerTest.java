@@ -25,11 +25,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 import software.amazon.awssdk.services.sqs.batchmanager.SqsAsyncBatchManager;
@@ -51,7 +49,6 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
 
     private static SqsAsyncClientBuilder getAsyncClientBuilder(URI httpLocalhostUri) {
         return SqsAsyncClient.builder()
-                             .region(Region.US_EAST_1)
                              .endpointOverride(httpLocalhostUri)
                              .credentialsProvider(
                                  StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")));
