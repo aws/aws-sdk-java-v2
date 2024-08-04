@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.BatchConfiguration.DEFAULT_MAX_BATCH_ITEMS;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.BatchConfiguration.DEFAULT_MAX_BATCH_OPEN_IN_MS;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -104,18 +101,6 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
         sendMessageBatchManager.close();
         deleteMessageBatchManager.close();
         changeMessageVisibilityBatchManager.close();
-    }
-
-    private BatchOverrideConfiguration createRequestBatchManagerConfig(BatchOverrideConfiguration overrideConfiguration) {
-        BatchOverrideConfiguration.Builder config = BatchOverrideConfiguration.builder();
-        if (overrideConfiguration == null) {
-            config.maxBatchItems(DEFAULT_MAX_BATCH_ITEMS);
-            config.maxBatchOpenInMs(DEFAULT_MAX_BATCH_OPEN_IN_MS);
-        } else {
-            config.maxBatchItems(overrideConfiguration.maxBatchItems().orElse(DEFAULT_MAX_BATCH_ITEMS));
-            config.maxBatchOpenInMs(overrideConfiguration.maxBatchOpenInMs().orElse(DEFAULT_MAX_BATCH_OPEN_IN_MS));
-        }
-        return config.build();
     }
 
     public static final class DefaultBuilder implements SqsAsyncBatchManager.Builder {

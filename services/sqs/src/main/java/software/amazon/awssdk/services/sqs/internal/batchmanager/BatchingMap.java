@@ -20,12 +20,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * Outer map maps a batchKey (ex. queueUrl, overrideConfig etc.) to a nested BatchingGroupMap map.
+ * Outer map maps a batchKey (ex. queueUrl, overrideConfig etc.) to a {@link RequestBatchBuffer}
  *
  * @param <RequestT> the type of an outgoing response
  */
@@ -34,16 +33,12 @@ public final class BatchingMap<RequestT, ResponseT> {
 
     private final int maxBatchKeys;
     private final int maxBufferSize;
-
-    private final BiFunction<Integer, ScheduledFuture<?>, RequestBatchBuffer<RequestT, ResponseT>> bufferSupplier;
     private final Map<String, RequestBatchBuffer<RequestT, ResponseT>> batchContextMap;
 
-    public BatchingMap(int maxBatchKeys, int maxBufferSize,
-                       BiFunction<Integer, ScheduledFuture<?>, RequestBatchBuffer<RequestT, ResponseT>> bufferSupplier) {
+    public BatchingMap(int maxBatchKeys, int maxBufferSize) {
         this.batchContextMap = new ConcurrentHashMap<>();
         this.maxBatchKeys = maxBatchKeys;
         this.maxBufferSize = maxBufferSize;
-        this.bufferSupplier = bufferSupplier;
     }
 
     public void put(String batchKey, Supplier<ScheduledFuture<?>> scheduleFlush, RequestT request,
@@ -52,7 +47,7 @@ public final class BatchingMap<RequestT, ResponseT> {
             if (batchContextMap.size() == maxBatchKeys) {
                 throw new IllegalStateException("Reached MaxBatchKeys of: " + maxBatchKeys);
             }
-            return bufferSupplier.apply(maxBufferSize, scheduleFlush.get());
+            return new RequestBatchBuffer<>(maxBufferSize, scheduleFlush.get());
         }).put(request, response);
     }
 
