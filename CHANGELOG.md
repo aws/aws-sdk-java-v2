@@ -1,4 +1,94 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.29__ __2024-08-02__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Fixed a race condition in AWS CRT-based S3 client that could cause `s3metaRequest is not initialized yet` error to be thrown.
+
+## __AWS Glue__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - Customers are presented with the grouping recommendations and can determine if the recommendations are accurate and apply to their case. This feature simplifies onboarding by organizing resources into appropriate AppComponents.
+
+## __AWS WAF Regional__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - updates cloudtrail event source for SDKs
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - updates cloudtrail event source for SDKs
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - updates cloudtrail event source for SDKs
+
+## __Amazon Kinesis__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Route 53__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+# __2.26.28__ __2024-08-01__
+## __AWS Control Catalog__
+  - ### Features
+    - AWS Control Tower provides two new public APIs controlcatalog:ListControls and controlcatalog:GetControl under controlcatalog service namespace, which enable customers to programmatically retrieve control metadata of available controls.
+
+## __AWS Control Tower__
+  - ### Features
+    - Updated Control Tower service documentation for controlcatalog control ARN support with existing Control Tower public APIs
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue in the SDK that caused `UncheckedIOException` to be thrown instead of `ApiCallTimeoutException`/`ApiCallAttemptTimeoutException` when API call/API call attempt timeout is breached.
+
+## __AWS Support__
+  - ### Features
+    - Doc only updates to CaseDetails
+
+## __AWS Systems Manager QuickSetup__
+  - ### Features
+    - This release adds API support for the QuickSetup feature of AWS Systems Manager
+
+## __Amazon Bedrock__
+  - ### Features
+    - API and Documentation for Bedrock Model Copy feature. This feature lets you share and copy a custom model from one region to another or one account to another.
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Doc only update for changes to deletion API.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for specifying optional MinACU parameter in CreateDBShardGroup and ModifyDBShardGroup API. DBShardGroup response will contain MinACU if specified.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for Amazon EMR Serverless applications in SageMaker Studio for running data processing jobs.
+
 # __2.26.27__ __2024-07-30__
 ## __AWS CodePipeline__
   - ### Features
@@ -680,7 +770,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@shetsa-amzn](https://github.com/shetsa-amzn), [@sullis](https://github.com/sullis)
+[@sullis](https://github.com/sullis), [@shetsa-amzn](https://github.com/shetsa-amzn)
 # __2.26.9__ __2024-06-25__
 ## __AWS Network Manager__
   - ### Features

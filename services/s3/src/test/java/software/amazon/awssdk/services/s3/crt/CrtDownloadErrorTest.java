@@ -27,14 +27,12 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -67,12 +65,6 @@ public class CrtDownloadErrorTest {
     public void tearDown() {
         s3.close();
     }
-
-    @AfterAll
-    public static void verifyCrtResource() {
-        CrtResource.waitForNoResources();
-    }
-
 
     @Test
     public void getObject_headObjectOk_getObjectThrows_operationThrows() {

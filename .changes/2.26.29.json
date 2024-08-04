@@ -1,0 +1,78 @@
+{
+    "version": "2.26.29",
+    "date": "2024-08-02",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS CRT-based S3 Client",
+            "contributor": "",
+            "description": "Fixed a race condition in AWS CRT-based S3 client that could cause `s3metaRequest is not initialized yet` error to be thrown."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resilience Hub",
+            "contributor": "",
+            "description": "Customers are presented with the grouping recommendations and can determine if the recommendations are accurate and apply to their case. This feature simplifies onboarding by organizing resources into appropriate AppComponents."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAF Regional",
+            "contributor": "",
+            "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "contributor": "",
+            "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "contributor": "",
+            "description": "updates cloudtrail event source for SDKs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service Chat",
+            "contributor": "",
+            "description": "updates cloudtrail event source for SDKs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service RealTime",
+            "contributor": "",
+            "description": "updates cloudtrail event source for SDKs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis",
+            "contributor": "",
+            "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
+        }
+    ]
+}
