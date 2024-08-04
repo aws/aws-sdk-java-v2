@@ -24,6 +24,8 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -36,6 +38,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 @SdkInternalApi
 public final class ProfileFileRefresher {
 
+    private static final Logger log = LoggerFactory.getLogger(ProfileFileRefresher.class);
     private static final ProfileFileRefreshRecord EMPTY_REFRESH_RECORD = ProfileFileRefreshRecord.builder()
                                                                                                  .refreshTime(Instant.MIN)
                                                                                                  .build();
@@ -127,7 +130,10 @@ public final class ProfileFileRefresher {
 
         try {
             Instant lastModifiedInstant = Files.getLastModifiedTime(profileFilePath).toInstant();
-            return currentRefreshRecord.refreshTime.isBefore(lastModifiedInstant);
+            boolean canReloadFile = currentRefreshRecord.refreshTime.isBefore(lastModifiedInstant);
+            log.info("For path {}, with previous refreshTime {}, last modified time {}, canReloadProfileFile is {}",
+                     profileFilePath, currentRefreshRecord.refreshTime, lastModifiedInstant, canReloadFile);
+            return canReloadFile;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

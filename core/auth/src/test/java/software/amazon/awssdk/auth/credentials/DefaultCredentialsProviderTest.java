@@ -32,7 +32,6 @@ import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.StringInputStream;
-import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.internal.SystemSettingUtilsTestBackdoor;
 
 class DefaultCredentialsProviderTest {
@@ -112,6 +111,9 @@ class DefaultCredentialsProviderTest {
     @Test
     void resolveCredentials_DefaultCredentialProviderWithReloadWhenModified(@TempDir Path parentDirectory) throws Exception {
         Path credentialsFilePath = generateTestCredentialsFile(parentDirectory, "customAccess", "customSecret");
+        log.info("Original Credential file with content {} last modified at {}",
+                 Files.readAllLines(credentialsFilePath),
+                 Files.getLastModifiedTime(credentialsFilePath).toInstant());
         SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(ProfileFileSystemSetting.AWS_SHARED_CREDENTIALS_FILE.environmentVariable(),
                                                                       credentialsFilePath.toString());
         DefaultCredentialsProvider provider = DefaultCredentialsProvider.create();
@@ -121,12 +123,14 @@ class DefaultCredentialsProviderTest {
             assertThat(awsCredentials.secretAccessKey()).isEqualTo("customSecret");
         });
 
+        // sleep before modified existing credential file, to avoid any race condition with reload
+        Thread.sleep(1500);
         Path credentialsFilePath2 = generateTestCredentialsFile(parentDirectory,"modifiedAccess", "modifiedSecret");
         assertThat(credentialsFilePath2).isEqualTo(credentialsFilePath);
 
         int maxRetries = 4;
         int i = 0;
-        // check if this can be replaced with RetryPolicy and backoff
+        // Configuring test with a Retry and backoff to ensure credential loading takes effect
         while (i <= maxRetries) {
             try {
                 Thread.sleep(1500);
