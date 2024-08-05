@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Performance Insights",
+    "contributor": "",
+    "description": "Added a description for the Dimension db.sql.tokenized_id on the DimensionGroup data type page."
+}
