@@ -28,35 +28,64 @@ public final class ChunkContentUtils {
     public static final String ZERO_BYTE = "0";
     public static final String CRLF = "\r\n";
 
+    public static final String LAST_CHUNK = ZERO_BYTE + CRLF;
+    public static final long LAST_CHUNK_LEN = LAST_CHUNK.length();
+
     private ChunkContentUtils() {
     }
 
     /**
+     * The chunk format is: chunk-size CRLF chunk-data CRLF.
+     *
      * @param originalContentLength Original Content length.
-     * @return Calculates Chunk Length.
+     * @return the length of this chunk
      */
     public static long calculateChunkLength(long originalContentLength) {
+        if (originalContentLength == 0) {
+            return 0;
+        }
         return Long.toHexString(originalContentLength).length()
-                + CRLF.length()
-                + originalContentLength
-                + CRLF.length()
-                + ZERO_BYTE.length() + CRLF.length();
+               + CRLF.length()
+               + originalContentLength
+               + CRLF.length();
     }
 
     /**
-     * Calculates the content length for a given Algorithm and header name.
+     * Calculates the content length for data that is divided into chunks.
+     *
+     * @param originalLength  original content length.
+     * @param chunkSize chunk size
+     * @return Content length of the trailer that will be appended at the end.
+     */
+    public static long calculateStreamContentLength(long originalLength, long chunkSize) {
+        if (originalLength < 0 || chunkSize == 0) {
+            throw new IllegalArgumentException(originalLength + ", " + chunkSize + "Args <= 0 not expected");
+        }
+
+        long maxSizeChunks = originalLength / chunkSize;
+        long remainingBytes = originalLength % chunkSize;
+
+        long allChunks = maxSizeChunks * calculateChunkLength(chunkSize);
+        long remainingInChunk = remainingBytes > 0 ? calculateChunkLength(remainingBytes) : 0;
+        // last byte is composed of a "0" and "\r\n"
+        long lastByteSize = 1 + (long) CRLF.length();
+
+        return allChunks +  remainingInChunk + lastByteSize;
+    }
+
+    /**
+     * Calculates the content length for a given algorithm and header name.
      *
      * @param algorithm  Algorithm used.
      * @param headerName Header name.
      * @return Content length of the trailer that will be appended at the end.
      */
-    public static long calculateChecksumContentLength(Algorithm algorithm, String headerName) {
-        int checksumLength = algorithm.base64EncodedLength();
-
-        return (headerName.length()
-                + HEADER_COLON_SEPARATOR.length()
-                + checksumLength
-                + CRLF.length() + CRLF.length());
+    public static long calculateChecksumTrailerLength(Algorithm algorithm, String headerName) {
+        return headerName.length()
+               + HEADER_COLON_SEPARATOR.length()
+               + algorithm.base64EncodedLength().longValue()
+               + CRLF.length()
+               + CRLF.length();
     }
 
     /**
@@ -86,17 +115,13 @@ public final class ChunkContentUtils {
         chunkHeader.append(CRLF);
         try {
             byte[] header = chunkHeader.toString().getBytes(StandardCharsets.UTF_8);
-            // Last byte does not need additional \r\n trailer
             byte[] trailer = !isLastByte ? CRLF.getBytes(StandardCharsets.UTF_8)
                     : "".getBytes(StandardCharsets.UTF_8);
             ByteBuffer chunkFormattedBuffer = ByteBuffer.allocate(header.length + chunkLength + trailer.length);
-            chunkFormattedBuffer.put(header)
-                    .put(chunkData)
-                    .put(trailer);
+            chunkFormattedBuffer.put(header).put(chunkData).put(trailer);
             chunkFormattedBuffer.flip();
             return chunkFormattedBuffer;
         } catch (Exception e) {
-            // This is to warp BufferOverflowException,ReadOnlyBufferException to SdkClientException.
             throw SdkClientException.builder()
                     .message("Unable to create chunked data. " + e.getMessage())
                     .cause(e)

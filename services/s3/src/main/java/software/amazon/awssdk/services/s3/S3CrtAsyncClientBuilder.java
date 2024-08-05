@@ -17,9 +17,14 @@ package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
@@ -34,6 +39,29 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkPublicApi
 public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuilder, S3AsyncClient> {
 
+    /**
+     * Configure the credentials that should be used to authenticate with S3.
+     *
+     * <p>The default provider will attempt to identify the credentials automatically using the following checks:
+     * <ol>
+     *   <li>Java System Properties - <code>aws.accessKeyId</code> and <code>aws.secretKey</code></li>
+     *   <li>Environment Variables - <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code></li>
+     *   <li>Credential profiles file at the default location (~/.aws/credentials) shared by all AWS SDKs and the AWS CLI</li>
+     *   <li>Credentials delivered through the Amazon EC2 container service if AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
+     *   environment variable is set and security manager has permission to access the variable.</li>
+     *   <li>Instance profile credentials delivered through the Amazon EC2 metadata service</li>
+     * </ol>
+     *
+     * <p>If the credentials are not found in any of the locations above, an exception will be thrown at {@link #build()}
+     * time.
+     * </p>
+     *
+     * @param credentialsProvider the credentials to use
+     * @return This builder for method chaining.
+     */
+    default S3CrtAsyncClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+        return credentialsProvider((IdentityProvider<? extends AwsCredentialsIdentity>) credentialsProvider);
+    }
 
     /**
      * Configure the credentials that should be used to authenticate with S3.
@@ -55,7 +83,9 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * @param credentialsProvider the credentials to use
      * @return This builder for method chaining.
      */
-    S3CrtAsyncClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider);
+    default S3CrtAsyncClientBuilder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Configure the region with which the SDK should communicate.
@@ -88,11 +118,31 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
     S3CrtAsyncClientBuilder minimumPartSizeInBytes(Long uploadPartSize);
 
     /**
+     * The amount of native memory that CRT is allowed to use when making requests to S3.
+     * <p>
+     * If not provided, the CRT attempts to limit native memory usage in an optimal way, based on a number of parameters
+     * such as target throughput. Therefore, only configure the memory limit explicitly when needed.
+     * <p>
+     * Supported range:
+     * <ul>
+     *     <li><b>Min: </b>1 GB</li>
+     *     <li><b>Max: </b>The lowest value of the supplied value and the SIZE_MAX of the system</li>
+     * </ul>
+     *
+     * @param maxNativeMemoryLimitInBytes
+ the native memory limit in bytes
+     * @return this builder for method chaining.
+     * @see #targetThroughputInGbps(Double)
+     */
+    S3CrtAsyncClientBuilder maxNativeMemoryLimitInBytes(Long maxNativeMemoryLimitInBytes
+);
+
+    /**
      * The target throughput for transfer requests. Higher value means more connections will be established with S3.
      *
      * <p>
      * Whether the transfer manager can achieve the configured target throughput depends on various factors such as the network
-     * bandwidth of the environment and whether {@link #maxConcurrency} is configured.
+     * bandwidth of the environment, whether {@link #maxConcurrency} is configured and amount of available memory.
      *
      * <p>
      * By default, it is 10 gigabits per second. If users want to transfer as fast as possible, it's recommended to set it to the
@@ -101,10 +151,15 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * instance type in <a href="https://aws.amazon.com/ec2/instance-types/">Amazon EC2 instance type page</a>.
      * If you are running into out of file descriptors error, consider using {@link #maxConcurrency(Integer)} to limit the
      * number of connections.
+     * <p>
+     * <b>Note: </b> This setting affects the native memory usage used by CRT; a higher throughput value will result in a larger
+     * memory usage. Typically, a range of throughput values maps to a discrete memory limit value in CRT, with a maximum upper
+     * limit.
      *
      * @param targetThroughputInGbps the target throughput in Gbps
      * @return this builder for method chaining.
      * @see #maxConcurrency(Integer)
+     * @see #maxNativeMemoryLimitInBytes(Long)
      */
     S3CrtAsyncClientBuilder targetThroughputInGbps(Double targetThroughputInGbps);
 
@@ -212,8 +267,72 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
                                                          .build());
     }
 
+    /**
+     * <p> Configures whether cross-region bucket access is enabled for clients using the configuration.
+     * <p>The following behavior is used when this mode is enabled:
+     * <ol>
+     *     <li>This method allows enabling or disabling cross-region bucket access for clients. When cross-region bucket
+     *     access is enabled, requests that do not act on an existing bucket (e.g., createBucket API) will be routed to the
+     *     region configured on the client</li>
+     *     <li>The first time a request is made that references an existing bucket (e.g., putObject API), a request will be
+     *     made to the client-configured region. If the bucket does not exist in this region, the service will include the
+     *     actual region in the error responses. Subsequently, the API will be called using the correct region obtained
+     *     from the error response. </li>
+     *     <li>This location may be cached in the client for subsequent requests to the same bucket.</li>
+     * </ol>
+     * <p>Enabling this mode has several drawbacks, as it can increase latency if the bucket's location is physically far
+     * from the location of the request.Therefore, it is strongly advised, whenever possible, to know the location of your
+     * buckets and create a region-specific client to access them
+     *
+     * @param crossRegionAccessEnabled Whether cross region bucket access should be enabled.
+     * @return The builder object for method chaining.
+     */
+    S3CrtAsyncClientBuilder crossRegionAccessEnabled(Boolean crossRegionAccessEnabled);
 
+    /**
+     * Configure the size threshold, in bytes, for when to use multipart upload. Uploads/copies over this size will automatically
+     * use a multipart upload strategy, while uploads/copies smaller than this threshold will use a single connection to
+     * upload/copy the whole object.
+     *
+     * <p>
+     * Multipart uploads are easier to recover from and also potentially faster than single part uploads, especially when the
+     * upload parts can be uploaded in parallel. Because there are additional network API calls, small objects are still
+     * recommended to use a single connection for the upload. See
+     * <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html">Uploading and copying objects using
+     * multipart upload</a>.
+     *
+     * <p>
+     * By default, it is the same as {@link #minimumPartSizeInBytes(Long)}.
+     *
+     * @param thresholdInBytes the value of the threshold to set.
+     * @return an instance of this builder.
+     */
+    S3CrtAsyncClientBuilder thresholdInBytes(Long thresholdInBytes);
 
+    /**
+     * Configure the {@link Executor} that should be used to complete the {@link CompletableFuture} that is returned by the async
+     * service client. By default, this is a dedicated, per-client {@link ThreadPoolExecutor} that is managed by the SDK.
+     * <p>
+     * The configured {@link Executor} will be invoked by the async HTTP client's I/O threads (e.g., EventLoops), which must be
+     * reserved for non-blocking behavior. Blocking an I/O thread can cause severe performance degradation, including across
+     * multiple clients, as clients are configured, by default, to share a single I/O thread pool (e.g., EventLoopGroup).
+     * <p>
+     * You should typically only want to customize the future-completion {@link Executor} for a few possible reasons:
+     * <ol>
+     *     <li>You want more fine-grained control over the {@link ThreadPoolExecutor} used, such as configuring the pool size
+     *     or sharing a single pool between multiple clients.
+     *     <li>You want to add instrumentation (i.e., metrics) around how the {@link Executor} is used.
+     * </ol>
+     * <p>
+     * <b>WARNING</b>
+     * We strongly <strong>discourage</strong> using {@code Runnable::run}, which executes the future-completion directly from
+     * within the I/O thread because it may block the I/O thread and cause deadlock, especially if you are sending
+     * another SDK request in the {@link CompletableFuture} chain since the SDK may perform blocking calls in some cases.
+     *
+     * @param futureCompletionExecutor the executor
+     * @return an instance of this builder.
+     */
+    S3CrtAsyncClientBuilder futureCompletionExecutor(Executor futureCompletionExecutor);
 
 
     @Override

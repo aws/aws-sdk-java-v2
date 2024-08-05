@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.model.service;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.checksum.HttpChecksum;
+import software.amazon.awssdk.codegen.compression.RequestCompression;
 import software.amazon.awssdk.codegen.model.intermediate.EndpointDiscovery;
 
 public class Operation {
@@ -48,11 +49,17 @@ public class Operation {
 
     private AuthType authtype;
 
+    private List<String> auth;
+
     private boolean httpChecksumRequired;
 
     private HttpChecksum httpChecksum;
 
+    private RequestCompression requestcompression;
+
     private Map<String, StaticContextParam> staticContextParams;
+
+    private Map<String, OperationContextParam> operationContextParams;
 
     public String getName() {
         return name;
@@ -141,6 +148,14 @@ public class Operation {
         this.authtype = AuthType.fromValue(authtype);
     }
 
+    public List<String> getAuth() {
+        return auth;
+    }
+
+    public void setAuth(List<String> auth) {
+        this.auth = auth;
+    }
+
     public String getAuthorizer() {
         return authorizer;
     }
@@ -189,11 +204,27 @@ public class Operation {
         this.httpChecksum = httpChecksum;
     }
 
+    public RequestCompression getRequestcompression() {
+        return requestcompression;
+    }
+
+    public void setRequestcompression(RequestCompression requestcompression) {
+        this.requestcompression = requestcompression;
+    }
+
     public Map<String, StaticContextParam> getStaticContextParams() {
         return staticContextParams;
     }
 
     public void setStaticContextParams(Map<String, StaticContextParam> staticContextParams) {
         this.staticContextParams = staticContextParams;
+    }
+
+    public Map<String, OperationContextParam> getOperationContextParams() {
+        return operationContextParams;
+    }
+
+    public void setOperationContextParams(Map<String, OperationContextParam> operationContextParams) {
+        this.operationContextParams = operationContextParams;
     }
 }

@@ -44,8 +44,7 @@ public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStrea
             bodyPublisher.subscribe(requestBodySubscriber);
         }
 
-        // blocking here because CRT S3 requires the buffer to be completely filled
-        return requestBodySubscriber.blockingTransferTo(outBuffer) == ByteBufferStoringSubscriber.TransferResult.END_OF_STREAM;
+        return requestBodySubscriber.transferTo(outBuffer) == ByteBufferStoringSubscriber.TransferResult.END_OF_STREAM;
     }
 
     @Override

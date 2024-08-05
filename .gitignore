@@ -27,3 +27,7 @@ target/
 
 *.pyc
 *.swp
+
+# VS Code
+.vscode/*
+

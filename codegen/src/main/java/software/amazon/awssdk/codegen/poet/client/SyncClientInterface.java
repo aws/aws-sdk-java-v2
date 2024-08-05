@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -141,6 +142,7 @@ public class SyncClientInterface implements ClassSpec {
             .addMethod(serviceMetadata());
 
         PoetUtils.addJavadoc(type::addJavadoc, getJavadoc());
+
     }
 
     @Override
@@ -176,16 +178,6 @@ public class SyncClientInterface implements ClassSpec {
                          .build();
     }
 
-    protected Iterable<MethodSpec> operations() {
-        return model.getOperations().values().stream()
-                    // TODO Sync not supported for event streaming yet. Revisit after sync/async merge
-                    .filter(o -> !o.hasEventStreamInput())
-                    .filter(o -> !o.hasEventStreamOutput())
-                    .map(this::operationMethodSpec)
-                    .flatMap(List::stream)
-                    .collect(toList());
-    }
-
     private MethodSpec serviceMetadata() {
         return MethodSpec.methodBuilder("serviceMetadata")
                          .returns(ServiceMetadata.class)
@@ -194,31 +186,36 @@ public class SyncClientInterface implements ClassSpec {
                          .build();
     }
 
-    private List<MethodSpec> operationMethodSpec(OperationModel opModel) {
+    protected Iterable<MethodSpec> operations() {
+        return model.getOperations().values().stream()
+                    // TODO Sync not supported for event streaming yet. Revisit after sync/async merge
+                    .filter(o -> !o.hasEventStreamInput())
+                    .filter(o -> !o.hasEventStreamOutput())
+                    .flatMap(this::operationsWithVariants)
+                    .collect(toList());
+    }
+
+    private Stream<MethodSpec> operationsWithVariants(OperationModel opModel) {
         List<MethodSpec> methods = new ArrayList<>();
-
-        if (opModel.getInputShape().isSimpleMethod()) {
-            methods.add(simpleMethod(opModel));
-        }
-
-        methods.addAll(operation(opModel));
-
-        methods.addAll(streamingSimpleMethods(opModel));
+        methods.addAll(traditionalMethodWithConsumerVariant(opModel));
+        methods.addAll(overloadedMethods(opModel));
         methods.addAll(paginatedMethods(opModel));
 
         return methods.stream()
                       // Add Deprecated annotation if needed to all overloads
-                      .map(m -> DeprecationUtils.checkDeprecated(opModel, m))
-                      .collect(toList());
+                      .map(m -> DeprecationUtils.checkDeprecated(opModel, m));
     }
 
-    private MethodSpec simpleMethod(OperationModel opModel) {
-        ClassName requestType = ClassName.get(model.getMetadata().getFullModelPackageName(),
-                                              opModel.getInput().getVariableType());
-        return operationSimpleMethodSignature(model, opModel, opModel.getMethodName())
-            .addStatement("return $L($T.builder().build())", opModel.getMethodName(), requestType)
-            .addJavadoc(opModel.getDocs(model, ClientType.SYNC, SimpleMethodOverload.NO_ARG))
-            .build();
+    private List<MethodSpec> traditionalMethodWithConsumerVariant(OperationModel opModel) {
+        List<MethodSpec> methods = new ArrayList<>();
+
+        MethodSpec.Builder builder = operationMethodSignature(model, opModel);
+        MethodSpec method = operationBody(builder, opModel).build();
+        methods.add(method);
+
+        addConsumerMethod(methods, method, SimpleMethodOverload.NORMAL, opModel);
+
+        return methods;
     }
 
     private static MethodSpec.Builder operationBaseSignature(IntermediateModel model,
@@ -242,18 +239,6 @@ public class SyncClientInterface implements ClassSpec {
         streamingMethod(methodBuilder, opModel, responseType);
 
         return methodBuilder;
-    }
-
-    private List<MethodSpec> operation(OperationModel opModel) {
-        List<MethodSpec> methods = new ArrayList<>();
-
-        MethodSpec.Builder builder = operationMethodSignature(model, opModel);
-        MethodSpec method = operationBody(builder, opModel).build();
-        methods.add(method);
-
-        addConsumerMethod(methods, method, SimpleMethodOverload.NORMAL, opModel);
-
-        return methods;
     }
 
     protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {
@@ -328,8 +313,10 @@ public class SyncClientInterface implements ClassSpec {
     }
 
     protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel operationModel) {
-        return builder.addModifiers(DEFAULT)
-                      .addStatement("throw new $T()", UnsupportedOperationException.class);
+        return builder.addModifiers(DEFAULT, PUBLIC)
+                      .addStatement("return new $T(this, $L)",
+                                    poetExtensions.getResponseClassForPaginatedSyncOperation(operationModel.getOperationName()),
+                                    operationModel.getInput().getVariableName());
     }
 
     private static void streamingMethod(MethodSpec.Builder methodBuilder, OperationModel opModel, TypeName responseType) {
@@ -344,14 +331,20 @@ public class SyncClientInterface implements ClassSpec {
         }
     }
 
-    private List<MethodSpec> streamingSimpleMethods(OperationModel opModel) {
+    /**
+     * @param opModel Operation to generate simple methods for.
+     * @return All simple method overloads for a given operation.
+     */
+    private List<MethodSpec> overloadedMethods(OperationModel opModel) {
         TypeName responseType = ClassName.get(model.getMetadata().getFullModelPackageName(),
                                               opModel.getReturnType().getReturnType());
         ClassName requestType = ClassName.get(model.getMetadata().getFullModelPackageName(),
                                               opModel.getInput().getVariableType());
 
         List<MethodSpec> simpleMethods = new ArrayList<>();
-
+        if (opModel.getInputShape().isSimpleMethod()) {
+            simpleMethods.add(simpleMethodWithNoArgs(opModel));
+        }
         if (opModel.hasStreamingInput() && opModel.hasStreamingOutput()) {
             MethodSpec simpleMethod = streamingInputOutputFileSimpleMethod(opModel, responseType, requestType);
             simpleMethods.add(simpleMethod);
@@ -376,6 +369,15 @@ public class SyncClientInterface implements ClassSpec {
         }
 
         return simpleMethods;
+    }
+
+    private MethodSpec simpleMethodWithNoArgs(OperationModel opModel) {
+        ClassName requestType = ClassName.get(model.getMetadata().getFullModelPackageName(),
+                                              opModel.getInput().getVariableType());
+        return operationSimpleMethodSignature(model, opModel, opModel.getMethodName())
+            .addStatement("return $L($T.builder().build())", opModel.getMethodName(), requestType)
+            .addJavadoc(opModel.getDocs(model, ClientType.SYNC, SimpleMethodOverload.NO_ARG))
+            .build();
     }
 
     protected void addConsumerMethod(List<MethodSpec> specs, MethodSpec spec, SimpleMethodOverload overload,

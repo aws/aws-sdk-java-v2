@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ScheduledExecutorService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -226,4 +227,23 @@ public class WaitersAsyncFunctionalTest {
         newWaiter.close();
         verify(executorService, never()).shutdown();
     }
+
+    @Test
+    public void failureResponse_withResponsePath_shouldThrowException() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .stringMember("UNEXPECTED_VALUE")
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+
+        CompletableFuture<AllTypesResponse> serviceFuture =  CompletableFuture.completedFuture(response);
+        when(asyncClient.allTypes(any(AllTypesRequest.class))).thenReturn(serviceFuture);
+        assertThatThrownBy(() -> asyncWaiter.waitUntilFailureForSpecificMatchers(b -> b.build()).join())
+            .hasMessageContaining("A waiter acceptor with the matcher (path) was matched on parameter "
+                                  + "(StringMember=UNEXPECTED_VALUE) and transitioned the waiter to failure state")
+            .isInstanceOf(CompletionException.class);
+    }
+
+
 }

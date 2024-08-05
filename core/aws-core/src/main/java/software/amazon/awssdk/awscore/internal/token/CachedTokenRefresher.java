@@ -54,7 +54,8 @@ public final class CachedTokenRefresher<TokenT extends SdkToken> implements Toke
         };
         this.exceptionHandler = builder.exceptionHandler == null ? defaultExceptionHandler : builder.exceptionHandler;
         this.tokenRetriever = builder.tokenRetriever;
-        CachedSupplier.Builder<TokenT> cachedBuilder = CachedSupplier.builder(this::refreshResult);
+        CachedSupplier.Builder<TokenT> cachedBuilder = CachedSupplier.builder(this::refreshResult)
+                                                                     .cachedValueName("SsoOidcTokenProvider()");
         if (builder.asyncRefreshEnabled) {
             cachedBuilder.prefetchStrategy(new NonBlocking(THREAD_CLASS_NAME));
         }

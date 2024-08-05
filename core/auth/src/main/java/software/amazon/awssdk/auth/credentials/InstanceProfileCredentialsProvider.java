@@ -31,6 +31,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvider;
+import software.amazon.awssdk.auth.credentials.internal.Ec2MetadataDisableV1Resolver;
 import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader;
 import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader.LoadedCredentials;
 import software.amazon.awssdk.auth.credentials.internal.StaticResourcesEndpointProvider;
@@ -40,6 +41,7 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
+import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.utils.Logger;
@@ -53,18 +55,21 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
  * Credentials provider implementation that loads credentials from the Amazon EC2 Instance Metadata Service.
- *
- * <P>
+ * <p>
  * If {@link SdkSystemSetting#AWS_EC2_METADATA_DISABLED} is set to true, it will not try to load
  * credentials from EC2 metadata service and will return null.
+ * <p>
+ * If {@link SdkSystemSetting#AWS_EC2_METADATA_V1_DISABLED} or {@link ProfileProperty#EC2_METADATA_V1_DISABLED}
+ * is set to true, credentials will only be loaded from EC2 metadata service if a token is successfully retrieved -
+ * fallback to load credentials without a token will be disabled.
  */
 @SdkPublicApi
 public final class InstanceProfileCredentialsProvider
     implements HttpCredentialsProvider,
                ToCopyableBuilder<InstanceProfileCredentialsProvider.Builder, InstanceProfileCredentialsProvider> {
     private static final Logger log = Logger.loggerFor(InstanceProfileCredentialsProvider.class);
+    private static final String PROVIDER_NAME = "InstanceProfileCredentialsProvider";
     private static final String EC2_METADATA_TOKEN_HEADER = "x-aws-ec2-metadata-token";
-
     private static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
     private static final String TOKEN_RESOURCE = "/latest/api/token";
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
@@ -73,6 +78,7 @@ public final class InstanceProfileCredentialsProvider
     private final Clock clock;
     private final String endpoint;
     private final Ec2MetadataConfigProvider configProvider;
+    private final Ec2MetadataDisableV1Resolver ec2MetadataDisableV1Resolver;
     private final HttpCredentialsLoader httpCredentialsLoader;
     private final CachedSupplier<AwsCredentials> credentialsCache;
 
@@ -92,25 +98,30 @@ public final class InstanceProfileCredentialsProvider
         this.endpoint = builder.endpoint;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.asyncThreadName = builder.asyncThreadName;
-        this.profileFile = builder.profileFile;
-        this.profileName = builder.profileName;
+        this.profileFile = Optional.ofNullable(builder.profileFile)
+                                   .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
+        this.profileName = Optional.ofNullable(builder.profileName)
+                                   .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
 
-        this.httpCredentialsLoader = HttpCredentialsLoader.create();
+        this.httpCredentialsLoader = HttpCredentialsLoader.create(PROVIDER_NAME);
         this.configProvider =
             Ec2MetadataConfigProvider.builder()
-                                     .profileFile(builder.profileFile)
-                                     .profileName(builder.profileName)
+                                     .profileFile(profileFile)
+                                     .profileName(profileName)
                                      .build();
+        this.ec2MetadataDisableV1Resolver = Ec2MetadataDisableV1Resolver.create(profileFile, profileName);
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
+                                                  .cachedValueName(toString())
                                                   .prefetchStrategy(new NonBlocking(builder.asyncThreadName))
                                                   .staleValueBehavior(ALLOW)
                                                   .clock(clock)
                                                   .build();
         } else {
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
+                                                  .cachedValueName(toString())
                                                   .staleValueBehavior(ALLOW)
                                                   .clock(clock)
                                                   .build();
@@ -132,7 +143,6 @@ public final class InstanceProfileCredentialsProvider
     public static InstanceProfileCredentialsProvider create() {
         return builder().build();
     }
-
 
     @Override
     public AwsCredentials resolveCredentials() {
@@ -193,7 +203,7 @@ public final class InstanceProfileCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.create("InstanceProfileCredentialsProvider");
+        return ToString.create(PROVIDER_NAME);
     }
 
     private ResourcesEndpointProvider createEndpointProvider() {
@@ -223,17 +233,15 @@ public final class InstanceProfileCredentialsProvider
             return HttpResourcesUtils.instance().readResource(tokenEndpoint, "PUT");
         } catch (SdkServiceException e) {
             if (e.statusCode() == 400) {
+
                 throw SdkClientException.builder()
                                         .message("Unable to fetch metadata token.")
                                         .cause(e)
                                         .build();
             }
-
-            log.debug(() -> "Ignoring non-fatal exception while attempting to load metadata token from instance profile.", e);
-            return null;
+            return handleTokenErrorResponse(e);
         } catch (Exception e) {
-            log.debug(() -> "Ignoring non-fatal exception while attempting to load metadata token from instance profile.", e);
-            return null;
+            return handleTokenErrorResponse(e);
         }
     }
 
@@ -243,6 +251,27 @@ public final class InstanceProfileCredentialsProvider
             finalHost = finalHost.substring(0, finalHost.length() - 1);
         }
         return URI.create(finalHost + TOKEN_RESOURCE);
+    }
+
+    private String handleTokenErrorResponse(Exception e) {
+        if (isInsecureFallbackDisabled()) {
+            String message = String.format("Failed to retrieve IMDS token, and fallback to IMDS v1 is disabled via the "
+                                           + "%s system property, %s environment variable, or %s configuration file profile"
+                                           + " setting.",
+                                           SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.environmentVariable(),
+                                           SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property(),
+                                           ProfileProperty.EC2_METADATA_V1_DISABLED);
+            throw SdkClientException.builder()
+                                    .message(message)
+                                    .cause(e)
+                                    .build();
+        }
+        log.debug(() -> "Ignoring non-fatal exception while attempting to load metadata token from instance profile.", e);
+        return null;
+    }
+
+    private boolean isInsecureFallbackDisabled() {
+        return ec2MetadataDisableV1Resolver.resolve();
     }
 
     private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {

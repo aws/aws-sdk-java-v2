@@ -93,6 +93,19 @@ public final class ImmutableAttribute<T, B, R> {
 
     /**
      * Constructs a new builder for this class using supplied types.
+     * @param itemType The {@link EnhancedType} of the immutable item that this attribute composes.
+     * @param builderType The {@link EnhancedType} of the builder for the immutable item that this attribute composes.
+     * @param attributeType A {@link EnhancedType} that represents the type of the value this attribute stores.
+     * @return A new typed builder for an attribute.
+     */
+    public static <T, B, R> Builder<T, B, R> builder(EnhancedType<T> itemType,
+                                                     EnhancedType<B> builderType,
+                                                     EnhancedType<R> attributeType) {
+        return new Builder<>(attributeType);
+    }
+
+    /**
+     * Constructs a new builder for this class using supplied types.
      * @param itemClass The class of the item that this attribute composes.
      * @param builderClass The class of the builder for the immutable item that this attribute composes.
      * @param attributeClass A class that represents the type of the value this attribute stores.

@@ -38,6 +38,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
+import software.amazon.awssdk.codegen.model.service.CustomOperationContextParam;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.Paginators;
@@ -167,8 +168,41 @@ public class IntermediateModelBuilder {
         setSimpleMethods(trimmedModel);
 
         namingStrategy.validateCustomerVisibleNaming(trimmedModel);
-
+        customizeEndpointParameters(fullModel, endpointRuleSet);
+        customizeOperationContextParams(trimmedModel, fullModel.getCustomizationConfig().getCustomOperationContextParams());
         return trimmedModel;
+    }
+
+    private static void customizeOperationContextParams(IntermediateModel trimmedModel,
+                                                        List<CustomOperationContextParam> customOperationContextParams) {
+
+        if (CollectionUtils.isNullOrEmpty(customOperationContextParams)) {
+            return;
+        }
+        customOperationContextParams.forEach(customOperationContextParam -> {
+            String operationName = customOperationContextParam.getOperationName();
+            OperationModel operation = trimmedModel.getOperation(operationName);
+            if (operation == null) {
+                throw new IllegalStateException(
+                    "Could not find operation " + operationName + " to customize Operation Context Params.");
+            }
+            if (operation.getOperationContextParams() != null) {
+                throw new IllegalStateException(
+                    "Cannot customize operation " + operationName + " which already has OperationContextParams.");
+            }
+            operation.setOperationContextParams(customOperationContextParam.getOperationContextParamsMap());
+        });
+    }
+
+    private void customizeEndpointParameters(IntermediateModel fullModel, EndpointRuleSetModel endpointRuleSet) {
+        if (fullModel.getCustomizationConfig().getEndpointParameters() != null) {
+            fullModel.getCustomizationConfig().getEndpointParameters().keySet().forEach(key -> {
+                if (endpointRuleSet.getParameters().containsKey(key)) {
+                    throw new IllegalStateException("Duplicate parameters found in customizationConfig");
+                }
+            });
+            fullModel.getCustomizationConfig().getEndpointParameters().forEach(endpointRuleSet.getParameters()::put);
+        }
     }
 
     /**
@@ -253,14 +287,16 @@ public class IntermediateModelBuilder {
             } else {
                 inputShape.setSimpleMethod(false);
 
-                boolean methodIsNotBlacklisted = !config.getBlacklistedSimpleMethods().contains(methodName) ||
-                                                 config.getBlacklistedSimpleMethods().stream().noneMatch(m -> m.equals("*"));
+                boolean methodIsNotExcluded = !config.getExcludedSimpleMethods().contains(methodName) ||
+                                              config.getExcludedSimpleMethods().stream().noneMatch(m -> m.equals("*")) ||
+                                              !config.getBlacklistedSimpleMethods().contains(methodName) ||
+                                              config.getBlacklistedSimpleMethods().stream().noneMatch(m -> m.equals("*"));
                 boolean methodHasNoRequiredMembers = !CollectionUtils.isNullOrEmpty(inputShape.getRequired());
                 boolean methodIsNotStreaming = !operation.isStreaming();
                 boolean methodHasSimpleMethodVerb = methodName.matches(Constant.APPROVED_SIMPLE_METHOD_VERBS);
 
-                if (methodIsNotBlacklisted && methodHasNoRequiredMembers && methodIsNotStreaming && methodHasSimpleMethodVerb) {
-                    log.warn("A potential simple method exists that isn't whitelisted or blacklisted: " + methodName);
+                if (methodIsNotExcluded && methodHasNoRequiredMembers && methodIsNotStreaming && methodHasSimpleMethodVerb) {
+                    log.warn("A potential simple method exists that isn't explicitly excluded or included: " + methodName);
                 }
             }
         });

@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.docs;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.createLinkToServiceDocumentation;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.stripHtmlTags;
 
+import com.squareup.javapoet.ClassName;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,19 +69,13 @@ abstract class OperationDocProvider {
     String getDocs() {
         DocumentationBuilder docBuilder = new DocumentationBuilder();
 
-        String description = StringUtils.isNotBlank(opModel.getDocumentation()) ?
-                             opModel.getDocumentation() :
-                             getDefaultServiceDocs();
-
-        String appendedDescription = appendToDescription();
+        String description = getDescription();
 
         if (config.isConsumerBuilder()) {
-            appendedDescription += getConsumerBuilderDocs();
+            description += "<br/>" + getConsumerBuilderDocs();
         }
 
-        docBuilder.description(StringUtils.isNotBlank(appendedDescription) ?
-                               description + "<br/>" + appendedDescription :
-                               description);
+        docBuilder.description(description);
 
         applyParams(docBuilder);
         applyReturns(docBuilder);
@@ -95,10 +90,12 @@ abstract class OperationDocProvider {
     }
 
     /**
-     * @return A string that will be appended to the standard description.
+     * @return The String description for the operation.
      */
-    protected String appendToDescription() {
-        return "";
+    protected String getDescription() {
+        return StringUtils.isNotBlank(opModel.getDocumentation()) ?
+               opModel.getDocumentation() :
+               getDefaultServiceDocs();
     }
 
     /**
@@ -171,10 +168,13 @@ abstract class OperationDocProvider {
     final void emitRequestParm(DocumentationBuilder docBuilder) {
         String parameterDocs = stripHtmlTags(opModel.getInput().getDocumentation());
 
+        String shapeName = opModel.getInputShape().getShapeName();
+        ClassName fcqn = ClassName.get(model.getMetadata().getFullModelPackageName(), shapeName);
+
         if (config.isConsumerBuilder()) {
             docBuilder.param(opModel.getInput().getVariableName(),
                              "A {@link Consumer} that will call methods on {@link %s.Builder} to create a request. %s",
-                             opModel.getInputShape().getC2jName(),
+                             fcqn.toString(),
                              parameterDocs);
         } else {
             docBuilder.param(opModel.getInput().getVariableName(), parameterDocs);

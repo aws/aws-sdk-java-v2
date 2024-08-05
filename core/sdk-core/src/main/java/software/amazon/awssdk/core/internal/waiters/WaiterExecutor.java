@@ -16,14 +16,12 @@
 package software.amazon.awssdk.core.internal.waiters;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
-import software.amazon.awssdk.core.waiters.WaiterState;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Validate;
 
@@ -45,45 +43,42 @@ public final class WaiterExecutor<T> {
     }
 
     WaiterResponse<T> execute(Supplier<T> pollingFunction) {
-        return doExecute(pollingFunction, 0, System.currentTimeMillis());
-    }
+        int attemptNumber = 0;
+        long startTime = System.currentTimeMillis();
 
-    WaiterResponse<T> doExecute(Supplier<T> pollingFunction, int attemptNumber, long startTime) {
-        attemptNumber++;
-        T response;
-        try {
-            response = pollingFunction.get();
-        } catch (Exception exception) {
-            return evaluate(pollingFunction, Either.right(exception), attemptNumber, startTime);
-        }
+        while (true) {
+            attemptNumber++;
 
-        return evaluate(pollingFunction, Either.left(response), attemptNumber, startTime);
-    }
-
-    private WaiterResponse<T> evaluate(Supplier<T> pollingFunction,
-                                       Either<T, Throwable> responseOrException,
-                                       int attemptNumber,
-                                       long startTime) {
-        Optional<WaiterAcceptor<? super T>> waiterAcceptor = executorHelper.firstWaiterAcceptorIfMatched(responseOrException);
-
-        if (waiterAcceptor.isPresent()) {
-            WaiterState state = waiterAcceptor.get().waiterState();
-            switch (state) {
+            Either<T, Throwable> polledResponse = pollResponse(pollingFunction);
+            WaiterAcceptor<? super T> waiterAcceptor = firstWaiterAcceptor(polledResponse);
+            switch (waiterAcceptor.waiterState()) {
                 case SUCCESS:
-                    return executorHelper.createWaiterResponse(responseOrException, attemptNumber);
+                    return executorHelper.createWaiterResponse(polledResponse, attemptNumber);
                 case RETRY:
-                    return maybeRetry(pollingFunction, attemptNumber, startTime);
+                    waitToRetry(attemptNumber, startTime);
+                    break;
                 case FAILURE:
-                    throw executorHelper.waiterFailureException(waiterAcceptor.get());
+                    throw executorHelper.waiterFailureException(waiterAcceptor);
                 default:
                     throw new UnsupportedOperationException();
             }
         }
-
-        throw executorHelper.noneMatchException(responseOrException);
     }
 
-    private WaiterResponse<T> maybeRetry(Supplier<T> pollingFunction, int attemptNumber, long startTime) {
+    private Either<T, Throwable> pollResponse(Supplier<T> pollingFunction) {
+        try {
+            return Either.left(pollingFunction.get());
+        } catch (Exception exception) {
+            return Either.right(exception);
+        }
+    }
+
+    private WaiterAcceptor<? super T> firstWaiterAcceptor(Either<T, Throwable> responseOrException) {
+        return executorHelper.firstWaiterAcceptorIfMatched(responseOrException)
+                             .orElseThrow(() -> executorHelper.noneMatchException(responseOrException));
+    }
+
+    private void waitToRetry(int attemptNumber, long startTime) {
         Either<Long, SdkClientException> nextDelayOrUnretryableException =
             executorHelper.nextDelayOrUnretryableException(attemptNumber, startTime);
 
@@ -97,6 +92,5 @@ public final class WaiterExecutor<T> {
             Thread.currentThread().interrupt();
             throw SdkClientException.create("The thread got interrupted", e);
         }
-        return doExecute(pollingFunction, attemptNumber, startTime);
     }
 }

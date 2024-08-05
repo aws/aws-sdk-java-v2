@@ -1,0 +1,48 @@
+{
+    "version": "2.20.90",
+    "date": "2023-06-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release introduces the bandwidth reduction filter for the HEVC encoder, increases the limits of outputs per job, and updates support for the Nagra SDK to version 1.14.7."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "This release adds a new parameter StructuredLogDestinations to CreateServer, UpdateServer APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Documentation updates for DynamoDB"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR",
+            "contributor": "",
+            "description": "This release introduces a new Amazon EMR EPI called ListSupportedInstanceTypes that returns a list of all instance types supported by a given EMR release."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonMQ",
+            "contributor": "",
+            "description": "The Cross Region Disaster Recovery feature allows to replicate a brokers state from one region to another in order to provide customers with multi-region resiliency in the event of a regional outage."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release provides support in SageMaker for output files in training jobs to be uploaded without compression and enable customer to deploy uncompressed model from S3 to real-time inference Endpoints. In addition, ml.trn1n.32xlarge is added to supported instance type list in training job."
+        },
+        {
+            "type": "feature",
+            "category": "Inspector2",
+            "contributor": "",
+            "description": "This release adds support for Software Bill of Materials (SBOM) export and the general availability of code scanning for AWS Lambda functions."
+        }
+    ]
+}

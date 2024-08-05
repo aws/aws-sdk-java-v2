@@ -1,0 +1,72 @@
+{
+    "version": "2.25.32",
+    "date": "2024-04-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage v2",
+            "contributor": "",
+            "description": "Dash v2 is a MediaPackage V2 feature to support egressing on DASH manifest format."
+        },
+        {
+            "type": "feature",
+            "category": "AWS EntityResolution",
+            "contributor": "",
+            "description": "Cross Account Resource Support ."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Wireless",
+            "contributor": "",
+            "description": "Add PublicGateways in the GetWirelessStatistics call response, indicating the LoRaWAN public network accessed by the device."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lake Formation",
+            "contributor": "",
+            "description": "This release adds Lake Formation managed RAM support for the 4 APIs - \"DescribeLakeFormationIdentityCenterConfiguration\", \"CreateLakeFormationIdentityCenterConfiguration\", \"DescribeLakeFormationIdentityCenterConfiguration\", and \"DeleteLakeFormationIdentityCenterConfiguration\""
+        },
+        {
+            "type": "feature",
+            "category": "AWSMainframeModernization",
+            "contributor": "",
+            "description": "Adding new ListBatchJobRestartPoints API and support for restart batch job."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Outposts",
+            "contributor": "",
+            "description": "This release adds new APIs to allow customers to configure their Outpost capacity at order-time."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Added support for Waiters specifically for Matchers with Error to accept true/false value not as string but as boolean values such that True value is to match on any error code, or boolean false to test if no errors were encountered as per the SDK Waiter specs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Well-Architected Tool",
+            "contributor": "",
+            "description": "AWS Well-Architected now has a Connector for Jira to allow customers to efficiently track workload risks and improvement efforts and create closed-loop mechanisms."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "For Create Agent API, the agentResourceRoleArn parameter is no longer required."
+        },
+        {
+            "type": "feature",
+            "category": "EMR Serverless",
+            "contributor": "",
+            "description": "This release adds support for shuffle optimized disks that allow larger disk sizes and higher IOPS to efficiently run shuffle heavy workloads."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

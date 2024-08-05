@@ -237,14 +237,6 @@ public class RestXmlExceptionTests {
         assertThrowsException(runnable, ProtocolRestXmlException.class);
     }
 
-    private void assertThrowsIllegalArgumentException(Runnable runnable) {
-        assertThrowsException(runnable, IllegalArgumentException.class);
-    }
-
-    private void assertThrowsNullPointerException(Runnable runnable) {
-        assertThrowsException(runnable, NullPointerException.class);
-    }
-
     private void assertThrowsException(Runnable runnable, Class<? extends Exception> expectedException) {
         try {
             runnable.run();

@@ -57,6 +57,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EntityEnvelopeBean;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -800,6 +801,16 @@ public class StaticTableSchemaTest {
     }
 
     @Test
+    public void itemType_returnsCorrectClassWhenBuiltWithEnhancedType() {
+        StaticTableSchema<FakeMappedItem> tableSchema = StaticTableSchema.builder(EnhancedType.of(FakeMappedItem.class))
+                                                                         .newItemSupplier(FakeMappedItem::new)
+                                                                         .attributes(ATTRIBUTES)
+                                                                         .build();
+
+        assertThat(tableSchema.itemType(), is(equalTo(EnhancedType.of(FakeMappedItem.class))));
+    }
+
+    @Test
     public void getTableMetadata_hasCorrectFields() {
         TableMetadata tableMetadata = FakeItemWithSort.getTableSchema().tableMetadata();
 
@@ -1483,6 +1494,27 @@ public class StaticTableSchemaTest {
         Map<String, AttributeValue> resultMap = tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(),
                 false);
         assertThat(resultMap.get("aString").s(), is(expectedString));
+    }
+
+    @Test
+    public void builder_canBuildForGenericClassType() {
+        StaticTableSchema<EntityEnvelopeBean<String>> envelopeTableSchema =
+            StaticTableSchema.builder(new EnhancedType<EntityEnvelopeBean<String>>() {})
+                             .newItemSupplier(EntityEnvelopeBean::new)
+                             .addAttribute(String.class,
+                                           a -> a.name("entity")
+                                                 .getter(EntityEnvelopeBean::getEntity)
+                                                 .setter(EntityEnvelopeBean::setEntity))
+                             .build();
+
+        EntityEnvelopeBean<String> testEnvelope = new EntityEnvelopeBean<>();
+        testEnvelope.setEntity("test-value");
+
+        Map<String, AttributeValue> expectedMap =
+            Collections.singletonMap("entity", AttributeValue.fromS("test-value"));
+
+        assertThat(envelopeTableSchema.itemToMap(testEnvelope, false), equalTo(expectedMap));
+        assertThat(envelopeTableSchema.mapToItem(expectedMap).getEntity(), equalTo("test-value"));
     }
 
     private <R> void verifyAttribute(EnhancedType<R> attributeType,

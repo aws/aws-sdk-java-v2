@@ -31,6 +31,25 @@
       },
       "input":{"shape":"WithContextParam"}
     },
+    "OperationWithOperationContextParam": {
+      "name": "OperationWithOperationContextParam",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "operationContextParams":{
+        "customEndpointArray":{"value":"ListMember.StringList[*].LeafString"}
+      },
+      "input":{"shape":"WithOperationContextParam"}
+    },
+    "OperationWithCustomizedOperationContextParam": {
+      "name": "OperationWithCustomizedOperationContextParam",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input":{"shape":"WithOperationContextParam"}
+    },
     "OperationWithStaticContextParams": {
       "name": "OperationWithStaticContextParams",
       "http": {
@@ -58,6 +77,24 @@
         "requestUri": "/"
       },
       "authtype": "none"
+    },
+    "OperationWithRequestCompression": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "requestcompression": {
+        "encodings": ["gzip"]
+      }
+    },
+    "OperationWithCustomMember": {
+      "name": "OperationWithCustomMember",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input":{"shape":"WithCustomMember"}
     },
     "APostOperation": {
       "name": "APostOperation",
@@ -172,6 +209,54 @@
           "shape": "ChecksumStructure"
         }
       }
+    },
+    "WithCustomMember": {
+      "type": "structure",
+      "members": {
+        "StringMemberToBeUpdate" : {
+          "shape": "String"
+        },
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "WithOperationContextParam": {
+      "type": "structure",
+      "members": {
+        "ListMember":{
+          "shape":"ListMember"
+        }
+      }
+    },
+    "ListMember":{
+      "type":"structure",
+      "members":{
+        "Strings":{
+          "shape":"StringList"
+        },
+        "StringParam":{
+          "shape":"String"
+        }
+      },
+      "documentation":"<p>Container for the objects to delete.</p>"
+    },
+    "StringList":{
+      "type":"list",
+      "member":{"shape":"LeafNode"},
+      "flattened":true
+    },
+    "LeafNode":{
+      "type":"structure",
+      "members":{
+        "LeafString":{
+          "shape":"LeafString"
+        }
+      },
+      "documentation":""
+    },
+    "LeafString":{
+      "type":"string"
     },
     "APostOperationRequest": {
       "type": "structure",
@@ -315,7 +400,7 @@
     "ChecksumStructure":{
       "type":"structure",
       "members":{
-        "stringMember":{"shape":"subMember"},
+        "Body":{"shape":"Body"},
         "ChecksumMode":{
           "shape":"ChecksumMode",
           "location":"header",
@@ -327,7 +412,7 @@
           "locationName":"x-amz-checksum-algorithm"
         }
       },
-      "payload":"stringMember"
+      "payload":"Body"
     },
     "String":{"type":"string"},
     "BearerAuthOperationRequest": {

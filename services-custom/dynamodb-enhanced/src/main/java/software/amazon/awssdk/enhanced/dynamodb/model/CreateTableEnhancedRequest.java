@@ -26,6 +26,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.StreamSpecification;
 
 /**
  * Defines parameters used to create a DynamoDb table using the createTable() operation (such as
@@ -38,11 +39,13 @@ import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 @ThreadSafe
 public final class CreateTableEnhancedRequest {
     private final ProvisionedThroughput provisionedThroughput;
+    private final StreamSpecification streamSpecification;
     private final Collection<EnhancedLocalSecondaryIndex> localSecondaryIndices;
     private final Collection<EnhancedGlobalSecondaryIndex> globalSecondaryIndices;
 
     private CreateTableEnhancedRequest(Builder builder) {
         this.provisionedThroughput = builder.provisionedThroughput;
+        this.streamSpecification = builder.streamSpecification;
         this.localSecondaryIndices = builder.localSecondaryIndices;
         this.globalSecondaryIndices = builder.globalSecondaryIndices;
     }
@@ -59,6 +62,7 @@ public final class CreateTableEnhancedRequest {
      */
     public Builder toBuilder() {
         return builder().provisionedThroughput(provisionedThroughput)
+                        .streamSpecification(streamSpecification)
                         .localSecondaryIndices(localSecondaryIndices)
                         .globalSecondaryIndices(globalSecondaryIndices);
     }
@@ -68,6 +72,13 @@ public final class CreateTableEnhancedRequest {
      */
     public ProvisionedThroughput provisionedThroughput() {
         return provisionedThroughput;
+    }
+
+    /**
+     * Returns the stream specification value set on this request object, or null if it has not been set.
+     */
+    public StreamSpecification streamSpecification() {
+        return streamSpecification;
     }
 
     /**
@@ -99,6 +110,10 @@ public final class CreateTableEnhancedRequest {
             that.provisionedThroughput != null) {
             return false;
         }
+        if (streamSpecification != null ? ! streamSpecification.equals(that.streamSpecification) :
+            that.streamSpecification != null) {
+            return false;
+        }
         if (localSecondaryIndices != null ? ! localSecondaryIndices.equals(that.localSecondaryIndices) :
             that.localSecondaryIndices != null) {
             return false;
@@ -110,6 +125,7 @@ public final class CreateTableEnhancedRequest {
     @Override
     public int hashCode() {
         int result = provisionedThroughput != null ? provisionedThroughput.hashCode() : 0;
+        result = 31 * result + (streamSpecification != null ? streamSpecification.hashCode() : 0);
         result = 31 * result + (localSecondaryIndices != null ? localSecondaryIndices.hashCode() : 0);
         result = 31 * result + (globalSecondaryIndices != null ? globalSecondaryIndices.hashCode() : 0);
         return result;
@@ -121,6 +137,7 @@ public final class CreateTableEnhancedRequest {
     @NotThreadSafe
     public static final class Builder {
         private ProvisionedThroughput provisionedThroughput;
+        private StreamSpecification streamSpecification;
         private Collection<EnhancedLocalSecondaryIndex> localSecondaryIndices;
         private Collection<EnhancedGlobalSecondaryIndex> globalSecondaryIndices;
 
@@ -147,6 +164,27 @@ public final class CreateTableEnhancedRequest {
             ProvisionedThroughput.Builder builder = ProvisionedThroughput.builder();
             provisionedThroughput.accept(builder);
             return provisionedThroughput(builder.build());
+        }
+
+        /**
+         * Sets the {@link StreamSpecification} for this table.
+         * <p>
+         * See the DynamoDb documentation for more information on stream specification values.
+         */
+        public Builder streamSpecification(StreamSpecification streamSpecification) {
+            this.streamSpecification = streamSpecification;
+            return this;
+        }
+
+        /**
+         * This is a convenience method for {@link #streamSpecification(StreamSpecification)} that creates an instance of the
+         * {@link StreamSpecification.Builder} for you, avoiding the need to create one manually via
+         * {@link StreamSpecification#builder()}.
+         */
+        public Builder streamSpecification(Consumer<StreamSpecification.Builder> streamSpecification) {
+            StreamSpecification.Builder builder = StreamSpecification.builder();
+            streamSpecification.accept(builder);
+            return streamSpecification(builder.build());
         }
 
         /**

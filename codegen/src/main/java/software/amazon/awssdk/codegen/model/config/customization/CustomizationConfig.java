@@ -16,9 +16,14 @@
 package software.amazon.awssdk.codegen.model.config.customization;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
+import software.amazon.awssdk.codegen.model.service.ClientContextParam;
+import software.amazon.awssdk.codegen.model.service.CustomOperationContextParam;
+import software.amazon.awssdk.codegen.model.service.PreClientExecutionRequestCustomizer;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -102,6 +107,13 @@ public class CustomizationConfig {
     /**
      * APIs that have no required arguments in their model but can't be called via a simple method
      */
+    private List<String> excludedSimpleMethods = new ArrayList<>();
+
+    /**
+     * APIs that have no required arguments in their model but can't be called via a simple method.
+     * Superseded by {@link #excludedSimpleMethods}
+     */
+    @Deprecated
     private List<String> blacklistedSimpleMethods = new ArrayList<>();
 
     /**
@@ -129,6 +141,11 @@ public class CustomizationConfig {
      * Custom Retry Policy
      */
     private String customRetryPolicy;
+
+    /**
+     * Custom Retry strategy
+     */
+    private String customRetryStrategy;
 
     private boolean skipSyncClientGeneration;
 
@@ -199,7 +216,7 @@ public class CustomizationConfig {
     private UnderscoresInNameBehavior underscoresInNameBehavior;
 
     private String userAgent;
-    
+
     private RetryMode defaultRetryMode;
 
     /**
@@ -211,6 +228,25 @@ public class CustomizationConfig {
      * Whether to generate an abstract decorator class that delegates to the sync service client
      */
     private boolean delegateSyncClientClass;
+
+    /**
+     * Fully qualified name of a class that given the default sync client instance can return the final client instance,
+     * for instance by decorating the client with specific-purpose implementations of the client interface.
+     * See S3 customization.config for an example.
+     */
+    private String syncClientDecorator;
+
+    /**
+     * Fully qualified name of a class that given the default async client instance can return the final client instance,
+     * for instance by decorating the client with specific-purpose implementations of the client interface.
+     * See S3 customization.config for an example.
+     */
+    private String asyncClientDecorator;
+
+    /**
+     * Only for s3. A set of customization to related to multipart operations.
+     */
+    private MultipartCustomization multipartCustomization;
 
     /**
      * Whether to skip generating endpoint tests from endpoint-tests.json
@@ -229,12 +265,82 @@ public class CustomizationConfig {
 
     private boolean useGlobalEndpoint;
 
+    private boolean useS3ExpressSessionAuth;
+
     private List<String> interceptors = new ArrayList<>();
+
+    private List<String> internalPlugins = new ArrayList<>();
 
     /**
      * Whether marshallers perform validations against members marked with RequiredTrait.
      */
     private boolean requiredTraitValidationEnabled = false;
+
+    /**
+     * Whether SRA based auth logic should be used.
+     */
+    private boolean useSraAuth = true;
+
+    /**
+     * Whether to generate auth scheme params based on endpoint params.
+     */
+    private boolean enableEndpointAuthSchemeParams = false;
+
+    /**
+     * List of endpoint params to be used for the auth scheme params
+     */
+    private List<String> allowedEndpointAuthSchemeParams = Collections.emptyList();
+
+    /**
+     * Whether the list of allowed endpoint auth scheme params was explicitly configured.
+     */
+    private boolean allowedEndpointAuthSchemeParamsConfigured = false;
+
+    /**
+     * Customization to attach map of Custom client param configs that can be set on a client builder.
+     */
+    private Map<String, ClientContextParam> customClientContextParams;
+
+    private boolean s3ExpressAuthSupport;
+
+    /**
+     * Set to true to enable compiled endpoint rules. Currently defaults to false.
+     */
+    private boolean enableGenerateCompiledEndpointRules = false;
+
+    /**
+     * Customization related to auth scheme derived from endpoints.
+     */
+    private EndpointAuthSchemeConfig endpointAuthSchemeConfig;
+
+    /**
+     * Customization to change the root package name.
+     * By default, it's "software.amazon.awssdk.services.[serviceId]"
+     */
+    private String rootPackageName;
+
+    /**
+     * Set to true to read from c2j multi-auth values. Currently defaults to false.
+     *
+     * TODO(multi-auth): full multi-auth support is not implemented
+     */
+    private boolean useMultiAuth;
+
+    /**
+     * Special case for a service where model changes for endpoint params were not updated .
+     * This should be removed once the service updates its models
+     */
+    private Map<String, ParameterModel> endpointParameters;
+
+    private List<CustomOperationContextParam> customOperationContextParams;
+
+    /**
+     * A map that associates API names with their respective custom request transformers.
+     * The {@link PreClientExecutionRequestCustomizer} allows for dynamic and specific handling of API requests,
+     * ensuring that each request that requires custom handling can be appropriately transformed based on its corresponding
+     * API name.
+     */
+    private Map<String, PreClientExecutionRequestCustomizer> preClientExecutionRequestCustomizer;
 
     private CustomizationConfig() {
     }
@@ -348,10 +454,26 @@ public class CustomizationConfig {
         this.serviceSpecificHttpConfig = serviceSpecificHttpConfig;
     }
 
+    public List<String> getExcludedSimpleMethods() {
+        return excludedSimpleMethods;
+    }
+
+    public void setExcludedSimpleMethods(List<String> excludedSimpleMethods) {
+        this.excludedSimpleMethods = excludedSimpleMethods;
+    }
+
+    /**
+     * Use {@link #getExcludedSimpleMethods()}
+     */
+    @Deprecated
     public List<String> getBlacklistedSimpleMethods() {
         return blacklistedSimpleMethods;
     }
 
+    /**
+     * Use {@link #setExcludedSimpleMethods(List)}
+     */
+    @Deprecated
     public void setBlacklistedSimpleMethods(List<String> blackListedSimpleMethods) {
         this.blacklistedSimpleMethods = blackListedSimpleMethods;
     }
@@ -416,8 +538,16 @@ public class CustomizationConfig {
         return customRetryPolicy;
     }
 
+    public String getCustomRetryStrategy() {
+        return customRetryStrategy;
+    }
+
     public void setCustomRetryPolicy(String customRetryPolicy) {
         this.customRetryPolicy = customRetryPolicy;
+    }
+
+    public void setCustomRetryStrategy(String customRetryStrategy) {
+        this.customRetryStrategy = customRetryStrategy;
     }
 
     public boolean isSkipSyncClientGeneration() {
@@ -566,6 +696,22 @@ public class CustomizationConfig {
         this.delegateAsyncClientClass = delegateAsyncClientClass;
     }
 
+    public String getSyncClientDecorator() {
+        return syncClientDecorator;
+    }
+
+    public void setSyncClientDecorator(String syncClientDecorator) {
+        this.syncClientDecorator = syncClientDecorator;
+    }
+
+    public String getAsyncClientDecorator() {
+        return asyncClientDecorator;
+    }
+
+    public void setAsyncClientDecorator(String asyncClientDecorator) {
+        this.asyncClientDecorator = asyncClientDecorator;
+    }
+
     public boolean isDelegateSyncClientClass() {
         return delegateSyncClientClass;
     }
@@ -598,6 +744,22 @@ public class CustomizationConfig {
         this.useGlobalEndpoint = useGlobalEndpoint;
     }
 
+    public boolean useS3ExpressSessionAuth() {
+        return useS3ExpressSessionAuth;
+    }
+
+    public void setUseS3ExpressSessionAuth(boolean useS3ExpressSessionAuth) {
+        this.useS3ExpressSessionAuth = useS3ExpressSessionAuth;
+    }
+
+    public boolean isEnableGenerateCompiledEndpointRules() {
+        return enableGenerateCompiledEndpointRules;
+    }
+
+    public void setEnableGenerateCompiledEndpointRules(boolean enableGenerateCompiledEndpointRules) {
+        this.enableGenerateCompiledEndpointRules = enableGenerateCompiledEndpointRules;
+    }
+
     public Map<String, String> getSkipEndpointTests() {
         return skipEndpointTests;
     }
@@ -613,7 +775,15 @@ public class CustomizationConfig {
     public void setInterceptors(List<String> interceptors) {
         this.interceptors = interceptors;
     }
-    
+
+    public List<String> getInternalPlugins() {
+        return internalPlugins;
+    }
+
+    public void setInternalPlugins(List<String> internalPlugins) {
+        this.internalPlugins = internalPlugins;
+    }
+
     public boolean isRequiredTraitValidationEnabled() {
         return requiredTraitValidationEnabled;
     }
@@ -621,4 +791,114 @@ public class CustomizationConfig {
     public void setRequiredTraitValidationEnabled(boolean requiredTraitValidationEnabled) {
         this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
     }
+
+    public void setUseSraAuth(boolean useSraAuth) {
+        this.useSraAuth = useSraAuth;
+    }
+
+    // TODO(post-sra-identity-auth): Remove this customization and all related switching logic, keeping only the
+    //  useSraAuth==true branch going forward.
+    public boolean useSraAuth() {
+        return useSraAuth;
+    }
+
+    public void setEnableEndpointAuthSchemeParams(boolean enableEndpointAuthSchemeParams) {
+        this.enableEndpointAuthSchemeParams = enableEndpointAuthSchemeParams;
+    }
+
+    public boolean isEnableEndpointAuthSchemeParams() {
+        return enableEndpointAuthSchemeParams;
+    }
+
+    public void setAllowedEndpointAuthSchemeParams(List<String> allowedEndpointAuthSchemeParams) {
+        this.allowedEndpointAuthSchemeParamsConfigured = true;
+        this.allowedEndpointAuthSchemeParams = allowedEndpointAuthSchemeParams;
+    }
+
+    public List<String> getAllowedEndpointAuthSchemeParams() {
+        return this.allowedEndpointAuthSchemeParams;
+    }
+
+    public boolean getAllowedEndpointAuthSchemeParamsConfigured() {
+        return allowedEndpointAuthSchemeParamsConfigured;
+    }
+
+    public Map<String, ClientContextParam> getCustomClientContextParams() {
+        return customClientContextParams;
+    }
+
+    public void setCustomClientContextParams(Map<String, ClientContextParam> customClientContextParams) {
+        this.customClientContextParams = customClientContextParams;
+    }
+
+    public boolean getS3ExpressAuthSupport() {
+        return s3ExpressAuthSupport;
+    }
+
+    public void setS3ExpressAuthSupport(boolean s3ExpressAuthSupport) {
+        this.s3ExpressAuthSupport = s3ExpressAuthSupport;
+    }
+
+    public MultipartCustomization getMultipartCustomization() {
+        return this.multipartCustomization;
+    }
+
+    public void setMultipartCustomization(MultipartCustomization multipartCustomization) {
+        this.multipartCustomization = multipartCustomization;
+    }
+
+    public EndpointAuthSchemeConfig getEndpointAuthSchemeConfig() {
+        return endpointAuthSchemeConfig;
+    }
+
+    public void setEndpointAuthSchemeConfig(EndpointAuthSchemeConfig endpointAuthSchemeConfig) {
+        this.endpointAuthSchemeConfig = endpointAuthSchemeConfig;
+    }
+
+    public String getRootPackageName() {
+        return rootPackageName;
+    }
+
+    public void setRootPackageName(String rootPackageName) {
+        this.rootPackageName = rootPackageName;
+    }
+
+    public CustomizationConfig withRootPackageName(String packageName) {
+        this.rootPackageName = packageName;
+        return this;
+    }
+
+    public void setUseMultiAuth(boolean useMultiAuth) {
+        this.useMultiAuth = useMultiAuth;
+    }
+
+    public boolean useMultiAuth() {
+        return useMultiAuth;
+    }
+
+    public Map<String, ParameterModel> getEndpointParameters() {
+        return endpointParameters;
+    }
+
+    public void setEndpointParameters(Map<String, ParameterModel> endpointParameters) {
+        this.endpointParameters = endpointParameters;
+    }
+
+    public List<CustomOperationContextParam> getCustomOperationContextParams() {
+        return customOperationContextParams;
+    }
+
+    public void setCustomOperationContextParams(List<CustomOperationContextParam> customOperationContextParams) {
+        this.customOperationContextParams = customOperationContextParams;
+    }
+
+    public Map<String, PreClientExecutionRequestCustomizer> getPreClientExecutionRequestCustomizer() {
+        return preClientExecutionRequestCustomizer;
+    }
+
+    public void setPreClientExecutionRequestCustomizer(Map<String, PreClientExecutionRequestCustomizer>
+                                                           preClientExecutionRequestCustomizer) {
+        this.preClientExecutionRequestCustomizer = preClientExecutionRequestCustomizer;
+    }
+
 }

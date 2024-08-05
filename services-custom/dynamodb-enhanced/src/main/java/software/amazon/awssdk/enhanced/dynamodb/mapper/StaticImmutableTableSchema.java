@@ -210,7 +210,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         this.newBuilderSupplier = builder.newBuilderSupplier;
         this.buildItemFunction = builder.buildItemFunction;
         this.tableMetadata = tableMetadataBuilder.build();
-        this.itemType = EnhancedType.of(builder.itemClass);
+        this.itemType = builder.itemType;
     }
 
     /**
@@ -220,7 +220,18 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
      * @return A newly initialized builder
      */
     public static <T, B> Builder<T, B> builder(Class<T> itemClass, Class<B> builderClass) {
-        return new Builder<>(itemClass, builderClass);
+        return new Builder<>(EnhancedType.of(itemClass), EnhancedType.of(builderClass));
+    }
+
+    /**
+     * Creates a builder for a {@link StaticImmutableTableSchema} typed to specific immutable data item class.
+     * @param itemType The {@link EnhancedType} of the immutable data item class object that the
+     *                 {@link StaticImmutableTableSchema} is to map to.
+     * @param builderType The builder {@link EnhancedType} that can be used to construct instances of the immutable data item.
+     * @return A newly initialized builder
+     */
+    public static <T, B> Builder<T, B> builder(EnhancedType<T> itemType, EnhancedType<B> builderType) {
+        return new Builder<>(itemType, builderType);
     }
 
     /**
@@ -230,8 +241,8 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
      */
     @NotThreadSafe
     public static final class Builder<T, B> {
-        private final Class<T> itemClass;
-        private final Class<B> builderClass;
+        private final EnhancedType<T> itemType;
+        private final EnhancedType<B> builderType;
         private final List<ResolvedImmutableAttribute<T, B>> additionalAttributes = new ArrayList<>();
         private final List<FlattenedMapper<T, B, ?>> flattenedMappers = new ArrayList<>();
 
@@ -242,9 +253,9 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         private List<AttributeConverterProvider> attributeConverterProviders =
             Collections.singletonList(ConverterProviderResolver.defaultConverterProvider());
 
-        private Builder(Class<T> itemClass, Class<B> builderClass) {
-            this.itemClass = itemClass;
-            this.builderClass = builderClass;
+        private Builder(EnhancedType<T> itemType, EnhancedType<B> builderType) {
+            this.itemType = itemType;
+            this.builderType = builderType;
         }
 
         /**
@@ -285,7 +296,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
                                               Consumer<ImmutableAttribute.Builder<T, B, R>> immutableAttribute) {
 
             ImmutableAttribute.Builder<T, B, R> builder =
-                ImmutableAttribute.builder(itemClass, builderClass, attributeType);
+                ImmutableAttribute.builder(itemType, builderType, attributeType);
             immutableAttribute.accept(builder);
             return addAttribute(builder.build());
         }

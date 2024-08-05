@@ -1,0 +1,42 @@
+{
+    "version": "2.20.109",
+    "date": "2023-07-21",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Fix a bug where the SSE-C parameters are not copied to the CompleteMultipartUpload request when transforming to a multipart copy."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release includes improvements to Preserve 444 handling, compatibility of HEVC sources without frame rates, and general improvements to MP4 outputs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "This release adds support for AWS Glue Crawler with Apache Hudi Tables, allowing Crawlers to discover Hudi Tables in S3 and register them in Glue Data Catalog for query engines to query against."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adds support for the DBSystemID parameter of CreateDBInstance to RDS Custom for Oracle."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Fixed VolumeEncryptionKey descriptions"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -31,6 +31,8 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.services.sqs.endpoints.SqsClientContextParams;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
@@ -41,6 +43,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Md5Utils;
@@ -77,7 +80,8 @@ public final class MessageMD5ChecksumInterceptor implements ExecutionInterceptor
     public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
         SdkResponse response = context.response();
         SdkRequest originalRequest = context.request();
-        if (response != null) {
+
+        if (response != null && validateMessageMD5Enabled(executionAttributes)) {
             if (originalRequest instanceof SendMessageRequest) {
                 SendMessageRequest sendMessageRequest = (SendMessageRequest) originalRequest;
                 SendMessageResponse sendMessageResult = (SendMessageResponse) response;
@@ -93,6 +97,12 @@ public final class MessageMD5ChecksumInterceptor implements ExecutionInterceptor
                 sendMessageBatchOperationMd5Check(sendMessageBatchRequest, sendMessageBatchResult);
             }
         }
+    }
+
+    private static boolean validateMessageMD5Enabled(ExecutionAttributes executionAttributes) {
+        AttributeMap clientContextParams = executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS);
+        Boolean enableMd5Validation = clientContextParams.get(SqsClientContextParams.CHECKSUM_VALIDATION_ENABLED);
+        return enableMd5Validation == null || enableMd5Validation;
     }
 
     /**
@@ -208,7 +218,10 @@ public final class MessageMD5ChecksumInterceptor implements ExecutionInterceptor
             expectedMd5 = Md5Utils.computeMD5Hash(messageBody.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             throw SdkClientException.builder()
-                                    .message("Unable to calculate the MD5 hash of the message body. " + e.getMessage())
+                                    .message("Unable to calculate the MD5 hash of the message body. "
+                                             + "Potential reasons include JVM configuration or FIPS compliance issues. "
+                                             + "To disable message MD5 validation, you can set checksumValidationEnabled "
+                                             + "to false when instantiating the client." + e.getMessage())
                                     .cause(e)
                                     .build();
         }
@@ -261,7 +274,10 @@ public final class MessageMD5ChecksumInterceptor implements ExecutionInterceptor
             }
         } catch (Exception e) {
             throw SdkClientException.builder()
-                                    .message("Unable to calculate the MD5 hash of the message attributes. " + e.getMessage())
+                                    .message("Unable to calculate the MD5 hash of the message attributes. "
+                                             + "Potential reasons include JVM configuration or FIPS compliance issues. "
+                                             + "To disable message MD5 validation, you can set checksumValidationEnabled "
+                                             + "to false when instantiating the client." + e.getMessage())
                                     .cause(e)
                                     .build();
         }

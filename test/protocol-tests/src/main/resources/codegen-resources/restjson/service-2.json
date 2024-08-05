@@ -131,6 +131,15 @@
       "input":{"shape":"OperationWithExplicitPayloadBlobInput"},
       "output":{"shape":"OperationWithExplicitPayloadBlobInput"}
     },
+    "OperationWithExplicitPayloadString":{
+      "name":"OperationWithExplicitPayloadString",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/operationWithExplicitPayloadString"
+      },
+      "input":{"shape":"OperationWithExplicitPayloadStringInput"},
+      "output":{"shape":"OperationWithExplicitPayloadStringInput"}
+    },
     "OperationWithExplicitPayloadStructure":{
       "name":"OperationWithExplicitPayloadStructure",
       "http":{
@@ -187,6 +196,15 @@
       },
       "input":{"shape":"StructureWithStreamingMember"}
     },
+    "StreamingInputOperationChunkedEncoding":{
+      "name":"StreamingInputOperationChunkedEncoding",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/streamingInputOperationChunkedEncoding"
+      },
+      "input":{"shape":"StructureWithStreamingMemberChunkedEncoding"},
+      "authtype":"v4-unsigned-body"
+    },
     "StreamingOutputOperation":{
       "name":"StreamingOutputOperation",
       "http":{
@@ -203,6 +221,19 @@
       },
       "input": {
         "shape": "EventStreamOperationRequest"
+      },
+      "output": {
+        "shape": "EventStreamOutput"
+      }
+    },
+    "EventStreamStringPayloadOperation": {
+      "name": "EventStreamStringPayloadOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/eventStreamStringPayloadOperation"
+      },
+      "input": {
+        "shape": "EventStreamStringPayloadOperationRequest"
       },
       "output": {
         "shape": "EventStreamOutput"
@@ -250,7 +281,8 @@
         "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"},
         "ListOfTimeStamp":{"shape":"ListOfTimeStamp"},
         "MapOfTimeStamp":{"shape":"MapOfTimeStamp"},
-        "MyDocument":{"shape":"MyDocument"}
+        "MyDocument":{"shape":"MyDocument"},
+        "UnionMember":{"shape":"AllTypesUnionStructure"}
       }
     },
     "BaseType":{
@@ -660,6 +692,13 @@
       },
       "payload":"PayloadMember"
     },
+    "OperationWithExplicitPayloadStringInput":{
+      "type":"structure",
+      "members":{
+        "PayloadMember":{"shape":"String"}
+      },
+      "payload":"PayloadMember"
+    },
     "OperationWithExplicitPayloadStructureInput":{
       "type":"structure",
       "members":{
@@ -746,6 +785,11 @@
       "streaming":true,
       "requiresLength":true
     },
+    "StreamTypeChunkedEncoding":{
+      "type":"blob",
+      "streaming":true,
+      "requiresLength":false
+    },
     "String":{"type":"string"},
     "StructWithNestedBlobType":{
       "type":"structure",
@@ -763,6 +807,13 @@
       "type":"structure",
       "members":{
         "StreamingMember":{"shape":"StreamType"}
+      },
+      "payload":"StreamingMember"
+    },
+    "StructureWithStreamingMemberChunkedEncoding":{
+      "type":"structure",
+      "members":{
+        "StreamingMember":{"shape":"StreamTypeChunkedEncoding"}
       },
       "payload":"StreamingMember"
     },
@@ -794,6 +845,18 @@
       },
       "payload":"InputEventStream"
     },
+    "EventStreamStringPayloadOperationRequest": {
+      "type": "structure",
+      "required": [
+        "InputEventStream"
+      ],
+      "members": {
+        "InputEventStreamStringPayload": {
+          "shape": "InputEventStreamStringPayload"
+        }
+      },
+      "payload":"InputEventStreamStringPayload"
+    },
     "EventStreamOutput": {
       "type": "structure",
       "required": [
@@ -814,11 +877,34 @@
       },
       "eventstream": true
     },
+    "InputEventStreamStringPayload": {
+      "type": "structure",
+      "members": {
+        "InputEvent": {
+          "shape": "InputEventStringPayload"
+        }
+      },
+      "eventstream": true
+    },
     "InputEvent": {
       "type": "structure",
       "members": {
         "ExplicitPayloadMember": {
           "shape":"ExplicitPayloadMember",
+          "eventpayload":true
+        },
+        "HeaderMember": {
+          "shape": "String",
+          "eventheader": true
+        }
+      },
+      "event": true
+    },
+    "InputEventStringPayload": {
+      "type": "structure",
+      "members": {
+        "ExplicitPayloadStringMember": {
+          "shape":"String",
           "eventpayload":true
         },
         "HeaderMember": {
@@ -867,6 +953,93 @@
       "type":"structure",
       "members":{
         "DocumentMember":{"shape":"MyDocument"}
+      }
+    },
+    "AllTypesUnionStructure": {
+      "type": "structure",
+      "union": true,
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        },
+        "IntegerMember": {
+          "shape": "Integer"
+        },
+        "BooleanMember": {
+          "shape": "Boolean"
+        },
+        "FloatMember": {
+          "shape": "Float"
+        },
+        "DoubleMember": {
+          "shape": "Double"
+        },
+        "LongMember": {
+          "shape": "Long"
+        },
+        "ShortMember": {
+          "shape": "Short"
+        },
+        "EnumMember": {
+          "shape": "EnumType"
+        },
+        "SimpleList": {
+          "shape": "ListOfStrings"
+        },
+        "ListOfEnums": {
+          "shape": "ListOfEnums"
+        },
+        "ListOfMaps": {
+          "shape": "ListOfMapStringToString"
+        },
+        "ListOfStructs": {
+          "shape": "ListOfSimpleStructs"
+        },
+        "MapOfStringToIntegerList": {
+          "shape": "MapOfStringToIntegerList"
+        },
+        "MapOfStringToString": {
+          "shape": "MapOfStringToString"
+        },
+        "MapOfStringToStruct": {
+          "shape": "MapOfStringToSimpleStruct"
+        },
+        "MapOfEnumToEnum": {
+          "shape": "MapOfEnumToEnum"
+        },
+        "TimestampMember": {
+          "shape": "Timestamp"
+        },
+        "StructWithNestedTimestampMember": {
+          "shape": "StructWithTimestamp"
+        },
+        "BlobArg": {
+          "shape": "BlobType"
+        },
+        "StructWithNestedBlob": {
+          "shape": "StructWithNestedBlobType"
+        },
+        "BlobMap": {
+          "shape": "BlobMapType"
+        },
+        "ListOfBlobs": {
+          "shape": "ListOfBlobsType"
+        },
+        "RecursiveStruct": {
+          "shape": "RecursiveStructType"
+        },
+        "PolymorphicTypeWithSubTypes": {
+          "shape": "BaseType"
+        },
+        "PolymorphicTypeWithoutSubTypes": {
+          "shape": "SubTypeOne"
+        },
+        "SetPrefixedMember": {
+          "shape": "String"
+        },
+        "UnionMember": {
+          "shape": "AllTypesUnionStructure"
+        }
       }
     }
   }

@@ -1,0 +1,18 @@
+{
+    "version": "2.20.102",
+    "date": "2023-07-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "StephenFlavin",
+            "description": "Enable zero-copy ByteBuffer publishing in AsyncRequestBody via \"unsafe\" constructors"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "API model updated in Amazon Cognito"
+        }
+    ]
+}

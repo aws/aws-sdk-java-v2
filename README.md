@@ -4,7 +4,7 @@
 [![Gitter](https://badges.gitter.im/aws/aws-sdk-java-v2.svg)](https://gitter.im/aws/aws-sdk-java-v2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) 
 [![codecov](https://codecov.io/gh/aws/aws-sdk-java-v2/branch/master/graph/badge.svg)](https://codecov.io/gh/aws/aws-sdk-java-v2)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-89-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-110-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The **AWS SDK for Java 2.0** is a rewrite of 1.0 with some great new features. As with version 1.0,
@@ -52,7 +52,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.20.85</version>
+      <version>2.26.29</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -86,12 +86,12 @@ Alternatively you can add dependencies for the specific services you use only:
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>ec2</artifactId>
-  <version>2.20.85</version>
+  <version>2.26.29</version>
 </dependency>
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3</artifactId>
-  <version>2.20.85</version>
+  <version>2.26.29</version>
 </dependency>
 ```
 
@@ -103,7 +103,7 @@ You can import the whole SDK into your project (includes *ALL* services). Please
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>aws-sdk-java</artifactId>
-  <version>2.20.85</version>
+  <version>2.26.29</version>
 </dependency>
 ```
 
@@ -150,7 +150,7 @@ For information about maintenance and support for SDK major versions and their u
 
 ## Maintenance and Support for Java Versions
 
-We maintain full support on Long-Term Support(LTS) releases: Java 8, Java 11, and Java 17.
+We maintain full support on Long-Term Support(LTS) releases: Java 8, Java 11, Java 17, and Java 21.
 
 ## Giving Feedback
 We need your help in making this SDK great. Please participate in the community and contribute to this effort by submitting issues, participating in discussion forums and submitting pull requests through the following channels:
@@ -305,6 +305,33 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://www.youtube.com/CodigoMorsa"><img src="https://avatars.githubusercontent.com/u/21063181?v=4?s=100" width="100px;" alt="Martin"/><br /><sub><b>Martin</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=martinKindall" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/paulolieuthier"><img src="https://avatars.githubusercontent.com/u/1238157?v=4?s=100" width="100px;" alt="Paulo Lieuthier"/><br /><sub><b>Paulo Lieuthier</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=paulolieuthier" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.inulogic.fr"><img src="https://avatars.githubusercontent.com/u/88554524?v=4?s=100" width="100px;" alt="Sébastien Crocquesel"/><br /><sub><b>Sébastien Crocquesel</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=scrocquesel" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/dave-fn"><img src="https://avatars.githubusercontent.com/u/21349334?v=4?s=100" width="100px;" alt="David Negrete"/><br /><sub><b>David Negrete</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=dave-fn" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/StephenFlavin"><img src="https://avatars.githubusercontent.com/u/14975957?v=4?s=100" width="100px;" alt="Stephen Flavin"/><br /><sub><b>Stephen Flavin</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=StephenFlavin" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="http://applin.ca"><img src="https://avatars.githubusercontent.com/u/16511950?v=4?s=100" width="100px;" alt="Olivier L Applin"/><br /><sub><b>Olivier L Applin</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=L-Applin" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/breader124"><img src="https://avatars.githubusercontent.com/u/36669019?v=4?s=100" width="100px;" alt="Adrian Chlebosz"/><br /><sub><b>Adrian Chlebosz</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=breader124" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.buymeacoffee.com/chadwilson"><img src="https://avatars.githubusercontent.com/u/29788154?v=4?s=100" width="100px;" alt="Chad Wilson"/><br /><sub><b>Chad Wilson</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=chadlwilson" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ManishDait"><img src="https://avatars.githubusercontent.com/u/90558243?v=4?s=100" width="100px;" alt="Manish Dait"/><br /><sub><b>Manish Dait</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=ManishDait" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://www.dekies.de"><img src="https://avatars.githubusercontent.com/u/858827?v=4?s=100" width="100px;" alt="Dennis Kieselhorst"/><br /><sub><b>Dennis Kieselhorst</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=deki" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/psnilesh"><img src="https://avatars.githubusercontent.com/u/12656997?v=4?s=100" width="100px;" alt="Nilesh PS"/><br /><sub><b>Nilesh PS</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=psnilesh" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/swar8080"><img src="https://avatars.githubusercontent.com/u/17691679?v=4?s=100" width="100px;" alt="Steven Swartz"/><br /><sub><b>Steven Swartz</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=swar8080" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/michaeldimchuk"><img src="https://avatars.githubusercontent.com/u/22773297?v=4?s=100" width="100px;" alt="Michael Dimchuk"/><br /><sub><b>Michael Dimchuk</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=michaeldimchuk" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/faucct"><img src="https://avatars.githubusercontent.com/u/5202503?v=4?s=100" width="100px;" alt="Nikita Sokolov"/><br /><sub><b>Nikita Sokolov</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=faucct" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/sugmanue"><img src="https://avatars.githubusercontent.com/u/108146565?v=4?s=100" width="100px;" alt="Manuel Sugawara"/><br /><sub><b>Manuel Sugawara</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=sugmanue" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/anirudh9391"><img src="https://avatars.githubusercontent.com/u/15699250?v=4?s=100" width="100px;" alt="Anirudh"/><br /><sub><b>Anirudh</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=anirudh9391" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/haydenbaker"><img src="https://avatars.githubusercontent.com/u/26096419?v=4?s=100" width="100px;" alt="Hayden Baker"/><br /><sub><b>Hayden Baker</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=haydenbaker" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/gosar"><img src="https://avatars.githubusercontent.com/u/5666661?v=4?s=100" width="100px;" alt="Jaykumar Gosar"/><br /><sub><b>Jaykumar Gosar</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=gosar" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/graebm"><img src="https://avatars.githubusercontent.com/u/24399397?v=4?s=100" width="100px;" alt="Michael Graeb"/><br /><sub><b>Michael Graeb</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=graebm" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/mgrundie-r7"><img src="https://avatars.githubusercontent.com/u/103498312?v=4?s=100" width="100px;" alt="Michael Grundie"/><br /><sub><b>Michael Grundie</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=mgrundie-r7" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/eckardnet"><img src="https://avatars.githubusercontent.com/u/13320705?v=4?s=100" width="100px;" alt="Eckard Mühlich"/><br /><sub><b>Eckard Mühlich</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=eckardnet" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://wicket.apache.org"><img src="https://avatars.githubusercontent.com/u/980773?v=4?s=100" width="100px;" alt="Tobias Soloschenko"/><br /><sub><b>Tobias Soloschenko</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=klopfdreh" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Madrigal"><img src="https://avatars.githubusercontent.com/u/599908?v=4?s=100" width="100px;" alt="Luis Madrigal"/><br /><sub><b>Luis Madrigal</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=Madrigal" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/chaykin"><img src="https://avatars.githubusercontent.com/u/2480265?v=4?s=100" width="100px;" alt="Kirill Chaykin"/><br /><sub><b>Kirill Chaykin</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=chaykin" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

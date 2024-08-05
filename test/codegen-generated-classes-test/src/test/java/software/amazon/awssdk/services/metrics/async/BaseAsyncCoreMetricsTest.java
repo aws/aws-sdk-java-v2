@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.metrics.async;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -23,18 +24,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.internal.metrics.SdkErrorType;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
@@ -46,6 +52,7 @@ public abstract class BaseAsyncCoreMetricsTest {
     private static final String REQUEST_ID = "req-id";
     private static final String EXTENDED_REQUEST_ID = "extended-id";
     static final int MAX_RETRIES = 2;
+    static final int MAX_ATTEMPTS = MAX_RETRIES + 1;
     public static final Duration FIXED_DELAY = Duration.ofMillis(500);
 
     @Test
@@ -97,7 +104,8 @@ public abstract class BaseAsyncCoreMetricsTest {
 
         MetricCollection capturedCollection = collectionCaptor.getValue();
         verifyFailedApiCallCollection(capturedCollection);
-        assertThat(capturedCollection.children()).hasSize(MAX_RETRIES + 1);
+        assertThat(capturedCollection.children()).hasSize(MAX_ATTEMPTS);
+        WireMock.verify(MAX_ATTEMPTS, anyRequestedFor(anyUrl()));
 
         capturedCollection.children().forEach(requestMetrics -> {
             assertThat(requestMetrics.metricValues(HttpMetric.HTTP_STATUS_CODE))
@@ -135,6 +143,73 @@ public abstract class BaseAsyncCoreMetricsTest {
         verifySuccessfulApiCallAttemptCollection(successfulAttempt);
     }
 
+    @Test
+    public void apiCall_apiAttempt_ttfbSeparateFromResponseBody() {
+        stubDelayedSuccessfulResponse();
+        callable().get().join();
+        addDelayIfNeeded();
+
+        ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+        verify(publisher()).publish(collectionCaptor.capture());
+
+        MetricCollection capturedCollection = collectionCaptor.getValue();
+        List<Duration> ttfbValues =
+            capturedCollection.children().stream()
+                              .flatMap(mc -> mc.metricValues(CoreMetric.TIME_TO_FIRST_BYTE).stream())
+                              .collect(Collectors.toList());
+
+        assertThat(ttfbValues).isNotEmpty();
+        // Reading the entire body will take 1s, ensure the actual time is less than that.
+        for (Duration ttfb : ttfbValues) {
+            assertThat(ttfb).isBetween(Duration.ofMillis(0), Duration.ofMillis(999));
+        }
+    }
+
+    @Test
+    public void apiCall_apiAttempt_ttlbIncludesReadingFullResponse() {
+        stubDelayedSuccessfulResponse();
+        callable().get().join();
+        addDelayIfNeeded();
+
+        ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+        verify(publisher()).publish(collectionCaptor.capture());
+
+        MetricCollection capturedCollection = collectionCaptor.getValue();
+        List<Duration> ttlbValues =
+            capturedCollection.children().stream()
+                              .flatMap(mc -> mc.metricValues(CoreMetric.TIME_TO_LAST_BYTE).stream())
+                              .collect(Collectors.toList());
+
+        assertThat(ttlbValues).isNotEmpty();
+        // Reading the entire body will take 1s, TTLB should be greater than that.
+        for (Duration ttlb : ttlbValues) {
+            assertThat(ttlb).isGreaterThan(Duration.ofMillis(1000));
+        }
+    }
+
+    // Throughput is defined as (bytes read) / (TTLB - TTFB). Ensure the value matches exactly this calculation.
+    @Test
+    public void apiCall_apiAttempt_throughputCalculatedCorrectly() {
+        stubSuccessfulResponse();
+        callable().get().join();
+        addDelayIfNeeded();
+
+        ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+        verify(publisher()).publish(collectionCaptor.capture());
+
+        MetricCollection capturedCollection = collectionCaptor.getValue();
+
+        List<MetricCollection> perAttemptMetrics = capturedCollection.children();
+        assertThat(perAttemptMetrics).isNotEmpty();
+        for (MetricCollection attemptMetrics : perAttemptMetrics) {
+            Duration ttfb = attemptMetrics.metricValues(CoreMetric.TIME_TO_FIRST_BYTE).get(0);
+            Duration ttlb = attemptMetrics.metricValues(CoreMetric.TIME_TO_LAST_BYTE).get(0);
+
+            double expectedThroughput = (2.0 / ttlb.minus(ttfb).toNanos()) * Duration.ofSeconds(1).toNanos();
+            assertThat(attemptMetrics.metricValues(CoreMetric.READ_THROUGHPUT).get(0)).isEqualTo(expectedThroughput);
+        }
+    }
+
     /**
      * Adds delay after calling CompletableFuture.join to wait for publisher to get metrics.
      */
@@ -159,6 +234,8 @@ public abstract class BaseAsyncCoreMetricsTest {
             .containsExactly(REQUEST_ID);
         assertThat(requestMetrics.metricValues(CoreMetric.AWS_EXTENDED_REQUEST_ID))
             .containsExactly(EXTENDED_REQUEST_ID);
+        assertThat(requestMetrics.metricValues(CoreMetric.BACKOFF_DELAY_DURATION).size())
+            .isGreaterThan(0);
         assertThat(requestMetrics.metricValues(CoreMetric.BACKOFF_DELAY_DURATION).get(0))
             .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(requestMetrics.metricValues(CoreMetric.SERVICE_CALL_DURATION).get(0))
@@ -173,6 +250,8 @@ public abstract class BaseAsyncCoreMetricsTest {
             .containsExactly(REQUEST_ID);
         assertThat(attemptCollection.metricValues(CoreMetric.AWS_EXTENDED_REQUEST_ID))
             .containsExactly(EXTENDED_REQUEST_ID);
+        assertThat(attemptCollection.metricValues(CoreMetric.BACKOFF_DELAY_DURATION).size())
+            .isGreaterThanOrEqualTo(1);
         assertThat(attemptCollection.metricValues(CoreMetric.BACKOFF_DELAY_DURATION).get(0))
             .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(attemptCollection.metricValues(CoreMetric.SIGNING_DURATION).get(0))
@@ -203,6 +282,8 @@ public abstract class BaseAsyncCoreMetricsTest {
             .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_DURATION).get(0))
             .isGreaterThan(FIXED_DELAY);
+        assertThat(capturedCollection.metricValues(CoreMetric.SERVICE_ENDPOINT).get(0)).toString()
+            .startsWith("http://localhost");
     }
 
     void stubSuccessfulResponse() {
@@ -212,6 +293,16 @@ public abstract class BaseAsyncCoreMetricsTest {
                                            .withFixedDelay((int) FIXED_DELAY.toMillis())
                                            .withHeader("x-amz-id-2", EXTENDED_REQUEST_ID)
                                            .withBody("{}")));
+    }
+
+    void stubDelayedSuccessfulResponse() {
+        stubFor(post(anyUrl())
+                    .willReturn(aResponse().withStatus(200)
+                                           .withHeader("x-amz-request-id", REQUEST_ID)
+                                           .withHeader("x-amz-id-2", EXTENDED_REQUEST_ID)
+                                           .withBody("{}")
+                                           // response will be sent in 2 chunks with delay of 500ms between each chunk
+                                           .withChunkedDribbleDelay(2, 1000)));
     }
 
     void stubErrorResponse() {

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
+import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.codegen.model.service.AuthType;
@@ -72,6 +73,10 @@ public class Metadata {
 
     private String endpointRulesPackageName;
 
+    private String authSchemePackageName;
+
+    private String jmesPathPackageName;
+
     private String serviceAbbreviation;
 
     private String serviceFullName;
@@ -106,6 +111,20 @@ public class Metadata {
 
     private String serviceId;
 
+    private List<AuthType> auth;
+
+    public List<AuthType> getAuth() {
+        return auth;
+    }
+
+    public void setAuth(List<AuthType> auth) {
+        this.auth = auth;
+    }
+
+    public Metadata withAuth(List<AuthType> auth) {
+        this.auth = auth;
+        return this;
+    }
 
     public String getApiVersion() {
         return apiVersion;
@@ -723,7 +742,51 @@ public class Metadata {
         return joinPackageNames(getFullEndpointRulesPackageName(), "internal");
     }
 
+    public void setAuthSchemePackageName(String authSchemePackageName) {
+        this.authSchemePackageName = authSchemePackageName;
+    }
+
+    public Metadata withAuthSchemePackageName(String authSchemePackageName) {
+        setAuthSchemePackageName(authSchemePackageName);
+        return this;
+    }
+
+    public String getAuthSchemePackageName() {
+        return authSchemePackageName;
+    }
+
+    public String getFullAuthSchemePackageName() {
+        return joinPackageNames(rootPackageName, getAuthSchemePackageName());
+    }
+
+    public String getFullInternalAuthSchemePackageName() {
+        return joinPackageNames(getFullAuthSchemePackageName(), "internal");
+    }
+
     public String getFullInternalPackageName() {
         return joinPackageNames(getFullClientPackageName(), "internal");
     }
+
+    public Metadata setJmesPathPackageName(String jmesPathPackageName) {
+        this.jmesPathPackageName = jmesPathPackageName;
+        return this;
+    }
+
+    public Metadata withJmesPathPackageName(String jmesPathPackageName) {
+        setJmesPathPackageName(jmesPathPackageName);
+        return this;
+    }
+
+    public String getJmesPathPackageName() {
+        return jmesPathPackageName;
+    }
+
+    public String getFullJmesPathPackageName() {
+        return joinPackageNames(rootPackageName, getJmesPathPackageName());
+    }
+
+    public String getFullInternalJmesPathPackageName() {
+        return joinPackageNames(getFullJmesPathPackageName(), "internal");
+    }
+
 }

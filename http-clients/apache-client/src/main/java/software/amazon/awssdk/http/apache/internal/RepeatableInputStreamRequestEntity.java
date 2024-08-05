@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.http.apache.internal;
 
+import static software.amazon.awssdk.http.Header.CHUNKED;
+import static software.amazon.awssdk.http.Header.TRANSFER_ENCODING;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,6 +49,11 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
     private boolean firstAttempt = true;
 
     /**
+     * True if the "Transfer-Encoding:chunked" header is present
+     */
+    private boolean isChunked;
+
+    /**
      * The underlying InputStreamEntity being delegated to
      */
     private InputStreamEntity inputStreamRequestEntity;
@@ -74,7 +82,8 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
      *                content length, and content).
      */
     public RepeatableInputStreamRequestEntity(final HttpExecuteRequest request) {
-        setChunked(false);
+        isChunked = request.httpRequest().matchingHeaders(TRANSFER_ENCODING).contains(CHUNKED);
+        setChunked(isChunked);
 
         /*
          * If we don't specify a content length when we instantiate our
@@ -116,7 +125,7 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
 
     @Override
     public boolean isChunked() {
-        return false;
+        return isChunked;
     }
 
     /**

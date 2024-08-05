@@ -159,6 +159,7 @@ public class HttpChecksumRequiredTest {
     public void syncJsonSupportsOperationWithCustomRequestChecksum() {
         jsonClient.operationWithCustomRequestChecksum(r -> r.stringMember("foo").checksumAlgorithm(ChecksumAlgorithm.CRC32));
         assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
+        assertThat(getSyncRequest().firstMatchingHeader("x-amz-checksum-crc32")).hasValue("rzlTOg==");
     }
 
     private SdkHttpRequest getSyncRequest() {

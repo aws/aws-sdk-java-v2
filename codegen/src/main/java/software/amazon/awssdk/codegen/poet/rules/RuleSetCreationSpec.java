@@ -119,6 +119,10 @@ public class RuleSetCreationSpec {
                                                                  CodeBlock.builder()
                                                                           .add("$S", ((JrsString) defaultValue).getValue())
                                                                           .build());
+            } else if (token == JsonToken.START_ARRAY) {
+                validateStringArrayType(model);
+                value = endpointRulesSpecUtils.valueCreationCode("stringarray",
+                                                                 buildStringArrayDefaultValue((JrsArray) defaultValue));
             } else {
                 throw new RuntimeException("Can't set default value type " + token.name());
             }
@@ -194,7 +198,7 @@ public class RuleSetCreationSpec {
         }
 
         if (model.getProperties() != null) {
-            // Explicitly only support authSchemes property
+            // Explicitly only support known properties
             model.getProperties().forEach((name, property) -> {
                 switch (name) {
                     case "authSchemes":
@@ -244,14 +248,35 @@ public class RuleSetCreationSpec {
                                 }
                             }
 
+                            b.add("))");
+
                             if (authSchemesIter.hasNext()) {
                                 b.add(", ");
                             }
-
-                            b.add("))");
                         }
                         b.add(")))");
 
+                        break;
+                    case "bucketType":
+                        b.add(".addProperty($T.of($S), $T.fromStr($S))",
+                              endpointRulesSpecUtils.rulesRuntimeClassName("Identifier"),
+                              "bucketType",
+                              endpointRulesSpecUtils.rulesRuntimeClassName("Literal"),
+                              ((JrsString) property).getValue());
+                        break;
+                    case "useS3ExpressSessionAuth":
+                        b.add(".addProperty($T.of($S), $T.fromBool($L))",
+                              endpointRulesSpecUtils.rulesRuntimeClassName("Identifier"),
+                              "useS3ExpressSessionAuth",
+                              endpointRulesSpecUtils.rulesRuntimeClassName("Literal"),
+                              ((JrsBoolean) property).booleanValue());
+                        break;
+                    case "backend":
+                        b.add(".addProperty($T.of($S), $T.fromStr($S))",
+                              endpointRulesSpecUtils.rulesRuntimeClassName("Identifier"),
+                              "backend",
+                              endpointRulesSpecUtils.rulesRuntimeClassName("Literal"),
+                              ((JrsString) property).getValue());
                         break;
                     default:
                         break;
@@ -378,5 +403,29 @@ public class RuleSetCreationSpec {
         String n = String.format("%s%d", RULE_METHOD_PREFIX, ruleCounter);
         ruleCounter += 1;
         return n;
+    }
+
+    private static void validateStringArrayType(ParameterModel model) {
+        if (!"stringarray".equalsIgnoreCase(model.getType())) {
+            throw new RuntimeException(String.format("Only String array is supported but the type received is %s",
+                                                     model.getType()));
+        }
+    }
+
+    private CodeBlock buildStringArrayDefaultValue(JrsArray defaultValue) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        Iterator<JrsValue> elementValuesIter = defaultValue.elements();
+        if (elementValuesIter.hasNext()) {
+            builder.add("$T.asList(", Arrays.class);
+        }
+        while (elementValuesIter.hasNext()) {
+            JrsValue v = elementValuesIter.next();
+            builder.add("\"" + v.asText() + "\"");
+            if (elementValuesIter.hasNext()) {
+                builder.add(",");
+            }
+        }
+        builder.add(")");
+        return builder.build();
     }
 }

@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.DateUtils.formatUnixTimestampInstant;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -36,17 +37,17 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  */
 @SdkProtectedApi
 public class JsonWriter implements SdkAutoCloseable {
-
     private static final int DEFAULT_BUFFER_SIZE = 1024;
-    private final JsonFactory jsonFactory;
     private final ByteArrayOutputStream baos;
     private final JsonGenerator generator;
 
     private JsonWriter(Builder builder) {
-        jsonFactory = builder.jsonFactory != null ? builder.jsonFactory : DEFAULT_JSON_FACTORY;
+        JsonGeneratorFactory jsonGeneratorFactory = builder.jsonGeneratorFactory != null
+                                                    ? builder.jsonGeneratorFactory
+                                                    : DEFAULT_JSON_FACTORY::createGenerator;
         try {
             baos = new ByteArrayOutputStream(DEFAULT_BUFFER_SIZE);
-            generator = jsonFactory.createGenerator(baos);
+            generator = jsonGeneratorFactory.createGenerator(baos);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -69,7 +70,7 @@ public class JsonWriter implements SdkAutoCloseable {
     }
 
     public JsonWriter writeNull() {
-        return unsafeWrite(generator::writeEndArray);
+        return unsafeWrite(generator::writeNull);
     }
 
     public JsonWriter writeStartObject() {
@@ -170,7 +171,7 @@ public class JsonWriter implements SdkAutoCloseable {
      * A builder for configuring and creating {@link JsonWriter}. Created via {@link #builder()}.
      */
     public static final class Builder {
-        private JsonFactory jsonFactory;
+        private JsonGeneratorFactory jsonGeneratorFactory;
 
         private Builder() {
         }
@@ -179,13 +180,31 @@ public class JsonWriter implements SdkAutoCloseable {
          * The {@link JsonFactory} implementation to be used when parsing the input. This allows JSON extensions like CBOR or
          * Ion to be supported.
          *
-         * <p>It's highly recommended us use a shared {@code JsonFactory} where possible, so they should be stored statically:
+         * <p>It's highly recommended to use a shared {@code JsonFactory} where possible, so they should be stored statically:
          * http://wiki.fasterxml.com/JacksonBestPracticesPerformance
          *
          * <p>By default, this is {@link JsonNodeParser#DEFAULT_JSON_FACTORY}.
+         *
+         * <p>Setting this value will also override any values set via {@link #jsonGeneratorFactory}.
          */
         public JsonWriter.Builder jsonFactory(JsonFactory jsonFactory) {
-            this.jsonFactory = jsonFactory;
+            jsonGeneratorFactory(jsonFactory::createGenerator);
+            return this;
+        }
+
+        /**
+         * A factory for {@link JsonGenerator}s based on an {@link OutputStream}. This allows custom JSON generator
+         * configuration, like pretty-printing output.
+         *
+         * <p>It's highly recommended to use a shared {@code JsonFactory} within this generator factory, where possible, so they
+         * should be stored statically: http://wiki.fasterxml.com/JacksonBestPracticesPerformance
+         *
+         * <p>By default, this delegates to {@link JsonNodeParser#DEFAULT_JSON_FACTORY} to create the generator.
+         *
+         * <p>Setting this value will also override any values set via {@link #jsonFactory}.
+         */
+        public JsonWriter.Builder jsonGeneratorFactory(JsonGeneratorFactory jsonGeneratorFactory) {
+            this.jsonGeneratorFactory = jsonGeneratorFactory;
             return this;
         }
 
@@ -195,6 +214,14 @@ public class JsonWriter implements SdkAutoCloseable {
         public JsonWriter build() {
             return new JsonWriter(this);
         }
+    }
+
+    /**
+     * Generate a {@link JsonGenerator} for a {@link OutputStream}. This will get called once for each "write" call.
+     */
+    @FunctionalInterface
+    public interface JsonGeneratorFactory {
+        JsonGenerator createGenerator(OutputStream outputStream) throws IOException;
     }
 
     /**

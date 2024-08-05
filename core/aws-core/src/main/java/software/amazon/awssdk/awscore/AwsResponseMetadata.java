@@ -18,6 +18,7 @@ package software.amazon.awssdk.awscore;
 import static software.amazon.awssdk.awscore.util.AwsHeader.AWS_REQUEST_ID;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,7 +49,7 @@ public abstract class AwsResponseMetadata {
     }
 
     protected AwsResponseMetadata(AwsResponseMetadata responseMetadata) {
-        this(responseMetadata.metadata);
+        this(responseMetadata == null ? new HashMap<>() : responseMetadata.metadata);
     }
 
     /**

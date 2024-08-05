@@ -27,6 +27,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -40,7 +44,7 @@ public class SsoAccessTokenProviderTest {
     private static final String WRONG_TOKEN_FILE_NAME = "wrong-token-file.json";
 
     @Test
-    public void cachedTokenFile_correctFormat_resolveAccessTokenCorrectly() throws IOException {
+    void cachedTokenFile_correctFormat_resolveAccessTokenCorrectly() throws IOException {
         String tokenFile = "{\n" +
                            "\"accessToken\": \"base64string\",\n" +
                            "\"expiresAt\": \"2090-01-01T00:00:00Z\",\n" +
@@ -53,7 +57,7 @@ public class SsoAccessTokenProviderTest {
     }
 
     @Test
-    public void cachedTokenFile_accessTokenMissing_throwNullPointerException() throws IOException {
+    void cachedTokenFile_accessTokenMissing_throwNullPointerException() throws IOException {
         String tokenFile = "{\n" +
                            "\"expiresAt\": \"2090-01-01T00:00:00Z\",\n" +
                            "\"region\": \"us-west-2\", \n" +
@@ -65,7 +69,7 @@ public class SsoAccessTokenProviderTest {
     }
 
     @Test
-    public void cachedTokenFile_expiresAtMissing_throwNullPointerException() throws IOException {
+    void cachedTokenFile_expiresAtMissing_throwNullPointerException() throws IOException {
         String tokenFile = "{\n" +
                            "\"accessToken\": \"base64string\",\n" +
                            "\"region\": \"us-west-2\", \n" +
@@ -78,7 +82,7 @@ public class SsoAccessTokenProviderTest {
     }
 
     @Test
-    public void cachedTokenFile_optionalRegionMissing_resolveAccessTokenCorrectly() throws IOException {
+    void cachedTokenFile_optionalRegionMissing_resolveAccessTokenCorrectly() throws IOException {
         String tokenFile = "{\n" +
                            "\"accessToken\": \"base64string\",\n" +
                            "\"expiresAt\": \"2090-01-01T00:00:00Z\",\n" +
@@ -90,7 +94,7 @@ public class SsoAccessTokenProviderTest {
     }
 
     @Test
-    public void cachedTokenFile_optionalStartUrlMissing_resolveAccessTokenCorrectly() throws IOException {
+    void cachedTokenFile_optionalStartUrlMissing_resolveAccessTokenCorrectly() throws IOException {
         String tokenFile = "{\n" +
                            "\"accessToken\": \"base64string\",\n" +
                            "\"expiresAt\": \"2090-01-01T00:00:00Z\",\n" +
@@ -102,7 +106,7 @@ public class SsoAccessTokenProviderTest {
     }
 
     @Test
-    public void cachedTokenFile_alreadyExpired_resolveAccessTokenCorrectly() throws IOException {
+    void cachedTokenFile_alreadyExpired_resolveAccessTokenCorrectly() throws IOException {
         String tokenFile = "{\n" +
                            "\"accessToken\": \"base64string\",\n" +
                            "\"expiresAt\": \"2019-01-01T00:00:00Z\",\n" +
@@ -115,7 +119,7 @@ public class SsoAccessTokenProviderTest {
     }
 
     @Test
-    public void cachedTokenFile_tokenFileNotExist_throwNullPointerException() throws IOException {
+    void cachedTokenFile_tokenFileNotExist_throwNullPointerException() throws IOException {
         String tokenFile = "{\n" +
                            "\"accessToken\": \"base64string\",\n" +
                            "\"expiresAt\": \"2019-01-01T00:00:00Z\",\n" +
@@ -125,6 +129,44 @@ public class SsoAccessTokenProviderTest {
         SsoAccessTokenProvider provider = new SsoAccessTokenProvider(createTestCachedTokenFilePath(
             Jimfs.newFileSystem(Configuration.unix()).getPath("./foo"), GENERATED_TOKEN_FILE_NAME));
         assertThatThrownBy(() -> provider.resolveToken().token()).isInstanceOf(UncheckedIOException.class);
+    }
+
+    @Test
+    void cachedTokenFile_AboutToExpire_resolveAccessTokenCorrectly() throws IOException {
+        String tokenFile = String.format("{\n" +
+                                         "\"accessToken\": \"base64string\",\n" +
+                                         "\"expiresAt\": \"%s\",\n" +
+                                         "\"startUrl\": \""+ START_URL +"\"\n" +
+                                         "}", stringFormattedTime(Instant.now().plusSeconds(10)));
+        SsoAccessTokenProvider provider = new SsoAccessTokenProvider(
+            prepareTestCachedTokenFile(tokenFile, GENERATED_TOKEN_FILE_NAME));
+        assertThat(provider.resolveToken().token()).isEqualTo("base64string");
+    }
+
+    @Test
+    void cachedTokenFile_JustExpired_throwsExpiredTokenException() throws IOException {
+        String tokenFile = String.format("{\n" +
+                                         "\"accessToken\": \"base64string\",\n" +
+                                         "\"expiresAt\": \"%s\",\n" +
+                                         "\"startUrl\": \""+ START_URL +"\"\n" +
+                                         "}", stringFormattedTime(Instant.now()));
+        SsoAccessTokenProvider provider = new SsoAccessTokenProvider(
+            prepareTestCachedTokenFile(tokenFile, GENERATED_TOKEN_FILE_NAME));
+        assertThatThrownBy(() -> provider.resolveToken().token()).hasMessageContaining("The SSO session associated with this profile "
+                                                                                       + "has expired or is otherwise invalid.");
+    }
+
+    @Test
+    void cachedTokenFile_ExpiredFewSecondsAgo_throwsExpiredTokenException() throws IOException {
+        String tokenFile = String.format("{\n" +
+                                         "\"accessToken\": \"base64string\",\n" +
+                                         "\"expiresAt\": \"%s\",\n" +
+                                         "\"startUrl\": \""+ START_URL +"\"\n" +
+                                         "}", stringFormattedTime(Instant.now().minusSeconds(1)));
+        SsoAccessTokenProvider provider = new SsoAccessTokenProvider(
+            prepareTestCachedTokenFile(tokenFile, GENERATED_TOKEN_FILE_NAME));
+        assertThatThrownBy(() -> provider.resolveToken().token()).hasMessageContaining("The SSO session associated with this profile "
+                                                                                       + "has expired or is otherwise invalid.");
     }
 
     private Path prepareTestCachedTokenFile(String tokenFileContent, String generatedTokenFileName) throws IOException {
@@ -140,6 +182,13 @@ public class SsoAccessTokenProviderTest {
 
     private Path createTestCachedTokenFilePath(Path directory, String tokenFileName) {
         return directory.resolve(tokenFileName);
+    }
+
+    private String stringFormattedTime(Instant instant){
+        // Convert Instant to ZonedDateTime with UTC time zone
+        ZonedDateTime zonedDateTime = instant.atZone(ZoneOffset.UTC);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        return formatter.format(zonedDateTime);
     }
 
 }

@@ -52,6 +52,7 @@ public final class ProfileFileRefresher {
         this.profileFilePath = builder.profileFilePath;
         this.onProfileFileReload = builder.onProfileFileReload;
         this.profileFileCache = CachedSupplier.builder(this::refreshResult)
+                                              .cachedValueName("ProfileFileSupplier()")
                                               .clock(this.clock)
                                               .build();
         this.currentRefreshRecord = EMPTY_REFRESH_RECORD;

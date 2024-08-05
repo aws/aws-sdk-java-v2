@@ -18,6 +18,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static software.amazon.awssdk.http.Header.ACCEPT;
+import static software.amazon.awssdk.http.Header.CHUNKED;
+import static software.amazon.awssdk.http.Header.TRANSFER_ENCODING;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
 import java.io.IOException;
@@ -90,6 +92,25 @@ public final class UrlConnectionHttpClientWireMockTest extends SdkHttpClientTest
                                         .call();
 
         mockServer.verify(postRequestedFor(urlPathEqualTo("/")).withHeader(ACCEPT, equalTo("text/html")));
+    }
+
+    @Test
+    public void hasTransferEncodingHeader_shouldBeSet() throws IOException {
+        SdkHttpClient client = createSdkHttpClient();
+
+        stubForMockRequest(200);
+
+        SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST, true);
+        req = req.toBuilder().putHeader(TRANSFER_ENCODING, CHUNKED).build();
+        HttpExecuteResponse rsp = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                          .request(req)
+                                                                          .contentStreamProvider(req.contentStreamProvider()
+                                                                                                    .orElse(null))
+                                                                          .build())
+                                        .call();
+
+        mockServer.verify(postRequestedFor(urlPathEqualTo("/")).withHeader(TRANSFER_ENCODING, equalTo(CHUNKED)));
+        mockServer.verify(postRequestedFor(urlPathEqualTo("/")).withRequestBody(equalTo("Body")));
     }
 
 

@@ -656,6 +656,19 @@ public final class Validate {
         return num;
     }
 
+    public static Long isNotNegativeOrNull(Long num, String fieldName) {
+
+        if (num == null) {
+            return null;
+        }
+
+        if (num < 0) {
+            throw new IllegalArgumentException(String.format("%s must not be negative", fieldName));
+        }
+
+        return num;
+    }
+
     public static long isNotNegative(long num, String fieldName) {
 
         if (num < 0) {
@@ -744,11 +757,11 @@ public final class Validate {
     }
 
     /**
-     * Asserts that the given duration is positive (non-negative and non-zero).
+     * Asserts that the given duration is positive, including zero.
      *
      * @param duration Number to validate
      * @param fieldName Field name to display in exception message if not positive.
-     * @return Duration if positive.
+     * @return Duration if positive or zero.
      */
     public static Duration isNotNegative(Duration duration, String fieldName) {
         if (duration == null) {

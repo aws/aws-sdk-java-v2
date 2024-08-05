@@ -19,6 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
@@ -57,6 +58,9 @@ import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.StreamSpecification;
+import software.amazon.awssdk.services.dynamodb.model.StreamViewType;
+
 
 @RunWith(MockitoJUnitRunner.class)
 public class CreateTableOperationTest {
@@ -327,6 +331,34 @@ public class CreateTableOperationTest {
                                                                null);
 
         assertThat(request.billingMode(), is(BillingMode.PAY_PER_REQUEST));
+    }
+
+    @Test
+    public void generateRequest_withStreamSpecification() {
+        StreamSpecification streamSpecification = StreamSpecification.builder()
+                                                                     .streamEnabled(true)
+                                                                     .streamViewType(StreamViewType.NEW_IMAGE)
+                                                                     .build();
+
+        CreateTableOperation<FakeItem> operation = CreateTableOperation.create(
+            CreateTableEnhancedRequest.builder().streamSpecification(streamSpecification).build());
+
+        CreateTableRequest request = operation.generateRequest(FakeItem.getTableSchema(),
+                                                               PRIMARY_CONTEXT,
+                                                               null);
+
+        assertThat(request.streamSpecification(), is(streamSpecification));
+    }
+
+    @Test
+    public void generateRequest_withNoStreamSpecification() {
+        CreateTableOperation<FakeItem> operation = CreateTableOperation.create(CreateTableEnhancedRequest.builder().build());
+
+        CreateTableRequest request = operation.generateRequest(FakeItem.getTableSchema(),
+                                                               PRIMARY_CONTEXT,
+                                                               null);
+
+        assertThat(request.streamSpecification(), is(nullValue()));
     }
 
 

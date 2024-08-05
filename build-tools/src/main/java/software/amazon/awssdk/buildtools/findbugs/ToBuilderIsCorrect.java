@@ -212,11 +212,15 @@ public class ToBuilderIsCorrect extends OpcodeStackDetector {
             }
         } else if (isBuildable && method.getName().equals("toBuilder") && method.getSignature().startsWith("()")) {
             // This is a buildable toBuilder
-            constructorsInvokedFromToBuilder.computeIfAbsent(getDottedClassName(), n -> new HashMap<>());
-            toBuilderModifiedFields.computeIfAbsent(getDottedClassName(), n -> new HashMap<>());
+            String dottedClassName = getDottedClassName();
+            constructorsInvokedFromToBuilder.computeIfAbsent(dottedClassName, n -> new HashMap<>());
+            toBuilderModifiedFields.computeIfAbsent(dottedClassName, n -> new HashMap<>());
             inBuildableToBuilder = true;
             inBuilderConstructor = false;
-
+            if (method.isAbstract()) {
+                // Ignore abstract toBuilder methods, we will still validate the actual implementations.
+                ignoredBuildables.add(dottedClassName);
+            }
             registerIgnoredFields();
         } else {
             inBuildableToBuilder = false;
@@ -430,7 +434,8 @@ public class ToBuilderIsCorrect extends OpcodeStackDetector {
             if (builders.containsKey(concreteClass)) {
                 // We're invoking these methods on a known builder. Assume the method name matches the field name and validate
                 // based on that.
-                Set<String> builderFieldsForBuilder = new HashSet<>(builderFields.get(concreteClass));
+                List<String> concreteClassBuilderFields = builderFields.getOrDefault(concreteClass, new ArrayList<>());
+                Set<String> builderFieldsForBuilder = new HashSet<>(concreteClassBuilderFields);
                 invokedMethods.forEach(builderFieldsForBuilder::remove);
                 ignoredFields.getOrDefault(buildableClassName, emptyList()).forEach(builderFieldsForBuilder::remove);
 

@@ -38,7 +38,13 @@ public class HttpExecuteResponse {
     }
 
     /**
-     * @return The {@link ContentStreamProvider}.
+     * Get the {@link AbortableInputStream} associated with this response.
+     *
+     * <p>Always close the "responseBody" input stream to release the underlying HTTP connection.
+     * Even for error responses, the SDK creates an input stream for reading error data. It is essential to close the input stream
+     * in the "responseBody" attribute for both success and error cases.
+     *
+     * @return An {@link Optional} containing the {@link AbortableInputStream} if available.
      */
     public Optional<AbortableInputStream> responseBody() {
         return responseBody;

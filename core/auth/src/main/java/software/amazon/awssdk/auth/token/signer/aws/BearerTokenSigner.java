@@ -27,8 +27,11 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
  * A {@link Signer} that will sign a request with Bearer token authorization.
+ *
+ * @deprecated Use {@code software.amazon.awssdk.http.auth.signer.BearerHttpSigner} from the 'http-auth' module.
  */
 @SdkPublicApi
+@Deprecated
 public final class BearerTokenSigner implements Signer {
 
     private static final String BEARER_LABEL = "Bearer";

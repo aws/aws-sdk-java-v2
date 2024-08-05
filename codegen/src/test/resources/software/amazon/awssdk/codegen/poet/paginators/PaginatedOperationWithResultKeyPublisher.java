@@ -12,6 +12,7 @@ import software.amazon.awssdk.core.pagination.async.PaginatedItemsPublisher;
 import software.amazon.awssdk.core.pagination.async.ResponsesSubscription;
 import software.amazon.awssdk.core.util.PaginatorUtils;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsAsyncClient;
+import software.amazon.awssdk.services.jsonprotocoltests.internal.UserAgentUtils;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.jsonprotocoltests.model.SimpleStruct;
@@ -90,7 +91,7 @@ public class PaginatedOperationWithResultKeyPublisher implements SdkPublisher<Pa
     private PaginatedOperationWithResultKeyPublisher(JsonProtocolTestsAsyncClient client,
                                                      PaginatedOperationWithResultKeyRequest firstRequest, boolean isLastPage) {
         this.client = client;
-        this.firstRequest = firstRequest;
+        this.firstRequest = UserAgentUtils.applyPaginatorUserAgent(firstRequest);
         this.isLastPage = isLastPage;
         this.nextPageFetcher = new PaginatedOperationWithResultKeyResponseFetcher();
     }

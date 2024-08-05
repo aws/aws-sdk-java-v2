@@ -94,7 +94,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Returns a URL to access the job run dashboard. The generated URL is valid for one hour, after which you must invoke the API again to generate a new URL.</p>"
+      "documentation":"<p>Creates and returns a URL that you can use to access the application UIs for a job run.</p> <p>For jobs in a running state, the application UI is a live user interface such as the Spark or Tez web UI. For completed jobs, the application UI is a persistent application user interface such as the Spark History Server or persistent Tez UI.</p> <note> <p>The URL is valid for one hour after you generate it. To access the application UI after that hour elapses, you must invoke the API again to generate a new URL.</p> </note>"
     },
     "GetJobRun":{
       "name":"GetJobRun",
@@ -126,6 +126,22 @@
         {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Lists applications based on a set of parameters.</p>"
+    },
+    "ListJobRunAttempts":{
+      "name":"ListJobRunAttempts",
+      "http":{
+        "method":"GET",
+        "requestUri":"/applications/{applicationId}/jobruns/{jobRunId}/attempts",
+        "responseCode":200
+      },
+      "input":{"shape":"ListJobRunAttemptsRequest"},
+      "output":{"shape":"ListJobRunAttemptsResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Lists all attempt of a job run.</p>"
     },
     "ListJobRuns":{
       "name":"ListJobRuns",
@@ -288,7 +304,7 @@
         },
         "releaseLabel":{
           "shape":"ReleaseLabel",
-          "documentation":"<p>The EMR release associated with the application.</p>"
+          "documentation":"<p>The Amazon EMR release associated with the application.</p>"
         },
         "type":{
           "shape":"EngineType",
@@ -345,9 +361,18 @@
         "workerTypeSpecifications":{
           "shape":"WorkerTypeSpecificationMap",
           "documentation":"<p>The specification applied to each worker type.</p>"
+        },
+        "runtimeConfiguration":{
+          "shape":"ConfigurationList",
+          "documentation":"<p>The <a href=\"https://docs.aws.amazon.com/emr-serverless/latest/APIReference/API_Configuration.html\">Configuration</a> specifications of an application. Each configuration consists of a classification and properties. You use this parameter when creating or updating an application. To see the runtimeConfiguration object of an application, run the <a href=\"https://docs.aws.amazon.com/emr-serverless/latest/APIReference/API_GetApplication.html\">GetApplication</a> API operation.</p>"
+        },
+        "monitoringConfiguration":{"shape":"MonitoringConfiguration"},
+        "interactiveConfiguration":{
+          "shape":"InteractiveConfiguration",
+          "documentation":"<p>The interactive configuration object that enables the interactive use cases for an application.</p>"
         }
       },
-      "documentation":"<p>Information about an application. EMR Serverless uses applications to run jobs.</p>"
+      "documentation":"<p>Information about an application. Amazon EMR Serverless uses applications to run jobs.</p>"
     },
     "ApplicationArn":{
       "type":"string",
@@ -415,7 +440,7 @@
         },
         "releaseLabel":{
           "shape":"ReleaseLabel",
-          "documentation":"<p>The EMR release associated with the application.</p>"
+          "documentation":"<p>The Amazon EMR release associated with the application.</p>"
         },
         "type":{
           "shape":"EngineType",
@@ -450,6 +475,11 @@
         "ARM64",
         "X86_64"
       ]
+    },
+    "AttemptNumber":{
+      "type":"integer",
+      "box":true,
+      "min":1
     },
     "AutoStartConfig":{
       "type":"structure",
@@ -529,6 +559,33 @@
       "min":1,
       "pattern":"[A-Za-z0-9._-]+"
     },
+    "CloudWatchLoggingConfiguration":{
+      "type":"structure",
+      "required":["enabled"],
+      "members":{
+        "enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Enables CloudWatch logging.</p>"
+        },
+        "logGroupName":{
+          "shape":"LogGroupName",
+          "documentation":"<p>The name of the log group in Amazon CloudWatch Logs where you want to publish your logs.</p>"
+        },
+        "logStreamNamePrefix":{
+          "shape":"LogStreamNamePrefix",
+          "documentation":"<p>Prefix for the CloudWatch log stream name.</p>"
+        },
+        "encryptionKeyArn":{
+          "shape":"EncryptionKeyArn",
+          "documentation":"<p>The Key Management Service (KMS) key ARN to encrypt the logs that you store in CloudWatch Logs.</p>"
+        },
+        "logTypes":{
+          "shape":"LogTypeMap",
+          "documentation":"<p>The types of logs that you want to publish to CloudWatch. If you don't specify any log types, driver STDOUT and STDERR logs will be published to CloudWatch Logs by default. For more information including the supported worker types for Hive and Spark, see <a href=\"https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/logging.html#jobs-log-storage-cw\">Logging for EMR Serverless with CloudWatch</a>.</p> <ul> <li> <p> <b>Key Valid Values</b>: <code>SPARK_DRIVER</code>, <code>SPARK_EXECUTOR</code>, <code>HIVE_DRIVER</code>, <code>TEZ_TASK</code> </p> </li> <li> <p> <b>Array Members Valid Values</b>: <code>STDOUT</code>, <code>STDERR</code>, <code>HIVE_LOG</code>, <code>TEZ_AM</code>, <code>SYSTEM_LOGS</code> </p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>The Amazon CloudWatch configuration for monitoring logs. You can configure your jobs to send log information to CloudWatch.</p>"
+    },
     "Configuration":{
       "type":"structure",
       "required":["classification"],
@@ -568,6 +625,18 @@
       },
       "documentation":"<p>A configuration specification to be used to override existing configurations.</p>"
     },
+    "ConfigurationPropertyKey":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "pattern":".*\\S.*"
+    },
+    "ConfigurationPropertyValue":{
+      "type":"string",
+      "max":1024,
+      "min":0,
+      "pattern":".*\\S.*"
+    },
     "ConflictException":{
       "type":"structure",
       "required":["message"],
@@ -601,7 +670,7 @@
         },
         "releaseLabel":{
           "shape":"ReleaseLabel",
-          "documentation":"<p>The EMR release associated with the application.</p>"
+          "documentation":"<p>The Amazon EMR release associated with the application.</p>"
         },
         "type":{
           "shape":"EngineType",
@@ -647,6 +716,18 @@
         "workerTypeSpecifications":{
           "shape":"WorkerTypeSpecificationInputMap",
           "documentation":"<p>The key-value pairs that specify worker type to <code>WorkerTypeSpecificationInput</code>. This parameter must contain all valid worker types for a Spark or Hive application. Valid worker types include <code>Driver</code> and <code>Executor</code> for Spark applications and <code>HiveDriver</code> and <code>TezTask</code> for Hive applications. You can either set image details in this parameter for each worker type, or in <code>imageConfiguration</code> for all worker types.</p>"
+        },
+        "runtimeConfiguration":{
+          "shape":"ConfigurationList",
+          "documentation":"<p>The <a href=\"https://docs.aws.amazon.com/emr-serverless/latest/APIReference/API_Configuration.html\">Configuration</a> specifications to use when creating an application. Each configuration consists of a classification and properties. This configuration is applied to all the job runs submitted under the application.</p>"
+        },
+        "monitoringConfiguration":{
+          "shape":"MonitoringConfiguration",
+          "documentation":"<p>The configuration setting for monitoring.</p>"
+        },
+        "interactiveConfiguration":{
+          "shape":"InteractiveConfiguration",
+          "documentation":"<p>The interactive configuration object that enables the interactive use cases to use when running an application.</p>"
         }
       }
     },
@@ -694,6 +775,10 @@
       "max":15,
       "min":1,
       "pattern":"[1-9][0-9]*(\\s)?(GB|gb|gB|Gb)"
+    },
+    "DiskType":{
+      "type":"string",
+      "pattern":"(SHUFFLE_OPTIMIZED|[Ss]huffle_[Oo]ptimized|STANDARD|[Ss]tandard)"
     },
     "Double":{
       "type":"double",
@@ -773,6 +858,12 @@
           "documentation":"<p>The ID of the job run.</p>",
           "location":"uri",
           "locationName":"jobRunId"
+        },
+        "attempt":{
+          "shape":"AttemptNumber",
+          "documentation":"<p>An optimal parameter that indicates the amount of attempts for the job. If not specified, this value defaults to the attempt of the latest job.</p>",
+          "location":"querystring",
+          "locationName":"attempt"
         }
       }
     },
@@ -803,6 +894,12 @@
           "documentation":"<p>The ID of the job run.</p>",
           "location":"uri",
           "locationName":"jobRunId"
+        },
+        "attempt":{
+          "shape":"AttemptNumber",
+          "documentation":"<p>An optimal parameter that indicates the amount of attempts for the job. If not specified, this value defaults to the attempt of the latest job.</p>",
+          "location":"querystring",
+          "locationName":"attempt"
         }
       }
     },
@@ -916,6 +1013,20 @@
       "type":"integer",
       "box":true
     },
+    "InteractiveConfiguration":{
+      "type":"structure",
+      "members":{
+        "studioEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Enables you to connect an application to Amazon EMR Studio to run interactive workloads in a notebook.</p>"
+        },
+        "livyEndpointEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Enables an Apache Livy endpoint that you can connect to and run interactive jobs.</p>"
+        }
+      },
+      "documentation":"<p>The configuration to use to enable the different types of interactive use cases in an application.</p>"
+    },
     "InternalServerException":{
       "type":"structure",
       "required":["message"],
@@ -1006,7 +1117,7 @@
         },
         "releaseLabel":{
           "shape":"ReleaseLabel",
-          "documentation":"<p>The EMR release associated with the application your job is running on.</p>"
+          "documentation":"<p>The Amazon EMR release associated with the application your job is running on.</p>"
         },
         "configurationOverrides":{
           "shape":"ConfigurationOverrides",
@@ -1036,16 +1147,126 @@
         },
         "billedResourceUtilization":{
           "shape":"ResourceUtilization",
-          "documentation":"<p>The aggregate vCPU, memory, and storage that AWS has billed for the job run. The billed resources include a 1-minute minimum usage for workers, plus additional storage over 20 GB per worker. Note that billed resources do not include usage for idle pre-initialized workers.</p>"
+          "documentation":"<p>The aggregate vCPU, memory, and storage that Amazon Web Services has billed for the job run. The billed resources include a 1-minute minimum usage for workers, plus additional storage over 20 GB per worker. Note that billed resources do not include usage for idle pre-initialized workers.</p>"
+        },
+        "mode":{
+          "shape":"JobRunMode",
+          "documentation":"<p>The mode of the job run.</p>"
+        },
+        "retryPolicy":{
+          "shape":"RetryPolicy",
+          "documentation":"<p>The retry policy of the job run.</p>"
+        },
+        "attempt":{
+          "shape":"AttemptNumber",
+          "documentation":"<p>The attempt of the job run.</p>"
+        },
+        "attemptCreatedAt":{
+          "shape":"Date",
+          "documentation":"<p>The date and time of when the job run attempt was created.</p>"
+        },
+        "attemptUpdatedAt":{
+          "shape":"Date",
+          "documentation":"<p>The date and time of when the job run attempt was last updated.</p>"
         }
       },
-      "documentation":"<p>Information about a job run. A job run is a unit of work, such as a Spark JAR, Hive query, or SparkSQL query, that you submit to an EMR Serverless application.</p>"
+      "documentation":"<p>Information about a job run. A job run is a unit of work, such as a Spark JAR, Hive query, or SparkSQL query, that you submit to an Amazon EMR Serverless application.</p>"
+    },
+    "JobRunAttemptSummary":{
+      "type":"structure",
+      "required":[
+        "applicationId",
+        "id",
+        "arn",
+        "createdBy",
+        "jobCreatedAt",
+        "createdAt",
+        "updatedAt",
+        "executionRole",
+        "state",
+        "stateDetails",
+        "releaseLabel"
+      ],
+      "members":{
+        "applicationId":{
+          "shape":"ApplicationId",
+          "documentation":"<p>The ID of the application the job is running on.</p>"
+        },
+        "id":{
+          "shape":"JobRunId",
+          "documentation":"<p>The ID of the job run attempt.</p>"
+        },
+        "name":{
+          "shape":"String256",
+          "documentation":"<p>The name of the job run attempt.</p>"
+        },
+        "mode":{
+          "shape":"JobRunMode",
+          "documentation":"<p>The mode of the job run attempt.</p>"
+        },
+        "arn":{
+          "shape":"JobArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the job run.</p>"
+        },
+        "createdBy":{
+          "shape":"RequestIdentityUserArn",
+          "documentation":"<p>The user who created the job run.</p>"
+        },
+        "jobCreatedAt":{
+          "shape":"Date",
+          "documentation":"<p>The date and time of when the job run was created.</p>"
+        },
+        "createdAt":{
+          "shape":"Date",
+          "documentation":"<p>The date and time when the job run attempt was created.</p>"
+        },
+        "updatedAt":{
+          "shape":"Date",
+          "documentation":"<p>The date and time of when the job run attempt was last updated.</p>"
+        },
+        "executionRole":{
+          "shape":"IAMRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the execution role of the job run..</p>"
+        },
+        "state":{
+          "shape":"JobRunState",
+          "documentation":"<p>The state of the job run attempt.</p>"
+        },
+        "stateDetails":{
+          "shape":"String256",
+          "documentation":"<p>The state details of the job run attempt.</p>"
+        },
+        "releaseLabel":{
+          "shape":"ReleaseLabel",
+          "documentation":"<p>The Amazon EMR release label of the job run attempt.</p>"
+        },
+        "type":{
+          "shape":"JobRunType",
+          "documentation":"<p>The type of the job run, such as Spark or Hive.</p>"
+        },
+        "attempt":{
+          "shape":"AttemptNumber",
+          "documentation":"<p>The attempt number of the job run execution.</p>"
+        }
+      },
+      "documentation":"<p>The summary of attributes associated with a job run attempt.</p>"
+    },
+    "JobRunAttempts":{
+      "type":"list",
+      "member":{"shape":"JobRunAttemptSummary"}
     },
     "JobRunId":{
       "type":"string",
       "max":64,
       "min":1,
       "pattern":"[0-9a-z]+"
+    },
+    "JobRunMode":{
+      "type":"string",
+      "enum":[
+        "BATCH",
+        "STREAMING"
+      ]
     },
     "JobRunState":{
       "type":"string",
@@ -1093,6 +1314,10 @@
           "shape":"String256",
           "documentation":"<p>The optional job run name. This doesn't have to be unique.</p>"
         },
+        "mode":{
+          "shape":"JobRunMode",
+          "documentation":"<p>The mode of the job run.</p>"
+        },
         "arn":{
           "shape":"JobArn",
           "documentation":"<p>The ARN of the job run.</p>"
@@ -1123,11 +1348,23 @@
         },
         "releaseLabel":{
           "shape":"ReleaseLabel",
-          "documentation":"<p>The EMR release associated with the application your job is running on.</p>"
+          "documentation":"<p>The Amazon EMR release associated with the application your job is running on.</p>"
         },
         "type":{
           "shape":"JobRunType",
           "documentation":"<p>The type of job run, such as Spark or Hive.</p>"
+        },
+        "attempt":{
+          "shape":"AttemptNumber",
+          "documentation":"<p>The attempt number of the job run execution.</p>"
+        },
+        "attemptCreatedAt":{
+          "shape":"Date",
+          "documentation":"<p>The date and time of when the job run attempt was created.</p>"
+        },
+        "attemptUpdatedAt":{
+          "shape":"Date",
+          "documentation":"<p>The date and time of when the job run attempt was last updated.</p>"
         }
       },
       "documentation":"<p>The summary of attributes associated with a job run.</p>"
@@ -1180,6 +1417,59 @@
         }
       }
     },
+    "ListJobRunAttemptsRequest":{
+      "type":"structure",
+      "required":[
+        "applicationId",
+        "jobRunId"
+      ],
+      "members":{
+        "applicationId":{
+          "shape":"ApplicationId",
+          "documentation":"<p>The ID of the application for which to list job runs.</p>",
+          "location":"uri",
+          "locationName":"applicationId"
+        },
+        "jobRunId":{
+          "shape":"JobRunId",
+          "documentation":"<p>The ID of the job run to list.</p>",
+          "location":"uri",
+          "locationName":"jobRunId"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token for the next set of job run attempt results.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"ListJobRunAttemptsRequestMaxResultsInteger",
+          "documentation":"<p>The maximum number of job run attempts to list.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        }
+      }
+    },
+    "ListJobRunAttemptsRequestMaxResultsInteger":{
+      "type":"integer",
+      "box":true,
+      "max":50,
+      "min":1
+    },
+    "ListJobRunAttemptsResponse":{
+      "type":"structure",
+      "required":["jobRunAttempts"],
+      "members":{
+        "jobRunAttempts":{
+          "shape":"JobRunAttempts",
+          "documentation":"<p>The array of the listed job run attempt objects.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The output displays the token for the next set of application results. This is required for pagination and is available as a response of the previous request.</p>"
+        }
+      }
+    },
     "ListJobRunsRequest":{
       "type":"structure",
       "required":["applicationId"],
@@ -1219,6 +1509,12 @@
           "documentation":"<p>An optional filter for job run states. Note that if this filter contains multiple states, the resulting list will be grouped by the state.</p>",
           "location":"querystring",
           "locationName":"states"
+        },
+        "mode":{
+          "shape":"JobRunMode",
+          "documentation":"<p>The mode of the job runs to list.</p>",
+          "location":"querystring",
+          "locationName":"mode"
         }
       }
     },
@@ -1262,6 +1558,38 @@
           "documentation":"<p>The tags for the resource.</p>"
         }
       }
+    },
+    "LogGroupName":{
+      "type":"string",
+      "max":512,
+      "min":1,
+      "pattern":"[\\.\\-_/#A-Za-z0-9]+"
+    },
+    "LogStreamNamePrefix":{
+      "type":"string",
+      "max":512,
+      "min":1,
+      "pattern":"[^:*]*"
+    },
+    "LogTypeList":{
+      "type":"list",
+      "member":{"shape":"LogTypeString"},
+      "max":5,
+      "min":1
+    },
+    "LogTypeMap":{
+      "type":"map",
+      "key":{"shape":"WorkerTypeString"},
+      "value":{"shape":"LogTypeList"},
+      "max":4,
+      "min":1
+    },
+    "LogTypeString":{
+      "type":"string",
+      "documentation":"<p>Log type for a Spark/Hive job-run.</p>",
+      "max":50,
+      "min":1,
+      "pattern":"[a-zA-Z]+[-_]*[a-zA-Z]+"
     },
     "ManagedPersistenceMonitoringConfiguration":{
       "type":"structure",
@@ -1315,6 +1643,14 @@
         "managedPersistenceMonitoringConfiguration":{
           "shape":"ManagedPersistenceMonitoringConfiguration",
           "documentation":"<p>The managed log persistence configuration for a job run.</p>"
+        },
+        "cloudWatchLoggingConfiguration":{
+          "shape":"CloudWatchLoggingConfiguration",
+          "documentation":"<p>The Amazon CloudWatch configuration for monitoring logs. You can configure your jobs to send log information to CloudWatch.</p>"
+        },
+        "prometheusMonitoringConfiguration":{
+          "shape":"PrometheusMonitoringConfiguration",
+          "documentation":"<p>The monitoring configuration object you can configure to send metrics to Amazon Managed Service for Prometheus for a job run.</p>"
         }
       },
       "documentation":"<p>The configuration setting for monitoring.</p>"
@@ -1338,6 +1674,22 @@
       "max":1024,
       "min":1,
       "pattern":"[A-Za-z0-9_=-]+"
+    },
+    "PrometheusMonitoringConfiguration":{
+      "type":"structure",
+      "members":{
+        "remoteWriteUrl":{
+          "shape":"PrometheusUrlString",
+          "documentation":"<p>The remote write URL in the Amazon Managed Service for Prometheus workspace to send metrics to.</p>"
+        }
+      },
+      "documentation":"<p>The monitoring configuration object you can configure to send metrics to Amazon Managed Service for Prometheus for a job run.</p>"
+    },
+    "PrometheusUrlString":{
+      "type":"string",
+      "max":10280,
+      "min":1,
+      "pattern":"https://aps-workspaces.([a-z]{2}-[a-z-]{1,20}-[1-9]).amazonaws(.[0-9A-Za-z]{2,4})+/workspaces/[-_.0-9A-Za-z]{1,100}/api/v1/remote_write"
     },
     "Query":{
       "type":"string",
@@ -1395,6 +1747,25 @@
       },
       "documentation":"<p>The resource utilization for memory, storage, and vCPU for jobs.</p>"
     },
+    "RetryPolicy":{
+      "type":"structure",
+      "members":{
+        "maxAttempts":{
+          "shape":"AttemptNumber",
+          "documentation":"<p>Maximum number of attempts for the job run. This parameter is only applicable for <code>BATCH</code> mode.</p>"
+        },
+        "maxFailedAttemptsPerHour":{
+          "shape":"RetryPolicyMaxFailedAttemptsPerHourInteger",
+          "documentation":"<p>Maximum number of failed attempts per hour. This [arameter is only applicable for <code>STREAMING</code> mode.</p>"
+        }
+      },
+      "documentation":"<p>The retry policy to use for a job run.</p>"
+    },
+    "RetryPolicyMaxFailedAttemptsPerHourInteger":{
+      "type":"integer",
+      "box":true,
+      "min":1
+    },
     "S3MonitoringConfiguration":{
       "type":"structure",
       "members":{
@@ -1423,8 +1794,8 @@
     },
     "SensitivePropertiesMap":{
       "type":"map",
-      "key":{"shape":"String1024"},
-      "value":{"shape":"String1024"},
+      "key":{"shape":"ConfigurationPropertyKey"},
+      "value":{"shape":"ConfigurationPropertyValue"},
       "max":100,
       "min":0,
       "sensitive":true
@@ -1528,6 +1899,14 @@
         "name":{
           "shape":"String256",
           "documentation":"<p>The optional job run name. This doesn't have to be unique.</p>"
+        },
+        "mode":{
+          "shape":"JobRunMode",
+          "documentation":"<p>The mode of the job run when it starts.</p>"
+        },
+        "retryPolicy":{
+          "shape":"RetryPolicy",
+          "documentation":"<p>The retry policy when job run starts.</p>"
         }
       }
     },
@@ -1733,6 +2112,22 @@
         "workerTypeSpecifications":{
           "shape":"WorkerTypeSpecificationInputMap",
           "documentation":"<p>The key-value pairs that specify worker type to <code>WorkerTypeSpecificationInput</code>. This parameter must contain all valid worker types for a Spark or Hive application. Valid worker types include <code>Driver</code> and <code>Executor</code> for Spark applications and <code>HiveDriver</code> and <code>TezTask</code> for Hive applications. You can either set image details in this parameter for each worker type, or in <code>imageConfiguration</code> for all worker types.</p>"
+        },
+        "interactiveConfiguration":{
+          "shape":"InteractiveConfiguration",
+          "documentation":"<p>The interactive configuration object that contains new interactive use cases when the application is updated.</p>"
+        },
+        "releaseLabel":{
+          "shape":"ReleaseLabel",
+          "documentation":"<p>The Amazon EMR release label for the application. You can change the release label to use a different release of Amazon EMR.</p>"
+        },
+        "runtimeConfiguration":{
+          "shape":"ConfigurationList",
+          "documentation":"<p>The <a href=\"https://docs.aws.amazon.com/emr-serverless/latest/APIReference/API_Configuration.html\">Configuration</a> specifications to use when updating an application. Each configuration consists of a classification and properties. This configuration is applied across all the job runs submitted under the application.</p>"
+        },
+        "monitoringConfiguration":{
+          "shape":"MonitoringConfiguration",
+          "documentation":"<p>The configuration setting for monitoring.</p>"
         }
       }
     },
@@ -1793,6 +2188,10 @@
         "disk":{
           "shape":"DiskSize",
           "documentation":"<p>The disk requirements for every worker instance of the worker type.</p>"
+        },
+        "diskType":{
+          "shape":"DiskType",
+          "documentation":"<p>The disk type for every worker instance of the work type. Shuffle optimized disks have higher performance characteristics and are better for shuffle heavy workloads. Default is <code>STANDARD</code>.</p>"
         }
       },
       "documentation":"<p>The cumulative configuration requirements for every worker instance of the worker type.</p>"
@@ -1829,10 +2228,11 @@
     },
     "WorkerTypeString":{
       "type":"string",
+      "documentation":"<p>Worker type for an analytics framework.</p>",
       "max":50,
       "min":1,
       "pattern":"[a-zA-Z]+[-_]*[a-zA-Z]+"
     }
   },
-  "documentation":"<p>Amazon EMR Serverless is a new deployment option for Amazon EMR. EMR Serverless provides a serverless runtime environment that simplifies running analytics applications using the latest open source frameworks such as Apache Spark and Apache Hive. With EMR Serverless, you don’t have to configure, optimize, secure, or operate clusters to run applications with these frameworks.</p> <p>The API reference to Amazon EMR Serverless is <code>emr-serverless</code>. The <code>emr-serverless</code> prefix is used in the following scenarios: </p> <ul> <li> <p>It is the prefix in the CLI commands for Amazon EMR Serverless. For example, <code>aws emr-serverless start-job-run</code>.</p> </li> <li> <p>It is the prefix before IAM policy actions for Amazon EMR Serverless. For example, <code>\"Action\": [\"emr-serverless:StartJobRun\"]</code>. For more information, see <a href=\"https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/security_iam_service-with-iam.html#security_iam_service-with-iam-id-based-policies-actions\">Policy actions for Amazon EMR Serverless</a>.</p> </li> <li> <p>It is the prefix used in Amazon EMR Serverless service endpoints. For example, <code>emr-serverless.us-east-2.amazonaws.com</code>.</p> </li> </ul>"
+  "documentation":"<p>Amazon EMR Serverless is a new deployment option for Amazon EMR. Amazon EMR Serverless provides a serverless runtime environment that simplifies running analytics applications using the latest open source frameworks such as Apache Spark and Apache Hive. With Amazon EMR Serverless, you don’t have to configure, optimize, secure, or operate clusters to run applications with these frameworks.</p> <p>The API reference to Amazon EMR Serverless is <code>emr-serverless</code>. The <code>emr-serverless</code> prefix is used in the following scenarios: </p> <ul> <li> <p>It is the prefix in the CLI commands for Amazon EMR Serverless. For example, <code>aws emr-serverless start-job-run</code>.</p> </li> <li> <p>It is the prefix before IAM policy actions for Amazon EMR Serverless. For example, <code>\"Action\": [\"emr-serverless:StartJobRun\"]</code>. For more information, see <a href=\"https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/security_iam_service-with-iam.html#security_iam_service-with-iam-id-based-policies-actions\">Policy actions for Amazon EMR Serverless</a>.</p> </li> <li> <p>It is the prefix used in Amazon EMR Serverless service endpoints. For example, <code>emr-serverless.us-east-2.amazonaws.com</code>.</p> </li> </ul>"
 }

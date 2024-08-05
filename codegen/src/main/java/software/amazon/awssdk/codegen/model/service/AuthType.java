@@ -36,11 +36,26 @@ public enum AuthType {
         this.value = value;
     }
 
+    public String value() {
+        return value;
+    }
+
     public static AuthType fromValue(String value) {
-        String normalizedValue = StringUtils.lowerCase(value);
-        return Arrays.stream(values())
-                     .filter(authType -> authType.value.equals(normalizedValue))
-                     .findFirst()
-                     .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown AuthType '%s'", normalizedValue)));
+        switch (value) {
+            // TODO(multi-auth): review conversion of smithy auth trait shape IDs
+            case "smithy.api#httpBearerAuth":
+                return BEARER;
+            case "smithy.api#noAuth":
+                return NONE;
+            case "aws.auth#sigv4":
+                return V4;
+            default:
+                String normalizedValue = StringUtils.lowerCase(value);
+                return Arrays.stream(values())
+                            .filter(authType -> authType.value.equals(normalizedValue))
+                            .findFirst()
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                String.format("Unknown AuthType '%s'", normalizedValue)));
+        }
     }
 }

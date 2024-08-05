@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.checksum.HttpChecksum;
+import software.amazon.awssdk.codegen.compression.RequestCompression;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.OperationDocs;
@@ -27,11 +28,14 @@ import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.EndpointTrait;
+import software.amazon.awssdk.codegen.model.service.OperationContextParam;
 import software.amazon.awssdk.codegen.model.service.StaticContextParam;
 
 public class OperationModel extends DocumentationModel {
 
     private String operationName;
+
+    private String serviceProtocol;
 
     private boolean deprecated;
 
@@ -47,9 +51,13 @@ public class OperationModel extends DocumentationModel {
 
     private boolean hasBlobMemberAsPayload;
 
+    private boolean hasStringMemberAsPayload;
+
     private boolean isAuthenticated = true;
 
     private AuthType authType;
+
+    private List<AuthType> auth;
 
     private boolean isPaginated;
 
@@ -71,8 +79,13 @@ public class OperationModel extends DocumentationModel {
 
     private HttpChecksum httpChecksum;
 
+    private RequestCompression requestcompression;
+
     @JsonIgnore
     private Map<String, StaticContextParam> staticContextParams;
+
+    @JsonIgnore
+    private Map<String, OperationContextParam> operationContextParams;
 
     public String getOperationName() {
         return operationName;
@@ -84,6 +97,14 @@ public class OperationModel extends DocumentationModel {
 
     public String getMethodName() {
         return Utils.unCapitalize(operationName);
+    }
+
+    public String getServiceProtocol() {
+        return serviceProtocol;
+    }
+
+    public void setServiceProtocol(String serviceProtocol) {
+        this.serviceProtocol = serviceProtocol;
     }
 
     public boolean isDeprecated() {
@@ -134,6 +155,14 @@ public class OperationModel extends DocumentationModel {
 
     public void setAuthType(AuthType authType) {
         this.authType = authType;
+    }
+
+    public List<AuthType> getAuth() {
+        return auth;
+    }
+
+    public void setAuth(List<AuthType> auth) {
+        this.auth = auth;
     }
 
     public ShapeModel getInputShape() {
@@ -206,6 +235,14 @@ public class OperationModel extends DocumentationModel {
 
     public void setHasBlobMemberAsPayload(boolean hasBlobMemberAsPayload) {
         this.hasBlobMemberAsPayload = hasBlobMemberAsPayload;
+    }
+
+    public boolean getHasStringMemberAsPayload() {
+        return this.hasStringMemberAsPayload;
+    }
+
+    public void setHasStringMemberAsPayload(boolean hasStringMemberAsPayload) {
+        this.hasStringMemberAsPayload = hasStringMemberAsPayload;
     }
 
     public boolean hasStreamingInput() {
@@ -309,11 +346,27 @@ public class OperationModel extends DocumentationModel {
         this.httpChecksum = httpChecksum;
     }
 
+    public RequestCompression getRequestcompression() {
+        return requestcompression;
+    }
+
+    public void setRequestcompression(RequestCompression requestcompression) {
+        this.requestcompression = requestcompression;
+    }
+
     public Map<String, StaticContextParam> getStaticContextParams() {
         return staticContextParams;
     }
 
     public void setStaticContextParams(Map<String, StaticContextParam> staticContextParams) {
         this.staticContextParams = staticContextParams;
+    }
+
+    public Map<String, OperationContextParam> getOperationContextParams() {
+        return operationContextParams;
+    }
+
+    public void setOperationContextParams(Map<String, OperationContextParam> operationContextParams) {
+        this.operationContextParams = operationContextParams;
     }
 }

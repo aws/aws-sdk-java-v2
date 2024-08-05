@@ -1,0 +1,48 @@
+{
+    "version": "2.20.104",
+    "date": "2023-07-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Adding new supported permission type flags to get-unfiltered endpoints that callers may pass to indicate support for enforcing Lake Formation fine-grained access control on nested column attributes."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lake Formation",
+            "contributor": "",
+            "description": "Adds supports for ReadOnlyAdmins and AllowFullTableExternalDataAccess. Adds NESTED_PERMISSION and NESTED_CELL_PERMISSION to SUPPORTED_PERMISSION_TYPES enum. Adds CREATE_LF_TAG on catalog resource and ALTER, DROP, and GRANT_WITH_LF_TAG_EXPRESSION on LF Tag resource."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB with MongoDB compatibility",
+            "contributor": "",
+            "description": "Added major version upgrade option in ModifyDBCluster API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Add Nitro TPM support on DescribeInstanceTypes"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "contributor": "",
+            "description": "This release provides the flexibility to configure what renditions or thumbnail qualities to record when creating recording configuration."
+        },
+        {
+            "type": "feature",
+            "category": "CodeArtifact",
+            "contributor": "",
+            "description": "Doc only update for AWS CodeArtifact"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

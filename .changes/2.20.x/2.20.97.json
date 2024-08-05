@@ -1,0 +1,48 @@
+{
+    "version": "2.20.97",
+    "date": "2023-06-30",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release includes improved color handling of overlays and general updates to user documentation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "Add outbound Basic authentication support to AS2 connectors"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Added new field \"credentialspecs\" to the ecs task definition to support gMSA of windows/linux in both domainless and domain-joined mode"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "contributor": "",
+            "description": "Corrects the HTTP response code in the generated docs for PutMetadata and DeleteRecordingConfiguration APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Prometheus Service",
+            "contributor": "",
+            "description": "AWS SDK service model generation tool version upgrade."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds support for rolling deployment in SageMaker Inference."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Verified Permissions",
+            "contributor": "",
+            "description": "This release corrects several broken links in the documentation."
+        }
+    ]
+}

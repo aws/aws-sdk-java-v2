@@ -8,7 +8,10 @@
     "protocol": "rest-json",
     "jsonVersion": "1.1",
     "uid": "mediaconnect-2018-11-14",
-    "signatureVersion": "v4"
+    "signatureVersion": "v4",
+    "auth": [
+      "aws.auth#sigv4"
+    ]
   },
   "operations": {
     "AddBridgeOutputs": {
@@ -676,6 +679,48 @@
         }
       ],
       "documentation": "Displays the details of a flow. The response includes the flow ARN, name, and Availability Zone, as well as details about the source, outputs, and entitlements."
+    },
+    "DescribeFlowSourceMetadata": {
+      "name": "DescribeFlowSourceMetadata",
+      "http": {
+        "method": "GET",
+        "requestUri": "/v1/flows/{flowArn}/source-metadata",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "DescribeFlowSourceMetadataRequest"
+      },
+      "output": {
+        "shape": "DescribeFlowSourceMetadataResponse",
+        "documentation": "Flow source metadata successfully described."
+      },
+      "errors": [
+        {
+          "shape": "BadRequestException",
+          "documentation": "The request that you submitted is not valid."
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "AWS Elemental MediaConnect can't fulfill your request because it encountered an unexpected condition."
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "You don't have the required permissions to perform this operation."
+        },
+        {
+          "shape": "NotFoundException",
+          "documentation": "AWS Elemental MediaConnect did not find the resource that you specified in the request."
+        },
+        {
+          "shape": "ServiceUnavailableException",
+          "documentation": "AWS Elemental MediaConnect is currently unavailable. Try again later."
+        },
+        {
+          "shape": "TooManyRequestsException",
+          "documentation": "You have exceeded the service request rate limit for your AWS Elemental MediaConnect account."
+        }
+      ],
+      "documentation": "Displays details of the flow's source stream. The response contains information about the contents of the stream and its programs."
     },
     "DescribeGateway": {
       "name": "DescribeGateway",
@@ -2599,7 +2644,7 @@
         "MinLatency": {
           "shape": "__integer",
           "locationName": "minLatency",
-          "documentation": "The minimum latency in milliseconds for SRT-based streams. In streams that use the SRT protocol, this value that you set on your MediaConnect source or output represents the minimal potential latency of that connection. The latency of the stream is set to the highest number between the sender\u2019s minimum latency and the receiver\u2019s minimum latency."
+          "documentation": "The minimum latency in milliseconds for SRT-based streams. In streams that use the SRT protocol, this value that you set on your MediaConnect source or output represents the minimal potential latency of that connection. The latency of the stream is set to the highest number between the sender’s minimum latency and the receiver’s minimum latency."
         },
         "Name": {
           "shape": "__string",
@@ -2640,6 +2685,11 @@
           "shape": "VpcInterfaceAttachment",
           "locationName": "vpcInterfaceAttachment",
           "documentation": "The name of the VPC interface attachment to use for this output."
+        },
+        "OutputStatus": {
+          "shape": "OutputStatus",
+          "locationName": "outputStatus",
+          "documentation": "An indication of whether the new output should be enabled or disabled as soon as it is created. If you don't specify the outputStatus field in your request, MediaConnect sets it to ENABLED."
         }
       },
       "documentation": "The output that you want to add to this flow.",
@@ -3333,6 +3383,44 @@
         }
       }
     },
+    "DescribeFlowSourceMetadataRequest": {
+      "type": "structure",
+      "members": {
+        "FlowArn": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "flowArn",
+          "documentation": "The Amazon Resource Name (ARN) of the flow."
+        }
+      },
+      "required": [
+        "FlowArn"
+      ]
+    },
+    "DescribeFlowSourceMetadataResponse": {
+      "type": "structure",
+      "members": {
+        "FlowArn": {
+          "shape": "__string",
+          "locationName": "flowArn",
+          "documentation": "The ARN of the flow that DescribeFlowSourceMetadata was performed on."
+        },
+        "Messages": {
+          "shape": "__listOfMessageDetail",
+          "locationName": "messages",
+          "documentation": "Provides a status code and message regarding issues found with the flow source metadata."
+        },
+        "Timestamp": {
+          "shape": "__timestampIso8601",
+          "locationName": "timestamp",
+          "documentation": "The timestamp of the most recent change in metadata for this flow’s source."
+        },
+        "TransportMediaInfo": {
+          "shape": "TransportMediaInfo",
+          "locationName": "transportMediaInfo"
+        }
+      }
+    },
     "DescribeGatewayInstanceRequest": {
       "type": "structure",
       "members": {
@@ -3824,7 +3912,7 @@
         "ScanMode": {
           "shape": "ScanMode",
           "locationName": "scanMode",
-          "documentation": "The type of compression that was used to smooth the video\u2019s appearance"
+          "documentation": "The type of compression that was used to smooth the video’s appearance"
         },
         "Tcs": {
           "shape": "Tcs",
@@ -3865,7 +3953,7 @@
         "ScanMode": {
           "shape": "ScanMode",
           "locationName": "scanMode",
-          "documentation": "The type of compression that was used to smooth the video\u2019s appearance."
+          "documentation": "The type of compression that was used to smooth the video’s appearance."
         },
         "Tcs": {
           "shape": "Tcs",
@@ -3892,6 +3980,26 @@
       "error": {
         "httpStatusCode": 403
       }
+    },
+    "FrameResolution": {
+      "type": "structure",
+      "members": {
+        "FrameHeight": {
+          "shape": "__integer",
+          "locationName": "frameHeight",
+          "documentation": "The number of pixels in the height of the video frame."
+        },
+        "FrameWidth": {
+          "shape": "__integer",
+          "locationName": "frameWidth",
+          "documentation": "The number of pixels in the width of the video frame."
+        }
+      },
+      "documentation": "The frame resolution used by the video stream.",
+      "required": [
+        "FrameWidth",
+        "FrameHeight"
+      ]
     },
     "Gateway": {
       "type": "structure",
@@ -4059,7 +4167,7 @@
         "EntitlementStatus": {
           "shape": "EntitlementStatus",
           "locationName": "entitlementStatus",
-          "documentation": "An indication of whether the new entitlement should be enabled or disabled as soon as it is created. If you don\u2019t specify the entitlementStatus field in your request, MediaConnect sets it to ENABLED."
+          "documentation": "An indication of whether the new entitlement should be enabled or disabled as soon as it is created. If you don’t specify the entitlementStatus field in your request, MediaConnect sets it to ENABLED."
         },
         "Name": {
           "shape": "__string",
@@ -5137,12 +5245,24 @@
           "shape": "__listOf__integer",
           "locationName": "bridgePorts",
           "documentation": "The bridge output ports currently in use."
+        },
+        "OutputStatus": {
+          "shape": "OutputStatus",
+          "locationName": "outputStatus",
+          "documentation": "An indication of whether the output is transmitting data or not."
         }
       },
       "documentation": "The settings for an output.",
       "required": [
         "OutputArn",
         "Name"
+      ]
+    },
+    "OutputStatus": {
+      "type": "string",
+      "enum": [
+        "ENABLED",
+        "DISABLED"
       ]
     },
     "PriceUnits": {
@@ -5701,7 +5821,7 @@
         "MinLatency": {
           "shape": "__integer",
           "locationName": "minLatency",
-          "documentation": "The minimum latency in milliseconds for SRT-based streams. In streams that use the SRT protocol, this value that you set on your MediaConnect source or output represents the minimal potential latency of that connection. The latency of the stream is set to the highest number between the sender\u2019s minimum latency and the receiver\u2019s minimum latency."
+          "documentation": "The minimum latency in milliseconds for SRT-based streams. In streams that use the SRT protocol, this value that you set on your MediaConnect source or output represents the minimal potential latency of that connection. The latency of the stream is set to the highest number between the sender’s minimum latency and the receiver’s minimum latency."
         },
         "Name": {
           "shape": "__string",
@@ -6017,7 +6137,7 @@
         "MinLatency": {
           "shape": "__integer",
           "locationName": "minLatency",
-          "documentation": "The minimum latency in milliseconds for SRT-based streams. In streams that use the SRT protocol, this value that you set on your MediaConnect source or output represents the minimal potential latency of that connection. The latency of the stream is set to the highest number between the sender\u2019s minimum latency and the receiver\u2019s minimum latency."
+          "documentation": "The minimum latency in milliseconds for SRT-based streams. In streams that use the SRT protocol, this value that you set on your MediaConnect source or output represents the minimal potential latency of that connection. The latency of the stream is set to the highest number between the sender’s minimum latency and the receiver’s minimum latency."
         },
         "Protocol": {
           "shape": "Protocol",
@@ -6063,6 +6183,106 @@
       "documentation": "Attributes related to the transport stream that are used in a source or output.",
       "required": [
         "Protocol"
+      ]
+    },
+    "TransportMediaInfo": {
+      "type": "structure",
+      "members": {
+        "Programs": {
+          "shape": "__listOfTransportStreamProgram",
+          "locationName": "programs",
+          "documentation": "The list of transport stream programs in the current flow's source."
+        }
+      },
+      "documentation": "The metadata of the transport stream in the current flow's source.",
+      "required": [
+        "Programs"
+      ]
+    },
+    "TransportStream": {
+      "type": "structure",
+      "members": {
+        "Channels": {
+          "shape": "__integer",
+          "locationName": "channels",
+          "documentation": "The number of channels in the audio stream."
+        },
+        "Codec": {
+          "shape": "__string",
+          "locationName": "codec",
+          "documentation": "The codec used by the stream."
+        },
+        "FrameRate": {
+          "shape": "__string",
+          "locationName": "frameRate",
+          "documentation": "The frame rate used by the video stream."
+        },
+        "FrameResolution": {
+          "shape": "FrameResolution",
+          "locationName": "frameResolution"
+        },
+        "Pid": {
+          "shape": "__integer",
+          "locationName": "pid",
+          "documentation": "The Packet ID (PID) as it is reported in the Program Map Table."
+        },
+        "SampleRate": {
+          "shape": "__integer",
+          "locationName": "sampleRate",
+          "documentation": "The sample rate used by the audio stream."
+        },
+        "SampleSize": {
+          "shape": "__integer",
+          "locationName": "sampleSize",
+          "documentation": "The sample bit size used by the audio stream."
+        },
+        "StreamType": {
+          "shape": "__string",
+          "locationName": "streamType",
+          "documentation": "The Stream Type as it is reported in the Program Map Table."
+        }
+      },
+      "documentation": "The metadata of an elementary transport stream.",
+      "required": [
+        "StreamType",
+        "Pid"
+      ]
+    },
+    "TransportStreamProgram": {
+      "type": "structure",
+      "members": {
+        "PcrPid": {
+          "shape": "__integer",
+          "locationName": "pcrPid",
+          "documentation": "The Program Clock Reference (PCR) Packet ID (PID) as it is reported in the Program Association Table."
+        },
+        "ProgramName": {
+          "shape": "__string",
+          "locationName": "programName",
+          "documentation": "The program name as it is reported in the Program Association Table."
+        },
+        "ProgramNumber": {
+          "shape": "__integer",
+          "locationName": "programNumber",
+          "documentation": "The program number as it is reported in the Program Association Table."
+        },
+        "ProgramPid": {
+          "shape": "__integer",
+          "locationName": "programPid",
+          "documentation": "The program Packet ID (PID) as it is reported in the Program Association Table."
+        },
+        "Streams": {
+          "shape": "__listOfTransportStream",
+          "locationName": "streams",
+          "documentation": "The list of elementary transport streams in the program. The list includes video, audio, and data streams."
+        }
+      },
+      "documentation": "The metadata of a single transport stream program.",
+      "required": [
+        "ProgramPid",
+        "PcrPid",
+        "ProgramNumber",
+        "Streams"
       ]
     },
     "UntagResourceRequest": {
@@ -6429,7 +6649,7 @@
         "EntitlementStatus": {
           "shape": "EntitlementStatus",
           "locationName": "entitlementStatus",
-          "documentation": "An indication of whether you want to enable the entitlement to allow access, or disable it to stop streaming content to the subscriber\u2019s flow temporarily. If you don\u2019t specify the entitlementStatus field in your request, MediaConnect leaves the value unchanged."
+          "documentation": "An indication of whether you want to enable the entitlement to allow access, or disable it to stop streaming content to the subscriber’s flow temporarily. If you don’t specify the entitlementStatus field in your request, MediaConnect leaves the value unchanged."
         },
         "FlowArn": {
           "shape": "__string",
@@ -6571,7 +6791,7 @@
         "MinLatency": {
           "shape": "__integer",
           "locationName": "minLatency",
-          "documentation": "The minimum latency in milliseconds for SRT-based streams. In streams that use the SRT protocol, this value that you set on your MediaConnect source or output represents the minimal potential latency of that connection. The latency of the stream is set to the highest number between the sender\u2019s minimum latency and the receiver\u2019s minimum latency."
+          "documentation": "The minimum latency in milliseconds for SRT-based streams. In streams that use the SRT protocol, this value that you set on your MediaConnect source or output represents the minimal potential latency of that connection. The latency of the stream is set to the highest number between the sender’s minimum latency and the receiver’s minimum latency."
         },
         "OutputArn": {
           "shape": "__string",
@@ -6619,6 +6839,11 @@
           "shape": "VpcInterfaceAttachment",
           "locationName": "vpcInterfaceAttachment",
           "documentation": "The name of the VPC interface attachment to use for this output."
+        },
+        "OutputStatus": {
+          "shape": "OutputStatus",
+          "locationName": "outputStatus",
+          "documentation": "An indication of whether the output should transmit data or not. If you don't specify the outputStatus field in your request, MediaConnect leaves the value unchanged."
         }
       },
       "documentation": "The fields that you want to update in the output.",
@@ -6729,7 +6954,7 @@
         "MinLatency": {
           "shape": "__integer",
           "locationName": "minLatency",
-          "documentation": "The minimum latency in milliseconds for SRT-based streams. In streams that use the SRT protocol, this value that you set on your MediaConnect source or output represents the minimal potential latency of that connection. The latency of the stream is set to the highest number between the sender\u2019s minimum latency and the receiver\u2019s minimum latency."
+          "documentation": "The minimum latency in milliseconds for SRT-based streams. In streams that use the SRT protocol, this value that you set on your MediaConnect source or output represents the minimal potential latency of that connection. The latency of the stream is set to the highest number between the sender’s minimum latency and the receiver’s minimum latency."
         },
         "Protocol": {
           "shape": "Protocol",
@@ -7167,6 +7392,18 @@
       "type": "list",
       "member": {
         "shape": "Source"
+      }
+    },
+    "__listOfTransportStream": {
+      "type": "list",
+      "member": {
+        "shape": "TransportStream"
+      }
+    },
+    "__listOfTransportStreamProgram": {
+      "type": "list",
+      "member": {
+        "shape": "TransportStreamProgram"
       }
     },
     "__listOfVpcInterface": {

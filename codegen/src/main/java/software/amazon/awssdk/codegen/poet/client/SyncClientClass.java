@@ -20,48 +20,68 @@ import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
+import static software.amazon.awssdk.codegen.poet.PoetUtils.classNameFromFqcn;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
-import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
+import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
+import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
+import software.amazon.awssdk.codegen.model.service.ClientContextParam;
+import software.amazon.awssdk.codegen.model.service.PreClientExecutionRequestCustomizer;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.Ec2ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
-import software.amazon.awssdk.codegen.utils.PaginatorUtils;
+import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
+import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 public class SyncClientClass extends SyncClientInterface {
 
@@ -70,6 +90,8 @@ public class SyncClientClass extends SyncClientInterface {
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
     private final ClassName serviceClientConfigurationClassName;
+    private final ServiceClientConfigurationUtils configurationUtils;
+    private final boolean useSraAuth;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
         super(taskParams.getModel());
@@ -78,6 +100,8 @@ public class SyncClientClass extends SyncClientInterface {
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
         this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
+        this.configurationUtils = new ServiceClientConfigurationUtils(model);
+        this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
     }
 
     @Override
@@ -105,20 +129,15 @@ public class SyncClientClass extends SyncClientInterface {
     @Override
     protected void addFields(TypeSpec.Builder type) {
         type.addField(logger())
+            .addField(protocolMetadata())
             .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
-            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
-            .addField(serviceClientConfigurationClassName, "serviceClientConfiguration", PRIVATE, FINAL);
+            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
     }
 
     @Override
     protected void addAdditionalMethods(TypeSpec.Builder type) {
-
-        if (model.hasPaginators()) {
-            type.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
-        }
-
-        if (model.containsRequestSigners()) {
+        if (!useSraAuth && model.containsRequestSigners()) {
             type.addMethod(applySignerOverrideMethod(poetExtensions, model));
         }
 
@@ -131,13 +150,21 @@ public class SyncClientClass extends SyncClientInterface {
             .addMethod(resolveMetricPublishersMethod());
 
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
-
+        type.addMethod(ClientClassUtils.updateRetryStrategyClientConfigurationMethod());
+        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName()));
         type.addMethod(protocolSpec.initProtocolFactory(model));
     }
 
     private FieldSpec logger() {
         return FieldSpec.builder(Logger.class, "log", PRIVATE, STATIC, FINAL)
                         .initializer("$T.loggerFor($T.class)", Logger.class, className)
+                        .build();
+    }
+
+    private FieldSpec protocolMetadata() {
+        return FieldSpec.builder(AwsProtocolMetadata.class, "protocolMetadata", PRIVATE, STATIC, FINAL)
+                        .initializer("$T.builder().serviceProtocol($T.$L).build()",
+                                     AwsProtocolMetadata.class, AwsServiceProtocol.class, model.getMetadata().getProtocol())
                         .build();
     }
 
@@ -156,7 +183,8 @@ public class SyncClientClass extends SyncClientInterface {
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC, FINAL)
                          .returns(serviceClientConfigurationClassName)
-                         .addStatement("return this.serviceClientConfiguration")
+                         .addStatement("return new $T(this.clientConfiguration.toBuilder()).build()",
+                                       this.configurationUtils.serviceClientConfigurationBuilderClassName())
                          .build();
     }
 
@@ -169,11 +197,12 @@ public class SyncClientClass extends SyncClientInterface {
         MethodSpec.Builder builder
             = MethodSpec.constructorBuilder()
                         .addModifiers(PROTECTED)
-                        .addParameter(serviceClientConfigurationClassName, "serviceClientConfiguration")
                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", protocolSpec.getClientHandlerClass())
-                        .addStatement("this.clientConfiguration = clientConfiguration")
-                        .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
+                        .addStatement("this.clientConfiguration = clientConfiguration.toBuilder()"
+                                      + ".option($T.SDK_CLIENT, this)"
+                                      + ".build()", SdkClientOption.class);
+
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
@@ -210,18 +239,25 @@ public class SyncClientClass extends SyncClientInterface {
         return model.getOperations().values().stream()
                     .filter(o -> !o.hasEventStreamInput())
                     .filter(o -> !o.hasEventStreamOutput())
-                    .map(this::operationMethodSpecs)
-                    .flatMap(List::stream)
+                    .flatMap(this::operations)
                     .collect(Collectors.toList());
     }
 
-    private List<MethodSpec> operationMethodSpecs(OperationModel opModel) {
+    private Stream<MethodSpec> operations(OperationModel opModel) {
         List<MethodSpec> methods = new ArrayList<>();
+        methods.add(traditionalMethod(opModel));
+        return methods.stream();
+    }
 
+    private MethodSpec traditionalMethod(OperationModel opModel) {
         MethodSpec.Builder method = SyncClientInterface.operationMethodSignature(model, opModel)
-                                                       .addAnnotation(Override.class)
-                                                       .addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel))
-                                                       .addCode(protocolSpec.responseHandler(model, opModel));
+                                                       .addAnnotation(Override.class);
+
+        addRequestModifierCode(opModel, model).ifPresent(method::addCode);
+        if (!useSraAuth) {
+            method.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel));
+        }
+        method.addCode(protocolSpec.responseHandler(model, opModel));
 
         protocolSpec.errorResponseHandler(opModel).ifPresent(method::addCode);
 
@@ -258,10 +294,18 @@ public class SyncClientClass extends SyncClientInterface {
             method.addStatement("$T cachedEndpoint = null", URI.class);
             method.beginControlFlow("if (endpointDiscoveryEnabled)");
 
-            method.addCode("$T key = $N.overrideConfiguration()", String.class, opModel.getInput().getVariableName())
-                  .addCode("    .flatMap($T::credentialsProvider)", AwsRequestOverrideConfiguration.class)
-                  .addCode("    .orElseGet(() -> clientConfiguration.option($T.CREDENTIALS_PROVIDER))", AwsClientOption.class)
-                  .addCode("    .resolveCredentials().accessKeyId();");
+            ParameterizedTypeName identityFutureTypeName =
+                ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
+                                          WildcardTypeName.subtypeOf(AwsCredentialsIdentity.class));
+            method.addCode("$T identityFuture = $N.overrideConfiguration()",
+                           identityFutureTypeName,
+                           opModel.getInput().getVariableName())
+                  .addCode("    .flatMap($T::credentialsIdentityProvider)", AwsRequestOverrideConfiguration.class)
+                  .addCode("    .orElseGet(() -> clientConfiguration.option($T.CREDENTIALS_IDENTITY_PROVIDER))",
+                           AwsClientOption.class)
+                  .addCode("    .resolveIdentity();");
+
+            method.addCode("$T key = $T.joinLikeSync(identityFuture).accessKeyId();", String.class, CompletableFutureUtils.class);
 
             method.addCode("$1T endpointDiscoveryRequest = $1T.builder()", EndpointDiscoveryRequest.class)
                   .addCode("    .required($L)", opModel.getInputShape().getEndpointDiscovery().isRequired())
@@ -274,6 +318,8 @@ public class SyncClientClass extends SyncClientInterface {
             method.endControlFlow();
         }
 
+        method.addStatement("$T clientConfiguration = updateSdkClientConfiguration($L, this.clientConfiguration)",
+                            SdkClientConfiguration.class, opModel.getInput().getVariableName());
         method.addStatement("$T<$T> metricPublishers = "
                             + "resolveMetricPublishers(clientConfiguration, $N.overrideConfiguration().orElse(null))",
                             List.class,
@@ -297,34 +343,29 @@ public class SyncClientClass extends SyncClientInterface {
               .addStatement("metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()))")
               .endControlFlow();
 
-        methods.add(method.build());
-
-        methods.addAll(paginatedMethods(opModel));
-
-        return methods;
+        return method.build();
     }
 
-    @Override
-    protected List<MethodSpec> paginatedMethods(OperationModel opModel) {
-        List<MethodSpec> paginatedMethodSpecs = new ArrayList<>();
+    public static Optional<CodeBlock> addRequestModifierCode(OperationModel opModel, IntermediateModel model) {
 
-        if (opModel.isPaginated()) {
-            paginatedMethodSpecs.add(SyncClientInterface.operationMethodSignature(model,
-                                                                                  opModel,
-                                                                                  SimpleMethodOverload.PAGINATED,
-                                                                                  PaginatorUtils.getPaginatedMethodName(
-                                                                                      opModel.getMethodName()))
-                                                        .addAnnotation(Override.class)
-                                                        .returns(poetExtensions.getResponseClassForPaginatedSyncOperation(
-                                                            opModel.getOperationName()))
-                                                        .addStatement("return new $T(this, applyPaginatorUserAgent($L))",
-                                                                      poetExtensions.getResponseClassForPaginatedSyncOperation(
-                                                                          opModel.getOperationName()),
-                                                                      opModel.getInput().getVariableName())
-                                                        .build());
+        Map<String, PreClientExecutionRequestCustomizer> preClientExecutionRequestCustomizer =
+            model.getCustomizationConfig().getPreClientExecutionRequestCustomizer();
+
+        if (!CollectionUtils.isNullOrEmpty(preClientExecutionRequestCustomizer)) {
+            PreClientExecutionRequestCustomizer requestCustomizer =
+                preClientExecutionRequestCustomizer.get(opModel.getOperationName());
+            if (requestCustomizer != null) {
+                CodeBlock.Builder builder = CodeBlock.builder();
+                ClassName instanceType = classNameFromFqcn(requestCustomizer.getClassName());
+                builder.addStatement("$L = $T.$N($L)",
+                                     opModel.getInput().getVariableName(),
+                                     instanceType,
+                                     requestCustomizer.getMethodName(),
+                                     opModel.getInput().getVariableName());
+                return Optional.of(builder.build());
+            }
         }
-
-        return paginatedMethodSpecs;
+        return Optional.empty();
     }
 
     @Override
@@ -410,5 +451,56 @@ public class SyncClientClass extends SyncClientInterface {
         return builder.addAnnotation(Override.class)
                       .addStatement("return $T.builder().client(this).build()",
                                     poetExtensions.getSyncWaiterInterface());
+    }
+
+    protected MethodSpec updateSdkClientConfigurationMethod(
+        TypeName serviceClientConfigurationBuilderClassName) {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("updateSdkClientConfiguration")
+                                               .addModifiers(PRIVATE)
+                                               .addParameter(SdkRequest.class, "request")
+                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                                               .returns(SdkClientConfiguration.class);
+
+        builder.addStatement("$T plugins = request.overrideConfiguration()\n"
+                             + ".map(c -> c.plugins()).orElse(Collections.emptyList())",
+                             ParameterizedTypeName.get(List.class, SdkPlugin.class))
+               .addStatement("$T configuration = clientConfiguration.toBuilder()", SdkClientConfiguration.Builder.class);
+
+        builder.beginControlFlow("if (plugins.isEmpty())")
+               .addStatement("return configuration.build()")
+               .endControlFlow()
+               .addStatement("$1T serviceConfigBuilder = new $1T(configuration)", serviceClientConfigurationBuilderClassName)
+               .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
+               .addStatement("plugin.configureClient(serviceConfigBuilder)")
+               .endControlFlow();
+        EndpointRulesSpecUtils endpointRulesSpecUtils = new EndpointRulesSpecUtils(this.model);
+
+        if (model.getCustomizationConfig() == null ||
+            CollectionUtils.isNullOrEmpty(model.getCustomizationConfig().getCustomClientContextParams())) {
+            builder.addStatement("updateRetryStrategyClientConfiguration(configuration)");
+            builder.addStatement("return configuration.build()");
+            return builder.build();
+        }
+
+        Map<String, ClientContextParam> customClientConfigParams = model.getCustomizationConfig().getCustomClientContextParams();
+
+        builder.addCode("$1T newContextParams = configuration.option($2T.CLIENT_CONTEXT_PARAMS);\n"
+                        + "$1T originalContextParams = clientConfiguration.option($2T.CLIENT_CONTEXT_PARAMS);",
+                        AttributeMap.class, SdkClientOption.class);
+
+        builder.addCode("newContextParams = (newContextParams != null) ? newContextParams : $1T.empty();\n"
+                        + "originalContextParams = originalContextParams != null ? originalContextParams : $1T.empty();",
+                        AttributeMap.class);
+
+        customClientConfigParams.forEach((n, m) -> {
+            String keyName = model.getNamingStrategy().getEnumValueName(n);
+            builder.addStatement("$1T.validState($2T.equals(originalContextParams.get($3T.$4N), newContextParams.get($3T.$4N)),"
+                                 + " $5S)",
+                                 Validate.class, Objects.class, endpointRulesSpecUtils.clientContextParamsName(), keyName,
+                                 keyName + " cannot be modified by request level plugins");
+        });
+        builder.addStatement("updateRetryStrategyClientConfiguration(configuration)");
+        builder.addStatement("return configuration.build()");
+        return builder.build();
     }
 }

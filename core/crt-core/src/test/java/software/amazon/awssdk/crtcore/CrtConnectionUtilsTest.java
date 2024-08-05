@@ -20,7 +20,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
@@ -53,6 +57,60 @@ class CrtConnectionUtilsTest {
         TlsContext tlsContext = Mockito.mock(TlsContext.class);
         assertThat(CrtConfigurationUtils.resolveProxy(null, tlsContext)).isEmpty();
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {".*?.2.3.4", "1.*?.3.4", ".*?"})
+    void resolveProxy_withSingleNonProxyHostsWidCards_shouldReturnEmpty(String nonProxyHost) {
+        TlsContext tlsContext = Mockito.mock(TlsContext.class);
+        CrtProxyConfiguration configuration = new TestProxy.Builder().host("1.2.3.4")
+                                                                     .port(123)
+                                                                     .scheme("https")
+                                                                     .password("bar")
+                                                                     .username("foo")
+                                                                     .nonProxyHosts(Stream.of(nonProxyHost,"someRandom")
+                                                                                          .collect(Collectors.toSet()))
+                                                                     .build();
+        assertThat(CrtConfigurationUtils.resolveProxy(configuration, tlsContext)).isEmpty();
+    }
+
+
+
+    @Test
+    void resolveProxy_withNullHostAndNonPorxy_shouldNotReturnEmpty( ) {
+        TlsContext tlsContext = Mockito.mock(TlsContext.class);
+        CrtProxyConfiguration configuration = new TestProxy.Builder().host(null)
+                                                                     .port(123)
+                                                                     .scheme("https")
+                                                                     .password("bar")
+                                                                     .username("foo")
+                                                                     .nonProxyHosts(Stream.of("someRandom", "null")
+                                                                                          .collect(Collectors.toSet()))
+                                                                     .build();
+        assertThat(CrtConfigurationUtils.resolveProxy(configuration, tlsContext)).isNotEmpty();
+    }
+
+    @Test
+    void resolveProxy_basicAuthorization_WithNonMatchingNoProxy() {
+        CrtProxyConfiguration configuration = new TestProxy.Builder().host("1.2.3.4")
+                                                                     .port(123)
+                                                                     .scheme("https")
+                                                                     .password("bar")
+                                                                     .addNonProxyHost("someRandom")
+                                                                     .addNonProxyHost(null)
+                                                                     .username("foo")
+                                                                     .build();
+
+        TlsContext tlsContext = Mockito.mock(TlsContext.class);
+
+        Optional<HttpProxyOptions> httpProxyOptions = CrtConfigurationUtils.resolveProxy(configuration, tlsContext);
+        assertThat(httpProxyOptions).hasValueSatisfying(proxy -> {
+            assertThat(proxy.getTlsContext()).isEqualTo(tlsContext);
+            assertThat(proxy.getAuthorizationPassword()).isEqualTo("bar");
+            assertThat(proxy.getAuthorizationUsername()).isEqualTo("foo");
+            assertThat(proxy.getAuthorizationType()).isEqualTo(HttpProxyOptions.HttpProxyAuthorizationType.Basic);
+        });
+    }
+
 
     @Test
     void resolveProxy_noneAuthorization() {

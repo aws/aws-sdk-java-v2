@@ -278,7 +278,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
 
                         OnErrorQueueEntry<T> onErrorEntry = (OnErrorQueueEntry<T>) entry;
                         failureMessage.trySet(() -> new IllegalStateException("onError() was already invoked.",
-                                                                             onErrorEntry.failure));
+                                                                              onErrorEntry.failure));
                         log.trace(() -> "Calling onError() with " + onErrorEntry.failure, onErrorEntry.failure);
                         subscriber.onError(onErrorEntry.failure);
                         break;
@@ -382,7 +382,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
 
         @Override
         public void cancel() {
-            log.trace(() -> "Received cancel()");
+            log.trace(() -> "Received cancel() from " + subscriber);
 
             // Create exception here instead of in supplier to preserve a more-useful stack trace.
             highPriorityQueue.add(new CancelQueueEntry<>());

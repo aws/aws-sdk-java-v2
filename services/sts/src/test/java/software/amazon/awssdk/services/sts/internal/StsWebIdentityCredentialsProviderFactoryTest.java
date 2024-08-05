@@ -17,17 +17,37 @@ package software.amazon.awssdk.services.sts.internal;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.nio.file.Paths;
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.WebIdentityTokenCredentialsProviderFactory;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityCredentialsUtils;
+import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
 
-public class StsWebIdentityCredentialsProviderFactoryTest {
-
+class StsWebIdentityCredentialsProviderFactoryTest {
 
     @Test
-    public void stsWebIdentityCredentialsProviderFactory_with_webIdentityCredentialsUtils() {
+    void stsWebIdentityCredentialsProviderFactory_with_webIdentityCredentialsUtils() {
         WebIdentityTokenCredentialsProviderFactory factory = WebIdentityCredentialsUtils.factory();
         assertNotNull(factory);
+    }
+
+    @Test
+    void stsWebIdentityCredentialsProviderFactory_withWebIdentityTokenCredentialProperties() {
+        WebIdentityTokenCredentialsProviderFactory factory = new StsWebIdentityCredentialsProviderFactory();
+        AwsCredentialsProvider provider = factory.create(
+            WebIdentityTokenCredentialProperties.builder()
+                                                .asyncCredentialUpdateEnabled(true)
+                                                .prefetchTime(Duration.ofMinutes(5))
+                                                .staleTime(Duration.ofMinutes(15))
+                                                .roleArn("role-arn")
+                                                .webIdentityTokenFile(Paths.get("/path/to/file"))
+                                                .roleSessionName("session-name")
+                                                .roleSessionDuration(Duration.ofMinutes(60))
+                                                .build());
+        assertNotNull(provider);
+
     }
 
 }

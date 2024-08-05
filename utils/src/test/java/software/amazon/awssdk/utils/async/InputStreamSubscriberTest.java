@@ -17,10 +17,14 @@ package software.amazon.awssdk.utils.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +45,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 public class InputStreamSubscriberTest {
@@ -54,12 +59,12 @@ public class InputStreamSubscriberTest {
     }
 
     @Test
-    public void onComplete_returnsEndOfStream_onRead() {
+    public void onComplete_returnsEndOfStream_onRead() throws IOException {
         publisher.subscribe(subscriber);
         publisher.complete();
         assertThat(subscriber.read()).isEqualTo(-1);
-        assertThat(subscriber.read(new byte[0])).isEqualTo(-1);
-        assertThat(subscriber.read(new byte[0], 0, 0)).isEqualTo(-1);
+        assertThat(subscriber.read(new byte[1])).isEqualTo(-1);
+        assertThat(subscriber.read(new byte[1], 0, 1)).isEqualTo(-1);
     }
 
     @Test
@@ -69,12 +74,12 @@ public class InputStreamSubscriberTest {
         publisher.subscribe(subscriber);
         publisher.error(exception);
         assertThatThrownBy(() -> subscriber.read()).isEqualTo(exception);
-        assertThatThrownBy(() -> subscriber.read(new byte[0])).isEqualTo(exception);
-        assertThatThrownBy(() -> subscriber.read(new byte[0], 0, 0)).isEqualTo(exception);
+        assertThatThrownBy(() -> subscriber.read(new byte[1])).isEqualTo(exception);
+        assertThatThrownBy(() -> subscriber.read(new byte[1], 0, 1)).isEqualTo(exception);
     }
 
     @Test
-    public void onComplete_afterOnNext_returnsEndOfStream() {
+    public void onComplete_afterOnNext_returnsEndOfStream() throws IOException {
         publisher.subscribe(subscriber);
         publisher.send(byteBufferOfLength(1));
         publisher.complete();
@@ -83,7 +88,7 @@ public class InputStreamSubscriberTest {
     }
 
     @Test
-    public void onComplete_afterEmptyOnNext_returnsEndOfStream() {
+    public void onComplete_afterEmptyOnNext_returnsEndOfStream() throws IOException {
         publisher.subscribe(subscriber);
         publisher.send(byteBufferOfLength(0));
         publisher.send(byteBufferOfLength(0));
@@ -93,14 +98,14 @@ public class InputStreamSubscriberTest {
     }
 
     @Test
-    public void read_afterOnNext_returnsData() {
+    public void read_afterOnNext_returnsData() throws IOException {
         publisher.subscribe(subscriber);
         publisher.send(byteBufferWithByte(10));
         assertThat(subscriber.read()).isEqualTo(10);
     }
 
     @Test
-    public void readBytes_afterOnNext_returnsData() {
+    public void readBytes_afterOnNext_returnsData() throws IOException {
         publisher.subscribe(subscriber);
         publisher.send(byteBufferWithByte(10));
         publisher.send(byteBufferWithByte(20));
@@ -112,7 +117,7 @@ public class InputStreamSubscriberTest {
     }
 
     @Test
-    public void readBytesWithOffset_afterOnNext_returnsData() {
+    public void readBytesWithOffset_afterOnNext_returnsData() throws IOException {
         publisher.subscribe(subscriber);
         publisher.send(byteBufferWithByte(10));
         publisher.send(byteBufferWithByte(20));
@@ -128,8 +133,15 @@ public class InputStreamSubscriberTest {
         publisher.subscribe(subscriber);
         subscriber.close();
         assertThatThrownBy(() -> subscriber.read()).isInstanceOf(CancellationException.class);
-        assertThatThrownBy(() -> subscriber.read(new byte[0])).isInstanceOf(CancellationException.class);
-        assertThatThrownBy(() -> subscriber.read(new byte[0], 0, 0)).isInstanceOf(CancellationException.class);
+        assertThatThrownBy(() -> subscriber.read(new byte[1])).isInstanceOf(CancellationException.class);
+        assertThatThrownBy(() -> subscriber.read(new byte[1], 0, 1)).isInstanceOf(CancellationException.class);
+    }
+
+    @Test
+    public void readByteArray_0Len_returns0() throws IOException {
+        publisher.subscribe(subscriber);
+
+        assertThat(subscriber.read(new byte[1], 0, 0)).isEqualTo(0);
     }
 
     public static List<Arguments> stochastic_methodCallsSeemThreadSafe_parameters() {
@@ -204,6 +216,18 @@ public class InputStreamSubscriberTest {
         }
     }
 
+    @Test
+    public void read_uncheckedIOException_isThrownAsIOException() {
+        ByteBufferStoringSubscriber byteBufferStoringSubscriber = mock(ByteBufferStoringSubscriber.class);
+        when(byteBufferStoringSubscriber.blockingTransferTo(any()))
+            .thenThrow(new UncheckedIOException(new IOException("Not wrapped as UncheckedIOException")));
+        InputStreamSubscriber errorSubscriber = new InputStreamSubscriber(byteBufferStoringSubscriber);
+
+        assertThatThrownBy(() -> errorSubscriber.read(new byte[1]))
+            .isInstanceOf(IOException.class).hasMessage("Not wrapped as UncheckedIOException");
+
+    }
+
     public static Consumer<InputStreamSubscriber> subscriberOnNext() {
         return s -> s.onNext(ByteBuffer.allocate(1));
     }
@@ -217,11 +241,11 @@ public class InputStreamSubscriberTest {
     }
 
     public static Consumer<InputStreamSubscriber> subscriberRead1() {
-        return s -> s.read();
+        return s -> FunctionalUtils.invokeSafely(() -> s.read());
     }
 
     public static Consumer<InputStreamSubscriber> subscriberReadArray() {
-        return s -> s.read(new byte[4]);
+        return s -> FunctionalUtils.invokeSafely(() -> s.read(new byte[4]));
     }
 
     public static Consumer<InputStreamSubscriber> subscriberClose() {

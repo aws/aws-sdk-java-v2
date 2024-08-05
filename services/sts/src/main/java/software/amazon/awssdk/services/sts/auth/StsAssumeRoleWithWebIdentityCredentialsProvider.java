@@ -15,7 +15,8 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
-import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.toAwsSessionCredentials;
+import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.accountIdFromArn;
+import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.fromStsCredentials;
 import static software.amazon.awssdk.utils.Validate.notNull;
 
 import java.util.function.Consumer;
@@ -27,7 +28,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
-import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityResponse;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
@@ -48,6 +49,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsAssumeRoleWithWebIdentityCredentialsProvider.Builder,
                                  StsAssumeRoleWithWebIdentityCredentialsProvider> {
+    private static final String PROVIDER_NAME = "StsAssumeRoleWithWebIdentityCredentialsProvider";
     private final Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequest;
 
     /**
@@ -71,19 +73,20 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
         AssumeRoleWithWebIdentityRequest request = assumeRoleWithWebIdentityRequest.get();
         notNull(request, "AssumeRoleWithWebIdentityRequest can't be null");
-        return toAwsSessionCredentials(stsClient.assumeRoleWithWebIdentity(request).credentials());
-    }
-
-    @Override
-    public String toString() {
-        return ToString.builder("StsAssumeRoleWithWebIdentityCredentialsProvider")
-                       .add("refreshRequest", assumeRoleWithWebIdentityRequest)
-                       .build();
+        AssumeRoleWithWebIdentityResponse assumeRoleResponse = stsClient.assumeRoleWithWebIdentity(request);
+        return fromStsCredentials(assumeRoleResponse.credentials(),
+                                  PROVIDER_NAME,
+                                  accountIdFromArn(assumeRoleResponse.assumedRoleUser()));
     }
 
     @Override
     public Builder toBuilder() {
         return new Builder(this);
+    }
+
+    @Override
+    String providerName() {
+        return PROVIDER_NAME;
     }
 
     /**

@@ -59,7 +59,8 @@ import software.amazon.awssdk.utils.Validate;
  * monitor a transfer's progress in real-time, as well as pause the transfer for execution at a later time.
  *
  * <h2>Instantiate the S3 Transfer Manager</h2>
- * <b>Create a transfer manager instance with SDK default settings</b>
+ * <b>Create a transfer manager instance with SDK default settings. Note that it's recommended
+ * to add {@code software.amazon.awssdk.crt:aws-crt} dependency so that automatic multipart feature can be enabled</b>
  * {@snippet :
  *      S3TransferManager transferManager = S3TransferManager.create();
  * }
@@ -611,7 +612,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Creates a copy of an object that is already stored in S3 in the same region.
+     * Creates a copy of an object that is already stored in S3.
      * <p>
      * Depending on the underlying S3Client, {@link S3TransferManager} may intelligently use plain {@link CopyObjectRequest}s
      * for smaller objects, and multiple parallel {@link UploadPartCopyRequest}s for larger objects. If multipart copy is
@@ -625,10 +626,22 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * the way the {@link CopyObjectRequest} API behaves. When copying an object, S3 performs the byte copying on your behalf
      * while keeping the connection alive. The progress of the copy is not known until it fully completes and S3 sends a response
      * describing the outcome.
+     *
+     * <p>
+     * If you are copying an object to a bucket in a different region, you need to enable cross region access
+     * on the {@link S3AsyncClient}.
+     *
      * <p>
      * <b>Usage Example:</b>
      * {@snippet :
-     *         S3TransferManager transferManager = S3TransferManager.create();
+     *         S3AsyncClient s3AsyncClient =
+     *            S3AsyncClient.crtBuilder()
+     *                         // enable cross-region access, only required if you are making cross-region copy
+     *                         .crossRegionAccessEnabled(true)
+     *                         .build();
+     *         S3TransferManager transferManager = S3TransferManager.builder()
+     *                                                              .s3Client(s3AsyncClient)
+     *                                                              .build();
      *         CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
      *                                                                .sourceBucket("source_bucket")
      *                                                                .sourceKey("source_key")
@@ -647,6 +660,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * @param copyRequest the copy request, containing a {@link CopyObjectRequest}
      * @return A {@link Copy} that can be used to track the ongoing transfer
      * @see #copy(Consumer)
+     * @see S3AsyncClient#copyObject(CopyObjectRequest)
      */
     default Copy copy(CopyRequest copyRequest) {
         throw new UnsupportedOperationException();
@@ -666,9 +680,10 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * Create an {@code S3TransferManager} using the default values.
      * <p>
      * The type of {@link S3AsyncClient} used depends on if AWS Common Runtime (CRT) library
-     * {@code software.amazon.awssdk.crt:crt} is on the classpath. If CRT is available, a CRT-based S3 client will be created
-     * ({@link S3AsyncClient#crtCreate()}). Otherwise, a standard S3 client({@link S3AsyncClient#create()}) will be created. Note
-     * that only CRT-based S3 client supports parallel transfer for now, so it's recommended to add CRT as a dependency.
+     * {@code software.amazon.awssdk.crt:aws-crt} is in the classpath. If AWS CRT is available, an AWS CRT-based S3 client will
+     * be created via ({@link S3AsyncClient#crtCreate()}). Otherwise, a standard S3 client({@link S3AsyncClient#create()}) will
+     * be created. Note that only AWS CRT-based S3 client supports parallel transfer, i.e, leveraging multipart upload/download
+     * for now, so it's recommended to add AWS CRT as a dependency.
      */
     static S3TransferManager create() {
         return builder().build();

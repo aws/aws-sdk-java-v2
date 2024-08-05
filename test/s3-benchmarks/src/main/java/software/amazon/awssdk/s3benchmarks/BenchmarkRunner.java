@@ -45,6 +45,11 @@ public final class BenchmarkRunner {
 
     private static final String TIMEOUT = "timeoutInMin";
 
+    private static final String CONN_ACQ_TIMEOUT_IN_SEC = "connAcqTimeoutInSec";
+
+    private static final String FORCE_CRT_HTTP_CLIENT = "crtHttp";
+    private static final String MAX_CONCURRENCY = "maxConcurrency";
+
     private static final Map<TransferManagerOperation, Function<TransferManagerBenchmarkConfig, TransferManagerBenchmark>>
         OPERATION_TO_BENCHMARK_V1 = new EnumMap<>(TransferManagerOperation.class);
     private static final Map<TransferManagerOperation, Function<TransferManagerBenchmarkConfig, TransferManagerBenchmark>>
@@ -83,8 +88,8 @@ public final class BenchmarkRunner {
         options.addOption(null, CHECKSUM_ALGORITHM, true, "The checksum algorithm to use");
         options.addOption(null, ITERATION, true, "The number of iterations");
         options.addOption(null, READ_BUFFER_IN_MB, true, "Read buffer size in MB");
-        options.addOption(null, VERSION, true, "The major version of the transfer manager to run test: v1 | v2 | crt, default: "
-                                               + "v2");
+        options.addOption(null, VERSION, true, "The major version of the transfer manager to run test: "
+                                               + "v1 | v2 | crt | java, default: v2");
         options.addOption(null, PREFIX, true, "S3 Prefix used in downloadDirectory and uploadDirectory");
 
         options.addOption(null, CONTENT_LENGTH, true, "Content length to upload from memory. Used only in the "
@@ -93,6 +98,12 @@ public final class BenchmarkRunner {
 
         options.addOption(null, TIMEOUT, true, "Amount of minute to wait before a single operation "
                                                + "times out and is cancelled. Optional, defaults to 10 minutes if no specified");
+        options.addOption(null, CONN_ACQ_TIMEOUT_IN_SEC, true, "Timeout for acquiring an already-established"
+                                                               + " connection from a connection pool to a remote service.");
+        options.addOption(null, FORCE_CRT_HTTP_CLIENT, true,
+                          "Force the CRT http client to be used in JavaBased benchmarks");
+        options.addOption(null, MAX_CONCURRENCY, true,
+                          "The Maximum number of allowed concurrent requests. For HTTP/1.1 this is the same as max connections.");
 
         CommandLine cmd = parser.parse(options, args);
         TransferManagerBenchmarkConfig config = parseConfig(cmd);
@@ -114,11 +125,22 @@ public final class BenchmarkRunner {
                 if (operation == TransferManagerOperation.DOWNLOAD) {
                     benchmark = new CrtS3ClientDownloadBenchmark(config);
                     break;
-                } else if (operation == TransferManagerOperation.UPLOAD) {
+                }
+                if (operation == TransferManagerOperation.UPLOAD) {
                     benchmark = new CrtS3ClientUploadBenchmark(config);
                     break;
                 }
                 throw new UnsupportedOperationException();
+            case JAVA:
+                if (operation == TransferManagerOperation.UPLOAD) {
+                    benchmark = new JavaS3ClientUploadBenchmark(config);
+                    break;
+                }
+                if (operation == TransferManagerOperation.COPY) {
+                    benchmark = new JavaS3ClientCopyBenchmark(config);
+                    break;
+                }
+                throw new UnsupportedOperationException("Java based s3 client benchmark only support upload and copy");
             default:
                 throw new UnsupportedOperationException();
         }
@@ -158,6 +180,15 @@ public final class BenchmarkRunner {
         Duration timeout = cmd.getOptionValue(TIMEOUT) == null ? null :
                            Duration.ofMinutes(Long.parseLong(cmd.getOptionValue(TIMEOUT)));
 
+        Long connAcqTimeoutInSec = cmd.getOptionValue(CONN_ACQ_TIMEOUT_IN_SEC) == null ? null :
+                                   Long.parseLong(cmd.getOptionValue(CONN_ACQ_TIMEOUT_IN_SEC));
+
+        Boolean forceCrtHttpClient = cmd.getOptionValue(FORCE_CRT_HTTP_CLIENT) != null
+                                     && Boolean.parseBoolean(cmd.getOptionValue(FORCE_CRT_HTTP_CLIENT));
+
+        Integer maxConcurrency = cmd.getOptionValue(MAX_CONCURRENCY) == null ? null :
+                                 Integer.parseInt(cmd.getOptionValue(MAX_CONCURRENCY));
+
         return TransferManagerBenchmarkConfig.builder()
                                              .key(key)
                                              .bucket(bucket)
@@ -171,6 +202,9 @@ public final class BenchmarkRunner {
                                              .prefix(prefix)
                                              .contentLengthInMb(contentLengthInMb)
                                              .timeout(timeout)
+                                             .connectionAcquisitionTimeoutInSec(connAcqTimeoutInSec)
+                                             .forceCrtHttpClient(forceCrtHttpClient)
+                                             .maxConcurrency(maxConcurrency)
                                              .build();
     }
 
@@ -185,6 +219,7 @@ public final class BenchmarkRunner {
     private enum SdkVersion {
         V1,
         V2,
-        CRT
+        CRT,
+        JAVA
     }
 }

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static java.util.Objects.requireNonNull;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getItemsFromSupplier;
 
 import java.util.ArrayList;
@@ -187,7 +188,6 @@ public final class WriteBatch {
     }
 
     private static final class BuilderImpl<T> implements Builder<T> {
-
         private Class<? extends T> itemClass;
         private List<Supplier<WriteRequest>> itemSupplierList = new ArrayList<>();
         private MappedTableResource<T> mappedTableResource;
@@ -222,6 +222,7 @@ public final class WriteBatch {
 
         @Override
         public Builder<T> addDeleteItem(T keyItem) {
+            requireNonNull(mappedTableResource, "A mappedTableResource is required to derive a key from the given keyItem");
             return addDeleteItem(this.mappedTableResource.keyFrom(keyItem));
         }
 
@@ -250,9 +251,12 @@ public final class WriteBatch {
 
         private WriteRequest generateWriteRequest(Supplier<MappedTableResource<T>> mappedTableResourceSupplier,
                                                   BatchableWriteOperation<T> operation) {
-            return operation.generateWriteRequest(mappedTableResourceSupplier.get().tableSchema(),
-                                                  DefaultOperationContext.create(mappedTableResourceSupplier.get().tableName()),
-                                                  mappedTableResourceSupplier.get().mapperExtension());
+            MappedTableResource<T> mappedTableResource = mappedTableResourceSupplier.get();
+            requireNonNull(mappedTableResource,
+                           "A mappedTableResource (table) is required when generating the write requests for WriteBatch");
+            return operation.generateWriteRequest(mappedTableResource.tableSchema(),
+                                                  DefaultOperationContext.create(mappedTableResource.tableName()),
+                                                  mappedTableResource.mapperExtension());
         }
     }
 

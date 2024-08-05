@@ -25,7 +25,6 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.util.Mimetype;
-import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -95,11 +94,6 @@ public final class ByteBuffersAsyncRequestBody implements AsyncRequestBody {
 
                             do {
                                 ByteBuffer buffer = buffers[i];
-
-                                // Pending discussions on https://github.com/aws/aws-sdk-java-v2/issues/3928
-                                if (buffer.isDirect()) {
-                                    buffer = BinaryUtils.toNonDirectBuffer(buffer);
-                                }
 
                                 s.onNext(buffer.asReadOnlyBuffer());
                                 remaining--;

@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.CHANNEL_DIAGNOSTICS;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTE_FUTURE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.KEEP_ALIVE;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
@@ -65,6 +66,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ResetSendingSubscription;
 import software.amazon.awssdk.http.nio.netty.internal.nrs.HttpStreamsClientHandler;
 import software.amazon.awssdk.http.nio.netty.internal.nrs.StreamedHttpResponse;
+import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
@@ -95,6 +97,8 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             channelContext.channel().attr(RESPONSE_STATUS_CODE).set(response.status().code());
             channelContext.channel().attr(RESPONSE_CONTENT_LENGTH).set(responseContentLength(response));
             channelContext.channel().attr(KEEP_ALIVE).set(shouldKeepAlive(response));
+            ChannelUtils.getAttribute(channelContext.channel(), CHANNEL_DIAGNOSTICS)
+                        .ifPresent(ChannelDiagnostics::incrementResponseCount);
             requestContext.handler().onHeaders(sdkResponse);
         }
 
@@ -310,7 +314,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                     try {
                         SdkCancellationException e = new SdkCancellationException(
                                 "Subscriber cancelled before all events were published");
-                        log.warn(channelContext.channel(), () -> "Subscriber cancelled before all events were published");
+                        log.debug(channelContext.channel(), () -> "Subscriber cancelled before all events were published");
                         executeFuture.completeExceptionally(e);
                     } finally {
                         runAndLogError(channelContext.channel(), () -> "Could not release channel back to the pool",

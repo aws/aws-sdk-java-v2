@@ -1,0 +1,42 @@
+{
+    "version": "2.25.4",
+    "date": "2024-03-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Doc only updates for DynamoDB documentation"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonMWAA",
+            "contributor": "",
+            "description": "Amazon MWAA adds support for Apache Airflow v2.8.1."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Update for documentation only. Covers port ranges, definition updates for data sharing, and definition updates to cluster-snapshot documentation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Updated the input of CreateDBCluster and ModifyDBCluster to support setting CA certificates. Updated the output of DescribeDBCluster to show current CA certificate setting value."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Verified Permissions",
+            "contributor": "",
+            "description": "Deprecating details in favor of configuration for GetIdentitySource and ListIdentitySources APIs."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "Add PENDING status to Lifecycle Execution resource status. Add StartTime and EndTime to ListLifecycleExecutionResource API response."
+        }
+    ]
+}

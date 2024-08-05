@@ -16,6 +16,8 @@
 package software.amazon.awssdk.release;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static software.amazon.awssdk.release.CreateNewServiceModuleMain.computeInternalDependencies;
+import static software.amazon.awssdk.release.CreateNewServiceModuleMain.toList;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -24,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.cli.CommandLine;
@@ -49,12 +52,15 @@ import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
  * </pre>
  */
 public class NewServiceMain extends Cli {
+
     private NewServiceMain() {
         super(requiredOption("service-module-name", "The name of the service module to be created."),
               requiredOption("service-id", "The service ID of the service module to be created."),
               requiredOption("service-protocol", "The protocol of the service module to be created."),
               requiredOption("maven-project-root", "The root directory for the maven project."),
-              requiredOption("maven-project-version", "The maven version of the service module to be created."));
+              requiredOption("maven-project-version", "The maven version of the service module to be created."),
+              optionalMultiValueOption("include-internal-dependency", "Includes an internal dependency from new service pom."),
+              optionalMultiValueOption("exclude-internal-dependency", "Excludes an internal dependency from new service pom."));
     }
 
     public static void main(String[] args) {
@@ -72,6 +78,7 @@ public class NewServiceMain extends Cli {
         private final String serviceModuleName;
         private final String serviceId;
         private final String serviceProtocol;
+        private final Set<String> internalDependencies;
 
         private NewServiceCreator(CommandLine commandLine) {
             this.mavenProjectRoot = Paths.get(commandLine.getOptionValue("maven-project-root").trim());
@@ -79,7 +86,10 @@ public class NewServiceMain extends Cli {
             this.serviceModuleName = commandLine.getOptionValue("service-module-name").trim();
             this.serviceId = commandLine.getOptionValue("service-id").trim();
             this.serviceProtocol = transformSpecialProtocols(commandLine.getOptionValue("service-protocol").trim());
-
+            this.internalDependencies = computeInternalDependencies(toList(commandLine
+                                                                               .getOptionValues("include-internal-dependency")),
+                                                                    toList(commandLine
+                                                                               .getOptionValues("exclude-internal-dependency")));
             Validate.isTrue(Files.exists(mavenProjectRoot), "Project root does not exist: " + mavenProjectRoot);
         }
 
@@ -100,6 +110,7 @@ public class NewServiceMain extends Cli {
             createNewModuleFromTemplate(templateModulePath, newServiceModulePath);
             replaceTemplatePlaceholders(newServiceModulePath);
 
+
             Path servicesPomPath = mavenProjectRoot.resolve("services").resolve("pom.xml");
             Path aggregatePomPath = mavenProjectRoot.resolve("aws-sdk-java").resolve("pom.xml");
             Path bomPomPath = mavenProjectRoot.resolve("bom").resolve("pom.xml");
@@ -107,6 +118,9 @@ public class NewServiceMain extends Cli {
             new AddSubmoduleTransformer().transform(servicesPomPath);
             new AddDependencyTransformer().transform(aggregatePomPath);
             new AddDependencyManagementDependencyTransformer().transform(bomPomPath);
+
+            Path newServicePom = newServiceModulePath.resolve("pom.xml");
+            new CreateNewServiceModuleMain.AddInternalDependenciesTransformer(internalDependencies).transform(newServicePom);
         }
 
         private void createNewModuleFromTemplate(Path templateModulePath, Path newServiceModule) throws IOException {

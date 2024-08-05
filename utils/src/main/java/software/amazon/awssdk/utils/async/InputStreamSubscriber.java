@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.utils.async;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.Queue;
 import java.util.concurrent.CancellationException;
@@ -25,6 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.TransferResult;
 
@@ -45,6 +48,8 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
     private final AtomicBoolean drainingCallQueue = new AtomicBoolean(false);
     private final Queue<QueueEntry> callQueue = new ConcurrentLinkedQueue<>();
 
+    private final Object subscribeLock = new Object();
+
     private Subscription subscription;
 
     private boolean done = false;
@@ -53,15 +58,22 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
         this.delegate = new ByteBufferStoringSubscriber(BUFFER_SIZE);
     }
 
+    @SdkTestInternalApi
+    public InputStreamSubscriber(ByteBufferStoringSubscriber delegate) {
+        this.delegate = delegate;
+    }
+
     @Override
     public void onSubscribe(Subscription s) {
-        if (!inputStreamState.compareAndSet(State.UNINITIALIZED, State.READABLE)) {
-            close();
-            return;
-        }
+        synchronized (subscribeLock) {
+            if (!inputStreamState.compareAndSet(State.UNINITIALIZED, State.READABLE)) {
+                close();
+                return;
+            }
 
-        this.subscription = new CancelWatcher(s);
-        delegate.onSubscribe(subscription);
+            this.subscription = new CancelWatcher(s);
+            delegate.onSubscribe(subscription);
+        }
     }
 
     @Override
@@ -78,14 +90,23 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
 
     @Override
     public void onComplete() {
-        callQueue.add(new QueueEntry(true, delegate::onComplete));
+        callQueue.add(new QueueEntry(true, () -> {
+            delegate.onComplete();
+            inputStreamState.set(State.STREAMING_DONE);
+        }));
         drainQueue();
     }
 
     @Override
-    public int read() {
+    public int read() throws IOException {
         singleByte.clear();
-        TransferResult transferResult = delegate.blockingTransferTo(singleByte);
+
+        TransferResult transferResult;
+        try {
+            transferResult = delegate.blockingTransferTo(singleByte);
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
+        }
 
         if (singleByte.hasRemaining()) {
             assert transferResult == TransferResult.END_OF_STREAM;
@@ -96,14 +117,25 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
     }
 
     @Override
-    public int read(byte[] b) {
+    public int read(byte[] b) throws IOException {
         return read(b, 0, b.length);
     }
 
     @Override
-    public int read(byte[] bytes, int off, int len) {
+    public int read(byte[] bytes, int off, int len) throws IOException {
+        if (len == 0) {
+            return 0;
+        }
+
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes, off, len);
-        TransferResult transferResult = delegate.blockingTransferTo(byteBuffer);
+
+        TransferResult transferResult;
+        try {
+            transferResult = delegate.blockingTransferTo(byteBuffer);
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
+        }
+
         int dataTransferred = byteBuffer.position() - off;
 
         if (dataTransferred == 0) {
@@ -116,12 +148,19 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
 
     @Override
     public void close() {
-        if (inputStreamState.compareAndSet(State.UNINITIALIZED, State.CLOSED)) {
-            delegate.onSubscribe(new NoOpSubscription());
-            delegate.onError(new CancellationException());
-        } else if (inputStreamState.compareAndSet(State.READABLE, State.CLOSED)) {
-            subscription.cancel();
-            onError(new CancellationException());
+        synchronized (subscribeLock) {
+            // If it is done, no-op
+            if (inputStreamState.get().equals(State.STREAMING_DONE)) {
+                return;
+            }
+
+            if (inputStreamState.compareAndSet(State.UNINITIALIZED, State.CLOSED)) {
+                delegate.onSubscribe(new NoOpSubscription());
+                delegate.onError(new CancellationException());
+            } else if (inputStreamState.compareAndSet(State.READABLE, State.CLOSED)) {
+                subscription.cancel();
+                onError(new CancellationException());
+            }
         }
     }
 
@@ -143,6 +182,9 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
         while (true) {
             QueueEntry entry = callQueue.poll();
             if (done || entry == null) {
+                if  (done) {
+                    inputStreamState.set(State.STREAMING_DONE);
+                }
                 return;
             }
             done = entry.terminal;
@@ -163,7 +205,8 @@ public final class InputStreamSubscriber extends InputStream implements Subscrib
     private enum State {
         UNINITIALIZED,
         READABLE,
-        CLOSED
+        CLOSED,
+        STREAMING_DONE
     }
 
     private final class CancelWatcher implements Subscription {

@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.20.86-SNAPSHOT</version>
+        <version>2.26.30-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -122,7 +122,6 @@
         <module>workspaces</module>
         <module>xray</module>
         <module>appsync</module>
-        <module>alexaforbusiness</module>
         <module>migrationhub</module>
         <module>costexplorer</module>
         <module>cloud9</module>
@@ -136,7 +135,6 @@
         <module>mediapackage</module>
         <module>mediastore</module>
         <module>mediastoredata</module>
-        <module>mobile</module>
         <module>mq</module>
         <module>pricing</module>
         <module>resourcegroups</module>
@@ -159,7 +157,6 @@
         <module>iotanalytics</module>
         <module>kinesisvideoarchivedmedia</module>
         <module>kinesisvideomedia</module>
-        <module>macie</module>
         <module>mediatailor</module>
         <module>pi</module>
         <module>pinpointemail</module>
@@ -243,7 +240,6 @@
         <module>iotsitewise</module>
         <module>macie2</module>
         <module>codeartifact</module>
-        <module>honeycode</module>
         <module>ivs</module>
         <module>braket</module>
         <module>identitystore</module>
@@ -321,7 +317,6 @@
         <module>amplifyuibuilder</module>
         <module>keyspaces</module>
         <module>billingconductor</module>
-        <module>gamesparks</module>
         <module>pinpointsmsvoicev2</module>
         <module>ivschat</module>
         <module>chimesdkmediapipelines</module>
@@ -331,7 +326,6 @@
         <module>redshiftserverless</module>
         <module>rolesanywhere</module>
         <module>licensemanagerusersubscriptions</module>
-        <module>backupstorage</module>
         <module>privatenetworks</module>
         <module>supportapp</module>
         <module>controltower</module>
@@ -342,7 +336,6 @@
         <module>scheduler</module>
         <module>ssmsap</module>
         <module>chimesdkvoice</module>
-        <module>iotroborunner</module>
         <module>oam</module>
         <module>arczonalshift</module>
         <module>simspaceweaver</module>
@@ -369,6 +362,50 @@
         <module>paymentcryptography</module>
         <module>codegurusecurity</module>
         <module>verifiedpermissions</module>
+        <module>appfabric</module>
+        <module>medicalimaging</module>
+        <module>entityresolution</module>
+        <module>managedblockchainquery</module>
+        <module>pcaconnectorad</module>
+        <module>neptunedata</module>
+        <module>bedrockruntime</module>
+        <module>bedrock</module>
+        <module>datazone</module>
+        <module>launchwizard</module>
+        <module>trustedadvisor</module>
+        <module>cloudfrontkeyvaluestore</module>
+        <module>inspectorscan</module>
+        <module>costoptimizationhub</module>
+        <module>repostspace</module>
+        <module>bcmdataexports</module>
+        <module>freetier</module>
+        <module>eksauth</module>
+        <module>workspacesthinclient</module>
+        <module>b2bi</module>
+        <module>bedrockagentruntime</module>
+        <module>qbusiness</module>
+        <module>qconnect</module>
+        <module>bedrockagent</module>
+        <module>cleanroomsml</module>
+        <module>marketplacedeployment</module>
+        <module>marketplaceagreement</module>
+        <module>neptunegraph</module>
+        <module>networkmonitor</module>
+        <module>supplychain</module>
+        <module>artifact</module>
+        <module>chatbot</module>
+        <module>timestreaminfluxdb</module>
+        <module>codeconnections</module>
+        <module>deadline</module>
+        <module>controlcatalog</module>
+        <module>route53profiles</module>
+        <module>mailmanager</module>
+        <module>taxsettings</module>
+        <module>applicationsignals</module>
+        <module>pcaconnectorscep</module>
+        <module>apptest</module>
+        <module>qapps</module>
+        <module>ssmquicksetup</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
@@ -392,6 +429,21 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>auth</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth-spi</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>identity-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
@@ -432,6 +484,11 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>endpoints-spi</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>retries-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>

@@ -1,6 +1,0 @@
-{
-    "category": "Amazon DynamoDB Enhanced", 
-    "contributor": "breader124", 
-    "type": "bugfix", 
-    "description": "Thanks to this bugfix it'll be possible to create DynamoDB table containing\nsecondary indices when using no arugments `createTable` method from `DefaultDynamoDbTable`\nclass. Information about their presence might be expressed using annotations, but it was ignored\nand created tables didn't contain specified indices. Plase note that it is still not possible\nto specify projections for indices using annotations. By default, all fields will be projected."
-}

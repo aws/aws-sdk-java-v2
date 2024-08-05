@@ -19,12 +19,15 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.listener.AsyncRequestBodyListener;
 import software.amazon.awssdk.core.async.listener.AsyncResponseTransformerListener;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
+import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.model.CompletedObjectTransfer;
 import software.amazon.awssdk.transfer.s3.model.TransferObjectRequest;
@@ -43,10 +46,10 @@ public class TransferProgressUpdater {
     private final CompletableFuture<Void> endOfStreamFuture;
 
     public TransferProgressUpdater(TransferObjectRequest request,
-                                   AsyncRequestBody requestBody) {
+                                   Long contentLength) {
         DefaultTransferProgressSnapshot.Builder snapshotBuilder = DefaultTransferProgressSnapshot.builder();
         snapshotBuilder.transferredBytes(0L);
-        getContentLengthSafe(requestBody).ifPresent(snapshotBuilder::totalBytes);
+        Optional.ofNullable(contentLength).ifPresent(snapshotBuilder::totalBytes);
         TransferProgressSnapshot snapshot = snapshotBuilder.build();
         progress = new DefaultTransferProgress(snapshot);
         context = TransferListenerContext.builder()
@@ -73,6 +76,8 @@ public class TransferProgressUpdater {
         return AsyncRequestBodyListener.wrap(
             requestBody,
             new AsyncRequestBodyListener() {
+                final AtomicBoolean done = new AtomicBoolean(false);
+
                 @Override
                 public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
                     resetBytesTransferred();
@@ -81,6 +86,11 @@ public class TransferProgressUpdater {
                 @Override
                 public void subscriberOnNext(ByteBuffer byteBuffer) {
                     incrementBytesTransferred(byteBuffer.limit());
+                    progress.snapshot().ratioTransferred().ifPresent(ratioTransferred -> {
+                        if (Double.compare(ratioTransferred, 1.0) == 0) {
+                            endOfStreamFutureCompleted();
+                        }
+                    });
                 }
 
                 @Override
@@ -90,9 +100,68 @@ public class TransferProgressUpdater {
 
                 @Override
                 public void subscriberOnComplete() {
-                    endOfStreamFuture.complete(null);
+                    endOfStreamFutureCompleted();
+                }
+
+                private void endOfStreamFutureCompleted() {
+                    if (done.compareAndSet(false, true)) {
+                        endOfStreamFuture.complete(null);
+                    }
                 }
             });
+    }
+
+    /**
+     * Progress listener for Java-based S3Client with multipart enabled.
+     */
+    public PublisherListener<Long> multipartClientProgressListener() {
+
+        return new PublisherListener<Long>() {
+            @Override
+            public void publisherSubscribe(Subscriber<? super Long> subscriber) {
+                resetBytesTransferred();
+            }
+
+            @Override
+            public void subscriberOnNext(Long contentLength) {
+                incrementBytesTransferred(contentLength);
+            }
+
+            @Override
+            public void subscriberOnError(Throwable t) {
+                transferFailed(t);
+            }
+
+            @Override
+            public void subscriberOnComplete() {
+                endOfStreamFuture.complete(null);
+            }
+        };
+    }
+
+    public PublisherListener<S3MetaRequestProgress> crtProgressListener() {
+
+        return new PublisherListener<S3MetaRequestProgress>() {
+            @Override
+            public void publisherSubscribe(Subscriber<? super S3MetaRequestProgress> subscriber) {
+                resetBytesTransferred();
+            }
+
+            @Override
+            public void subscriberOnNext(S3MetaRequestProgress s3MetaRequestProgress) {
+                incrementBytesTransferred(s3MetaRequestProgress.getBytesTransferred());
+            }
+
+            @Override
+            public void subscriberOnError(Throwable t) {
+                transferFailed(t);
+            }
+
+            @Override
+            public void subscriberOnComplete() {
+                endOfStreamFuture.complete(null);
+            }
+        };
     }
 
     public <ResultT> AsyncResponseTransformer<GetObjectResponse, ResultT> wrapResponseTransformer(
@@ -138,7 +207,7 @@ public class TransferProgressUpdater {
         progress.updateAndGet(b -> b.transferredBytes(0L));
     }
 
-    private void incrementBytesTransferred(int numBytes) {
+    private void incrementBytesTransferred(long numBytes) {
         TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
             b.transferredBytes(b.getTransferredBytes() + numBytes);
         });
@@ -180,19 +249,5 @@ public class TransferProgressUpdater {
                                                                             b -> b.progressSnapshot(progress.snapshot())))
                                                                     .exception(t)
                                                                     .build());
-    }
-
-    private static Optional<Long> getContentLengthSafe(AsyncRequestBody requestBody) {
-        if (requestBody == null) {
-            return Optional.empty();
-        }
-        // requestBody.contentLength() may throw if the file does not exist.
-        // We ignore any potential exception here to defer failure
-        // to the s3CrtAsyncClient call and its associated future.
-        try {
-            return requestBody.contentLength();
-        } catch (Exception ignored) {
-            return Optional.empty();
-        }
     }
 }

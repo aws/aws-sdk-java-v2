@@ -40,7 +40,6 @@ import software.amazon.awssdk.utils.BinaryUtils;
 @SdkInternalApi
 public final class AwsSignedChunkedEncodingInputStream extends AwsChunkedEncodingInputStream {
 
-    private static final String CRLF = "\r\n";
     private static final String CHUNK_SIGNATURE_HEADER = ";chunk-signature=";
     private static final String CHECKSUM_SIGNATURE_HEADER = "x-amz-trailer-signature:";
     private String previousChunkSignature;

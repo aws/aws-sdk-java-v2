@@ -45,7 +45,7 @@
         {"shape":"InternalServerException"},
         {"shape":"InvalidParameterException"}
       ],
-      "documentation":"<p>Creates a new form for an Amplify.</p>",
+      "documentation":"<p>Creates a new form for an Amplify app.</p>",
       "idempotent":true
     },
     "CreateTheme":{
@@ -126,7 +126,7 @@
       "errors":[
         {"shape":"InvalidParameterException"}
       ],
-      "documentation":"<p>Exchanges an access code for a token.</p>"
+      "documentation":"<note> <p>This is for internal use.</p> </note> <p>Amplify uses this action to exchange an access code for a token.</p>"
     },
     "ExportComponents":{
       "name":"ExportComponents",
@@ -299,6 +299,24 @@
       ],
       "documentation":"<p>Retrieves a list of forms for a specified Amplify app and backend environment.</p>"
     },
+    "ListTagsForResource":{
+      "name":"ListTagsForResource",
+      "http":{
+        "method":"GET",
+        "requestUri":"/tags/{resourceArn}",
+        "responseCode":200
+      },
+      "input":{"shape":"ListTagsForResourceRequest"},
+      "output":{"shape":"ListTagsForResourceResponse"},
+      "errors":[
+        {"shape":"UnauthorizedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Returns a list of tags for a specified Amazon Resource Name (ARN).</p>"
+    },
     "ListThemes":{
       "name":"ListThemes",
       "http":{
@@ -326,7 +344,8 @@
         {"shape":"UnauthorizedException"},
         {"shape":"InvalidParameterException"}
       ],
-      "documentation":"<p>Stores the metadata information about a feature on a form.</p>"
+      "documentation":"<p>Stores the metadata information about a feature on a form.</p>",
+      "idempotent":true
     },
     "RefreshToken":{
       "name":"RefreshToken",
@@ -340,7 +359,7 @@
       "errors":[
         {"shape":"InvalidParameterException"}
       ],
-      "documentation":"<p>Refreshes a previously issued access token that might have expired.</p>"
+      "documentation":"<note> <p>This is for internal use.</p> </note> <p>Amplify uses this action to refresh a previously issued access token that might have expired.</p>"
     },
     "StartCodegenJob":{
       "name":"StartCodegenJob",
@@ -356,7 +375,45 @@
         {"shape":"InvalidParameterException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Starts a code generation job for for a specified Amplify app and backend environment.</p>"
+      "documentation":"<p>Starts a code generation job for a specified Amplify app and backend environment.</p>"
+    },
+    "TagResource":{
+      "name":"TagResource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/tags/{resourceArn}",
+        "responseCode":200
+      },
+      "input":{"shape":"TagResourceRequest"},
+      "output":{"shape":"TagResourceResponse"},
+      "errors":[
+        {"shape":"UnauthorizedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Tags the resource with a tag key and value.</p>",
+      "idempotent":true
+    },
+    "UntagResource":{
+      "name":"UntagResource",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/tags/{resourceArn}",
+        "responseCode":200
+      },
+      "input":{"shape":"UntagResourceRequest"},
+      "output":{"shape":"UntagResourceResponse"},
+      "errors":[
+        {"shape":"UnauthorizedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Untags a resource with a specified Amazon Resource Name (ARN).</p>",
+      "idempotent":true
     },
     "UpdateComponent":{
       "name":"UpdateComponent",
@@ -453,6 +510,25 @@
       },
       "documentation":"<p>Represents the event action configuration for an element of a <code>Component</code> or <code>ComponentChild</code>. Use for the workflow feature in Amplify Studio that allows you to bind events and actions to components. <code>ActionParameters</code> defines the action that is performed when an event occurs on the component.</p>"
     },
+    "ApiConfiguration":{
+      "type":"structure",
+      "members":{
+        "graphQLConfig":{
+          "shape":"GraphQLRenderConfig",
+          "documentation":"<p>The configuration for an application using GraphQL APIs.</p>"
+        },
+        "dataStoreConfig":{
+          "shape":"DataStoreRenderConfig",
+          "documentation":"<p>The configuration for an application using DataStore APIs.</p>"
+        },
+        "noApiConfig":{
+          "shape":"NoApiRenderConfig",
+          "documentation":"<p>The configuration for an application with no API being used.</p>"
+        }
+      },
+      "documentation":"<p>Describes the API configuration for a code generation job.</p>",
+      "union":true
+    },
     "AppId":{
       "type":"string",
       "max":20,
@@ -466,6 +542,32 @@
     "Boolean":{
       "type":"boolean",
       "box":true
+    },
+    "CodegenDependencies":{
+      "type":"list",
+      "member":{"shape":"CodegenDependency"}
+    },
+    "CodegenDependency":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"String",
+          "documentation":"<p>Name of the dependency package.</p>"
+        },
+        "supportedVersion":{
+          "shape":"String",
+          "documentation":"<p>Indicates the version of the supported dependency package.</p>"
+        },
+        "isSemVer":{
+          "shape":"Boolean",
+          "documentation":"<p>Determines if the dependency package is using Semantic versioning. If set to true, it indicates that the dependency package uses Semantic versioning.</p>"
+        },
+        "reason":{
+          "shape":"String",
+          "documentation":"<p>Indicates the reason to include the dependency package in your project code.</p>"
+        }
+      },
+      "documentation":"<p>Dependency package that may be required for the project code to run.</p>"
     },
     "CodegenFeatureFlags":{
       "type":"structure",
@@ -709,6 +811,10 @@
         "modifiedAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The time that the code generation job was modified.</p>"
+        },
+        "dependencies":{
+          "shape":"CodegenDependencies",
+          "documentation":"<p>Lists the dependency packages that may be required for the project code to run.</p>"
         }
       },
       "documentation":"<p>Describes the configuration for a code generation job that is associated with an Amplify app.</p>"
@@ -763,7 +869,7 @@
           "documentation":"<p>The name of the <code>ReactStartCodegenJobData</code> object.</p>"
         }
       },
-      "documentation":"<p>Describes the configuration information for rendering the UI component associated the code generation job.</p>",
+      "documentation":"<p>Describes the configuration information for rendering the UI component associated with the code generation job.</p>",
       "union":true
     },
     "CodegenJobStatus":{
@@ -1532,6 +1638,12 @@
         }
       },
       "payload":"entity"
+    },
+    "DataStoreRenderConfig":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>Describes the DataStore configuration for an API for a code generation job.</p>"
     },
     "DeleteComponentRequest":{
       "type":"structure",
@@ -2509,6 +2621,39 @@
       },
       "payload":"theme"
     },
+    "GraphQLRenderConfig":{
+      "type":"structure",
+      "required":[
+        "typesFilePath",
+        "queriesFilePath",
+        "mutationsFilePath",
+        "subscriptionsFilePath",
+        "fragmentsFilePath"
+      ],
+      "members":{
+        "typesFilePath":{
+          "shape":"String",
+          "documentation":"<p>The path to the GraphQL types file, relative to the component output directory.</p>"
+        },
+        "queriesFilePath":{
+          "shape":"String",
+          "documentation":"<p>The path to the GraphQL queries file, relative to the component output directory.</p>"
+        },
+        "mutationsFilePath":{
+          "shape":"String",
+          "documentation":"<p>The path to the GraphQL mutations file, relative to the component output directory.</p>"
+        },
+        "subscriptionsFilePath":{
+          "shape":"String",
+          "documentation":"<p>The path to the GraphQL subscriptions file, relative to the component output directory.</p>"
+        },
+        "fragmentsFilePath":{
+          "shape":"String",
+          "documentation":"<p>The path to the GraphQL fragments file, relative to the component output directory.</p>"
+        }
+      },
+      "documentation":"<p>Describes the GraphQL configuration for an API for a code generation job.</p>"
+    },
     "IdentifierList":{
       "type":"list",
       "member":{"shape":"String"}
@@ -2622,11 +2767,6 @@
         }
       }
     },
-    "ListComponentsLimit":{
-      "type":"integer",
-      "max":100,
-      "min":1
-    },
     "ListComponentsRequest":{
       "type":"structure",
       "required":[
@@ -2653,7 +2793,7 @@
           "locationName":"nextToken"
         },
         "maxResults":{
-          "shape":"ListComponentsLimit",
+          "shape":"ListEntityLimit",
           "documentation":"<p>The maximum number of components to retrieve.</p>",
           "location":"querystring",
           "locationName":"maxResults"
@@ -2674,8 +2814,9 @@
         }
       }
     },
-    "ListFormsLimit":{
+    "ListEntityLimit":{
       "type":"integer",
+      "box":true,
       "max":100,
       "min":1
     },
@@ -2705,7 +2846,7 @@
           "locationName":"nextToken"
         },
         "maxResults":{
-          "shape":"ListFormsLimit",
+          "shape":"ListEntityLimit",
           "documentation":"<p>The maximum number of forms to retrieve.</p>",
           "location":"querystring",
           "locationName":"maxResults"
@@ -2726,10 +2867,27 @@
         }
       }
     },
-    "ListThemesLimit":{
-      "type":"integer",
-      "max":100,
-      "min":1
+    "ListTagsForResourceRequest":{
+      "type":"structure",
+      "required":["resourceArn"],
+      "members":{
+        "resourceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) to use to list tags.</p>",
+          "location":"uri",
+          "locationName":"resourceArn"
+        }
+      }
+    },
+    "ListTagsForResourceResponse":{
+      "type":"structure",
+      "required":["tags"],
+      "members":{
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of tag key value pairs for a specified Amazon Resource Name (ARN).</p>"
+        }
+      }
     },
     "ListThemesRequest":{
       "type":"structure",
@@ -2757,7 +2915,7 @@
           "locationName":"nextToken"
         },
         "maxResults":{
-          "shape":"ListThemesLimit",
+          "shape":"ListEntityLimit",
           "documentation":"<p>The maximum number of theme results to return in the response.</p>",
           "location":"querystring",
           "locationName":"maxResults"
@@ -2800,6 +2958,12 @@
         }
       },
       "documentation":"<p>Represents the state configuration when an action modifies a property of another element within the same component.</p>"
+    },
+    "NoApiRenderConfig":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>Describes the configuration for an application with no API being used.</p>"
     },
     "NumValues":{
       "type":"list",
@@ -2888,6 +3052,12 @@
       },
       "payload":"body"
     },
+    "ReactCodegenDependencies":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"String"},
+      "documentation":"<p>Indicates the dependency version of the project code to be generated by Amazon Web Services Amplify. The version of the generated code output is determined by the version number contained in <code>aws-amplify</code>.</p>"
+    },
     "ReactStartCodegenJobData":{
       "type":"structure",
       "members":{
@@ -2910,6 +3080,14 @@
         "inlineSourceMap":{
           "shape":"Boolean",
           "documentation":"<p>Specifies whether the code generation job should render inline source maps.</p>"
+        },
+        "apiConfiguration":{
+          "shape":"ApiConfiguration",
+          "documentation":"<p>The API configuration for the code generation job.</p>"
+        },
+        "dependencies":{
+          "shape":"ReactCodegenDependencies",
+          "documentation":"<p>Lists the dependency packages that may be required for the project code to run.</p>"
         }
       },
       "documentation":"<p>Describes the code generation job configuration for a React project.</p>"
@@ -3169,6 +3347,36 @@
       "min":1,
       "pattern":"(?!aws:)[a-zA-Z+-=._:/]+"
     },
+    "TagKeyList":{
+      "type":"list",
+      "member":{"shape":"TagKey"},
+      "max":200,
+      "min":0
+    },
+    "TagResourceRequest":{
+      "type":"structure",
+      "required":[
+        "resourceArn",
+        "tags"
+      ],
+      "members":{
+        "resourceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) to use to tag a resource.</p>",
+          "location":"uri",
+          "locationName":"resourceArn"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of tag key value pairs for a specified Amazon Resource Name (ARN).</p>"
+        }
+      }
+    },
+    "TagResourceResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "TagValue":{
       "type":"string",
       "max":256,
@@ -3329,6 +3537,32 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "UntagResourceRequest":{
+      "type":"structure",
+      "required":[
+        "resourceArn",
+        "tagKeys"
+      ],
+      "members":{
+        "resourceArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) to use to untag a resource.</p>",
+          "location":"uri",
+          "locationName":"resourceArn"
+        },
+        "tagKeys":{
+          "shape":"TagKeyList",
+          "documentation":"<p>The tag keys to use to untag a resource.</p>",
+          "location":"querystring",
+          "locationName":"tagKeys"
+        }
+      }
+    },
+    "UntagResourceResponse":{
+      "type":"structure",
+      "members":{
+      }
     },
     "UpdateComponentData":{
       "type":"structure",

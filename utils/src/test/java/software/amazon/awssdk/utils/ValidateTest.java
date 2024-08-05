@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.utils;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -488,8 +489,9 @@ public class ValidateTest  {
     public void paramNotNull_NullParam_ThrowsException() {
         try {
             Validate.paramNotNull(null, "someField");
-        } catch (NullPointerException e) {
-            assertEquals(e.getMessage(), "someField must not be null.");
+        } catch (Exception e) {
+            assertThat(e).isInstanceOf(NullPointerException.class);
+            assertEquals("someField must not be null.", e.getMessage());
         }
     }
 
@@ -608,6 +610,19 @@ public class ValidateTest  {
         expected.expect(IllegalArgumentException.class);
         expected.expectMessage("not null");
         Validate.isNull("string", "not null");
+    }
+
+    @Test
+    public void isNotNegativeOrNull_negative_throws() {
+        expected.expect(IllegalArgumentException.class);
+        expected.expectMessage("foo");
+        Validate.isNotNegativeOrNull(-1L, "foo");
+    }
+
+    @Test
+    public void isNotNegativeOrNull_notNegative_notThrow() {
+        assertThat(Validate.isNotNegativeOrNull(5L, "foo")).isEqualTo(5L);
+        assertThat(Validate.isNotNegativeOrNull(0L, "foo")).isEqualTo(0L);
     }
 
     @Test

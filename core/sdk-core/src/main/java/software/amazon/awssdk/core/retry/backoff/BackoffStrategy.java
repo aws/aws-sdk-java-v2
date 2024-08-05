@@ -21,8 +21,12 @@ import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
+/**
+ * @deprecated Use instead {@link software.amazon.awssdk.retries.api.BackoffStrategy}
+ */
 @SdkPublicApi
 @FunctionalInterface
+@Deprecated
 public interface BackoffStrategy {
 
     /**

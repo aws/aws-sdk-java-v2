@@ -1,0 +1,42 @@
+{
+    "version": "2.20.140",
+    "date": "2023-09-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Update Jackson to `2.15.2`."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SSO Identity Store",
+            "contributor": "",
+            "description": "New Identity Store content for China Region launch"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Media Pipelines",
+            "contributor": "",
+            "description": "This release adds support for the Voice Analytics feature for customer-owned KVS streams as part of the Amazon Chime SDK call analytics."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect adds the ability to read, create, update, delete, and list view resources, and adds the ability to read, create, delete, and list view versions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon NeptuneData",
+            "contributor": "",
+            "description": "Removed the descriptive text in the introduction."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

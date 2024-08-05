@@ -23,19 +23,15 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.crt.CrtResource;
-import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
-import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -70,7 +66,6 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
         crtClient.close();
         S3IntegrationTestBase.deleteBucketAndAllContents(BUCKET);
         executorService.shutdown();
-        CrtResource.waitForNoResources();
     }
 
     @Test
@@ -97,35 +92,4 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
 
     }
 
-    private static final class TestResponseTransformer implements AsyncResponseTransformer<GetObjectResponse, Void> {
-        private CompletableFuture<Void> future;
-
-        @Override
-        public CompletableFuture<Void> prepare() {
-            future = new CompletableFuture<>();
-            return future;
-        }
-
-        @Override
-        public void onResponse(GetObjectResponse response) {
-            assertThat(response).isNotNull();
-        }
-
-        @Override
-        public void onStream(SdkPublisher<ByteBuffer> publisher) {
-            publisher.subscribe(new SimpleSubscriber(b -> {
-            }) {
-                @Override
-                public void onComplete() {
-                    super.onComplete();
-                    future.complete(null);
-                }
-            });
-        }
-
-        @Override
-        public void exceptionOccurred(Throwable error) {
-            future.completeExceptionally(error);
-        }
-    }
 }

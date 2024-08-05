@@ -1,0 +1,66 @@
+{
+    "version": "2.21.16",
+    "date": "2023-11-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "AWS CodeBuild now supports AWS Lambda compute."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "This release extends the GetReservationPurchaseRecommendation API to support recommendations for Amazon MemoryDB reservations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Add partitional endpoint for iso-e."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Added new API that allows Amazon Connect Outbound Campaigns to create contacts in Amazon Connect when ingesting your dial requests."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB with MongoDB compatibility",
+            "contributor": "",
+            "description": "Update the input of CreateDBInstance and ModifyDBInstance to support setting CA Certificates. Update the output of DescribeDBInstance and DescribeDBEngineVersions to show current and supported CA certificates."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonMWAA",
+            "contributor": "",
+            "description": "This release adds support for Apache Airflow version 2.7.2. This version release includes support for deferrable operators and triggers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Polly",
+            "contributor": "",
+            "description": "Amazon Polly adds new US English voices - Danielle and Gregory. Danielle and Gregory are available as Neural voices only."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Add partitional endpoints for iso-e and iso-f."
+        },
+        {
+            "type": "feature",
+            "category": "s3",
+            "contributor": "",
+            "description": "Move the service to the standardized AWS SDK architecture for identity and auth that was introduced in 2.21.0 release."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

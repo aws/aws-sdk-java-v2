@@ -17,8 +17,8 @@ package software.amazon.awssdk.awscore.internal.authcontext;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.TokenUtils;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
-import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.signer.SdkTokenExecutionAttribute;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -26,20 +26,27 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
 /**
  * An authorization strategy for tokens that can resolve a compatible signer as
  * well as provide a resolved token as an execution attribute.
+ *
+ * @deprecated This is only used for compatibility with pre-SRA authorization logic. After we are comfortable that the new code
+ * paths are working, we should migrate old clients to the new code paths (where possible) and delete this code.
  */
+@Deprecated
 @SdkInternalApi
 public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
 
     private final SdkRequest request;
     private final Signer defaultSigner;
-    private final SdkTokenProvider defaultTokenProvider;
+    private final IdentityProvider<? extends TokenIdentity> defaultTokenProvider;
     private final MetricCollector metricCollector;
 
     public TokenAuthorizationStrategy(Builder builder) {
@@ -71,25 +78,29 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
      */
     @Override
     public void addCredentialsToExecutionAttributes(ExecutionAttributes executionAttributes) {
-        SdkToken credentials = resolveToken(defaultTokenProvider, metricCollector);
-        executionAttributes.putAttribute(SdkTokenExecutionAttribute.SDK_TOKEN, credentials);
+        TokenIdentity tokenIdentity = resolveToken(defaultTokenProvider, metricCollector);
+        SdkToken token = TokenUtils.toSdkToken(tokenIdentity);
+        executionAttributes.putAttribute(SdkTokenExecutionAttribute.SDK_TOKEN, token);
     }
 
-    private static SdkToken resolveToken(SdkTokenProvider tokenProvider, MetricCollector metricCollector) {
+    private static TokenIdentity resolveToken(IdentityProvider<? extends TokenIdentity> tokenProvider,
+                                              MetricCollector metricCollector) {
         Validate.notNull(tokenProvider, "No token provider exists to resolve a token from.");
 
-        Pair<SdkToken, Duration> measured = MetricUtils.measureDuration(tokenProvider::resolveToken);
+        // TODO(sra-identity-and-auth): internal issue SMITHY-1677. avoid join for async clients.
+        Pair<TokenIdentity, Duration> measured =
+            MetricUtils.measureDuration(() -> CompletableFutureUtils.joinLikeSync(tokenProvider.resolveIdentity()));
         metricCollector.reportMetric(CoreMetric.TOKEN_FETCH_DURATION, measured.right());
-        SdkToken credentials = measured.left();
+        TokenIdentity token = measured.left();
 
-        Validate.validState(credentials != null, "Token providers must never return null.");
-        return credentials;
+        Validate.validState(token != null, "Token providers must never return null.");
+        return token;
     }
 
     public static final class Builder {
         private SdkRequest request;
         private Signer defaultSigner;
-        private SdkTokenProvider defaultTokenProvider;
+        private IdentityProvider<? extends TokenIdentity> defaultTokenProvider;
         private MetricCollector metricCollector;
 
         private Builder() {
@@ -113,11 +124,11 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
             return this;
         }
 
-        public SdkTokenProvider defaultTokenProvider() {
+        public IdentityProvider<? extends TokenIdentity> defaultTokenProvider() {
             return this.defaultTokenProvider;
         }
 
-        public Builder defaultTokenProvider(SdkTokenProvider defaultTokenProvider) {
+        public Builder defaultTokenProvider(IdentityProvider<? extends TokenIdentity> defaultTokenProvider) {
             this.defaultTokenProvider = defaultTokenProvider;
             return this;
         }

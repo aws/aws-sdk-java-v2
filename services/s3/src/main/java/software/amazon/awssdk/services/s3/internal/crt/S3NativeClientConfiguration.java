@@ -21,7 +21,6 @@ import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
 import java.net.URI;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
@@ -31,6 +30,8 @@ import software.amazon.awssdk.crt.io.StandardRetryOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.utils.Logger;
@@ -51,22 +52,25 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final CrtCredentialsProviderAdapter credentialProviderAdapter;
     private final CredentialsProvider credentialsProvider;
     private final long partSizeInBytes;
+    private final long thresholdInBytes;
     private final double targetThroughputInGbps;
     private final int maxConcurrency;
     private final URI endpointOverride;
     private final boolean checksumValidationEnabled;
     private final Long readBufferSizeInBytes;
-
     private final TlsContext tlsContext;
+    private final TlsContextOptions clientTlsContextOptions;
     private final HttpProxyOptions proxyOptions;
     private final Duration connectionTimeout;
     private final HttpMonitoringOptions httpMonitoringOptions;
+    private final Boolean useEnvironmentVariableProxyOptionsValues;
+    private final long maxNativeMemoryLimitInBytes;
 
     public S3NativeClientConfiguration(Builder builder) {
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
                              builder.signingRegion;
         this.clientBootstrap = new ClientBootstrap(null, null);
-        TlsContextOptions clientTlsContextOptions =
+        clientTlsContextOptions =
             TlsContextOptions.createDefaultClient()
                              .withCipherPreference(TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT);
 
@@ -86,11 +90,14 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         this.partSizeInBytes = builder.partSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES :
                                builder.partSizeInBytes;
+        this.thresholdInBytes = builder.thresholdInBytes == null ? this.partSizeInBytes :
+                                builder.thresholdInBytes;
         this.targetThroughputInGbps = builder.targetThroughputInGbps == null ?
                                       DEFAULT_TARGET_THROUGHPUT_IN_GBPS : builder.targetThroughputInGbps;
 
         // Using 0 so that CRT will calculate it based on targetThroughputGbps
         this.maxConcurrency = builder.maxConcurrency == null ? 0 : builder.maxConcurrency;
+        this.maxNativeMemoryLimitInBytes = builder.maxNativeMemoryLimitInBytes == null ? 0 : builder.maxNativeMemoryLimitInBytes;
 
         this.endpointOverride = builder.endpointOverride;
 
@@ -109,6 +116,18 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
             this.httpMonitoringOptions = null;
         }
         this.standardRetryOptions = builder.standardRetryOptions;
+        this.useEnvironmentVariableProxyOptionsValues = resolveUseEnvironmentVariableValues(builder);
+    }
+
+    private static Boolean resolveUseEnvironmentVariableValues(Builder builder) {
+        if (builder != null && builder.httpConfiguration != null && builder.httpConfiguration.proxyConfiguration() != null) {
+            return builder.httpConfiguration.proxyConfiguration().isUseEnvironmentVariableValues();
+        }
+        return true;
+    }
+
+    public Boolean isUseEnvironmentVariableValues() {
+        return useEnvironmentVariableProxyOptionsValues;
     }
 
     public HttpMonitoringOptions httpMonitoringOptions() {
@@ -140,12 +159,24 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return credentialsProvider;
     }
 
+    public TlsContext tlsContext() {
+        return tlsContext;
+    }
+
     public long partSizeBytes() {
         return partSizeInBytes;
     }
 
+    public long thresholdInBytes() {
+        return thresholdInBytes;
+    }
+
     public double targetThroughputInGbps() {
         return targetThroughputInGbps;
+    }
+
+    public long maxNativeMemoryLimitInBytes() {
+        return maxNativeMemoryLimitInBytes;
     }
 
     public int maxConcurrency() {
@@ -171,6 +202,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     @Override
     public void close() {
         clientBootstrap.close();
+        clientTlsContextOptions.close();
         tlsContext.close();
         credentialProviderAdapter.close();
     }
@@ -178,7 +210,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     public static final class Builder {
         private Long readBufferSizeInBytes;
         private String signingRegion;
-        private AwsCredentialsProvider credentialsProvider;
+        private IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
         private Long partSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
@@ -187,6 +219,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         private S3CrtHttpConfiguration httpConfiguration;
         private StandardRetryOptions standardRetryOptions;
+        private Long thresholdInBytes;
+        private Long maxNativeMemoryLimitInBytes;
 
         private Builder() {
         }
@@ -196,7 +230,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
             return this;
         }
 
-        public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+        public Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
             return this;
         }
@@ -213,6 +247,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public Builder maxConcurrency(Integer maxConcurrency) {
             this.maxConcurrency = maxConcurrency;
+            return this;
+        }
+
+        public Builder maxNativeMemoryLimitInBytes(Long maxNativeMemoryLimitInBytes) {
+            this.maxNativeMemoryLimitInBytes = maxNativeMemoryLimitInBytes;
             return this;
         }
 
@@ -245,6 +284,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public Builder standardRetryOptions(StandardRetryOptions standardRetryOptions) {
             this.standardRetryOptions = standardRetryOptions;
+            return this;
+        }
+
+        public Builder thresholdInBytes(Long thresholdInBytes) {
+            this.thresholdInBytes = thresholdInBytes;
             return this;
         }
     }

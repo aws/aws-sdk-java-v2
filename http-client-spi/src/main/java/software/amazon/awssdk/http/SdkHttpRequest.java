@@ -192,6 +192,17 @@ public interface SdkHttpRequest extends SdkHttpHeaders, ToCopyableBuilder<SdkHtt
         }
 
         /**
+         * Convenience method to set the {@link #protocol()}, {@link #host()}, {@link #port()},
+         * {@link #encodedPath()} and extracts query parameters from a URI string.
+         *
+         * @param uri URI containing protocol, host, port and path.
+         * @return This builder for method chaining.
+         */
+        default Builder uri(String uri) {
+            return uri(URI.create(uri));
+        }
+
+        /**
          * The protocol, exactly as it was configured with {@link #protocol(String)}.
          */
         String protocol();

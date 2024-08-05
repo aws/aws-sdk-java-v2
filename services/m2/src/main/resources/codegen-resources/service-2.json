@@ -22,12 +22,12 @@
       "input":{"shape":"CancelBatchJobExecutionRequest"},
       "output":{"shape":"CancelBatchJobExecutionResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"ConflictException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Cancels the running of a specific batch job execution.</p>"
     },
@@ -41,12 +41,12 @@
       "input":{"shape":"CreateApplicationRequest"},
       "output":{"shape":"CreateApplicationResponse"},
       "errors":[
-        {"shape":"ValidationException"},
         {"shape":"ServiceQuotaExceededException"},
-        {"shape":"ConflictException"},
-        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ThrottlingException"}
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Creates a new application with given parameters. Requires an existing runtime environment and application definition file.</p>",
       "idempotent":true
@@ -61,13 +61,13 @@
       "input":{"shape":"CreateDataSetImportTaskRequest"},
       "output":{"shape":"CreateDataSetImportTaskResponse"},
       "errors":[
-        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ServiceQuotaExceededException"},
-        {"shape":"ConflictException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Starts a data set import task for a specific application.</p>",
       "idempotent":true
@@ -82,13 +82,13 @@
       "input":{"shape":"CreateDeploymentRequest"},
       "output":{"shape":"CreateDeploymentResponse"},
       "errors":[
-        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ServiceQuotaExceededException"},
-        {"shape":"ConflictException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Creates and starts a deployment to deploy an application into a runtime environment.</p>",
       "idempotent":true
@@ -103,12 +103,12 @@
       "input":{"shape":"CreateEnvironmentRequest"},
       "output":{"shape":"CreateEnvironmentResponse"},
       "errors":[
-        {"shape":"ValidationException"},
         {"shape":"ServiceQuotaExceededException"},
-        {"shape":"ConflictException"},
-        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ThrottlingException"}
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Creates a runtime environment for a given runtime engine.</p>",
       "idempotent":true
@@ -123,11 +123,11 @@
       "input":{"shape":"DeleteApplicationRequest"},
       "output":{"shape":"DeleteApplicationResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"ConflictException"},
-        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ThrottlingException"}
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Deletes a specific application. You cannot delete a running application.</p>",
       "idempotent":true
@@ -142,12 +142,12 @@
       "input":{"shape":"DeleteApplicationFromEnvironmentRequest"},
       "output":{"shape":"DeleteApplicationFromEnvironmentResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"ConflictException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Deletes a specific application from the specific runtime environment where it was previously deployed. You cannot delete a runtime environment using DeleteEnvironment if any application has ever been deployed to it. This API removes the association of the application with the runtime environment so you can delete the environment smoothly.</p>"
     },
@@ -161,11 +161,11 @@
       "input":{"shape":"DeleteEnvironmentRequest"},
       "output":{"shape":"DeleteEnvironmentResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"ConflictException"},
-        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ThrottlingException"}
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Deletes a specific runtime environment. The environment cannot contain deployed applications. If it does, you must delete those applications before you delete the environment.</p>",
       "idempotent":true
@@ -180,11 +180,11 @@
       "input":{"shape":"GetApplicationRequest"},
       "output":{"shape":"GetApplicationResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Describes the details of a specific application.</p>"
     },
@@ -198,11 +198,11 @@
       "input":{"shape":"GetApplicationVersionRequest"},
       "output":{"shape":"GetApplicationVersionResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Returns details about a specific version of a specific application.</p>"
     },
@@ -216,11 +216,11 @@
       "input":{"shape":"GetBatchJobExecutionRequest"},
       "output":{"shape":"GetBatchJobExecutionResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Gets the details of a specific batch job execution for a specific application.</p>"
     },
@@ -234,11 +234,14 @@
       "input":{"shape":"GetDataSetDetailsRequest"},
       "output":{"shape":"GetDataSetDetailsResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ExecutionTimeoutException"},
+        {"shape":"ServiceUnavailableException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Gets the details of a specific data set.</p>"
     },
@@ -252,11 +255,11 @@
       "input":{"shape":"GetDataSetImportTaskRequest"},
       "output":{"shape":"GetDataSetImportTaskResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Gets the status of a data set import task initiated with the <a>CreateDataSetImportTask</a> operation.</p>"
     },
@@ -270,11 +273,11 @@
       "input":{"shape":"GetDeploymentRequest"},
       "output":{"shape":"GetDeploymentResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Gets details of a specific deployment with a given deployment identifier.</p>"
     },
@@ -288,13 +291,28 @@
       "input":{"shape":"GetEnvironmentRequest"},
       "output":{"shape":"GetEnvironmentResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Describes a specific runtime environment.</p>"
+    },
+    "GetSignedBluinsightsUrl":{
+      "name":"GetSignedBluinsightsUrl",
+      "http":{
+        "method":"GET",
+        "requestUri":"/signed-bi-url",
+        "responseCode":200
+      },
+      "output":{"shape":"GetSignedBluinsightsUrlResponse"},
+      "errors":[
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Gets a single sign-on URL that can be used to connect to AWS Blu Insights.</p>"
     },
     "ListApplicationVersions":{
       "name":"ListApplicationVersions",
@@ -306,11 +324,11 @@
       "input":{"shape":"ListApplicationVersionsRequest"},
       "output":{"shape":"ListApplicationVersionsResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Returns a list of the application versions for a specific application.</p>"
     },
@@ -324,10 +342,10 @@
       "input":{"shape":"ListApplicationsRequest"},
       "output":{"shape":"ListApplicationsResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ThrottlingException"}
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Lists the applications associated with a specific Amazon Web Services account. You can provide the unique identifier of a specific runtime environment in a query parameter to see all applications associated with that environment.</p>"
     },
@@ -341,11 +359,11 @@
       "input":{"shape":"ListBatchJobDefinitionsRequest"},
       "output":{"shape":"ListBatchJobDefinitionsResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Lists all the available batch job definitions based on the batch job resources uploaded during the application creation. You can use the batch job definitions in the list to start a batch job.</p>"
     },
@@ -359,13 +377,32 @@
       "input":{"shape":"ListBatchJobExecutionsRequest"},
       "output":{"shape":"ListBatchJobExecutionsResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Lists historical, current, and scheduled batch job executions for a specific application.</p>"
+    },
+    "ListBatchJobRestartPoints":{
+      "name":"ListBatchJobRestartPoints",
+      "http":{
+        "method":"GET",
+        "requestUri":"/applications/{applicationId}/batch-job-executions/{executionId}/steps",
+        "responseCode":200
+      },
+      "input":{"shape":"ListBatchJobRestartPointsRequest"},
+      "output":{"shape":"ListBatchJobRestartPointsResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Lists all the job steps for JCL files to restart a batch job. This is only applicable for Micro Focus engine with versions 8.0.6 and above.</p>"
     },
     "ListDataSetImportHistory":{
       "name":"ListDataSetImportHistory",
@@ -377,11 +414,11 @@
       "input":{"shape":"ListDataSetImportHistoryRequest"},
       "output":{"shape":"ListDataSetImportHistoryResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Lists the data set imports for the specified application.</p>"
     },
@@ -395,11 +432,14 @@
       "input":{"shape":"ListDataSetsRequest"},
       "output":{"shape":"ListDataSetsResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ExecutionTimeoutException"},
+        {"shape":"ServiceUnavailableException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Lists the data sets imported for a specific application. In Amazon Web Services Mainframe Modernization, data sets are associated with applications deployed on runtime environments. This is known as importing data sets. Currently, Amazon Web Services Mainframe Modernization can import data sets into catalogs using <a href=\"https://docs.aws.amazon.com/m2/latest/APIReference/API_CreateDataSetImportTask.html\">CreateDataSetImportTask</a>.</p>"
     },
@@ -413,11 +453,11 @@
       "input":{"shape":"ListDeploymentsRequest"},
       "output":{"shape":"ListDeploymentsResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Returns a list of all deployments of a specific application. A deployment is a combination of a specific application and a specific version of that application. Each deployment is mapped to a particular application version.</p>"
     },
@@ -431,10 +471,10 @@
       "input":{"shape":"ListEngineVersionsRequest"},
       "output":{"shape":"ListEngineVersionsResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ThrottlingException"}
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Lists the available engine versions.</p>"
     },
@@ -448,10 +488,10 @@
       "input":{"shape":"ListEnvironmentsRequest"},
       "output":{"shape":"ListEnvironmentsResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ThrottlingException"}
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Lists the runtime environments.</p>"
     },
@@ -465,11 +505,11 @@
       "input":{"shape":"ListTagsForResourceRequest"},
       "output":{"shape":"ListTagsForResourceResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Lists the tags for the specified resource.</p>"
     },
@@ -483,12 +523,12 @@
       "input":{"shape":"StartApplicationRequest"},
       "output":{"shape":"StartApplicationResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"ConflictException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Starts an application that is currently stopped.</p>"
     },
@@ -502,12 +542,12 @@
       "input":{"shape":"StartBatchJobRequest"},
       "output":{"shape":"StartBatchJobResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"ConflictException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Starts a batch job and returns the unique identifier of this execution of the batch job. The associated application must be running in order to start the batch job.</p>"
     },
@@ -521,12 +561,12 @@
       "input":{"shape":"StopApplicationRequest"},
       "output":{"shape":"StopApplicationResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"ConflictException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Stops a running application.</p>"
     },
@@ -540,12 +580,12 @@
       "input":{"shape":"TagResourceRequest"},
       "output":{"shape":"TagResourceResponse"},
       "errors":[
-        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ServiceQuotaExceededException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Adds one or more tags to the specified resource.</p>"
     },
@@ -559,11 +599,11 @@
       "input":{"shape":"UntagResourceRequest"},
       "output":{"shape":"UntagResourceResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Removes one or more tags from the specified resource.</p>"
     },
@@ -577,12 +617,12 @@
       "input":{"shape":"UpdateApplicationRequest"},
       "output":{"shape":"UpdateApplicationResponse"},
       "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"ConflictException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Updates an application and creates a new version.</p>"
     },
@@ -596,13 +636,13 @@
       "input":{"shape":"UpdateEnvironmentRequest"},
       "output":{"shape":"UpdateEnvironmentResponse"},
       "errors":[
-        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ServiceQuotaExceededException"},
-        {"shape":"ConflictException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
         {"shape":"ThrottlingException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Updates the configuration details for a specific runtime environment.</p>"
     }
@@ -823,6 +863,7 @@
         "Cancelled",
         "Succeeded",
         "Failed",
+        "Purged",
         "Succeeded With Warning"
       ]
     },
@@ -889,6 +930,14 @@
           "shape":"FileBatchJobIdentifier",
           "documentation":"<p>Specifies a file associated with a specific batch job.</p>"
         },
+        "restartBatchJobIdentifier":{
+          "shape":"RestartBatchJobIdentifier",
+          "documentation":"<p>Specifies the required information for restart, including execution ID and jobsteprestartmarker.</p>"
+        },
+        "s3BatchJobIdentifier":{
+          "shape":"S3BatchJobIdentifier",
+          "documentation":"<p>Specifies an Amazon S3 location that identifies the batch jobs that you want to run. Use this identifier to run ad hoc batch jobs.</p>"
+        },
         "scriptBatchJobIdentifier":{
           "shape":"ScriptBatchJobIdentifier",
           "documentation":"<p>A batch job identifier in which the batch job to run is identified by the script name.</p>"
@@ -905,6 +954,10 @@
       "max":500,
       "min":0
     },
+    "BatchJobStepList":{
+      "type":"list",
+      "member":{"shape":"JobStep"}
+    },
     "BatchJobType":{
       "type":"string",
       "enum":[
@@ -916,14 +969,14 @@
     "BatchParamKey":{
       "type":"string",
       "documentation":"<p>See https://www.ibm.com/docs/en/workload-automation/9.3.0?topic=zos-coding-variables-in-jcl to get details about limits for both keys and values: 8 for keys (variable names), 44 for values (variable values) In addition, keys will be only alphabetic characters and digits, without any space or special characters (dash, underscore, etc ...)</p> <p>Parameter key: the first character must be alphabetic. Can be of up to 8 alphanumeric characters.</p>",
-      "max":8,
+      "max":32,
       "min":1,
       "pattern":"^[A-Za-z][A-Za-z0-9]{1,7}$"
     },
     "BatchParamValue":{
       "type":"string",
       "documentation":"<p>Parameter value can be of up to 44 alphanumeric characters.</p>",
-      "max":44,
+      "max":80,
       "min":0
     },
     "Boolean":{"type":"boolean"},
@@ -955,9 +1008,7 @@
     },
     "CapacityValue":{
       "type":"integer",
-      "box":true,
-      "max":100,
-      "min":1
+      "box":true
     },
     "ConflictException":{
       "type":"structure",
@@ -1015,7 +1066,7 @@
         },
         "roleArn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the role associated with the application.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) that identifies a role that the application uses to access Amazon Web Services resources that are not part of the application or are in a different Amazon Web Services account.</p>"
         },
         "tags":{
           "shape":"TagMap",
@@ -1161,7 +1212,7 @@
         },
         "preferredMaintenanceWindow":{
           "shape":"String50",
-          "documentation":"<p>Configures the maintenance window you want for the runtime environment. If you do not provide a value, a random system-generated value will be assigned.</p>"
+          "documentation":"<p>Configures the maintenance window that you want for the runtime environment. The maintenance window must have the format <code>ddd:hh24:mi-ddd:hh24:mi</code> and must be less than 24 hours. The following two examples are valid maintenance windows: <code>sun:23:45-mon:00:15</code> or <code>sat:01:00-sat:03:00</code>. </p> <p>If you do not provide a value, a random system-generated value will be assigned.</p>"
         },
         "publiclyAccessible":{
           "shape":"Boolean",
@@ -1310,6 +1361,10 @@
           "shape":"DataSetTaskLifecycle",
           "documentation":"<p>The status of the data set import task.</p>"
         },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>If dataset import failed, the failure reason will show here.</p>"
+        },
         "summary":{
           "shape":"DataSetImportSummary",
           "documentation":"<p>A summary of the data set import task.</p>"
@@ -1361,7 +1416,8 @@
       "enum":[
         "Creating",
         "Running",
-        "Completed"
+        "Completed",
+        "Failed"
       ]
     },
     "DataSetsSummaryList":{
@@ -1516,7 +1572,8 @@
       "enum":[
         "Deploying",
         "Succeeded",
-        "Failed"
+        "Failed",
+        "Updating Deployment"
       ]
     },
     "DeploymentList":{
@@ -1638,9 +1695,9 @@
       "enum":[
         "Creating",
         "Available",
+        "Updating",
         "Deleting",
-        "Failed",
-        "Updating"
+        "Failed"
       ]
     },
     "EnvironmentSummary":{
@@ -1694,6 +1751,18 @@
     "EnvironmentSummaryList":{
       "type":"list",
       "member":{"shape":"EnvironmentSummary"}
+    },
+    "ExecutionTimeoutException":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p> Failed to connect to server, or didn’t receive response within expected time period.</p>",
+      "error":{"httpStatusCode":504},
+      "exception":true,
+      "fault":true,
+      "retryable":{"throttling":false}
     },
     "ExternalLocation":{
       "type":"structure",
@@ -2005,6 +2074,10 @@
           "shape":"String100",
           "documentation":"<p>The name of this batch job.</p>"
         },
+        "jobStepRestartMarker":{
+          "shape":"JobStepRestartMarker",
+          "documentation":"<p>The restart steps information for the most recent restart operation.</p>"
+        },
         "jobType":{
           "shape":"BatchJobType",
           "documentation":"<p>The type of job.</p>"
@@ -2072,6 +2145,10 @@
         "dataSetOrg":{
           "shape":"DatasetDetailOrgAttributes",
           "documentation":"<p>The type of data set. The only supported value is VSAM.</p>"
+        },
+        "fileSize":{
+          "shape":"Long",
+          "documentation":"<p>File size of the dataset.</p>"
         },
         "lastReferencedTime":{
           "shape":"Timestamp",
@@ -2226,7 +2303,7 @@
       "members":{
         "actualCapacity":{
           "shape":"CapacityValue",
-          "documentation":"<p>The number of instances included in the runtime environment. A standalone runtime environment has a maxiumum of one instance. Currently, a high availability runtime environment has a maximum of two instances. </p>"
+          "documentation":"<p>The number of instances included in the runtime environment. A standalone runtime environment has a maximum of one instance. Currently, a high availability runtime environment has a maximum of two instances. </p>"
         },
         "creationTime":{
           "shape":"Timestamp",
@@ -2278,7 +2355,7 @@
         },
         "preferredMaintenanceWindow":{
           "shape":"String50",
-          "documentation":"<p>Configures the maintenance window you want for the runtime environment. If you do not provide a value, a random system-generated value will be assigned.</p>"
+          "documentation":"<p>The maintenance window for the runtime environment. If you don't provide a value for the maintenance window, the service assigns a random value.</p>"
         },
         "publiclyAccessible":{
           "shape":"Boolean",
@@ -2314,13 +2391,23 @@
         }
       }
     },
+    "GetSignedBluinsightsUrlResponse":{
+      "type":"structure",
+      "required":["signedBiUrl"],
+      "members":{
+        "signedBiUrl":{
+          "shape":"String",
+          "documentation":"<p>Single sign-on AWS Blu Insights URL.</p>"
+        }
+      }
+    },
     "HighAvailabilityConfig":{
       "type":"structure",
       "required":["desiredCapacity"],
       "members":{
         "desiredCapacity":{
           "shape":"CapacityValue",
-          "documentation":"<p>The number of instances in a high availability configuration.</p>"
+          "documentation":"<p>The number of instances in a high availability configuration. The minimum possible value is 1 and the maximum is 100.</p>"
         }
       },
       "documentation":"<p>Defines the details of a high availability configuration.</p>"
@@ -2353,6 +2440,74 @@
       "exception":true,
       "fault":true,
       "retryable":{"throttling":false}
+    },
+    "JobIdentifier":{
+      "type":"structure",
+      "members":{
+        "fileName":{
+          "shape":"String",
+          "documentation":"<p>The name of the file that contains the batch job definition.</p>"
+        },
+        "scriptName":{
+          "shape":"String",
+          "documentation":"<p>The name of the script that contains the batch job definition.</p>"
+        }
+      },
+      "documentation":"<p>Identifies a specific batch job.</p>",
+      "union":true
+    },
+    "JobStep":{
+      "type":"structure",
+      "members":{
+        "procStepName":{
+          "shape":"String",
+          "documentation":"<p>The name of a procedure step.</p>"
+        },
+        "procStepNumber":{
+          "shape":"Integer",
+          "documentation":"<p>The number of a procedure step.</p>"
+        },
+        "stepCondCode":{
+          "shape":"String",
+          "documentation":"<p>The condition code of a step.</p>"
+        },
+        "stepName":{
+          "shape":"String",
+          "documentation":"<p>The name of a step.</p>"
+        },
+        "stepNumber":{
+          "shape":"Integer",
+          "documentation":"<p>The number of a step.</p>"
+        },
+        "stepRestartable":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies if a step can be restarted or not.</p>"
+        }
+      },
+      "documentation":"<p>Provides information related to a job step.</p>"
+    },
+    "JobStepRestartMarker":{
+      "type":"structure",
+      "required":["fromStep"],
+      "members":{
+        "fromProcStep":{
+          "shape":"String",
+          "documentation":"<p>The procedure step name that a job was restarted from.</p>"
+        },
+        "fromStep":{
+          "shape":"String",
+          "documentation":"<p>The step name that a batch job restart was from.</p>"
+        },
+        "toProcStep":{
+          "shape":"String",
+          "documentation":"<p>The procedure step name that a batch job was restarted to.</p>"
+        },
+        "toStep":{
+          "shape":"String",
+          "documentation":"<p>The step name that a job was restarted to.</p>"
+        }
+      },
+      "documentation":"<p>Provides restart step information for the most recent restart operation.</p>"
     },
     "ListApplicationVersionsRequest":{
       "type":"structure",
@@ -2547,6 +2702,36 @@
         }
       }
     },
+    "ListBatchJobRestartPointsRequest":{
+      "type":"structure",
+      "required":[
+        "applicationId",
+        "executionId"
+      ],
+      "members":{
+        "applicationId":{
+          "shape":"Identifier",
+          "documentation":"<p>The unique identifier of the application.</p>",
+          "location":"uri",
+          "locationName":"applicationId"
+        },
+        "executionId":{
+          "shape":"Identifier",
+          "documentation":"<p>The unique identifier of each batch job execution.</p>",
+          "location":"uri",
+          "locationName":"executionId"
+        }
+      }
+    },
+    "ListBatchJobRestartPointsResponse":{
+      "type":"structure",
+      "members":{
+        "batchJobSteps":{
+          "shape":"BatchJobStepList",
+          "documentation":"<p>Returns all the batch job steps and related information for a batch job that previously ran.</p>"
+        }
+      }
+    },
     "ListDataSetImportHistoryRequest":{
       "type":"structure",
       "required":["applicationId"],
@@ -2600,6 +2785,12 @@
           "documentation":"<p>The maximum number of objects to return.</p>",
           "location":"querystring",
           "locationName":"maxResults"
+        },
+        "nameFilter":{
+          "shape":"String200",
+          "documentation":"<p>Filter dataset name matching the specified pattern. Can use * and % as wild cards.</p>",
+          "location":"querystring",
+          "locationName":"nameFilter"
         },
         "nextToken":{
           "shape":"NextToken",
@@ -2796,6 +2987,10 @@
       },
       "documentation":"<p>A subset of the attributes that describe a log group. In CloudWatch a log group is a group of log streams that share the same retention, monitoring, and access control settings.</p>"
     },
+    "Long":{
+      "type":"long",
+      "box":true
+    },
     "MaintenanceSchedule":{
       "type":"structure",
       "members":{
@@ -2813,7 +3008,7 @@
     "MaxResults":{
       "type":"integer",
       "box":true,
-      "max":100,
+      "max":2000,
       "min":1
     },
     "NextToken":{
@@ -2973,6 +3168,46 @@
       },
       "exception":true
     },
+    "RestartBatchJobIdentifier":{
+      "type":"structure",
+      "required":[
+        "executionId",
+        "jobStepRestartMarker"
+      ],
+      "members":{
+        "executionId":{
+          "shape":"Identifier",
+          "documentation":"<p>The executionId from the StartBatchJob response when the job ran for the first time.</p>"
+        },
+        "jobStepRestartMarker":{
+          "shape":"JobStepRestartMarker",
+          "documentation":"<p>The restart step information for the most recent restart operation.</p>"
+        }
+      },
+      "documentation":"<p>An identifier for the StartBatchJob API to show that it is a restart operation.</p>"
+    },
+    "S3BatchJobIdentifier":{
+      "type":"structure",
+      "required":[
+        "bucket",
+        "identifier"
+      ],
+      "members":{
+        "bucket":{
+          "shape":"String",
+          "documentation":"<p>The Amazon S3 bucket that contains the batch job definitions.</p>"
+        },
+        "identifier":{
+          "shape":"JobIdentifier",
+          "documentation":"<p>Identifies the batch job definition. This identifier can also point to any batch job definition that already exists in the application or to one of the batch job definitions within the directory that is specified in <code>keyPrefix</code>.</p>"
+        },
+        "keyPrefix":{
+          "shape":"String",
+          "documentation":"<p>The key prefix that specifies the path to the folder in the S3 bucket that has the batch job definitions.</p>"
+        }
+      },
+      "documentation":"<p>A batch job identifier in which the batch jobs to run are identified by an Amazon S3 location.</p>"
+    },
     "ScriptBatchJobDefinition":{
       "type":"structure",
       "required":["scriptName"],
@@ -3023,6 +3258,18 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "ServiceUnavailableException":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>Server cannot process the request at the moment.</p>",
+      "error":{"httpStatusCode":503},
+      "exception":true,
+      "fault":true,
+      "retryable":{"throttling":false}
     },
     "StartApplicationRequest":{
       "type":"structure",
@@ -3203,7 +3450,7 @@
         "message":{"shape":"String"},
         "quotaCode":{
           "shape":"String",
-          "documentation":"<p>The identifier of the throttled reuqest.</p>"
+          "documentation":"<p>The identifier of the throttled request.</p>"
         },
         "retryAfterSeconds":{
           "shape":"Integer",
@@ -3298,7 +3545,7 @@
         },
         "desiredCapacity":{
           "shape":"CapacityValue",
-          "documentation":"<p>The desired capacity for the runtime environment to update.</p>"
+          "documentation":"<p>The desired capacity for the runtime environment to update. The minimum possible value is 0 and the maximum is 100.</p>"
         },
         "engineVersion":{
           "shape":"EngineVersion",
@@ -3310,13 +3557,17 @@
           "location":"uri",
           "locationName":"environmentId"
         },
+        "forceUpdate":{
+          "shape":"Boolean",
+          "documentation":"<p>Forces the updates on the environment. This option is needed if the applications in the environment are not stopped or if there are ongoing application-related activities in the environment.</p> <p>If you use this option, be aware that it could lead to data corruption in the applications, and that you might need to perform repair and recovery procedures for the applications.</p> <p>This option is not needed if the attribute being updated is <code>preferredMaintenanceWindow</code>.</p>"
+        },
         "instanceType":{
           "shape":"String20",
           "documentation":"<p>The instance type for the runtime environment to update.</p>"
         },
         "preferredMaintenanceWindow":{
           "shape":"String",
-          "documentation":"<p>Configures the maintenance window you want for the runtime environment. If you do not provide a value, a random system-generated value will be assigned.</p>"
+          "documentation":"<p>Configures the maintenance window that you want for the runtime environment. The maintenance window must have the format <code>ddd:hh24:mi-ddd:hh24:mi</code> and must be less than 24 hours. The following two examples are valid maintenance windows: <code>sun:23:45-mon:00:15</code> or <code>sat:01:00-sat:03:00</code>. </p> <p>If you do not provide a value, a random system-generated value will be assigned.</p>"
         }
       }
     },
@@ -3378,6 +3629,8 @@
       "enum":[
         "unknownOperation",
         "cannotParse",
+        "featureNotAvailable",
+        "unsupportedEngineVersion",
         "fieldValidationFailed",
         "other"
       ]

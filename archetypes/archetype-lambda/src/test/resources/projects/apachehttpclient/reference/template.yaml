@@ -6,7 +6,7 @@ Resources:
   MyApacheFunctionFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: java8
+      Runtime: java17
       Handler: software.amazonaws.test.MyApacheFunction::handleRequest
       Timeout: 60
       MemorySize: 512

@@ -25,14 +25,18 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.FileRequestBodyConfiguration;
 import software.amazon.awssdk.core.internal.async.ByteBuffersAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.InputStreamWithExecutorAsyncRequestBody;
+import software.amazon.awssdk.core.internal.async.SplittingPublisher;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Interface to allow non-blocking streaming of request content. This follows the reactive streams pattern where this interface is
@@ -109,14 +113,44 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
 
     /**
      * Creates an {@link AsyncRequestBody} that produces data from the contents of a file. See
-     * {@link FileAsyncRequestBody#builder} to create a customized body implementation.
+     * {@link #fromFile(FileRequestBodyConfiguration)} to create a customized body implementation.
      *
      * @param file The file to read from.
      * @return Implementation of {@link AsyncRequestBody} that reads data from the specified file.
-     * @see FileAsyncRequestBody
      */
     static AsyncRequestBody fromFile(File file) {
         return FileAsyncRequestBody.builder().path(file.toPath()).build();
+    }
+
+    /**
+     * Creates an {@link AsyncRequestBody} that produces data from the contents of a file.
+     *
+     * @param configuration configuration for how the SDK should read the file
+     * @return Implementation of {@link AsyncRequestBody} that reads data from the specified file.
+     */
+    static AsyncRequestBody fromFile(FileRequestBodyConfiguration configuration) {
+        Validate.notNull(configuration, "configuration");
+        return FileAsyncRequestBody.builder()
+                                   .path(configuration.path())
+                                   .position(configuration.position())
+                                   .chunkSizeInBytes(configuration.chunkSizeInBytes())
+                                   .numBytesToRead(configuration.numBytesToRead())
+                                   .build();
+    }
+
+    /**
+     * Creates an {@link AsyncRequestBody} that produces data from the contents of a file.
+     *
+     * <p>
+     * This is a convenience method that creates an instance of the {@link FileRequestBodyConfiguration} builder,
+     * avoiding the need to create one manually via {@link FileRequestBodyConfiguration#builder()}.
+     *
+     * @param configuration configuration for how the SDK should read the file
+     * @return Implementation of {@link AsyncRequestBody} that reads data from the specified file.
+     */
+    static AsyncRequestBody fromFile(Consumer<FileRequestBodyConfiguration.Builder> configuration) {
+        Validate.notNull(configuration, "configuration");
+        return fromFile(FileRequestBodyConfiguration.builder().applyMutation(configuration).build());
     }
 
     /**
@@ -324,12 +358,34 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * non-blocking event loop threads owned by the SDK.
      */
     static AsyncRequestBody fromInputStream(InputStream inputStream, Long contentLength, ExecutorService executor) {
-        return new InputStreamWithExecutorAsyncRequestBody(inputStream, contentLength, executor);
+        return fromInputStream(b -> b.inputStream(inputStream).contentLength(contentLength).executor(executor));
+    }
+
+    /**
+     * Creates an {@link AsyncRequestBody} from an {@link InputStream} with the provided
+     * {@link AsyncRequestBodySplitConfiguration}.
+     */
+    static AsyncRequestBody fromInputStream(AsyncRequestBodyFromInputStreamConfiguration configuration) {
+        Validate.notNull(configuration, "configuration");
+        return new InputStreamWithExecutorAsyncRequestBody(configuration);
+    }
+
+    /**
+     * This is a convenience method that passes an instance of the {@link AsyncRequestBodyFromInputStreamConfiguration} builder,
+     * avoiding the need to create one manually via {@link AsyncRequestBodyFromInputStreamConfiguration#builder()}.
+     *
+     * @see #fromInputStream(AsyncRequestBodyFromInputStreamConfiguration)
+     */
+    static AsyncRequestBody fromInputStream(Consumer<AsyncRequestBodyFromInputStreamConfiguration.Builder> configuration) {
+        Validate.notNull(configuration, "configuration");
+        return fromInputStream(AsyncRequestBodyFromInputStreamConfiguration.builder().applyMutation(configuration).build());
     }
 
     /**
      * Creates a {@link BlockingInputStreamAsyncRequestBody} to use for writing an input stream to the downstream service.
      *
+     * <p>By default, it will time out if streaming hasn't started within 10 seconds, and use application/octet-stream as
+     * content type. You can configure it via {@link BlockingInputStreamAsyncRequestBody#builder()}
      * <p><b>Example Usage</b>
      *
      * <p>
@@ -354,7 +410,9 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * }
      */
     static BlockingInputStreamAsyncRequestBody forBlockingInputStream(Long contentLength) {
-        return new BlockingInputStreamAsyncRequestBody(contentLength);
+        return BlockingInputStreamAsyncRequestBody.builder()
+                                                  .contentLength(contentLength)
+                                                  .build();
     }
 
     /**
@@ -364,6 +422,8 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * <p>The caller is responsible for calling {@link OutputStream#close()} on the
      * {@link BlockingOutputStreamAsyncRequestBody#outputStream()} when writing is complete.
      *
+     * <p>By default, it will time out if streaming hasn't started within 10 seconds, and you can configure the timeout
+     * via {@link BlockingOutputStreamAsyncRequestBody#builder()}
      * <p><b>Example Usage</b>
      * <p>
      * {@snippet :
@@ -386,9 +446,12 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *     // Wait for the service to respond.
      *     PutObjectResponse response = responseFuture.join();
      * }
+     * @see BlockingOutputStreamAsyncRequestBody
      */
     static BlockingOutputStreamAsyncRequestBody forBlockingOutputStream(Long contentLength) {
-        return new BlockingOutputStreamAsyncRequestBody(contentLength);
+        return BlockingOutputStreamAsyncRequestBody.builder()
+                                                   .contentLength(contentLength)
+                                                   .build();
     }
 
     /**
@@ -398,5 +461,37 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      */
     static AsyncRequestBody empty() {
         return fromBytes(new byte[0]);
+    }
+
+
+    /**
+     * Converts this {@link AsyncRequestBody} to a publisher of {@link AsyncRequestBody}s, each of which publishes a specific
+     * portion of the original data, based on the provided {@link AsyncRequestBodySplitConfiguration}. The default chunk size
+     * is 2MB and the default buffer size is 8MB.
+     *
+     * <p>
+     * By default, if content length of this {@link AsyncRequestBody} is present, each divided {@link AsyncRequestBody} is
+     * delivered to the subscriber right after it's initialized. On the other hand, if content length is null, it is sent after
+     * the entire content for that chunk is buffered. In this case, the configured {@code maxMemoryUsageInBytes} must be larger
+     * than or equal to {@code chunkSizeInBytes}. Note that this behavior may be different if a specific implementation of this
+     * interface overrides this method.
+     *
+     * @see AsyncRequestBodySplitConfiguration
+     */
+    default SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
+        Validate.notNull(splitConfiguration, "splitConfiguration");
+
+        return new SplittingPublisher(this, splitConfiguration);
+    }
+
+    /**
+     * This is a convenience method that passes an instance of the {@link AsyncRequestBodySplitConfiguration} builder,
+     * avoiding the need to create one manually via {@link AsyncRequestBodySplitConfiguration#builder()}.
+     *
+     * @see #split(AsyncRequestBodySplitConfiguration)
+     */
+    default SdkPublisher<AsyncRequestBody> split(Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {
+        Validate.notNull(splitConfiguration, "splitConfiguration");
+        return split(AsyncRequestBodySplitConfiguration.builder().applyMutation(splitConfiguration).build());
     }
 }

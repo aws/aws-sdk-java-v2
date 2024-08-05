@@ -16,10 +16,14 @@
 package software.amazon.awssdk.core;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 
 /**
  * Class to expose SDK service client settings to the user, e.g., ClientOverrideConfiguration
@@ -29,10 +33,14 @@ public abstract class SdkServiceClientConfiguration {
 
     private final ClientOverrideConfiguration overrideConfiguration;
     private final URI endpointOverride;
+    private final EndpointProvider endpointProvider;
+    private final Map<String, AuthScheme<?>> authSchemes;
 
     protected SdkServiceClientConfiguration(Builder builder) {
         this.overrideConfiguration = builder.overrideConfiguration();
         this.endpointOverride = builder.endpointOverride();
+        this.endpointProvider = builder.endpointProvider();
+        this.authSchemes = builder.authSchemes();
     }
 
     /**
@@ -53,6 +61,22 @@ public abstract class SdkServiceClientConfiguration {
         return Optional.ofNullable(this.endpointOverride);
     }
 
+    /**
+     *
+     * @return The configured endpoint provider of the SdkClient. If the endpoint provider was not configured, the default
+     * endpoint provider will be returned.
+     */
+    public Optional<EndpointProvider> endpointProvider() {
+        return Optional.ofNullable(this.endpointProvider);
+    }
+
+    /**
+     * @return The configured map of auth schemes.
+     */
+    public Map<String, AuthScheme<?>> authSchemes() {
+        return authSchemes;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -64,13 +88,17 @@ public abstract class SdkServiceClientConfiguration {
 
         SdkServiceClientConfiguration serviceClientConfiguration = (SdkServiceClientConfiguration) o;
         return Objects.equals(overrideConfiguration, serviceClientConfiguration.overrideConfiguration())
-               && Objects.equals(endpointOverride, serviceClientConfiguration.endpointOverride().orElse(null));
+               && Objects.equals(endpointOverride, serviceClientConfiguration.endpointOverride().orElse(null))
+               && Objects.equals(endpointProvider, serviceClientConfiguration.endpointProvider().orElse(null))
+               && Objects.equals(authSchemes, serviceClientConfiguration.authSchemes);
     }
 
     @Override
     public int hashCode() {
         int result = overrideConfiguration != null ? overrideConfiguration.hashCode() : 0;
         result = 31 * result + (endpointOverride != null ? endpointOverride.hashCode() : 0);
+        result = 31 * result + (endpointProvider != null ? endpointProvider.hashCode() : 0);
+        result = 31 * result + (authSchemes != null ? authSchemes.hashCode() : 0);
         return result;
     }
 
@@ -81,22 +109,65 @@ public abstract class SdkServiceClientConfiguration {
         /**
          * Return the client override configuration
          */
-        ClientOverrideConfiguration overrideConfiguration();
+        default ClientOverrideConfiguration overrideConfiguration() {
+            throw new UnsupportedOperationException();
+        }
 
         /**
          * Return the endpoint override
          */
-        URI endpointOverride();
+        default URI endpointOverride() {
+            throw new UnsupportedOperationException();
+        }
+
+        default EndpointProvider endpointProvider() {
+            throw new UnsupportedOperationException();
+        }
 
         /**
          * Configure the client override configuration
          */
-        Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration);
+        default Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration) {
+            throw new UnsupportedOperationException();
+        }
+
+        default Builder overrideConfiguration(Consumer<ClientOverrideConfiguration.Builder> consumer) {
+            ClientOverrideConfiguration overrideConfiguration = overrideConfiguration();
+            ClientOverrideConfiguration.Builder builder;
+            if (overrideConfiguration != null) {
+                builder = overrideConfiguration.toBuilder();
+            } else {
+                builder = ClientOverrideConfiguration.builder();
+            }
+            consumer.accept(builder);
+            return overrideConfiguration(builder.build());
+        }
 
         /**
          * Configure the endpoint override
          */
-        Builder endpointOverride(URI endpointOverride);
+        default Builder endpointOverride(URI endpointOverride) {
+            throw new UnsupportedOperationException();
+        }
+
+
+        default Builder endpointProvider(EndpointProvider endpointProvider) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Adds the given auth scheme. Replaces an existing auth scheme with the same id.
+         */
+        default Builder putAuthScheme(AuthScheme<?> authScheme) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Returns the configured map of auth schemes.
+         */
+        default Map<String, AuthScheme<?>> authSchemes() {
+            throw new UnsupportedOperationException();
+        }
 
         /**
          * Build the service client configuration using the configuration on this builder

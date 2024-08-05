@@ -17,21 +17,23 @@ package software.amazon.awssdk.codegen.poet.builder;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
-import java.net.URI;
+import com.squareup.javapoet.WildcardTypeName;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.codegen.model.config.customization.MultipartCustomization;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 public class AsyncClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
@@ -40,7 +42,6 @@ public class AsyncClientBuilderClass implements ClassSpec {
     private final ClassName builderInterfaceName;
     private final ClassName builderClassName;
     private final ClassName builderBaseClassName;
-    private final ClassName serviceConfigClassName;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public AsyncClientBuilderClass(IntermediateModel model) {
@@ -52,18 +53,17 @@ public class AsyncClientBuilderClass implements ClassSpec {
         this.builderClassName = ClassName.get(basePackage, model.getMetadata().getAsyncBuilder());
         this.builderBaseClassName = ClassName.get(basePackage, model.getMetadata().getBaseBuilder());
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
-        this.serviceConfigClassName = new PoetExtension(model).getServiceConfigClass();
     }
 
     @Override
     public TypeSpec poetSpec() {
         TypeSpec.Builder builder =
-                PoetUtils.createClassBuilder(builderClassName)
-                         .addAnnotation(SdkInternalApi.class)
-                         .addModifiers(Modifier.FINAL)
-                         .superclass(ParameterizedTypeName.get(builderBaseClassName, builderInterfaceName, clientInterfaceName))
-                         .addSuperinterface(builderInterfaceName)
-                         .addJavadoc("Internal implementation of {@link $T}.", builderInterfaceName);
+            PoetUtils.createClassBuilder(builderClassName)
+                     .addAnnotation(SdkInternalApi.class)
+                     .addModifiers(Modifier.FINAL)
+                     .superclass(ParameterizedTypeName.get(builderBaseClassName, builderInterfaceName, clientInterfaceName))
+                     .addSuperinterface(builderInterfaceName)
+                     .addJavadoc("Internal implementation of {@link $T}.", builderInterfaceName);
 
         if (model.getEndpointOperation().isPresent()) {
             builder.addMethod(endpointDiscoveryEnabled());
@@ -76,10 +76,18 @@ public class AsyncClientBuilderClass implements ClassSpec {
         builder.addMethod(endpointProviderMethod());
 
         if (AuthUtils.usesBearerAuth(model)) {
-            builder.addMethod(bearerTokenProviderMethod());
+            builder.addMethod(tokenProviderMethod());
         }
 
-        return builder.addMethod(buildClientMethod()).build();
+        MultipartCustomization multipartCustomization = model.getCustomizationConfig().getMultipartCustomization();
+        if (multipartCustomization != null) {
+            builder.addMethod(multipartEnabledMethod(multipartCustomization));
+            builder.addMethod(multipartConfigMethods(multipartCustomization));
+        }
+
+        builder.addMethod(buildClientMethod());
+
+        return builder.build();
     }
 
     private MethodSpec endpointDiscoveryEnabled() {
@@ -119,35 +127,60 @@ public class AsyncClientBuilderClass implements ClassSpec {
     }
 
     private MethodSpec buildClientMethod() {
-        return MethodSpec.methodBuilder("buildClient")
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("buildClient")
+                                               .addAnnotation(Override.class)
+                                               .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                                               .returns(clientInterfaceName)
+                                               .addStatement("$T clientConfiguration = super.asyncClientConfiguration()",
+                                                             SdkClientConfiguration.class)
+                                               .addStatement("this.validateClientOptions(clientConfiguration)");
+
+        builder.addStatement("$1T client = new $2T(clientConfiguration)",
+                             clientInterfaceName, clientClassName);
+        if (model.asyncClientDecoratorClassName().isPresent()) {
+            builder.addStatement("return  new $T().decorate(client, clientConfiguration)",
+                                 PoetUtils.classNameFromFqcn(model.asyncClientDecoratorClassName().get()));
+        } else {
+            builder.addStatement("return client");
+        }
+        return builder.build();
+    }
+
+    private MethodSpec tokenProviderMethod() {
+        ParameterizedTypeName tokenProviderTypeName = ParameterizedTypeName.get(ClassName.get(IdentityProvider.class),
+                                                                                WildcardTypeName.subtypeOf(TokenIdentity.class));
+        return MethodSpec.methodBuilder("tokenProvider").addModifiers(Modifier.PUBLIC)
                          .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
-                         .returns(clientInterfaceName)
-                         .addStatement("$T clientConfiguration = super.asyncClientConfiguration()", SdkClientConfiguration.class)
-                         .addStatement("this.validateClientOptions(clientConfiguration)")
-                         .addStatement("$T endpointOverride = null", URI.class)
-                         .addCode("if (clientConfiguration.option($T.ENDPOINT_OVERRIDDEN) != null"
-                                  + "&& $T.TRUE.equals(clientConfiguration.option($T.ENDPOINT_OVERRIDDEN))) {"
-                                  + "endpointOverride = clientConfiguration.option($T.ENDPOINT);"
-                                  + "}",
-                                  SdkClientOption.class, Boolean.class, SdkClientOption.class, SdkClientOption.class)
-                         .addStatement("$T serviceClientConfiguration = $T.builder()"
-                                       + ".overrideConfiguration(overrideConfiguration())"
-                                       + ".region(clientConfiguration.option($T.AWS_REGION))"
-                                       + ".endpointOverride(endpointOverride)"
-                                       + ".build()",
-                                       serviceConfigClassName, serviceConfigClassName, AwsClientOption.class)
-                         .addStatement("return new $T(serviceClientConfiguration, clientConfiguration)", clientClassName)
+                         .addParameter(tokenProviderTypeName, "tokenProvider")
+                         .returns(builderClassName)
+                         .addStatement("clientConfiguration.option($T.TOKEN_IDENTITY_PROVIDER, tokenProvider)",
+                                       AwsClientOption.class)
+                         .addStatement("return this")
                          .build();
     }
 
-    private MethodSpec bearerTokenProviderMethod() {
-        return MethodSpec.methodBuilder("tokenProvider").addModifiers(Modifier.PUBLIC)
+    private MethodSpec multipartEnabledMethod(MultipartCustomization multipartCustomization) {
+        return MethodSpec.methodBuilder("multipartEnabled")
                          .addAnnotation(Override.class)
-                         .addParameter(SdkTokenProvider.class, "tokenProvider")
-                         .returns(builderClassName)
-                         .addStatement("clientConfiguration.option($T.TOKEN_PROVIDER, tokenProvider)",
-                                       AwsClientOption.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(builderInterfaceName)
+                         .addParameter(Boolean.class, "enabled")
+                         .addStatement("clientContextParams.put($N, enabled)",
+                                       multipartCustomization.getContextParamEnabledKey())
+                         .addStatement("return this")
+                         .build();
+    }
+
+    private MethodSpec multipartConfigMethods(MultipartCustomization multipartCustomization) {
+        ClassName mulitpartConfigClassName =
+            PoetUtils.classNameFromFqcn(multipartCustomization.getMultipartConfigurationClass());
+        return MethodSpec.methodBuilder("multipartConfiguration")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .addParameter(ParameterSpec.builder(mulitpartConfigClassName, "multipartConfig").build())
+                         .returns(builderInterfaceName)
+                         .addStatement("clientContextParams.put($N, multipartConfig)",
+                                       multipartCustomization.getContextParamConfigKey())
                          .addStatement("return this")
                          .build();
     }

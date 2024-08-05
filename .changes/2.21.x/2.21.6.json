@@ -1,0 +1,36 @@
+{
+    "version": "2.21.6",
+    "date": "2023-10-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Commerce Analytics",
+            "contributor": "",
+            "description": "The StartSupportDataExport operation has been deprecated as part of the Product Support Connection deprecation. As of December 2022, Product Support Connection is no longer supported."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Manager",
+            "contributor": "",
+            "description": "This release adds API support for Tunnel-less Connect (NoEncap Protocol) for AWS Cloud WAN"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Rekognition",
+            "contributor": "",
+            "description": "Amazon Rekognition introduces StartMediaAnalysisJob, GetMediaAnalysisJob, and ListMediaAnalysisJobs operations to run a bulk analysis of images with a Detect Moderation model."
+        },
+        {
+            "type": "feature",
+            "category": "Redshift Serverless",
+            "contributor": "",
+            "description": "This release adds support for customers to see the patch version and workgroup version in Amazon Redshift Serverless."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

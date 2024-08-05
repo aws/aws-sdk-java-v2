@@ -17,9 +17,11 @@ package software.amazon.awssdk.codegen;
 
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.model.intermediate.ExceptionModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ReturnTypeModel;
@@ -45,12 +47,14 @@ final class AddOperations {
     private final NamingStrategy namingStrategy;
     private final Map<String, PaginatorDefinition> paginators;
     private final List<String> deprecatedShapes;
+    private final boolean useMultiAuth;
 
     AddOperations(IntermediateModelBuilder builder) {
         this.serviceModel = builder.getService();
         this.namingStrategy = builder.getNamingStrategy();
         this.paginators = builder.getPaginators().getPagination();
         this.deprecatedShapes = builder.getCustomConfig().getDeprecatedShapes();
+        this.useMultiAuth = builder.getCustomConfig().useMultiAuth();
     }
 
     private static boolean isAuthenticated(Operation op) {
@@ -70,14 +74,22 @@ final class AddOperations {
     }
 
     /**
+     * If there is a member in the output shape that is explicitly marked as the payload (with the payload trait) this method
+     * returns the target shape of that member. Otherwise this method returns null.
+     *
+     * @return True if shape is a String type. False otherwise
+     */
+    private static boolean isStringShape(Shape shape) {
+        return shape != null && "String".equalsIgnoreCase(shape.getType());
+    }
+
+    /**
      * If there is a member in the output shape that is explicitly marked as the payload (with the
      * payload trait) this method returns the target shape of that member. Otherwise this method
      * returns null.
      *
-     * @param c2jShapes
-     *            All C2J shapes
-     * @param outputShape
-     *            Output shape of operation that may contain a member designated as the payload
+     * @param c2jShapes   All C2J shapes
+     * @param outputShape Output shape of operation that may contain a member designated as the payload
      */
     public static Shape getPayloadShape(Map<String, Shape> c2jShapes, Shape outputShape) {
         if (outputShape.getPayload() == null) {
@@ -154,6 +166,7 @@ final class AddOperations {
             OperationModel operationModel = new OperationModel();
 
             operationModel.setOperationName(operationName);
+            operationModel.setServiceProtocol(serviceModel.getMetadata().getProtocol());
             operationModel.setDeprecated(op.isDeprecated());
             operationModel.setDeprecatedMessage(op.getDeprecatedMessage());
             operationModel.setDocumentation(op.getDocumentation());
@@ -165,7 +178,10 @@ final class AddOperations {
             operationModel.setEndpointTrait(op.getEndpoint());
             operationModel.setHttpChecksumRequired(op.isHttpChecksumRequired());
             operationModel.setHttpChecksum(op.getHttpChecksum());
+            operationModel.setRequestcompression(op.getRequestcompression());
             operationModel.setStaticContextParams(op.getStaticContextParams());
+            operationModel.setOperationContextParams(op.getOperationContextParams());
+            operationModel.setAuth(getAuthFromOperation(op));
 
             Input input = op.getInput();
             if (input != null) {
@@ -175,7 +191,7 @@ final class AddOperations {
                                        c2jShapes.get(originalShapeName).getDocumentation();
 
                 operationModel.setInput(new VariableModel(unCapitalize(inputShape), inputShape)
-                                                .withDocumentation(documentation));
+                                            .withDocumentation(documentation));
 
             }
 
@@ -187,9 +203,12 @@ final class AddOperations {
                 String documentation = getOperationDocumentation(output, outputShape);
 
                 operationModel.setReturnType(
-                        new ReturnTypeModel(responseClassName).withDocumentation(documentation));
+                    new ReturnTypeModel(responseClassName).withDocumentation(documentation));
                 if (isBlobShape(getPayloadShape(c2jShapes, outputShape))) {
                     operationModel.setHasBlobMemberAsPayload(true);
+                }
+                if (isStringShape(getPayloadShape(c2jShapes, outputShape))) {
+                    operationModel.setHasStringMemberAsPayload(true);
                 }
             }
 
@@ -197,8 +216,8 @@ final class AddOperations {
                 for (ErrorMap error : op.getErrors()) {
 
                     String documentation =
-                            error.getDocumentation() != null ? error.getDocumentation() :
-                            c2jShapes.get(error.getShape()).getDocumentation();
+                        error.getDocumentation() != null ? error.getDocumentation() :
+                        c2jShapes.get(error.getShape()).getDocumentation();
 
                     Integer httpStatusCode = getHttpStatusCode(error, c2jShapes.get(error.getShape()));
 
@@ -215,6 +234,25 @@ final class AddOperations {
         }
 
         return javaOperationModels;
+    }
+
+    /**
+     * Returns the list of authTypes defined for an operation. If useMultiAuth is enabled, then
+     * {@code operation.auth} will be used in the conversion if present. Otherwise, use
+     * {@code operation.authtype} if present.
+     */
+    private List<AuthType> getAuthFromOperation(Operation op) {
+        if (useMultiAuth) {
+            List<String> opAuth = op.getAuth();
+            if (opAuth != null) {
+                return opAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
+            }
+        }
+        AuthType legacyAuthType = op.getAuthtype();
+        if (legacyAuthType != null) {
+            return Collections.singletonList(legacyAuthType);
+        }
+        return Collections.emptyList();
     }
 
     /**

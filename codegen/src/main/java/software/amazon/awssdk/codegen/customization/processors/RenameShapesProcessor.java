@@ -68,7 +68,7 @@ public class RenameShapesProcessor implements CodegenCustomizationProcessor {
             String shapeName = entry.getKey();
             Shape shape = entry.getValue();
 
-            preprocessRenameMemberShapes(shapeName, shape);
+            preprocessRenameMemberShapes(shape);
         }
         for (Operation operation : serviceModel.getOperations().values()) {
 
@@ -101,7 +101,7 @@ public class RenameShapesProcessor implements CodegenCustomizationProcessor {
     /**
      * Rename all the member shapes within this shape
      */
-    private void preprocessRenameMemberShapes(String shapeName, Shape shape) {
+    private void preprocessRenameMemberShapes(Shape shape) {
         if (shape.getListMember() != null) {
             preprocessRenameMemberShape(shape.getListMember());
         }

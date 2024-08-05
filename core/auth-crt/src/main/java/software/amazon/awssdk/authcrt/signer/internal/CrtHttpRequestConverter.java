@@ -16,6 +16,7 @@
 package software.amazon.awssdk.authcrt.signer.internal;
 
 import static java.lang.Math.min;
+import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlDecode;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -82,7 +83,7 @@ public final class CrtHttpRequestConverter {
         }
 
         builder.encodedPath(fullUri.getRawPath());
-        String remainingQuery = fullUri.getQuery();
+        String remainingQuery = fullUri.getRawQuery();
 
         builder.clearQueryParameters();
         while (remainingQuery != null && remainingQuery.length() > 0) {
@@ -95,14 +96,14 @@ public final class CrtHttpRequestConverter {
                     queryValue = remainingQuery.substring(nextAssign + 1, nextQuery);
                 }
 
-                builder.appendRawQueryParameter(queryName, queryValue);
+                builder.appendRawQueryParameter(urlDecode(queryName), urlDecode(queryValue));
             } else {
                 String queryName = remainingQuery;
                 if (nextQuery >= 0) {
                     queryName = remainingQuery.substring(0, nextQuery);
                 }
 
-                builder.appendRawQueryParameter(queryName, null);
+                builder.appendRawQueryParameter(urlDecode(queryName), null);
             }
 
             if (nextQuery >= 0) {

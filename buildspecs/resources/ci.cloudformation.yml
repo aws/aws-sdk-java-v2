@@ -52,9 +52,11 @@ Resources:
                   - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2
                   - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2-JDK11
                   - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2-JDK17
+                  - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-java-sdk-v2-JDK21
                   - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2-JDK8-windows
                   - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2-native-image-test
                   - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2-sonar
+                  - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2-endpoints-test
               - Effect: Allow
                 Action:
                   - logs:GetLogEvents
@@ -62,9 +64,11 @@ Resources:
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2:*
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2-JDK11:*
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2-JDK17:*
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-java-sdk-v2-JDK21:*
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2-JDK8-windows:*
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2-native-image-test:*
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2-sonar:*
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2-endpoints-test:*
 
   GithubOidc:
     Type: AWS::IAM::OIDCProvider

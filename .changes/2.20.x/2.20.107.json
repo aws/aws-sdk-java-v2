@@ -1,0 +1,30 @@
+{
+    "version": "2.20.107",
+    "date": "2023-07-19",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Handle Temporary redirect error 307 when client configured in us-east-1 accesses cross region."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "Fixed the issue where the position of the ByteBuffer from the request is not honored in NettyNioAsyncHttpClient."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Savings Plans",
+            "contributor": "",
+            "description": "Savings Plans endpoints update"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

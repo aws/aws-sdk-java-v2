@@ -28,6 +28,6 @@ class CommonGeneratorTasks extends CompositeGeneratorTask {
               new ModelClassGeneratorTasks(params),
               new PackageInfoGeneratorTasks(params),
               new BaseExceptionClassGeneratorTasks(params),
-              new ClientOptionsClassGeneratorTasks(params));
+              new CommonInternalGeneratorTasks(params));
     }
 }

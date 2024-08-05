@@ -1,0 +1,30 @@
+{
+    "version": "2.20.129",
+    "date": "2023-08-17",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Sends final checksum chunk and trailer when only onComplete() is called by upstream (empty content)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Adds support for SubnetConfigurations to allow users to select their own IPv4 and IPv6 addresses for Interface VPC endpoints"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GameLift",
+            "contributor": "",
+            "description": "Amazon GameLift updates its instance types support."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

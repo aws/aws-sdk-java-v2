@@ -140,6 +140,7 @@ public class CreateTableOperation<T> implements TableOperation<T, CreateTableReq
                                  .attributeDefinitions(attributeDefinitions)
                                  .billingMode(billingMode)
                                  .provisionedThroughput(this.request.provisionedThroughput())
+                                 .streamSpecification(this.request.streamSpecification())
                                  .build();
     }
 

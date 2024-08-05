@@ -56,7 +56,8 @@ public class S3IntegrationTestBase extends AwsTestBase {
 
     protected static S3AsyncClient s3CrtAsync;
 
-    protected static S3TransferManager tm;
+    protected static S3TransferManager tmCrt;
+    protected static S3TransferManager tmJava;
 
     /**
      * Loads the AWS account info for the integration tests and creates an S3
@@ -67,14 +68,20 @@ public class S3IntegrationTestBase extends AwsTestBase {
         Log.initLoggingToStdout(Log.LogLevel.Warn);
         System.setProperty("aws.crt.debugnative", "true");
         s3 = s3ClientBuilder().build();
-        s3Async = s3AsyncClientBuilder().build();
+        s3Async = s3AsyncClientBuilder()
+            .multipartEnabled(true)
+            .build();
         s3CrtAsync = S3CrtAsyncClient.builder()
                                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                      .region(DEFAULT_REGION)
                                      .build();
-        tm = S3TransferManager.builder()
+        tmCrt = S3TransferManager.builder()
                               .s3Client(s3CrtAsync)
                               .build();
+        tmJava = S3TransferManager.builder()
+                                 .s3Client(s3Async)
+                                 .build();
+
     }
 
     @AfterAll
@@ -82,7 +89,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
         s3.close();
         s3Async.close();
         s3CrtAsync.close();
-        tm.close();
+        tmCrt.close();
         CrtResource.waitForNoResources();
     }
 

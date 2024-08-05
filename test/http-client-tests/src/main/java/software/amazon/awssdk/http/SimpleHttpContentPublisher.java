@@ -32,20 +32,24 @@ import software.amazon.awssdk.utils.IoUtils;
 @SdkInternalApi
 public final class SimpleHttpContentPublisher implements SdkHttpContentPublisher {
 
-    private final byte[] content;
+    private final ByteBuffer content;
     private final int length;
 
     public SimpleHttpContentPublisher(SdkHttpFullRequest request) {
-        this.content = request.contentStreamProvider().map(p -> invokeSafely(() -> IoUtils.toByteArray(p.newStream())))
-                                                      .orElseGet(() -> new byte[0]);
-        this.length = content.length;
+        this.content =
+            request.contentStreamProvider().map(p -> invokeSafely(() -> ByteBuffer.wrap(IoUtils.toByteArray(p.newStream()))))
+                                                      .orElseGet(() -> ByteBuffer.wrap(new byte[0]));
+        this.length = content.remaining();
     }
 
     public SimpleHttpContentPublisher(byte[] body) {
-        this.content = body;
-        this.length = body.length;
+        this(ByteBuffer.wrap(body));
     }
 
+    public SimpleHttpContentPublisher(ByteBuffer byteBuffer) {
+        this.content = byteBuffer;
+        this.length = byteBuffer.remaining();
+    }
 
     @Override
     public Optional<Long> contentLength() {
@@ -72,7 +76,7 @@ public final class SimpleHttpContentPublisher implements SdkHttpContentPublisher
                 if (n <= 0) {
                     s.onError(new IllegalArgumentException("Demand must be positive"));
                 } else {
-                    s.onNext(ByteBuffer.wrap(content));
+                    s.onNext(content);
                     s.onComplete();
                 }
             }

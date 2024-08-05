@@ -59,6 +59,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testimmutables.EntityEnvelopeImmutable;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -802,6 +803,17 @@ public class StaticImmutableTableSchemaTest {
     }
 
     @Test
+    public void itemType_returnsCorrectClassWhenBuiltWithEnhancedType() {
+        StaticImmutableTableSchema<FakeMappedItem, FakeMappedItem.Builder> tableSchema =
+            StaticImmutableTableSchema.builder(EnhancedType.of(FakeMappedItem.class),
+                                               EnhancedType.of(FakeMappedItem.Builder.class))
+                                      .newItemBuilder(FakeMappedItem::builder, FakeMappedItem.Builder::build)
+                                      .build();
+
+        assertThat(tableSchema.itemType(), is(equalTo(EnhancedType.of(FakeMappedItem.class))));
+    }
+
+    @Test
     public void getTableMetadata_hasCorrectFields() {
         TableMetadata tableMetadata = FakeItemWithSort.getTableSchema().tableMetadata();
 
@@ -1536,6 +1548,27 @@ public class StaticImmutableTableSchemaTest {
         Map<String, AttributeValue> resultMap = tableSchema.itemToMap(FakeMappedItem.builder().aString(originalString).build(),
                                                                       false);
         assertThat(resultMap.get("aString").s(), is(expectedString));
+    }
+
+    @Test
+    public void builder_canBuildForGenericClassType() {
+        StaticImmutableTableSchema<EntityEnvelopeImmutable<String>, EntityEnvelopeImmutable.Builder<String>> envelopeTableSchema =
+            StaticImmutableTableSchema.builder(new EnhancedType<EntityEnvelopeImmutable<String>>() {},
+                                               new EnhancedType<EntityEnvelopeImmutable.Builder<String>>() {})
+                                      .newItemBuilder(EntityEnvelopeImmutable.Builder::new, EntityEnvelopeImmutable.Builder::build)
+                                      .addAttribute(String.class,
+                                                    a -> a.name("entity")
+                                                          .getter(EntityEnvelopeImmutable::entity)
+                                                          .setter(EntityEnvelopeImmutable.Builder::setEntity))
+                                      .build();
+
+        EntityEnvelopeImmutable<String> testEnvelope = new EntityEnvelopeImmutable<>("test-value");
+
+        Map<String, AttributeValue> expectedMap =
+            Collections.singletonMap("entity", AttributeValue.fromS("test-value"));
+
+        assertThat(envelopeTableSchema.itemToMap(testEnvelope, false), equalTo(expectedMap));
+        assertThat(envelopeTableSchema.mapToItem(expectedMap).entity(), equalTo("test-value"));
     }
 
     private <R> void verifyAttribute(EnhancedType<R> attributeType,

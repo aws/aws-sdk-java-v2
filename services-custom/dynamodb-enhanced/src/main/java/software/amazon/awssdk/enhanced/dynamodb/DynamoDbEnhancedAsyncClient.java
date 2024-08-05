@@ -18,6 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -45,6 +46,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
  */
 @SdkPublicApi
 @ThreadSafe
+@Immutable
 public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
 
     /**
@@ -262,7 +264,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
 
     /**
      * Retrieves multiple items from one or more tables in a single atomic transaction. TransactGetItem is a composite operation
-     * where the request contains a set of up to 25 get requests, each containing a table reference and a
+     * where the request contains a set of get requests, each containing a table reference and a
      * {@link GetItemEnhancedRequest}.
      * <p>
      * The additional configuration parameters that the enhanced client supports are defined
@@ -298,7 +300,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
 
     /**
      * Retrieves multiple items from one or more tables in a single atomic transaction. TransactGetItem is a composite operation
-     * where the request contains a set of up to 25 get requests, each containing a table reference and a
+     * where the request contains a set of get requests, each containing a table reference and a
      * {@link GetItemEnhancedRequest}.
      * <p>
      * The additional configuration parameters that the enhanced client supports are defined
@@ -336,7 +338,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
 
     /**
      * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactGetItem is a
-     * composite operation where the request contains a set of up to 25 action requests, each containing a table reference and
+     * composite operation where the request contains a set of action requests, each containing a table reference and
      * one of the following requests:
      * <ul>
      *     <li>Condition check of item - {@link ConditionCheck}</li>
@@ -384,7 +386,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
 
     /**
      * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactGetItem is a
-     * composite operation where the request contains a set of up to 25 action requests, each containing a table reference and
+     * composite operation where the request contains a set of action requests, each containing a table reference and
      * one of the following requests:
      * <ul>
      *     <li>Condition check of item - {@link ConditionCheck}</li>

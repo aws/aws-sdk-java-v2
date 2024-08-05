@@ -1,0 +1,48 @@
+{
+    "version": "2.25.18",
+    "date": "2024-03-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "Adds support for backfill of cost allocation tags, with new StartCostAllocationTagBackfill and ListCostAllocationTagBackfillHistory API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3",
+            "contributor": "benarnao",
+            "description": "allow user to configure subscriber timeout for input stream"
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "This release adds support to customize prompts sent through the RetrieveAndGenerate API in Agents for Amazon Bedrock."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This is a documentation update for Amazon ECS."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Documentation updates for Elastic Compute Cloud (EC2)."
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace User Environment Management service",
+            "contributor": "",
+            "description": "Add new operation delete-kx-cluster-node and add status parameter to list-kx-cluster-node operation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

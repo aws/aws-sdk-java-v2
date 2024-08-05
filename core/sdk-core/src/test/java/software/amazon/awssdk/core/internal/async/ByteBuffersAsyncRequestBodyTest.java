@@ -186,26 +186,6 @@ class ByteBuffersAsyncRequestBodyTest {
         assertTrue(subscriber.publishedResults.isEmpty());
     }
 
-    // Pending discussions on https://github.com/aws/aws-sdk-java-v2/issues/3928
-    @Test
-    public void directBuffersAreCoppiedToNonDirectBuffers() {
-        byte[] bytes = "Hello World!".getBytes(StandardCharsets.UTF_8);
-        ByteBuffer buffer = ByteBuffer.allocateDirect(bytes.length)
-                                      .put(bytes);
-        buffer.flip();
-        AsyncRequestBody requestBody = ByteBuffersAsyncRequestBody.of(buffer);
-
-        TestSubscriber subscriber = new TestSubscriber();
-        requestBody.subscribe(subscriber);
-        subscriber.request(1);
-
-        ByteBuffer publishedBuffer = subscriber.publishedResults.get(0);
-        assertFalse(publishedBuffer.isDirect());
-        byte[] publishedBytes = new byte[publishedBuffer.remaining()];
-        publishedBuffer.get(publishedBytes);
-        assertArrayEquals(bytes, publishedBytes);
-    }
-
     @Test
     public void staticOfByteBufferConstructorSetsLengthBasedOnBufferRemaining() {
         ByteBuffer bb1 = ByteBuffer.allocate(2);

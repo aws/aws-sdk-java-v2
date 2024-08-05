@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 
 @SdkInternalApi
 public class QueryOperation<T> implements PaginatedTableOperation<T, QueryRequest, QueryResponse>,
-        PaginatedIndexOperation<T, QueryRequest, QueryResponse> {
+                                          PaginatedIndexOperation<T, QueryRequest, QueryResponse> {
 
     private final QueryEnhancedRequest request;
 
@@ -80,9 +80,11 @@ public class QueryOperation<T> implements PaginatedTableOperation<T, QueryReques
                                                         .expressionAttributeValues(expressionValues)
                                                         .expressionAttributeNames(expressionNames)
                                                         .scanIndexForward(this.request.scanIndexForward())
+                                                        .select(this.request.select())
                                                         .limit(this.request.limit())
                                                         .exclusiveStartKey(this.request.exclusiveStartKey())
                                                         .consistentRead(this.request.consistentRead())
+                                                        .returnConsumedCapacity(this.request.returnConsumedCapacity())
                                                         .projectionExpression(projectionExpressionAsString);
 
         if (!TableMetadata.primaryIndexName().equals(operationContext.indexName())) {
@@ -117,7 +119,10 @@ public class QueryOperation<T> implements PaginatedTableOperation<T, QueryReques
                                                                   context,
                                                                   dynamoDbEnhancedClientExtension,
                                                                   QueryResponse::items,
-                                                                  QueryResponse::lastEvaluatedKey);
+                                                                  QueryResponse::lastEvaluatedKey,
+                                                                  QueryResponse::count,
+                                                                  QueryResponse::scannedCount,
+                                                                  QueryResponse::consumedCapacity);
     }
 
 }

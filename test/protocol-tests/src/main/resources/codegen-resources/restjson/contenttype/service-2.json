@@ -36,6 +36,14 @@
       },
       "input": {"shape": "TestBlobPayloadRequest"}
     },
+    "TestStringPayload": {
+      "name": "TestStringPayload",
+      "http": {
+        "method": "POST",
+        "requestUri": "/string-payload"
+      },
+      "input": {"shape": "TestStringPayloadRequest"}
+    },
     "NoPayload": {
       "name": "NoPayload",
       "http": {
@@ -173,6 +181,24 @@
       "documentation":"<p> The request structure for a blob payload request. </p>",
       "payload":"data"
     },
+    "TestStringPayloadRequest":{
+      "type":"structure",
+      "required":[],
+      "members":{
+        "data":{
+          "shape":"String",
+          "documentation":"<p> String payload to post </p>"
+        },
+        "contentType":{
+          "shape":"String",
+          "documentation":"<p> Optional content-type header </p>",
+          "location":"header",
+          "locationName":"Content-Type"
+        }
+      },
+      "documentation":"<p> The request structure for a String payload request. </p>",
+      "payload":"data"
+    },
     "TestEventStreamRequest": {
       "type": "structure",
       "required": [
@@ -191,8 +217,14 @@
         "BlobAndHeadersEvent": {
           "shape": "BlobAndHeadersEvent"
         },
+        "StringAndHeadersEvent": {
+          "shape": "StringAndHeadersEvent"
+        },
         "HeadersOnlyEvent": {
           "shape": "HeadersOnlyEvent"
+        },
+        "EndEvent": {
+          "shape": "EndEvent"
         },
         "ImplicitPayloadAndHeadersEvent": {
           "shape": "ImplicitPayloadAndHeadersEvent"
@@ -205,6 +237,20 @@
       "members": {
         "BlobPayloadMember": {
           "shape":"BlobPayloadMember",
+          "eventpayload":true
+        },
+        "HeaderMember": {
+          "shape": "String",
+          "eventheader": true
+        }
+      },
+      "event": true
+    },
+    "StringAndHeadersEvent": {
+      "type": "structure",
+      "members": {
+        "StringPayloadMember": {
+          "shape":"String",
           "eventpayload":true
         },
         "HeaderMember": {
@@ -236,6 +282,12 @@
         }
       },
       "event": true
+    },
+    "EndEvent":{
+      "type":"structure",
+      "members":{
+      },
+      "event":true
     },
     "BlobPayloadMember":{"type":"blob"},
     "EventStream": {

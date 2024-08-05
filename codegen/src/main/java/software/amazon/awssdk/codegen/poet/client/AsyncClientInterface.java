@@ -169,7 +169,13 @@ public class AsyncClientInterface implements ClassSpec {
 
     private String getJavadoc() {
         return "Service client for accessing " + model.getMetadata().getDescriptiveServiceName() + " asynchronously. This can be "
-               + "created using the static {@link #builder()} method.\n\n" + model.getMetadata().getDocumentation();
+               + "created using the static {@link #builder()} method."
+               + "The asynchronous client performs non-blocking I/O when configured "
+               + "with any {@code SdkAsyncHttpClient} supported in the SDK. "
+               + "However, full non-blocking is not guaranteed as the async client may perform "
+               + "blocking calls in some cases such as credentials retrieval and "
+               + "endpoint discovery as part of the async API call."
+               + "\n\n" + model.getMetadata().getDocumentation();
     }
 
     private MethodSpec create() {
@@ -201,19 +207,32 @@ public class AsyncClientInterface implements ClassSpec {
      */
     protected Iterable<MethodSpec> operations() {
         return model.getOperations().values().stream()
-                    .flatMap(this::operationsAndSimpleMethods)
+                    .flatMap(this::operationsWithVariants)
                     .sorted(Comparator.comparing(m -> m.name))
                     .collect(toList());
     }
 
-    private Stream<MethodSpec> operationsAndSimpleMethods(OperationModel operationModel) {
+    private Stream<MethodSpec> operationsWithVariants(OperationModel operationModel) {
         List<MethodSpec> methods = new ArrayList<>();
-        methods.addAll(traditionalMethods(operationModel));
-        methods.addAll(overloadMethods(operationModel));
+        methods.addAll(traditionalMethodWithConsumerVariant(operationModel));
+        methods.addAll(overloadedMethods(operationModel));
         methods.addAll(paginatedMethods(operationModel));
         return methods.stream()
                       // Add Deprecated annotation if needed to all overloads
                       .map(m -> DeprecationUtils.checkDeprecated(operationModel, m));
+    }
+
+    /**
+     * Generates the traditional method for an operation (i.e. one that takes a request and returns a response).
+     */
+    private List<MethodSpec> traditionalMethodWithConsumerVariant(OperationModel opModel) {
+        List<MethodSpec> methods = new ArrayList<>();
+        String consumerBuilderJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.NORMAL);
+
+        methods.add(traditionalMethod(opModel));
+        methods.add(ClientClassUtils.consumerBuilderVariant(methods.get(0), consumerBuilderJavadoc));
+
+        return methods;
     }
 
     private List<MethodSpec> paginatedMethods(OperationModel opModel) {
@@ -251,7 +270,9 @@ public class AsyncClientInterface implements ClassSpec {
 
     protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel operationModel) {
         return builder.addModifiers(DEFAULT, PUBLIC)
-                      .addStatement("throw new $T()", UnsupportedOperationException.class);
+                      .addStatement("return new $T(this, $L)",
+                                    poetExtensions.getResponseClassForPaginatedAsyncOperation(operationModel.getOperationName()),
+                                    operationModel.getInput().getVariableName());
     }
 
     private MethodSpec paginatedSimpleMethod(OperationModel opModel) {
@@ -274,7 +295,7 @@ public class AsyncClientInterface implements ClassSpec {
      * @param opModel Operation to generate simple methods for.
      * @return All simple method overloads for a given operation.
      */
-    private List<MethodSpec> overloadMethods(OperationModel opModel) {
+    private List<MethodSpec> overloadedMethods(OperationModel opModel) {
         String consumerBuilderFileJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.FILE);
 
         List<MethodSpec> methodOverloads = new ArrayList<>();
@@ -310,20 +331,6 @@ public class AsyncClientInterface implements ClassSpec {
     protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel operationModel) {
         return builder.addModifiers(DEFAULT, PUBLIC)
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
-    }
-
-    /**
-     * Generates the traditional method for an operation (i.e. one that takes a request and returns a response).
-     */
-    private List<MethodSpec> traditionalMethods(OperationModel opModel) {
-        List<MethodSpec> methods = new ArrayList<>();
-
-        methods.add(traditionalMethod(opModel));
-
-        String consumerBuilderJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.NORMAL);
-        methods.add(ClientClassUtils.consumerBuilderVariant(methods.get(0), consumerBuilderJavadoc));
-
-        return methods;
     }
 
     protected MethodSpec traditionalMethod(OperationModel opModel) {

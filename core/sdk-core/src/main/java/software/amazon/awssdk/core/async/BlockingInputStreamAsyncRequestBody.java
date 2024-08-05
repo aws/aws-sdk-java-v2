@@ -26,7 +26,9 @@ import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.internal.io.SdkLengthAwareInputStream;
+import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.InputStreamConsumingPublisher;
 
 /**
@@ -37,24 +39,38 @@ import software.amazon.awssdk.utils.async.InputStreamConsumingPublisher;
  */
 @SdkPublicApi
 public final class BlockingInputStreamAsyncRequestBody implements AsyncRequestBody {
+    private static final Duration DEFAULT_SUBSCRIBE_TIMEOUT = Duration.ofSeconds(10);
+    private static final String DEFAULT_CONTENT_TYPE = Mimetype.MIMETYPE_OCTET_STREAM;
     private final InputStreamConsumingPublisher delegate = new InputStreamConsumingPublisher();
     private final CountDownLatch subscribedLatch = new CountDownLatch(1);
     private final AtomicBoolean subscribeCalled = new AtomicBoolean(false);
     private final Long contentLength;
+    private final String contentType;
     private final Duration subscribeTimeout;
 
-    BlockingInputStreamAsyncRequestBody(Long contentLength) {
-        this(contentLength, Duration.ofSeconds(10));
+    BlockingInputStreamAsyncRequestBody(Builder builder) {
+        this.contentLength = builder.contentLength;
+        this.contentType = builder.contentType != null ? builder.contentType : DEFAULT_CONTENT_TYPE;
+        this.subscribeTimeout = Validate.isPositiveOrNull(builder.subscribeTimeout, "subscribeTimeout") != null ?
+                                builder.subscribeTimeout :
+                                DEFAULT_SUBSCRIBE_TIMEOUT;
     }
 
-    BlockingInputStreamAsyncRequestBody(Long contentLength, Duration subscribeTimeout) {
-        this.contentLength = contentLength;
-        this.subscribeTimeout = subscribeTimeout;
+    /**
+     * Creates a default builder for {@link BlockingInputStreamAsyncRequestBody}.
+     */
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
     public Optional<Long> contentLength() {
         return Optional.ofNullable(contentLength);
+    }
+
+    @Override
+    public String contentType() {
+        return contentType;
     }
 
     /**
@@ -110,6 +126,55 @@ public final class BlockingInputStreamAsyncRequestBody implements AsyncRequestBo
             throw new IllegalStateException("The service request was not made within " + timeoutSeconds + " seconds of "
                                             + "doBlockingWrite being invoked. Make sure to invoke the service request "
                                             + "BEFORE invoking doBlockingWrite if your caller is single-threaded.");
+        }
+    }
+
+    public static final class Builder {
+        private Duration subscribeTimeout;
+        private Long contentLength;
+        private String contentType;
+
+        private Builder() {
+        }
+
+        /**
+         * Defines how long it should wait for this AsyncRequestBody to be subscribed (to start streaming) before timing out.
+         * By default, it's 10 seconds.
+         *
+         * <p>You may want to increase it if the request may not be executed right away.
+         *
+         * @param subscribeTimeout the timeout
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        public Builder subscribeTimeout(Duration subscribeTimeout) {
+            this.subscribeTimeout = subscribeTimeout;
+            return this;
+        }
+
+        /**
+         * The content length of the output stream.
+         *
+         * @param contentLength the content length
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        public Builder contentLength(Long contentLength) {
+            this.contentLength = contentLength;
+            return this;
+        }
+
+        /**
+         * The content type of the output stream.
+         *
+         * @param contentType the content type
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        public Builder contentType(String contentType) {
+            this.contentType = contentType;
+            return this;
+        }
+
+        public BlockingInputStreamAsyncRequestBody build() {
+            return new BlockingInputStreamAsyncRequestBody(this);
         }
     }
 }

@@ -48,7 +48,8 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @SdkInternalApi
 public class ApacheHttpRequestFactory {
 
-    private static final List<String> IGNORE_HEADERS = Arrays.asList(HttpHeaders.CONTENT_LENGTH, HttpHeaders.HOST);
+    private static final List<String> IGNORE_HEADERS = Arrays.asList(HttpHeaders.CONTENT_LENGTH, HttpHeaders.HOST,
+                                                                     HttpHeaders.TRANSFER_ENCODING);
 
     public HttpRequestBase create(final HttpExecuteRequest request, final ApacheHttpRequestConfig requestConfig) {
         HttpRequestBase base = createApacheRequest(request, sanitizeUri(request.httpRequest()));
@@ -150,7 +151,7 @@ public class ApacheHttpRequestFactory {
          */
         if (request.contentStreamProvider().isPresent()) {
             HttpEntity entity = new RepeatableInputStreamRequestEntity(request);
-            if (!request.httpRequest().firstMatchingHeader(HttpHeaders.CONTENT_LENGTH).isPresent()) {
+            if (!request.httpRequest().firstMatchingHeader(HttpHeaders.CONTENT_LENGTH).isPresent() && !entity.isChunked()) {
                 entity = ApacheUtils.newBufferedHttpEntity(entity);
             }
             entityEnclosingRequest.setEntity(entity);

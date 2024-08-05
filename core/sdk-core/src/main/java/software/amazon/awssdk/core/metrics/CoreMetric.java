@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.core.metrics;
 
+import java.net.URI;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.SdkMetric;
@@ -49,6 +52,12 @@ public final class CoreMetric {
      */
     public static final SdkMetric<Integer> RETRY_COUNT =
         metric("RetryCount", Integer.class, MetricLevel.ERROR);
+
+    /**
+     * The endpoint for the service.
+     */
+    public static final SdkMetric<URI> SERVICE_ENDPOINT =
+        metric("ServiceEndpoint", URI.class, MetricLevel.ERROR);
 
     /**
      * The duration of the API call. This includes all call attempts made.
@@ -117,6 +126,42 @@ public final class CoreMetric {
      */
     public static final SdkMetric<String> AWS_EXTENDED_REQUEST_ID =
         metric("AwsExtendedRequestId", String.class, MetricLevel.INFO);
+
+    /**
+     * The duration of time between from sending the HTTP request (including acquiring a connection) to the service, and
+     * receiving the first byte of the headers in the response.
+     */
+    // Note: SERVICE_CALL_DURATION matches TTFB for sync, but *NOT* async. This appears to be a bug.
+    public static final SdkMetric<Duration> TIME_TO_FIRST_BYTE =
+        metric("TimeToFirstByte", Duration.class, MetricLevel.TRACE);
+
+    /**
+     * The duration of time between from sending the HTTP request (including acquiring a connection) to the service, and
+     * receiving the last byte of the response.
+     * <p>
+     * Note that for APIs that return streaming responses, this metric spans the time until the {@link ResponseTransformer} or
+     * {@link AsyncResponseTransformer} completes.
+     */
+    public static final SdkMetric<Duration> TIME_TO_LAST_BYTE =
+        metric("TimeToLastByte", Duration.class, MetricLevel.TRACE);
+
+    /**
+     * The read throughput of the client, defined as {@code NumberOfResponseBytesRead / (TTLB - TTFB)}. This value is in bytes per
+     * second.
+     * <p>
+     * Note that this metric only measures the bytes read from within the {@link ResponseTransformer} or
+     * {@link AsyncResponseTransformer}. Data that is read outside the transformer (e.g. when the response stream is returned as
+     * the result of the transformer) is not included in the calculation.
+     */
+    public static final SdkMetric<Double> READ_THROUGHPUT =
+        metric("ReadThroughput", Double.class, MetricLevel.TRACE);
+
+    /**
+     * The duration of time it took to resolve the endpoint used for the API call.
+     */
+    public static final SdkMetric<Duration> ENDPOINT_RESOLVE_DURATION =
+        metric("EndpointResolveDuration", Duration.class, MetricLevel.INFO);
+
 
     /**
      * The type of error that occurred for a call attempt.

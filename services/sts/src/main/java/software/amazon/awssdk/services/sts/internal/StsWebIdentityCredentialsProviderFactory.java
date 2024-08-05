@@ -33,11 +33,12 @@ import software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithWebIdentityCred
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 import software.amazon.awssdk.services.sts.model.IdpCommunicationErrorException;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
- * An implementation of {@link WebIdentityTokenCredentialsProviderFactory} that allows users to assume a role
- * using a web identity token file specified in either a {@link Profile} or environment variables.
+ * An implementation of {@link WebIdentityTokenCredentialsProviderFactory} that allows users to assume a role using a web identity
+ * token file specified in either a {@link Profile} or environment variables.
  */
 @SdkProtectedApi
 public final class StsWebIdentityCredentialsProviderFactory implements WebIdentityTokenCredentialsProviderFactory {
@@ -72,23 +73,35 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
                                       .overrideConfiguration(o -> o.retryPolicy(r -> r.retryCondition(retryCondition)))
                                       .build();
 
-            AssumeRoleWithWebIdentityRequest request = AssumeRoleWithWebIdentityRequest.builder()
-                                                                                       .roleArn(credentialProperties.roleArn())
-                                                                                       .roleSessionName(sessionName)
-                                                                                       .build();
+            AssumeRoleWithWebIdentityRequest.Builder requestBuilder = AssumeRoleWithWebIdentityRequest
+                .builder()
+                .roleArn(credentialProperties.roleArn())
+                .roleSessionName(sessionName);
+
+            if (credentialProperties.roleSessionDuration() != null) {
+                requestBuilder.durationSeconds(NumericUtils.saturatedCast(
+                    credentialProperties.roleSessionDuration().getSeconds()));
+            }
 
             AssumeRoleWithWebIdentityRequestSupplier supplier =
                 AssumeRoleWithWebIdentityRequestSupplier.builder()
-                                                        .assumeRoleWithWebIdentityRequest(request)
+                                                        .assumeRoleWithWebIdentityRequest(requestBuilder.build())
                                                         .webIdentityTokenFile(credentialProperties.webIdentityTokenFile())
                                                         .build();
 
-            this.credentialsProvider =
+            StsAssumeRoleWithWebIdentityCredentialsProvider.Builder builder =
                 StsAssumeRoleWithWebIdentityCredentialsProvider.builder()
                                                                .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
                                                                .stsClient(stsClient)
-                                                               .refreshRequest(supplier)
-                                                               .build();
+                                                               .refreshRequest(supplier);
+
+            if (credentialProperties.prefetchTime() != null) {
+                builder.prefetchTime(credentialProperties.prefetchTime());
+            }
+            if (credentialProperties.staleTime() != null) {
+                builder.staleTime(credentialProperties.staleTime());
+            }
+            this.credentialsProvider = builder.build();
         }
 
         @Override

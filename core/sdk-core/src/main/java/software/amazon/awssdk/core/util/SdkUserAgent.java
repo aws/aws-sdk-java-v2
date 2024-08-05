@@ -38,7 +38,7 @@ public final class SdkUserAgent {
                                             + "vendor/{java.vendor}";
 
     /** Disallowed characters in the user agent token: @see <a href="https://tools.ietf.org/html/rfc7230#section-3.2.6">RFC 7230</a> */
-    private static final String UA_BLACKLIST_REGEX = "[() ,/:;<=>?@\\[\\]{}\\\\]";
+    private static final String UA_DENYLIST_REGEX = "[() ,/:;<=>?@\\[\\]{}\\\\]";
 
     /** Shared logger for any issues while loading version information. */
     private static final Logger log = LoggerFactory.getLogger(SdkUserAgent.class);
@@ -125,7 +125,7 @@ public final class SdkUserAgent {
      * @return the input with spaces replaced by underscores
      */
     private static String sanitizeInput(String input) {
-        return input == null ? UNKNOWN : input.replaceAll(UA_BLACKLIST_REGEX, "_");
+        return input == null ? UNKNOWN : input.replaceAll(UA_DENYLIST_REGEX, "_");
     }
 
     private static String getAdditionalJvmLanguages() {

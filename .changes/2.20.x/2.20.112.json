@@ -1,0 +1,72 @@
+{
+    "version": "2.20.112",
+    "date": "2023-07-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Cloud Control API",
+            "contributor": "",
+            "description": "Updates the documentation for CreateResource."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release includes general updates to user documentation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS EntityResolution",
+            "contributor": "",
+            "description": "AWS Entity Resolution can effectively match a source record from a customer relationship management (CRM) system with a source record from a marketing system containing campaign information."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Release Glue Studio Snowflake Connector Node for SDK/CLI"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon HealthLake",
+            "contributor": "",
+            "description": "Updating the HealthLake service documentation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Managed Blockchain Query",
+            "contributor": "",
+            "description": "Amazon Managed Blockchain (AMB) Query provides serverless access to standardized, multi-blockchain datasets with developer-friendly APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Omics",
+            "contributor": "",
+            "description": "The service is renaming as a part of AWS Health."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Polly",
+            "contributor": "",
+            "description": "Amazon Polly adds 1 new voice - Lisa (nl-BE)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Update that corrects the documents for received feedback."
+        },
+        {
+            "type": "feature",
+            "category": "OpenSearch Service Serverless",
+            "contributor": "",
+            "description": "This release adds new collection type VectorSearch."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

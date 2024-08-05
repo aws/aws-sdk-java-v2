@@ -21,13 +21,13 @@ import java.util.HashMap;
 import java.util.concurrent.Executors;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -51,10 +51,10 @@ public class HttpTestUtils {
         return SdkClientConfiguration.builder()
                                      .option(SdkClientOption.EXECUTION_INTERCEPTORS, new ArrayList<>())
                                      .option(SdkClientOption.ENDPOINT, URI.create("http://localhost:8080"))
-                                     .option(SdkClientOption.RETRY_POLICY, RetryPolicy.defaultRetryPolicy())
+                                     .option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.defaultRetryStrategy())
                                      .option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, new HashMap<>())
                                      .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                                     .option(AwsClientOption.CREDENTIALS_PROVIDER, DefaultCredentialsProvider.create())
+                                     .option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER, DefaultCredentialsProvider.create())
                                      .option(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
                                      .option(SdkAdvancedClientOption.USER_AGENT_PREFIX, "")
                                      .option(SdkAdvancedClientOption.USER_AGENT_SUFFIX, "")
@@ -64,13 +64,7 @@ public class HttpTestUtils {
     }
 
     public static class TestClientBuilder {
-        private RetryPolicy retryPolicy;
         private SdkHttpClient httpClient;
-
-        public TestClientBuilder retryPolicy(RetryPolicy retryPolicy) {
-            this.retryPolicy = retryPolicy;
-            return this;
-        }
 
         public TestClientBuilder httpClient(SdkHttpClient sdkHttpClient) {
             this.httpClient = sdkHttpClient;
@@ -81,14 +75,7 @@ public class HttpTestUtils {
             SdkHttpClient sdkHttpClient = this.httpClient != null ? this.httpClient : testSdkHttpClient();
             return new AmazonSyncHttpClient(testClientConfiguration().toBuilder()
                                                                      .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
-                                                                     .applyMutation(this::configureRetryPolicy)
                                                                      .build());
-        }
-
-        private void configureRetryPolicy(SdkClientConfiguration.Builder builder) {
-            if (retryPolicy != null) {
-                builder.option(SdkClientOption.RETRY_POLICY, retryPolicy);
-            }
         }
     }
 }

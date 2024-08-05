@@ -17,11 +17,9 @@ package software.amazon.awssdk.enhanced.dynamodb.extensions;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 
@@ -47,7 +45,6 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynam
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationName;
 import software.amazon.awssdk.enhanced.dynamodb.update.RemoveAction;
-import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -60,11 +57,11 @@ public class ChainExtensionTest {
         DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
 
     private static final Map<String, AttributeValue> ATTRIBUTE_VALUES_1 =
-        Collections.unmodifiableMap(Collections.singletonMap("key1", AttributeValue.builder().s("1").build()));
+        Collections.singletonMap("key1", AttributeValue.builder().s("1").build());
     private static final Map<String, AttributeValue> ATTRIBUTE_VALUES_2 =
-        Collections.unmodifiableMap(Collections.singletonMap("key2", AttributeValue.builder().s("2").build()));
+        Collections.singletonMap("key2", AttributeValue.builder().s("2").build());
     private static final Map<String, AttributeValue> ATTRIBUTE_VALUES_3 =
-        Collections.unmodifiableMap(Collections.singletonMap("key3", AttributeValue.builder().s("3").build()));
+        Collections.singletonMap("key3", AttributeValue.builder().s("3").build());
 
     @Mock
     private DynamoDbEnhancedClientExtension mockExtension1;
@@ -310,21 +307,8 @@ public class ChainExtensionTest {
                            .build();
     }
 
-    private static SetAction setAction(String attributeName, AttributeValue value) {
-        return SetAction.builder()
-                        .value(valueRef(attributeName))
-                        .putExpressionValue(valueRef(attributeName), value)
-                        .path(keyRef(attributeName))
-                        .putExpressionName(keyRef(attributeName), attributeName)
-                        .build();
-    }
-
     private UpdateExpression updateExpression(UpdateAction... actions) {
         return UpdateExpression.builder().actions(actions).build();
-    }
-
-    private AttributeValue string(String s) {
-        return AttributeValue.builder().s(s).build();
     }
 
     private static String keyRef(String key) {

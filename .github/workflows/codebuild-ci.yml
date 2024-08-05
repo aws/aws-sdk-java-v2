@@ -4,12 +4,17 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - '**.md'
+      - '.all-contributorsrc'
+      - 'docs/**'
 
 permissions:
   id-token: write
 
 jobs:
   jdk8-build:
+    if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -24,6 +29,7 @@ jobs:
         with:
           project-name: aws-sdk-java-v2
   jdk11-build:
+    if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -38,6 +44,7 @@ jobs:
         with:
           project-name: aws-sdk-java-v2-JDK11
   jdk17-build:
+    if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -51,7 +58,23 @@ jobs:
         timeout-minutes: 120
         with:
           project-name: aws-sdk-java-v2-JDK17
+  jdk21-build:
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run JDK21 build
+        uses: aws-actions/aws-codebuild-run-build@v1
+        timeout-minutes: 120
+        with:
+          project-name: aws-java-sdk-v2-JDK21
   windows-jdk8-build:
+    if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -65,6 +88,7 @@ jobs:
         with:
           project-name: aws-sdk-java-v2-JDK8-windows
   native-image-test:
+    if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -78,6 +102,7 @@ jobs:
         with:
           project-name: aws-sdk-java-v2-native-image-test
   sonar-cloud-build:
+    if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS Credentials
@@ -99,3 +124,17 @@ jobs:
           PR: ${{ github.event.number }}
           BRANCH: ${{ github.head_ref || 'master'}}
           BASE: ${{ github.base_ref }}
+  endpoints-tests:
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run endpoints test
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: aws-sdk-java-v2-endpoints-test

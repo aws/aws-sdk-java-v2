@@ -21,11 +21,11 @@ import static org.assertj.core.api.Java6Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.ClientType.SYNC;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.CLIENT_TYPE;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SERVICE_CONFIG;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.CONTENT_LENGTH_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.SERVER_SIDE_ENCRYPTION_HEADER;
-import static software.amazon.awssdk.services.s3.checksums.ChecksumsEnabledValidator.CHECKSUM;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CHECKSUM_ENABLED_RESPONSE_HEADER;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CONTENT_LENGTH_HEADER;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.ENABLE_MD5_CHECKSUM_HEADER_VALUE;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.SERVER_SIDE_ENCRYPTION_HEADER;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator.CHECKSUM;
 import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AWS_KMS;
 
 import java.io.IOException;
@@ -49,8 +49,8 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.checksums.ChecksumCalculatingInputStream;
-import software.amazon.awssdk.services.s3.checksums.ChecksumValidatingInputStream;
+import software.amazon.awssdk.services.s3.internal.checksums.ChecksumCalculatingInputStream;
+import software.amazon.awssdk.services.s3.internal.checksums.S3ChecksumValidatingInputStream;
 import software.amazon.awssdk.services.s3.internal.handlers.SyncChecksumValidationInterceptor.ChecksumCalculatingStreamProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -78,7 +78,7 @@ public class SyncChecksumValidationInterceptorTest {
 
         assertThat(requestBody.isPresent()).isTrue();
         assertThat(executionAttributes.getAttribute(CHECKSUM)).isNotNull();
-        assertThat(requestBody.get().contentStreamProvider()).isNotEqualTo(modifyHttpRequest.requestBody().get());
+        assertThat(requestBody.get().contentStreamProvider()).isNotEqualTo(modifyHttpRequest.requestBody().get().contentStreamProvider());
     }
 
     @Test
@@ -110,7 +110,7 @@ public class SyncChecksumValidationInterceptorTest {
             InterceptorTestUtils.modifyHttpResponse(GetObjectRequest.builder().build(), sdkHttpResponse);
         Optional<InputStream> publisher = interceptor.modifyHttpResponseContent(modifyHttpResponse,
                                                                                 getExecutionAttributes());
-        assertThat(publisher.get()).isExactlyInstanceOf(ChecksumValidatingInputStream.class);
+        assertThat(publisher.get()).isExactlyInstanceOf(S3ChecksumValidatingInputStream.class);
     }
 
     @Test

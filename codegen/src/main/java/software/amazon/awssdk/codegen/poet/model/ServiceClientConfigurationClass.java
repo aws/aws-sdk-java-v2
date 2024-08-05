@@ -24,138 +24,98 @@ import static javax.lang.model.element.Modifier.STATIC;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
-import java.net.URI;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils.Field;
 
 public class ServiceClientConfigurationClass implements ClassSpec {
     private final ClassName defaultClientMetadataClassName;
+    private final ServiceClientConfigurationUtils utils;
 
     public ServiceClientConfigurationClass(IntermediateModel model) {
         String basePackage = model.getMetadata().getFullClientPackageName();
         String serviceId = model.getMetadata().getServiceName();
         this.defaultClientMetadataClassName = ClassName.get(basePackage, serviceId + "ServiceClientConfiguration");
-    }
-
-    @Override
-    public TypeSpec poetSpec() {
-        return PoetUtils.createClassBuilder(defaultClientMetadataClassName)
-                        .superclass(AwsServiceClientConfiguration.class)
-                        .addJavadoc("Class to expose the service client settings to the user. Implementation of {@link $T}",
-                                    AwsServiceClientConfiguration.class)
-                        .addMethod(constructor())
-                        .addMethod(builderMethod())
-                        .addModifiers(PUBLIC, FINAL)
-                        .addAnnotation(SdkPublicApi.class)
-                        .addType(builderInterfaceSpec())
-                        .addType(builderImplSpec())
-                        .build();
+        this.utils = new ServiceClientConfigurationUtils(model);
     }
 
     @Override
     public ClassName className() {
-        return defaultClientMetadataClassName;
+        return utils.serviceClientConfigurationClassName();
     }
 
-    public MethodSpec constructor() {
-        return MethodSpec.constructorBuilder()
-                         .addModifiers(PRIVATE)
-                         .addParameter(className().nestedClass("Builder"), "builder")
-                         .addStatement("super(builder)")
-                         .build();
+    @Override
+    public TypeSpec poetSpec() {
+        TypeSpec.Builder builder = PoetUtils.createClassBuilder(defaultClientMetadataClassName)
+                                            .addModifiers(PUBLIC, FINAL)
+                                            .addAnnotation(SdkPublicApi.class)
+                                            .superclass(AwsServiceClientConfiguration.class)
+                                            .addJavadoc("Class to expose the service client settings to the user. "
+                                                        + "Implementation of {@link $T}",
+                                                        AwsServiceClientConfiguration.class);
+
+        builder.addMethod(constructor())
+               .addMethod(builderMethod());
+
+        for (Field field : utils.serviceClientConfigurationFields()) {
+            if (!field.isInherited()) {
+                builder.addField(field.type(), field.name(), PRIVATE, FINAL);
+                builder.addMethod(field.localGetter());
+            }
+        }
+
+        return builder.addType(builderInterfaceSpec())
+                      .build();
     }
 
-    public MethodSpec builderMethod() {
+    private MethodSpec constructor() {
+        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+                                               .addModifiers(PUBLIC)
+                                               .addParameter(className().nestedClass("Builder"), "builder");
+        builder.addStatement("super(builder)");
+        for (Field field : utils.serviceClientConfigurationFields()) {
+            if (!field.isInherited()) {
+                builder.addStatement("this.$L = builder.$L()", field.name(), field.name());
+            }
+        }
+        return builder.build();
+    }
+
+    private MethodSpec builderMethod() {
         return MethodSpec.methodBuilder("builder")
                          .addModifiers(PUBLIC, STATIC)
-                         .addStatement("return new BuilderImpl()")
+                         .addStatement("return new $T()",
+                                       utils.serviceClientConfigurationBuilderClassName())
                          .returns(className().nestedClass("Builder"))
-                         .addJavadoc("")
                          .build();
     }
 
     private TypeSpec builderInterfaceSpec() {
-        return TypeSpec.interfaceBuilder("Builder")
-                       .addModifiers(PUBLIC)
-                       .addSuperinterface(ClassName.get(AwsServiceClientConfiguration.class).nestedClass("Builder"))
-                       .addJavadoc("A builder for creating a {@link $T}", className())
-                       .addMethod(MethodSpec.methodBuilder("build")
-                                            .addAnnotation(Override.class)
-                                            .addModifiers(PUBLIC, ABSTRACT)
-                                            .returns(className())
-                                            .build())
-                       .addMethod(MethodSpec.methodBuilder("region")
-                                            .addAnnotation(Override.class)
-                                            .addModifiers(PUBLIC, ABSTRACT)
-                                            .addParameter(Region.class, "region")
-                                            .returns(className().nestedClass("Builder"))
-                                            .addJavadoc("Configure the region")
-                                            .build())
-                       .addMethod(MethodSpec.methodBuilder("endpointOverride")
-                                            .addAnnotation(Override.class)
-                                            .addModifiers(PUBLIC, ABSTRACT)
-                                            .addParameter(URI.class, "endpointOverride")
-                                            .returns(className().nestedClass("Builder"))
-                                            .addJavadoc("Configure the endpointOverride")
-                                            .build())
-                       .addMethod(MethodSpec.methodBuilder("overrideConfiguration")
-                                            .addAnnotation(Override.class)
-                                            .addModifiers(PUBLIC, ABSTRACT)
-                                            .addParameter(ClientOverrideConfiguration.class, "clientOverrideConfiguration")
-                                            .returns(className().nestedClass("Builder"))
-                                            .addJavadoc("Configure the client override configuration")
-                                            .build())
-                       .build();
-    }
+        TypeSpec.Builder builder = TypeSpec.interfaceBuilder("Builder")
+                                           .addModifiers(PUBLIC)
+                                           .addSuperinterface(ClassName.get(AwsServiceClientConfiguration.class)
+                                                                       .nestedClass("Builder"))
+                                           .addJavadoc("A builder for creating a {@link $T}", className());
+        for (Field field : utils.serviceClientConfigurationFields()) {
+            MethodSpec.Builder setterMethod = field.setterSpec().toBuilder().addModifiers(ABSTRACT);
+            MethodSpec.Builder getterMethod = field.getterSpec().toBuilder().addModifiers(ABSTRACT);
+            if (field.isInherited()) {
+                setterMethod.addAnnotation(Override.class);
+                getterMethod.addAnnotation(Override.class);
+            }
+            builder.addMethod(setterMethod.build());
+            builder.addMethod(getterMethod.build());
 
-    private TypeSpec builderImplSpec() {
-        return TypeSpec.classBuilder("BuilderImpl")
-                       .addModifiers(PRIVATE, STATIC, FINAL)
-                       .addSuperinterface(className().nestedClass("Builder"))
-                       .superclass(ClassName.get(AwsServiceClientConfiguration.class).nestedClass("BuilderImpl"))
-                       .addMethod(MethodSpec.constructorBuilder()
-                                            .addModifiers(PRIVATE)
-                                            .build())
-                       .addMethod(MethodSpec.constructorBuilder()
-                                            .addModifiers(PRIVATE)
-                                            .addParameter(className(), "serviceClientConfiguration")
-                                            .addStatement("super(serviceClientConfiguration)")
-                                            .build())
-                       .addMethod(MethodSpec.methodBuilder("region")
-                                            .addAnnotation(Override.class)
-                                            .addModifiers(PUBLIC)
-                                            .addParameter(Region.class, "region")
-                                            .returns(className().nestedClass("Builder"))
-                                            .addStatement("this.region = region")
-                                            .addStatement("return this")
-                                            .build())
-                       .addMethod(MethodSpec.methodBuilder("overrideConfiguration")
-                                            .addAnnotation(Override.class)
-                                            .addModifiers(PUBLIC)
-                                            .addParameter(ClientOverrideConfiguration.class, "clientOverrideConfiguration")
-                                            .returns(className().nestedClass("Builder"))
-                                            .addStatement("this.overrideConfiguration = clientOverrideConfiguration")
-                                            .addStatement("return this")
-                                            .build())
-                       .addMethod(MethodSpec.methodBuilder("endpointOverride")
-                                            .addAnnotation(Override.class)
-                                            .addModifiers(PUBLIC)
-                                            .addParameter(URI.class, "endpointOverride")
-                                            .returns(className().nestedClass("Builder"))
-                                            .addStatement("this.endpointOverride = endpointOverride")
-                                            .addStatement("return this")
-                                            .build())
-                       .addMethod(MethodSpec.methodBuilder("build")
-                                      .addAnnotation(Override.class)
-                                      .addModifiers(PUBLIC)
-                                      .returns(className())
-                                      .addStatement("return new $T(this)", className())
-                                      .build())
-                       .build();
+        }
+
+        builder.addMethod(MethodSpec.methodBuilder("build")
+                                    .addAnnotation(Override.class)
+                                    .addModifiers(PUBLIC, ABSTRACT)
+                                    .returns(className())
+                                    .build());
+        return builder.build();
     }
 }

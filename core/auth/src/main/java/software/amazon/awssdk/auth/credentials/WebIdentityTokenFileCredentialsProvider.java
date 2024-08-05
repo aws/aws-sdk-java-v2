@@ -19,6 +19,7 @@ import static software.amazon.awssdk.utils.StringUtils.trim;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityCredentialsUtils;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
@@ -30,18 +31,19 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * A credential provider that will read web identity token file path, aws role arn
- * and aws session name from system properties or environment variables for using
- * web identity token credentials with STS.
+ * A credential provider that will read web identity token file path, aws role arn and aws session name from system properties or
+ * environment variables for using web identity token credentials with STS.
  * <p>
- *     Use of this credentials provider requires the 'sts' module to be on the classpath.
+ * Use of this credentials provider requires the 'sts' module to be on the classpath.
  * </p>
  * <p>
- * StsWebIdentityTokenFileCredentialsProvider in sts package can be used instead of this class if any one of following is required
- *<ul>
+ * StsWebIdentityTokenFileCredentialsProvider in sts package can be used instead of this class if any one of following is
+ * required
+ * <ul>
  *     <li>Pass a custom StsClient to the provider. </li>
  *     <li>Periodically update credentials </li>
- *</ul>
+ * </ul>
+ *
  * @see AwsCredentialsProvider
  */
 @SdkPublicApi
@@ -60,6 +62,12 @@ public class WebIdentityTokenFileCredentialsProvider
 
     private final Boolean asyncCredentialUpdateEnabled;
 
+    private final Duration prefetchTime;
+
+    private final Duration staleTime;
+
+    private final Duration roleSessionDuration;
+
     private WebIdentityTokenFileCredentialsProvider(BuilderImpl builder) {
         AwsCredentialsProvider credentialsProvider = null;
         RuntimeException loadException = null;
@@ -67,6 +75,9 @@ public class WebIdentityTokenFileCredentialsProvider
         String roleSessionName = null;
         Path webIdentityTokenFile = null;
         Boolean asyncCredentialUpdateEnabled = null;
+        Duration prefetchTime = null;
+        Duration staleTime = null;
+        Duration roleSessionDuration = null;
 
         try {
             webIdentityTokenFile =
@@ -75,7 +86,7 @@ public class WebIdentityTokenFileCredentialsProvider
                                                                           .getStringValueOrThrow()));
 
             roleArn = builder.roleArn != null ? builder.roleArn
-                                                   : trim(SdkSystemSetting.AWS_ROLE_ARN.getStringValueOrThrow());
+                                              : trim(SdkSystemSetting.AWS_ROLE_ARN.getStringValueOrThrow());
 
             roleSessionName =
                 builder.roleSessionName != null ? builder.roleSessionName
@@ -84,12 +95,19 @@ public class WebIdentityTokenFileCredentialsProvider
             asyncCredentialUpdateEnabled =
                 builder.asyncCredentialUpdateEnabled != null ? builder.asyncCredentialUpdateEnabled : false;
 
+            prefetchTime = builder.prefetchTime;
+            staleTime = builder.staleTime;
+            roleSessionDuration = builder.roleSessionDuration;
+
             WebIdentityTokenCredentialProperties credentialProperties =
                 WebIdentityTokenCredentialProperties.builder()
                                                     .roleArn(roleArn)
                                                     .roleSessionName(roleSessionName)
                                                     .webIdentityTokenFile(webIdentityTokenFile)
                                                     .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
+                                                    .prefetchTime(prefetchTime)
+                                                    .staleTime(staleTime)
+                                                    .roleSessionDuration(roleSessionDuration)
                                                     .build();
 
             credentialsProvider = WebIdentityCredentialsUtils.factory().create(credentialProperties);
@@ -106,10 +124,12 @@ public class WebIdentityTokenFileCredentialsProvider
         this.roleSessionName = roleSessionName;
         this.webIdentityTokenFile = webIdentityTokenFile;
         this.asyncCredentialUpdateEnabled = asyncCredentialUpdateEnabled;
+        this.prefetchTime = prefetchTime;
+        this.staleTime = staleTime;
+        this.roleSessionDuration = roleSessionDuration;
     }
 
     public static WebIdentityTokenFileCredentialsProvider create() {
-
         return WebIdentityTokenFileCredentialsProvider.builder().build();
     }
 
@@ -163,8 +183,32 @@ public class WebIdentityTokenFileCredentialsProvider
         /**
          * Define whether the provider should fetch credentials asynchronously in the background.
          */
-
         Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled);
+
+        /**
+         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered close to
+         * stale and should be updated.
+         *
+         * <p>Prefetch updates will occur between the specified time and the stale time of the provider. Prefetch
+         * updates may be asynchronous. See {@link #asyncCredentialUpdateEnabled}.
+         *
+         * <p>By default, this is 5 minutes.
+         */
+        Builder prefetchTime(Duration prefetchTime);
+
+        /**
+         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered stale and
+         * must be updated. All threads will block until the value is updated.
+         *
+         * <p>By default, this is 1 minute.
+         */
+        Builder staleTime(Duration staleTime);
+
+        /**
+         * @param sessionDuration
+         * @return
+         */
+        Builder roleSessionDuration(Duration sessionDuration);
 
         /**
          * Create a {@link WebIdentityTokenFileCredentialsProvider} using the configuration applied to this builder.
@@ -177,6 +221,9 @@ public class WebIdentityTokenFileCredentialsProvider
         private String roleSessionName;
         private Path webIdentityTokenFile;
         private Boolean asyncCredentialUpdateEnabled;
+        private Duration prefetchTime;
+        private Duration staleTime;
+        private Duration roleSessionDuration;
 
         BuilderImpl() {
         }
@@ -186,6 +233,9 @@ public class WebIdentityTokenFileCredentialsProvider
             this.roleSessionName = provider.roleSessionName;
             this.webIdentityTokenFile = provider.webIdentityTokenFile;
             this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
+            this.prefetchTime = provider.prefetchTime;
+            this.staleTime = provider.staleTime;
+            this.roleSessionDuration = provider.roleSessionDuration;
         }
 
         @Override
@@ -226,6 +276,36 @@ public class WebIdentityTokenFileCredentialsProvider
 
         public void setAsyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
             asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled);
+        }
+
+        @Override
+        public Builder prefetchTime(Duration prefetchTime) {
+            this.prefetchTime = prefetchTime;
+            return this;
+        }
+
+        public void setPrefetchTime(Duration prefetchTime) {
+            prefetchTime(prefetchTime);
+        }
+
+        @Override
+        public Builder staleTime(Duration staleTime) {
+            this.staleTime = staleTime;
+            return this;
+        }
+
+        public void setStaleTime(Duration staleTime) {
+            staleTime(staleTime);
+        }
+
+        @Override
+        public Builder roleSessionDuration(Duration sessionDuration) {
+            this.roleSessionDuration = sessionDuration;
+            return this;
+        }
+
+        public void setRoleSessionDuration(Duration roleSessionDuration) {
+            roleSessionDuration(roleSessionDuration);
         }
 
         @Override

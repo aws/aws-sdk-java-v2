@@ -1,0 +1,42 @@
+{
+    "version": "2.20.119",
+    "date": "2023-08-03",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Add `Expect: 100-continue` header for `UploadPartRequest` so that a upload part request can fail faster if there is a server error."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud9",
+            "contributor": "",
+            "description": "Updated the deprecation date for Amazon Linux. Doc only update."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "The release makes public API for DMS Schema Conversion feature."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds new parameter isPrimaryIPv6 to allow assigning an IPv6 address as a primary IPv6 address to a network interface which cannot be changed to give equivalent functionality available for network interfaces with primary IPv4 address."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon SageMaker now supports running training jobs on p5.48xlarge instance types."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "Documentation changes related to Amazon EC2 Auto Scaling APIs."
+        }
+    ]
+}

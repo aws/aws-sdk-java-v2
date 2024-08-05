@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
@@ -38,7 +37,6 @@ import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.protocolquery.model.AllTypesRequest;
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.AwsEndpointProviderUtils;
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Identifier;
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Value;
@@ -106,98 +104,6 @@ public class AwsEndpointProviderUtilsTest {
     }
 
     @Test
-    public void valueAsEndpoint_isNone_throws() {
-        assertThatThrownBy(() -> AwsEndpointProviderUtils.valueAsEndpointOrThrow(Value.none()))
-            .isInstanceOf(SdkClientException.class);
-    }
-
-    @Test
-    public void valueAsEndpoint_isString_throwsAsMsg() {
-        assertThatThrownBy(() -> AwsEndpointProviderUtils.valueAsEndpointOrThrow(Value.fromStr("oops!")))
-            .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("oops!");
-    }
-
-    @Test
-    public void valueAsEndpoint_isEndpoint_returnsEndpoint() {
-        Value.Endpoint endpointVal = Value.Endpoint.builder()
-                                                   .url("https://myservice.aws")
-                                                   .build();
-
-        Endpoint expected = Endpoint.builder()
-                                    .url(URI.create("https://myservice.aws"))
-                                    .build();
-
-        assertThat(expected.url()).isEqualTo(AwsEndpointProviderUtils.valueAsEndpointOrThrow(endpointVal).url());
-    }
-
-    @Test
-    public void valueAsEndpoint_endpointHasAuthSchemes_includesAuthSchemes() {
-        List<Value> authSchemes = Arrays.asList(
-            Value.fromRecord(MapUtils.of(Identifier.of("name"), Value.fromStr("sigv4"),
-                                         Identifier.of("signingRegion"), Value.fromStr("us-west-2"),
-                                         Identifier.of("signingName"), Value.fromStr("myservice"),
-                                         Identifier.of("disableDoubleEncoding"), Value.fromBool(false))),
-
-            Value.fromRecord(MapUtils.of(Identifier.of("name"), Value.fromStr("sigv4a"),
-                                         Identifier.of("signingRegionSet"),
-                                         Value.fromArray(Collections.singletonList(Value.fromStr("*"))),
-                                         Identifier.of("signingName"), Value.fromStr("myservice"),
-                                         Identifier.of("disableDoubleEncoding"), Value.fromBool(false))),
-
-            // Unknown scheme name, should ignore
-            Value.fromRecord(MapUtils.of(Identifier.of("name"), Value.fromStr("sigv5")))
-        );
-
-
-        Value.Endpoint endpointVal = Value.Endpoint.builder()
-                                                   .url("https://myservice.aws")
-                                                   .property("authSchemes", Value.fromArray(authSchemes))
-                                                   .build();
-
-
-        EndpointAuthScheme sigv4 = SigV4AuthScheme.builder()
-                                                  .signingName("myservice")
-                                                  .signingRegion("us-west-2")
-                                                  .disableDoubleEncoding(false)
-                                                  .build();
-
-        EndpointAuthScheme sigv4a = SigV4aAuthScheme.builder()
-                                                    .signingName("myservice")
-                                                    .addSigningRegion("*")
-                                                    .disableDoubleEncoding(false)
-                                                    .build();
-
-        assertThat(AwsEndpointProviderUtils.valueAsEndpointOrThrow(endpointVal).attribute(AwsEndpointAttribute.AUTH_SCHEMES))
-            .containsExactly(sigv4, sigv4a);
-    }
-
-    @Test
-    public void valueAsEndpoint_endpointHasUnknownProperty_ignores() {
-        Value.Endpoint endpointVal = Value.Endpoint.builder()
-                                                   .url("https://myservice.aws")
-                                                   .property("foo", Value.fromStr("baz"))
-                                                   .build();
-
-        assertThat(AwsEndpointProviderUtils.valueAsEndpointOrThrow(endpointVal).attribute(AwsEndpointAttribute.AUTH_SCHEMES)).isNull();
-    }
-
-    @Test
-    public void valueAsEndpoint_endpointHasHeaders_includesHeaders() {
-        Value.Endpoint endpointVal = Value.Endpoint.builder()
-                                                   .url("https://myservice.aws")
-            .addHeader("foo1", "bar1")
-            .addHeader("foo1", "bar2")
-            .addHeader("foo2", "baz")
-                                                   .build();
-
-        Map<String, List<String>> expectedHeaders = MapUtils.of("foo1", Arrays.asList("bar1", "bar2"),
-                                                                "foo2", Arrays.asList("baz"));
-
-        assertThat(AwsEndpointProviderUtils.valueAsEndpointOrThrow(endpointVal).headers()).isEqualTo(expectedHeaders);
-    }
-
-    @Test
     public void regionBuiltIn_returnsAttrValue() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(AwsExecutionAttribute.AWS_REGION, Region.US_EAST_1);
@@ -226,13 +132,6 @@ public class AwsEndpointProviderUtilsTest {
         attrs.putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, endpoint);
 
         assertThat(AwsEndpointProviderUtils.endpointBuiltIn(attrs).toString()).isEqualTo("https://example.com/path");
-    }
-
-    @Test
-    public void useGlobalEndpointBuiltIn_returnsAttrValue() {
-        ExecutionAttributes attrs = new ExecutionAttributes();
-        attrs.putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT, true);
-        assertThat(AwsEndpointProviderUtils.useGlobalEndpointBuiltIn(attrs)).isEqualTo(true);
     }
 
     @Test
@@ -277,47 +176,6 @@ public class AwsEndpointProviderUtilsTest {
 
         assertThat(AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUri).getUri().toString())
             .isEqualTo("https://override.example.com//a");
-    }
-
-    @Test
-    public void setHeaders_existingValuesOnOverride_combinesWithNewValues() {
-        AwsRequest request = AllTypesRequest.builder()
-                                            .overrideConfiguration(o -> o.putHeader("foo", Arrays.asList("a", "b")))
-                                            .build();
-
-        Map<String, List<String>> newHeaders = MapUtils.of("foo", Arrays.asList("c"));
-        AwsRequest newRequest = AwsEndpointProviderUtils.addHeaders(request, newHeaders);
-
-        Map<String, List<String>> expectedHeaders = MapUtils.of("foo", Arrays.asList("a", "b", "c"));
-
-        assertThat(newRequest.overrideConfiguration().get().headers()).isEqualTo(expectedHeaders);
-    }
-
-    @Test
-    public void setHeaders_noExistingValues_setCorrectly() {
-        AwsRequest request = AllTypesRequest.builder()
-                                            .overrideConfiguration(o -> {})
-                                            .build();
-
-        Map<String, List<String>> newHeaders = MapUtils.of("foo", Arrays.asList("a"));
-        AwsRequest newRequest = AwsEndpointProviderUtils.addHeaders(request, newHeaders);
-
-        Map<String, List<String>> expectedHeaders = MapUtils.of("foo", Arrays.asList("a"));
-
-        assertThat(newRequest.overrideConfiguration().get().headers()).isEqualTo(expectedHeaders);
-    }
-
-    @Test
-    public void setHeaders_noExistingOverrideConfig_createsOverrideConfig() {
-        AwsRequest request = AllTypesRequest.builder()
-                                            .build();
-
-        Map<String, List<String>> newHeaders = MapUtils.of("foo", Arrays.asList("a"));
-        AwsRequest newRequest = AwsEndpointProviderUtils.addHeaders(request, newHeaders);
-
-        Map<String, List<String>> expectedHeaders = MapUtils.of("foo", Arrays.asList("a"));
-
-        assertThat(newRequest.overrideConfiguration().get().headers()).isEqualTo(expectedHeaders);
     }
 
     @Test

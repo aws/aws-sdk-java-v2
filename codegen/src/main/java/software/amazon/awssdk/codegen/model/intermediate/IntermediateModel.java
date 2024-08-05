@@ -21,10 +21,8 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -205,6 +203,10 @@ public final class IntermediateModel {
         return customizationConfig.getCustomRetryPolicy();
     }
 
+    public String getCustomRetryStrategy() {
+        return customizationConfig.getCustomRetryStrategy();
+    }
+
     public String getSdkModeledExceptionBaseFqcn() {
         return String.format("%s.%s",
                              metadata.getFullModelPackageName(),
@@ -235,6 +237,21 @@ public final class IntermediateModel {
         }
     }
 
+    public Optional<String> syncClientDecoratorClassName() {
+        if (customizationConfig.getSyncClientDecorator() != null) {
+            return Optional.of(customizationConfig.getSyncClientDecorator());
+        }
+        return Optional.empty();
+    }
+
+    public Optional<String> asyncClientDecoratorClassName() {
+        String asyncClientDecorator = customizationConfig.getAsyncClientDecorator();
+        if (customizationConfig.getAsyncClientDecorator() != null) {
+            return Optional.of(asyncClientDecorator);
+        }
+        return Optional.empty();
+    }
+
     public String getFileHeader() {
         return FILE_HEADER;
     }
@@ -256,13 +273,6 @@ public final class IntermediateModel {
 
     private String getResponseMetadataClassName() {
         return AwsResponseMetadata.class.getName();
-    }
-
-    @JsonIgnore
-    public List<OperationModel> simpleMethodsRequiringTesting() {
-        return getOperations().values().stream()
-                              .filter(v -> v.getInputShape().isSimpleMethod())
-                              .collect(Collectors.toList());
     }
 
     public Optional<OperationModel> getEndpointOperation() {

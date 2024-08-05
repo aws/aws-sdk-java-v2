@@ -32,6 +32,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.auth.signer.EventStreamAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.codegen.model.config.customization.S3ArnableFieldConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -40,15 +41,17 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.HostPrefixProcessor;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.ApiName;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.core.util.VersionInfo;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
-final class ClientClassUtils {
-    private static final String PAGINATOR_USER_AGENT = "PAGINATED";
+public final class ClientClassUtils {
 
     private ClientClassUtils() {
     }
@@ -83,40 +86,6 @@ final class ClientClassUtils {
         result.addStatement(methodBody.toString(), spec.name, firstParameterClass, firstParameter.name);
 
         return result.build();
-    }
-
-    static MethodSpec applyPaginatorUserAgentMethod(PoetExtension poetExtensions, IntermediateModel model) {
-
-        TypeVariableName typeVariableName =
-            TypeVariableName.get("T", poetExtensions.getModelClass(model.getSdkRequestBaseClassName()));
-
-        ParameterizedTypeName parameterizedTypeName = ParameterizedTypeName
-            .get(ClassName.get(Consumer.class), ClassName.get(AwsRequestOverrideConfiguration.Builder.class));
-
-        CodeBlock codeBlock = CodeBlock.builder()
-                                       .addStatement("$T userAgentApplier = b -> b.addApiName($T.builder().version"
-                                                     + "($T.SDK_VERSION).name($S).build())",
-                                                     parameterizedTypeName, ApiName.class,
-                                                     VersionInfo.class,
-                                                     PAGINATOR_USER_AGENT)
-                                       .addStatement("$T overrideConfiguration =\n"
-                                                     + "            request.overrideConfiguration().map(c -> c.toBuilder()"
-                                                     + ".applyMutation"
-                                                     + "(userAgentApplier).build())\n"
-                                                     + "            .orElse((AwsRequestOverrideConfiguration.builder()"
-                                                     + ".applyMutation"
-                                                     + "(userAgentApplier).build()))", AwsRequestOverrideConfiguration.class)
-                                       .addStatement("return (T) request.toBuilder().overrideConfiguration"
-                                                     + "(overrideConfiguration).build()")
-                                       .build();
-
-        return MethodSpec.methodBuilder("applyPaginatorUserAgent")
-                         .addModifiers(Modifier.PRIVATE)
-                         .addParameter(typeVariableName, "request")
-                         .addTypeVariable(typeVariableName)
-                         .addCode(codeBlock)
-                         .returns(typeVariableName)
-                         .build();
     }
 
     static MethodSpec applySignerOverrideMethod(PoetExtension poetExtensions, IntermediateModel model) {
@@ -279,5 +248,36 @@ final class ClientClassUtils {
     private static String inputShapeMemberGetter(OperationModel opModel, String c2jName) {
         return opModel.getInput().getVariableName() + "." +
                opModel.getInputShape().getMemberByC2jName(c2jName).getFluentGetterMethodName() + "()";
+    }
+
+    public static MethodSpec updateRetryStrategyClientConfigurationMethod() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("updateRetryStrategyClientConfiguration")
+                                               .addModifiers(Modifier.PRIVATE)
+                                               .addParameter(SdkClientConfiguration.Builder.class, "configuration");
+        builder.addStatement("$T builder = configuration.asOverrideConfigurationBuilder()",
+                             ClientOverrideConfiguration.Builder.class);
+        builder.addStatement("$T retryMode = builder.retryMode()", RetryMode.class);
+        builder.beginControlFlow("if (retryMode != null)")
+               .addStatement("configuration.option($T.RETRY_STRATEGY, $T.forRetryMode(retryMode))", SdkClientOption.class,
+                             AwsRetryStrategy.class);
+        builder.nextControlFlow("else");
+        builder.addStatement("$T<$T<?, ?>> configurator = builder.retryStrategyConfigurator()", Consumer.class,
+                             RetryStrategy.Builder.class);
+        builder.beginControlFlow("if (configurator != null)")
+               .addStatement("$T<?, ?>  defaultBuilder = $T.defaultRetryStrategy().toBuilder()", RetryStrategy.Builder.class,
+                             AwsRetryStrategy.class)
+               .addStatement("configurator.accept(defaultBuilder)")
+               .addStatement("configuration.option($T.RETRY_STRATEGY, defaultBuilder.build())", SdkClientOption.class);
+        builder.nextControlFlow("else");
+        builder.addStatement("$T retryStrategy = builder.retryStrategy()", RetryStrategy.class);
+        builder.beginControlFlow("if (retryStrategy != null)")
+               .addStatement("configuration.option($T.RETRY_STRATEGY, retryStrategy)", SdkClientOption.class)
+               .endControlFlow();
+        builder.endControlFlow();
+        builder.endControlFlow();
+        builder.addStatement("configuration.option($T.CONFIGURED_RETRY_MODE, null)", SdkClientOption.class);
+        builder.addStatement("configuration.option($T.CONFIGURED_RETRY_STRATEGY, null)", SdkClientOption.class);
+        builder.addStatement("configuration.option($T.CONFIGURED_RETRY_CONFIGURATOR, null)", SdkClientOption.class);
+        return builder.build();
     }
 }

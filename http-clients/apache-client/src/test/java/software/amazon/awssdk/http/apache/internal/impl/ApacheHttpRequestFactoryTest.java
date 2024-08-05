@@ -19,18 +19,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.BufferedHttpEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
+import software.amazon.awssdk.http.apache.internal.RepeatableInputStreamRequestEntity;
 
 public class ApacheHttpRequestFactoryTest {
 
@@ -49,7 +56,7 @@ public class ApacheHttpRequestFactoryTest {
     }
 
     @Test
-    public void ceateSetsHostHeaderByDefault() {
+    public void createSetsHostHeaderByDefault() {
         SdkHttpRequest sdkRequest = SdkHttpRequest.builder()
                 .uri(URI.create("http://localhost:12345/"))
                 .method(SdkHttpMethod.HEAD)
@@ -62,6 +69,29 @@ public class ApacheHttpRequestFactoryTest {
         assertNotNull(hostHeaders);
         assertEquals(1, hostHeaders.length);
         assertEquals("localhost:12345", hostHeaders[0].getValue());
+    }
+
+    @Test
+    public void putRequest_withTransferEncodingChunked_isChunkedAndDoesNotIncludeHeader() {
+        SdkHttpRequest sdkRequest = SdkHttpRequest.builder()
+                                                  .uri(URI.create("http://localhost:12345/"))
+                                                  .method(SdkHttpMethod.PUT)
+                                                  .putHeader("Transfer-Encoding", "chunked")
+                                                  .build();
+        InputStream inputStream = new ByteArrayInputStream("TestStream".getBytes(StandardCharsets.UTF_8));
+        HttpExecuteRequest request = HttpExecuteRequest.builder()
+                                                       .request(sdkRequest)
+                                                       .contentStreamProvider(() -> inputStream)
+                                                       .build();
+        HttpRequestBase result = instance.create(request, requestConfig);
+        Header[] transferEncodingHeaders = result.getHeaders("Transfer-Encoding");
+        assertThat(transferEncodingHeaders).isEmpty();
+
+        HttpEntityEnclosingRequestBase enclosingRequest = (HttpEntityEnclosingRequestBase) result;
+        HttpEntity httpEntity = enclosingRequest.getEntity();
+        assertThat(httpEntity.isChunked()).isTrue();
+        assertThat(httpEntity).isNotInstanceOf(BufferedHttpEntity.class);
+        assertThat(httpEntity).isInstanceOf(RepeatableInputStreamRequestEntity.class);
     }
 
     @Test

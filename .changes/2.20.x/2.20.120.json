@@ -1,0 +1,42 @@
+{
+    "version": "2.20.120",
+    "date": "2023-08-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager Private Certificate Authority",
+            "contributor": "",
+            "description": "Documentation correction for AWS Private CA"
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "Display cloud storage used capacity at a cluster level."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Added a new API UpdateRoutingProfileAgentAvailabilityTimer to update agent availability timer of a routing profile."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This is a documentation update to address various tickets."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Including DataCaptureConfig key in the Amazon Sagemaker Search's transform job object"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

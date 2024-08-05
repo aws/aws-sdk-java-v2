@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.s3.ResumeToken;
-import software.amazon.awssdk.crt.s3.S3MetaRequest;
 
 /**
  * An observable that notifies the observer {@link S3CrtAsyncHttpClient} to pause the request.
@@ -26,17 +25,17 @@ import software.amazon.awssdk.crt.s3.S3MetaRequest;
 @SdkInternalApi
 public class S3MetaRequestPauseObservable {
 
-    private final Function<S3MetaRequest, ResumeToken> pause;
-    private volatile S3MetaRequest request;
+    private final Function<S3MetaRequestWrapper, ResumeToken> pause;
+    private volatile S3MetaRequestWrapper request;
 
     public S3MetaRequestPauseObservable() {
-        this.pause = S3MetaRequest::pause;
+        this.pause = S3MetaRequestWrapper::pause;
     }
 
     /**
-     * Subscribe {@link S3MetaRequest} to be potentially paused later.
+     * Subscribe {@link S3MetaRequestWrapper} to be potentially paused later.
      */
-    public  void subscribe(S3MetaRequest request) {
+    public void subscribe(S3MetaRequestWrapper request) {
         this.request = request;
     }
 

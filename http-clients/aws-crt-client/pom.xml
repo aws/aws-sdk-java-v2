@@ -21,14 +21,13 @@
     <parent>
         <artifactId>http-clients</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.20.86-SNAPSHOT</version>
+        <version>2.26.30-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>aws-crt-client</artifactId>
     <name>AWS Java SDK :: HTTP Clients :: AWS Common Runtime Client</name>
     <packaging>jar</packaging>
-    <version>${awsjavasdk.version}</version>
 
     <properties>
         <awsjavasdk.version>${project.parent.version}</awsjavasdk.version>
@@ -105,7 +104,7 @@
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
+            <artifactId>mockito-inline</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -153,12 +152,6 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>s3</artifactId>
-            <version>${awsjavasdk.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
             <artifactId>auth</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>test</scope>
@@ -173,6 +166,11 @@
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>${commons-codec.verion}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

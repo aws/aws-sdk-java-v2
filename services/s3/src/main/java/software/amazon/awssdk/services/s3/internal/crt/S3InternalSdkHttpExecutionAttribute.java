@@ -15,10 +15,12 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import java.nio.file.Path;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.http.SdkHttpExecutionAttribute;
+import software.amazon.awssdk.regions.Region;
 
 @SdkInternalApi
 public final class S3InternalSdkHttpExecutionAttribute<T> extends SdkHttpExecutionAttribute<T> {
@@ -31,11 +33,21 @@ public final class S3InternalSdkHttpExecutionAttribute<T> extends SdkHttpExecuti
 
     public static final S3InternalSdkHttpExecutionAttribute<HttpChecksum> HTTP_CHECKSUM =
         new S3InternalSdkHttpExecutionAttribute<>(HttpChecksum.class);
-    public static final S3InternalSdkHttpExecutionAttribute<S3MetaRequestPauseObservable> METAREQUEST_PAUSE_OBSERVABLE =
-        new S3InternalSdkHttpExecutionAttribute<>(S3MetaRequestPauseObservable.class);
 
     public static final S3InternalSdkHttpExecutionAttribute<ResumeToken> CRT_PAUSE_RESUME_TOKEN =
         new S3InternalSdkHttpExecutionAttribute<>(ResumeToken.class);
+
+    public static final S3InternalSdkHttpExecutionAttribute<Region> SIGNING_REGION =
+        new S3InternalSdkHttpExecutionAttribute<>(Region.class);
+
+    public static final S3InternalSdkHttpExecutionAttribute<String> SIGNING_NAME =
+        new S3InternalSdkHttpExecutionAttribute<>(String.class);
+
+    public static final S3InternalSdkHttpExecutionAttribute<Path> OBJECT_FILE_PATH =
+        new S3InternalSdkHttpExecutionAttribute<>(Path.class);
+
+    public static final S3InternalSdkHttpExecutionAttribute<Boolean> USE_S3_EXPRESS_AUTH =
+        new S3InternalSdkHttpExecutionAttribute<>(Boolean.class);
 
     private S3InternalSdkHttpExecutionAttribute(Class<T> valueClass) {
         super(valueClass);

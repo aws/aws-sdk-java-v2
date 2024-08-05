@@ -99,7 +99,9 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
             next = storingSubscriber.peek();
         }
 
-        addBufferedDataAmount(-transferred);
+        if (transferred != 0) {
+            addBufferedDataAmount(-transferred);
+        }
 
         if (!next.isPresent()) {
             return TransferResult.SUCCESS;
@@ -178,8 +180,9 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
 
     @Override
     public void onNext(ByteBuffer byteBuffer) {
+        int remaining = byteBuffer.remaining();
         storingSubscriber.onNext(byteBuffer.duplicate());
-        addBufferedDataAmount(byteBuffer.remaining());
+        addBufferedDataAmount(remaining);
         phaser.arrive();
     }
 

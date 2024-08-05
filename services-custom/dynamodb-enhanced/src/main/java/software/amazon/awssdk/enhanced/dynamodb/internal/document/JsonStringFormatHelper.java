@@ -74,11 +74,12 @@ public final class JsonStringFormatHelper {
                 case '\"':
                     output.append("\\\""); // double-quote character
                     break;
-                case '\'':
-                    output.append("\\'"); // single-quote character
-                    break;
                 default:
-                    output.append(ch);
+                    if (Character.isISOControl(ch)) {
+                        output.append(String.format("\\u%04X", (int) ch));
+                    } else {
+                        output.append(ch);
+                    }
                     break;
             }
         }

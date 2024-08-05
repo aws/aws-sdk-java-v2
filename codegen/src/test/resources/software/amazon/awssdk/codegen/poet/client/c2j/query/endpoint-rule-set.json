@@ -16,12 +16,33 @@
       "type": "boolean",
       "builtIn": "AWS::UseFIPS"
     },
+    "AccountId": {
+      "type": "String",
+      "builtIn": "AWS::Auth::AccountId"
+    },
+    "AccountIdEndpointMode": {
+      "type": "String",
+      "builtIn": "AWS::Auth::AccountIdEndpointMode"
+    },
+    "listOfStrings": {
+      "type": "StringArray",
+      "required": false
+    },
+    "defaultListOfStrings": {
+      "type": "stringarray",
+      "default": [
+        "item1",
+        "item2",
+        "item3"
+      ]
+    },
     "endpointId": {
       "type": "string"
     },
     "defaultTrueParam": {
       "type": "boolean",
-      "default": true
+        "default": true,
+        "documentation": "A param that defauls to true"
     },
     "defaultStringParam": {
       "type": "string",
@@ -48,7 +69,7 @@
     {
       "conditions": [
         {
-          "fn": "partition",
+          "fn": "aws.partition",
           "argv": [
             {
               "ref": "region"
@@ -210,7 +231,7 @@
                 "properties": {
                   "authSchemes": [
                     {
-                      "name": "sigsigv4a",
+                      "name": "sigv4a",
                       "signingName": "query",
                       "signingRegionSet": ["*"]
                     }
@@ -260,6 +281,11 @@
                       "name": "sigv4a",
                       "signingName": "query",
                       "signingRegionSet": ["*"]
+                    },
+                    {
+                      "name": "sigv4",
+                      "signingName": "query",
+                      "signingRegion": "{region}"
                     }
                   ]
                 }

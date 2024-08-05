@@ -20,26 +20,33 @@ import java.time.Duration;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.model.GenerateAuthenticationTokenRequest;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 
 @Immutable
 @SdkInternalApi
 final class DefaultRdsUtilities implements RdsUtilities {
+    private static final Logger log = Logger.loggerFor(RdsUtilities.class);
+
     // The time the IAM token is good for. https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html
     private static final Duration EXPIRATION_DURATION = Duration.ofMinutes(15);
 
     private final Aws4Signer signer = Aws4Signer.create();
     private final Region region;
-    private final AwsCredentialsProvider credentialsProvider;
+    private final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
     private final Clock clock;
 
     DefaultRdsUtilities(DefaultBuilder builder) {
@@ -76,10 +83,11 @@ final class DefaultRdsUtilities implements RdsUtilities {
                                             .build();
 
         Instant expirationTime = Instant.now(clock).plus(EXPIRATION_DURATION);
+
         Aws4PresignerParams presignRequest = Aws4PresignerParams.builder()
                                                 .signingClockOverride(clock)
                                                 .expirationTime(expirationTime)
-                                                .awsCredentials(resolveCredentials(request).resolveCredentials())
+                                                .awsCredentials(resolveCredentials(request))
                                                 .signingName("rds-db")
                                                 .signingRegion(resolveRegion(request))
                                                 .build();
@@ -89,7 +97,9 @@ final class DefaultRdsUtilities implements RdsUtilities {
 
         // Format should be: <hostname>>:<port>>/?Action=connect&DBUser=<username>>&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expi...
         // Note: This must be the real RDS hostname, not proxy or tunnels
-        return StringUtils.replacePrefixIgnoreCase(signedUrl, "https://", "");
+        String result = StringUtils.replacePrefixIgnoreCase(signedUrl, "https://", "");
+        log.debug(() -> "Generated RDS authentication token with expiration of " + expirationTime);
+        return result;
     }
 
     private Region resolveRegion(GenerateAuthenticationTokenRequest request) {
@@ -105,13 +115,15 @@ final class DefaultRdsUtilities implements RdsUtilities {
                 "or RdsUtilities object");
     }
 
-    private AwsCredentialsProvider resolveCredentials(GenerateAuthenticationTokenRequest request) {
-        if (request.credentialsProvider() != null) {
-            return request.credentialsProvider();
+    // TODO: update this to use AwsCredentialsIdentity when we migrate Signers to accept the new type.
+    private AwsCredentials resolveCredentials(GenerateAuthenticationTokenRequest request) {
+        if (request.credentialsIdentityProvider() != null) {
+            return CredentialUtils.toCredentials(
+                CompletableFutureUtils.joinLikeSync(request.credentialsIdentityProvider().resolveIdentity()));
         }
 
         if (this.credentialsProvider != null) {
-            return this.credentialsProvider;
+            return CredentialUtils.toCredentials(CompletableFutureUtils.joinLikeSync(this.credentialsProvider.resolveIdentity()));
         }
 
         throw new IllegalArgumentException("CredentialProvider should be provided either in GenerateAuthenticationTokenRequest " +
@@ -121,13 +133,13 @@ final class DefaultRdsUtilities implements RdsUtilities {
     @SdkInternalApi
     static final class DefaultBuilder implements Builder {
         private Region region;
-        private AwsCredentialsProvider credentialsProvider;
+        private IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
 
         DefaultBuilder() {
         }
 
         Builder clientConfiguration(SdkClientConfiguration clientConfiguration) {
-            this.credentialsProvider = clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER);
+            this.credentialsProvider = clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
             this.region = clientConfiguration.option(AwsClientOption.AWS_REGION);
 
             return this;
@@ -140,7 +152,7 @@ final class DefaultRdsUtilities implements RdsUtilities {
         }
 
         @Override
-        public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+        public Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
             return this;
         }

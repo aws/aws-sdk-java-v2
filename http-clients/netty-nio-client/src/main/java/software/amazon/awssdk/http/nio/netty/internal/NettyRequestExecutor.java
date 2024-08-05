@@ -31,7 +31,6 @@ import static software.amazon.awssdk.http.nio.netty.internal.NettyRequestMetrics
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.DefaultHttpContent;
@@ -199,7 +198,6 @@ public final class NettyRequestExecutor {
         channel.attr(RESPONSE_CONTENT_LENGTH).set(null);
         channel.attr(RESPONSE_DATA_READ).set(null);
         channel.attr(CHANNEL_DIAGNOSTICS).get().incrementRequestCount();
-        channel.config().setOption(ChannelOption.AUTO_READ, false);
     }
 
     private void configurePipeline() throws IOException {
@@ -445,7 +443,7 @@ public final class NettyRequestExecutor {
 
                     try {
                         int newLimit = clampedBufferLimit(contentBytes.remaining());
-                        contentBytes.limit(newLimit);
+                        contentBytes.limit(contentBytes.position() + newLimit);
                         ByteBuf contentByteBuf = Unpooled.wrappedBuffer(contentBytes);
                         HttpContent content = new DefaultHttpContent(contentByteBuf);
 

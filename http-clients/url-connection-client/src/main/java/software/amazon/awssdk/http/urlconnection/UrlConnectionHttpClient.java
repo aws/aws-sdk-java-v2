@@ -152,7 +152,12 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
     private HttpURLConnection createAndConfigureConnection(HttpExecuteRequest request) {
         SdkHttpRequest sdkHttpRequest = request.httpRequest();
         HttpURLConnection connection = connectionFactory.createConnection(sdkHttpRequest.getUri());
-        sdkHttpRequest.forEachHeader((key, values) -> values.forEach(value -> connection.setRequestProperty(key, value)));
+        setHeaders(connection, sdkHttpRequest);
+
+        // connection.setRequestProperty("Transfer-Encoding", "chunked") does not work, i.e., property does not get set
+        if (sdkHttpRequest.matchingHeaders("Transfer-Encoding").contains("chunked")) {
+            connection.setChunkedStreamingMode(-1);
+        }
 
         if (!sdkHttpRequest.firstMatchingHeader(ACCEPT).isPresent()) {
             // Override Accept header because the default one in JDK does not comply with RFC 7231
@@ -173,6 +178,13 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                       .ifPresent(connection::setFixedLengthStreamingMode);
 
         return connection;
+    }
+
+    private void setHeaders(HttpURLConnection connection, SdkHttpRequest request) {
+        request.forEachHeader((name, values) -> {
+            String commaSeparated = String.join(",", values);
+            connection.addRequestProperty(name, commaSeparated);
+        });
     }
 
     private HttpURLConnection createDefaultConnection(URI uri, SSLSocketFactory socketFactory) {
@@ -491,7 +503,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
 
     private static final class DefaultBuilder implements Builder {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
-        private ProxyConfiguration proxyConfiguration;
+        private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
 
         private DefaultBuilder() {
         }

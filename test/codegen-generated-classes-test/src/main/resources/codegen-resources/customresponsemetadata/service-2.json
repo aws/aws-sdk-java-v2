@@ -111,6 +111,15 @@
       "input":{"shape":"OperationWithExplicitPayloadBlobInput"},
       "output":{"shape":"OperationWithExplicitPayloadBlobInput"}
     },
+    "OperationWithExplicitPayloadString":{
+      "name":"OperationWithExplicitPayloadString",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/operationWithExplicitPayloadString"
+      },
+      "input":{"shape":"OperationWithExplicitPayloadStringInput"},
+      "output":{"shape":"OperationWithExplicitPayloadStringInput"}
+    },
     "OperationWithExplicitPayloadStructure":{
       "name":"OperationWithExplicitPayloadStructure",
       "http":{
@@ -156,6 +165,20 @@
         "shape": "PaginatedOperationWithResultKeyResponse"
       },
       "documentation": "Some paginated operation with result_key in paginators.json file"
+    },
+    "PaginatedOperationWithMoreResults": {
+      "name": "PaginatedOperationWithMoreResults",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "PaginatedOperationWithMoreResultsRequest"
+      },
+      "output": {
+        "shape": "PaginatedOperationWithMoreResultsResponse"
+      },
+      "documentation": "Some paginated operation with more_results in paginators.json file"
     },
     "QueryParamWithoutValue":{
       "name":"QueryParamWithoutValue",
@@ -277,6 +300,31 @@
         "requestAlgorithmMember": "ChecksumAlgorithm"
       }
     },
+    "PutOperationWithRequestCompression":{
+      "name":"PutOperationWithRequestCompression",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RequestCompressionStructure"},
+      "output":{"shape":"RequestCompressionStructure"},
+      "requestcompression": {
+        "encodings": ["gzip"]
+      }
+    },
+    "PutOperationWithStreamingRequestCompression":{
+      "name":"PutOperationWithStreamingRequestCompression",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/"
+      },
+      "input":{"shape":"RequestCompressionStructureWithStreaming"},
+      "output":{"shape":"RequestCompressionStructureWithStreaming"},
+      "requestcompression": {
+        "encodings": ["gzip"]
+      },
+      "authtype":"v4-unsigned-body"
+    },
     "GetOperationWithChecksum":{
       "name":"GetOperationWithChecksum",
       "http":{
@@ -289,6 +337,15 @@
         "requestValidationModeMember": "ChecksumMode",
         "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"]
       }
+    },
+    "GetOperationWithMapEndpointParam":{
+      "name":"GetOperationWithMapEndpointParam",
+      "http":{
+        "method":"GET",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetOperationWithMapEndpointParamInput"},
+      "output":{"shape":"GetOperationWithMapEndpointParamOutput"}
     },
     "OperationWithChecksumNonStreaming":{
       "name":"OperationWithChecksumNonStreaming",
@@ -672,6 +729,13 @@
       },
       "payload":"PayloadMember"
     },
+    "OperationWithExplicitPayloadStringInput":{
+      "type":"structure",
+      "members":{
+        "PayloadMember":{"shape":"String"}
+      },
+      "payload":"PayloadMember"
+    },
     "OperationWithExplicitPayloadStructureInput":{
       "type":"structure",
       "members":{
@@ -734,6 +798,36 @@
         }
       },
       "documentation": "<p>Response type of a single page</p>"
+    },
+    "PaginatedOperationWithMoreResultsRequest": {
+      "type": "structure",
+      "required": [
+        "NextToken"
+      ],
+      "members": {
+        "NextToken": {
+          "shape": "String",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "MaxResults": {
+          "shape": "String",
+          "documentation": "<p>Maximum number of results in a single page</p>"
+        }
+      }
+    },
+    "PaginatedOperationWithMoreResultsResponse": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "String",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "Truncated":{
+          "shape":"Boolean",
+          "documentation":"<p>A flag that indicates whether there are more results in the list. When this value is true, the list in this response is truncated.</p>"
+        }
+      },
+      "documentation": "<p>Response type of multiple pages</p>"
     },
     "PayloadStructType":{
       "type":"structure",
@@ -1007,6 +1101,50 @@
         }
       },
       "payload":"NestedQueryParameterOperation"
+    },
+    "RequestCompressionStructure":{
+      "type":"structure",
+      "members":{
+        "Body":{
+          "shape":"Body",
+          "documentation":"<p>Object data.</p>",
+          "streaming":false
+        }
+      },
+      "payload":"Body"
+    },
+    "RequestCompressionStructureWithStreaming":{
+      "type":"structure",
+      "members":{
+        "Body":{
+          "shape":"Body",
+          "documentation":"<p>Object data.</p>",
+          "streaming":true
+        }
+      },
+      "payload":"Body"
+    },
+    "GetOperationWithMapEndpointParamInput": {
+      "type": "structure",
+      "required":["MapOfStrings"],
+      "members": {
+        "MapOfStrings":{
+          "shape":"MapOfStrings"
+        }
+      }
+    },
+    "GetOperationWithMapEndpointParamOutput": {
+      "type": "structure",
+      "members": {
+        "MapOfStrings":{
+          "shape":"MapOfStrings"
+        }
+      }
+    },
+    "MapOfStrings":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"String"}
     }
   }
 }

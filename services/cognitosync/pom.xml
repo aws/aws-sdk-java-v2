@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.20.86-SNAPSHOT</version>
+        <version>2.26.30-SNAPSHOT</version>
     </parent>
     <artifactId>cognitosync</artifactId>
     <name>AWS Java SDK :: Services :: Amazon Cognito Sync</name>
@@ -62,6 +62,11 @@
             <artifactId>cognitoidentity</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth-aws</artifactId>
+            <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>
 </project>

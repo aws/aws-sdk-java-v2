@@ -20,24 +20,25 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.HttpCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.Credentials;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public class CrtCredentialProviderAdapterTest {
 
     @Test
     void crtCredentials_withSession_shouldConvert() {
-        AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider
+        IdentityProvider<? extends AwsCredentialsIdentity> awsCredentialsProvider = StaticCredentialsProvider
             .create(AwsSessionCredentials.create("foo", "bar", "session"));
 
         CredentialsProvider crtCredentialsProvider = new CrtCredentialsProviderAdapter(awsCredentialsProvider)
@@ -52,7 +53,7 @@ public class CrtCredentialProviderAdapterTest {
 
     @Test
     void crtCredentials_withoutSession_shouldConvert() {
-        AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider
+        IdentityProvider<? extends AwsCredentialsIdentity> awsCredentialsProvider = StaticCredentialsProvider
             .create(AwsBasicCredentials.create("foo", "bar"));
 
         CredentialsProvider crtCredentialsProvider = new CrtCredentialsProviderAdapter(awsCredentialsProvider)
@@ -67,19 +68,9 @@ public class CrtCredentialProviderAdapterTest {
 
     @Test
     void crtCredentials_provideAwsCredentials_shouldInvokeResolveAndClose() {
-        AwsCredentialsProvider awsCredentialsProvider = Mockito.mock(HttpCredentialsProvider.class);
-        AwsCredentials credentials = new AwsCredentials() {
-            @Override
-            public String accessKeyId() {
-                return "foo";
-            }
-
-            @Override
-            public String secretAccessKey() {
-                return "bar";
-            }
-        };
-        when(awsCredentialsProvider.resolveCredentials()).thenReturn(credentials);
+        IdentityProvider<? extends AwsCredentialsIdentity> awsCredentialsProvider = Mockito.mock(HttpCredentialsProvider.class);
+        AwsCredentialsIdentity credentials = AwsCredentialsIdentity.create("foo", "bar");
+        when(awsCredentialsProvider.resolveIdentity()).thenAnswer(invocation -> CompletableFuture.completedFuture(credentials));
 
         CrtCredentialsProviderAdapter adapter = new CrtCredentialsProviderAdapter(awsCredentialsProvider);
         CredentialsProvider crtCredentialsProvider = adapter.crtCredentials();
@@ -87,7 +78,7 @@ public class CrtCredentialProviderAdapterTest {
         Credentials crtCredentials = crtCredentialsProvider.getCredentials().join();
         assertThat(crtCredentials.getAccessKeyId()).isEqualTo("foo".getBytes(StandardCharsets.UTF_8));
         assertThat(crtCredentials.getSecretAccessKey()).isEqualTo("bar".getBytes(StandardCharsets.UTF_8));
-        verify(awsCredentialsProvider).resolveCredentials();
+        verify(awsCredentialsProvider).resolveIdentity();
 
         adapter.close();
         verify((SdkAutoCloseable) awsCredentialsProvider).close();
@@ -95,7 +86,7 @@ public class CrtCredentialProviderAdapterTest {
 
     @Test
     void crtCredentials_anonymousCredentialsProvider_shouldWork() {
-        AwsCredentialsProvider awsCredentialsProvider = AnonymousCredentialsProvider.create();
+        IdentityProvider<? extends AwsCredentialsIdentity> awsCredentialsProvider = AnonymousCredentialsProvider.create();
 
         CrtCredentialsProviderAdapter adapter = new CrtCredentialsProviderAdapter(awsCredentialsProvider);
         CredentialsProvider crtCredentialsProvider = adapter.crtCredentials();
@@ -104,9 +95,5 @@ public class CrtCredentialProviderAdapterTest {
 
         assertThat(crtCredentials.getAccessKeyId()).isNull();
         assertThat(crtCredentials.getSecretAccessKey()).isNull();
-
     }
-
-
-
 }

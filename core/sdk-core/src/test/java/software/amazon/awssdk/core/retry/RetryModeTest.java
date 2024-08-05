@@ -50,10 +50,10 @@ public class RetryModeTest {
             // Test resolution
             new TestData("legacy", null, null, null, RetryMode.LEGACY),
             new TestData("standard", null, null, null, RetryMode.STANDARD),
-            new TestData("adaptive", null, null, null, RetryMode.ADAPTIVE),
+            new TestData("adaptive", null, null, null, RetryMode.ADAPTIVE_V2),
             new TestData("lEgAcY", null, null, null, RetryMode.LEGACY),
             new TestData("sTanDaRd", null, null, null, RetryMode.STANDARD),
-            new TestData("aDaPtIvE", null, null, null, RetryMode.ADAPTIVE),
+            new TestData("aDaPtIvE", null, null, null, RetryMode.ADAPTIVE_V2),
 
             // Test precedence
             new TestData("standard", "legacy", "PropertySetToLegacy", RetryMode.LEGACY, RetryMode.STANDARD),

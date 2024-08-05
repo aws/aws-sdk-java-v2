@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
@@ -98,6 +99,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  */
 @Immutable
 @SdkPublicApi
+@ThreadSafe
 public final class S3Utilities {
     private static final String SERVICE_NAME = "s3";
     private static final Pattern ENDPOINT_PATTERN = Pattern.compile("^(.+\\.)?s3[.-]([a-z0-9-]+)\\.");
@@ -118,7 +120,7 @@ public final class S3Utilities {
         this.region = Validate.paramNotNull(builder.region, "Region");
         this.endpoint = builder.endpoint;
         this.profileFile = Optional.ofNullable(builder.profileFile)
-                                   .orElse(ProfileFile::defaultProfileFile);
+                                   .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
         this.profileName = builder.profileName;
 
         if (builder.s3Configuration == null) {
@@ -499,7 +501,6 @@ public final class S3Utilities {
                    !s3Configuration.multiRegionEnabled());
         params.put(S3ClientContextParams.FORCE_PATH_STYLE, s3Configuration.pathStyleAccessEnabled());
         params.put(S3ClientContextParams.ACCELERATE, s3Configuration.accelerateModeEnabled());
-
         return params.build();
     }
 
@@ -628,12 +629,6 @@ public final class S3Utilities {
          * when the utilities is created via {@link S3Client#utilities()}. This is not currently public because it may be less
          * confusing to support the full {@link ClientOverrideConfiguration} object in the future.
          */
-        private Builder profileFile(ProfileFile profileFile) {
-            return profileFile(Optional.ofNullable(profileFile)
-                                       .map(ProfileFileSupplier::fixedProfileFile)
-                                       .orElse(null));
-        }
-
         private Builder profileFile(Supplier<ProfileFile> profileFileSupplier) {
             this.profileFile = profileFileSupplier;
             return this;

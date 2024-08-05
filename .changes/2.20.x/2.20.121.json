@@ -1,0 +1,42 @@
+{
+    "version": "2.20.121",
+    "date": "2023-08-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Detective",
+            "contributor": "",
+            "description": "Updated the email validation regex to be in line with the TLD name specifications."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service RealTime",
+            "contributor": "",
+            "description": "Add QUOTA_EXCEEDED and PUBLISHER_NOT_FOUND to EventErrorCode for stage health events."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Video Streams",
+            "contributor": "",
+            "description": "This release enables minimum of Images SamplingInterval to be as low as 200 milliseconds in Kinesis Video Stream Image feature."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Video Streams Archived Media",
+            "contributor": "",
+            "description": "This release enables minimum of Images SamplingInterval to be as low as 200 milliseconds in Kinesis Video Stream Image feature."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Rekognition",
+            "contributor": "",
+            "description": "This release adds code snippets for Amazon Rekognition Custom Labels."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

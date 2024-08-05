@@ -26,7 +26,9 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -48,6 +50,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 @ThreadSafe
 @SdkPublicApi
 public abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+    private static final Logger log = Logger.loggerFor(StsCredentialsProvider.class);
 
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
     private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
@@ -73,7 +76,9 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
 
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
-        CachedSupplier.Builder<AwsSessionCredentials> cacheBuilder = CachedSupplier.builder(this::updateSessionCredentials);
+        CachedSupplier.Builder<AwsSessionCredentials> cacheBuilder =
+            CachedSupplier.builder(this::updateSessionCredentials)
+                          .cachedValueName(toString());
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(asyncThreadName));
         }
@@ -98,7 +103,11 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
 
     @Override
     public AwsCredentials resolveCredentials() {
-        return sessionCache.get();
+        AwsSessionCredentials credentials = sessionCache.get();
+        credentials.expirationTime().ifPresent(t -> {
+            log.debug(() -> "Using STS credentials with expiration time of " + t);
+        });
+        return credentials;
     }
 
     @Override
@@ -122,10 +131,17 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         return prefetchTime;
     }
 
+    @Override
+    public String toString() {
+        return ToString.create(providerName());
+    }
+
     /**
      * Implemented by a child class to call STS and get a new set of credentials to be used by this provider.
      */
     abstract AwsSessionCredentials getUpdatedCredentials(StsClient stsClient);
+
+    abstract String providerName();
 
     /**
      * Extended by child class's builders to share configuration across credential providers.

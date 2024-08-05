@@ -15,18 +15,20 @@
 
 package software.amazon.awssdk.services.rds.internal;
 
-import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME;
 
 import java.net.URI;
 import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
-import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -37,9 +39,17 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
+import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.model.RdsRequest;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * Abstract pre-sign handler that follows the pre-signing scheme outlined in the 'RDS Presigned URL for Cross-Region Copying'
@@ -74,49 +84,39 @@ public abstract class RdsPresignInterceptor<T extends RdsRequest> implements Exe
 
     private final Class<T> requestClassToPreSign;
 
-    private final Clock signingOverrideClock;
+    private final Clock signingClockOverride;
 
-    public RdsPresignInterceptor(Class<T> requestClassToPreSign) {
+    protected RdsPresignInterceptor(Class<T> requestClassToPreSign) {
         this(requestClassToPreSign, null);
     }
 
-    public RdsPresignInterceptor(Class<T> requestClassToPreSign, Clock signingOverrideClock) {
+    protected RdsPresignInterceptor(Class<T> requestClassToPreSign, Clock signingClockOverride) {
         this.requestClassToPreSign = requestClassToPreSign;
-        this.signingOverrideClock = signingOverrideClock;
+        this.signingClockOverride = signingClockOverride;
     }
 
     @Override
     public final SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
-                                                      ExecutionAttributes executionAttributes) {
+                                                  ExecutionAttributes executionAttributes) {
         SdkHttpRequest request = context.httpRequest();
-        SdkRequest originalRequest = context.request();
-        if (!requestClassToPreSign.isInstance(originalRequest)) {
-            return request;
+        PresignableRequest presignableRequest = toPresignableRequest(request, context);
+        if (presignableRequest == null) {
+            return request.toBuilder().removeQueryParameter(PARAM_SOURCE_REGION).build();
         }
 
-        if (request.firstMatchingRawQueryParameter(PARAM_PRESIGNED_URL).isPresent()) {
-            return request;
-        }
-
-        PresignableRequest presignableRequest = adaptRequest(requestClassToPreSign.cast(originalRequest));
-
+        SelectedAuthScheme<?> selectedAuthScheme = executionAttributes.getAttribute(SELECTED_AUTH_SCHEME);
         String sourceRegion = presignableRequest.getSourceRegion();
-        if (sourceRegion == null) {
-            return request;
-        }
-
-        String destinationRegion = executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION).id();
-
+        String destinationRegion = selectedAuthScheme.authSchemeOption().signerProperty(AwsV4HttpSigner.REGION_NAME);
         URI endpoint = createEndpoint(sourceRegion, SERVICE_NAME, executionAttributes);
         SdkHttpFullRequest.Builder marshalledRequest = presignableRequest.marshall().toBuilder().uri(endpoint);
 
         SdkHttpFullRequest requestToPresign =
-                marshalledRequest.method(SdkHttpMethod.GET)
-                                 .putRawQueryParameter(PARAM_DESTINATION_REGION, destinationRegion)
-                                 .removeQueryParameter(PARAM_SOURCE_REGION)
-                                 .build();
+            marshalledRequest.method(SdkHttpMethod.GET)
+                             .putRawQueryParameter(PARAM_DESTINATION_REGION, destinationRegion)
+                             .removeQueryParameter(PARAM_SOURCE_REGION)
+                             .build();
 
-        requestToPresign = presignRequest(requestToPresign, executionAttributes, sourceRegion);
+        requestToPresign = sraPresignRequest(executionAttributes, requestToPresign, sourceRegion);
 
         String presignedUrl = requestToPresign.getUri().toString();
 
@@ -135,28 +135,92 @@ public abstract class RdsPresignInterceptor<T extends RdsRequest> implements Exe
      */
     protected abstract PresignableRequest adaptRequest(T originalRequest);
 
-    private SdkHttpFullRequest presignRequest(SdkHttpFullRequest request,
-                                              ExecutionAttributes attributes,
-                                              String signingRegion) {
+    /**
+     * Converts the request to a PresignableRequest if possible.
+     */
+    private PresignableRequest toPresignableRequest(SdkHttpRequest request, Context.ModifyHttpRequest context) {
+        SdkRequest originalRequest = context.request();
+        if (!requestClassToPreSign.isInstance(originalRequest)) {
+            return null;
+        }
+        if (request.firstMatchingRawQueryParameter(PARAM_PRESIGNED_URL).isPresent()) {
+            return null;
+        }
 
-        Aws4Signer signer = Aws4Signer.create();
-        Aws4PresignerParams presignerParams = Aws4PresignerParams.builder()
-                                                                 .signingRegion(Region.of(signingRegion))
-                                                                 .signingName(SERVICE_NAME)
-                                                                 .signingClockOverride(signingOverrideClock)
-                                                                 .awsCredentials(attributes.getAttribute(AWS_CREDENTIALS))
-                                                                 .build();
+        PresignableRequest presignableRequest = adaptRequest(requestClassToPreSign.cast(originalRequest));
+        String sourceRegion = presignableRequest.getSourceRegion();
+        if (sourceRegion == null) {
+            return null;
+        }
+        return presignableRequest;
+    }
 
-        return signer.presign(request, presignerParams);
+    /**
+     * Presign the provided HTTP request using SRA HttpSigner
+     */
+    private SdkHttpFullRequest sraPresignRequest(ExecutionAttributes executionAttributes, SdkHttpFullRequest request,
+                                                 String signingRegion) {
+        SelectedAuthScheme<?> selectedAuthScheme = executionAttributes.getAttribute(SELECTED_AUTH_SCHEME);
+        Instant signingInstant;
+        if (signingClockOverride != null) {
+            signingInstant = signingClockOverride.instant();
+        } else {
+            signingInstant = Instant.now();
+        }
+        // A fixed signing clock is used so that the current time used by the signing logic, as well as to
+        // determine expiration are the same.
+        Clock signingClock = Clock.fixed(signingInstant, ZoneOffset.UTC);
+        Duration expirationDuration = Duration.ofDays(7);
+        return doSraPresign(request, selectedAuthScheme, signingRegion, signingClock, expirationDuration);
+    }
+
+    private <T extends Identity> SdkHttpFullRequest doSraPresign(SdkHttpFullRequest request,
+                                                                 SelectedAuthScheme<T> selectedAuthScheme,
+                                                                 String signingRegion,
+                                                                 Clock signingClock,
+                                                                 Duration expirationDuration) {
+        CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
+        T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
+
+        // Pre-signed URL puts auth info in query string, does not sign the payload, and has an expiry.
+        SignRequest.Builder<T> signRequestBuilder = SignRequest
+            .builder(identity)
+            .putProperty(AwsV4FamilyHttpSigner.AUTH_LOCATION, AwsV4FamilyHttpSigner.AuthLocation.QUERY_STRING)
+            .putProperty(AwsV4FamilyHttpSigner.EXPIRATION_DURATION, expirationDuration)
+            .putProperty(HttpSigner.SIGNING_CLOCK, signingClock)
+            .request(request)
+            .payload(request.contentStreamProvider().orElse(null));
+        AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
+        authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
+        // Override the region
+        signRequestBuilder.putProperty(AwsV4HttpSigner.REGION_NAME, signingRegion);
+        HttpSigner<T> signer = selectedAuthScheme.signer();
+        SignedRequest signedRequest = signer.sign(signRequestBuilder.build());
+        return toSdkHttpFullRequest(signedRequest);
+    }
+
+    private SdkHttpFullRequest toSdkHttpFullRequest(SignedRequest signedRequest) {
+        SdkHttpRequest request = signedRequest.request();
+
+        return SdkHttpFullRequest.builder()
+                                 .contentStreamProvider(signedRequest.payload().orElse(null))
+                                 .protocol(request.protocol())
+                                 .method(request.method())
+                                 .host(request.host())
+                                 .port(request.port())
+                                 .encodedPath(request.encodedPath())
+                                 .applyMutation(r -> request.forEachHeader(r::putHeader))
+                                 .applyMutation(r -> request.forEachRawQueryParameter(r::putRawQueryParameter))
+                                 .removeQueryParameter(PARAM_SOURCE_REGION)
+                                 .build();
     }
 
     private URI createEndpoint(String regionName, String serviceName, ExecutionAttributes attributes) {
         Region region = Region.of(regionName);
-
         if (region == null) {
             throw SdkClientException.builder()
                                     .message("{" + serviceName + ", " + regionName + "} was not "
-                                            + "found in region metadata. Update to latest version of SDK and try again.")
+                                             + "found in region metadata. Update to latest version of SDK and try again.")
                                     .build();
         }
 

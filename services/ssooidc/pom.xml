@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.20.86-SNAPSHOT</version>
+        <version>2.26.30-SNAPSHOT</version>
     </parent>
     <artifactId>ssooidc</artifactId>
     <name>AWS Java SDK :: Services :: SSO OIDC</name>
@@ -83,9 +83,19 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth-aws</artifactId>
+            <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>
 </project>
