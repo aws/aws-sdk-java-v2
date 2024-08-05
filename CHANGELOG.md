@@ -1,4 +1,26 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.30__ __2024-08-05__
+## __AWS Performance Insights__
+  - ### Features
+    - Added a description for the Dimension db.sql.tokenized_id on the DimensionGroup data type page.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds create() method for ContainerCredentialsProvider
+    - Updated endpoint and partition metadata.
+
+## __Amazon DataZone__
+  - ### Features
+    - This releases Data Product feature. Data Products allow grouping data assets into cohesive, self-contained units for ease of publishing for data producers, and ease of finding and accessing for data consumers.
+
+## __Amazon EC2 Container Registry__
+  - ### Features
+    - Released two new APIs along with documentation updates. The GetAccountSetting API is used to view the current basic scan type version setting for your registry, while the PutAccountSetting API is used to update the basic scan type version for your registry.
+
+## __Amazon Kinesis Video WebRTC Storage__
+  - ### Features
+    - Add JoinStorageSessionAsViewer API
+
 # __2.26.29__ __2024-08-02__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes

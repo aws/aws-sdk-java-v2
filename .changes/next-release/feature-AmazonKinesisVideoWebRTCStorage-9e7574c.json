@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Video WebRTC Storage",
-    "contributor": "",
-    "description": "Add JoinStorageSessionAsViewer API"
-}
