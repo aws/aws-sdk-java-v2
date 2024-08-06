@@ -117,6 +117,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .headerMarshaller(MarshallingType.INTEGER, HeaderMarshaller.INTEGER)
             .headerMarshaller(MarshallingType.LONG, HeaderMarshaller.LONG)
             .headerMarshaller(MarshallingType.SHORT, HeaderMarshaller.SHORT)
+            .headerMarshaller(MarshallingType.BYTE, HeaderMarshaller.BYTE)
             .headerMarshaller(MarshallingType.DOUBLE, HeaderMarshaller.DOUBLE)
             .headerMarshaller(MarshallingType.FLOAT, HeaderMarshaller.FLOAT)
             .headerMarshaller(MarshallingType.BOOLEAN, HeaderMarshaller.BOOLEAN)
@@ -128,6 +129,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .queryParamMarshaller(MarshallingType.INTEGER, QueryParamMarshaller.INTEGER)
             .queryParamMarshaller(MarshallingType.LONG, QueryParamMarshaller.LONG)
             .queryParamMarshaller(MarshallingType.SHORT, QueryParamMarshaller.SHORT)
+            .queryParamMarshaller(MarshallingType.BYTE, QueryParamMarshaller.BYTE)
             .queryParamMarshaller(MarshallingType.DOUBLE, QueryParamMarshaller.DOUBLE)
             .queryParamMarshaller(MarshallingType.FLOAT, QueryParamMarshaller.FLOAT)
             .queryParamMarshaller(MarshallingType.BOOLEAN, QueryParamMarshaller.BOOLEAN)
@@ -140,6 +142,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .pathParamMarshaller(MarshallingType.INTEGER, SimpleTypePathMarshaller.INTEGER)
             .pathParamMarshaller(MarshallingType.LONG, SimpleTypePathMarshaller.LONG)
             .pathParamMarshaller(MarshallingType.SHORT, SimpleTypePathMarshaller.SHORT)
+            .pathParamMarshaller(MarshallingType.BYTE, SimpleTypePathMarshaller.BYTE)
             .pathParamMarshaller(MarshallingType.NULL, SimpleTypePathMarshaller.NULL)
 
             .greedyPathParamMarshaller(MarshallingType.STRING, SimpleTypePathMarshaller.GREEDY_STRING)
