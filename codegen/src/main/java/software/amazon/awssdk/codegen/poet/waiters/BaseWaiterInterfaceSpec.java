@@ -151,8 +151,8 @@ public abstract class BaseWaiterInterfaceSpec implements ClassSpec {
             ParameterizedTypeName.get(ClassName.get(Consumer.class),
                                       ClassName.get(WaiterOverrideConfiguration.class).nestedClass("Builder"));
 
-        CodeBlock javadoc = WaiterDocs.waiterOperationWithOverrideConfigConsumerBuilder(
-            clientClassName(), requestClass, waiterDefinition, opModel);
+        CodeBlock javadoc = WaiterDocs.waiterOperationWithOverrideConfigConsumerBuilder(clientClassName(), waiterDefinition,
+                                                                                        opModel);
 
         String inputVariable = opModel.getInput().getVariableName();
 

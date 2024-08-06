@@ -137,7 +137,7 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         createClientAndCallGetObject(clientType, protocol, s3ExpressSessionAuth, checksumAlgorithm, wm);
 
         verifyGetObject(s3ExpressSessionAuth);
-        verifyGetObjectHeaders(protocol);
+        verifyGetObjectHeaders();
     }
 
     @ParameterizedTest
@@ -185,10 +185,10 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         Map<String, List<String>> headers = CAPTURING_INTERCEPTOR.headers;
         assertThat(headers.get("x-amz-sdk-checksum-algorithm")).isNull();
         assertThat(headers.get("Content-MD5")).isNull();
-        assertSignatureHeader(protocol, headers);
+        assertSignatureHeader(headers);
     }
 
-    private void assertSignatureHeader(Protocol protocol, Map<String, List<String>> headers) {
+    private void assertSignatureHeader(Map<String, List<String>> headers) {
         assertThat(headers.get("x-amz-content-sha256")).isNotNull();
         assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase("UNSIGNED-PAYLOAD");
     }
@@ -309,9 +309,9 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         }
     }
 
-    void verifyGetObjectHeaders(Protocol protocol) {
+    void verifyGetObjectHeaders() {
         Map<String, List<String>> headers = CAPTURING_INTERCEPTOR.headers;
-        assertSignatureHeader(protocol, headers);
+        assertSignatureHeader(headers);
         assertThat(headers.get("x-amz-te")).isNull();
     }
 

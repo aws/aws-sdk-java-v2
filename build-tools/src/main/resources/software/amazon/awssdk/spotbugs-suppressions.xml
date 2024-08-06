@@ -38,21 +38,6 @@
         <Bug pattern="PZLA_PREFER_ZERO_LENGTH_ARRAYS,UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
     </Match>
 
-    <Match>
-        <Or>
-            <!-- Container classes do not copy arrays for performance reasons at this time. -->
-            <Class name="software.amazon.awssdk.protocols.json.JsonContent" />
-        </Or>
-        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
-    </Match>
-
-    <Match>
-        <!-- Explicitly an unsafe option that the customer must opt into. -->
-        <Class name="software.amazon.awssdk.core.BytesWrapper" />
-        <Method name="asByteArrayUnsafe" />
-        <Bug pattern="EI_EXPOSE_REP" />
-    </Match>
-
     <!-- Delegate closes input stream. -->
     <Match>
         <Class name="software.amazon.awssdk.protocols.ion.internal.IonFactory" />
@@ -82,12 +67,6 @@
         <Bug pattern="URF_UNREAD_FIELD,DLS_DEAD_LOCAL_STORE,REC_CATCH_EXCEPTION" />
     </Match>
 
-    <!-- False positive -->
-    <Match>
-        <Class name="software.amazon.awssdk.core.ResponseBytes" />
-        <Bug pattern="EI_EXPOSE_REP2" />
-    </Match>
-
     <!-- False positive Unconfirmed cast-->
     <Match>
         <Or>
@@ -115,35 +94,6 @@
             <Class name="software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool" />
         </Or>
         <Bug pattern="BC_UNCONFIRMED_CAST,SIC_INNER_SHOULD_BE_STATIC_ANON,DLS_DEAD_LOCAL_STORE,DM_CONVERT_CASE,NM_CLASS_NOT_EXCEPTION,NP_NULL_ON_SOME_PATH"/>
-    </Match>
-
-    <Match>
-        <Class name="software.amazon.awssdk.benchmark.marshaller.dynamodb.V1DynamoDbAttributeValue$TestItemUnmarshalling" />
-        <Method name="utf8" />
-        <Bug pattern="EI_EXPOSE_REP" />
-    </Match>
-
-    <Match>
-        <Class name="software.amazon.awssdk.benchmark.marshaller.dynamodb.V2DynamoDbAttributeValue$TestItemUnmarshalling" />
-        <Method name="utf8" />
-        <Bug pattern="EI_EXPOSE_REP" />
-    </Match>
-
-    <Match>
-        <Class name="software.amazon.awssdk.authcrt.signer.internal.SdkSigningResult" />
-        <Method name="getSignature" />
-        <Bug pattern="EI_EXPOSE_REP" />
-    </Match>
-
-    <Match>
-        <Class name="software.amazon.awssdk.http.auth.aws.crt.internal.signer.V4aRequestSigningResult" />
-        <Method name="getSignature" />
-        <Bug pattern="EI_EXPOSE_REP" />
-    </Match>
-
-    <Match>
-        <Class name="software.amazon.awssdk.http.auth.aws.crt.internal.signer.RollingSigner" />
-        <Bug pattern="EI_EXPOSE_REP" />
     </Match>
 
     <Match>
@@ -307,10 +257,57 @@
         <Bug pattern="BAD_TO_BUILDER"/>
     </Match>
 
-    <!-- New flags as of spotbogs 4.7.3.5 -->
-    <!-- TODO: Fix or explicitly exclude each occurrence -->
+    <!-- False positives from Spotbugs 4.7.3.5 -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <!-- False positives from Spotbugs 4.7.3.5 -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- False positives from Spotbugs 4.7.3.5 -->
+    <Match>
+        <Bug pattern="MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR"/>
+    </Match>
+
+    <!-- False positives from Spotbugs 4.7.3.5 -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.enhanced.dynamodb.internal.client.ExtensionResolver"/>
+            <Class name="software.amazon.awssdk.codegen.model.service.Paginators"/>
+            <Class name="software.amazon.awssdk.codegen.model.service.Waiters"/>
+            <Class name="software.amazon.awssdk.regions.EndpointTag"/>
+            <Class name="software.amazon.awssdk.regions.Region"/>
+            <Class name="software.amazon.awssdk.core.util.DefaultSdkAutoConstructList"/>
+            <Class name="software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap"/>
+            <Class name="software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler"/>
+            <Class name="software.amazon.awssdk.http.apache.internal.conn.IdleConnectionReaper"/>
+            <Class name="software.amazon.awssdk.eventnotifications.s3.internal.DefaultS3EventNotificationWriter"/>
+            <Class name="software.amazon.awssdk.policybuilder.iam.internal.DefaultIamPolicyWriter"/>
+        </Or>
+        <Bug pattern="MS_EXPOSE_REP"/>
+    </Match>
+
+    <!-- Intentional catching of NullPointerException -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient$RequestCallable"/>
+            <Class name="software.amazon.awssdk.buildtools.checkstyle.SdkPublicMethodNameCheck"/>
+        </Or>
+        <Bug pattern="DCN_NULLPOINTER_EXCEPTION"/>
+    </Match>
+
+    <!-- Retrieves and updates crc value in update() -->
      <Match>
-        <Bug pattern="EI_EXPOSE_REP2,EI_EXPOSE_REP,MS_EXPOSE_REP,MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR,SA_FIELD_SELF_ASSIGNMENT,DCN_NULLPOINTER_EXCEPTION"/>
+         <Or>
+             <Class name="software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkCrc32CChecksum"/>
+             <Class name="software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkCrc32Checksum"/>
+             <Class name="software.amazon.awssdk.core.internal.checksums.factory.SdkCrc32C"/>
+             <Class name="software.amazon.awssdk.core.internal.checksums.factory.SdkCrc32"/>
+         </Or>
+         <Bug pattern="SA_FIELD_SELF_ASSIGNMENT"/>
     </Match>
 
     <!-- False positive -->

@@ -268,7 +268,11 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
 
     private void writeNumericField(JsonWriter writer, String field, Long value) {
         writer.writeFieldName(field);
-        writer.writeNumber(value.toString());
+        if (value == null) {
+            writer.writeNull();
+        } else {
+            writer.writeNumber(value.toString());
+        }
     }
 
     @Override

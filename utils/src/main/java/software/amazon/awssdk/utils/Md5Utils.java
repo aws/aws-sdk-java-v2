@@ -58,7 +58,7 @@ public final class Md5Utils {
             try {
                 bis.close();
             } catch (Exception e) {
-                LoggerFactory.getLogger(Md5Utils.class).debug("Unable to close input stream of hash candidate: {}", e);
+                LoggerFactory.getLogger(Md5Utils.class).debug("Unable to close input stream of hash candidate: ", e);
             }
         }
     }

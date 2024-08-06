@@ -20,10 +20,9 @@ import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.retry.RetryPolicyContext;
-import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
+import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.utils.Either;
 
 /**
@@ -57,9 +56,13 @@ public final class WaiterExecutorHelper<T> {
     }
 
     public long computeNextDelayInMills(int attemptNumber) {
-        return backoffStrategy.computeDelayBeforeNextRetry(RetryPolicyContext.builder()
-                                                                             .retriesAttempted(attemptNumber)
-                                                                             .build())
+        // This API used originally the legacy BackoffStrategies.
+        // The new retries-API backoff strategies work with attempts whereas
+        // the legacies backoff strategies work with retries, attempts is
+        // equals to retries + 1. Added to that, the new backoff strategies
+        // expect the attempt count to be incremented before computing the delay,
+        // therefore we add here + 2 to account for these differences.
+        return backoffStrategy.computeDelay(attemptNumber + 2)
                               .toMillis();
     }
 

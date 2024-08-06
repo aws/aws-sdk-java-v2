@@ -17,13 +17,25 @@ package software.amazon.awssdk.services.endpointproviders;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.DefaultPartitionDataProvider;
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Partition;
-import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Partitions;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
+import software.amazon.awssdk.utils.FunctionalUtils;
+import software.amazon.awssdk.utils.internal.ClassLoaderHelperTestBackdoor;
 
 public class DefaultPartitionDataProviderTest {
+    private static final String EMPTY_PARTITIONS_FILE =
+        DefaultPartitionDataProviderTest.class.getResource("empty-partitions.json").getFile();
+    private static final String ONLY_AWS_PARTITIONS_FILE =
+        DefaultPartitionDataProviderTest.class.getResource("only-aws-partitions.json").getFile();
+
     private DefaultPartitionDataProvider provider;
 
     @BeforeEach
@@ -32,9 +44,48 @@ public class DefaultPartitionDataProviderTest {
     }
 
     @Test
-    public void loadPartitions_returnsData() {
-        Partitions partitions = provider.loadPartitions();
-        assertThat(partitions.partitions()).isNotEmpty();
+    public void loadPartitions_systemSettingOverrideHasHighestPriority() {
+        runWithPartitionsOverrides(EMPTY_PARTITIONS_FILE, ONLY_AWS_PARTITIONS_FILE, () -> {
+            assertThat(provider.loadPartitions().partitions()).isEmpty();
+        });
+    }
+
+    @Test
+    public void loadPartitions_classpathOverrideHasSecondPriority() {
+        runWithPartitionsOverrides(null, ONLY_AWS_PARTITIONS_FILE, () -> {
+            assertThat(provider.loadPartitions().partitions())
+                .singleElement()
+                .extracting(Partition::id)
+                .isEqualTo("aws");
+        });
+    }
+
+    @Test
+    public void loadPartitions_returnsIncludedDataByDefault() {
+        assertThat(provider.loadPartitions().partitions()).hasSizeGreaterThan(1);
+    }
+
+    private void runWithPartitionsOverrides(String systemSettingPartitionsFilePath,
+                                            String classLoaderPartitionsFilePath,
+                                            Runnable runnable) {
+        EnvironmentVariableHelper.run(h -> {
+            if (systemSettingPartitionsFilePath != null) {
+                h.set(SdkSystemSetting.AWS_PARTITIONS_FILE, systemSettingPartitionsFilePath);
+            }
+            try {
+                if (classLoaderPartitionsFilePath != null) {
+                    Supplier<InputStream> partitionsContentSupplier =
+                        () -> FunctionalUtils.invokeSafely(() -> Files.newInputStream(Paths.get(classLoaderPartitionsFilePath)));
+                    PartitionsJsonAwareClassLoader overrideClassLoader =
+                        new PartitionsJsonAwareClassLoader(partitionsContentSupplier);
+                    ClassLoaderHelperTestBackdoor.addClassLoaderOverride(DefaultPartitionDataProvider.class,
+                                                                         overrideClassLoader);
+                }
+                runnable.run();
+            } finally {
+                ClassLoaderHelperTestBackdoor.clearClassLoaderOverrides();
+            }
+        });
     }
 
     @Test
@@ -47,5 +98,22 @@ public class DefaultPartitionDataProviderTest {
                                                     () -> new RuntimeException("could not find aws partition"));
 
         assertThat(awsPartition.regions()).containsKey("us-west-2");
+    }
+
+    private class PartitionsJsonAwareClassLoader extends ClassLoader {
+        private final Supplier<InputStream> partitionContentLoader;
+
+        private PartitionsJsonAwareClassLoader(Supplier<InputStream> partitionContentLoader) {
+            this.partitionContentLoader = partitionContentLoader;
+        }
+
+        @Override
+        public InputStream getResourceAsStream(String name) {
+            if ("software/amazon/awssdk/global/partitions.json".equals(name)) {
+                return partitionContentLoader.get();
+            }
+
+            return super.getResourceAsStream(name);
+        }
     }
 }

@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
@@ -200,7 +199,7 @@ public final class ChecksumsEnabledValidator {
      */
     private static boolean checksumEnabledPerConfig(ExecutionAttributes executionAttributes) {
         S3Configuration serviceConfiguration =
-            (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
+            (S3Configuration) executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_CONFIG);
 
         return serviceConfiguration == null || serviceConfiguration.checksumValidationEnabled();
     }

@@ -358,7 +358,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                 // TODO: we can remove this once we are fully on SRA signing AND CRT supports checksum for default requests
                 // Clear HTTP_CHECKSUM and RESOLVED_CHECKSUM_SPECS to disable SDK flexible checksum implementation.
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM, null);
-                executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_CHECKSUM_SPECS, null);
+                executionAttributes.putAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS, null);
             }
         }
     }

@@ -180,7 +180,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
         Presigner presigner = resolvePresigner(requestToPresign);
         SdkHttpFullRequest signedHttpRequest = null;
         if (presigner != null) {
-            signedHttpRequest = presignRequest(presigner, requestToPresign, marshalledRequest, execAttrs);
+            signedHttpRequest = presignRequest(presigner, marshalledRequest, execAttrs);
         } else {
             SelectedAuthScheme<AwsCredentialsIdentity> authScheme = selectedAuthScheme(requestToPresign, execAttrs);
             signedHttpRequest = doSraPresign(marshalledRequest, authScheme, presignRequest.signatureDuration());
@@ -212,7 +212,6 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     }
 
     private SdkHttpFullRequest presignRequest(Presigner presigner,
-                                              PollyRequest requestToPresign,
                                               SdkHttpFullRequest marshalledRequest,
                                               ExecutionAttributes executionAttributes) {
         SdkHttpFullRequest presigned = presigner.presign(marshalledRequest, executionAttributes);
@@ -251,7 +250,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
         AwsCredentialsIdentity credentialsIdentity = resolveCredentials(resolveCredentialsProvider(requestToPresign));
         AuthSchemeOption.Builder optionBuilder = AuthSchemeOption.builder()
                                                                  .schemeId(authScheme.schemeId());
-        optionBuilder.putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, SERVICE_NAME);
+        optionBuilder.putSignerProperty(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME, SERVICE_NAME);
         String region = attributes.getAttribute(AwsExecutionAttribute.AWS_REGION).id();
         optionBuilder.putSignerProperty(AwsV4HttpSigner.REGION_NAME, region);
         return new SelectedAuthScheme<>(CompletableFuture.completedFuture(credentialsIdentity), authScheme.signer(),

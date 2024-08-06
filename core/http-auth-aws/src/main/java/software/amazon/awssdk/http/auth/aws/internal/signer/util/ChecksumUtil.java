@@ -34,6 +34,7 @@ import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Md5Checksu
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkChecksum;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Sha1Checksum;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Sha256Checksum;
+import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 @SdkInternalApi
@@ -85,13 +86,11 @@ public final class ChecksumUtil {
      * when it gets read.
      */
     public static void readAll(InputStream inputStream) {
-        try {
+        FunctionalUtils.invokeSafely(() -> {
             byte[] buffer = new byte[4096];
             while (inputStream.read(buffer) > -1) {
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Could not finish reading stream: ", e);
-        }
+        });
     }
 
     /**

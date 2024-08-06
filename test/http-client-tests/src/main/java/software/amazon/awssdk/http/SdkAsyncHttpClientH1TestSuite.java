@@ -178,7 +178,6 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
         private SslContext sslCtx;
         private boolean return500OnFirstRequest;
         private boolean closeConnection;
-        private volatile HttpRequest lastRequestReceived;
 
         public void init() throws Exception {
             SelfSignedCertificate ssc = new SelfSignedCertificate();
@@ -216,7 +215,6 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object msg) {
                 if (msg instanceof HttpRequest) {
-                    lastRequestReceived = (HttpRequest) msg;
 
                     HttpResponseStatus status;
                     if (ctx.channel().equals(channels.get(0)) && return500OnFirstRequest) {

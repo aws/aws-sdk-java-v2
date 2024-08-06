@@ -26,18 +26,29 @@ import software.amazon.awssdk.core.util.SdkAutoConstructList;
  */
 @SdkInternalApi
 public class ListQueryMarshaller implements QueryMarshaller<List<?>> {
+    private static final PathResolver AWS_QUERY_PATH_RESOLVER = (path, i, listTrait) ->
+        listTrait.isFlattened() ?
+        String.format("%s.%d", path, i + 1) :
+        String.format("%s.%s.%d", path, listTrait.memberFieldInfo().locationName(), i + 1);
+    private static final PathResolver EC2_QUERY_PATH_RESOLVER = (path, i, listTrait) -> String.format("%s.%d", path, i + 1);
+
+    private static final EmptyListMarshaller AWS_QUERY_EMPTY_LIST_MARSHALLER =
+        (context, path) -> context.request().putRawQueryParameter(path, "");
+    private static final EmptyListMarshaller EC2_QUERY_EMPTY_LIST_MARSHALLER = (context, path) -> { };
 
     private final PathResolver pathResolver;
+    private final EmptyListMarshaller emptyListMarshaller;
 
-    private ListQueryMarshaller(PathResolver pathResolver) {
+    private ListQueryMarshaller(PathResolver pathResolver, EmptyListMarshaller emptyListMarshaller) {
         this.pathResolver = pathResolver;
+        this.emptyListMarshaller = emptyListMarshaller;
     }
 
     @Override
     public void marshall(QueryMarshallerContext context, String path, List<?> val, SdkField<List<?>> sdkField) {
-        // Explicitly empty lists are marshalled as a query param with empty value in AWS/Query
+        // Explicitly empty lists are marshalled as a query param with empty value in AWS/Query, but not in EC2/Query
         if (val.isEmpty() && !(val instanceof SdkAutoConstructList)) {
-            context.request().putRawQueryParameter(path, "");
+            emptyListMarshaller.marshall(context, path);
             return;
         }
         for (int i = 0; i < val.size(); i++) {
@@ -55,16 +66,18 @@ public class ListQueryMarshaller implements QueryMarshaller<List<?>> {
         String resolve(String path, int i, ListTrait listTrait);
     }
 
+    @FunctionalInterface
+    private interface EmptyListMarshaller {
+        void marshall(QueryMarshallerContext context, String path);
+    }
+
     /**
      * Wires up the {@link ListQueryMarshaller} with a {@link PathResolver} that respects the flattened trait.
      *
      * @return ListQueryMarshaller.
      */
     public static ListQueryMarshaller awsQuery() {
-        return new ListQueryMarshaller((path, i, listTrait) ->
-                                           listTrait.isFlattened() ?
-                                           String.format("%s.%d", path, i + 1) :
-                                           String.format("%s.%s.%d", path, listTrait.memberFieldInfo().locationName(), i + 1));
+        return new ListQueryMarshaller(AWS_QUERY_PATH_RESOLVER, AWS_QUERY_EMPTY_LIST_MARSHALLER);
     }
 
     /**
@@ -74,6 +87,6 @@ public class ListQueryMarshaller implements QueryMarshaller<List<?>> {
      * @return ListQueryMarshaller.
      */
     public static ListQueryMarshaller ec2Query() {
-        return new ListQueryMarshaller((path, i, listTrait) -> String.format("%s.%d", path, i + 1));
+        return new ListQueryMarshaller(EC2_QUERY_PATH_RESOLVER, EC2_QUERY_EMPTY_LIST_MARSHALLER);
     }
 }

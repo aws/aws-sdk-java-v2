@@ -23,14 +23,12 @@ import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -170,14 +168,14 @@ class TransferProgressUpdaterTest {
         @Override
         public int read(byte[] b, int off, int len) {
             return (exceptionPosition >= pos && exceptionPosition < (pos + len)) ?
-                   exceptionThrowingReadByteArr(b, off, len) : super.read(b, off, len);
+                   exceptionThrowingReadByteArr() : super.read(b, off, len);
         }
 
         private int exceptionThrowingRead() {
             throw new RuntimeException("Exception occurred at position " + (pos + 1));
         }
 
-        private int exceptionThrowingReadByteArr(byte[] b, int off, int len) {
+        private int exceptionThrowingReadByteArr() {
             throw new RuntimeException("Exception occurred in read(byte[]) at position " + exceptionPosition);
         }
     }
