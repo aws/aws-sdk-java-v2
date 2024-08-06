@@ -47,7 +47,6 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     private final Boolean flushOnShutdown;
 
     public BatchOverrideConfiguration(Builder builder) {
-        //TODO : Add defaults based on QueueBufferConfig.java of V1 Default values.
         this.maxBatchItems = Validate.isPositiveOrNull(builder.maxBatchItems, "maxBatchItems");
         this.maxBatchKeys = Validate.isPositiveOrNull(builder.maxBatchKeys, "maxBatchKeys");
         this.maxBufferSize = Validate.isPositiveOrNull(builder.maxBufferSize, "maxBufferSize");

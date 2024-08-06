@@ -30,8 +30,9 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-public class BatchOverrideConfigurationTest {
+class BatchOverrideConfigurationTest {
 
     @ParameterizedTest
     @MethodSource("provideConfigurations")
@@ -83,5 +84,31 @@ public class BatchOverrideConfigurationTest {
         EqualsVerifier.forClass(BatchOverrideConfiguration.class)
                       .withPrefabValues(Duration.class, Duration.ofMillis(1), Duration.ofMillis(2))
                       .verify();
+    }
+
+
+    @Test
+    void testToBuilder() {
+        BatchOverrideConfiguration originalConfig = BatchOverrideConfiguration.builder()
+                                                                              .maxBatchItems(10)
+                                                                              .maxBatchKeys(5)
+                                                                              .maxBufferSize(1000)
+                                                                              .maxBatchOpenInMs(Duration.ofMillis(200))
+                                                                              .maxBatchSizeBytes(1024L)
+                                                                              .visibilityTimeoutSeconds(30)
+                                                                              .longPollWaitTimeoutSeconds(20)
+                                                                              .minReceiveWaitTimeMs(50)
+                                                                              .receiveAttributeNames(Arrays.asList("attr1"))
+                                                                              .receiveMessageAttributeNames(Arrays.asList("msgAttr1"))
+                                                                              .adaptivePrefetching(true)
+                                                                              .flushOnShutdown(false)
+                                                                              .build();
+
+        BatchOverrideConfiguration.Builder builder = originalConfig.toBuilder();
+        BatchOverrideConfiguration newConfig = builder.build();
+        assertEquals(originalConfig, newConfig);
+        // Ensure that modifying the builder does not affect the original config
+        builder.maxBatchItems(20);
+        assertNotEquals(originalConfig.maxBatchItems(), builder.build().maxBatchItems());
     }
 }

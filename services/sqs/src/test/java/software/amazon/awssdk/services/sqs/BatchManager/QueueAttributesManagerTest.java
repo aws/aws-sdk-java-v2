@@ -81,7 +81,27 @@ class QueueAttributesManagerTest {
     }
 
     @Test
-    void getReceiveMessageTimeout_invalidResponse() throws Exception {
+    void getReceiveMessageTimeout_usesDefaultValue_when_WaitTimeInServiceIsLow() throws Exception {
+        Map<QueueAttributeName, String> attributes = new HashMap<>();
+        attributes.put(QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS, "0");
+
+        GetQueueAttributesResponse response = GetQueueAttributesResponse.builder()
+                                                                        .attributes(attributes)
+                                                                        .build();
+
+        when(sqsClient.getQueueAttributes(any(GetQueueAttributesRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+
+        ReceiveMessageRequest request = ReceiveMessageRequest.builder().build();
+        CompletableFuture<Duration> timeoutFuture = visibilityTimeoutManager.getReceiveMessageTimeout(request);
+        Duration timeout = timeoutFuture.get(1, TimeUnit.SECONDS);
+
+        assertEquals(Duration.ofMillis(500), timeout);  // 10 seconds in milliseconds
+        verify(sqsClient, times(1)).getQueueAttributes(any(GetQueueAttributesRequest.class));
+    }
+
+    @Test
+    void getReceiveMessageTimeout_invalidResponse() {
         GetQueueAttributesResponse response = GetQueueAttributesResponse.builder()
                                                                         .attributes(new HashMap<>())
                                                                         .build();
@@ -100,7 +120,7 @@ class QueueAttributesManagerTest {
     }
 
     @Test
-    void getReceiveMessageTimeout_exception() throws Exception {
+    void getReceiveMessageTimeout_exception(){
         CompletableFuture<GetQueueAttributesResponse> exceptionFuture = new CompletableFuture<>();
         exceptionFuture.completeExceptionally(QueueDoesNotExistException.builder().message("queue not exist").build());
 
@@ -188,6 +208,26 @@ class QueueAttributesManagerTest {
         Duration timeout = timeoutFuture.get(1, TimeUnit.SECONDS);
 
         assertEquals(Duration.ofSeconds(30), timeout);
+        verify(sqsClient, times(1)).getQueueAttributes(any(GetQueueAttributesRequest.class));
+    }
+
+
+    @Test
+    void getVisibilityTimeout_validResponse_withLowValueUsesThatLowValue() throws Exception {
+        Map<QueueAttributeName, String> attributes = new HashMap<>();
+        attributes.put(QueueAttributeName.VISIBILITY_TIMEOUT, "0");
+
+        GetQueueAttributesResponse response = GetQueueAttributesResponse.builder()
+                                                                        .attributes(attributes)
+                                                                        .build();
+
+        when(sqsClient.getQueueAttributes(any(GetQueueAttributesRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+
+        CompletableFuture<Duration> timeoutFuture = visibilityTimeoutManager.getVisibilityTimeout();
+        Duration timeout = timeoutFuture.get(1, TimeUnit.SECONDS);
+
+        assertEquals(Duration.ofSeconds(0), timeout);
         verify(sqsClient, times(1)).getQueueAttributes(any(GetQueueAttributesRequest.class));
     }
 
