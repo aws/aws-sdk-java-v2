@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkSpaces",
+    "contributor": "",
+    "description": "Added support for BYOL_GRAPHICS_G4DN_WSP IngestionProcess"
+}
