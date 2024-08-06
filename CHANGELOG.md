@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.26.31__ __2024-08-06__
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Introduce model invocation output traces for orchestration traces, which contain the model's raw response and usage.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Advanced security feature updates to include password history and log export for Cognito user pools.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added support for BYOL_GRAPHICS_G4DN_WSP IngestionProcess
+
+## __Cost Optimization Hub__
+  - ### Features
+    - This release adds savings percentage support to the ListRecommendationSummaries API.
+
 # __2.26.30__ __2024-08-05__
 ## __AWS Performance Insights__
   - ### Features
