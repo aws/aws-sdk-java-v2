@@ -42,7 +42,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
     private final Set<CompletableFuture<ResponseT>> pendingResponses ;
 
     protected RequestBatchManager(BatchOverrideConfiguration overrideConfiguration, ScheduledExecutorService scheduledExecutor) {
-        BatchConfiguration batchConfiguration = new BatchConfiguration(overrideConfiguration);
+        RequestBatchConfiguration batchConfiguration = new RequestBatchConfiguration(overrideConfiguration);
         this.requestsAndResponsesMaps = new BatchingMap<>(batchConfiguration.maxBatchKeys(),
                                                           batchConfiguration.maxBufferSize());
         this.maxBatchItems = batchConfiguration.maxBatchItems();

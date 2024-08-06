@@ -19,69 +19,40 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.stream.Collectors;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchAndSend;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchKeyMapper;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchResponseMapper;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchManager;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
-import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
-import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.utils.Either;
 
 public class SampleBatchManager extends RequestBatchManager<String, String, BatchResponse> {
-
-    private final BatchAndSend<String, BatchResponse> batchFunction;
+    private final CustomClient client;
 
 
     protected SampleBatchManager(BatchOverrideConfiguration batchOverrideConfiguration,
                                  ScheduledExecutorService executorService,
                                  CustomClient client) {
         super(batchOverrideConfiguration, executorService);
-        this.batchFunction = sampleBatchAsyncFunction(client);
+        this.client = client;
     }
 
     @Override
     protected CompletableFuture<BatchResponse> batchAndSend(List<IdentifiableMessage<String>> identifiedRequests, String batchKey) {
-        return this.batchFunction.batchAndSend(identifiedRequests, batchKey);
+        return client.sendBatchAsync(identifiedRequests, batchKey);
     }
 
     @Override
     protected String getBatchKey(String request) {
-        return sampleBatchKeyMapper().getBatchKey(request);
+        return request.substring(0, request.indexOf(':'));
     }
 
     @Override
     protected List<Either<IdentifiableMessage<String>, IdentifiableMessage<Throwable>>> mapBatchResponse(BatchResponse batchResponse) {
-        return sampleResponseMapper().mapBatchResponse(batchResponse);
-    }
-
-    public static BatchAndSend<String, BatchResponse> sampleBatchAsyncFunction(CustomClient client) {
-        return (requests, batchKey) -> {
-            // Implement your batch sending logic here using the client
-            // For example, send the batch request and return a CompletableFuture<BatchResponse>
-            return client.sendBatchAsync(requests, batchKey);
-        };
-    }
-
-    public static BatchResponseMapper<BatchResponse, String> sampleResponseMapper() {
-        return batchResponse -> {
-            List<Either<IdentifiableMessage<String>, IdentifiableMessage<Throwable>>> mappedResponses = new ArrayList<>();
-            batchResponse.getResponses().forEach(batchResponseEntry -> {
-                IdentifiableMessage<String> response = new IdentifiableMessage<>(batchResponseEntry.getId(), batchResponseEntry.getMessage());
-                mappedResponses.add(Either.left(response));
-            });
-            return mappedResponses;
-        };
-    }
+        List<Either<IdentifiableMessage<String>, IdentifiableMessage<Throwable>>> mappedResponses = new ArrayList<>();
+        batchResponse.getResponses().forEach(batchResponseEntry -> {
+            IdentifiableMessage<String> response = new IdentifiableMessage<>(batchResponseEntry.getId(), batchResponseEntry.getMessage());
+            mappedResponses.add(Either.left(response));
+        });
+        return mappedResponses;    }
 
 
-    public static BatchKeyMapper<String> sampleBatchKeyMapper() {
-        return request -> {
-            return request.substring(0, request.indexOf(":"));
-        };
-    }
 }

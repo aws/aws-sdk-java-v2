@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 
 @SdkInternalApi
-public final class BatchConfiguration {
+public final class RequestBatchConfiguration {
 
     public static final int DEFAULT_MAX_BATCH_ITEMS = 10;
     public static final int DEFAULT_MAX_BATCH_KEYS = 100;
@@ -33,7 +33,7 @@ public final class BatchConfiguration {
     private final Integer maxBufferSize;
     private final Duration maxBatchOpenInMs;
 
-    public BatchConfiguration(BatchOverrideConfiguration overrideConfiguration) {
+    public RequestBatchConfiguration(BatchOverrideConfiguration overrideConfiguration) {
         Optional<BatchOverrideConfiguration> configuration = Optional.ofNullable(overrideConfiguration);
         this.maxBatchItems = configuration.flatMap(BatchOverrideConfiguration::maxBatchItems).orElse(DEFAULT_MAX_BATCH_ITEMS);
         this.maxBatchKeys = configuration.flatMap(BatchOverrideConfiguration::maxBatchKeys).orElse(DEFAULT_MAX_BATCH_KEYS);

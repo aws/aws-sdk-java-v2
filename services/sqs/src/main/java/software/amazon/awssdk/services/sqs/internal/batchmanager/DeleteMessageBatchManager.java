@@ -50,14 +50,6 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
         this.sqsAsyncClient = sqsAsyncClient;
     }
 
-    private static BatchAndSend<DeleteMessageRequest, DeleteMessageBatchResponse> deleteMessageBatchAsyncFunction(
-        SqsAsyncClient client) {
-        return (identifiedRequests, batchKey) -> {
-            DeleteMessageBatchRequest batchRequest = createDeleteMessageBatchRequest(identifiedRequests, batchKey);
-            return client.deleteMessageBatch(batchRequest);
-        };
-    }
-
     private static DeleteMessageBatchRequest createDeleteMessageBatchRequest(
         List<IdentifiableMessage<DeleteMessageRequest>> identifiedRequests, String batchKey) {
         List<DeleteMessageBatchRequestEntry> entries = identifiedRequests
@@ -80,23 +72,6 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
         return DeleteMessageBatchRequestEntry.builder().id(id).receiptHandle(request.receiptHandle()).build();
     }
 
-    private static BatchResponseMapper<DeleteMessageBatchResponse, DeleteMessageResponse> deleteMessageResponseMapper() {
-        return batchResponse -> {
-            List<Either<IdentifiableMessage<DeleteMessageResponse>, IdentifiableMessage<Throwable>>> mappedResponses =
-                new ArrayList<>();
-            batchResponse.successful().forEach(
-                batchResponseEntry -> {
-                    IdentifiableMessage<DeleteMessageResponse> response = createDeleteMessageResponse(batchResponseEntry,
-                                                                                                      batchResponse);
-                    mappedResponses.add(Either.left(response));
-                });
-            batchResponse.failed().forEach(batchResponseEntry -> {
-                IdentifiableMessage<Throwable> response = deleteMessageCreateThrowable(batchResponseEntry);
-                mappedResponses.add(Either.right(response));
-            });
-            return mappedResponses;
-        };
-    }
 
     private static IdentifiableMessage<DeleteMessageResponse> createDeleteMessageResponse(
         DeleteMessageBatchResultEntry successfulEntry, DeleteMessageBatchResponse batchResponse) {
@@ -120,27 +95,36 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
         return new IdentifiableMessage<>(key, response);
     }
 
-    private static BatchKeyMapper<DeleteMessageRequest> deleteMessageBatchKeyMapper() {
-        return request -> request.overrideConfiguration().map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
-                                 .orElse(request.queueUrl());
-    }
-
     @Override
     protected CompletableFuture<DeleteMessageBatchResponse> batchAndSend(
         List<IdentifiableMessage<DeleteMessageRequest>> identifiedRequests, String batchKey) {
-        return deleteMessageBatchAsyncFunction(sqsAsyncClient).batchAndSend(identifiedRequests, batchKey);
+        DeleteMessageBatchRequest batchRequest = createDeleteMessageBatchRequest(identifiedRequests, batchKey);
+        return sqsAsyncClient.deleteMessageBatch(batchRequest);
     }
 
     @Override
     protected String getBatchKey(DeleteMessageRequest request) {
-        return deleteMessageBatchKeyMapper().getBatchKey(request);
+        return request.overrideConfiguration().map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
+                      .orElse(request.queueUrl());
     }
 
     @Override
     protected List<Either<IdentifiableMessage<DeleteMessageResponse>,
         IdentifiableMessage<Throwable>>> mapBatchResponse(DeleteMessageBatchResponse batchResponse) {
 
-        return deleteMessageResponseMapper().mapBatchResponse(batchResponse);
+        List<Either<IdentifiableMessage<DeleteMessageResponse>, IdentifiableMessage<Throwable>>> mappedResponses =
+            new ArrayList<>();
+        batchResponse.successful().forEach(
+            batchResponseEntry -> {
+                IdentifiableMessage<DeleteMessageResponse> response = createDeleteMessageResponse(batchResponseEntry,
+                                                                                                  batchResponse);
+                mappedResponses.add(Either.left(response));
+            });
+        batchResponse.failed().forEach(batchResponseEntry -> {
+            IdentifiableMessage<Throwable> response = deleteMessageCreateThrowable(batchResponseEntry);
+            mappedResponses.add(Either.right(response));
+        });
+        return mappedResponses;
     }
 
 }

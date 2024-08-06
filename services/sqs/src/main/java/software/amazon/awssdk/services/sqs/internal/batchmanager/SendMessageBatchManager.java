@@ -50,22 +50,6 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
         this.asyncClient = asyncClient;
     }
 
-    private static BatchResponseMapper<SendMessageBatchResponse, SendMessageResponse> sendMessageResponseMapper() {
-        return batchResponse -> {
-            List<Either<IdentifiableMessage<SendMessageResponse>, IdentifiableMessage<Throwable>>> mappedResponses =
-                new ArrayList<>();
-            batchResponse.successful().forEach(batchResponseEntry -> {
-                IdentifiableMessage<SendMessageResponse> response = createSendMessageResponse(batchResponseEntry, batchResponse);
-                mappedResponses.add(Either.left(response));
-            });
-            batchResponse.failed().forEach(batchResponseEntry -> {
-                IdentifiableMessage<Throwable> response = sendMessageCreateThrowable(batchResponseEntry);
-                mappedResponses.add(Either.right(response));
-            });
-            return mappedResponses;
-        };
-    }
-
     private static IdentifiableMessage<Throwable> sendMessageCreateThrowable(BatchResultErrorEntry failedEntry) {
         String key = failedEntry.id();
         AwsErrorDetails errorDetailsBuilder = AwsErrorDetails.builder()
@@ -96,19 +80,6 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
         }
         SendMessageResponse response = builder.build();
         return new IdentifiableMessage<>(key, response);
-    }
-
-    private static BatchKeyMapper<SendMessageRequest> sendMessageBatchKeyMapper() {
-        return request -> request.overrideConfiguration().map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
-                                 .orElse(request.queueUrl());
-    }
-
-    private static BatchAndSend<SendMessageRequest,
-        SendMessageBatchResponse> sendMessageBatchAsyncFunction(SqsAsyncClient client) {
-        return (identifiedRequests, batchKey) -> {
-            SendMessageBatchRequest batchRequest = createSendMessageBatchRequest(identifiedRequests, batchKey);
-            return client.sendMessageBatch(batchRequest);
-        };
     }
 
     private static SendMessageBatchRequest createSendMessageBatchRequest(
@@ -143,17 +114,28 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
     @Override
     protected CompletableFuture<SendMessageBatchResponse> batchAndSend(List<IdentifiableMessage<SendMessageRequest>>
                                                                                identifiedRequests, String batchKey) {
-        return sendMessageBatchAsyncFunction(this.asyncClient).batchAndSend(identifiedRequests, batchKey);
-    }
+        SendMessageBatchRequest batchRequest = createSendMessageBatchRequest(identifiedRequests, batchKey);
+        return asyncClient.sendMessageBatch(batchRequest);    }
 
     @Override
     protected String getBatchKey(SendMessageRequest request) {
-        return sendMessageBatchKeyMapper().getBatchKey(request);
+        return request.overrideConfiguration().map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
+                      .orElseGet(request::queueUrl);
     }
 
     @Override
     protected List<Either<IdentifiableMessage<SendMessageResponse>,
         IdentifiableMessage<Throwable>>> mapBatchResponse(SendMessageBatchResponse batchResponse) {
-        return sendMessageResponseMapper().mapBatchResponse(batchResponse);
+        List<Either<IdentifiableMessage<SendMessageResponse>, IdentifiableMessage<Throwable>>> mappedResponses =
+            new ArrayList<>();
+        batchResponse.successful().forEach(batchResponseEntry -> {
+            IdentifiableMessage<SendMessageResponse> response = createSendMessageResponse(batchResponseEntry, batchResponse);
+            mappedResponses.add(Either.left(response));
+        });
+        batchResponse.failed().forEach(batchResponseEntry -> {
+            IdentifiableMessage<Throwable> response = sendMessageCreateThrowable(batchResponseEntry);
+            mappedResponses.add(Either.right(response));
+        });
+        return mappedResponses;
     }
 }

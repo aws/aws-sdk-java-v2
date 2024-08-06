@@ -50,16 +50,6 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
         this.sqsAsyncClient = sqsAsyncClient;
     }
 
-    private static BatchAndSend<ChangeMessageVisibilityRequest,
-        ChangeMessageVisibilityBatchResponse> changeMessageVisibilityBatchAsyncFunction(
-        SqsAsyncClient client) {
-        return (identifiedRequests, batchKey) -> {
-            ChangeMessageVisibilityBatchRequest batchRequest = createChangeMessageVisibilityBatchRequest(identifiedRequests,
-                                                                                                         batchKey);
-            return client.changeMessageVisibilityBatch(batchRequest);
-        };
-    }
-
     private static ChangeMessageVisibilityBatchRequest createChangeMessageVisibilityBatchRequest(
         List<IdentifiableMessage<ChangeMessageVisibilityRequest>> identifiedRequests, String batchKey) {
         List<ChangeMessageVisibilityBatchRequestEntry> entries = identifiedRequests
@@ -91,25 +81,6 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
                                                        .visibilityTimeout(request.visibilityTimeout()).build();
     }
 
-    private static BatchResponseMapper<ChangeMessageVisibilityBatchResponse,
-        ChangeMessageVisibilityResponse> changeMessageVisibilityResponseMapper() {
-        return batchResponse -> {
-            List<Either<IdentifiableMessage<ChangeMessageVisibilityResponse>, IdentifiableMessage<Throwable>>> mappedResponses =
-                new ArrayList<>();
-            batchResponse.successful().forEach(
-                batchResponseEntry -> {
-                    IdentifiableMessage<ChangeMessageVisibilityResponse> response = createChangeMessageVisibilityResponse(
-                        batchResponseEntry, batchResponse);
-                    mappedResponses.add(Either.left(response));
-                });
-            batchResponse.failed().forEach(batchResponseEntry -> {
-                IdentifiableMessage<Throwable> response = changeMessageVisibilityCreateThrowable(batchResponseEntry);
-                mappedResponses.add(Either.right(response));
-            });
-            return mappedResponses;
-        };
-    }
-
     private static IdentifiableMessage<ChangeMessageVisibilityResponse> createChangeMessageVisibilityResponse(
         ChangeMessageVisibilityBatchResultEntry successfulEntry, ChangeMessageVisibilityBatchResponse batchResponse) {
         String key = successfulEntry.id();
@@ -132,25 +103,39 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
         return new IdentifiableMessage<>(key, response);
     }
 
-    private static BatchKeyMapper<ChangeMessageVisibilityRequest> changeMessageVisibilityBatchKeyMapper() {
-        return request -> request.overrideConfiguration().map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
-                                 .orElse(request.queueUrl());
-    }
+
 
     @Override
     protected CompletableFuture<ChangeMessageVisibilityBatchResponse> batchAndSend(
         List<IdentifiableMessage<ChangeMessageVisibilityRequest>> identifiedRequests, String batchKey) {
-        return changeMessageVisibilityBatchAsyncFunction(sqsAsyncClient).batchAndSend(identifiedRequests, batchKey);
+        ChangeMessageVisibilityBatchRequest batchRequest = createChangeMessageVisibilityBatchRequest(identifiedRequests,
+                                                                                                     batchKey);
+        return sqsAsyncClient.changeMessageVisibilityBatch(batchRequest);
     }
 
     @Override
     protected String getBatchKey(ChangeMessageVisibilityRequest request) {
-        return changeMessageVisibilityBatchKeyMapper().getBatchKey(request);
+        return  request.overrideConfiguration().map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
+                       .orElseGet(request::queueUrl);
     }
 
     @Override
     protected List<Either<IdentifiableMessage<ChangeMessageVisibilityResponse>,
         IdentifiableMessage<Throwable>>> mapBatchResponse(ChangeMessageVisibilityBatchResponse batchResponse) {
-        return changeMessageVisibilityResponseMapper().mapBatchResponse(batchResponse);
+
+        List<Either<IdentifiableMessage<ChangeMessageVisibilityResponse>, IdentifiableMessage<Throwable>>> mappedResponses =
+            new ArrayList<>();
+        batchResponse.successful().forEach(
+            batchResponseEntry -> {
+                IdentifiableMessage<ChangeMessageVisibilityResponse> response = createChangeMessageVisibilityResponse(
+                    batchResponseEntry, batchResponse);
+                mappedResponses.add(Either.left(response));
+            });
+        batchResponse.failed().forEach(batchResponseEntry -> {
+            IdentifiableMessage<Throwable> response = changeMessageVisibilityCreateThrowable(batchResponseEntry);
+            mappedResponses.add(Either.right(response));
+        });
+        return mappedResponses;
+
     }
 }
