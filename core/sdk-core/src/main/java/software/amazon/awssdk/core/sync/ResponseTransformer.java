@@ -110,7 +110,6 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
             } catch (IOException copyException) {
                 String copyError = "Failed to read response into file: " + path;
 
-                // If the write failed because of the state of the file, don't retry the request.
                 if (shouldThrowIOException(copyException)) {
                     throw new IOException(copyError, copyException);
                 }
