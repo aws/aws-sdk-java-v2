@@ -15,25 +15,81 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.batchmanager.SqsAsyncBatchManager;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
     // TODO : update the validation here while implementing this class in next PR
     private final SqsAsyncClient client;
-    private final  ScheduledExecutorService scheduledExecutor;
-    private final  BatchOverrideConfiguration overrideConfiguration;
+
+    private final SendMessageBatchManager sendMessageBatchManager;
+
+    private final DeleteMessageBatchManager deleteMessageBatchManager;
+
+    private final ChangeMessageVisibilityBatchManager changeMessageVisibilityBatchManager;
 
     private DefaultSqsAsyncBatchManager(DefaultBuilder builder) {
         this.client = Validate.notNull(builder.client, "client cannot be null");
-        this.scheduledExecutor = Validate.notNull(builder.scheduledExecutor, "scheduledExecutor cannot be null");
-        // TODO : create overrideConfiguration with Default values if null
-        this.overrideConfiguration = builder.overrideConfiguration;
+
+        ScheduledExecutorService scheduledExecutor = builder.scheduledExecutor;
+
+        this.sendMessageBatchManager = new SendMessageBatchManager(builder.overrideConfiguration,
+                                                                   scheduledExecutor,
+                                                                   client);
+        this.deleteMessageBatchManager = new DeleteMessageBatchManager(builder.overrideConfiguration,
+                                                                       scheduledExecutor,
+                                                                       client);
+        this.changeMessageVisibilityBatchManager = new ChangeMessageVisibilityBatchManager(builder.overrideConfiguration,
+                                                                                           scheduledExecutor,
+                                                                                           client);
+        //TODO : this will be updated while implementing the Receive Message Batch Manager
+    }
+
+    @SdkTestInternalApi
+    public DefaultSqsAsyncBatchManager(
+        SqsAsyncClient client,
+        SendMessageBatchManager sendMessageBatchManager,
+        DeleteMessageBatchManager deleteMessageBatchManager,
+        ChangeMessageVisibilityBatchManager changeMessageVisibilityBatchManager) {
+        this.sendMessageBatchManager = sendMessageBatchManager;
+        this.deleteMessageBatchManager = deleteMessageBatchManager;
+        this.changeMessageVisibilityBatchManager = changeMessageVisibilityBatchManager;
+        this.client = client;
+    }
+
+    @Override
+    public CompletableFuture<SendMessageResponse> sendMessage(SendMessageRequest request) {
+        return sendMessageBatchManager.batchRequest(request);
+    }
+
+    @Override
+    public CompletableFuture<DeleteMessageResponse> deleteMessage(DeleteMessageRequest request) {
+        return deleteMessageBatchManager.batchRequest(request);
+    }
+
+    @Override
+    public CompletableFuture<ChangeMessageVisibilityResponse> changeMessageVisibility(ChangeMessageVisibilityRequest request) {
+        return changeMessageVisibilityBatchManager.batchRequest(request);
+    }
+
+    @Override
+    public CompletableFuture<ReceiveMessageResponse> receiveMessage(ReceiveMessageRequest request) {
+        return null;
     }
 
     public static SqsAsyncBatchManager.Builder builder() {
@@ -42,6 +98,9 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
 
     @Override
     public void close() {
+        sendMessageBatchManager.close();
+        deleteMessageBatchManager.close();
+        changeMessageVisibilityBatchManager.close();
     }
 
     public static final class DefaultBuilder implements SqsAsyncBatchManager.Builder {
