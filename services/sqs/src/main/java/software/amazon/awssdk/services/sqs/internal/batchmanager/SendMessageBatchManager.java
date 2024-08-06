@@ -115,7 +115,8 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
     protected CompletableFuture<SendMessageBatchResponse> batchAndSend(List<IdentifiableMessage<SendMessageRequest>>
                                                                                identifiedRequests, String batchKey) {
         SendMessageBatchRequest batchRequest = createSendMessageBatchRequest(identifiedRequests, batchKey);
-        return asyncClient.sendMessageBatch(batchRequest);    }
+        return asyncClient.sendMessageBatch(batchRequest);
+    }
 
     @Override
     protected String getBatchKey(SendMessageRequest request) {
