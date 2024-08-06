@@ -453,6 +453,10 @@ The S3 client in 2.0 is drastically different from the client in 1.11, because i
 
 1. The class`RdsIamAuthTokenGenerator` has been replaced with `RdsUtilities#generateAuthenticationToken`.
 
+## 4.5. Axdbfrontend Changes
+
+1. The class `AxdbfrontendUtilities#generateAuthenticationToken` can now be used to generate an Authentication token to connect to a Xanadu database.
+
 # 5. Profile File Changes
 
 The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more closely emulate that used by the AWS CLI.
