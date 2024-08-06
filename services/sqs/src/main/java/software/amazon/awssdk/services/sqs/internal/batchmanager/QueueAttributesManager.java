@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.Validate;
 
 
 @SdkInternalApi
-public class VisibilityTimeoutManager {
+public class QueueAttributesManager {
 
     private final SqsAsyncClient sqsClient;
     private final String queueUrl;
@@ -36,7 +36,7 @@ public class VisibilityTimeoutManager {
     private final AtomicReference<CompletableFuture<Duration>> visibilityTimeoutSecondsFuture = new AtomicReference<>();
     private final Duration minReceiveWaitTime;
 
-    public VisibilityTimeoutManager(SqsAsyncClient sqsClient, String queueUrl, Duration minReceiveWaitTime) {
+    public QueueAttributesManager(SqsAsyncClient sqsClient, String queueUrl, Duration minReceiveWaitTime) {
         this.sqsClient = sqsClient;
         this.queueUrl = queueUrl;
         this.minReceiveWaitTime = minReceiveWaitTime;

@@ -33,32 +33,31 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.VisibilityTimeoutManager;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.QueueAttributesManager;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
-class VisibilityTimeoutManagerTest {
+class QueueAttributesManagerTest {
 
     private final String queueUrl = "some-queue-url";
     @Mock
     private SqsAsyncClient sqsClient;
     @InjectMocks
-    private VisibilityTimeoutManager visibilityTimeoutManager;
+    private QueueAttributesManager visibilityTimeoutManager;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        visibilityTimeoutManager = new VisibilityTimeoutManager(sqsClient, queueUrl, Duration.ofMillis(500));
+        visibilityTimeoutManager = new QueueAttributesManager(sqsClient, queueUrl, Duration.ofMillis(500));
     }
 
     @Test
