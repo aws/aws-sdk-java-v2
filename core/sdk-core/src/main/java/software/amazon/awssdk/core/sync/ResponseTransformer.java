@@ -20,9 +20,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -109,7 +111,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
                 String copyError = "Failed to read response into file: " + path;
 
                 // If the write failed because of the state of the file, don't retry the request.
-                if (copyException instanceof FileAlreadyExistsException || copyException instanceof DirectoryNotEmptyException) {
+                if (shouldThrowIOException(copyException)) {
                     throw new IOException(copyError, copyException);
                 }
 
@@ -131,6 +133,17 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
                 throw RetryableException.builder().message(copyError).cause(copyException).build();
             }
         };
+    }
+
+    /**
+     * If the write failed because of the state of the file, if the specified directory doesn't exist, or if the specified
+     * directory does not have write permissions, don't retry the request.
+     */
+    static boolean shouldThrowIOException(IOException copyException) {
+        return copyException instanceof FileAlreadyExistsException ||
+               copyException instanceof DirectoryNotEmptyException ||
+               copyException instanceof NoSuchFileException ||
+               copyException instanceof AccessDeniedException;
     }
 
     /**
