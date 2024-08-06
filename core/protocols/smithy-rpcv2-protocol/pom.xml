@@ -31,6 +31,7 @@
     <url>https://aws.amazon.com/sdkforjava</url>
 
     <dependencies>
+      <!--
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-json-protocol</artifactId>
@@ -81,6 +82,7 @@
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
+      -->
     </dependencies>
 
     <build>
