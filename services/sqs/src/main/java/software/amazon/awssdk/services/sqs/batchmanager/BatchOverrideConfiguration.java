@@ -16,8 +16,6 @@
 package software.amazon.awssdk.services.sqs.batchmanager;
 
 import java.time.Duration;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
@@ -37,30 +35,13 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     private final Integer maxBatchKeys;
     private final Integer maxBufferSize;
     private final Duration maxBatchOpenInMs;
-    private final Long maxBatchSizeBytes;
-    private final Integer visibilityTimeoutSeconds;
-    private final Integer longPollWaitTimeoutSeconds;
-    private final Integer minReceiveWaitTimeMs;
-    private final List<String> receiveAttributeNames;
-    private final List<String> receiveMessageAttributeNames;
-    private final Boolean adaptivePrefetching;
-    private final Boolean flushOnShutdown;
 
     public BatchOverrideConfiguration(Builder builder) {
+        //TODO : Add defaults based on QueueBufferConfig.java of V1 Default values.
         this.maxBatchItems = Validate.isPositiveOrNull(builder.maxBatchItems, "maxBatchItems");
+        this.maxBatchOpenInMs = Validate.isPositiveOrNull(builder.maxBatchOpenInMs, "maxBachOpenInMs");
         this.maxBatchKeys = Validate.isPositiveOrNull(builder.maxBatchKeys, "maxBatchKeys");
         this.maxBufferSize = Validate.isPositiveOrNull(builder.maxBufferSize, "maxBufferSize");
-        this.maxBatchOpenInMs = Validate.isPositiveOrNull(builder.maxBatchOpenInMs, "maxBatchOpenInMs");
-        this.maxBatchSizeBytes = Validate.isPositiveOrNull(builder.maxBatchSizeBytes, "maxBatchSizeBytes");
-        this.visibilityTimeoutSeconds = Validate.isPositiveOrNull(builder.visibilityTimeoutSeconds,
-                                                                  "visibilityTimeoutSeconds");
-        this.longPollWaitTimeoutSeconds = Validate.isPositiveOrNull(builder.longPollWaitTimeoutSeconds,
-                                                                    "longPollWaitTimeoutSeconds");
-        this.minReceiveWaitTimeMs = Validate.isPositiveOrNull(builder.minReceiveWaitTimeMs, "minReceiveWaitTimeMs");
-        this.receiveAttributeNames = builder.receiveAttributeNames;
-        this.receiveMessageAttributeNames = builder.receiveMessageAttributeNames;
-        this.adaptivePrefetching = builder.adaptivePrefetching;
-        this.flushOnShutdown = builder.flushOnShutdown;
     }
 
     public static Builder builder() {
@@ -96,52 +77,12 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         return Optional.ofNullable(maxBatchOpenInMs);
     }
 
-    public Optional<Long> maxBatchSizeBytes() {
-        return Optional.ofNullable(maxBatchSizeBytes);
-    }
-
-    public Optional<Integer> visibilityTimeoutSeconds() {
-        return Optional.ofNullable(visibilityTimeoutSeconds);
-    }
-
-    public Optional<Integer> longPollWaitTimeoutSeconds() {
-        return Optional.ofNullable(longPollWaitTimeoutSeconds);
-    }
-
-    public Optional<Integer> minReceiveWaitTimeMs() {
-        return Optional.ofNullable(minReceiveWaitTimeMs);
-    }
-
-    public Optional<List<String>> receiveAttributeNames() {
-        return Optional.ofNullable(receiveAttributeNames);
-    }
-
-    public Optional<List<String>> receiveMessageAttributeNames() {
-        return Optional.ofNullable(receiveMessageAttributeNames);
-    }
-
-    public Optional<Boolean> adaptivePrefetching() {
-        return Optional.ofNullable(adaptivePrefetching);
-    }
-
-    public Optional<Boolean> flushOnShutdown() {
-        return Optional.ofNullable(flushOnShutdown);
-    }
-
     @Override
     public Builder toBuilder() {
         return new Builder().maxBatchItems(maxBatchItems)
                             .maxBatchKeys(maxBatchKeys)
                             .maxBufferSize(maxBufferSize)
-                            .maxBatchOpenInMs(maxBatchOpenInMs)
-                            .maxBatchSizeBytes(maxBatchSizeBytes)
-                            .visibilityTimeoutSeconds(visibilityTimeoutSeconds)
-                            .longPollWaitTimeoutSeconds(longPollWaitTimeoutSeconds)
-                            .minReceiveWaitTimeMs(minReceiveWaitTimeMs)
-                            .receiveAttributeNames(receiveAttributeNames)
-                            .receiveMessageAttributeNames(receiveMessageAttributeNames)
-                            .adaptivePrefetching(adaptivePrefetching)
-                            .flushOnShutdown(flushOnShutdown);
+                            .maxBatchOpenInMs(maxBatchOpenInMs);
     }
 
     @Override
@@ -151,14 +92,6 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
                        .add("maxBatchKeys", maxBatchKeys)
                        .add("maxBufferSize", maxBufferSize)
                        .add("maxBatchOpenInMs", maxBatchOpenInMs.toMillis())
-                       .add("maxBatchSizeBytes", maxBatchSizeBytes)
-                       .add("visibilityTimeoutSeconds", visibilityTimeoutSeconds)
-                       .add("longPollWaitTimeoutSeconds", longPollWaitTimeoutSeconds)
-                       .add("minReceiveWaitTimeMs", minReceiveWaitTimeMs)
-                       .add("receiveAttributeNames", receiveAttributeNames)
-                       .add("receiveMessageAttributeNames", receiveMessageAttributeNames)
-                       .add("adaptivePrefetching", adaptivePrefetching)
-                       .add("flushOnShutdown", flushOnShutdown)
                        .build();
     }
 
@@ -182,39 +115,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         if (maxBufferSize != null ? !maxBufferSize.equals(that.maxBufferSize) : that.maxBufferSize != null) {
             return false;
         }
-
-        if (maxBatchOpenInMs != null ? !maxBatchOpenInMs.equals(that.maxBatchOpenInMs) : that.maxBatchOpenInMs != null) {
-            return false;
-        }
-
-        if (maxBatchSizeBytes != null ? !maxBatchSizeBytes.equals(that.maxBatchSizeBytes) : that.maxBatchSizeBytes != null) {
-            return false;
-        }
-        if (visibilityTimeoutSeconds != null ? !visibilityTimeoutSeconds.equals(that.visibilityTimeoutSeconds)
-                                             : that.visibilityTimeoutSeconds != null) {
-            return false;
-        }
-        if (longPollWaitTimeoutSeconds != null ? !longPollWaitTimeoutSeconds.equals(that.longPollWaitTimeoutSeconds)
-                                               : that.longPollWaitTimeoutSeconds != null) {
-            return false;
-        }
-        if (minReceiveWaitTimeMs != null ? !minReceiveWaitTimeMs.equals(that.minReceiveWaitTimeMs)
-                                         : that.minReceiveWaitTimeMs != null) {
-            return false;
-        }
-        if (receiveAttributeNames != null ? !receiveAttributeNames.equals(that.receiveAttributeNames)
-                                          : that.receiveAttributeNames != null) {
-            return false;
-        }
-        if (receiveMessageAttributeNames != null ? !receiveMessageAttributeNames.equals(that.receiveMessageAttributeNames)
-                                                 : that.receiveMessageAttributeNames != null) {
-            return false;
-        }
-        if (adaptivePrefetching != null ? !adaptivePrefetching.equals(that.adaptivePrefetching)
-                                        : that.adaptivePrefetching != null) {
-            return false;
-        }
-        return flushOnShutdown != null ? flushOnShutdown.equals(that.flushOnShutdown) : that.flushOnShutdown == null;
+        return maxBatchOpenInMs != null ? maxBatchOpenInMs.equals(that.maxBatchOpenInMs) : that.maxBatchOpenInMs == null;
     }
 
     @Override
@@ -223,14 +124,6 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         result = 31 * result + (maxBatchKeys != null ? maxBatchKeys.hashCode() : 0);
         result = 31 * result + (maxBufferSize != null ? maxBufferSize.hashCode() : 0);
         result = 31 * result + (maxBatchOpenInMs != null ? maxBatchOpenInMs.hashCode() : 0);
-        result = 31 * result + (maxBatchSizeBytes != null ? maxBatchSizeBytes.hashCode() : 0);
-        result = 31 * result + (visibilityTimeoutSeconds != null ? visibilityTimeoutSeconds.hashCode() : 0);
-        result = 31 * result + (longPollWaitTimeoutSeconds != null ? longPollWaitTimeoutSeconds.hashCode() : 0);
-        result = 31 * result + (minReceiveWaitTimeMs != null ? minReceiveWaitTimeMs.hashCode() : 0);
-        result = 31 * result + (receiveAttributeNames != null ? receiveAttributeNames.hashCode() : 0);
-        result = 31 * result + (receiveMessageAttributeNames != null ? receiveMessageAttributeNames.hashCode() : 0);
-        result = 31 * result + (adaptivePrefetching != null ? adaptivePrefetching.hashCode() : 0);
-        result = 31 * result + (flushOnShutdown != null ? flushOnShutdown.hashCode() : 0);
         return result;
     }
 
@@ -240,14 +133,6 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         private Integer maxBatchKeys;
         private Integer maxBufferSize;
         private Duration maxBatchOpenInMs;
-        private Long maxBatchSizeBytes;
-        private Integer visibilityTimeoutSeconds;
-        private Integer longPollWaitTimeoutSeconds;
-        private Integer minReceiveWaitTimeMs;
-        private List<String> receiveAttributeNames = Collections.emptyList();
-        private List<String> receiveMessageAttributeNames = Collections.emptyList();
-        private Boolean adaptivePrefetching;
-        private Boolean flushOnShutdown;
 
         private Builder() {
         }
@@ -299,49 +184,6 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
          */
         public Builder maxBatchOpenInMs(Duration maxBatchOpenInMs) {
             this.maxBatchOpenInMs = maxBatchOpenInMs;
-            return this;
-        }
-
-
-        public Builder maxBatchSizeBytes(Long maxBatchSizeBytes) {
-            this.maxBatchSizeBytes = maxBatchSizeBytes;
-            return this;
-        }
-
-        public Builder visibilityTimeoutSeconds(Integer visibilityTimeoutSeconds) {
-            this.visibilityTimeoutSeconds = visibilityTimeoutSeconds;
-            return this;
-        }
-
-        public Builder longPollWaitTimeoutSeconds(Integer longPollWaitTimeoutSeconds) {
-            this.longPollWaitTimeoutSeconds = longPollWaitTimeoutSeconds;
-            return this;
-        }
-
-        public Builder minReceiveWaitTimeMs(Integer minReceiveWaitTimeMs) {
-            this.minReceiveWaitTimeMs = minReceiveWaitTimeMs;
-            return this;
-        }
-
-        public Builder receiveAttributeNames(List<String> receiveAttributeNames) {
-            this.receiveAttributeNames = receiveAttributeNames != null ? receiveAttributeNames
-                                                                       : Collections.emptyList();
-            return this;
-        }
-
-        public Builder receiveMessageAttributeNames(List<String> receiveMessageAttributeNames) {
-            this.receiveMessageAttributeNames = receiveMessageAttributeNames != null ? receiveMessageAttributeNames
-                                                                                     : Collections.emptyList();
-            return this;
-        }
-
-        public Builder adaptivePrefetching(Boolean adaptivePrefetching) {
-            this.adaptivePrefetching = adaptivePrefetching;
-            return this;
-        }
-
-        public Builder flushOnShutdown(Boolean flushOnShutdown) {
-            this.flushOnShutdown = flushOnShutdown;
             return this;
         }
 
