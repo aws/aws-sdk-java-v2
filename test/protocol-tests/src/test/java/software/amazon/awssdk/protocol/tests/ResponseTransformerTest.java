@@ -139,11 +139,11 @@ public class ResponseTransformerTest {
             .isInstanceOf(SdkClientException.class)
             .isNotInstanceOf(RetryableException.class)
             .hasMessageNotContaining("the file could not be cleaned up");
+
     }
 
     private Path createDirWithoutWritePermissions() throws IOException {
-        Path targetDir = Paths.get("target/dir");
-        Files.createDirectories(targetDir);
+        Path targetDir = Files.createTempDirectory("testDirectory");
         Files.setPosixFilePermissions(targetDir, Collections.singleton(PosixFilePermission.OWNER_READ));
         return targetDir;
     }
