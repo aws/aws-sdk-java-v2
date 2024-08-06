@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Agents for Amazon Bedrock Runtime",
-    "contributor": "",
-    "description": "Introduce model invocation output traces for orchestration traces, which contain the model's raw response and usage."
-}
