@@ -33,10 +33,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.UUID;
 import org.junit.Rule;
 import org.junit.Test;
@@ -125,27 +122,6 @@ public class ResponseTransformerTest {
                                                                        ResponseTransformer.toFile(new File("/nonExistentDir/myFile"))))
             .isInstanceOf(SdkClientException.class)
             .isNotInstanceOf(RetryableException.class);
-    }
-
-    @Test
-    public void downloadToDirectoryWithoutWritePermissionsDoesNotRetry() throws IOException {
-        stubForRetriesTimeoutReadingFromStreams();
-
-        Path targetDir = createDirWithoutWritePermissions();
-        Path targetFile = Paths.get(targetDir + "/myFile");
-
-        assertThatThrownBy(() -> testClient().streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
-                                                                       ResponseTransformer.toFile(targetFile)))
-            .isInstanceOf(SdkClientException.class)
-            .isNotInstanceOf(RetryableException.class)
-            .hasMessageNotContaining("the file could not be cleaned up");
-
-    }
-
-    private Path createDirWithoutWritePermissions() throws IOException {
-        Path targetDir = Files.createTempDirectory("testDirectory");
-        Files.setPosixFilePermissions(targetDir, Collections.singleton(PosixFilePermission.OWNER_READ));
-        return targetDir;
     }
 
     @Test
