@@ -71,7 +71,6 @@
         <module>codegen-lite-maven-plugin</module>
         <module>archetypes</module>
         <module>third-party</module>
-        <module>v2-migration</module>
         <module>test/http-client-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
@@ -89,7 +88,6 @@
         <module>test/ruleset-testing-core</module>
         <module>test/old-client-version-compatibility-test</module>
         <module>test/bundle-logging-bridge-binding-test</module>
-        <module>test/v2-migration-tests</module>
         <module>test/bundle-shading-tests</module>
         <module>test/crt-unavailable-tests</module>
     </modules>
