@@ -38,6 +38,8 @@ public final class QueryParamMarshaller {
 
     public static final JsonMarshaller<Short> SHORT = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_SHORT);
 
+    public static final JsonMarshaller<Byte> BYTE = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_BYTE);
+
     public static final JsonMarshaller<Double> DOUBLE = new SimpleQueryParamMarshaller<>(
         ValueToStringConverter.FROM_DOUBLE);
 

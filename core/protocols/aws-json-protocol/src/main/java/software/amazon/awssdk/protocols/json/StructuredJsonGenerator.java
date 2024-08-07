@@ -157,6 +157,10 @@ public interface StructuredJsonGenerator {
 
     StructuredJsonGenerator writeValue(short val);
 
+    default StructuredJsonGenerator writeValue(byte val) {
+        return writeValue((short) val);
+    }
+
     StructuredJsonGenerator writeValue(int val);
 
     StructuredJsonGenerator writeValue(ByteBuffer bytes);
