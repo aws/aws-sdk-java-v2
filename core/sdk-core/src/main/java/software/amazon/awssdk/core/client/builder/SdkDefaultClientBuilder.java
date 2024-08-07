@@ -85,6 +85,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentS
 import software.amazon.awssdk.core.internal.http.pipeline.stages.CompressRequestStage;
 import software.amazon.awssdk.core.internal.interceptor.HttpChecksumValidationInterceptor;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
+import software.amazon.awssdk.core.internal.useragent.AppIdResolver;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.util.SdkUserAgent;
@@ -140,7 +141,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private final SdkHttpClient.Builder defaultHttpClientBuilder;
     private final SdkAsyncHttpClient.Builder defaultAsyncHttpClientBuilder;
     private final List<SdkPlugin> plugins = new ArrayList<>();
-
+    private String appId;
 
 
     protected SdkDefaultClientBuilder() {
@@ -401,12 +402,23 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     private String resolveClientUserAgent(LazyValueSource config) {
         String retryMode = resolveRetryMode(config.get(RETRY_POLICY), config.get(RETRY_STRATEGY));
+        //TODO: add to user agent header
+        String s = appId().orElseGet(() -> resolveAppId(config));
         return ApplyUserAgentStage.resolveClientUserAgent(config.get(USER_AGENT_PREFIX),
                                                           config.get(INTERNAL_USER_AGENT),
                                                           config.get(CLIENT_TYPE),
                                                           config.get(SYNC_HTTP_CLIENT),
                                                           config.get(ASYNC_HTTP_CLIENT),
-                                                          retryMode);
+                                                          retryMode,
+                                                          appId);
+    }
+
+    private String resolveAppId(LazyValueSource config) {
+        Optional<String> appId = AppIdResolver.create()
+                                              .profileFile(config.get(PROFILE_FILE_SUPPLIER))
+                                              .profileName(config.get(PROFILE_NAME))
+                                              .resolve();
+        return appId;
     }
 
     private RetryStrategy resolveRetryStrategy(LazyValueSource config) {
@@ -416,6 +428,10 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                        .defaultRetryMode(config.get(DEFAULT_RETRY_MODE))
                                        .resolve();
         return SdkDefaultRetryStrategy.forRetryMode(retryMode);
+    }
+
+    public Optional<String> appId() {
+        return Optional.ofNullable(appId);
     }
     
     /**
@@ -615,6 +631,12 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     @Override
     public final List<SdkPlugin> plugins() {
         return Collections.unmodifiableList(plugins);
+    }
+
+    @Override
+    public final B appId(String appId) {
+        this.appId = appId;
+        return thisBuilder();
     }
 
     /**
