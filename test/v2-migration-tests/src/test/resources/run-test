@@ -1,0 +1,124 @@
+#!/usr/bin/env python
+
+from difflib import unified_diff
+import subprocess
+import filecmp
+import os
+import shutil, errno
+import argparse
+import sys
+from pathlib import Path
+
+RESOURCE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "resources")
+BEFORE_DIR_MAVEN = os.path.join(RESOURCE_DIR, "maven/before")
+AFTER_DIR_MAVEN = os.path.join(RESOURCE_DIR, "maven/after")
+TARGET_DIR_MAVEN = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(os.path.join(__file__, "../../")))), "target/generated-test-sources/maven/project")
+TARGET_AFTER_DIR_MAVEN = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(os.path.join(__file__, "../../")))), "target/generated-test-sources/maven/after")
+BEFORE_POM = os.path.join(TARGET_DIR_MAVEN, "pom.xml")
+AFTER_POM = os.path.join(TARGET_AFTER_DIR_MAVEN, "pom.xml")
+
+BEFORE_DIR_GRADLE = os.path.join(RESOURCE_DIR, "gradle/before")
+AFTER_DIR_GRADLE = os.path.join(RESOURCE_DIR, "gradle/after")
+TARGET_DIR_GRADLE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(os.path.join(__file__, "../../")))), "target/generated-test-sources/gradle/project")
+TARGET_AFTER_DIR_GRADLE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(os.path.join(__file__, "../../")))), "target/generated-test-sources/gradle/after")
+INIT_FILE = os.path.join(TARGET_DIR_GRADLE, "init.gradle")
+AFTER_BUILD = os.path.join(TARGET_AFTER_DIR_GRADLE, "build.gradle")
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-v', '--version', dest='version',
+                        default='')
+    args = parser.parse_args()
+    run_test(args.version.strip())
+
+# It copies "src/test/resources/before" and  "src/test/resources/after" directory to "target/generated-test-sources/project"
+# and "target/generated-test-sources/after" respectively and then execute rewrite command in "target/generated-test-sources/project".
+# It verifies the correctness of the transformation by comparing the directory to "target/generated-test-sources/after" and ensuring it compiles.
+def run_test(version):
+    run_maven_test(version)
+    run_gradle_test(version)
+
+def run_maven_test(version):
+    if os.path.exists(TARGET_DIR_MAVEN) and os.path.isdir(TARGET_DIR_MAVEN):
+        shutil.rmtree(TARGET_DIR_MAVEN)
+    copy_directory(BEFORE_DIR_MAVEN, TARGET_DIR_MAVEN)
+    copy_directory(AFTER_DIR_MAVEN, TARGET_AFTER_DIR_MAVEN)
+
+    before_pom_file = Path(BEFORE_POM)
+    write_version_to_pom(before_pom_file, version)
+
+    subprocess.run(["mvn", "org.openrewrite.maven:rewrite-maven-plugin:run",
+                    "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration:"+ version + "-PREVIEW",
+                    "-Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2"], cwd=TARGET_DIR_MAVEN, check=True)
+    shutil.rmtree(os.path.join(TARGET_DIR_MAVEN, "target"))
+
+    after_pom_file = Path(AFTER_POM)
+    write_version_to_pom(after_pom_file, version)
+
+    is_same = compare_directory(filecmp.dircmp(TARGET_DIR_MAVEN, TARGET_AFTER_DIR_MAVEN))
+    if not is_same:
+        raise Exception("The transformed directory({}) does not match with the expected one({})".format(TARGET_DIR_MAVEN, TARGET_AFTER_DIR_MAVEN))
+    result = subprocess.run(["mvn", "package"], cwd=TARGET_DIR_MAVEN, capture_output=True, check=True)
+    print(result)
+
+
+def write_version_to_pom(pom_file, version):
+    pom_file.write_text(pom_file.read_text().replace('V2_VERSION', version))
+
+
+def run_gradle_test(version):
+    if os.path.exists(TARGET_DIR_GRADLE) and os.path.isdir(TARGET_DIR_GRADLE):
+        shutil.rmtree(TARGET_DIR_GRADLE)
+    copy_directory(BEFORE_DIR_GRADLE, TARGET_DIR_GRADLE)
+    copy_directory(AFTER_DIR_GRADLE, TARGET_AFTER_DIR_GRADLE)
+    init_file = Path(INIT_FILE)
+    init_file.write_text(init_file.read_text().replace('V2_VERSION', version + "-PREVIEW"))
+
+    subprocess.run(["./gradlew", "rewriteRun", "--init-script", "init.gradle",
+                    "-Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2"], cwd=TARGET_DIR_GRADLE, check=True)
+
+    # only compares source directory and build.gradle and skip non-code directories such as gradle wrapper
+    actual_source = os.path.join(TARGET_DIR_GRADLE, "src")
+    expected_source = os.path.join(TARGET_AFTER_DIR_GRADLE, "src")
+    is_same = compare_directory(filecmp.dircmp(actual_source, expected_source))
+    if not is_same:
+        raise Exception("The transformed directory({}) does not match with the expected one({})".format(actual_source,  expected_source))
+
+    after_build = Path(AFTER_BUILD)
+    after_build.write_text(after_build.read_text().replace('V2_VERSION', version))
+
+    actual_build = os.path.join(TARGET_DIR_GRADLE, "build.gradle")
+    expected_build = os.path.join(TARGET_AFTER_DIR_GRADLE, "build.gradle")
+    is_build_same = filecmp.cmp(actual_build, expected_build)
+    if not is_build_same:
+        raise Exception("The transformed build.gradle({}) does not match with the expected one({})".format(actual_build, expected_build))
+    result = subprocess.run(["./gradlew", "build"], cwd=TARGET_DIR_GRADLE, capture_output=True, check=True)
+    print(result)
+
+def compare_directory(dcmp):
+    if dcmp.diff_files or dcmp.left_only or dcmp.right_only:
+        print("Unexpected diffs found!")
+        for diff_file in dcmp.diff_files:
+            a = dcmp.right + "/" + diff_file
+            a_contents = open(a, 'r').readlines()
+            b = dcmp.left + "/" + diff_file
+            b_contents = open(b, 'r').readlines()
+            sys.stdout.writelines(unified_diff(a_contents, b_contents, fromfile=a, tofile=b))
+            sys.stdout.flush()
+
+        return False
+    for sub_dcmp in dcmp.subdirs.values():
+        if not compare_directory(sub_dcmp):
+            return False
+    return True
+
+def copy_directory(src, dst):
+    try:
+        shutil.copytree(src, dst)
+    except OSError as exc:
+        if exc.errno in (errno.ENOTDIR, errno.EINVAL):
+            shutil.copy(src, dst)
+        else: raise
+
+if __name__ == '__main__':
+    main()
