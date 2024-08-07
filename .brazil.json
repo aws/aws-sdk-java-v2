@@ -46,7 +46,6 @@
 
         "dynamodb": { "packageName": "AwsJavaSdk-DynamoDb" },
         "waf": { "packageName": "AwsJavaSdk-Waf" },
-        "v2-migration": { "packageName":  "AwsJavaSdk-Tooling-V2Migration"},
 
         "third-party-jackson-core": {
             "packageName": "AwsJavaSdk-ThirdParty-JacksonCore",
@@ -106,7 +105,6 @@
         "tests-coverage-reporting": { "skipImport": true },
         "third-party": { "skipImport": true },
         "third-party-slf4j-api": { "skipImport": true },
-        "v2-migration-tests": {"skipImport":  true},
         "crt-unavailable-tests": { "skipImport": true },
         "bundle-shading-tests": { "skipImport": true }
     },
@@ -147,9 +145,6 @@
         "org.junit.jupiter:junit-jupiter": { "packageName": "JUnit5", "packageVersion": "5.x" },
         "org.mockito:mockito-core": { "packageName": "Mockito", "packageVersion": "3.x" },
         "io.reactivex.rxjava3:rxjava": { "packageName": "RxJava", "packageVersion": "3.x" },
-        "org.assertj:assertj-core": { "packageName": "AssertJ", "packageVersion": "3.22.x" },
-        "org.openrewrite:rewrite-java-8": {"packageName": "Maven-org-openrewrite_rewrite-java-8", "packageVersion": "8.x"},
-        "org.openrewrite:rewrite-java": {"packageName": "Maven-org-openrewrite_rewrite-java", "packageVersion": "8.x"},
-        "org.openrewrite.recipe:rewrite-java-dependencies": {"packageName": "Maven-org-openrewrite-recipe_rewrite-java-dependencies", "packageVersion": "1.x"}
+        "org.assertj:assertj-core": { "packageName": "AssertJ", "packageVersion": "3.22.x" }
     }
 }

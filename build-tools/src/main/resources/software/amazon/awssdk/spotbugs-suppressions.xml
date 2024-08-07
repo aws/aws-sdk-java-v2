@@ -163,15 +163,6 @@
         </Not>
     </Match>
 
-    <!-- Skip the warning since this source is forked from openrewrite -->
-    <Match>
-        <Or>
-            <Class name="software.amazon.awssdk.v2migration.ChangeSdkType"/>
-            <Class name="software.amazon.awssdk.v2migration.ChangeSdkType$ChangeTypeVisitor"/>
-        </Or>
-        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
-    </Match>
-
     <Match>
         <Class name="software.amazon.awssdk.core.internal.waiters.ResponseOrException"/>
         <Bug pattern="NM_CLASS_NOT_EXCEPTION"/>
@@ -308,11 +299,5 @@
              <Class name="software.amazon.awssdk.core.internal.checksums.factory.SdkCrc32"/>
          </Or>
          <Bug pattern="SA_FIELD_SELF_ASSIGNMENT"/>
-    </Match>
-
-    <!-- False positive -->
-    <Match>
-        <Class name="software.amazon.awssdk.v2migration.EnumCasingToV2$Visitor"/>
-        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
     </Match>
 </FindBugsFilter>
