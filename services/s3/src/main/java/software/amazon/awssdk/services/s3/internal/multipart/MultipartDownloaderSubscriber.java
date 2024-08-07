@@ -74,6 +74,11 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
      */
     private volatile String eTag;
 
+    /**
+     * The Subscription lock
+     */
+    private final Object lock = new Object();
+
     public MultipartDownloaderSubscriber(S3AsyncClient s3, GetObjectRequest getObjectRequest) {
         this(s3, getObjectRequest, 0);
     }
@@ -103,10 +108,12 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
 
         int nextPartToGet = completedParts.get() + 1;
 
-        if (totalParts != null && nextPartToGet > totalParts) {
-            log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
-            subscription.cancel();
-            return;
+        synchronized (lock) {
+            if (totalParts != null && nextPartToGet > totalParts) {
+                log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
+                subscription.cancel();
+                return;
+            }
         }
 
         GetObjectRequest actualRequest = nextRequest(nextPartToGet);
@@ -147,11 +154,13 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
             totalParts = partCount;
         }
 
-        if (totalParts != null && totalParts > 1 && totalComplete < totalParts) {
-            subscription.request(1);
-        } else {
-            log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
-            subscription.cancel();
+        synchronized (lock) {
+            if (totalParts != null && totalParts > 1 && totalComplete < totalParts) {
+                subscription.request(1);
+            } else {
+                log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
+                subscription.cancel();
+            }
         }
     }
 
