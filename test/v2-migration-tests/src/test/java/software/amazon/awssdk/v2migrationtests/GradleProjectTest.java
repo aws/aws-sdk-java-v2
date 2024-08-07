@@ -55,7 +55,6 @@ public class GradleProjectTest {
         FileUtils.copyDirectory(gradleBefore.toFile(), gradleActual.toFile());
         FileUtils.copyDirectory(gradleAfter.toFile(), gradleExpected.toFile());
 
-        //replaceVersion(gradleExpected.resolve("init.gradle"), sdkVersion);
         replaceVersion(gradleActual.resolve("init.gradle"), sdkVersion + "-PREVIEW");
     }
 

@@ -24,10 +24,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.opentest4j.AssertionFailedError;
@@ -38,10 +36,9 @@ import software.amazon.awssdk.utils.StringUtils;
 public class TestUtils {
     private static final Logger log = Logger.loggerFor(TestUtils.class);
 
-    public static void assertTwoDirectoriesHaveSameStructure(Path a, Path b, Path... ignoredDirectories) {
-        Set<Path> ignoredPaths = new HashSet<>(Arrays.asList(ignoredDirectories));
-        assertLeftHasRight(a, b, ignoredPaths);
-        assertLeftHasRight(b, a, ignoredPaths);
+    public static void assertTwoDirectoriesHaveSameStructure(Path a, Path b) {
+        assertLeftHasRight(a, b);
+        assertLeftHasRight(b, a);
     }
 
     public static String getVersion() throws IOException {
@@ -69,25 +66,21 @@ public class TestUtils {
         }
     }
 
-    private static void assertLeftHasRight(Path left, Path right, Set<Path> ignoredDirectories) {
-        if (ignoredDirectories.contains(left)) {
-            return;
-        }
+    private static void assertLeftHasRight(Path left, Path right) {
         try (Stream<Path> paths = Files.walk(left)) {
-            paths.filter(leftPath -> !ignoredDirectories.contains(leftPath))
-                 .forEach(leftPath -> {
-                     Path leftRelative = left.relativize(leftPath);
-                     Path rightPath = right.resolve(leftRelative);
-                     log.debug(() -> String.format("Comparing %s with %s", leftPath, rightPath));
-                     try {
-                         assertThat(rightPath).exists();
-                     } catch (AssertionError e) {
-                         throw new AssertionFailedError(e.getMessage(), toFileTreeString(left), toFileTreeString(right));
-                     }
-                     if (Files.isRegularFile(leftPath)) {
-                         assertThat(leftPath).hasSameBinaryContentAs(rightPath);
-                     }
-                 });
+            paths.forEach(leftPath -> {
+                Path leftRelative = left.relativize(leftPath);
+                Path rightPath = right.resolve(leftRelative);
+                log.debug(() -> String.format("Comparing %s with %s", leftPath, rightPath));
+                try {
+                    assertThat(rightPath).exists();
+                } catch (AssertionError e) {
+                    throw new AssertionFailedError(e.getMessage(), toFileTreeString(left), toFileTreeString(right));
+                }
+                if (Files.isRegularFile(leftPath)) {
+                    assertThat(leftPath).hasSameBinaryContentAs(rightPath);
+                }
+            });
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Failed to compare %s with %s", left, right), e);
         }
@@ -111,11 +104,7 @@ public class TestUtils {
     }
 
     public static Result run(Path dir, String... args) {
-        String applicationHome = System.getProperty("application.home");
-
         ProcessBuilder processBuilder = new ProcessBuilder(args);
-        // Map<String, String> environment = processBuilder.environment();
-        // environment.put("HOME", applicationHome);
         processBuilder.redirectErrorStream(true);
         Result result = new Result();
 

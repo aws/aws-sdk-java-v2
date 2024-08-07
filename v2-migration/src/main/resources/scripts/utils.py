@@ -31,7 +31,7 @@ def find_sdk_version():
 
 def load_module_mappings(filename):
     mappings = {}
-    with open(filename, mode='r', newline='', encoding='utf-8') as file:
+    with open(filename, mode='r') as file:
         reader = csv.reader(file)
         for row in reader:
             if row:
