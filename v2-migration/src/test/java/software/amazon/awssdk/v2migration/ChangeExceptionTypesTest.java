@@ -43,7 +43,7 @@ public class ChangeExceptionTypesTest implements RewriteTest {
             throw new RuntimeException(e);
         }
 
-        spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs","aws-sdk-java", "sdk-core"));
+        spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs", "sdk-core"));
     }
 
     @Test
