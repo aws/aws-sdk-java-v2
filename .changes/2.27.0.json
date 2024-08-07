@@ -10,12 +10,6 @@
         },
         {
             "type": "feature",
-            "category": "AWS SDK for Java v2 Migration Tool",
-            "contributor": "",
-            "description": "Introduce the preview release of the AWS SDK for Java v2 migration tool that automatically migrates applications from the AWS SDK for Java v1 to the AWS SDK for Java v2."
-        },
-        {
-            "type": "feature",
             "category": "Amazon AppIntegrations Service",
             "contributor": "",
             "description": "Updated CreateDataIntegration and CreateDataIntegrationAssociation API to support bulk data export from Amazon Connect Customer Profiles to the customer S3 bucket."
