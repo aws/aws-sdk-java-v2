@@ -15,22 +15,23 @@
 
 package software.amazon.awssdk.services.sqs.batchmanager;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.QueueAttributesManager;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
-import java.util.LinkedList;
-import java.util.concurrent.ScheduledExecutorService;
-
+@SdkInternalApi
 public class ReceiveQueueBuffer {
 
     private final ScheduledExecutorService executor;
@@ -66,12 +67,12 @@ public class ReceiveQueueBuffer {
         return shutDown.get();
     }
 
-    public void shutdown( ) {
+    public void shutdown() {
         if (this.shutDown.compareAndSet(false, true)) {
             // Clear all finished tasks
             while (!finishedTasks.isEmpty()) {
                 AsyncReceiveMessageBatch batch = finishedTasks.poll();
-                if(inflightReceiveMessageBatches.get() > 0) {
+                if (inflightReceiveMessageBatches.get() > 0) {
                     inflightReceiveMessageBatches.decrementAndGet();
                 }
                 if (batch != null) {
@@ -162,8 +163,7 @@ public class ReceiveQueueBuffer {
                 lock.unlock();
             }
         }
-
-            future.setSuccess(ReceiveMessageResponse.builder().messages(messages).build());
+        future.setSuccess(ReceiveMessageResponse.builder().messages(messages).build());
     }
 
     private void satisfyFuturesFromBuffer() {

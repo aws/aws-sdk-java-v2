@@ -18,12 +18,14 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.batchmanager.ReceiveMessageCompletableFuture;
 import software.amazon.awssdk.services.sqs.batchmanager.ReceiveQueueBuffer;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
+@SdkInternalApi
 public class ReceiveBatchManager {
 
     private final SqsAsyncClient sqsClient;
@@ -41,7 +43,7 @@ public class ReceiveBatchManager {
         this.executor = executor;
         this.config = config;
         this.queueUrl = queueUrl;
-        this.queueAttributesManager = new QueueAttributesManager(sqsClient, queueUrl, config.minReceiveWaitTime());
+        this.queueAttributesManager = new QueueAttributesManager(sqsClient, queueUrl);
         this.receiveQueueBuffer = new ReceiveQueueBuffer(executor, sqsClient, config, queueUrl, queueAttributesManager);
     }
 
@@ -51,14 +53,14 @@ public class ReceiveBatchManager {
         }
         int numMessages = Optional.ofNullable(rq.maxNumberOfMessages()).orElse(10);
 
-        return queueAttributesManager.getReceiveMessageTimeout(rq)
+        return queueAttributesManager.getReceiveMessageTimeout(rq, config.minReceiveWaitTime())
                                      .thenCompose(waitTimeMs -> {
-                                           ReceiveMessageCompletableFuture receiveMessageFuture =
-                                               new ReceiveMessageCompletableFuture(numMessages, waitTimeMs);
-                                           receiveQueueBuffer.receiveMessage(receiveMessageFuture);
-                                           receiveMessageFuture.startWaitTimer(executor);
-                                           return receiveMessageFuture.responseCompletableFuture();
-                                       });
+                                         ReceiveMessageCompletableFuture receiveMessageFuture =
+                                             new ReceiveMessageCompletableFuture(numMessages, waitTimeMs);
+                                         receiveQueueBuffer.receiveMessage(receiveMessageFuture);
+                                         receiveMessageFuture.startWaitTimer(executor);
+                                         return receiveMessageFuture.responseCompletableFuture();
+                                     });
     }
 
     public void shutdown() {

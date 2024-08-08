@@ -17,14 +17,15 @@ package software.amazon.awssdk.services.sqs.BatchManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.AdditionalMatchers.gt;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -42,8 +43,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import software.amazon.awssdk.http.HttpExecuteResponse;
-import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.batchmanager.ReceiveMessageCompletableFuture;
@@ -52,7 +51,10 @@ import software.amazon.awssdk.services.sqs.internal.batchmanager.QueueAttributes
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
 import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SqsException;
@@ -64,7 +66,7 @@ public class ReceiveQueueBufferTest {
 
     @Mock private SqsAsyncClient sqsClient;
 
-    @Mock private QueueAttributesManager queueAttributesManager;
+    private QueueAttributesManager queueAttributesManager;
 
     private ScheduledExecutorService executor;
 
@@ -72,7 +74,17 @@ public class ReceiveQueueBufferTest {
     @BeforeEach
     public void setUp() {
         executor = Executors.newScheduledThreadPool(Integer.MAX_VALUE);
-        when(queueAttributesManager.getVisibilityTimeout()).thenReturn(CompletableFuture.completedFuture(Duration.ofSeconds(20)));
+        Map<QueueAttributeName, String> attributes = new HashMap<>();
+        attributes.put(QueueAttributeName.VISIBILITY_TIMEOUT, "30");
+        attributes.put(QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS, "10");
+
+        GetQueueAttributesResponse response = GetQueueAttributesResponse.builder()
+                                                                        .attributes(attributes)
+                                                                        .build();
+
+        when(sqsClient.getQueueAttributes(any(GetQueueAttributesRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+        queueAttributesManager = new QueueAttributesManager(sqsClient,"queueUrl");
     }
 
     @AfterEach
@@ -119,7 +131,6 @@ public class ReceiveQueueBufferTest {
         ReceiveMessageRequest receiveMessageRequest;
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(CompletableFuture.completedFuture(response));
 
-        when(queueAttributesManager.getVisibilityTimeout()).thenReturn(CompletableFuture.completedFuture(Duration.ofSeconds(20)));
         // Create future and call receiveMessage
 
         ReceiveMessageCompletableFuture receiveMessageFuture = new ReceiveMessageCompletableFuture(2, Duration.ofSeconds(1));
@@ -170,9 +181,6 @@ public class ReceiveQueueBufferTest {
         ReceiveMessageResponse response = generateMessageResponse(10);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(CompletableFuture.completedFuture(response));
 
-        // Mock configuration
-        when(queueAttributesManager.getVisibilityTimeout()).thenReturn(CompletableFuture.completedFuture(Duration.ofSeconds(30)));
-
         // Create futures and call receiveMessage
         ReceiveQueueBuffer receiveQueueBuffer = receiveQueueBuffer();
         ReceiveMessageCompletableFuture future1 = new ReceiveMessageCompletableFuture(10, Duration.ofSeconds(1));
@@ -196,9 +204,6 @@ public class ReceiveQueueBufferTest {
         ReceiveMessageResponse response = generateMessageResponse(MAX_BATCH_ITEMS);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(response));
-
-        // Mock configuration
-        when(queueAttributesManager.getVisibilityTimeout()).thenReturn(CompletableFuture.completedFuture(Duration.ofSeconds(20)));
 
         // Create receiveQueueBuffer with adaptive prefetching
         ReceiveQueueBuffer receiveQueueBuffer = new ReceiveQueueBuffer(executor, sqsClient, createConfig(MAX_BATCH_ITEMS, true,
@@ -231,8 +236,6 @@ public class ReceiveQueueBufferTest {
         ReceiveMessageResponse response = generateMessageResponse(MAX_BATCH_ITEMS);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(CompletableFuture.completedFuture(response));
 
-        // Mock configuration
-        when(queueAttributesManager.getVisibilityTimeout()).thenReturn(CompletableFuture.completedFuture(Duration.ofSeconds(20)));
 
         // Create receiveQueueBuffer with adaptive prefetching
         ReceiveQueueBuffer receiveQueueBuffer = new ReceiveQueueBuffer(executor, sqsClient, createConfig(MAX_BATCH_ITEMS, false
@@ -263,9 +266,6 @@ public class ReceiveQueueBufferTest {
         ReceiveMessageResponse response = generateMessageResponse(MAX_BATCH_ITEMS);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(CompletableFuture.completedFuture(response));
 
-        // Mock configuration
-        when(queueAttributesManager.getVisibilityTimeout()).thenReturn(CompletableFuture.completedFuture(Duration.ofSeconds(20)));
-
         // Create receiveQueueBuffer with adaptive prefetching
         int MAX_DONE_RECEIVE_BATCH = 1;
         ReceiveQueueBuffer receiveQueueBuffer = new ReceiveQueueBuffer(executor, sqsClient, createConfig(MAX_BATCH_ITEMS, false
@@ -292,9 +292,6 @@ public class ReceiveQueueBufferTest {
     public void receiveMessageShutDown() throws Exception {
         ReceiveQueueBuffer receiveQueueBuffer = receiveQueueBuffer();
 
-        // Mock configuration
-        when(queueAttributesManager.getVisibilityTimeout()).thenReturn(CompletableFuture.completedFuture(Duration.ofSeconds(20)));
-
         // Create future and call receiveMessage
         ReceiveMessageCompletableFuture future = new ReceiveMessageCompletableFuture(10, Duration.ofSeconds(1));
         receiveQueueBuffer.receiveMessage(future);
@@ -315,9 +312,6 @@ public class ReceiveQueueBufferTest {
         ReceiveMessageResponse response = generateMessageResponse(4);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(response));
-
-        // Mock configuration
-        when(queueAttributesManager.getVisibilityTimeout()).thenReturn(CompletableFuture.completedFuture(Duration.ofSeconds(20)));
 
         // Create futures and call receiveMessage concurrently
         List<ReceiveMessageCompletableFuture> futures = new ArrayList<>();
@@ -352,9 +346,6 @@ public class ReceiveQueueBufferTest {
         futureResponse.completeExceptionally(new RuntimeException("SQS error"));
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(futureResponse);
 
-        // Mock configuration
-        when(queueAttributesManager.getVisibilityTimeout()).thenReturn(CompletableFuture.completedFuture(Duration.ofSeconds(20)));
-
         // Create future and call receiveMessage
         ReceiveMessageCompletableFuture future = new ReceiveMessageCompletableFuture(10, Duration.ofSeconds(1));
         receiveQueueBuffer.receiveMessage(future);
@@ -387,9 +378,6 @@ public class ReceiveQueueBufferTest {
             .thenReturn(errorResponse)
             .thenReturn(successResponse)
             .thenReturn(errorResponse);
-
-        // Mock configuration
-        when(queueAttributesManager.getVisibilityTimeout()).thenReturn(CompletableFuture.completedFuture(Duration.ofSeconds(20)));
 
         // Create futures and call receiveMessage
         ReceiveMessageCompletableFuture erredFuture = new ReceiveMessageCompletableFuture(10, Duration.ofSeconds(1));
@@ -476,8 +464,6 @@ public class ReceiveQueueBufferTest {
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(generateMessageResponse(10)));
 
-        when(queueAttributesManager.getVisibilityTimeout())
-            .thenReturn(CompletableFuture.completedFuture(Duration.ofSeconds(20)));
 
         // Mock changeMessageVisibilityBatch to throw an exception
         CompletableFuture<ChangeMessageVisibilityBatchResponse> futureResponse = new CompletableFuture<>();

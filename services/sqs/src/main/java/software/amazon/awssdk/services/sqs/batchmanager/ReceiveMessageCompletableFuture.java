@@ -15,15 +15,15 @@
 
 package software.amazon.awssdk.services.sqs.batchmanager;
 
-
 import java.time.Duration;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
+@SdkInternalApi
 public class ReceiveMessageCompletableFuture {
 
     private final long waitTimeDeadlineNano;
@@ -53,9 +53,7 @@ public class ReceiveMessageCompletableFuture {
         }
     }
 
-
     public boolean isExpired() {
-        System.out.println("System.nanoTime() > waitTimeDeadlineNano");
         return System.nanoTime() > waitTimeDeadlineNano;
     }
 

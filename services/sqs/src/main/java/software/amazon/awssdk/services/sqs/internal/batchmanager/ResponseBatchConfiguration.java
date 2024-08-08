@@ -19,16 +19,15 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 
+@SdkInternalApi
 public final class ResponseBatchConfiguration {
 
     public static final boolean LONG_POLL_DEFAULT = true;
     public static final Duration VISIBILITY_TIMEOUT_SECONDS_DEFAULT = null;
     public static final int LONGPOLL_WAIT_TIMEOUT_SECONDS_DEFAULT = 20;
-
-    // TODO : discuss in Surface API , in V1 it is 50ms , In mock scenarios this is less time is fine
-    //  More discussion in Surface API
     public static final Duration MIN_RECEIVE_WAIT_TIME_MS_DEFAULT = Duration.ofMillis(50);
     public static final List<String> RECEIVE_MESSAGE_ATTRIBUTE_NAMES_DEFAULT = Collections.emptyList();
     public static final List<String> RECEIVE_ATTRIBUTE_NAMES_DEFAULT = Collections.emptyList();
@@ -56,7 +55,7 @@ public final class ResponseBatchConfiguration {
         this.longPollWaitTimeoutSeconds = configuration.flatMap(BatchOverrideConfiguration::longPollWaitTimeoutSeconds)
                                                        .orElse(LONGPOLL_WAIT_TIMEOUT_SECONDS_DEFAULT);
         this.minReceiveWaitTime = configuration.flatMap(BatchOverrideConfiguration::minReceiveWaitTimeMs)
-                                               .orElse( MIN_RECEIVE_WAIT_TIME_MS_DEFAULT);
+                                               .orElse(MIN_RECEIVE_WAIT_TIME_MS_DEFAULT);
         this.receiveAttributeNames = configuration.flatMap(BatchOverrideConfiguration::receiveAttributeNames)
                                                   .orElse(RECEIVE_ATTRIBUTE_NAMES_DEFAULT);
         this.receiveMessageAttributeNames = configuration.flatMap(BatchOverrideConfiguration::receiveMessageAttributeNames)

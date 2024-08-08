@@ -21,14 +21,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
@@ -39,12 +39,14 @@ import software.amazon.awssdk.utils.Logger;
 /**
  * The {@code AsyncReceiveMessageBatch} class forms a {@link  ReceiveMessageRequest} request based on configuration settings,
  * collects messages from an AWS SQS queue, and handles exceptions during the process.
- *
+ * <p>
  * It manages message visibility timeout by tracking the visibility deadline and expiring messages if not processed in time,
  * ensuring unhandled messages return to the queue for reprocessing.
- *
+ * <p>
  * Additionally, the class supports clearing messages in the batch and changing their visibility as needed.
  */
+
+@SdkInternalApi
 public class AsyncReceiveMessageBatch {
 
     private static final Logger log = Logger.loggerFor(AsyncReceiveMessageBatch.class);
@@ -69,29 +71,30 @@ public class AsyncReceiveMessageBatch {
     }
 
     public CompletableFuture<AsyncReceiveMessageBatch> asyncReceiveMessage() {
-        ReceiveMessageRequest.Builder request = ReceiveMessageRequest.builder()
-                                                                     .queueUrl(queueUrl)
-                                                                     .maxNumberOfMessages(config.maxBatchItems())
-                                                                     .messageAttributeNames(config.receiveMessageAttributeNames())
-                                                                     .messageAttributeNames(config.receiveMessageAttributeNames());
+        ReceiveMessageRequest.Builder request =
+            ReceiveMessageRequest.builder()
+                                 .queueUrl(queueUrl)
+                                 .maxNumberOfMessages(config.maxBatchItems())
+                                 .messageAttributeNames(config.receiveMessageAttributeNames())
+                                 .messageAttributeNames(config.receiveMessageAttributeNames());
 
         request.visibilityTimeout((int) this.visibilityTimeout.get(ChronoUnit.SECONDS));
 
         if (config.longPoll()) {
             request.waitTimeSeconds(config.longPollWaitTimeoutSeconds());
         }
-        try{
+        try {
             return asyncClient.receiveMessage(request.build())
                               .handle((response, throwable) -> {
-                                if (throwable != null) {
-                                    setException(throwable);
-                                } else {
-                                    messages = new ArrayList<>(response.messages());
-                                }
-                                open.set(true);
-                                return this;
-                            });
-        }finally {
+                                  if (throwable != null) {
+                                      setException(throwable);
+                                  } else {
+                                      messages = new ArrayList<>(response.messages());
+                                  }
+                                  open.set(true);
+                                  return this;
+                              });
+        } finally {
             visibilityDeadlineNano = System.nanoTime() + visibilityTimeout.toNanos();
         }
 

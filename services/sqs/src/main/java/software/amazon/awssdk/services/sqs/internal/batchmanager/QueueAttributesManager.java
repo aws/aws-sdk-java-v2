@@ -16,9 +16,13 @@
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
@@ -26,83 +30,49 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.utils.Validate;
 
-
 @SdkInternalApi
-public class QueueAttributesManager {
+public final class QueueAttributesManager {
 
+    private static final List<QueueAttributeName> QUEUE_ATTRIBUTE_NAMES =
+        Arrays.asList(QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS,
+                      QueueAttributeName.VISIBILITY_TIMEOUT);
     private final SqsAsyncClient sqsClient;
     private final String queueUrl;
-    private final AtomicReference<CompletableFuture<Duration>> defaultWaitTimeSecondsFuture = new AtomicReference<>();
-    private final AtomicReference<CompletableFuture<Duration>> visibilityTimeoutSecondsFuture = new AtomicReference<>();
-    private final Duration minReceiveWaitTime;
+    private final AtomicReference<CompletableFuture<Map<QueueAttributeName, String>>> queueAttributeMap = new AtomicReference<>();
 
-    public QueueAttributesManager(SqsAsyncClient sqsClient, String queueUrl, Duration minReceiveWaitTime) {
+    public QueueAttributesManager(SqsAsyncClient sqsClient, String queueUrl) {
         this.sqsClient = sqsClient;
         this.queueUrl = queueUrl;
-        this.minReceiveWaitTime = minReceiveWaitTime;
     }
 
     /**
      * Retrieves the received message timeout based on the provided request and queue attributes.
      *
-     * @param rq The receive message request
+     * @param rq                 The receive message request
+     * @param configuredWaitTime The configured minimum wait time
      * @return CompletableFuture with the calculated receive message timeout in milliseconds
      */
-    public CompletableFuture<Duration> getReceiveMessageTimeout(ReceiveMessageRequest rq) {
-        CompletableFuture<Duration> waitTimeFuture = defaultWaitTimeSecondsFuture.get();
-
-        if (waitTimeFuture == null) {
-            CompletableFuture<Duration> newWaitTimeFuture = new CompletableFuture<>();
-            if (defaultWaitTimeSecondsFuture.compareAndSet(null, newWaitTimeFuture)) {
-                fetchQueueWaitTime(newWaitTimeFuture);
-            }
-            waitTimeFuture = defaultWaitTimeSecondsFuture.get();
+    public CompletableFuture<Duration> getReceiveMessageTimeout(ReceiveMessageRequest rq, Duration configuredWaitTime) {
+        Integer waitTimeSeconds = rq.waitTimeSeconds();
+        if (waitTimeSeconds != null) {
+            long waitTimeMillis = TimeUnit.SECONDS.toMillis(waitTimeSeconds);
+            return CompletableFuture.completedFuture(Duration.ofMillis(Math.max(configuredWaitTime.toMillis(), waitTimeMillis)));
         }
 
-        return waitTimeFuture.thenApply(waitTime -> calculateWaitTime(rq, waitTime));
-    }
+        CompletableFuture<Map<QueueAttributeName, String>> attributeFuture = getAttributeMap();
+        CompletableFuture<Duration> resultFuture = attributeFuture.thenApply(attributes -> {
+            String waitTimeSecondsStr = attributes.get(QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS);
+            long waitTimeFromSqsMillis = TimeUnit.SECONDS.toMillis(Long.parseLong(waitTimeSecondsStr));
+            return Duration.ofMillis(Math.max(configuredWaitTime.toMillis(), waitTimeFromSqsMillis));
+        });
 
-    /**
-     * Fetches the queue wait time from SQS and completes the provided future with the result.
-     *
-     * @param newWaitTimeFuture The future to complete with the fetched wait time
-     */
-    private void fetchQueueWaitTime(CompletableFuture<Duration> newWaitTimeFuture) {
-        GetQueueAttributesRequest request = GetQueueAttributesRequest.builder()
-                                                                     .queueUrl(queueUrl)
-                                                                     .attributeNames(
-                                                                         QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS)
-                                                                     .build();
-        sqsClient.getQueueAttributes(request)
-                 .thenApply(response -> {
-                     String messageWaitTime =
-                         Validate.notNull(response
-                                              .attributes()
-                                              .get(QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS),
-                                          QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS +
-                                          " attribute is null in sqs.");
+        resultFuture.whenComplete((r, t) -> {
+            if (resultFuture.isCancelled()) {
+                attributeFuture.cancel(true);
+            }
+        });
 
-                     return Duration.ofSeconds(Integer.parseInt(messageWaitTime));
-                 })
-                 .thenAccept(newWaitTimeFuture::complete)
-                 .exceptionally(ex -> {
-                     newWaitTimeFuture.completeExceptionally(ex);
-                     return null;
-                 });
-    }
-
-    /**
-     * Calculates the wait time for receiving a message, ensuring it meets the minimum wait time.
-     *
-     * @param rq              The receive message request
-     * @param defaultWaitTime The default wait time from the queue attributes
-     * @return The calculated wait time in milliseconds
-     */
-    private Duration calculateWaitTime(ReceiveMessageRequest rq, Duration defaultWaitTime) {
-
-        int waitTimeSeconds = (rq.waitTimeSeconds() != null) ? rq.waitTimeSeconds() : (int) defaultWaitTime.getSeconds();
-        return Duration.ofMillis(Math.max(minReceiveWaitTime.toMillis(),
-                                          TimeUnit.MILLISECONDS.convert(waitTimeSeconds, TimeUnit.SECONDS)));
+        return resultFuture;
     }
 
     /**
@@ -111,44 +81,77 @@ public class QueueAttributesManager {
      * @return CompletableFuture with the visibility timeout in nanoseconds
      */
     public CompletableFuture<Duration> getVisibilityTimeout() {
-        CompletableFuture<Duration> timeoutFuture = visibilityTimeoutSecondsFuture.get();
+        CompletableFuture<Map<QueueAttributeName, String>> attributeFuture = getAttributeMap();
+        CompletableFuture<Duration> resultFuture = attributeFuture.thenApply(attributes -> {
+            String visibilityTimeoutStr = attributes.get(QueueAttributeName.VISIBILITY_TIMEOUT);
+            return Duration.ofSeconds(Integer.parseInt(visibilityTimeoutStr));
+        });
 
-        if (timeoutFuture == null) {
-            CompletableFuture<Duration> newTimeoutFuture = new CompletableFuture<>();
-            if (visibilityTimeoutSecondsFuture.compareAndSet(null, newTimeoutFuture)) {
-                fetchVisibilityTimeout(newTimeoutFuture);
+        resultFuture.whenComplete((r, t) -> {
+            if (resultFuture.isCancelled()) {
+                attributeFuture.cancel(true);
             }
-            timeoutFuture = visibilityTimeoutSecondsFuture.get();
-        }
+        });
 
-        return timeoutFuture;
+        return resultFuture;
+
     }
 
     /**
-     * Fetches the visibility timeout from SQS and completes the provided future with the result.
+     * Retrieves the queue attributes based on the predefined attribute names.
      *
-     * @param newTimeoutFuture The future to complete with the fetched visibility timeout
+     * @return CompletableFuture with the map of attribute names and their values.
      */
-    private void fetchVisibilityTimeout(CompletableFuture<Duration> newTimeoutFuture) {
+    private CompletableFuture<Map<QueueAttributeName, String>> getAttributeMap() {
+        CompletableFuture<Map<QueueAttributeName, String>> future = queueAttributeMap.get();
+
+        if (future == null || future.isCompletedExceptionally()) {
+            CompletableFuture<Map<QueueAttributeName, String>> newFuture = fetchQueueAttributes();
+            if (queueAttributeMap.compareAndSet(future, newFuture)) {
+                newFuture.whenComplete((r, t) -> {
+                    if (t != null) {
+                        queueAttributeMap.compareAndSet(newFuture, null);
+                    }
+                });
+                return newFuture;
+            }
+            return queueAttributeMap.get();
+        }
+
+        return future;
+    }
+
+
+    /**
+     * Fetches the queue attributes from SQS and completes the provided future with the result.
+     *
+     * @return CompletableFuture with the map of attribute names and values.
+     */
+    private CompletableFuture<Map<QueueAttributeName, String>> fetchQueueAttributes() {
         GetQueueAttributesRequest request = GetQueueAttributesRequest.builder()
                                                                      .queueUrl(queueUrl)
-                                                                     .attributeNames(QueueAttributeName.VISIBILITY_TIMEOUT)
+                                                                     .attributeNames(QUEUE_ATTRIBUTE_NAMES)
                                                                      .build();
-        sqsClient.getQueueAttributes(request)
-                 .thenApply(response -> {
-                     String visibilityTimeout =
-                         Validate.notNull(response
-                                              .attributes()
-                                              .get(QueueAttributeName.VISIBILITY_TIMEOUT),
-                                          QueueAttributeName.VISIBILITY_TIMEOUT +
-                                          " attribute is null in sqs.");
 
-                     return Duration.ofSeconds(Integer.parseInt(visibilityTimeout));
-                 })
-                 .thenAccept(newTimeoutFuture::complete)
-                 .exceptionally(ex -> {
-                     newTimeoutFuture.completeExceptionally(ex);
-                     return null;
-                 });
+        CompletableFuture<Map<QueueAttributeName, String>> future =
+            sqsClient.getQueueAttributes(request)
+                     .thenApply(response -> {
+                         Map<QueueAttributeName, String> attributes = response.attributes();
+                         Validate.notNull(attributes.get(QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS),
+                                          QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS
+                                          + " attribute is null in SQS.");
+                         Validate.notNull(attributes.get(QueueAttributeName.VISIBILITY_TIMEOUT),
+                                          QueueAttributeName.VISIBILITY_TIMEOUT + " attribute is null in SQS.");
+                         return attributes.entrySet().stream()
+                                          .filter(entry -> QUEUE_ATTRIBUTE_NAMES.contains(entry.getKey()))
+                                          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                     });
+
+        future.whenComplete((r, t) -> {
+            if (t != null) {
+                queueAttributeMap.set(null); // Reset the future on failure
+            }
+        });
+        return future;
     }
 }
