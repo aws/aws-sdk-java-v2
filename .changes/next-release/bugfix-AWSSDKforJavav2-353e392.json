@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Update ResponseTransformer so download attempts to a directory that does not exist or does not have write permissions are not retried"
+}
