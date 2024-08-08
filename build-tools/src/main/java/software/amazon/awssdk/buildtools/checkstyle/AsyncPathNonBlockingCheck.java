@@ -22,14 +22,15 @@ import com.puppycrawl.tools.checkstyle.api.TokenTypes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class AsyncPathNonBlockingCheck extends AbstractCheck {
 
-    private List<String> illegalMethodCalls = new ArrayList<>();
+    private List<String> illegalMethods = new ArrayList<>();
 
-    public void setIllegalMethodCalls(String... illegalMethodCalls) {
-        this.illegalMethodCalls.clear();
-        this.illegalMethodCalls.addAll(Arrays.asList(illegalMethodCalls));
+    public void setIllegalMethods(String... illegalMethods) {
+        this.illegalMethods.clear();
+        this.illegalMethods.addAll(Arrays.asList(illegalMethods));
     }
 
     @Override
@@ -54,18 +55,20 @@ public class AsyncPathNonBlockingCheck extends AbstractCheck {
         if (ast.getType() != TokenTypes.METHOD_CALL) {
             return;
         }
-        FullIdent ident = FullIdent.createFullIdent(ast);
 
-
-
-        // find method calls that look like future.join(...)
+        // find method calls that look like `someVar.join()`
         DetailAST dot = ast.findFirstToken(TokenTypes.DOT);
         if (dot == null) {
             return;
         }
 
         DetailAST methodCall = dot.getLastChild();
-        methodCall.
-        methodCall.getText()
+        if (illegalMethods.contains(methodCall.getText())) {
+            // allow String.join(...);
+            if ("String".equals(dot.getFirstChild().getText())) {
+                return;
+            }
+            log(ast, methodCall + " is not allowed to be called.");
+        }
     }
 }
