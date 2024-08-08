@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.27.0</version>
+    <version>2.27.1</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -71,6 +71,7 @@
         <module>codegen-lite-maven-plugin</module>
         <module>archetypes</module>
         <module>third-party</module>
+        <module>v2-migration</module>
         <module>test/http-client-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
@@ -88,6 +89,7 @@
         <module>test/ruleset-testing-core</module>
         <module>test/old-client-version-compatibility-test</module>
         <module>test/bundle-logging-bridge-binding-test</module>
+        <module>test/v2-migration-tests</module>
         <module>test/bundle-shading-tests</module>
         <module>test/crt-unavailable-tests</module>
     </modules>
@@ -97,7 +99,7 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.26.31</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.27.0</awsjavasdk.previous.version>
         <jackson.version>2.15.2</jackson.version>
         <jackson.databind.version>2.15.2</jackson.databind.version>
         <jacksonjr.version>2.13.2</jacksonjr.version>
