@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs.batchmanager;
+package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;

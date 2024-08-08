@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs.batchmanager;
+package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 
 import java.time.Duration;
@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;

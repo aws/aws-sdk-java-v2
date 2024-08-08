@@ -45,8 +45,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
-import software.amazon.awssdk.services.sqs.batchmanager.ReceiveMessageCompletableFuture;
-import software.amazon.awssdk.services.sqs.batchmanager.ReceiveQueueBuffer;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.ReceiveMessageCompletableFuture;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.ReceiveQueueBuffer;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.QueueAttributesManager;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
