@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.26.21-SNAPSHOT</version>
+        <version>2.27.1-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -135,7 +135,6 @@
         <module>mediapackage</module>
         <module>mediastore</module>
         <module>mediastoredata</module>
-        <module>mobile</module>
         <module>mq</module>
         <module>pricing</module>
         <module>resourcegroups</module>
@@ -406,6 +405,7 @@
         <module>pcaconnectorscep</module>
         <module>apptest</module>
         <module>qapps</module>
+        <module>ssmquicksetup</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

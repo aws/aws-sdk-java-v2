@@ -5479,6 +5479,8 @@
           "ap-southeast-1" : { },
           "ap-southeast-2" : { },
           "eu-central-1" : { },
+          "eu-north-1" : { },
+          "eu-south-2" : { },
           "eu-west-1" : { },
           "eu-west-2" : { },
           "eu-west-3" : { },
@@ -7586,6 +7588,7 @@
             } ]
           },
           "eu-central-1" : { },
+          "eu-central-2" : { },
           "eu-north-1" : { },
           "eu-south-1" : { },
           "eu-south-2" : { },
@@ -13164,6 +13167,7 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -14314,6 +14318,12 @@
               "region" : "ca-central-1"
             },
             "hostname" : "portal.sso.ca-central-1.amazonaws.com"
+          },
+          "ca-west-1" : {
+            "credentialScope" : {
+              "region" : "ca-west-1"
+            },
+            "hostname" : "portal.sso.ca-west-1.amazonaws.com"
           },
           "eu-central-1" : {
             "credentialScope" : {
@@ -19048,6 +19058,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ca-central-1" : { },
+          "ca-west-1" : { },
           "eu-central-1" : { },
           "eu-central-2" : { },
           "eu-north-1" : { },
@@ -19598,6 +19609,18 @@
           "us-west-1" : { },
           "us-west-2" : { }
         }
+      },
+      "tax" : {
+        "endpoints" : {
+          "aws-global" : {
+            "credentialScope" : {
+              "region" : "us-east-1"
+            },
+            "hostname" : "tax.us-east-1.amazonaws.com"
+          }
+        },
+        "isRegionalized" : false,
+        "partitionEndpoint" : "aws-global"
       },
       "textract" : {
         "endpoints" : {
@@ -23690,8 +23713,6 @@
         },
         "endpoints" : {
           "us-gov-east-1" : {
-            "hostname" : "autoscaling-plans.us-gov-east-1.amazonaws.com",
-            "protocols" : [ "http", "https" ],
             "variants" : [ {
               "hostname" : "autoscaling-plans.us-gov-east-1.amazonaws.com",
               "tags" : [ "fips" ]
@@ -23703,8 +23724,6 @@
             "protocols" : [ "http", "https" ]
           },
           "us-gov-west-1" : {
-            "hostname" : "autoscaling-plans.us-gov-west-1.amazonaws.com",
-            "protocols" : [ "http", "https" ],
             "variants" : [ {
               "hostname" : "autoscaling-plans.us-gov-west-1.amazonaws.com",
               "tags" : [ "fips" ]
@@ -24452,17 +24471,31 @@
       },
       "directconnect" : {
         "endpoints" : {
-          "us-gov-east-1" : {
+          "fips-us-gov-east-1" : {
             "credentialScope" : {
               "region" : "us-gov-east-1"
             },
-            "hostname" : "directconnect.us-gov-east-1.amazonaws.com"
+            "deprecated" : true,
+            "hostname" : "directconnect-fips.us-gov-east-1.amazonaws.com"
           },
-          "us-gov-west-1" : {
+          "fips-us-gov-west-1" : {
             "credentialScope" : {
               "region" : "us-gov-west-1"
             },
-            "hostname" : "directconnect.us-gov-west-1.amazonaws.com"
+            "deprecated" : true,
+            "hostname" : "directconnect-fips.us-gov-west-1.amazonaws.com"
+          },
+          "us-gov-east-1" : {
+            "variants" : [ {
+              "hostname" : "directconnect-fips.us-gov-east-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "us-gov-west-1" : {
+            "variants" : [ {
+              "hostname" : "directconnect-fips.us-gov-west-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
           }
         }
       },
@@ -26404,6 +26437,12 @@
         "isRegionalized" : false,
         "partitionEndpoint" : "aws-us-gov-global"
       },
+      "oam" : {
+        "endpoints" : {
+          "us-gov-east-1" : { },
+          "us-gov-west-1" : { }
+        }
+      },
       "oidc" : {
         "endpoints" : {
           "us-gov-east-1" : {
@@ -28295,7 +28334,8 @@
       },
       "apigateway" : {
         "endpoints" : {
-          "us-iso-east-1" : { }
+          "us-iso-east-1" : { },
+          "us-iso-west-1" : { }
         }
       },
       "appconfig" : {
@@ -29167,6 +29207,11 @@
         }
       },
       "api.sagemaker" : {
+        "endpoints" : {
+          "us-isob-east-1" : { }
+        }
+      },
+      "apigateway" : {
         "endpoints" : {
           "us-isob-east-1" : { }
         }

@@ -36,17 +36,6 @@ import software.amazon.awssdk.regions.Region;
 
 public class ClientBuilderTest {
     @Test
-    public void syncClient_includesDefaultProvider_includesDefaultSigner() {
-        DefaultBearerauthClientBuilder builder = new DefaultBearerauthClientBuilder();
-        SdkClientConfiguration config = getSyncConfig(builder);
-
-        assertThat(config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER))
-            .isInstanceOf(DefaultAwsTokenProvider.class);
-        assertThat(config.option(SdkAdvancedClientOption.TOKEN_SIGNER))
-            .isInstanceOf(BearerTokenSigner.class);
-    }
-
-    @Test
     public void syncClient_customTokenProviderSet_presentInFinalConfig() {
         DefaultBearerauthClientBuilder builder = new DefaultBearerauthClientBuilder();
 
@@ -81,17 +70,6 @@ public class ClientBuilderTest {
 
         assertThat(config.option(SdkAdvancedClientOption.TOKEN_SIGNER))
             .isSameAs(mockSigner);
-    }
-
-    @Test
-    public void asyncClient_includesDefaultProvider_includesDefaultSigner() {
-        DefaultBearerauthAsyncClientBuilder builder = new DefaultBearerauthAsyncClientBuilder();
-        SdkClientConfiguration config = getAsyncConfig(builder);
-
-        assertThat(config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER))
-            .isInstanceOf(DefaultAwsTokenProvider.class);
-        assertThat(config.option(SdkAdvancedClientOption.TOKEN_SIGNER))
-            .isInstanceOf(BearerTokenSigner.class);
     }
 
     @Test
