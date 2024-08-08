@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
   ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
@@ -12,21 +12,17 @@
   ~ on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
   ~ express or implied. See the License for the specific language governing
   ~ permissions and limitations under the License.
-  -->
-
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>services</artifactId>
-        <groupId>software.amazon.awssdk</groupId>
-        <version>2.26.21-SNAPSHOT</version>
-    </parent>
+  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>mobile</artifactId>
-    <name>AWS Java SDK :: Services :: AWS Mobile</name>
-    <description>The AWS Java SDK for AWS Mobile module holds the client classes that are used for communicating
-        with AWS Mobile Service
+    <parent>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>services</artifactId>
+        <version>2.27.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>ssmquicksetup</artifactId>
+    <name>AWS Java SDK :: Services :: SSM Quick Setup</name>
+    <description>The AWS Java SDK for SSM Quick Setup module holds the client classes that are used for
+        communicating with SSM Quick Setup.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
     <build>
@@ -37,23 +33,22 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>software.amazon.awssdk.services.mobile</Automatic-Module-Name>
+                            <Automatic-Module-Name>software.amazon.awssdk.services.ssmquicksetup</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>aws-json-protocol</artifactId>
+            <artifactId>protocol-core</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>protocol-core</artifactId>
+            <artifactId>aws-json-protocol</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>

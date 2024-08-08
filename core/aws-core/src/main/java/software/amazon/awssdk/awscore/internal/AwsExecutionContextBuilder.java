@@ -131,10 +131,11 @@ public final class AwsExecutionContextBuilder {
                                                      .build();
         interceptorContext = runInitialInterceptors(interceptorContext, executionAttributes, executionInterceptorChain);
 
+        SdkRequest modifiedRequests = interceptorContext.request();
         Signer signer = null;
-        if (loadOldSigner(executionAttributes, originalRequest)) {
+        if (loadOldSigner(executionAttributes, modifiedRequests)) {
             AuthorizationStrategyFactory authorizationStrategyFactory =
-                new AuthorizationStrategyFactory(interceptorContext.request(), metricCollector, clientConfig);
+                new AuthorizationStrategyFactory(modifiedRequests, metricCollector, clientConfig);
             AuthorizationStrategy authorizationStrategy =
                 authorizationStrategyFactory.strategyFor(executionParams.credentialType());
             authorizationStrategy.addCredentialsToExecutionAttributes(executionAttributes);

@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Apache HTTP Client",
-    "contributor": "",
-    "description": "Added fix to handle TLS half-close scenarios by throwing an exception. In TLS 1.3, the inbound and outbound close_notify alerts are independent. When the client receives a close_notify alert, it only closes the inbound stream but continues to send data to the server. Previously, the SDK could not detect that the connection was closed on the server side, causing it to get stuck while writing to the socket and eventually timing out. With this bug fix, the SDK will now detect the closed connection and throw an appropriate exception, preventing client hangs and improving overall reliability."
-}

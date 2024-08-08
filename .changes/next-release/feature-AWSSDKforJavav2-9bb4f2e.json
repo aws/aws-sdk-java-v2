@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "The partitions.json that ships with the SDK can now be overridden using one of the following means (in priority order):\n1. Specify a file path using the system property `aws.partitionsFile`\n2. Specify a file path using the environment variable `AWS_PARTITIONS_FILE`\n3. Add a resource to the classpath under the name `software/amazon/awssdk/global/partitions.json`"
-}
