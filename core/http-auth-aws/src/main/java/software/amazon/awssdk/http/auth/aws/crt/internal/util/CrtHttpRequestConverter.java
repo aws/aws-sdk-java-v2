@@ -79,7 +79,7 @@ public final class CrtHttpRequestConverter {
         }
 
         builder.encodedPath(fullUri.getRawPath());
-        String remainingQuery = fullUri.getQuery();
+        String remainingQuery = fullUri.getRawQuery();
 
         builder.clearQueryParameters();
         while (remainingQuery != null && !remainingQuery.isEmpty()) {
@@ -92,7 +92,9 @@ public final class CrtHttpRequestConverter {
                     queryValue = remainingQuery.substring(nextAssign + 1, nextQuery);
                 }
 
-                builder.appendRawQueryParameter(queryName, queryValue);
+                String decodedQueryValue = SdkHttpUtils.urlDecode(queryValue);
+                String decodedQueryName = SdkHttpUtils.urlDecode(queryName);
+                builder.appendRawQueryParameter(decodedQueryName, decodedQueryValue);
             } else {
                 String queryName = remainingQuery;
                 if (nextQuery >= 0) {

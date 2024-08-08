@@ -21,14 +21,20 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.26.16-SNAPSHOT</version>
+        <version>2.27.2-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>v2-migration</artifactId>
+    <version>${awsjavasdk.version}-PREVIEW</version>
     <name>AWS Java SDK :: V2 Migration</name>
     <description>
         Contains OpenRewrite recipes to help users migrate from the AWS SDK for Java v1 to the AWS SDK for Java v2
     </description>
+
+    <properties>
+        <awsjavasdk.version>${project.parent.version}</awsjavasdk.version>
+    </properties>
 
     <dependencyManagement>
         <dependencies>
@@ -75,32 +81,32 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>utils</artifactId>
-            <version>${project.version}</version>
+            <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sdk-core</artifactId>
-            <version>${project.version}</version>
+            <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>apache-client</artifactId>
-            <version>${project.version}</version>
+            <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>netty-nio-client</artifactId>
-            <version>${project.version}</version>
+            <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>auth</artifactId>
-            <version>${project.version}</version>
+            <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sts</artifactId>
-            <version>${project.version}</version>
+            <version>${awsjavasdk.version}</version>
         </dependency>
 
         <dependency>
@@ -214,24 +220,6 @@
                     <failOnWarning>false</failOnWarning>
                     <ignoreNonCompile>false</ignoreNonCompile>
                 </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>exec-maven-plugin</artifactId>
-                <groupId>org.codehaus.mojo</groupId>
-                <version>${exec-maven-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>generate-recipe</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>python</executable>
-                            <commandlineArgs>${basedir}/src/main/resources/generate-recipes</commandlineArgs>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

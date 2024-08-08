@@ -19,9 +19,9 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.LongAdder;
 import org.junit.jupiter.api.Test;
 import org.testng.Assert;
-import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
+import software.amazon.awssdk.retries.api.BackoffStrategy;
 
 class WaiterExecutorTest {
     @Test
@@ -32,7 +32,7 @@ class WaiterExecutorTest {
         WaiterOverrideConfiguration conf =
             WaiterOverrideConfiguration.builder()
                                        .maxAttempts(expectedAttempts)
-                                       .backoffStrategy(BackoffStrategy.none())
+                                       .backoffStrategyV2(BackoffStrategy.retryImmediately())
                                        .build();
 
         WaiterExecutor<Integer> sut =

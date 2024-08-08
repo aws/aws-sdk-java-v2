@@ -17,6 +17,7 @@ package software.amazon.awssdk.utils;
 
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.internal.ClassLoaderHelperTestBackdoor;
 
 @SdkProtectedApi
 public final class ClassLoaderHelper {
@@ -136,7 +137,7 @@ public final class ClassLoaderHelper {
     public static ClassLoader classLoader(Class<?>... classes) {
         if (classes != null) {
             for (Class clzz : classes) {
-                ClassLoader classLoader = clzz.getClassLoader();
+                ClassLoader classLoader = ClassLoaderHelperTestBackdoor.getClassLoader(clzz);
 
                 if (classLoader != null) {
                     return classLoader;

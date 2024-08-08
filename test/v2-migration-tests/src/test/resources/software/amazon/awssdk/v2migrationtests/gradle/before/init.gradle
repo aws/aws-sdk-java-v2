@@ -1,0 +1,24 @@
+initscript {
+    repositories {
+        maven { url "https://plugins.gradle.org/m2" }
+    }
+    dependencies {
+        classpath("org.openrewrite:plugin:latest.release")
+    }
+}
+
+rootProject {
+    plugins.apply(org.openrewrite.gradle.RewritePlugin)
+    dependencies {
+        rewrite("software.amazon.awssdk:v2-migration:V2_VERSION")
+    }
+
+    afterEvaluate {
+        if (repositories.isEmpty()) {
+            repositories {
+                mavenCentral()
+                mavenLocal()
+            }
+        }
+    }
+}

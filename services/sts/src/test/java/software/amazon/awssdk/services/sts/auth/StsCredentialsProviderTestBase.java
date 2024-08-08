@@ -133,7 +133,7 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
                 assertThat(providedCredentials.sessionToken()).isEqualTo("c");
                 assertThat(providedCredentials.providerName()).isPresent().contains(providerName());
                 if (!(credentialsProvider instanceof StsGetSessionTokenCredentialsProvider)) {
-                    assertThat(providedCredentials.accountId().isPresent());
+                    assertThat(providedCredentials.accountId()).isPresent();
                     assertThat(providedCredentials.accountId().get()).isEqualTo("123456789012");
                 }
             }

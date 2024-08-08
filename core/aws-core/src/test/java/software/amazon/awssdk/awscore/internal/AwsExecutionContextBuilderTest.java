@@ -22,6 +22,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +36,10 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.client.http.NoopTestAwsRequest;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SelectedAuthScheme;
@@ -46,22 +49,26 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
+import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.regions.RegionScope;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AwsExecutionContextBuilderTest {
@@ -175,6 +182,34 @@ public class AwsExecutionContextBuilderTest {
 
         assertThat(executionContext.signer()).isEqualTo(clientOverrideSigner);
         verify(defaultCredentialsProvider, times(1)).resolveIdentity();
+    }
+
+    @Test
+    public void postSra_oldSignerOverriddenThroughExecutionInterceptor_shouldTakePrecedence() {
+        SdkRequest request = NoopTestAwsRequest.builder().build();
+
+        Signer noOpSigner = new NoOpSigner();
+        ExecutionInterceptor signerExecutionInterceptor = signerOverrideExecutionInterceptor(noOpSigner);
+        SdkClientConfiguration configuration = testClientConfiguration(signerExecutionInterceptor).build();
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(request),
+                                                                                   configuration);
+
+        assertThat(executionContext.signer()).isEqualTo(noOpSigner);
+        verify(defaultCredentialsProvider, times(1)).resolveIdentity();
+    }
+
+    private ExecutionInterceptor signerOverrideExecutionInterceptor(Signer signer) {
+        return new ExecutionInterceptor() {
+            @Override
+            public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
+                AwsRequest.Builder builder = (AwsRequest.Builder) context.request().toBuilder();
+                builder.overrideConfiguration(c -> c.signer(signer)
+                                                    .build());
+
+                return builder.build();
+            }
+        };
     }
 
     @Test
@@ -388,6 +423,10 @@ public class AwsExecutionContextBuilderTest {
     }
 
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {
+        return clientExecutionParams(sdkRequest);
+    }
+
+    private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams(SdkRequest sdkRequest) {
         return new ClientExecutionParams<SdkRequest, SdkResponse>()
             .withInput(sdkRequest)
             .withFullDuplex(false)
@@ -395,6 +434,10 @@ public class AwsExecutionContextBuilderTest {
     }
 
     private SdkClientConfiguration.Builder testClientConfiguration() {
+        return testClientConfiguration(interceptor);
+    }
+
+    private SdkClientConfiguration.Builder testClientConfiguration(ExecutionInterceptor... executionInterceptors) {
         // In real SRA case, SelectedAuthScheme is setup as an executionAttribute by {Service}AuthSchemeInterceptor that is setup
         // in EXECUTION_INTERCEPTORS. But, faking it here for unit test, by already setting SELECTED_AUTH_SCHEME into the
         // executionAttributes.
@@ -408,9 +451,8 @@ public class AwsExecutionContextBuilderTest {
                                .put(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme)
                                .build();
 
-        List<ExecutionInterceptor> interceptorList = Collections.singletonList(interceptor);
         return SdkClientConfiguration.builder()
-                                     .option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptorList)
+                                     .option(SdkClientOption.EXECUTION_INTERCEPTORS, Arrays.asList(executionInterceptors))
                                      .option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER, defaultCredentialsProvider)
                                      .option(SdkClientOption.AUTH_SCHEMES, defaultAuthSchemes)
                                      .option(SdkClientOption.EXECUTION_ATTRIBUTES, executionAttributes);

@@ -41,6 +41,7 @@ import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -414,7 +415,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         paramsBuilder.awsCredentials(executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS))
                      .signingName(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME))
                      .signingRegion(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION))
-                     .timeOffset(executionAttributes.getAttribute(AwsSignerExecutionAttribute.TIME_OFFSET))
+                     .timeOffset(executionAttributes.getAttribute(SdkExecutionAttribute.TIME_OFFSET))
                      .signingClockOverride(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_CLOCK));
 
         Boolean doubleUrlEncode = executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE);

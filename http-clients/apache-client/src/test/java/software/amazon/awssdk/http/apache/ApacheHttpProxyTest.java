@@ -18,7 +18,6 @@ package software.amazon.awssdk.http.apache;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Set;
 import software.amazon.awssdk.http.HttpProxyTestSuite;
 import software.amazon.awssdk.http.proxy.TestProxySetting;

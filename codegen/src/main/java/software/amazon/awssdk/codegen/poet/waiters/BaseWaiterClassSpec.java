@@ -57,11 +57,10 @@ import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
-import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
-import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterState;
+import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
@@ -203,16 +202,17 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                                   + ".orElse($L)",
                                   waiterDefinition.getMaxAttempts());
         configMethod.addStatement("$T backoffStrategy = optionalOverrideConfig."
-                                  + "flatMap(WaiterOverrideConfiguration::backoffStrategy).orElse($T.create($T.ofSeconds($L)))",
+                                  + "flatMap(WaiterOverrideConfiguration::backoffStrategyV2)"
+                                  + ".orElse($T.fixedDelayWithoutJitter($T.ofSeconds($L)))",
                                   BackoffStrategy.class,
-                                  FixedDelayBackoffStrategy.class,
+                                  BackoffStrategy.class,
                                   Duration.class,
                                   waiterDefinition.getDelay());
         configMethod.addStatement("$T waitTimeout = optionalOverrideConfig.flatMap(WaiterOverrideConfiguration::waitTimeout)"
                                   + ".orElse(null)",
                                   Duration.class);
 
-        configMethod.addStatement("return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategy"
+        configMethod.addStatement("return WaiterOverrideConfiguration.builder().maxAttempts(maxAttempts).backoffStrategyV2"
                                   + "(backoffStrategy).waitTimeout(waitTimeout).build()");
         return configMethod.build();
     }

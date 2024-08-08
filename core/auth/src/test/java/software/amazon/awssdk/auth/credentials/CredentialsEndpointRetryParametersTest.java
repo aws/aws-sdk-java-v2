@@ -16,8 +16,8 @@
 package software.amazon.awssdk.auth.credentials;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,7 @@ public class CredentialsEndpointRetryParametersTest {
 
     @Test
     public void defaultParams_withStatusCode() {
-        Integer statusCode = new Integer(400);
+        Integer statusCode = 400;
         ResourcesEndpointRetryParameters params = ResourcesEndpointRetryParameters.builder()
                                                                                   .withStatusCode(statusCode)
                                                                                   .build();
@@ -47,13 +47,13 @@ public class CredentialsEndpointRetryParametersTest {
 
     @Test
     public void defaultParams_withStatusCodeAndException() {
-        Integer statusCode = new Integer(500);
+        Integer statusCode = 500;
         ResourcesEndpointRetryParameters params = ResourcesEndpointRetryParameters.builder()
                                                                                   .withStatusCode(statusCode)
                                                                                   .withException(new IOException())
                                                                                   .build();
         assertEquals(statusCode, params.getStatusCode());
-        assertTrue(params.getException() instanceof IOException);
+        assertInstanceOf(IOException.class, params.getException());
     }
 
 }

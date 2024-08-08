@@ -1,0 +1,48 @@
+{
+    "version": "2.26.23",
+    "date": "2024-07-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "contributor": "",
+            "description": "Adding support for paginators in AppSync list APIs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms ML",
+            "contributor": "",
+            "description": "Adds SQL query as the source of seed audience for audience generation job."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "This release adds AWS Entity Resolution integration to associate ID namespaces & ID mapping workflow resources as part of ID namespace association and ID mapping table in AWS Clean Rooms. It also introduces a new ID_MAPPING_TABLE analysis rule to manage the protection on ID mapping table."
+        },
+        {
+            "type": "feature",
+            "category": "AWS EntityResolution",
+            "contributor": "",
+            "description": "Support First Party ID Mapping"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Contact Lens",
+            "contributor": "",
+            "description": "Added PostContactSummary segment type on ListRealTimeContactAnalysisSegments API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Added PostContactSummary segment type on ListRealTimeContactAnalysisSegmentsV2 API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "This release removes the deprecated dataProductItem field from Search API output."
+        }
+    ]
+}

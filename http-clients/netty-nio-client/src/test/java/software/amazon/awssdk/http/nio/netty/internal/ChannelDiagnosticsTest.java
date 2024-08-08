@@ -18,7 +18,6 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.netty.channel.embedded.EmbeddedChannel;
-import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
 public class ChannelDiagnosticsTest {

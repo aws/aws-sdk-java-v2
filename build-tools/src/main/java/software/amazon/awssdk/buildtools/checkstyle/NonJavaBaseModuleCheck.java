@@ -183,13 +183,9 @@ public class NonJavaBaseModuleCheck extends AbstractCheck {
             return true;
         }
 
-        if (additionalLegalPackagesBySdkPackage.entrySet()
-                                               .stream()
-                                               .anyMatch(e -> currentSdkPackage.startsWith(e.getKey()) &&
-                                                              e.getValue().contains(importPackage))) {
-            return true;
-        }
-
-        return false;
+        return additionalLegalPackagesBySdkPackage.entrySet()
+                                                  .stream()
+                                                  .anyMatch(e -> currentSdkPackage.startsWith(e.getKey()) &&
+                                                                 e.getValue().contains(importPackage));
     }
 }
