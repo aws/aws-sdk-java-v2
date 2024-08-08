@@ -42,6 +42,24 @@ public class TestUtils {
     }
 
     public static String getVersion() throws IOException {
+        // TODO: uncomment the following code to dynamically get version
+        //  once we update the version
+        // Path root = Paths.get(".").normalize().toAbsolutePath();
+        // Path pomFile = root.resolve("pom.xml");
+        // Optional<String> versionString =
+        //     Files.readAllLines(pomFile)
+        //          .stream().filter(l -> l.contains("<version>")).findFirst();
+        //
+        // if (!versionString.isPresent()) {
+        //     throw new AssertionError("No version is found");
+        // }
+        //
+        // String string = versionString.get().trim();
+        // String substring = string.substring(9, string.indexOf('/') - 1);
+        return "2.27.0";
+    }
+
+    public static String getMigrationToolVersion() throws IOException {
         Path root = Paths.get(".").normalize().toAbsolutePath();
         Path pomFile = root.resolve("pom.xml");
         Optional<String> versionString =

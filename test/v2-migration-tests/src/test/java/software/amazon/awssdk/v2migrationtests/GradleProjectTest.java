@@ -17,15 +17,21 @@ package software.amazon.awssdk.v2migrationtests;
 
 import static java.util.Collections.addAll;
 import static software.amazon.awssdk.v2migrationtests.TestUtils.assertTwoDirectoriesHaveSameStructure;
+import static software.amazon.awssdk.v2migrationtests.TestUtils.getMigrationToolVersion;
 import static software.amazon.awssdk.v2migrationtests.TestUtils.getVersion;
 import static software.amazon.awssdk.v2migrationtests.TestUtils.replaceVersion;
 import static software.amazon.awssdk.v2migrationtests.TestUtils.run;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -55,7 +61,19 @@ public class GradleProjectTest {
         FileUtils.copyDirectory(gradleBefore.toFile(), gradleActual.toFile());
         FileUtils.copyDirectory(gradleAfter.toFile(), gradleExpected.toFile());
 
-        replaceVersion(gradleActual.resolve("init.gradle"), sdkVersion + "-PREVIEW");
+        Path gradlew = gradleActual.resolve("gradlew");
+
+        Set<PosixFilePermission> perms = new HashSet<>();
+        perms.addAll(Arrays.asList(PosixFilePermission.OWNER_READ,
+                                   PosixFilePermission.OWNER_EXECUTE,
+                                   PosixFilePermission.GROUP_EXECUTE,
+                                   PosixFilePermission.GROUP_READ,
+                                   PosixFilePermission.OTHERS_READ,
+                                   PosixFilePermission.OTHERS_EXECUTE));
+
+        Files.setPosixFilePermissions(gradlew, perms);
+
+        replaceVersion(gradleActual.resolve("init.gradle"), getMigrationToolVersion() + "-PREVIEW");
     }
 
     private static void deleteTempDirectories() throws IOException {
