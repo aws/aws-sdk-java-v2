@@ -17,6 +17,7 @@ package software.amazon.awssdk.v2migrationtests;
 
 import static java.util.Collections.addAll;
 import static software.amazon.awssdk.v2migrationtests.TestUtils.assertTwoDirectoriesHaveSameStructure;
+import static software.amazon.awssdk.v2migrationtests.TestUtils.getMigrationToolVersion;
 import static software.amazon.awssdk.v2migrationtests.TestUtils.getVersion;
 import static software.amazon.awssdk.v2migrationtests.TestUtils.replaceVersion;
 import static software.amazon.awssdk.v2migrationtests.TestUtils.run;
@@ -73,7 +74,7 @@ public class MavenProjectTest {
     private static void verifyTransformation() throws IOException {
         List<String> rewriteArgs = new ArrayList<>();
         addAll(rewriteArgs, "mvn", "org.openrewrite.maven:rewrite-maven-plugin:run",
-               "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration:"+ sdkVersion + "-PREVIEW",
+               "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration:"+ getMigrationToolVersion() + "-PREVIEW",
                "-Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2");
 
         run(mavenActual, rewriteArgs.toArray(new String[0]));
