@@ -28,6 +28,7 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.crt.auth.credentials.Credentials;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.StringUtils;
@@ -81,7 +82,7 @@ public class SigningUtils {
 
         Clock baseClock = Clock.systemUTC();
         Optional<Integer> timeOffset = Optional.ofNullable(executionAttributes.getAttribute(
-            AwsSignerExecutionAttribute.TIME_OFFSET));
+            SdkExecutionAttribute.TIME_OFFSET));
         return timeOffset
             .map(offset -> Clock.offset(baseClock, Duration.ofSeconds(-offset)))
             .orElse(baseClock);

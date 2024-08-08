@@ -41,7 +41,7 @@ public final class S3ExpressUtils {
         Endpoint endpoint = executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
         if (endpoint != null) {
             String useS3Express = endpoint.attribute(KnownS3ExpressEndpointProperty.BACKEND);
-            return "S3Express".equals(useS3Express);
+            return S3_EXPRESS.equals(useS3Express);
         }
         return false;
     }

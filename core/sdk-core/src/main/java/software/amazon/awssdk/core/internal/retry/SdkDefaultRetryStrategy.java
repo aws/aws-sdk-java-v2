@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.retry;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryMode;
@@ -160,6 +161,10 @@ public final class SdkDefaultRetryStrategy {
                .retryOnException(SdkDefaultRetryStrategy::retryOnThrottlingCondition);
         SdkDefaultRetrySetting.RETRYABLE_EXCEPTIONS.forEach(builder::retryOnExceptionOrCauseInstanceOf);
         builder.treatAsThrottling(SdkDefaultRetryStrategy::treatAsThrottling);
+        Integer maxAttempts = SdkSystemSetting.AWS_MAX_ATTEMPTS.getIntegerValue().orElse(null);
+        if (maxAttempts != null) {
+            builder.maxAttempts(maxAttempts);
+        }
         return builder;
     }
 

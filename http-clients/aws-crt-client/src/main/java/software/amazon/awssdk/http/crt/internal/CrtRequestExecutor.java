@@ -32,12 +32,9 @@ import software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter;
 import software.amazon.awssdk.http.crt.internal.response.InputStreamAdaptingHttpStreamResponseHandler;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
-import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class CrtRequestExecutor {
-
-    private static final Logger log = Logger.loggerFor(CrtRequestExecutor.class);
 
     public CompletableFuture<SdkHttpFullResponse> execute(CrtRequestContext executionContext) {
         // go ahead and get a reference to the metricCollector since multiple futures will

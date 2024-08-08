@@ -1,4 +1,4 @@
-# AWS SDK for Java v2 Migration Tooling
+# AWS SDK for Java v2 Migration Tool
 
 ## Description
 This modules contains [OpenRewrite][open-rewrite] recipes to automate migration from the AWS SDK for Java v1 to the AWS SDK for Java v2.

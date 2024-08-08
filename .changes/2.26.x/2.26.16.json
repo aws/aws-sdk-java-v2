@@ -1,0 +1,42 @@
+{
+    "version": "2.26.16",
+    "date": "2024-07-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager",
+            "contributor": "",
+            "description": "Documentation updates, including fixes for xml formatting, broken links, and ListCertificates description."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add implicit global region to internal endpoint resolution metadata"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Registry",
+            "contributor": "",
+            "description": "This release for Amazon ECR makes change to bring the SDK into sync with the API."
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Data Plane",
+            "contributor": "",
+            "description": "Added further restrictions on logging of potentially sensitive inputs and outputs."
+        },
+        {
+            "type": "feature",
+            "category": "QBusiness",
+            "contributor": "",
+            "description": "Add personalization to Q Applications. Customers can enable or disable personalization when creating or updating a Q application with the personalization configuration."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

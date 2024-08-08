@@ -24,7 +24,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.io.ReleasableInputStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * Adds additional wrapping around the request {@link ContentStreamProvider}.
@@ -35,8 +34,6 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public final class StreamManagingStage<OutputT> implements RequestPipeline<SdkHttpFullRequest, Response<OutputT>> {
-
-    private static final Logger log = Logger.loggerFor(StreamManagingStage.class);
 
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped;
 

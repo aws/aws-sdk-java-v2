@@ -41,14 +41,12 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * Request conversion utility method for POJO classes associated with multipart feature.
  */
 @SdkInternalApi
 public final class SdkPojoConversionUtils {
-    private static final Logger log = Logger.loggerFor(SdkPojoConversionUtils.class);
 
     private static final HashSet<String> PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE =
         new HashSet<>(Arrays.asList("ChecksumSHA1", "ChecksumSHA256", "ContentMD5", "ChecksumCRC32C", "ChecksumCRC32"));

@@ -109,9 +109,7 @@ public abstract class AbstractMarshallingRegistry {
                                        MarshallingType<T> marshallingType,
                                        Object marshaller) {
             marshallingTypes.add(marshallingType);
-            if (!registry.containsKey(marshallLocation)) {
-                registry.put(marshallLocation, new HashMap<>());
-            }
+            registry.computeIfAbsent(marshallLocation, k -> new HashMap<>());
             registry.get(marshallLocation).put(marshallingType, marshaller);
             return this;
         }

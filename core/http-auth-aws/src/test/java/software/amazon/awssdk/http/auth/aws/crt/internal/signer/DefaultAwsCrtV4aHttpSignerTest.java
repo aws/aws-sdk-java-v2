@@ -31,16 +31,28 @@ import static software.amazon.awssdk.http.auth.aws.crt.TestUtils.generateBasicRe
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.toCredentials;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.readAll;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.AUTH_LOCATION;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.AuthLocation;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.CHUNK_ENCODING_ENABLED;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.PAYLOAD_SIGNING_ENABLED;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.REGION_SET;
+import static software.amazon.awssdk.http.auth.spi.signer.HttpSigner.SIGNING_CLOCK;
 
+import java.io.ByteArrayInputStream;
+import java.net.URI;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.Header;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.aws.TestUtils;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
@@ -106,6 +118,58 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         expectedSigningConfig.setSignatureType(HTTP_REQUEST_VIA_QUERY_PARAMS);
 
         SignedRequest signedRequest = signer.sign(request);
+
+        assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Algorithm"))
+            .hasValue("AWS4-ECDSA-P256-SHA256");
+        assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Credential"))
+            .hasValue("AKIDEXAMPLE/20200803/demo/aws4_request");
+        assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Date")).hasValue("20200803T174823Z");
+        assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-SignedHeaders"))
+            .hasValue("host;x-amz-archive-description");
+        assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Region-Set")).hasValue("aws-global");
+        assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Signature")).isPresent();
+    }
+
+    @Test
+    void sign_requestWithQueryEncodedParamValue_shouldEncodedValue() {
+        AwsCredentialsIdentity credentials =
+            AwsCredentialsIdentity.create("AKIDEXAMPLE", "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY");
+        SignRequest<AwsCredentialsIdentity> request =
+            SignRequest.builder(credentials)
+                       .request(SdkHttpRequest.builder()
+                                              .method(SdkHttpMethod.POST)
+                                              .port(443)
+                                              .putHeader("x-amz-archive-description", "test  test")
+                                              .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                                              .encodedPath("/")
+                                              .uri(URI.create("https://demo.us-east-1.amazonaws.com"))
+                                              .appendRawQueryParameter("goodParam1", "123")
+                                              .appendRawQueryParameter("badParam", "abc&xyz")
+                                              .appendRawQueryParameter("goodParam2", "abc")
+                                              .build())
+                       .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
+                       .putProperty(REGION_SET, RegionSet.create("aws-global"))
+                       .putProperty(SERVICE_SIGNING_NAME, "demo")
+                       .putProperty(SIGNING_CLOCK, new TestUtils.TickingClock(Instant.ofEpochMilli(1596476903000L)))
+                       .putProperty(AUTH_LOCATION, AuthLocation.QUERY_STRING)
+                       .build();
+
+        SignedRequest signedRequest = signer.sign(request);
+        Map<String, List<String>> queryParam = signedRequest.request().rawQueryParameters();
+        assertThat(queryParam).doesNotContainKey("xyz");
+        assertThat(queryParam).containsKeys("goodParam1", "badParam", "goodParam2");
+
+        assertThat(signedRequest.request().encodedQueryParameters())
+            .isPresent()
+            .get()
+            .matches(str -> str.contains("badParam=abc%26xyz"));
+
+        assertThat(signedRequest.request().firstMatchingRawQueryParameter("goodParam1"))
+            .hasValue("123");
+        assertThat(signedRequest.request().firstMatchingRawQueryParameter("badParam"))
+            .hasValue("abc&xyz");
+        assertThat(signedRequest.request().firstMatchingRawQueryParameter("goodParam2"))
+            .hasValue("abc");
 
         assertThat(signedRequest.request().firstMatchingRawQueryParameter("X-Amz-Algorithm"))
             .hasValue("AWS4-ECDSA-P256-SHA256");
@@ -222,7 +286,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         SignedRequest signedRequest = signer.sign(request);
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
-                               .hasValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD);
+            .hasValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD);
         assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("353");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
 
@@ -244,7 +308,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         SignedRequest signedRequest = signer.sign(request);
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
-                               .hasValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER);
+            .hasValue(STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD_TRAILER);
         assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("554");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
@@ -268,7 +332,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         SignedRequest signedRequest = signer.sign(request);
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
-                               .hasValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
+            .hasValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
         assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("62");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
