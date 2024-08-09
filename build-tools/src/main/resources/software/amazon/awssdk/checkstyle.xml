@@ -456,7 +456,7 @@
         </module>
     </module>
 
-    <!-- Enforce maximum line lengths. -->
+        <!-- Enforce maximum line lengths. -->
     <module name="LineLength">
         <property name="max" value="130"/>
         <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
