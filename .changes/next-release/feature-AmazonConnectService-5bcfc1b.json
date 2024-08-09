@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "This release supports adding RoutingCriteria via UpdateContactRoutingData public API."
+}
