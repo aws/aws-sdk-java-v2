@@ -1,4 +1,24 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.2__ __2024-08-09__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue where invoking `abort` and then `close` on a `ResponseInputStream` would cause the `close` to fail.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Fixed a description of AdvancedSecurityAdditionalFlows in Amazon Cognito user pool configuration.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release supports adding RoutingCriteria via UpdateContactRoutingData public API.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Systems Manager doc-only updates for August 2024.
+
 # __2.27.1__ __2024-08-08__
 ## __AWS Glue__
   - ### Features
