@@ -24,10 +24,10 @@ import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-public class S3StreamingRequestToV2Test implements RewriteTest {
+public class S3NonStreamingRequestToV2Test implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new S3StreamingRequestToV2());
+        spec.recipe(new S3NonStreamingRequestToV2());
         spec.parser(Java8Parser.builder().classpath(
             "aws-java-sdk-s3",
             "aws-java-sdk-core",
@@ -38,13 +38,11 @@ public class S3StreamingRequestToV2Test implements RewriteTest {
 
     @Test
     @EnabledOnJre({JRE.JAVA_8})
-    public void testS3PutObjectOverrideRewrite_file() {
+    public void testS3CreateBucketOverrideRewrite() {
         rewriteRun(
             java(
                 "import com.amazonaws.services.s3.AmazonS3Client;\n"
                 + "\n"
-                + "import java.io.File;\n"
-                + "\n"
                 + "public class S3PutObjectExample {\n"
                 + "    private static final String BUCKET = \"my-bucket\";\n"
                 + "    private static final String KEY = \"key\";\n"
@@ -52,16 +50,11 @@ public class S3StreamingRequestToV2Test implements RewriteTest {
                 + "    public static void main(String[] args) {\n"
                 + "        AmazonS3Client s3 = null;\n"
                 + "\n"
-                + "        File myFile = new File(\"test.txt\");\n"
-                + "\n"
-                + "        s3.putObject(BUCKET, KEY, myFile);\n"
+                + "        s3.createBucket(\"bucketName\");\n"
                 + "    }\n"
                 + "}\n",
                 "import com.amazonaws.services.s3.AmazonS3Client;\n"
-                + "import com.amazonaws.services.s3.model.PutObjectRequest;\n"
-                + "import software.amazon.awssdk.core.sync.RequestBody;\n"
-                + "\n"
-                + "import java.io.File;\n"
+                + "import com.amazonaws.services.s3.model.CreateBucketRequest;\n"
                 + "\n"
                 + "public class S3PutObjectExample {\n"
                 + "    private static final String BUCKET = \"my-bucket\";\n"
@@ -70,9 +63,7 @@ public class S3StreamingRequestToV2Test implements RewriteTest {
                 + "    public static void main(String[] args) {\n"
                 + "        AmazonS3Client s3 = null;\n"
                 + "\n"
-                + "        File myFile = new File(\"test.txt\");\n"
-                + "\n"
-                + "        s3.putObject(new PutObjectRequest(BUCKET, KEY), RequestBody.fromFile(myFile));\n"
+                + "        s3.createBucket(new CreateBucketRequest(\"bucketName\"));\n"
                 + "    }\n"
                 + "}"
             )
@@ -81,39 +72,32 @@ public class S3StreamingRequestToV2Test implements RewriteTest {
 
     @Test
     @EnabledOnJre({JRE.JAVA_8})
-    public void testS3PutObjectOverrideRewrite_string() {
+    public void testS3DeleteBucketOverrideRewrite() {
         rewriteRun(
             java(
                 "import com.amazonaws.services.s3.AmazonS3Client;\n"
                 + "\n"
-                + "import java.io.File;\n"
-                + "\n"
                 + "public class S3PutObjectExample {\n"
                 + "    private static final String BUCKET = \"my-bucket\";\n"
                 + "    private static final String KEY = \"key\";\n"
-                + "    private static final String CONTENT = \"payload\";\n"
                 + "\n"
                 + "    public static void main(String[] args) {\n"
                 + "        AmazonS3Client s3 = null;\n"
                 + "\n"
-                + "        s3.putObject(BUCKET, KEY, CONTENT);\n"
+                + "        s3.deleteBucket(\"bucketName\");\n"
                 + "    }\n"
                 + "}\n",
                 "import com.amazonaws.services.s3.AmazonS3Client;\n"
-                + "import com.amazonaws.services.s3.model.PutObjectRequest;\n"
-                + "import software.amazon.awssdk.core.sync.RequestBody;\n"
-                + "\n"
-                + "import java.io.File;\n"
+                + "import com.amazonaws.services.s3.model.DeleteBucketRequest;\n"
                 + "\n"
                 + "public class S3PutObjectExample {\n"
                 + "    private static final String BUCKET = \"my-bucket\";\n"
                 + "    private static final String KEY = \"key\";\n"
-                + "    private static final String CONTENT = \"payload\";\n"
                 + "\n"
                 + "    public static void main(String[] args) {\n"
                 + "        AmazonS3Client s3 = null;\n"
                 + "\n"
-                + "        s3.putObject(new PutObjectRequest(BUCKET, KEY), RequestBody.fromString(CONTENT));\n"
+                + "        s3.deleteBucket(new DeleteBucketRequest(\"bucketName\"));\n"
                 + "    }\n"
                 + "}"
             )
