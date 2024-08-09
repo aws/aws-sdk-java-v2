@@ -302,7 +302,8 @@
     </Match>
 
 
-    <!-- Suppress existing blocking call -->
+    <!-- Suppress existing blocking call. -->
+    <!-- Classes making calls to disallowed methods made outside of the async code path can be added here to be suppressed -->
     <!-- TODO: remove classes from the list once blocking calls have been removed from the SDK async code path -->
     <Match>
         <Or>
@@ -333,6 +334,8 @@
             <Class name="~software\.amazon\.awssdk\.regions\.util\.HttpResourcesUtils" />
             <Class name="~software\.amazon\.awssdk\.auth\.credentials\.InstanceProfileCredentialsProvider" />
             <Class name="~software\.amazon\.awssdk\.auth\.credentials\.internal\.HttpCredentialsLoader" />
+            <Class name="~software\.amazon\.awssdk\.auth\.credentials\.ContainerCredentialsProvider" />
+            <Class name="~software\.amazon\.awssdk\.auth\.credentials\.InstanceProfileCredentialsProvider" />
 
             <!-- test modules are allowed to make blocking call as parts of their testing -->
             <Class name="~.*testutils.*" />

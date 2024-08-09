@@ -47,13 +47,16 @@ public class DisallowMethodCall extends OpcodeStackDetector {
         PROHIBITED_METHODS.add(new SimpleEntry<>("software/amazon/awssdk/http/SdkHttpFullRequest$Builder", "rawQueryParameters"));
 
         // Blocking calls in async code path
+        PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>("java/lang/Thread", "sleep"));
         PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>("java/util/concurrent/CompletableFuture", "join"));
         PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>("java/util/concurrent/CompletableFuture", "get"));
         PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>(
             "software/amazon/awssdk/utils/CompletableFutureUtils", "joinLikeSync"));
-        PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>("java/lang/Thread", "sleep"));
         PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>(
             "software/amazon/awssdk/regions/util/HttpResourcesUtils", "readResource"));
+        PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>(
+            "software/amazon/awssdk/auth/credentials/internal/HttpCredentialsLoader", "loadCredentials"
+        ));
     }
 
     public DisallowMethodCall(BugReporter bugReporter) {
