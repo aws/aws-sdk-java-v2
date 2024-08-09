@@ -52,7 +52,8 @@ public final class ProtocolTestSuiteLoader {
         try {
             List<TestCase> testCases = MAPPER
                     .readValue(getClass().getResource(RESOURCE_PREFIX + testCase), new ListTypeReference());
-            return testCases.stream();
+            return testCases.stream()
+                .filter(t -> t.getIgnoreReason() == null);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

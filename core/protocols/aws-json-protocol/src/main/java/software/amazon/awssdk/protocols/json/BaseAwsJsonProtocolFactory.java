@@ -138,7 +138,10 @@ public abstract class BaseAwsJsonProtocolFactory {
     }
 
     private StructuredJsonGenerator createGenerator(OperationInfo operationInfo) {
-        if (operationInfo.hasPayloadMembers() || protocolMetadata.protocol() == AwsJsonProtocol.AWS_JSON) {
+        AwsJsonProtocol protocol = protocolMetadata.protocol();
+        if (operationInfo.hasPayloadMembers()
+            || protocol == AwsJsonProtocol.AWS_JSON
+            || protocol == AwsJsonProtocol.SMITHY_RPC_V2_CBOR) {
             return createGenerator();
         } else {
             return StructuredJsonGenerator.NO_OP;

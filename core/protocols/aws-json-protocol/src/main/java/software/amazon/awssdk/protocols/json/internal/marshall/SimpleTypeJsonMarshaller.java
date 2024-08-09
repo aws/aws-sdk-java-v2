@@ -165,7 +165,7 @@ public final class SimpleTypeJsonMarshaller {
     public static final JsonMarshaller<List<?>> LIST = new BaseJsonMarshaller<List<?>>() {
         @Override
         public void marshall(List<?> list, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
-            jsonGenerator.writeStartArray();
+            jsonGenerator.writeStartArray(list.size());
             for (Object listValue : list) {
                 context.marshall(MarshallLocation.PAYLOAD, listValue);
             }

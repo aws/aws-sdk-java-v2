@@ -142,13 +142,11 @@
             <artifactId>aws-xml-protocol</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
-	<!--
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>smithy-rpcv2-protocol</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
-	-->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>protocol-core</artifactId>

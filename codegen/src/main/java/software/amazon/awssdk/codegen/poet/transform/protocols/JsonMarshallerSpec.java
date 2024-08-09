@@ -30,6 +30,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.core.OperationMetadataAttribute;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.utils.StringUtils;
@@ -101,6 +102,13 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
         if (StringUtils.isNotBlank(shapeModel.getMarshaller().getTarget())) {
             initializationCodeBlockBuilder.add(".operationIdentifier($S)", shapeModel.getMarshaller().getTarget());
         }
+
+        String smithyProtocol = shapeModel.getMarshaller().getSmithyProtocol();
+        if (StringUtils.isNotBlank(smithyProtocol)) {
+            initializationCodeBlockBuilder.add(".putAdditionalMetadata($T.SMITHY_PROTOCOL, $S)",
+                                               OperationMetadataAttribute.class, smithyProtocol);
+        }
+
 
         if (shapeModel.isHasStreamingMember()) {
             initializationCodeBlockBuilder.add(".hasStreamingInput(true)");

@@ -34,4 +34,9 @@ public enum AwsJsonProtocol {
      * binary and streaming data. Operation is identified by HTTP verb and resource path combination.
      */
     REST_JSON,
+
+    /**
+     * RPC protocol that sends all data in the payload as CBOR encoded JSON,
+     */
+    SMITHY_RPC_V2_CBOR,
 }

@@ -135,6 +135,10 @@ public interface StructuredJsonGenerator {
 
     StructuredJsonGenerator writeStartArray();
 
+    default StructuredJsonGenerator writeStartArray(int size) {
+        return writeStartArray();
+    }
+
     StructuredJsonGenerator writeEndArray();
 
     StructuredJsonGenerator writeNull();

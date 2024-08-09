@@ -29,6 +29,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
+import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
@@ -334,6 +335,14 @@ public final class Utils {
                 .withAction(operation.getName())
                 .withVerb(operation.getHttp().getMethod())
                 .withRequestUri(operation.getHttp().getRequestUri());
+
+        if (Protocol.fromValue(service.getProtocol()) == Protocol.SMITHY_RPC_V2_CBOR) {
+            // Every request for the rpcv2Cbor protocol MUST be sent to a URL with the following form:
+            // {prefix?}/service/{serviceName}/operation/{operationName}
+            marshaller.withRequestUri(String.format("/service/%s/operation/%s", service.getTargetPrefix() , operation.getName()));
+            marshaller.setSmithyProtocol("rpc-v2-cbor");
+        }
+
         Input input = operation.getInput();
         if (input != null) {
             marshaller.setLocationName(input.getLocationName());
@@ -343,7 +352,7 @@ public final class Utils {
                 marshaller.setXmlNameSpaceUri(xmlNamespace.getUri());
             }
         }
-        if (Metadata.isNotRestProtocol(service.getProtocol())) {
+        if (Metadata.usesOperationIdentifier(service.getProtocol())) {
             marshaller.setTarget(StringUtils.isEmpty(service.getTargetPrefix()) ?
                                  operation.getName() :
                                  service.getTargetPrefix() + "." + operation.getName());

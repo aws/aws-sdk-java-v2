@@ -29,6 +29,8 @@ public class ShapeMarshaller {
 
     private String xmlNameSpaceUri;
 
+    private String smithyProtocol;
+
     public String getAction() {
         return action;
     }
@@ -104,6 +106,19 @@ public class ShapeMarshaller {
 
     public ShapeMarshaller withXmlNameSpaceUri(String xmlNameSpaceUri) {
         setXmlNameSpaceUri(xmlNameSpaceUri);
+        return this;
+    }
+
+    public String getSmithyProtocol() {
+        return smithyProtocol;
+    }
+
+    public void setSmithyProtocol(String smithyProtocol) {
+        this.smithyProtocol = smithyProtocol;
+    }
+
+    public ShapeMarshaller withSmithyProtocol(String smithyProtocol) {
+        setSmithyProtocol(smithyProtocol);
         return this;
     }
 }
