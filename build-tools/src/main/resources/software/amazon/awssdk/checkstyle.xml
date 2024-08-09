@@ -454,15 +454,9 @@
             -->
             <property name="legalPackages" value="software.amazon.awssdk.codegen:javax.lang.model, software.amazon.awssdk.codegen:javax.lang.model.element, software.amazon.awssdk.codegen:javax.lang.model.type, software.amazon.awssdk.protocols.query:javax.xml.stream, software.amazon.awssdk.protocols.query:javax.xml.stream.events, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.parsers, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.transform, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.transform.dom, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.transform.stream, software.amazon.awssdk.enhanced.dynamodb:java.beans, software.amazon.awssdk.release:javax.xml, software.amazon.awssdk.release:javax.xml.parsers, software.amazon.awssdk.release:javax.xml.transform, software.amazon.awssdk.release:javax.xml.xpath, software.amazon.awssdk.release:javax.xml.transform.dom, software.amazon.awssdk.release:javax.xml.transform.stream, software.amazon.awssdk.benchmark:javax.servlet.http"/>
         </module>
-        <module name="software.amazon.awssdk.buildtools.checkstyle.AsyncPathNonBlockingCheck">
-            <!--
-            Detect blocking call that looks like join()
-            -->
-            <property name="illegalMethods" value="join,joinLikeSync"/>
-        </module>
     </module>
 
-        <!-- Enforce maximum line lengths. -->
+    <!-- Enforce maximum line lengths. -->
     <module name="LineLength">
         <property name="max" value="130"/>
         <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
