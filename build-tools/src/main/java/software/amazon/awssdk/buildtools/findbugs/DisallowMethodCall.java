@@ -48,6 +48,7 @@ public class DisallowMethodCall extends OpcodeStackDetector {
 
         // Blocking calls in async code path
         PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>("java/lang/Thread", "sleep"));
+        PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>("java/lang/Object", "wait"));
         PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>("java/util/concurrent/CompletableFuture", "join"));
         PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>("java/util/concurrent/CompletableFuture", "get"));
         PROHIBITED_ASYNC_BLOCKING_METHODS.add(new SimpleEntry<>(
