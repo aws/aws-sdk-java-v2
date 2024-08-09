@@ -163,6 +163,15 @@
         </Not>
     </Match>
 
+    <!-- Skip the warning since this source is forked from openrewrite -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.v2migration.ChangeSdkType"/>
+            <Class name="software.amazon.awssdk.v2migration.ChangeSdkType$ChangeTypeVisitor"/>
+        </Or>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+
     <Match>
         <Class name="software.amazon.awssdk.core.internal.waiters.ResponseOrException"/>
         <Bug pattern="NM_CLASS_NOT_EXCEPTION"/>
@@ -301,7 +310,6 @@
          <Bug pattern="SA_FIELD_SELF_ASSIGNMENT"/>
     </Match>
 
-
     <!-- Suppress existing blocking call. -->
     <!-- Classes making calls to disallowed methods made outside of the async code path can be added here to be suppressed -->
     <!-- TODO: remove classes from the list once blocking calls have been removed from the SDK async code path -->
@@ -343,5 +351,11 @@
 
         </Or>
         <Bug pattern="ASYNC_BLOCKING_CALL"/>
+    </Match>
+  
+    <!-- False positive -->
+    <Match>
+        <Class name="software.amazon.awssdk.v2migration.EnumCasingToV2$Visitor"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
     </Match>
 </FindBugsFilter>
