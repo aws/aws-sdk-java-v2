@@ -249,7 +249,8 @@ public class JsonNodeTest {
 
     @Test
     public void exceptionsIncludeErrorLocation() {
-        assertThatThrownBy(() -> PARSER.parse("{{foo}")).hasMessageContaining("foo");
+        assertThatThrownBy(() -> PARSER.parse("{{foo}"))
+            .hasMessageContaining("Unexpected character ('{' (code 123)): was expecting double-quote to start field name");
     }
 
     @Test
