@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+
+from scripts.generate_upgrade_sdk_dependencies_recipe import generate_upgrade_sdk_dependencies_recipe
+from scripts.generate_enum_transforms_recipe import generate_enum_getters_transform_recipe
+
+def generate_recipes():
+    generate_upgrade_sdk_dependencies_recipe()
+    generate_enum_getters_transform_recipe()
+
+if __name__ == '__main__':
+    generate_recipes()
