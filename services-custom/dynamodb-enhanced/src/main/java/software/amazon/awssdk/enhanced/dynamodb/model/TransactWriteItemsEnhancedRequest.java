@@ -19,6 +19,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUt
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -33,7 +34,12 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOp
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PutItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TransactableWriteOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
 /**
  * Defines parameters used for the transaction operation transactWriteItems() (such as
@@ -56,10 +62,14 @@ public final class TransactWriteItemsEnhancedRequest {
     private final List<TransactWriteItem> transactWriteItems;
 
     private final String clientRequestToken;
+    private final String returnConsumedCapacity;
+    private final String returnItemCollectionMetrics;
 
     private TransactWriteItemsEnhancedRequest(Builder builder) {
         this.transactWriteItems = getItemsFromSupplier(builder.itemSupplierList);
         this.clientRequestToken = builder.clientRequestToken;
+        this.returnConsumedCapacity = builder.returnConsumedCapacity;
+        this.returnItemCollectionMetrics = builder.returnItemCollectionMetrics;
     }
 
     /**
@@ -90,6 +100,34 @@ public final class TransactWriteItemsEnhancedRequest {
     }
 
     /**
+     * Whether to return the capacity consumed by this operation.
+     *
+     * @see PutItemRequest#returnConsumedCapacity()
+     */
+    public ReturnConsumedCapacity returnConsumedCapacity() {
+        return ReturnConsumedCapacity.fromValue(returnConsumedCapacity);
+    }
+
+    /**
+     * Whether to return the capacity consumed by this operation.
+     * <p>
+     * Similar to {@link #returnConsumedCapacity()} but return the value as a string. This is useful in situations where the
+     * value is not defined in {@link ReturnConsumedCapacity}.
+     */
+    public String returnConsumedCapacityAsString() {
+        return returnConsumedCapacity;
+    }
+
+    /**
+     * Whether to return the item collection metrics.
+     *
+     * @see DeleteItemRequest#returnItemCollectionMetrics()
+     */
+    public ReturnItemCollectionMetrics returnItemCollectionMetrics() {
+        return ReturnItemCollectionMetrics.fromValue(returnItemCollectionMetrics);
+    }
+
+    /**
      * Returns the list of {@link TransactWriteItem} that represents all actions in the request.
      */
     public List<TransactWriteItem> transactWriteItems() {
@@ -104,15 +142,13 @@ public final class TransactWriteItemsEnhancedRequest {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         TransactWriteItemsEnhancedRequest that = (TransactWriteItemsEnhancedRequest) o;
-
-        return transactWriteItems != null ? transactWriteItems.equals(that.transactWriteItems) : that.transactWriteItems == null;
+        return Objects.equals(transactWriteItems, that.transactWriteItems) && Objects.equals(clientRequestToken, that.clientRequestToken) && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity) && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics);
     }
 
     @Override
     public int hashCode() {
-        return transactWriteItems != null ? transactWriteItems.hashCode() : 0;
+        return Objects.hash(transactWriteItems, clientRequestToken, returnConsumedCapacity, returnItemCollectionMetrics);
     }
 
     /**
@@ -125,6 +161,8 @@ public final class TransactWriteItemsEnhancedRequest {
         private List<Supplier<TransactWriteItem>> itemSupplierList = new ArrayList<>();
 
         private String clientRequestToken;
+        private String returnConsumedCapacity;
+        private String returnItemCollectionMetrics;
 
         private Builder() {
         }
@@ -335,6 +373,37 @@ public final class TransactWriteItemsEnhancedRequest {
                 TransactUpdateItemEnhancedRequest.builder(mappedTableResource.tableSchema().itemType().rawClass())
                                                  .item(item)
                                                  .build());
+        }
+
+        /**
+         * Whether to return the capacity consumed by this operation.
+         *
+         * @see TransactWriteItemsEnhancedRequest.Builder#returnConsumedCapacity(ReturnConsumedCapacity)
+         */
+        public TransactWriteItemsEnhancedRequest.Builder returnConsumedCapacity(ReturnConsumedCapacity returnConsumedCapacity) {
+            this.returnConsumedCapacity = returnConsumedCapacity == null ? null : returnConsumedCapacity.toString();
+            return this;
+        }
+
+        /**
+         * Whether to return the capacity consumed by this operation.
+         *
+         * @see TransactWriteItemsEnhancedRequest.Builder#returnConsumedCapacity(String)
+         */
+        public TransactWriteItemsEnhancedRequest.Builder returnConsumedCapacity(String returnConsumedCapacity) {
+            this.returnConsumedCapacity = returnConsumedCapacity;
+            return this;
+        }
+
+        /**
+         * Whether to return the item collection metrics.
+         *
+         * @see UpdateItemRequest.Builder#returnItemCollectionMetrics(ReturnItemCollectionMetrics)
+         */
+        public TransactWriteItemsEnhancedRequest.Builder returnItemCollectionMetrics(ReturnItemCollectionMetrics returnItemCollectionMetrics) {
+            this.returnItemCollectionMetrics = returnItemCollectionMetrics == null ? null :
+                                               returnItemCollectionMetrics.toString();
+            return this;
         }
 
         /**
