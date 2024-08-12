@@ -445,7 +445,7 @@ public interface DynamoDbEnhancedClient extends DynamoDbEnhancedResource {
     }
 
     /**
-     * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactGetItem is a
+     * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactWriteItems is a
      * composite operation where the request contains a set of action requests, each containing a table reference and
      * one of the following requests:
      * <ul>
@@ -493,7 +493,7 @@ public interface DynamoDbEnhancedClient extends DynamoDbEnhancedResource {
     }
 
     /**
-     * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactGetItem is a
+     * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactWriteItem is a
      * composite operation where the request contains a set of action requests, each containing a table reference and
      * one of the following requests:
      * <ul>

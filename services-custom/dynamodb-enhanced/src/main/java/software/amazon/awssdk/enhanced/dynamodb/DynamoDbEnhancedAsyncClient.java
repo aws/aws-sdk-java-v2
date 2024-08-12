@@ -432,7 +432,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
 
 
     /**
-     * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactGetItem is a
+     * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactWriteItem is a
      * composite operation where the request contains a set of action requests, each containing a table reference and
      * one of the following requests:
      * <ul>
@@ -445,7 +445,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * The additional configuration parameters that the enhanced client supports are defined
      * in the {@link TransactWriteItemsEnhancedRequest}.
      * <p>
-     * DynamoDb will reject a call to TransactWriteItems if the call exceeds limits such as provisioned throughput or allowed size
+     * DynamoDb will reject a call to transactWriteItemsWithResponse if the call exceeds limits such as provisioned throughput or allowed size
      * of items, if the request contains errors or if there are conflicting operations accessing the same item. If the request
      * contains condition checks that aren't met, this will also cause rejection.
      * <p>
@@ -457,7 +457,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * <pre>
      * {@code
      *
-     * enhancedClient.transactWriteItems(
+     * enhancedClient.transactWriteItemsWithResponse(
      *     TransactWriteItemsEnhancedRequest.builder()
      *                                      .addPutItem(firstItemTable, PutItemEnhancedRequest.builder().item(item1).build())
      *                                      .addDeleteItem(firstItemTable, DeleteItemEnhancedRequest.builder().key(key2).build())
@@ -480,7 +480,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
     }
 
     /**
-     * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactGetItem is a
+     * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactWriteItem is a
      * composite operation where the request contains a set of action requests, each containing a table reference and
      * one of the following requests:
      * <ul>
@@ -493,7 +493,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * The additional configuration parameters that the enhanced client supports are defined
      * in the {@link TransactWriteItemsEnhancedRequest}.
      * <p>
-     * DynamoDb will reject a call to TransactWriteItems if the call exceeds limits such as provisioned throughput or allowed size
+     * DynamoDb will reject a call to transactWriteItemsWithResponse if the call exceeds limits such as provisioned throughput or allowed size
      * of items, if the request contains errors or if there are conflicting operations accessing the same item. If the request
      * contains condition checks that aren't met, this will also cause rejection.
      * <p>
@@ -508,7 +508,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * <pre>
      * {@code
      *
-     * enhancedClient.transactWriteItems(r -> r.addPutItem(firstItemTable, i -> i.item(item1))
+     * enhancedClient.transactWriteItemsWithResponse(r -> r.addPutItem(firstItemTable, i -> i.item(item1))
      *                                         .addDeleteItem(firstItemTable, i -> i.key(k -> k.partitionValue(2)))
      *                                         .addConditionCheck(firstItemTable, i -> i.key(key3)
      *                                                                                  .conditionExpression(conditionExpression))
