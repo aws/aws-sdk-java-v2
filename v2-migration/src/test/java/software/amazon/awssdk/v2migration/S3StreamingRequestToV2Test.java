@@ -38,7 +38,7 @@ public class S3StreamingRequestToV2Test implements RewriteTest {
 
     @Test
     @EnabledOnJre({JRE.JAVA_8})
-    public void testS3PutObjectOverrideRewrite() {
+    public void testS3PutObjectOverrideRewrite_file() {
         rewriteRun(
             java(
                 "import com.amazonaws.services.s3.AmazonS3Client;\n"
@@ -73,6 +73,47 @@ public class S3StreamingRequestToV2Test implements RewriteTest {
                 + "        File myFile = new File(\"test.txt\");\n"
                 + "\n"
                 + "        s3.putObject(new PutObjectRequest(BUCKET, KEY), RequestBody.fromFile(myFile));\n"
+                + "    }\n"
+                + "}"
+            )
+        );
+    }
+
+    @Test
+    @EnabledOnJre({JRE.JAVA_8})
+    public void testS3PutObjectOverrideRewrite_string() {
+        rewriteRun(
+            java(
+                "import com.amazonaws.services.s3.AmazonS3Client;\n"
+                + "\n"
+                + "import java.io.File;\n"
+                + "\n"
+                + "public class S3PutObjectExample {\n"
+                + "    private static final String BUCKET = \"my-bucket\";\n"
+                + "    private static final String KEY = \"key\";\n"
+                + "    private static final String CONTENT = \"payload\";\n"
+                + "\n"
+                + "    public static void main(String[] args) {\n"
+                + "        AmazonS3Client s3 = null;\n"
+                + "\n"
+                + "        s3.putObject(BUCKET, KEY, CONTENT);\n"
+                + "    }\n"
+                + "}\n",
+                "import com.amazonaws.services.s3.AmazonS3Client;\n"
+                + "import com.amazonaws.services.s3.model.PutObjectRequest;\n"
+                + "import software.amazon.awssdk.core.sync.RequestBody;\n"
+                + "\n"
+                + "import java.io.File;\n"
+                + "\n"
+                + "public class S3PutObjectExample {\n"
+                + "    private static final String BUCKET = \"my-bucket\";\n"
+                + "    private static final String KEY = \"key\";\n"
+                + "    private static final String CONTENT = \"payload\";\n"
+                + "\n"
+                + "    public static void main(String[] args) {\n"
+                + "        AmazonS3Client s3 = null;\n"
+                + "\n"
+                + "        s3.putObject(new PutObjectRequest(BUCKET, KEY), RequestBody.fromString(CONTENT));\n"
                 + "    }\n"
                 + "}"
             )
