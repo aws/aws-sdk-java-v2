@@ -395,7 +395,7 @@ public interface DynamoDbEnhancedClient extends DynamoDbEnhancedResource {
      *
      * @param request A {@link BatchWriteItemEnhancedRequest} containing keys grouped by tables.
      */
-    default TransactWriteItemsEnhancedResponse transactWriteItems(TransactWriteItemsEnhancedRequest request) {
+    default Void transactWriteItems(TransactWriteItemsEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
 
@@ -440,7 +440,100 @@ public interface DynamoDbEnhancedClient extends DynamoDbEnhancedResource {
      * @param requestConsumer a {@link Consumer} of {@link TransactWriteItemsEnhancedRequest} containing keys and items grouped
      * by tables.
      */
-    default TransactWriteItemsEnhancedResponse transactWriteItems(Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
+    default Void transactWriteItems(Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactGetItem is a
+     * composite operation where the request contains a set of action requests, each containing a table reference and
+     * one of the following requests:
+     * <ul>
+     *     <li>Condition check of item - {@link ConditionCheck}</li>
+     *     <li>Delete item - {@link DeleteItemEnhancedRequest}</li>
+     *     <li>Put item - {@link PutItemEnhancedRequest}</li>
+     *     <li>Update item - {@link UpdateItemEnhancedRequest}</li>
+     * </ul>
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link TransactWriteItemsEnhancedRequest}.
+     * <p>
+     * DynamoDb will reject a call to TransactWriteItems if the call exceeds limits such as provisioned throughput or allowed size
+     * of items, if the request contains errors or if there are conflicting operations accessing the same item. If the request
+     * contains condition checks that aren't met, this will also cause rejection.
+     * <p>
+     * This operation calls the low-level DynamoDB API TransactWriteItems operation. Consult the TransactWriteItems documentation
+     * for further details and constraints, current limits of data to write and/or delete and under which conditions the operation
+     * will fail.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * result = enhancedClient.transactWriteItemsWithResponse(
+     *     TransactWriteItemsEnhancedRequest.builder()
+     *                                      .addPutItem(firstItemTable, PutItemEnhancedRequest.builder().item(item1).build())
+     *                                      .addDeleteItem(firstItemTable, DeleteItemEnhancedRequest.builder().key(key2).build())
+     *                                      .addConditionCheck(firstItemTable,
+     *                                                         ConditionCheck.builder()
+     *                                                                       .key(key3)
+     *                                                                       .conditionExpression(conditionExpression)
+     *                                                                       .build())
+     *                                      .addUpdateItem(secondItemTable,
+     *                                                     UpdateItemEnhancedRequest.builder().item(item4).build())
+     *                                      .build());
+     * }
+     * </pre>
+     * See {@link DynamoDbClient#transactWriteItems(Consumer)} to learn more about {@code TransactWriteItems}.
+     *
+     * @param request A {@link BatchWriteItemEnhancedRequest} containing keys grouped by tables.
+     */
+    default TransactWriteItemsEnhancedResponse transactWriteItemsWithResponse(TransactWriteItemsEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactGetItem is a
+     * composite operation where the request contains a set of action requests, each containing a table reference and
+     * one of the following requests:
+     * <ul>
+     *     <li>Condition check of item - {@link ConditionCheck}</li>
+     *     <li>Delete item - {@link DeleteItemEnhancedRequest}</li>
+     *     <li>Put item - {@link PutItemEnhancedRequest}</li>
+     *     <li>Update item - {@link UpdateItemEnhancedRequest}</li>
+     * </ul>
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link TransactWriteItemsEnhancedRequest}.
+     * <p>
+     * DynamoDb will reject a call to TransactWriteItems if the call exceeds limits such as provisioned throughput or allowed size
+     * of items, if the request contains errors or if there are conflicting operations accessing the same item. If the request
+     * contains condition checks that aren't met, this will also cause rejection.
+     * <p>
+     * This operation calls the low-level DynamoDB API TransactWriteItems operation. Consult the TransactWriteItems documentation
+     * for further details and constraints, current limits of data to write and/or delete and under which conditions the operation
+     * will fail.
+     * <p>
+     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to create one
+     * manually via {@link TransactWriteItemsEnhancedRequest#builder()}.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * result = enhancedClient.transactWriteItemsWithResponse(r -> r.addPutItem(firstItemTable, i -> i.item(item1))
+     *                                                  .addDeleteItem(firstItemTable, i -> i.key(k -> k.partitionValue(2)))
+     *                                                  .addConditionCheck(firstItemTable,
+     *                                                                 i -> i.key(key3).conditionExpression(conditionExpression))
+     *                                                  .addUpdateItem(secondItemTable, i -> i.item(item4)));
+     * }
+     * </pre>
+     * See {@link DynamoDbClient#transactWriteItems(Consumer)} to learn more about {@code TransactWriteItems}.
+     *
+     * @param requestConsumer a {@link Consumer} of {@link TransactWriteItemsEnhancedRequest} containing keys and items grouped
+     * by tables.
+     */
+    default TransactWriteItemsEnhancedResponse transactWriteItemsWithResponse(Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 

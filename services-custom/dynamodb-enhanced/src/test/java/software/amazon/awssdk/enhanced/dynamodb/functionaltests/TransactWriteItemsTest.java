@@ -209,7 +209,7 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void multiplePut_withConsumedCapacity() {
-        TransactWriteItemsEnhancedResponse transactWriteItemsEnhancedResponse = enhancedClient.transactWriteItems(
+        TransactWriteItemsEnhancedResponse transactWriteItemsEnhancedResponse = enhancedClient.transactWriteItemsWithResponse(
             TransactWriteItemsEnhancedRequest.builder()
                 .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
                                              .addPutItem(mappedTable1, RECORDS_1.get(0))
@@ -254,7 +254,7 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void multipleUpdate_withConsumedCapacity() {
-        TransactWriteItemsEnhancedResponse transactWriteItemsEnhancedResponse = enhancedClient.transactWriteItems(
+        TransactWriteItemsEnhancedResponse transactWriteItemsEnhancedResponse = enhancedClient.transactWriteItemsWithResponse(
             TransactWriteItemsEnhancedRequest.builder()
                 .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
                 .returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE)
@@ -307,7 +307,7 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
         mappedTable1.putItem(r -> r.item(RECORDS_1.get(0)));
         mappedTable2.putItem(r -> r.item(RECORDS_2.get(0)));
 
-        TransactWriteItemsEnhancedResponse transactWriteItemsEnhancedResponse = enhancedClient.transactWriteItems(
+        TransactWriteItemsEnhancedResponse transactWriteItemsEnhancedResponse = enhancedClient.transactWriteItemsWithResponse(
             TransactWriteItemsEnhancedRequest.builder()
                 .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
                                              .addDeleteItem(mappedTable1, RECORDS_1.get(0))

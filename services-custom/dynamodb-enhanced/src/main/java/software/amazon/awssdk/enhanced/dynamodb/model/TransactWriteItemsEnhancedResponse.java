@@ -32,14 +32,18 @@ import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
  */
 @SdkPublicApi
 @ThreadSafe
-public final class TransactWriteItemsEnhancedResponse {
+public final class TransactWriteItemsEnhancedResponse<T> {
+    private final T items;
     private final List<ConsumedCapacity> consumedCapacity;
     private final Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics;
 
-    private TransactWriteItemsEnhancedResponse(Builder builder) {
+    private TransactWriteItemsEnhancedResponse(Builder<T> builder) {
+        this.items = builder.items;
         this.consumedCapacity = builder.consumedCapacity;
         this.itemCollectionMetrics = builder.itemCollectionMetrics;
     }
+
+    public T items() { return items; }
 
     /**
      * The capacity units consumed by the {@code UpdateItem} operation.
@@ -79,27 +83,33 @@ public final class TransactWriteItemsEnhancedResponse {
     /**
      * Creates a newly initialized builder for a request object.
      */
-    public static TransactWriteItemsEnhancedResponse.Builder builder() {
-        return new TransactWriteItemsEnhancedResponse.Builder();
+    public static <T> TransactWriteItemsEnhancedResponse.Builder<T> builder(Class<? extends T> clzz) {
+        return new TransactWriteItemsEnhancedResponse.Builder<>();
     }
 
     @NotThreadSafe
-    public static final class Builder{
+    public static final class Builder<T>{
+        public T items;
         private List<ConsumedCapacity> consumedCapacity;
         private Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics;
 
-        public Builder consumedCapacity(List<ConsumedCapacity> consumedCapacity) {
+        public Builder<T> items(T items) {
+            this.items = items;
+            return this;
+        }
+
+        public Builder<T> consumedCapacity(List<ConsumedCapacity> consumedCapacity) {
             this.consumedCapacity = consumedCapacity;
             return this;
         }
 
-        public Builder itemCollectionMetrics(Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics) {
+        public Builder<T> itemCollectionMetrics(Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics) {
             this.itemCollectionMetrics = itemCollectionMetrics;
             return this;
         }
 
-        public TransactWriteItemsEnhancedResponse build() {
-            return new TransactWriteItemsEnhancedResponse(this);
+        public TransactWriteItemsEnhancedResponse<T> build() {
+            return new TransactWriteItemsEnhancedResponse<T>(this);
         }
     }
 }

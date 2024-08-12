@@ -210,7 +210,7 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void multiplePut_returnConsumedCapacity() {
-        TransactWriteItemsEnhancedResponse response = enhancedAsyncClient.transactWriteItems(
+        TransactWriteItemsEnhancedResponse response = enhancedAsyncClient.transactWriteItemsWithResponse(
             TransactWriteItemsEnhancedRequest.builder()
                                              .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
                                              .returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE)
@@ -256,7 +256,7 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void multipleUpdate_withConsumedCapacity() {
-        TransactWriteItemsEnhancedResponse transactWriteItemsEnhancedResponse = enhancedAsyncClient.transactWriteItems(
+        TransactWriteItemsEnhancedResponse transactWriteItemsEnhancedResponse = enhancedAsyncClient.transactWriteItemsWithResponse(
             TransactWriteItemsEnhancedRequest.builder()
                                              .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
                                              .returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE)
@@ -304,7 +304,7 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
         mappedTable1.putItem(r -> r.item(RECORDS_1.get(0)));
         mappedTable2.putItem(r -> r.item(RECORDS_2.get(0)));
 
-        TransactWriteItemsEnhancedResponse transactWriteItemsEnhancedResponse = enhancedAsyncClient.transactWriteItems(
+        TransactWriteItemsEnhancedResponse transactWriteItemsEnhancedResponse = enhancedAsyncClient.transactWriteItemsWithResponse(
             TransactWriteItemsEnhancedRequest.builder()
                                              .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
                                              .addDeleteItem(mappedTable1, RECORDS_1.get(0))

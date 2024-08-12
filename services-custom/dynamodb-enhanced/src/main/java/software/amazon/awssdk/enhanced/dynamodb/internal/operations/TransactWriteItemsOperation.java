@@ -27,17 +27,17 @@ import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsResponse;
 
 @SdkInternalApi
-public class TransactWriteItemsOperation
-    implements DatabaseOperation<TransactWriteItemsRequest, TransactWriteItemsResponse, TransactWriteItemsEnhancedResponse> {
+public class TransactWriteItemsOperation<T>
+    implements DatabaseOperation<TransactWriteItemsRequest, TransactWriteItemsResponse, TransactWriteItemsEnhancedResponse<T>> {
 
-    private TransactWriteItemsEnhancedRequest request;
+    private final TransactWriteItemsEnhancedRequest request;
 
     private TransactWriteItemsOperation(TransactWriteItemsEnhancedRequest request) {
         this.request = request;
     }
 
-    public static TransactWriteItemsOperation create(TransactWriteItemsEnhancedRequest request) {
-        return new TransactWriteItemsOperation(request);
+    public static <T> TransactWriteItemsOperation<T> create(TransactWriteItemsEnhancedRequest request) {
+        return new TransactWriteItemsOperation<>(request);
     }
 
     @Override
@@ -56,17 +56,17 @@ public class TransactWriteItemsOperation
     }
 
     @Override
-    public TransactWriteItemsEnhancedResponse transformResponse(TransactWriteItemsResponse response, DynamoDbEnhancedClientExtension extension) {
-        return TransactWriteItemsEnhancedResponse.builder()
-            .consumedCapacity(response.consumedCapacity())
-            .itemCollectionMetrics(response.itemCollectionMetrics())
+    public TransactWriteItemsEnhancedResponse<T> transformResponse(TransactWriteItemsResponse response,
+    DynamoDbEnhancedClientExtension extension) {
+        return TransactWriteItemsEnhancedResponse.<T>builder(null)
+                                                 .consumedCapacity(response.consumedCapacity())
+                                                 .itemCollectionMetrics(response.itemCollectionMetrics())
                                                  .build();
     }
 
     @Override
     public Function<TransactWriteItemsRequest, TransactWriteItemsResponse> serviceCall(
         DynamoDbClient dynamoDbClient) {
-
         return dynamoDbClient::transactWriteItems;
     }
 

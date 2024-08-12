@@ -24,6 +24,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableList;
+import java.util.List;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,12 +39,15 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.Put;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsResponse;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TransactWriteItemsOperationTest {
@@ -130,12 +135,14 @@ public class TransactWriteItemsOperationTest {
 
     @Test
     public void getServiceCall_callsServiceAndReturnsResult() {
-        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(emptyRequest());
+        TransactWriteItemsOperation<Void> operation = TransactWriteItemsOperation.create(emptyRequest());
         TransactWriteItemsRequest request =
             TransactWriteItemsRequest.builder()
                                      .transactItems(singletonList(fakeTransactWriteItem1))
                                      .build();
         TransactWriteItemsResponse expectedResponse = TransactWriteItemsResponse.builder()
+            .consumedCapacity(ImmutableList.of(ConsumedCapacity.builder().build()))
+            .itemCollectionMetrics(ImmutableMap.of("abc", ImmutableList.of(ItemCollectionMetrics.builder().build())))
                                                                                 .build();
         when(mockDynamoDbClient.transactWriteItems(any(TransactWriteItemsRequest.class))).thenReturn(expectedResponse);
 
