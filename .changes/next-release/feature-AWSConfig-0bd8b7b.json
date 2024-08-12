@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Config",
-    "contributor": "",
-    "description": "Documentation update for the OrganizationConfigRuleName regex pattern."
-}

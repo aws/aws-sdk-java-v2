@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaLive",
-    "contributor": "",
-    "description": "AWS Elemental MediaLive now supports now supports editing the PID values for a Multiplex."
-}
