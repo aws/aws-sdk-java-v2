@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "DynamoDBEnhancedClient",
-    "description": "Support of ReturnConsumedCapacity in DynamoDBEnhancedClient's BatchWrite and TransctWriteItems operations",
-    "contributor": "prateek-vats"
-}
