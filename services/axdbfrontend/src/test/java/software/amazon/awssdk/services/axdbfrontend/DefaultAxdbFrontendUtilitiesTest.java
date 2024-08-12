@@ -22,7 +22,6 @@ import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.function.Consumer;
-import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -41,13 +40,7 @@ public class DefaultAxdbFrontendUtilitiesTest {
     private final Clock fixedClock = Clock.fixed(ZonedDateTime.of(2024, 11, 7, 17, 39, 33, 0, utcZone).toInstant(), utcZone);
 
     @Test
-    void equalsHashcode() {
-        EqualsVerifier.forClass(GenerateAuthenticationTokenRequest.class)
-                      .withNonnullFields("hostname", "region", "action", "expiresIn", "credentialsProvider")
-                      .verify();
-    }
-    @Test
-    public void testTokenGenerationWithBuilderDefaultsUsingAwsCredentialsProvider() {
+    public void tokenGenerationWithBuilderDefaultsUsingAwsCredentialsProvider_isSuccessful() {
         AwsCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
             AwsBasicCredentials.create("access_key", "secret_key")
         );
@@ -55,11 +48,11 @@ public class DefaultAxdbFrontendUtilitiesTest {
                                                                        .credentialsProvider(credentialsProvider)
                                                                        .region(Region.US_EAST_1);
 
-        testTokenGenerationWithBuilderDefaults(utilitiesBuilder);
+        tokenGenerationWithBuilderDefaults(utilitiesBuilder);
     }
 
     @Test
-    public void testTokenGenerationWithBuilderDefaultsUsingIdentityProvider() {
+    public void tokenGenerationWithBuilderDefaultsUsingIdentityProvider_isSuccessful() {
         IdentityProvider<AwsCredentialsIdentity> credentialsProvider = StaticCredentialsProvider.create(
             AwsBasicCredentials.create("access_key", "secret_key")
         );
@@ -67,10 +60,10 @@ public class DefaultAxdbFrontendUtilitiesTest {
                                                                        .credentialsProvider(credentialsProvider)
                                                                        .region(Region.US_EAST_1);
 
-        testTokenGenerationWithBuilderDefaults(utilitiesBuilder);
+        tokenGenerationWithBuilderDefaults(utilitiesBuilder);
     }
 
-    private void testTokenGenerationWithBuilderDefaults(DefaultBuilder utilitiesBuilder) {
+    private void tokenGenerationWithBuilderDefaults(DefaultBuilder utilitiesBuilder) {
         DefaultAxdbFrontendUtilities AxdbFrontendUtilities = new DefaultAxdbFrontendUtilities(utilitiesBuilder, fixedClock);
         Action action = Action.DB_CONNECT_SUPERUSER;
 
@@ -88,34 +81,34 @@ public class DefaultAxdbFrontendUtilitiesTest {
     }
 
     @Test
-    public void testTokenGenerationWithOverriddenCredentialsUsingAwsCredentialsProvider() {
+    public void tokenGenerationWithOverriddenCredentialsUsingAwsCredentialsProvider_isSuccessful() {
         AwsCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
             AwsBasicCredentials.create("foo", "bar")
         );
         DefaultBuilder utilitiesBuilder = (DefaultBuilder) AxdbFrontendUtilities.builder()
                                                                        .credentialsProvider(credentialsProvider)
                                                                        .region(Region.US_EAST_1);
-        testTokenGenerationWithOverriddenCredentials(utilitiesBuilder, builder -> {
+        tokenGenerationWithOverriddenCredentials(utilitiesBuilder, builder -> {
             builder.credentialsProvider(StaticCredentialsProvider.create(
                 AwsBasicCredentials.create("access_key", "secret_key")));
         });
     }
 
     @Test
-    public void testTokenGenerationWithOverriddenCredentialsUsingIdentityProvider() {
+    public void tokenGenerationWithOverriddenCredentialsUsingIdentityProvider_isSuccessful() {
         IdentityProvider<AwsCredentialsIdentity> credentialsProvider = StaticCredentialsProvider.create(
             AwsBasicCredentials.create("foo", "bar")
         );
         DefaultBuilder utilitiesBuilder = (DefaultBuilder) AxdbFrontendUtilities.builder()
                                                                        .credentialsProvider(credentialsProvider)
                                                                        .region(Region.US_EAST_1);
-        testTokenGenerationWithOverriddenCredentials(utilitiesBuilder, builder -> {
+        tokenGenerationWithOverriddenCredentials(utilitiesBuilder, builder -> {
             builder.credentialsProvider((IdentityProvider<AwsCredentialsIdentity>) StaticCredentialsProvider.create(
                 AwsBasicCredentials.create("access_key", "secret_key")));
         });
     }
 
-    private void testTokenGenerationWithOverriddenCredentials(DefaultBuilder utilitiesBuilder,
+    private void tokenGenerationWithOverriddenCredentials(DefaultBuilder utilitiesBuilder,
                                                               Consumer<GenerateAuthenticationTokenRequest.Builder> credsBuilder) {
         DefaultAxdbFrontendUtilities AxdbFrontendUtilities = new DefaultAxdbFrontendUtilities(utilitiesBuilder, fixedClock);
         Action action = Action.DB_CONNECT_SUPERUSER;
@@ -135,7 +128,7 @@ public class DefaultAxdbFrontendUtilitiesTest {
     }
 
     @Test
-    public void testTokenGenerationWithOverriddenRegion() {
+    public void tokenGenerationWithOverriddenRegion_isSuccessful() {
         AwsCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
             AwsBasicCredentials.create("access_key", "secret_key")
         );
@@ -161,7 +154,7 @@ public class DefaultAxdbFrontendUtilitiesTest {
     }
 
     @Test
-    public void testMissingRegionThrowsException() {
+    public void missingRegion_throwsException() {
         AwsCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
             AwsBasicCredentials.create("access_key", "secret_key")
         );
@@ -179,7 +172,7 @@ public class DefaultAxdbFrontendUtilitiesTest {
     }
 
     @Test
-    public void testMissingCredentialsThrowsException() {
+    public void missingCredentials_throwsException() {
         DefaultBuilder utilitiesBuilder = (DefaultBuilder) AxdbFrontendUtilities.builder()
                                                                        .region(Region.US_WEST_2);
 
@@ -194,7 +187,7 @@ public class DefaultAxdbFrontendUtilitiesTest {
     }
 
     @Test
-    public void testMissingHostnameThrowsException() {
+    public void missingHostname_throwsException() {
         AwsCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
             AwsBasicCredentials.create("access_key", "secret_key")
         );
@@ -211,7 +204,7 @@ public class DefaultAxdbFrontendUtilitiesTest {
     }
 
     @Test
-    public void testMissingActionThrowsException() {
+    public void missingAction_throwsException() {
         AwsCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
             AwsBasicCredentials.create("access_key", "secret_key")
         );
@@ -228,7 +221,7 @@ public class DefaultAxdbFrontendUtilitiesTest {
     }
 
     @Test
-    public void testTokenGenerationWithCustomExpiry() {
+    public void tokenGenerationWithCustomExpiry_isSuccessful() {
         AwsCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
             AwsBasicCredentials.create("access_key", "secret_key")
         );

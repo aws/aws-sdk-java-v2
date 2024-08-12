@@ -23,7 +23,13 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @SdkPublicApi
 public enum Action implements Serializable {
+    /**
+     * The action of connecting to an AxdbFrontend database using DbConnect
+     */
     DB_CONNECT("DbConnect"),
+    /**
+     * The action of connecting to an AxdbFrontend database using DbConnectSuperuser
+     */
     DB_CONNECT_SUPERUSER("DbConnectSuperuser");
 
     private final String action;
@@ -36,7 +42,7 @@ public enum Action implements Serializable {
         return action;
     }
 
-    public static Action variant(String value) {
+    public static Action fromValue(String value) {
         for (Action action : Action.values()) {
             if (value.equalsIgnoreCase(action.name())) {
                 return action;
