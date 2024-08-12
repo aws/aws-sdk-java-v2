@@ -16,21 +16,32 @@
 package software.amazon.awssdk.services.axdbfrontend.model;
 
 import java.io.Serializable;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Enumerations of possible actions that can be performed on a Xanadu database.
+ * Enumerations of possible actions that can be performed on an AxdbFrontend database.
  */
+@SdkPublicApi
 public enum Action implements Serializable {
-    DbConnect,
-    DbConnectSuperuser;
+    DB_CONNECT("DbConnect"),
+    DB_CONNECT_SUPERUSER("DbConnectSuperuser");
+
+    private final String action;
+
+    Action(String action) {
+        this.action = action;
+    }
+
+    public String getAction() {
+        return action;
+    }
 
     public static Action variant(String value) {
-        if (value.equalsIgnoreCase(Action.DbConnect.name())) {
-            return Action.DbConnect;
-        } else if (value.equalsIgnoreCase(Action.DbConnectSuperuser.name())) {
-            return Action.DbConnectSuperuser;
-        } else {
-            throw new IllegalArgumentException("Invalid action: " + value);
+        for (Action action : Action.values()) {
+            if (value.equalsIgnoreCase(action.name())) {
+                return action;
+            }
         }
+        throw new IllegalArgumentException("Invalid action: " + value);
     }
 }

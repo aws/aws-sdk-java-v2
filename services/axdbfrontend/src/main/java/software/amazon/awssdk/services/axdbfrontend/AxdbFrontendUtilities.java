@@ -21,33 +21,32 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.axdbfrontend.internal.DefaultAxdbFrontendUtilities;
 import software.amazon.awssdk.services.axdbfrontend.model.GenerateAuthenticationTokenRequest;
 
 /**
  * Utilities for working with AxdbFrontend. An instance of this class can be created by:
  * <p>
  * 1) Using the low-level client {@link AxdbFrontendClient#utilities()} (or {@link AxdbFrontendAsyncClient#utilities()}} method.
- * This is
- * recommended as SDK will use the same configuration from the {@link AxdbFrontendClient} object to create the
- * {@link AxdbFrontendUtilities}
- * object.
+ * This is recommended as SDK will use the same configuration from the {@link AxdbFrontendClient} object to create the
+ * {@link AxdbFrontendUtilities} object.
  *
- * <pre>
+ * @snippet :
+ * {@code
  * AxdbFrontendClient AxdbFrontendClient = AxdbFrontendClient.create();
  * AxdbFrontendUtilities utilities = AxdbFrontendClient.utilities();
- * </pre>
- * </p>
+ * }
  *
  * <p>
  * 2) Directly using the {@link #builder()} method.
  *
- * <pre>
+ * @snippet :
+ * {@code
  * AxdbFrontendUtilities utilities = AxdbFrontendUtilities.builder()
  *  .credentialsProvider(DefaultCredentialsProvider.create())
  *  .region(Region.US_WEST_2)
  *  .build()
- * </pre>
- * </p>
+ * }
  *
  * Note: This class does not make network calls.
  */
@@ -61,7 +60,7 @@ public interface AxdbFrontendUtilities {
     }
 
     /**
-     * Generates an authentication token for IAM authentication to a Xanadu database.
+     * Generates an authentication token for IAM authentication to an AxdbFrontend database.
      *
      * @param request The request used to generate the authentication token
      * @return String to use as the AxdbFrontend authentication token
@@ -72,7 +71,7 @@ public interface AxdbFrontendUtilities {
     }
 
     /**
-     * Generates an authentication token for IAM authentication to an Xanadu database.
+     * Generates an authentication token for IAM authentication to an AxdbFrontend database.
      *
      * @param request The request used to generate the authentication token
      * @return String to use as the AxdbFrontend authentication token

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.axdbfrontend;
+package software.amazon.awssdk.services.axdbfrontend.internal;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -30,6 +30,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.axdbfrontend.AxdbFrontendUtilities;
 import software.amazon.awssdk.services.axdbfrontend.model.GenerateAuthenticationTokenRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -37,21 +38,21 @@ import software.amazon.awssdk.utils.StringUtils;
 
 @Immutable
 @SdkInternalApi
-final class DefaultAxdbFrontendUtilities implements AxdbFrontendUtilities {
+public final class DefaultAxdbFrontendUtilities implements AxdbFrontendUtilities {
     private static final Logger log = Logger.loggerFor(AxdbFrontendUtilities.class);
     private final Aws4Signer signer = Aws4Signer.create();
     private final Region region;
     private final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
     private final Clock clock;
 
-    DefaultAxdbFrontendUtilities(DefaultBuilder builder) {
+    public DefaultAxdbFrontendUtilities(DefaultBuilder builder) {
         this(builder, Clock.systemUTC());
     }
 
     /**
      * For testing purposes only
      */
-    DefaultAxdbFrontendUtilities(DefaultBuilder builder, Clock clock) {
+    public DefaultAxdbFrontendUtilities(DefaultBuilder builder, Clock clock) {
         this.credentialsProvider = builder.credentialsProvider;
         this.region = builder.region;
         this.clock = clock;
@@ -72,7 +73,7 @@ final class DefaultAxdbFrontendUtilities implements AxdbFrontendUtilities {
                                                            .protocol("https")
                                                            .host(request.hostname())
                                                            .encodedPath("/")
-                                                           .putRawQueryParameter("Action", request.action().name())
+                                                           .putRawQueryParameter("Action", request.action().getAction())
                                                            .build();
 
         Instant expirationTime = Instant.now(clock).plus(request.expiresIn());
@@ -105,6 +106,7 @@ final class DefaultAxdbFrontendUtilities implements AxdbFrontendUtilities {
                                            "or AxdbFrontendUtilities object");
     }
 
+    // TODO: update this to use AwsCredentialsIdentity when we migrate Signers to accept the new type.
     private AwsCredentials resolveCredentials(GenerateAuthenticationTokenRequest request) {
         if (request.credentialsIdentityProvider() != null) {
             return CredentialUtils.toCredentials(
@@ -120,11 +122,11 @@ final class DefaultAxdbFrontendUtilities implements AxdbFrontendUtilities {
     }
 
     @SdkInternalApi
-    static final class DefaultBuilder implements Builder {
+    public static final class DefaultBuilder implements Builder {
         private Region region;
         private IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
 
-        DefaultBuilder() {
+        public DefaultBuilder() {
         }
 
         Builder clientConfiguration(SdkClientConfiguration clientConfiguration) {

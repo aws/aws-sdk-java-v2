@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.axdbfrontend.model;
 
 import java.time.Duration;
+import java.util.Objects;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -25,6 +26,7 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.axdbfrontend.AxdbFrontendUtilities;
 import software.amazon.awssdk.services.axdbfrontend.model.Action;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -37,6 +39,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class GenerateAuthenticationTokenRequest implements
                                                       ToCopyableBuilder<GenerateAuthenticationTokenRequest.Builder,
                                                           GenerateAuthenticationTokenRequest> {
+    // The time the IAM token is good for based on RDS. https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html
+    private static final Duration EXPIRATION_DURATION = Duration.ofSeconds(900L);
 
     private final String hostname;
     private final Region region;
@@ -47,11 +51,49 @@ public final class GenerateAuthenticationTokenRequest implements
     private GenerateAuthenticationTokenRequest(BuilderImpl builder) {
         this.hostname = Validate.notEmpty(builder.hostname, "hostname");
         this.action = Validate.notNull(builder.action, "action");
-        Validate.isTrue(this.action == Action.DbConnect || this.action == Action.DbConnectSuperuser, "invalid action");
+        Validate.isTrue(this.action == Action.DB_CONNECT || this.action == Action.DB_CONNECT_SUPERUSER, "invalid action");
         this.region = builder.region;
         this.credentialsProvider = builder.credentialsProvider;
         this.expiresIn = (builder.expiresIn != null) ? builder.expiresIn :
-                             Duration.ofSeconds(900L);
+                             EXPIRATION_DURATION;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("GenerateAuthenticationTokenRequest")
+                       .add("hostname", hostname)
+                       .add("region", region)
+                       .add("action", action)
+                       .add("expiresIn", expiresIn)
+                       .add("credentialsProvider", credentialsProvider)
+                       .build();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        GenerateAuthenticationTokenRequest that = (GenerateAuthenticationTokenRequest) o;
+        return Objects.equals(hostname, that.hostname) &&
+               Objects.equals(region, that.region) &&
+               Objects.equals(action, that.action) &&
+               Objects.equals(expiresIn, that.expiresIn) &&
+               Objects.equals(credentialsProvider, that.credentialsProvider);
+    }
+
+    @Override
+    public int hashCode() {
+        int hashCode = 1;
+        hashCode = 31 * hashCode + Objects.hashCode(hostname);
+        hashCode = 31 * hashCode + Objects.hashCode(region);
+        hashCode = 31 * hashCode + Objects.hashCode(action);
+        hashCode = 31 * hashCode + Objects.hashCode(expiresIn);
+        hashCode = 31 * hashCode + Objects.hashCode(credentialsProvider);
+        return hashCode;
     }
 
     /**
@@ -62,7 +104,7 @@ public final class GenerateAuthenticationTokenRequest implements
     }
 
     /**
-     * @return The token expiry duration in seconds
+     * @return The token expiry duration
      */
     public Duration expiresIn() {
         return expiresIn;
@@ -141,8 +183,7 @@ public final class GenerateAuthenticationTokenRequest implements
         Builder region(Region region);
 
         /**
-         * The region the database is hosted in. If specified, takes precedence over the value specified in
-         * {@link AxdbFrontendUtilities.Builder#region(Region)}
+         * The duration a token is valid for.
          *
          * @return This object for method chaining
          */

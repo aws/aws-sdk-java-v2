@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.function.Consumer;
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -30,7 +31,8 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.axdbfrontend.DefaultAxdbFrontendUtilities.DefaultBuilder;
+import software.amazon.awssdk.services.axdbfrontend.internal.DefaultAxdbFrontendUtilities;
+import software.amazon.awssdk.services.axdbfrontend.internal.DefaultAxdbFrontendUtilities.DefaultBuilder;
 import software.amazon.awssdk.services.axdbfrontend.model.Action;
 import software.amazon.awssdk.services.axdbfrontend.model.GenerateAuthenticationTokenRequest;
 
@@ -38,6 +40,12 @@ public class DefaultAxdbFrontendUtilitiesTest {
     private final ZoneId utcZone = ZoneId.of("UTC").normalized();
     private final Clock fixedClock = Clock.fixed(ZonedDateTime.of(2024, 11, 7, 17, 39, 33, 0, utcZone).toInstant(), utcZone);
 
+    @Test
+    void equalsHashcode() {
+        EqualsVerifier.forClass(GenerateAuthenticationTokenRequest.class)
+                      .withNonnullFields("hostname", "region", "action", "expiresIn", "credentialsProvider")
+                      .verify();
+    }
     @Test
     public void testTokenGenerationWithBuilderDefaultsUsingAwsCredentialsProvider() {
         AwsCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
@@ -64,7 +72,7 @@ public class DefaultAxdbFrontendUtilitiesTest {
 
     private void testTokenGenerationWithBuilderDefaults(DefaultBuilder utilitiesBuilder) {
         DefaultAxdbFrontendUtilities AxdbFrontendUtilities = new DefaultAxdbFrontendUtilities(utilitiesBuilder, fixedClock);
-        Action action = Action.DbConnectSuperuser;
+        Action action = Action.DB_CONNECT_SUPERUSER;
 
         String authenticationToken = AxdbFrontendUtilities.generateAuthenticationToken(builder -> {
             builder.hostname("test.us-east-1.prod.sql.axdb.aws.dev")
@@ -110,7 +118,7 @@ public class DefaultAxdbFrontendUtilitiesTest {
     private void testTokenGenerationWithOverriddenCredentials(DefaultBuilder utilitiesBuilder,
                                                               Consumer<GenerateAuthenticationTokenRequest.Builder> credsBuilder) {
         DefaultAxdbFrontendUtilities AxdbFrontendUtilities = new DefaultAxdbFrontendUtilities(utilitiesBuilder, fixedClock);
-        Action action = Action.DbConnectSuperuser;
+        Action action = Action.DB_CONNECT_SUPERUSER;
 
         String authenticationToken = AxdbFrontendUtilities.generateAuthenticationToken(builder -> {
             builder.hostname("test.us-east-1.prod.sql.axdb.aws.dev")
@@ -136,7 +144,7 @@ public class DefaultAxdbFrontendUtilitiesTest {
                                                                        .region(Region.US_EAST_1);
 
         DefaultAxdbFrontendUtilities AxdbFrontendUtilities = new DefaultAxdbFrontendUtilities(utilitiesBuilder, fixedClock);
-        Action action = Action.DbConnectSuperuser;
+        Action action = Action.DB_CONNECT_SUPERUSER;
 
         String authenticationToken = AxdbFrontendUtilities.generateAuthenticationToken(builder -> {
             builder.hostname("test.us-east-1.prod.sql.axdb.aws.dev")
@@ -161,7 +169,7 @@ public class DefaultAxdbFrontendUtilitiesTest {
                                                                        .credentialsProvider(credentialsProvider);
 
         DefaultAxdbFrontendUtilities AxdbFrontendUtilities = new DefaultAxdbFrontendUtilities(utilitiesBuilder, fixedClock);
-        Action action = Action.DbConnect;
+        Action action = Action.DB_CONNECT;
 
         assertThatThrownBy(() -> AxdbFrontendUtilities.generateAuthenticationToken(builder -> {
             builder.hostname("test.us-east-1.prod.sql.axdb.aws.dev")
@@ -176,7 +184,7 @@ public class DefaultAxdbFrontendUtilitiesTest {
                                                                        .region(Region.US_WEST_2);
 
         DefaultAxdbFrontendUtilities AxdbFrontendUtilities = new DefaultAxdbFrontendUtilities(utilitiesBuilder, fixedClock);
-        Action action = Action.DbConnect;
+        Action action = Action.DB_CONNECT;
 
         assertThatThrownBy(() -> AxdbFrontendUtilities.generateAuthenticationToken(builder -> {
             builder.hostname("test.us-east-1.prod.sql.axdb.aws.dev")
@@ -194,7 +202,7 @@ public class DefaultAxdbFrontendUtilitiesTest {
                                                                                 .credentialsProvider(credentialsProvider);
 
         DefaultAxdbFrontendUtilities AxdbFrontendUtilities = new DefaultAxdbFrontendUtilities(utilitiesBuilder, fixedClock);
-        Action action = Action.DbConnect;
+        Action action = Action.DB_CONNECT;
 
         assertThatThrownBy(() -> AxdbFrontendUtilities.generateAuthenticationToken(builder -> {
             builder.action(action);
@@ -208,7 +216,8 @@ public class DefaultAxdbFrontendUtilitiesTest {
             AwsBasicCredentials.create("access_key", "secret_key")
         );
         DefaultBuilder utilitiesBuilder = (DefaultBuilder) AxdbFrontendUtilities.builder()
-                                                                                .credentialsProvider(credentialsProvider);
+                                                                                .credentialsProvider(credentialsProvider)
+                                                                                .region(Region.US_EAST_1);
 
         DefaultAxdbFrontendUtilities AxdbFrontendUtilities = new DefaultAxdbFrontendUtilities(utilitiesBuilder, fixedClock);
 
@@ -228,7 +237,7 @@ public class DefaultAxdbFrontendUtilitiesTest {
                                                                                 .region(Region.US_EAST_1);
 
         DefaultAxdbFrontendUtilities AxdbFrontendUtilities = new DefaultAxdbFrontendUtilities(utilitiesBuilder, fixedClock);
-        Action action = Action.DbConnect;
+        Action action = Action.DB_CONNECT;
         Duration expiry = Duration.ofSeconds(3600L);
 
         String authenticationToken = AxdbFrontendUtilities.generateAuthenticationToken(builder -> {
