@@ -52,9 +52,14 @@ End-to-end functional tests are in [v2-migration-tests module][v2-migration-test
 sample applications using the AWS SDK for Java v1 and compares the transformed code with the expected v2 
 code and ensures it compiles.
 
+### Documentation
+
+For further resources on performing the migration, see our [Developer Guide][developer-guide].
+
 [open-rewrite]: https://docs.openrewrite.org/
 [open-rewrite-usage]: https://docs.openrewrite.org/running-recipes
 [open-rewrite-plugin]: https://docs.openrewrite.org/reference/rewrite-maven-plugin
 [maven-central]: https://central.sonatype.com/artifact/software.amazon.awssdk/v2-migration
 [rewrite-test]:https://docs.openrewrite.org/authoring-recipes/recipe-testing#rewritetest-interface
 [v2-migration-tests]:../test/v2-migration-tests
+[developer-guide]: https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/migration.html
