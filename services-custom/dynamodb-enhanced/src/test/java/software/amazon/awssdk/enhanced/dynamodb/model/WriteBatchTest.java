@@ -15,16 +15,13 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
-import static org.hamcrest.Matchers.not;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 
-import com.google.common.collect.ImmutableList;
 import java.util.Map;
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.Before;
@@ -38,7 +35,6 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.DeleteRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
@@ -136,16 +132,6 @@ public class WriteBatchTest {
         String errorMessageDeleteKeyFromItem = "A mappedTableResource is required to derive a key from the given keyItem";
         assertThrowsMappedTableResourceNullException(() -> builder.addDeleteItem(fakeItem).build(),
                                                      errorMessageDeleteKeyFromItem);
-    }
-
-    @Test
-    public void hashCode_includesConsumedCapacity() {
-        BatchWriteResult builtObject1 = BatchWriteResult.builder().build();
-
-        ImmutableList<ConsumedCapacity> consumedCapacities = ImmutableList.of(ConsumedCapacity.builder().capacityUnits(12.5).build());
-        BatchWriteResult builtObject2 = BatchWriteResult.builder().consumedCapacity(consumedCapacities).build();
-
-        assertThat(builtObject1, not(equalTo(builtObject2)));
     }
 
 

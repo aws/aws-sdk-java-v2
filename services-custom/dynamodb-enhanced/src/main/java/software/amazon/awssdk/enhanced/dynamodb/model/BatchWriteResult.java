@@ -30,9 +30,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
-import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.DeleteRequest;
-import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
@@ -52,31 +50,9 @@ import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 @ThreadSafe
 public final class BatchWriteResult {
     private final Map<String, List<WriteRequest>> unprocessedRequests;
-    private final List<ConsumedCapacity> consumedCapacity;
-    private final Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics;
 
     private BatchWriteResult(Builder builder) {
         this.unprocessedRequests = Collections.unmodifiableMap(builder.unprocessedRequests);
-        this.consumedCapacity = Collections.unmodifiableList(builder.consumedCapacity);
-        this.itemCollectionMetrics = builder.itemCollectionMetrics;
-    }
-
-    /**
-     * The capacity units consumed by the {@code Write} operation.
-     *
-     * @see BatchWriteResult#consumedCapacity() for more information.
-     */
-    public List<ConsumedCapacity> consumedCapacity() {
-        return consumedCapacity;
-    }
-
-    /**
-     * The capacity units consumed by the {@code Write} operation.
-     *
-     * @see BatchWriteResult#consumedCapacity() for more information.
-     */
-    public Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics() {
-        return itemCollectionMetrics;
     }
 
     /**
@@ -138,21 +114,8 @@ public final class BatchWriteResult {
     @NotThreadSafe
     public static final class Builder {
         private Map<String, List<WriteRequest>> unprocessedRequests;
-        private List<ConsumedCapacity> consumedCapacity;
-        private Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics;
 
         private Builder() {
-        }
-
-
-        public Builder consumedCapacity(List<ConsumedCapacity> consumedCapacity) {
-            this.consumedCapacity = consumedCapacity;
-            return this;
-        }
-
-        public Builder itemCollectionMetrics(Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics) {
-            this.itemCollectionMetrics = itemCollectionMetrics;
-            return this;
         }
 
         /**

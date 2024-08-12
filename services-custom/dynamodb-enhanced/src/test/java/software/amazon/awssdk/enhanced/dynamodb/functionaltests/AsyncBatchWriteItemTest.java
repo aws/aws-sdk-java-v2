@@ -23,12 +23,9 @@ import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.assertj.core.api.Assertions;
-import org.assertj.core.data.Offset;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,13 +35,9 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteItemEnhancedRequest;
-import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteResult;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.WriteBatch;
-import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
-import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 
 public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
     private static class Record1 {
@@ -196,25 +189,6 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
-    public void singlePut_withConsumedCapacity() {
-        List<WriteBatch> writeBatches =
-            singletonList(WriteBatch.builder(Record1.class)
-                                    .mappedTableResource(mappedTable1)
-                                    .addPutItem(r -> r.item(RECORDS_1.get(0)))
-                                    .build());
-
-        BatchWriteResult result =
-            enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder().writeBatches(writeBatches).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL).build()).join();
-
-        Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics = result.itemCollectionMetrics();
-        List<ConsumedCapacity> consumedCapacities = result.consumedCapacity();
-        Assertions.assertThat(consumedCapacities).isNotNull();
-        Assertions.assertThat(itemCollectionMetrics).isNotNull();
-        Record1 record = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0))).join();
-        assertThat(record, is(RECORDS_1.get(0)));
-    }
-
-    @Test
     public void multiplePut() {
         List<WriteBatch> writeBatches =
             asList(WriteBatch.builder(Record1.class)
@@ -235,37 +209,6 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
-    public void multiplePut_withConsumedCapacity() {
-        List<WriteBatch> writeBatches =
-            asList(WriteBatch.builder(Record1.class)
-                             .mappedTableResource(mappedTable1)
-                             .addPutItem(r -> r.item(RECORDS_1.get(0)))
-                             .build(),
-                   WriteBatch.builder(Record2.class)
-                             .mappedTableResource(mappedTable2)
-                             .addPutItem(r -> r.item(RECORDS_2.get(0)))
-                             .build());
-
-        BatchWriteResult result = enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder()
-                                                                                                  .writeBatches(writeBatches)
-                                                                         .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
-                                                                                                  .build()).join();
-
-        List<ConsumedCapacity> consumedCapacities = result.consumedCapacity();
-        Assertions.assertThat(consumedCapacities).isNotEmpty();
-
-        for (ConsumedCapacity consumedCapacity : consumedCapacities) {
-            Assertions.assertThat(consumedCapacity.capacityUnits()).isCloseTo(1.0, Offset.offset(0.01));
-        }
-
-        Record1 record1 = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0))).join();
-        Record2 record2 = mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0))).join();
-        assertThat(record1, is(RECORDS_1.get(0)));
-        assertThat(record2, is(RECORDS_2.get(0)));
-    }
-
-
-    @Test
     public void singleDelete() {
         mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
 
@@ -276,29 +219,6 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
                                     .build());
 
         enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder().writeBatches(writeBatches).build()).join();
-
-        Record1 record = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0))).join();
-        assertThat(record, is(nullValue()));
-    }
-
-    @Test
-    public void singleDelete_withConsumedCapacity() {
-        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
-
-        List<WriteBatch> writeBatches =
-            singletonList(WriteBatch.builder(Record1.class)
-                                    .mappedTableResource(mappedTable1)
-                                    .addDeleteItem(r -> r.key(k -> k.partitionValue(0)))
-                                    .build());
-
-        BatchWriteResult result = enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder().writeBatches(writeBatches).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL).build()).join();
-
-        List<ConsumedCapacity> consumedCapacities = result.consumedCapacity();
-        Assertions.assertThat(consumedCapacities).isNotEmpty();
-
-        for (ConsumedCapacity consumedCapacity : consumedCapacities) {
-            Assertions.assertThat(consumedCapacity.capacityUnits()).isCloseTo(1.0, Offset.offset(0.01));
-        }
 
         Record1 record = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0))).join();
         assertThat(record, is(nullValue()));
@@ -321,37 +241,6 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
 
         enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder().writeBatches(writeBatches).build()).join();
 
-
-        Record1 record1 = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0))).join();
-        Record2 record2 = mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0))).join();
-        assertThat(record1, is(nullValue()));
-        assertThat(record2, is(nullValue()));
-    }
-
-    @Test
-    public void multipleDelete_withConsumedCapacity() {
-        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
-        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0))).join();
-
-        List<WriteBatch> writeBatches =
-            asList(WriteBatch.builder(Record1.class)
-                             .mappedTableResource(mappedTable1)
-                             .addDeleteItem(DeleteItemEnhancedRequest.builder().key(k -> k.partitionValue(0)).build())
-                             .build(),
-                   WriteBatch.builder(Record2.class)
-                             .mappedTableResource(mappedTable2)
-                             .addDeleteItem(DeleteItemEnhancedRequest.builder().key(k -> k.partitionValue(0)).build())
-                             .build());
-
-        BatchWriteResult result =
-            enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder().writeBatches(writeBatches).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL).build()).join();
-        List<ConsumedCapacity> consumedCapacities = result.consumedCapacity();
-        Assertions.assertThat(consumedCapacities).isNotEmpty();
-
-        for (ConsumedCapacity consumedCapacity : consumedCapacities) {
-            Assertions.assertThat(consumedCapacity.capacityUnits()).isCloseTo(1.0, Offset.offset(0.01));
-        }
-
         Record1 record1 = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0))).join();
         Record2 record2 = mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0))).join();
         assertThat(record1, is(nullValue()));
@@ -372,34 +261,6 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
                       .mappedTableResource(mappedTable2)
                       .addDeleteItem(i -> i.key(k -> k.partitionValue(0)))
                       .build())).join();
-
-        assertThat(mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0))).join(), is(RECORDS_1.get(0)));
-        assertThat(mappedTable1.getItem(r -> r.key(k -> k.partitionValue(1))).join(), is(RECORDS_1.get(1)));
-        assertThat(mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0))).join(), is(nullValue()));
-    }
-
-    @Test
-    public void mixedCommands_withConsumedCapacity() {
-        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0))).join();
-        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0))).join();
-
-        BatchWriteResult result = enhancedAsyncClient.batchWriteItem(r -> r.writeBatches(
-            WriteBatch.builder(Record1.class)
-                      .mappedTableResource(mappedTable1)
-                      .addPutItem(i -> i.item(RECORDS_1.get(1)))
-                      .build(),
-            WriteBatch.builder(Record2.class)
-                      .mappedTableResource(mappedTable2)
-                      .addDeleteItem(i -> i.key(k -> k.partitionValue(0)))
-                      .build()).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)).join();
-
-        List<ConsumedCapacity> consumedCapacities = result.consumedCapacity();
-        Assertions.assertThat(consumedCapacities.size()).isEqualTo(2);
-        Assertions.assertThat(consumedCapacities).isNotEmpty();
-
-        for (ConsumedCapacity consumedCapacity : consumedCapacities) {
-            Assertions.assertThat(consumedCapacity.capacityUnits()).isCloseTo(1.0, Offset.offset(0.01));
-        }
 
         assertThat(mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0))).join(), is(RECORDS_1.get(0)));
         assertThat(mappedTable1.getItem(r -> r.key(k -> k.partitionValue(1))).join(), is(RECORDS_1.get(1)));
