@@ -19,7 +19,6 @@ import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
@@ -42,10 +41,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbE
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.ConditionCheck;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
-import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
-import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 
 public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
@@ -209,27 +205,6 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
-    public void multiplePut_returnConsumedCapacity() {
-        TransactWriteItemsEnhancedResponse response = enhancedAsyncClient.transactWriteItems(
-            TransactWriteItemsEnhancedRequest.builder()
-                                             .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
-                                             .returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE)
-                                             .addPutItem(mappedTable1, RECORDS_1.get(0))
-                                             .addPutItem(mappedTable2, RECORDS_2.get(0))
-                                             .build()).join();
-
-        assertThat(response.consumedCapacity(), is(notNullValue()));
-        assertThat(response.consumedCapacity().size(), is(2));
-        assertThat(response.itemCollectionMetrics(), is(notNullValue()));
-
-
-        Record1 record1 = mappedTable1.getItem(r -> r.key(k -> k.partitionValue(0))).join();
-        Record2 record2 = mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0))).join();
-        assertThat(record1, is(RECORDS_1.get(0)));
-        assertThat(record2, is(RECORDS_2.get(0)));
-    }
-
-    @Test
     public void singleUpdate() {
         enhancedAsyncClient.transactWriteItems(
             TransactWriteItemsEnhancedRequest.builder()
@@ -252,21 +227,6 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
         Record2 record2 = mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0))).join();
         assertThat(record1, is(RECORDS_1.get(0)));
         assertThat(record2, is(RECORDS_2.get(0)));
-    }
-
-    @Test
-    public void multipleUpdate_withConsumedCapacity() {
-        TransactWriteItemsEnhancedResponse transactWriteItemsEnhancedResponse = enhancedAsyncClient.transactWriteItems(
-            TransactWriteItemsEnhancedRequest.builder()
-                                             .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
-                                             .returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE)
-                                             .addUpdateItem(mappedTable1, RECORDS_1.get(0))
-                                             .addUpdateItem(mappedTable2, RECORDS_2.get(0))
-                                             .build()).join();
-
-        assertThat(transactWriteItemsEnhancedResponse.consumedCapacity(), is(notNullValue()));
-        assertThat(transactWriteItemsEnhancedResponse.consumedCapacity().size(), is(2) );
-        assertThat(transactWriteItemsEnhancedResponse.itemCollectionMetrics(), is(notNullValue()));
     }
 
     @Test
@@ -297,23 +257,6 @@ public class AsyncTransactWriteItemsTest extends LocalDynamoDbAsyncTestBase {
         Record2 record2 = mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0))).join();
         assertThat(record1, is(nullValue()));
         assertThat(record2, is(nullValue()));
-    }
-
-    @Test
-    public void multipleDelete_withConsumedCapacity() {
-        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0)));
-        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0)));
-
-        TransactWriteItemsEnhancedResponse transactWriteItemsEnhancedResponse = enhancedAsyncClient.transactWriteItems(
-            TransactWriteItemsEnhancedRequest.builder()
-                                             .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
-                                             .addDeleteItem(mappedTable1, RECORDS_1.get(0))
-                                             .addDeleteItem(mappedTable2, RECORDS_2.get(0))
-                                             .build()).join();
-
-        assertThat(transactWriteItemsEnhancedResponse.consumedCapacity(), is(notNullValue()));
-        assertThat(transactWriteItemsEnhancedResponse.consumedCapacity().size(), is(2) );
-        assertThat(transactWriteItemsEnhancedResponse.itemCollectionMetrics(), is(notNullValue()));
     }
 
     @Test
