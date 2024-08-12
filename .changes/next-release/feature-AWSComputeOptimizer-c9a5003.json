@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Compute Optimizer",
+    "contributor": "",
+    "description": "Doc only update for Compute Optimizer that fixes several customer-reported issues relating to ECS finding classifications"
+}
