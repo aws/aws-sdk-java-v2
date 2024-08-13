@@ -126,7 +126,7 @@
         <awscrt.version>0.30.6</awscrt.version>
 
         <!--Test dependencies -->
-        <junit5.version>5.10.0</junit5.version>
+        <junit5.version>5.10.3</junit5.version>
         <mockito.junit5.version>4.6.0</mockito.junit5.version>
         <junit4.version>4.13.2</junit4.version> <!-- Used to resolve conflicts in transitive dependencies -->
         <hamcrest.version>1.3</hamcrest.version>
