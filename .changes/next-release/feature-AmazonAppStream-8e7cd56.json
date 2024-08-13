@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon AppStream",
-    "contributor": "",
-    "description": "This release includes following new APIs: CreateThemeForStack, DescribeThemeForStack, UpdateThemeForStack, DeleteThemeForStack to support custom branding programmatically."
-}
