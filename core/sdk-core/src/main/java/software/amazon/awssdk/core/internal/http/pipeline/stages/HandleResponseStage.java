@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static software.amazon.awssdk.core.internal.util.ProgressListenerUtils.updateProgressListenersWithResponseStatus;
-import static software.amazon.awssdk.core.internal.util.ProgressListenerUtils.wrapContentStreamProviderWithByteReadTrackingIfProgressListenerAttached;
+import static software.amazon.awssdk.core.internal.util.ProgressListenerUtils.wrapWithBytesReadTrackingStream;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
@@ -91,7 +91,7 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<SdkHttpFull
         AtomicLong bytesRead = context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ);
 
         BytesReadTrackingInputStream bytesReadTrackedStream =
-            wrapContentStreamProviderWithByteReadTrackingIfProgressListenerAttached(
+            wrapWithBytesReadTrackingStream(
                 content, bytesRead, context.progressUpdater());
 
         return AbortableInputStream.create(bytesReadTrackedStream);

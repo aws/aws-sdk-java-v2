@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
@@ -23,9 +24,11 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingInputStream;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.internal.util.ProgressListenerUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -70,9 +73,12 @@ public class MakeHttpRequestStage
 
         ContentStreamProvider contentStreamProvider = null;
         if (request.contentStreamProvider().isPresent()) {
-            contentStreamProvider =
-                ProgressListenerUtils.wrapContentStreamProviderWithBytePublishTrackingIfProgressListenerAttached(
-                    request.contentStreamProvider().get(), context.progressUpdater());
+            BytesReadTrackingInputStream wrappedByteTracking = ProgressListenerUtils.wrapWithBytesReadTrackingStream(
+                AbortableInputStream.create(request.contentStreamProvider().get().newStream()),
+                new AtomicLong(0L),
+                context.progressUpdater());
+
+            contentStreamProvider = ContentStreamProvider.fromInputStream(wrappedByteTracking);
         }
 
         ExecutableHttpRequest requestCallable = sdkHttpClient

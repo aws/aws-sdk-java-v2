@@ -17,19 +17,10 @@ package software.amazon.awssdk.core.internal.progress.listener;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.progress.listener.SdkExchangeProgress;
 import software.amazon.awssdk.http.SdkHttpRequest;
 
 @SdkInternalApi
 public class NoOpProgressUpdater implements ProgressUpdater {
-
-    public SdkExchangeProgress requestBodyProgress() {
-        return null;
-    }
-
-    public SdkExchangeProgress responseBodyProgress() {
-        return null;
-    }
 
     @Override
     public void requestPrepared(SdkHttpRequest httpRequest) {

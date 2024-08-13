@@ -190,7 +190,7 @@ public interface ProgressListener {
     /**
     * For Expect: 100-continue embedded requests, the service returning anything other than 100 continue
     * indicates a request failure. This method captures the error in the payload
-    * After this it will either be an executionFailure or a request retry
+    * After this it will either be an executionFailure or a retry the request.
     * <p>
     * Available context attributes:
     * <ol>

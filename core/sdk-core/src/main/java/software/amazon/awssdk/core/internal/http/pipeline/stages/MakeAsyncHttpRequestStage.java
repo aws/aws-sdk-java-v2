@@ -50,7 +50,7 @@ import software.amazon.awssdk.core.internal.http.timers.TimerUtils;
 import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingPublisher;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.internal.util.ProgressListenerUtils;
-import software.amazon.awssdk.core.internal.util.ResponseProgressUpdaterInvocation;
+import software.amazon.awssdk.core.internal.util.ResponseProgressUpdaterInvoker;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -135,8 +135,10 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
                                                   ? new SimpleHttpContentPublisher(request)
                                                   : new SdkHttpContentPublisherAdapter(context.requestProvider());
-        requestProvider = ProgressListenerUtils.wrapRequestProviderWithByteTrackingIfProgressListenerAttached(
-                                                                    requestProvider, context.progressUpdater());
+        requestProvider = ProgressListenerUtils.wrapWithByteTracking(
+            requestProvider, new AtomicLong(0L),
+            context.progressUpdater());
+
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
@@ -320,7 +322,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             Publisher<ByteBuffer> bytesReadTrackingPublisher =
                 new BytesReadTrackingPublisher(stream,
                                                bytesReadCounter,
-                                               new ResponseProgressUpdaterInvocation(context.progressUpdater()));
+                                               new ResponseProgressUpdaterInvoker(context.progressUpdater()));
 
             super.onStream(bytesReadTrackingPublisher);
         }

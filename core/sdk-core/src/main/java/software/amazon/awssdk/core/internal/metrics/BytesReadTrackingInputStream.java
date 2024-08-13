@@ -74,7 +74,7 @@ public final class BytesReadTrackingInputStream extends SdkFilterInputStream imp
             bytesRead.addAndGet(read);
 
             if (progressUpdaterInvoker != null) {
-                progressUpdaterInvoker.incrementBytesTransferred(bytesRead.get());
+                progressUpdaterInvoker.incrementBytesTransferred(read);
             }
         }
     }

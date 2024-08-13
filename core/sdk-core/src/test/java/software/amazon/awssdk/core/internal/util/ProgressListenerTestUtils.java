@@ -26,7 +26,7 @@ import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
-import software.amazon.awssdk.core.internal.progress.listener.DeafultProgressUpdater;
+import software.amazon.awssdk.core.internal.progress.listener.DefaultProgressUpdater;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -50,7 +50,7 @@ public final class ProgressListenerTestUtils {
     }
 
     public static RequestExecutionContext progressListenerContext(boolean isAsyncStreaming, SdkRequest sdkRequest,
-                                                                          DeafultProgressUpdater deafultProgressUpdater) {
+                                                                          DefaultProgressUpdater defaultProgressUpdater) {
 
         RequestExecutionContext.Builder builder =
             RequestExecutionContext.builder().
@@ -66,7 +66,7 @@ public final class ProgressListenerTestUtils {
         }
 
         RequestExecutionContext context = builder.build();
-        context.progressUpdater(deafultProgressUpdater);
+        context.progressUpdater(defaultProgressUpdater);
         return context;
     }
 

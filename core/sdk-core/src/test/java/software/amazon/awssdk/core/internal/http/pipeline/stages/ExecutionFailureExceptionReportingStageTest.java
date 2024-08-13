@@ -29,7 +29,7 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.core.internal.progress.listener.DeafultProgressUpdater;
+import software.amazon.awssdk.core.internal.progress.listener.DefaultProgressUpdater;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -49,9 +49,9 @@ class ExecutionFailureExceptionReportingStageTest {
                                                                                 .build();
 
         SdkRequest request = createSdkHttpRequest(config).build();
-        DeafultProgressUpdater deafultProgressUpdater = new DeafultProgressUpdater(request, null);
+        DefaultProgressUpdater defaultProgressUpdater = new DefaultProgressUpdater(request, null);
         RequestExecutionContext requestExecutionContext = progressListenerContext(false, request,
-                                                                                  deafultProgressUpdater);
+                                                                                  defaultProgressUpdater);
 
         ExecutionFailureExceptionReportingStage executionFailureExceptionReportingStage = new ExecutionFailureExceptionReportingStage(requestPipeline);
         when(requestPipeline.execute(any(), any())).thenThrow(new RuntimeException());
@@ -77,9 +77,9 @@ class ExecutionFailureExceptionReportingStageTest {
                                                                                 .build();
 
         SdkRequest request = createSdkHttpRequest(config).build();
-        DeafultProgressUpdater deafultProgressUpdater = new DeafultProgressUpdater(request, null);
+        DefaultProgressUpdater defaultProgressUpdater = new DefaultProgressUpdater(request, null);
         RequestExecutionContext requestExecutionContext = progressListenerContext(false, request,
-                                                                                  deafultProgressUpdater);
+                                                                                  defaultProgressUpdater);
 
         AsyncExecutionFailureExceptionReportingStage executionFailureExceptionReportingStage = new AsyncExecutionFailureExceptionReportingStage(requestPipeline);
         when(requestPipeline.execute(any(), any())).thenReturn(future);

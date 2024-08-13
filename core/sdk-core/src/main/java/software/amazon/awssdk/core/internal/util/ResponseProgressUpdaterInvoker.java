@@ -19,25 +19,25 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 
 @SdkInternalApi
-public class UploadProgressUpdaterInvocation implements ProgressUpdaterInvoker {
-    private final ProgressUpdater progressUpdater;
+public class ResponseProgressUpdaterInvoker implements ProgressUpdaterInvoker {
+    private final ProgressUpdater deafultProgressUpdater;
 
-    public UploadProgressUpdaterInvocation(ProgressUpdater progressUpdater) {
-        this.progressUpdater = progressUpdater;
+    public ResponseProgressUpdaterInvoker(ProgressUpdater deafultProgressUpdater) {
+        this.deafultProgressUpdater = deafultProgressUpdater;
     }
 
     @Override
     public void incrementBytesTransferred(long bytes) {
-        progressUpdater.incrementBytesSent(bytes);
+        deafultProgressUpdater.incrementBytesReceived(bytes);
     }
 
     @Override
     public void resetBytes() {
-        progressUpdater.resetBytesSent();
+        deafultProgressUpdater.resetBytesReceived();
     }
 
     @Override
     public ProgressUpdater progressUpdater() {
-        return progressUpdater;
+        return deafultProgressUpdater;
     }
 }

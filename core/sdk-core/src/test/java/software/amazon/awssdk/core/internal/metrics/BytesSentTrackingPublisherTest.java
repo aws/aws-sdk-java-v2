@@ -29,22 +29,22 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.http.NoopTestRequest;
-import software.amazon.awssdk.core.internal.progress.listener.DeafultProgressUpdater;
-import software.amazon.awssdk.core.internal.util.UploadProgressUpdaterInvocation;
+import software.amazon.awssdk.core.internal.progress.listener.DefaultProgressUpdater;
+import software.amazon.awssdk.core.internal.util.RequestProgressUpdaterInvoker;
 import software.amazon.awssdk.core.progress.listener.ProgressListener;
 
 public class BytesSentTrackingPublisherTest {
 
     @Test
-    public void test_updatesBytesSent() {
+    public void validate_updatesBytesSent_invocation_tracksBytesSentAccurately() {
         int nElements = 8;
         int elementSize = 2;
 
-        DeafultProgressUpdater deafultProgressUpdater = Mockito.mock(DeafultProgressUpdater.class);
+        DefaultProgressUpdater defaultProgressUpdater = Mockito.mock(DefaultProgressUpdater.class);
 
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
         BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0),
-                                                                                      new UploadProgressUpdaterInvocation(deafultProgressUpdater));
+                                                                                      new RequestProgressUpdaterInvoker(defaultProgressUpdater));
         readFully(trackingPublisher);
 
         long expectedSent = nElements * elementSize;
@@ -53,7 +53,7 @@ public class BytesSentTrackingPublisherTest {
     }
 
     @Test
-    public void test_progressUpdater_invokes_incrementBytesSent() {
+    public void progressUpdater_invokes_incrementBytesSent() {
         int nElements = 8;
         int elementSize = 2;
 
@@ -67,11 +67,11 @@ public class BytesSentTrackingPublisherTest {
                                             .overrideConfiguration(config)
                                             .build();
 
-        DeafultProgressUpdater deafultProgressUpdater = new DeafultProgressUpdater(request, null);
+        DefaultProgressUpdater defaultProgressUpdater = new DefaultProgressUpdater(request, null);
 
         Publisher<ByteBuffer> upstreamPublisher = createUpstreamPublisher(nElements, elementSize);
         BytesReadTrackingPublisher trackingPublisher = new BytesReadTrackingPublisher(upstreamPublisher, new AtomicLong(0L),
-                                                                                      new UploadProgressUpdaterInvocation(deafultProgressUpdater));
+                                                                                      new RequestProgressUpdaterInvoker(defaultProgressUpdater));
         readFully(trackingPublisher);
 
         long expectedSent = nElements * elementSize;

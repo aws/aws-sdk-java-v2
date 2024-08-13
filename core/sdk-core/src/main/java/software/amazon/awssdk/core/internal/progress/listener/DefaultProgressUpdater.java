@@ -32,13 +32,13 @@ import software.amazon.awssdk.http.SdkHttpRequest;
  * ProgressUpdater exposes methods that invokes listener methods to update and store request progress state
  */
 @SdkInternalApi
-public class DeafultProgressUpdater implements ProgressUpdater {
+public class DefaultProgressUpdater implements ProgressUpdater {
     private final DefaultSdkExchangeProgress requestBodyProgress;
     private final DefaultSdkExchangeProgress responseBodyProgress;
     private ProgressListenerContext context;
     private final ProgressListenerInvoker listenerInvoker;
 
-    public DeafultProgressUpdater(SdkRequest sdkRequest,
+    public DefaultProgressUpdater(SdkRequest sdkRequest,
                                   Long requestContentLength) {
         DefaultProgressSnapshot.Builder uploadProgressSnapshotBuilder = DefaultProgressSnapshot.builder();
         uploadProgressSnapshotBuilder.transferredBytes(0L);

@@ -26,7 +26,6 @@ import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingInputStream
 import software.amazon.awssdk.core.internal.metrics.BytesReadTrackingPublisher;
 import software.amazon.awssdk.core.internal.progress.listener.ProgressUpdater;
 import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpHeaders;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.StringUtils;
@@ -37,29 +36,18 @@ public final class ProgressListenerUtils {
     private ProgressListenerUtils() {
     }
 
-    public static SdkHttpContentPublisher wrapRequestProviderWithByteTrackingIfProgressListenerAttached(
-        SdkHttpContentPublisher requestProvider, ProgressUpdater progressUpdater) {
-        return new BytesReadTrackingPublisher(requestProvider, new AtomicLong(0L),
-                                              new UploadProgressUpdaterInvocation(progressUpdater));
+    public static SdkHttpContentPublisher wrapWithByteTracking(
+        SdkHttpContentPublisher requestProvider, AtomicLong bytesRead, ProgressUpdater progressUpdater) {
+        return new BytesReadTrackingPublisher(requestProvider, bytesRead,
+                                              new RequestProgressUpdaterInvoker(progressUpdater));
     }
 
-    public static ContentStreamProvider wrapContentStreamProviderWithBytePublishTrackingIfProgressListenerAttached(
-        ContentStreamProvider contentStreamProvider, ProgressUpdater progressUpdater) {
-
-        AbortableInputStream progressUpdaterWrappedcontentStream = AbortableInputStream.create(contentStreamProvider.newStream());
-
-        BytesReadTrackingInputStream progressUpdaterWrappedContentStreamProvider =
-            new BytesReadTrackingInputStream(progressUpdaterWrappedcontentStream,
-                                             new AtomicLong(0L),
-                                             new UploadProgressUpdaterInvocation(progressUpdater));
-
-        return ContentStreamProvider.fromInputStream(progressUpdaterWrappedContentStreamProvider);
-    }
-
-    public static BytesReadTrackingInputStream wrapContentStreamProviderWithByteReadTrackingIfProgressListenerAttached(
+    public static BytesReadTrackingInputStream wrapWithBytesReadTrackingStream(
         AbortableInputStream content, AtomicLong bytesRead, ProgressUpdater progressUpdater) {
-        return new BytesReadTrackingInputStream(content, bytesRead,
-                                                new ResponseProgressUpdaterInvocation(progressUpdater));
+
+        return new BytesReadTrackingInputStream(content,
+                                             bytesRead,
+                                             new RequestProgressUpdaterInvoker(progressUpdater));
     }
 
     public static void updateProgressListenersWithResponseStatus(ProgressUpdater progressUpdater,

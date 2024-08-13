@@ -15,11 +15,11 @@
 
 package software.amazon.awssdk.core.internal.progress.listener;
 
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
 
-@SdkPublicApi
+@SdkInternalApi
 public interface ProgressUpdater {
     default void updateRequestContentLength(Long requestContentLength) {
     }
