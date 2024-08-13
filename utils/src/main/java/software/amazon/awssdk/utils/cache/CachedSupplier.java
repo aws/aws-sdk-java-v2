@@ -156,8 +156,6 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         }
 
         Instant now = clock.instant();
-        log.debug(() -> "(" + cachedValueName + ") Cached stale time is " + currentCachedValue.staleTime()  + " current time is "
-                        + now);
         return !now.isBefore(currentCachedValue.staleTime());
     }
 

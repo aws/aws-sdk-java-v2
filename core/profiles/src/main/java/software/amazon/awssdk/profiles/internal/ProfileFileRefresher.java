@@ -131,7 +131,7 @@ public final class ProfileFileRefresher {
         try {
             Instant lastModifiedInstant = Files.getLastModifiedTime(profileFilePath).toInstant();
             boolean canReloadFile = currentRefreshRecord.refreshTime.isBefore(lastModifiedInstant);
-            log.info("For path {}, with previous refreshTime {}, last modified time {}, canReloadProfileFile is {}",
+            log.debug("For path {}, with previous refreshTime {}, last modified time {}, canReloadProfileFile is {}",
                      profileFilePath, currentRefreshRecord.refreshTime, lastModifiedInstant, canReloadFile);
             return canReloadFile;
         } catch (IOException e) {
