@@ -1,0 +1,16 @@
+{
+  "pagination": {
+    "ListClusterGroups": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "limit_key": "maxResults",
+      "result_key": "clusterGroups"
+    },
+    "ListClusters": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "limit_key": "maxResults",
+      "result_key": "clusters"
+    }
+  }
+}
