@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Amplify",
+    "contributor": "",
+    "description": "Add a new field \"cacheConfig\" that enables users to configure the CDN cache settings for an App"
+}
