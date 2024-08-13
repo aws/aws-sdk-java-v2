@@ -376,3 +376,642 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.services.dynamodb.model.UpdateTableInput getTableClass()
       newMethodName: tableClassAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.AccountPolicy getpolicyType()
+      newMethodName: policyTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.AccountPolicy getscope()
+      newMethodName: scopeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.Anomaly getstate()
+      newMethodName: stateAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.AnomalyDetector getevaluationFrequency()
+      newMethodName: evaluationFrequencyAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.AnomalyDetector getanomalyDetectorStatus()
+      newMethodName: anomalyDetectorStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.CreateLogAnomalyDetectorRequest getevaluationFrequency()
+      newMethodName: evaluationFrequencyAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.CreateLogGroupRequest getlogGroupClass()
+      newMethodName: logGroupClassAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.DeleteAccountPolicyRequest getpolicyType()
+      newMethodName: policyTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.Delivery getdeliveryDestinationType()
+      newMethodName: deliveryDestinationTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.DeliveryDestination getdeliveryDestinationType()
+      newMethodName: deliveryDestinationTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.DeliveryDestination getoutputFormat()
+      newMethodName: outputFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.DescribeAccountPoliciesRequest getpolicyType()
+      newMethodName: policyTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.DescribeExportTasksRequest getstatusCode()
+      newMethodName: statusCodeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.DescribeLogGroupsRequest getlogGroupClass()
+      newMethodName: logGroupClassAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.DescribeLogStreamsRequest getorderBy()
+      newMethodName: orderByAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.DescribeQueriesRequest getstatus()
+      newMethodName: statusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.ExportTaskStatus getcode()
+      newMethodName: codeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.GetLogAnomalyDetectorResponse getevaluationFrequency()
+      newMethodName: evaluationFrequencyAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.GetLogAnomalyDetectorResponse getanomalyDetectorStatus()
+      newMethodName: anomalyDetectorStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.GetQueryResultsResponse getstatus()
+      newMethodName: statusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.ListAnomaliesRequest getsuppressionState()
+      newMethodName: suppressionStateAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.LogGroup getdataProtectionStatus()
+      newMethodName: dataProtectionStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.LogGroup getlogGroupClass()
+      newMethodName: logGroupClassAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.MetricTransformation getunit()
+      newMethodName: unitAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.PutAccountPolicyRequest getpolicyType()
+      newMethodName: policyTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.PutAccountPolicyRequest getscope()
+      newMethodName: scopeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.PutDeliveryDestinationRequest getoutputFormat()
+      newMethodName: outputFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.PutSubscriptionFilterRequest getdistribution()
+      newMethodName: distributionAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.QueryInfo getstatus()
+      newMethodName: statusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.SubscriptionFilter getdistribution()
+      newMethodName: distributionAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.SuppressionPeriod getsuppressionUnit()
+      newMethodName: suppressionUnitAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.UpdateAnomalyRequest getsuppressionType()
+      newMethodName: suppressionTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.UpdateLogAnomalyDetectorRequest getevaluationFrequency()
+      newMethodName: evaluationFrequencyAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatchlogs.model.LogGroup getinheritedProperties()
+      newMethodName: inheritedPropertiesAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.AlarmHistoryItem getAlarmType()
+      newMethodName: alarmTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.AlarmHistoryItem getHistoryItemType()
+      newMethodName: historyItemTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.AnomalyDetector getStateValue()
+      newMethodName: stateValueAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.CompositeAlarm getStateValue()
+      newMethodName: stateValueAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.CompositeAlarm getActionsSuppressedBy()
+      newMethodName: actionsSuppressedByAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.Datapoint getUnit()
+      newMethodName: unitAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.DescribeAlarmHistoryInput getHistoryItemType()
+      newMethodName: historyItemTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.DescribeAlarmHistoryInput getScanBy()
+      newMethodName: scanByAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.DescribeAlarmsForMetricInput getStatistic()
+      newMethodName: statisticAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.DescribeAlarmsForMetricInput getUnit()
+      newMethodName: unitAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.DescribeAlarmsInput getStateValue()
+      newMethodName: stateValueAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.GetMetricDataInput getScanBy()
+      newMethodName: scanByAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.GetMetricStatisticsInput getUnit()
+      newMethodName: unitAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.GetMetricStreamOutput getOutputFormat()
+      newMethodName: outputFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.ListMetricsInput getRecentlyActive()
+      newMethodName: recentlyActiveAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.MetricAlarm getStateValue()
+      newMethodName: stateValueAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.MetricAlarm getStatistic()
+      newMethodName: statisticAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.MetricAlarm getUnit()
+      newMethodName: unitAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.MetricAlarm getComparisonOperator()
+      newMethodName: comparisonOperatorAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.MetricAlarm getEvaluationState()
+      newMethodName: evaluationStateAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.MetricDataResult getStatusCode()
+      newMethodName: statusCodeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.MetricDatum getUnit()
+      newMethodName: unitAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.MetricStat getUnit()
+      newMethodName: unitAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.MetricStreamEntry getOutputFormat()
+      newMethodName: outputFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.PutMetricAlarmInput getStatistic()
+      newMethodName: statisticAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.PutMetricAlarmInput getUnit()
+      newMethodName: unitAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.PutMetricAlarmInput getComparisonOperator()
+      newMethodName: comparisonOperatorAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.PutMetricStreamInput getOutputFormat()
+      newMethodName: outputFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.SetAlarmStateInput getStateValue()
+      newMethodName: stateValueAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.DescribeAlarmHistoryInput getAlarmTypes()
+      newMethodName: alarmTypesAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.DescribeAlarmsInput getAlarmTypes()
+      newMethodName: alarmTypesAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.DescribeAnomalyDetectorsInput getAnomalyDetectorTypes()
+      newMethodName: anomalyDetectorTypesAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.cloudwatch.model.GetMetricStatisticsInput getStatistics()
+      newMethodName: statisticsAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.CreateCustomKeyStoreRequest getCustomKeyStoreType()
+      newMethodName: customKeyStoreTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.CreateCustomKeyStoreRequest getXksProxyConnectivity()
+      newMethodName: xksProxyConnectivityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.CreateKeyRequest getKeyUsage()
+      newMethodName: keyUsageAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.CreateKeyRequest getCustomerMasterKeySpec()
+      newMethodName: customerMasterKeySpecAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.CreateKeyRequest getKeySpec()
+      newMethodName: keySpecAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.CreateKeyRequest getOrigin()
+      newMethodName: originAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.CustomKeyStoresListEntry getConnectionState()
+      newMethodName: connectionStateAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.CustomKeyStoresListEntry getConnectionErrorCode()
+      newMethodName: connectionErrorCodeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.CustomKeyStoresListEntry getCustomKeyStoreType()
+      newMethodName: customKeyStoreTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.DecryptRequest getEncryptionAlgorithm()
+      newMethodName: encryptionAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.DecryptResponse getEncryptionAlgorithm()
+      newMethodName: encryptionAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.DeriveSharedSecretRequest getKeyAgreementAlgorithm()
+      newMethodName: keyAgreementAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.DeriveSharedSecretResponse getKeyAgreementAlgorithm()
+      newMethodName: keyAgreementAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.DeriveSharedSecretResponse getKeyOrigin()
+      newMethodName: keyOriginAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.EncryptRequest getEncryptionAlgorithm()
+      newMethodName: encryptionAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.EncryptResponse getEncryptionAlgorithm()
+      newMethodName: encryptionAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GenerateDataKeyPairRequest getKeyPairSpec()
+      newMethodName: keyPairSpecAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GenerateDataKeyPairResponse getKeyPairSpec()
+      newMethodName: keyPairSpecAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GenerateDataKeyPairWithoutPlaintextRequest getKeyPairSpec()
+      newMethodName: keyPairSpecAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GenerateDataKeyPairWithoutPlaintextResponse getKeyPairSpec()
+      newMethodName: keyPairSpecAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GenerateDataKeyRequest getKeySpec()
+      newMethodName: keySpecAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GenerateDataKeyWithoutPlaintextRequest getKeySpec()
+      newMethodName: keySpecAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GenerateMacRequest getMacAlgorithm()
+      newMethodName: macAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GenerateMacResponse getMacAlgorithm()
+      newMethodName: macAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GetParametersForImportRequest getWrappingAlgorithm()
+      newMethodName: wrappingAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GetParametersForImportRequest getWrappingKeySpec()
+      newMethodName: wrappingKeySpecAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GetPublicKeyResponse getCustomerMasterKeySpec()
+      newMethodName: customerMasterKeySpecAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GetPublicKeyResponse getKeySpec()
+      newMethodName: keySpecAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GetPublicKeyResponse getKeyUsage()
+      newMethodName: keyUsageAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.ImportKeyMaterialRequest getExpirationModel()
+      newMethodName: expirationModelAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.KeyMetadata getKeyUsage()
+      newMethodName: keyUsageAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.KeyMetadata getKeyState()
+      newMethodName: keyStateAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.KeyMetadata getOrigin()
+      newMethodName: originAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.KeyMetadata getExpirationModel()
+      newMethodName: expirationModelAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.KeyMetadata getKeyManager()
+      newMethodName: keyManagerAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.KeyMetadata getCustomerMasterKeySpec()
+      newMethodName: customerMasterKeySpecAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.KeyMetadata getKeySpec()
+      newMethodName: keySpecAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.MultiRegionConfiguration getMultiRegionKeyType()
+      newMethodName: multiRegionKeyTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.ReEncryptRequest getSourceEncryptionAlgorithm()
+      newMethodName: sourceEncryptionAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.ReEncryptRequest getDestinationEncryptionAlgorithm()
+      newMethodName: destinationEncryptionAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.ReEncryptResponse getSourceEncryptionAlgorithm()
+      newMethodName: sourceEncryptionAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.ReEncryptResponse getDestinationEncryptionAlgorithm()
+      newMethodName: destinationEncryptionAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.RecipientInfo getKeyEncryptionAlgorithm()
+      newMethodName: keyEncryptionAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.RotationsListEntry getRotationType()
+      newMethodName: rotationTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.ScheduleKeyDeletionResponse getKeyState()
+      newMethodName: keyStateAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.SignRequest getMessageType()
+      newMethodName: messageTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.SignRequest getSigningAlgorithm()
+      newMethodName: signingAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.SignResponse getSigningAlgorithm()
+      newMethodName: signingAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.UpdateCustomKeyStoreRequest getXksProxyConnectivity()
+      newMethodName: xksProxyConnectivityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.VerifyMacRequest getMacAlgorithm()
+      newMethodName: macAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.VerifyMacResponse getMacAlgorithm()
+      newMethodName: macAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.VerifyRequest getMessageType()
+      newMethodName: messageTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.VerifyRequest getSigningAlgorithm()
+      newMethodName: signingAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.VerifyResponse getSigningAlgorithm()
+      newMethodName: signingAlgorithmAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.XksProxyConfigurationType getConnectivity()
+      newMethodName: connectivityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.CreateGrantRequest getOperations()
+      newMethodName: operationsAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GetPublicKeyResponse getEncryptionAlgorithms()
+      newMethodName: encryptionAlgorithmsAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GetPublicKeyResponse getSigningAlgorithms()
+      newMethodName: signingAlgorithmsAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GetPublicKeyResponse getKeyAgreementAlgorithms()
+      newMethodName: keyAgreementAlgorithmsAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.GrantListEntry getOperations()
+      newMethodName: operationsAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.KeyMetadata getEncryptionAlgorithms()
+      newMethodName: encryptionAlgorithmsAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.KeyMetadata getSigningAlgorithms()
+      newMethodName: signingAlgorithmsAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.KeyMetadata getKeyAgreementAlgorithms()
+      newMethodName: keyAgreementAlgorithmsAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kms.model.KeyMetadata getMacAlgorithms()
+      newMethodName: macAlgorithmsAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.AmazonOpenSearchServerlessDestinationConfiguration getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.AmazonOpenSearchServerlessDestinationDescription getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.AmazonopensearchserviceDestinationConfiguration getIndexRotationPeriod()
+      newMethodName: indexRotationPeriodAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.AmazonopensearchserviceDestinationConfiguration getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.AmazonopensearchserviceDestinationDescription getIndexRotationPeriod()
+      newMethodName: indexRotationPeriodAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.AmazonopensearchserviceDestinationDescription getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.AmazonopensearchserviceDestinationUpdate getIndexRotationPeriod()
+      newMethodName: indexRotationPeriodAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.AuthenticationConfiguration getConnectivity()
+      newMethodName: connectivityAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.CreateDeliveryStreamInput getDeliveryStreamType()
+      newMethodName: deliveryStreamTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.DeliveryStreamDescription getDeliveryStreamStatus()
+      newMethodName: deliveryStreamStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.DeliveryStreamDescription getDeliveryStreamType()
+      newMethodName: deliveryStreamTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.DeliveryStreamEncryptionConfiguration getKeyType()
+      newMethodName: keyTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.DeliveryStreamEncryptionConfiguration getStatus()
+      newMethodName: statusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.DeliveryStreamEncryptionConfigurationInput getKeyType()
+      newMethodName: keyTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.DocumentIdOptions getDefaultDocumentIdFormat()
+      newMethodName: defaultDocumentIdFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.ElasticsearchDestinationConfiguration getIndexRotationPeriod()
+      newMethodName: indexRotationPeriodAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.ElasticsearchDestinationConfiguration getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.ElasticsearchDestinationDescription getIndexRotationPeriod()
+      newMethodName: indexRotationPeriodAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.ElasticsearchDestinationDescription getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.ElasticsearchDestinationUpdate getIndexRotationPeriod()
+      newMethodName: indexRotationPeriodAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.EncryptionConfiguration getNoEncryptionConfig()
+      newMethodName: noEncryptionConfigAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.ExtendedS3DestinationConfiguration getCompressionFormat()
+      newMethodName: compressionFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.ExtendedS3DestinationConfiguration getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.ExtendedS3DestinationDescription getCompressionFormat()
+      newMethodName: compressionFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.ExtendedS3DestinationDescription getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.ExtendedS3DestinationUpdate getCompressionFormat()
+      newMethodName: compressionFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.ExtendedS3DestinationUpdate getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.FailureDescription getType()
+      newMethodName: typeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.HttpEndpointDestinationConfiguration getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.HttpEndpointDestinationDescription getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.HttpEndpointDestinationUpdate getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.HttpEndpointRequestConfiguration getContentEncoding()
+      newMethodName: contentEncodingAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.IcebergDestinationConfiguration getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.IcebergDestinationDescription getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.IcebergDestinationUpdate getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.ListDeliveryStreamsInput getDeliveryStreamType()
+      newMethodName: deliveryStreamTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.OrcSerDe getCompression()
+      newMethodName: compressionAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.OrcSerDe getFormatVersion()
+      newMethodName: formatVersionAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.ParquetSerDe getCompression()
+      newMethodName: compressionAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.ParquetSerDe getWriterVersion()
+      newMethodName: writerVersionAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.Processor getType()
+      newMethodName: typeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.ProcessorParameter getParameterName()
+      newMethodName: parameterNameAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.RedshiftDestinationConfiguration getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.RedshiftDestinationDescription getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.RedshiftDestinationUpdate getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.S3DestinationConfiguration getCompressionFormat()
+      newMethodName: compressionFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.S3DestinationDescription getCompressionFormat()
+      newMethodName: compressionFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.S3DestinationUpdate getCompressionFormat()
+      newMethodName: compressionFormatAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.SnowflakeDestinationConfiguration getDataLoadingOption()
+      newMethodName: dataLoadingOptionAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.SnowflakeDestinationConfiguration getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.SnowflakeDestinationDescription getDataLoadingOption()
+      newMethodName: dataLoadingOptionAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.SnowflakeDestinationDescription getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.SnowflakeDestinationUpdate getDataLoadingOption()
+      newMethodName: dataLoadingOptionAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.SnowflakeDestinationUpdate getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.SplunkDestinationConfiguration getHECEndpointType()
+      newMethodName: hECEndpointTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.SplunkDestinationConfiguration getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.SplunkDestinationDescription getHECEndpointType()
+      newMethodName: hECEndpointTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.SplunkDestinationDescription getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.SplunkDestinationUpdate getHECEndpointType()
+      newMethodName: hECEndpointTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.firehose.model.SplunkDestinationUpdate getS3BackupMode()
+      newMethodName: s3BackupModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.Consumer getConsumerStatus()
+      newMethodName: consumerStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.ConsumerDescription getConsumerStatus()
+      newMethodName: consumerStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.GetShardIteratorInput getShardIteratorType()
+      newMethodName: shardIteratorTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.PutRecordOutput getEncryptionType()
+      newMethodName: encryptionTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.PutRecordsOutput getEncryptionType()
+      newMethodName: encryptionTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.Record getEncryptionType()
+      newMethodName: encryptionTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.ShardFilter getType()
+      newMethodName: typeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.StartStreamEncryptionInput getEncryptionType()
+      newMethodName: encryptionTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.StartingPosition getType()
+      newMethodName: typeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.StopStreamEncryptionInput getEncryptionType()
+      newMethodName: encryptionTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.StreamDescription getStreamStatus()
+      newMethodName: streamStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.StreamDescription getEncryptionType()
+      newMethodName: encryptionTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.StreamDescriptionSummary getStreamStatus()
+      newMethodName: streamStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.StreamDescriptionSummary getEncryptionType()
+      newMethodName: encryptionTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.StreamModeDetails getStreamMode()
+      newMethodName: streamModeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.StreamSummary getStreamStatus()
+      newMethodName: streamStatusAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.UpdateShardCountInput getScalingType()
+      newMethodName: scalingTypeAsString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.DisableEnhancedMonitoringInput getShardLevelMetrics()
+      newMethodName: shardLevelMetricsAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.EnableEnhancedMonitoringInput getShardLevelMetrics()
+      newMethodName: shardLevelMetricsAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.EnhancedMetrics getShardLevelMetrics()
+      newMethodName: shardLevelMetricsAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.EnhancedMonitoringOutput getCurrentShardLevelMetrics()
+      newMethodName: currentShardLevelMetricsAsStrings
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.kinesis.model.EnhancedMonitoringOutput getDesiredShardLevelMetrics()
+      newMethodName: desiredShardLevelMetricsAsStrings
