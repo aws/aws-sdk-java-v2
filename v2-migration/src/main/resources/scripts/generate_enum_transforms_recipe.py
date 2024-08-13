@@ -18,7 +18,7 @@ from scripts.utils import RECIPE_ROOT_DIR
 
 ENUM_GETTERS_FILE_NAME = 'change-enum-getters.yml'
 # Add services as needed
-SERVICES_TO_TRANSFORM = ['sqs', 'sns', 'dynamodb']
+SERVICES_TO_TRANSFORM = ['sqs', 'sns', 'dynamodb', 'cloudwatchlogs', 'cloudwatch', 'kms', 'firehose', 'kinesis']
 
 
 def generate_enum_getters_transform_recipe():

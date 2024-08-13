@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.3__ __2024-08-12__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Doc only update for Compute Optimizer that fixes several customer-reported issues relating to ECS finding classifications
+
+## __AWS Config__
+  - ### Features
+    - Documentation update for the OrganizationConfigRuleName regex pattern.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports now supports editing the PID values for a Multiplex.
+
+## __AWS Ground Station__
+  - ### Features
+    - Updating documentation for OEMEphemeris to link to AWS Ground Station User Guide
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds new capabilities to manage On-Demand Capacity Reservations including the ability to split your reservation, move capacity between reservations, and modify the instance eligibility of your reservation.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added support for new AL2023 GPU AMIs to the supported AMITypes.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Releasing large data support as part of CreateAutoMLJobV2 in SageMaker Autopilot and CreateDomain API for SageMaker Canvas.
+
 # __2.27.2__ __2024-08-09__
 ## __AWS SDK for Java v2__
   - ### Features
