@@ -544,12 +544,61 @@ public class InstanceProfileCredentialsProviderTest {
         }
     }
 
+    @Test
+    void testErrorWhileCacheIsStale_shouldRecover() {
+        AdjustableClock clock = new AdjustableClock();
+
+        Instant now = Instant.now();
+        Instant expiration = now.plus(Duration.ofHours(6));
+
+        String successfulCredentialsResponse =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(expiration) + '"'
+            + "}";
+
+        String staleResponse =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID_2\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY_2\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(Instant.now()) + '"'
+            + "}";
+
+
+        Duration staleTime = Duration.ofMinutes(5);
+        AwsCredentialsProvider provider = credentialsProviderWithClock(clock, staleTime);
+
+        // cache expiration with expiration = 6 hours
+        clock.time = now;
+        stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse));
+        AwsCredentials validCreds = provider.resolveCredentials();
+
+        // failure while cache is stale
+        clock.time = expiration.minus(staleTime.minus(Duration.ofMinutes(2)));
+        stubTokenFetchErrorResponse(aResponse().withFixedDelay(2000).withBody(STUB_CREDENTIALS), 500);
+        stubSecureCredentialsResponse(aResponse().withBody(staleResponse));
+        AwsCredentials refreshedWhileStale = provider.resolveCredentials();
+
+        assertThat(refreshedWhileStale).isNotEqualTo(validCreds);
+        assertThat(refreshedWhileStale.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY_2");
+    }
+
     private AwsCredentialsProvider credentialsProviderWithClock(Clock clock) {
         InstanceProfileCredentialsProvider.BuilderImpl builder =
             (InstanceProfileCredentialsProvider.BuilderImpl) InstanceProfileCredentialsProvider.builder();
         builder.clock(clock);
         return builder.build();
     }
+
+    private AwsCredentialsProvider credentialsProviderWithClock(Clock clock, Duration staleTime) {
+        InstanceProfileCredentialsProvider.BuilderImpl builder =
+            (InstanceProfileCredentialsProvider.BuilderImpl) InstanceProfileCredentialsProvider.builder();
+        builder.clock(clock);
+        builder.staleTime(staleTime);
+        return builder.build();
+    }
+
 
     private static class AdjustableClock extends Clock {
         private Instant time;

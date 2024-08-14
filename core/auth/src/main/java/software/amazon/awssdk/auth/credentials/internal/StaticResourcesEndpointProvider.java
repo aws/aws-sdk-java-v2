@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
+import software.amazon.awssdk.regions.util.ResourcesEndpointRetryPolicy;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -45,5 +46,10 @@ public final class StaticResourcesEndpointProvider implements ResourcesEndpointP
     @Override
     public Map<String, String> headers() {
         return Collections.unmodifiableMap(headers);
+    }
+
+    @Override
+    public ResourcesEndpointRetryPolicy retryPolicy() {
+        return new ContainerCredentialsRetryPolicy();
     }
 }
