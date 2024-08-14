@@ -69,7 +69,7 @@ public final class EqualJitterBackoffStrategy implements BackoffStrategy,
     @Override
     public Duration computeDelayBeforeNextRetry(RetryPolicyContext context) {
         int ceil = calculateExponentialDelay(context.retriesAttempted(), baseDelay, maxBackoffTime);
-        return Duration.ofMillis((ceil / 2) + random.nextInt((ceil / 2) + 1));
+        return Duration.ofMillis((long) (ceil / 2) + random.nextInt((ceil / 2) + 1));
     }
 
     @Override

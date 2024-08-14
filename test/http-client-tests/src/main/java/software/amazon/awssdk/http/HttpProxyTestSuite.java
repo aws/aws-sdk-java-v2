@@ -53,7 +53,7 @@ public abstract class HttpProxyTestSuite {
 
     @BeforeEach
     void setUp() {
-        Stream.of("http", "https")
+        Stream.of(HTTP, HTTPS)
               .forEach(protocol -> Stream.of("%s.proxyHost", "%s.proxyPort",
                                              "%s.nonProxyHosts", "%s.proxyUser", "%s.proxyPassword")
                                          .forEach(property -> System.clearProperty(String.format(property, protocol))));

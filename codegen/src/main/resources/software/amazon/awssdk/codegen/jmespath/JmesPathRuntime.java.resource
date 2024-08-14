@@ -1,9 +1,12 @@
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -59,6 +62,11 @@ public final class JmesPathRuntime {
         private List<Object> listValue;
 
         /**
+         * The value if this is an {@link Type#MAP} (or null otherwise).
+         */
+        private Map<Object, Object> mapValue;
+
+        /**
          * The value if this is an {@link Type#BOOLEAN} (or null otherwise).
          */
         private Boolean booleanValue;
@@ -70,6 +78,16 @@ public final class JmesPathRuntime {
         private Value(Collection<?> value, boolean projection) {
             this.type = Type.LIST;
             this.listValue = new ArrayList<>(value);
+            this.isProjection = projection;
+        }
+
+        /**
+         * Create a MAP value, specifying whether this is a projection. This is private and is usually invoked by
+         * {@link #newProjection(Map)}.
+         */
+        private Value(Map<?, ?> value, boolean projection) {
+            this.type = Type.MAP;
+            this.mapValue = new HashMap<>(value);
             this.isProjection = projection;
         }
 
@@ -93,6 +111,9 @@ public final class JmesPathRuntime {
             } else if (value instanceof Collection) {
                 this.type = Type.LIST;
                 this.listValue = new ArrayList<>(((Collection<?>) value));
+            } else if (value instanceof Map) {
+                this.type = Type.MAP;
+                this.mapValue = new HashMap<>((Map<?, ?>) value);
             } else if (value instanceof Boolean) {
                 this.type = Type.BOOLEAN;
                 this.booleanValue = (Boolean) value;
@@ -109,6 +130,13 @@ public final class JmesPathRuntime {
         }
 
         /**
+         * Create a {@link Type#MAP} with a {@link #isProjection} of true.
+         */
+        private static Value newProjection(Map<?, ?> values) {
+            return new Value(values, true);
+        }
+
+        /**
          * Retrieve the actual value that this represents (this will be the same value passed to the constructor).
          */
         public Object value() {
@@ -119,6 +147,7 @@ public final class JmesPathRuntime {
                 case STRING: return stringValue;
                 case BOOLEAN: return booleanValue;
                 case LIST: return listValue;
+                case MAP: return mapValue;
                 default: throw new IllegalStateException();
             }
         }
@@ -136,6 +165,21 @@ public final class JmesPathRuntime {
             }
 
             return Collections.singletonList(value());
+        }
+
+        /**
+         * Retrieve the actual value that this represents, as a map of objects.
+         */
+        private Map<Object, Object> mapValues() {
+            if (type == Type.NULL) {
+                return Collections.emptyMap();
+            }
+
+            if (type == Type.MAP) {
+                return mapValue;
+            }
+
+            throw new IllegalStateException("Must be MAP type to get map values");
         }
 
        /**
@@ -176,7 +220,7 @@ public final class JmesPathRuntime {
 
        /**
          * Retrieve the actual value that this represents, as a list of String.
-         * Note that if the contents of the list is not String, a value is thrown.
+         * Note that if the contents of the list is not String, an exception is thrown.
          * If the value has a different type, the code makes a best effort to return a single element
          * list of String. See {@code stringValue}.
          */
@@ -204,6 +248,39 @@ public final class JmesPathRuntime {
             return Collections.singletonList(stringValue());
         }
 
+       /**
+         * Retrieve the actual value that this represents, as a map of Strings.
+         * Note that if the contents of the map are not String, or
+         * if the value has a different type, an exception is thrown.
+         */
+        public Map<String, String> stringValuesMap() {
+            if (type == Type.NULL) {
+                return Collections.emptyMap();
+            }
+
+            if (type == Type.MAP) {
+                Map<String, String> result = new HashMap<>();
+                mapValue.forEach((key, value) -> {
+                    Value keyAsValue = new Value(key);
+                    Value entryAsValue = new Value(value);
+                    if (keyAsValue.type != Type.NULL) {
+                        if (!isStringType(keyAsValue) || !isStringType(entryAsValue)) {
+                            throw new IllegalStateException("Keys and values must be String type");
+                        }
+                        result.put(keyAsValue.stringValue, entryAsValue.stringValue);
+                    }
+                });
+
+                return result;
+            }
+
+            throw new IllegalArgumentException("Not of type MAP");
+        }
+
+        private boolean isStringType(Value value) {
+            return value.type == Type.STRING;
+        }
+
         /**
          * Convert this value to a new constant value, discarding the current value.
          */
@@ -228,6 +305,10 @@ public final class JmesPathRuntime {
 
             if (type == Value.Type.LIST) {
                 return newProjection(listValue);
+            }
+
+            if (type == Type.MAP) {
+                return newProjection(mapValue);
             }
 
             if (type == Value.Type.POJO) {
@@ -300,19 +381,31 @@ public final class JmesPathRuntime {
                 return NULL_VALUE;
             }
 
-            if (type != Type.LIST) {
-                throw new IllegalArgumentException("Unsupported type for filter function: " + type);
+            if (type == Type.LIST) {
+                List<Object> results = new ArrayList<>();
+                listValue.forEach(entry -> {
+                    Value entryValue = new Value(entry);
+                    Value predicateResult = predicate.apply(entryValue);
+                    if (predicateResult.isTrue()) {
+                        results.add(entry);
+                    }
+                });
+                return new Value(results);
             }
 
-            List<Object> results = new ArrayList<>();
-            listValue.forEach(entry -> {
-                Value entryValue = new Value(entry);
-                Value predicateResult = predicate.apply(entryValue);
-                if (predicateResult.isTrue()) {
-                    results.add(entry);
-                }
-            });
-            return new Value(results);
+            if (type == Type.MAP) {
+                Map<Object, Object> results = new HashMap<>();
+                mapValue.forEach((key, entry) -> {
+                    Value entryValue = new Value(entry);
+                    Value predicateResult = predicate.apply(entryValue);
+                    if (predicateResult.isTrue()) {
+                        results.put(key, entry);
+                    }
+                });
+                return new Value(results);
+            }
+
+            throw new IllegalArgumentException("Unsupported type for filter function: " + type);
         }
 
         /**
@@ -335,6 +428,10 @@ public final class JmesPathRuntime {
                 return new Value(Math.toIntExact(listValue.size()));
             }
 
+            if (type == Type.MAP) {
+                return new Value(Math.toIntExact(mapValue.size()));
+            }
+
             throw new IllegalArgumentException("Unsupported type for length function: " + type);
         }
 
@@ -345,6 +442,10 @@ public final class JmesPathRuntime {
 
             if (type == Type.POJO) {
                 return new Value(pojoValue.sdkFields().stream().map(SdkField::memberName).collect(toList()));
+            }
+
+            if (type == Type.MAP) {
+                return new Value(mapValue.keySet());
             }
 
             throw new IllegalArgumentException("Unsupported type for keys function: " + type);
@@ -367,8 +468,14 @@ public final class JmesPathRuntime {
                 return new Value(stringValue.contains(rhs.stringValue));
             }
 
+            Object value = rhs.value();
+
             if (type == Type.LIST) {
-                return new Value(listValue.stream().anyMatch(v -> Objects.equals(v, rhs.value())));
+                return new Value(listValue.stream().anyMatch(v -> Objects.equals(v, value)));
+            }
+
+            if (type == Type.MAP) {
+                return new Value(mapValue.containsValue(value));
             }
 
             throw new IllegalArgumentException("Unsupported type for contains function: " + type);
@@ -431,6 +538,32 @@ public final class JmesPathRuntime {
         }
 
         /**
+         * Perform a multi-select hash expression on this value:
+         * https://jmespath.org/specification.html#multiselect-hash
+         */
+        public final Value multiSelectHash(Map<String, Function<Value, Value>> selections) {
+            if (isProjection) {
+                return project(v -> v.multiSelectHash(selections));
+            }
+            if (type == Type.NULL) {
+                return NULL_VALUE;
+            }
+            if (type != Type.MAP) {
+                throw new IllegalArgumentException("Multi-select map operation is only supported for maps");
+            }
+
+            Map<String, Object> result = new HashMap<>();
+            for (Map.Entry<String, Function<Value, Value>> entry : selections.entrySet()) {
+                String key = entry.getKey();
+                Function<Value, Value> function = entry.getValue();
+                Value selectedValue = function.apply(new Value(mapValue.get(key)));
+                result.put(key, selectedValue.value());
+            }
+
+            return new Value(result);
+        }
+
+        /**
          * Perform an OR comparison between this value and another one: https://jmespath.org/specification.html#or-expressions
          */
         public Value or(Value rhs) {
@@ -464,6 +597,8 @@ public final class JmesPathRuntime {
                     return !pojoValue.sdkFields().isEmpty();
                 case LIST:
                     return !listValue.isEmpty();
+                case MAP:
+                   return !mapValue.isEmpty();
                 case STRING:
                     return !stringValue.isEmpty();
                 case BOOLEAN:
@@ -474,16 +609,21 @@ public final class JmesPathRuntime {
         }
 
         /**
-         * Project the provided function across all values in this list. Assumes this is a LIST and isProjection is true.
+         * Project the provided function across all values in this list. Assumes this is a LIST or MAP and isProjection
+         * is true.
          */
         private Value project(Function<Value, Value> functionToApply) {
-            return new Value(listValue.stream()
-                                      .map(Value::new)
-                                      .map(functionToApply)
-                                      .map(Value::value)
-                                      .filter(Objects::nonNull)
-                                      .collect(toList()),
-                             true);
+            if (type == Type.LIST) {
+                return new Value(listValue.stream().map(Value::new).map(functionToApply).map(Value::value)
+                                          .filter(Objects::nonNull).collect(toList()), true);
+            }
+
+            if (type == Type.MAP) {
+                return new Value(mapValue.values().stream().map(Value::new).map(functionToApply).map(Value::value)
+                                         .filter(Objects::nonNull).collect(toList()), true);
+            }
+
+            throw new IllegalArgumentException("Can only project on List or Map types");
         }
 
         /**
@@ -492,6 +632,7 @@ public final class JmesPathRuntime {
         private enum Type {
             POJO,
             LIST,
+            MAP,
             BOOLEAN,
             STRING,
             INTEGER,

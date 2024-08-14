@@ -74,4 +74,16 @@ public final class MapUtils {
         m.put(k6, v6);
         return m;
     }
+
+    public static <K, V> Map<K, V> of(K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6, K k7, V v7) {
+        Map<K, V> m = new HashMap<>();
+        m.put(k1, v1);
+        m.put(k2, v2);
+        m.put(k3, v3);
+        m.put(k4, v4);
+        m.put(k5, v5);
+        m.put(k6, v6);
+        m.put(k7, v7);
+        return m;
+    }
 }

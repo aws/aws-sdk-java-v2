@@ -9,12 +9,14 @@ public class RulePartition {
     private static final String DUAL_STACK_DNS_SUFFIX = "dualStackDnsSuffix";
     private static final String SUPPORTS_FIPS = "supportsFIPS";
     private static final String SUPPORTS_DUAL_STACK = "supportsDualStack";
+    private static final String IMPLICIT_GLOBAL_REGION = "implicitGlobalRegion";
 
     private final String name;
     private final String dnsSuffix;
     private final String dualStackDnsSuffix;
     private final boolean supportsFips;
     private final boolean supportsDualStack;
+    private final String implicitGlobalRegion;
 
     private RulePartition(Builder builder) {
         this.name = builder.name;
@@ -22,6 +24,7 @@ public class RulePartition {
         this.dualStackDnsSuffix = builder.dualStackDnsSuffix;
         this.supportsFips = builder.supportsFips;
         this.supportsDualStack = builder.supportsDualStack;
+        this.implicitGlobalRegion = builder.implicitGlobalRegion;
     }
 
     public String name() {
@@ -48,6 +51,10 @@ public class RulePartition {
         return supportsDualStack;
     }
 
+    public String implicitGlobalRegion() {
+        return implicitGlobalRegion;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -59,12 +66,13 @@ public class RulePartition {
         RulePartition that = (RulePartition) o;
         return supportsFips == that.supportsFips && supportsDualStack == that.supportsDualStack
                 && Objects.equals(name, that.name) && Objects.equals(dnsSuffix, that.dnsSuffix)
-                && Objects.equals(dualStackDnsSuffix, that.dualStackDnsSuffix);
+                && Objects.equals(dualStackDnsSuffix, that.dualStackDnsSuffix)
+                && Objects.equals(implicitGlobalRegion, that.implicitGlobalRegion);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, dnsSuffix, dualStackDnsSuffix, supportsFips, supportsDualStack);
+        return Objects.hash(name, dnsSuffix, dualStackDnsSuffix, supportsFips, supportsDualStack, implicitGlobalRegion);
     }
 
     public static Builder builder() {
@@ -79,6 +87,7 @@ public class RulePartition {
                             .dualStackDnsSuffix(outputs.dualStackDnsSuffix())
                             .supportsFips(outputs.supportsFips())
                             .supportsDualStack(outputs.supportsDualStack())
+                            .implicitGlobalRegion(outputs.implicitGlobalRegion())
                             .build();
     }
 
@@ -107,6 +116,11 @@ public class RulePartition {
             b.supportsDualStack(supportsDualStack.asBoolean());
         }
 
+        JsonNode implicitGlobalRegion = objNode.get(IMPLICIT_GLOBAL_REGION);
+        if (implicitGlobalRegion != null) {
+            b.implicitGlobalRegion(implicitGlobalRegion.asString());
+        }
+
         return b.build();
     }
 
@@ -116,6 +130,7 @@ public class RulePartition {
         private String dualStackDnsSuffix;
         private boolean supportsFips;
         private boolean supportsDualStack;
+        private String implicitGlobalRegion;
 
         public Builder name(String name) {
             this.name = name;
@@ -139,6 +154,11 @@ public class RulePartition {
 
         public Builder supportsDualStack(boolean supportsDualStack) {
             this.supportsDualStack = supportsDualStack;
+            return this;
+        }
+
+        public Builder implicitGlobalRegion(String implicitGlobalRegion) {
+            this.implicitGlobalRegion = implicitGlobalRegion;
             return this;
         }
 

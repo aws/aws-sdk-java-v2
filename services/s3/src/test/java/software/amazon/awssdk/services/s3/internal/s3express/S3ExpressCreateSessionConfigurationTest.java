@@ -138,7 +138,7 @@ class S3ExpressCreateSessionConfigurationTest {
 
     private void verifyApiCallTimeoutOverride(Duration expectedTimeout) {
         Optional<AwsRequestOverrideConfiguration> awsRequestOverrideConfiguration = requestCaptor.getValue().overrideConfiguration();
-        assertThat(awsRequestOverrideConfiguration.isPresent());
+        assertThat(awsRequestOverrideConfiguration).isPresent();
         assertThat(awsRequestOverrideConfiguration.get().apiCallTimeout()).isPresent().hasValue(expectedTimeout);
     }
 }

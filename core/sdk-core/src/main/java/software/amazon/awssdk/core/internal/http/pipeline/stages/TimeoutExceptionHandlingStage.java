@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.resolveTimeoutInMillis;
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.io.IOException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -32,6 +32,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Check if an {@link Exception} is caused by either ApiCallTimeout or ApiAttemptTimeout and translate that
@@ -39,7 +40,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  */
 @SdkInternalApi
 public final class TimeoutExceptionHandlingStage<OutputT> implements RequestToResponsePipeline<OutputT> {
-
+    private static final Logger log = Logger.loggerFor(TimeoutExceptionHandlingStage.class);
     private final HttpClientDependencies dependencies;
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> requestPipeline;
 
@@ -100,7 +101,10 @@ public final class TimeoutExceptionHandlingStage<OutputT> implements RequestToRe
 
     private Exception handleTimeoutCausedException(RequestExecutionContext context, Exception e) {
         if (e instanceof SdkInterruptedException) {
-            ((SdkInterruptedException) e).getResponseStream().ifPresent(r -> invokeSafely(r::close));
+            ((SdkInterruptedException) e).getResponseStream()
+                                         .ifPresent(r -> runAndLogError(log.logger(),
+                                                                        "Failed to close the response stream",
+                                                                        r::close));
         }
 
         if (isCausedByApiCallTimeout(context)) {

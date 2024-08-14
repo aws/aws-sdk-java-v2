@@ -120,10 +120,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     }
 
     private static Boolean resolveUseEnvironmentVariableValues(Builder builder) {
-        if (builder != null && builder.httpConfiguration != null) {
-            if (builder.httpConfiguration.proxyConfiguration() != null) {
-                return builder.httpConfiguration.proxyConfiguration().isUseEnvironmentVariableValues();
-            }
+        if (builder != null && builder.httpConfiguration != null && builder.httpConfiguration.proxyConfiguration() != null) {
+            return builder.httpConfiguration.proxyConfiguration().isUseEnvironmentVariableValues();
         }
         return true;
     }

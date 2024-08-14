@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -34,7 +33,6 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  */
 @SdkInternalApi
 public final class ChunkBuffer {
-    private static final Logger log = Logger.loggerFor(ChunkBuffer.class);
     private final AtomicLong transferredBytes;
     private final ByteBuffer currentBuffer;
     private final int chunkSize;

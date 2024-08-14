@@ -344,4 +344,33 @@ class S3EventNotificationWriterTest {
             + "\"responseElements\":null,"
             + "\"s3\":null}]}");
     }
+
+    @Test
+    void nullableNumberFieldsHandledCorrectly() {
+        String expected = "{\"Records\":[{\"eventVersion\":null,\"eventSource\":null,\"awsRegion\":null,"
+                          + "\"eventTime\":null,\"eventName\":null,\"userIdentity\":null,"
+                          + "\"requestParameters\":null,\"responseElements\":null,"
+                          + "\"s3\":{\"s3SchemaVersion\":\"1.0\",\"configurationId\":\"testConfigRule\",\"bucket\":null,"
+                          + "\"object\":{\"key\":\"HappyFace-test.jpg\",\"size\":null,"
+                          + "\"eTag\":\"d41d8cd98f00b204e9800998ecf8etag\",\"versionId\":\"096fKKXTRTtl3on89fVO.nfljtsv6vid\","
+                          + "\"sequencer\":null}}}]}";
+
+        S3EventNotification event = new S3EventNotification(Collections.singletonList(
+            new S3EventNotificationRecord(null, null, null, null, null, null, null,
+                                          new S3(
+                                              "testConfigRule",
+                                              null,
+                                              new S3Object(
+                                                  "HappyFace-test.jpg",
+                                                  null,
+                                                  "d41d8cd98f00b204e9800998ecf8etag",
+                                                  "096fKKXTRTtl3on89fVO.nfljtsv6vid",
+                                                  null),
+                                              "1.0"
+                                          ),
+                                          null)));
+
+        assertThat(event.toJson()).isEqualTo(expected);
+    }
+
 }

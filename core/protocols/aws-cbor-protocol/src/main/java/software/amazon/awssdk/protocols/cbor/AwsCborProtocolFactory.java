@@ -53,9 +53,8 @@ public final class AwsCborProtocolFactory extends BaseAwsJsonProtocolFactory {
     protected JsonContentTypeResolver getContentTypeResolver() {
         if (isCborEnabled()) {
             return AWS_CBOR;
-        } else {
-            return AwsJsonProtocolFactory.AWS_JSON;
         }
+        return AWS_JSON;
     }
 
     /**

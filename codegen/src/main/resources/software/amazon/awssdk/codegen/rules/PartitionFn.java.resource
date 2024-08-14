@@ -16,6 +16,7 @@ public class PartitionFn extends SingleArgFn {
     public static final Identifier DUAL_STACK_DNS_SUFFIX = Identifier.of("dualStackDnsSuffix");
     public static final Identifier SUPPORTS_FIPS = Identifier.of("supportsFIPS");
     public static final Identifier SUPPORTS_DUAL_STACK = Identifier.of("supportsDualStack");
+    public static final Identifier IMPLICIT_GLOBAL_REGION = Identifier.of("implicitGlobalRegion");
     public static final Identifier INFERRED = Identifier.of("inferred");
 
     private final LazyValue<PartitionData> partitionData = LazyValue.<PartitionData>builder()
@@ -78,6 +79,7 @@ public class PartitionFn extends SingleArgFn {
                 DUAL_STACK_DNS_SUFFIX, Value.fromStr(matchedOutputs.dualStackDnsSuffix()),
                 SUPPORTS_FIPS, Value.fromBool(matchedOutputs.supportsFips()),
                 SUPPORTS_DUAL_STACK, Value.fromBool(matchedOutputs.supportsDualStack()),
+                IMPLICIT_GLOBAL_REGION, Value.fromStr(matchedOutputs.implicitGlobalRegion()),
                 INFERRED, Value.fromBool(inferred)));
     }
 

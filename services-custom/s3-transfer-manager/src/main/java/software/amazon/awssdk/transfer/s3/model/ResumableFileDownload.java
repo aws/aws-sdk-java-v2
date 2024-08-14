@@ -23,6 +23,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -61,6 +64,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
     private final Instant s3ObjectLastModified;
     private final Long totalSizeInBytes;
     private final Instant fileLastModified;
+    private final List<Integer> completedParts;
 
     private ResumableFileDownload(DefaultBuilder builder) {
         this.downloadFileRequest = Validate.paramNotNull(builder.downloadFileRequest, "downloadFileRequest");
@@ -69,6 +73,8 @@ public final class ResumableFileDownload implements ResumableTransfer,
         this.s3ObjectLastModified = builder.s3ObjectLastModified;
         this.totalSizeInBytes = Validate.isPositiveOrNull(builder.totalSizeInBytes, "totalSizeInBytes");
         this.fileLastModified = builder.fileLastModified;
+        List<Integer> compledPartsList =  Validate.getOrDefault(builder.completedParts, Collections::emptyList);
+        this.completedParts = Collections.unmodifiableList(new ArrayList<>(compledPartsList));
     }
 
     @Override
@@ -94,6 +100,9 @@ public final class ResumableFileDownload implements ResumableTransfer,
         if (!Objects.equals(fileLastModified, that.fileLastModified)) {
             return false;
         }
+        if (!Objects.equals(completedParts, that.completedParts)) {
+            return false;
+        }
         return Objects.equals(totalSizeInBytes, that.totalSizeInBytes);
     }
 
@@ -104,6 +113,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
         result = 31 * result + (s3ObjectLastModified != null ? s3ObjectLastModified.hashCode() : 0);
         result = 31 * result + (fileLastModified != null ? fileLastModified.hashCode() : 0);
         result = 31 * result + (totalSizeInBytes != null ? totalSizeInBytes.hashCode() : 0);
+        result = 31 * result + (completedParts != null ? completedParts.hashCode() : 0);
         return result;
     }
 
@@ -149,6 +159,15 @@ public final class ResumableFileDownload implements ResumableTransfer,
         return totalSizeInBytes == null ? OptionalLong.empty() : OptionalLong.of(totalSizeInBytes);
     }
 
+    /**
+     * The lists of parts that were successfully completed and saved to the file. Non-empty only for multipart downloads.
+     *
+     * @return part numbers of a multipart download that were completed saved to file.
+     */
+    public List<Integer> completedParts() {
+        return completedParts;
+    }
+
     @Override
     public String toString() {
         return ToString.builder("ResumableFileDownload")
@@ -157,6 +176,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
                        .add("s3ObjectLastModified", s3ObjectLastModified)
                        .add("totalSizeInBytes", totalSizeInBytes)
                        .add("downloadFileRequest", downloadFileRequest)
+                       .add("completedParts", completedParts)
                        .build();
     }
 
@@ -318,6 +338,14 @@ public final class ResumableFileDownload implements ResumableTransfer,
          * @return a reference to this object so that method calls can be chained together.
          */
         Builder fileLastModified(Instant lastModified);
+
+        /**
+         * For multipart download, set the lists of parts that were successfully completed and saved to the file.
+         *
+         * @param completedParts the list of completed parts saved to file.
+         * @return a reference to this object so that method calls can be chained together.
+         */
+        Builder completedParts(List<Integer> completedParts);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -327,6 +355,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
         private Instant s3ObjectLastModified;
         private Long totalSizeInBytes;
         private Instant fileLastModified;
+        private List<Integer> completedParts;
 
         private DefaultBuilder() {
         }
@@ -337,6 +366,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
             this.totalSizeInBytes = persistableFileDownload.totalSizeInBytes;
             this.fileLastModified = persistableFileDownload.fileLastModified;
             this.s3ObjectLastModified = persistableFileDownload.s3ObjectLastModified;
+            this.completedParts = persistableFileDownload.completedParts;
         }
 
         @Override
@@ -366,6 +396,12 @@ public final class ResumableFileDownload implements ResumableTransfer,
         @Override
         public Builder fileLastModified(Instant fileLastModified) {
             this.fileLastModified = fileLastModified;
+            return this;
+        }
+
+        @Override
+        public Builder completedParts(List<Integer> completedParts) {
+            this.completedParts = Collections.unmodifiableList(completedParts);
             return this;
         }
 

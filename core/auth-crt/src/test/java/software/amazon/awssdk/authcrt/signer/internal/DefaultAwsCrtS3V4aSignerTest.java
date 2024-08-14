@@ -37,11 +37,8 @@ import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.internal.chunkedencoding.AwsSignedChunkedEncodingInputStream;
 import software.amazon.awssdk.auth.signer.internal.util.SignerMethodResolver;
-import software.amazon.awssdk.authcrt.signer.AwsCrtV4aSigner;
 import software.amazon.awssdk.authcrt.signer.SignerTestUtils;
 import software.amazon.awssdk.authcrt.signer.SigningTestCase;
-import software.amazon.awssdk.core.checksums.Algorithm;
-import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
@@ -77,7 +74,6 @@ public class DefaultAwsCrtS3V4aSignerTest {
         SdkHttpFullRequest signedPayloadSignedRequest = SignerTestUtils.createSignedPayloadHttpRequest("data");
         String signedPayloadSignature = SignerTestUtils.extractSignatureFromAuthHeader(signedPayloadSignedRequest);
 
-//        when(configProvider.createS3CrtSigningConfig(any())).thenReturn(new AwsSigningConfig());
         when(signerAdapter.sign(any(), any())).thenReturn(new SdkSigningResult(signedPayloadSignature.getBytes(StandardCharsets.UTF_8),
                                                                                signedPayloadSignedRequest));
         when(signerAdapter.signRequest(any(), any())).thenReturn(unsignedPayloadSignedRequest);
