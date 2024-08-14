@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Fixed an issue in the SDK that caused `UncheckedIOException` to be thrown instead of `ApiCallTimeoutException`/`ApiCallAttemptTimeoutException` when API call/API call attempt timeout is breached."
-}

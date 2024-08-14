@@ -19,8 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.concurrent.atomic.AtomicReference;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -31,7 +29,6 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
@@ -39,11 +36,6 @@ import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyn
 import software.amazon.awssdk.utils.AttributeMap;
 
 class DefaultS3CrtAsyncClientTest {
-
-    @AfterAll
-    public static void verifyCrtResource() {
-        CrtResource.waitForNoResources();
-    }
 
     @Test
     void requestSignerOverrideProvided_shouldThrowException() {
