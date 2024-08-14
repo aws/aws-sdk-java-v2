@@ -16,7 +16,6 @@
 package software.amazon.awssdk.protocols.rpcv2.internal;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.json.SdkJsonGenerator;
@@ -31,7 +30,6 @@ import software.amazon.awssdk.thirdparty.jackson.dataformat.cbor.CBORGenerator;
 public final class SdkRpcV2CborGenerator extends SdkJsonGenerator {
 
     private static final int CBOR_TAG_TIMESTAMP = 1;
-    private static final int MILLI_SECOND_PRECISION = 3;
 
     SdkRpcV2CborGenerator(JsonFactory factory, String contentType) {
         super(factory, contentType);
@@ -46,8 +44,7 @@ public final class SdkRpcV2CborGenerator extends SdkJsonGenerator {
         CBORGenerator generator = getGenerator();
         try {
             generator.writeTag(CBOR_TAG_TIMESTAMP);
-            BigDecimal dateValue = BigDecimal.valueOf(instant.toEpochMilli());
-            generator.writeNumber(dateValue.scaleByPowerOfTen(0 - MILLI_SECOND_PRECISION).doubleValue());
+            generator.writeNumber(instant.toEpochMilli() / 1000d);
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }
@@ -103,9 +100,7 @@ public final class SdkRpcV2CborGenerator extends SdkJsonGenerator {
      * having enabled Feature.WRITE_MINIMAL_INTS will allow us to represent the floating point values minimally.
      */
     private static boolean canConvertToLong(double value) {
-        return value % 1 == 0
-               && value >= Long.MIN_VALUE
-               && value <= Long.MAX_VALUE;
+        return ((double) (long) value) == value;
     }
 
     /**
@@ -113,8 +108,6 @@ public final class SdkRpcV2CborGenerator extends SdkJsonGenerator {
      * having enabled Feature.WRITE_MINIMAL_INTS will allow us to represent the floating point values minimally.
      */
     private static boolean canConvertToLong(float value) {
-        return value % 1 == 0
-               && value >= Long.MIN_VALUE
-               && value <= Long.MAX_VALUE;
+        return ((float) (long) value) == value;
     }
 }

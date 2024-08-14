@@ -36,7 +36,7 @@ public enum AwsJsonProtocol {
     REST_JSON,
 
     /**
-     * RPC protocol that sends all data in the payload as CBOR encoded JSON,
+     * RPC protocol that sends all data in the payload as CBOR encoded JSON.
      */
     SMITHY_RPC_V2_CBOR,
 }

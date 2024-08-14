@@ -107,8 +107,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         if (contentType != null) {
             methodSpec.addCode(".contentType($S)", contentType);
-        } else if (model.getMetadata().getProtocol() == Protocol.SMITHY_RPC_V2_CBOR) {
-            methodSpec.addCode(".contentType($S)", "application/cbor");
         }
 
         if (metadata.getAwsQueryCompatible() != null) {

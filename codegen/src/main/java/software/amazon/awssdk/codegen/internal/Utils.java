@@ -334,15 +334,8 @@ public final class Utils {
         ShapeMarshaller marshaller = new ShapeMarshaller()
                 .withAction(operation.getName())
                 .withVerb(operation.getHttp().getMethod())
-                .withRequestUri(operation.getHttp().getRequestUri());
-
-        if (Protocol.fromValue(service.getProtocol()) == Protocol.SMITHY_RPC_V2_CBOR) {
-            // Every request for the rpcv2Cbor protocol MUST be sent to a URL with the following form:
-            // {prefix?}/service/{serviceName}/operation/{operationName}
-            marshaller.withRequestUri(String.format("/service/%s/operation/%s", service.getTargetPrefix() , operation.getName()));
-            marshaller.setSmithyProtocol("rpc-v2-cbor");
-        }
-
+                .withRequestUri(operation.getHttp().getRequestUri())
+                .withSmithyProtocol(getSmithyProtocol(service.getProtocol()));
         Input input = operation.getInput();
         if (input != null) {
             marshaller.setLocationName(input.getLocationName());
@@ -359,5 +352,14 @@ public final class Utils {
         }
         return marshaller;
 
+    }
+
+    private static String getSmithyProtocol(String protocol) {
+        switch(Protocol.fromValue(protocol)) {
+            case SMITHY_RPC_V2_CBOR:
+                return "rpc-v2-cbor";
+            default:
+                return null;
+        }
     }
 }

@@ -22,7 +22,6 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
-import software.amazon.awssdk.protocols.json.DefaultJsonContentTypeResolver;
 import software.amazon.awssdk.protocols.json.JsonContentTypeResolver;
 import software.amazon.awssdk.protocols.json.StructuredJsonFactory;
 import software.amazon.awssdk.protocols.rpcv2.internal.SdkStructuredRpcV2CborFactory;
@@ -36,7 +35,7 @@ public final class SmithyRpcV2CborProtocolFactory extends BaseAwsJsonProtocolFac
     /**
      * Content type resolver implementation for RPC_V2_CBOR enabled services.
      */
-    private static final JsonContentTypeResolver RPC_V2_CBOR = new DefaultJsonContentTypeResolver("application/cbor");
+    private static final JsonContentTypeResolver RPC_V2_CBOR = protocolMetadata -> "application/cbor";
 
     private SmithyRpcV2CborProtocolFactory(Builder builder) {
         super(builder);

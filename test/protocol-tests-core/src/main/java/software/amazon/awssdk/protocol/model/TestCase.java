@@ -56,14 +56,6 @@ public class TestCase {
         this.then = then;
     }
 
-    public String getIgnoreReason() {
-        return ignoreReason;
-    }
-
-    public void setIgnoreReason(String ignoreReason) {
-        this.ignoreReason = ignoreReason;
-    }
-
     @Override
     public String toString() {
         return description;

@@ -34,6 +34,7 @@ public final class DefaultCustomizationProcessor {
                 new ShapeSubstitutionsProcessor(config.getShapeSubstitutions()),
                 new CustomSdkShapesProcessor(config.getCustomSdkShapes()),
                 new OperationModifiersProcessor(config.getOperationModifiers()),
+                new SmithyRpcV2CbrProtocolProcessor(),
                 new RemoveExceptionMessagePropertyProcessor(),
                 new UseLegacyEventGenerationSchemeProcessor(),
                 new NewAndLegacyEventStreamProcessor(),
