@@ -22,7 +22,6 @@ public class TestCase {
     private Given given = new Given();
     private When when;
     private Then then;
-    private String ignoreReason;
 
     public String getDescription() {
         return description;

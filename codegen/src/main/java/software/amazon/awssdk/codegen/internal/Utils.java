@@ -355,7 +355,7 @@ public final class Utils {
     }
 
     private static String getSmithyProtocol(String protocol) {
-        switch(Protocol.fromValue(protocol)) {
+        switch (Protocol.fromValue(protocol)) {
             case SMITHY_RPC_V2_CBOR:
                 return "rpc-v2-cbor";
             default:
