@@ -362,13 +362,6 @@ class GenericS3TransferManager implements S3TransferManager {
                                                               r -> CompletedDownload.builder()
                                                                                     .result(r)
                                                                                     .build());
-            future.whenComplete((r, e) -> {
-                if (e != null) {
-                    log.error(() -> String.format("s3 client future completed exceptionally"), e);
-                } else {
-                    log.trace(() -> String.format("s3 client future completed : %s", r));
-                }
-            });
         } catch (Throwable throwable) {
             returnFuture.completeExceptionally(throwable);
         }
