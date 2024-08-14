@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.5__ __2024-08-14__
+## __AWS CodeBuild__
+- ### Features
+    - AWS CodeBuild now supports using Secrets Manager to store git credentials and using multiple source credentials in a single project.
+
+## __S3 Transfer Manager__
+- ### Features
+    - This change enables multipart download for S3 Transfer Manager with the java-based Multipart S3 Async Client.
+
 # __2.27.4__ __2024-08-13__
 ## __AWS Amplify__
   - ### Features

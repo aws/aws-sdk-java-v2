@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "S3 Transfer Manager",
-    "contributor": "",
-    "description": "This change enables multipart download for S3 Transfer Manager with the java-based Multipart S3 Async Client."
-}
