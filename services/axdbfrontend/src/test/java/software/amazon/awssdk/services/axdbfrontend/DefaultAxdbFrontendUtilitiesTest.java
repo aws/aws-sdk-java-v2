@@ -26,12 +26,10 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.axdbfrontend.internal.DefaultAxdbFrontendUtilities;
-import software.amazon.awssdk.services.axdbfrontend.internal.DefaultAxdbFrontendUtilities.DefaultBuilder;
+import software.amazon.awssdk.services.axdbfrontend.DefaultAxdbFrontendUtilities.DefaultBuilder;
 import software.amazon.awssdk.services.axdbfrontend.model.Action;
 import software.amazon.awssdk.services.axdbfrontend.model.GenerateAuthenticationTokenRequest;
 
