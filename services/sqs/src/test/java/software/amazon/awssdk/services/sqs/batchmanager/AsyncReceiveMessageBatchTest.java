@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs.BatchManager;
+package software.amazon.awssdk.services.sqs.batchmanager;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -47,7 +47,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.AsyncReceiveMessageBatch;
-import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
@@ -74,13 +73,11 @@ class AsyncReceiveMessageBatchTest {
                                                                                    .receiveMessageAttributeNames(Arrays.asList(
                                                                                        "attribute1", "attribute2"))
                                                                                    .visibilityTimeout(Duration.ofSeconds(20))
-                                                                                   .longPoll(true)
-                                                                                   .longPollWaitTimeoutSeconds(15)
+                                                                                   .longPollWaitTimeout(Duration.ofSeconds(15))
                                                                                    .build();
         config = new ResponseBatchConfiguration(batchOverrideConfig);
 
-        asyncReceiveMessageBatch = new AsyncReceiveMessageBatch(
-            scheduledExecutorService, queueUrl, sqsClient, visibilityTimeout, config);
+        asyncReceiveMessageBatch = new AsyncReceiveMessageBatch(queueUrl, sqsClient, visibilityTimeout, config);
     }
 
     @AfterEach
@@ -151,18 +148,18 @@ class AsyncReceiveMessageBatchTest {
         futureResponse.complete(response);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(futureResponse);
 
-        asyncReceiveMessageBatch.asyncReceiveMessage().get();
+        asyncReceiveMessageBatch.asyncReceiveMessage().get(3,TimeUnit.SECONDS);
         assertTrue(asyncReceiveMessageBatch.isEmpty());
     }
 
     @Test
-    public void concurrenclyTestForRemoveMessage() throws Exception {
+    public void concurrencyTestForRemoveMessage() throws Exception {
         // Mocking receiveMessage to return 10 messages
         ReceiveMessageResponse response = generateMessageResponse(10);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(CompletableFuture.completedFuture(response));
 
         // Calling asyncReceiveMessage to initialize messages
-        asyncReceiveMessageBatch.asyncReceiveMessage().join();
+        asyncReceiveMessageBatch.asyncReceiveMessage().get(3, TimeUnit.SECONDS);
 
         // Verify initial state
         assertEquals(10, asyncReceiveMessageBatch.messagesSize());
@@ -218,7 +215,7 @@ class AsyncReceiveMessageBatchTest {
         when(sqsClient.changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(ChangeMessageVisibilityBatchResponse.builder().build()));
 
-        asyncReceiveMessageBatch.asyncReceiveMessage().get();
+        asyncReceiveMessageBatch.asyncReceiveMessage().get(3, TimeUnit.SECONDS);
         asyncReceiveMessageBatch.clear();
 
         assertTrue(asyncReceiveMessageBatch.isEmpty());
@@ -242,34 +239,10 @@ class AsyncReceiveMessageBatchTest {
 
     }
 
-
-    @Test
-    public void accessingBatchBeforeBatchOpened_throwsException() {
-        // Test setup: creating a new instance of AsyncReceiveMessageBatch
-        AsyncReceiveMessageBatch batch = new AsyncReceiveMessageBatch(scheduledExecutorService, "queueUrl", sqsClient
-            , Duration.ofSeconds(30), config);
-
-        // Verifying that the batch is not open initially
-        assertThrows(IllegalStateException.class, batch::getException, "Expected checkIfOpen to throw, but it didn't");
-        assertThrows(IllegalStateException.class, batch::removeMessage, "Expected checkIfOpen to throw, but it didn't");
-
-        // Mocking receiveMessage to return a single message to open the batch
-        ReceiveMessageResponse response = generateMessageResponse(1);
-        when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(CompletableFuture.completedFuture(response));
-
-        // Calling asyncReceiveMessage to open the batch
-        batch.asyncReceiveMessage().join();
-
-        // Verifying that checkIfOpen does not throw an exception now that the batch is open
-        assertDoesNotThrow(batch::removeMessage, "Expected checkIfOpen not to throw, but it did");
-    }
-
-
-
     @Test
     public void expiredBatchesClearsItself() throws Exception {
         // Test setup: creating a new instance of AsyncReceiveMessageBatch
-        AsyncReceiveMessageBatch batch = new AsyncReceiveMessageBatch(scheduledExecutorService, "queueUrl", sqsClient
+        AsyncReceiveMessageBatch batch = new AsyncReceiveMessageBatch("queueUrl", sqsClient
             , Duration.ofNanos(1), config);
 
         // Mocking receiveMessage to return a single message to open the batch
@@ -298,12 +271,11 @@ class AsyncReceiveMessageBatchTest {
                                                                                    .receiveMessageAttributeNames(Arrays.asList(
                                                                                        "custom1", "custom2"))
                                                                                    .visibilityTimeout(visibilityTimeout)
-                                                                                   .longPoll(true)
-                                                                                   .longPollWaitTimeoutSeconds(15)
+                                                                                   .longPollWaitTimeout(Duration.ofSeconds(15))
                                                                                    .build();
 
         AsyncReceiveMessageBatch batch = new AsyncReceiveMessageBatch(
-            scheduledExecutorService, queueUrl, sqsClient, visibilityTimeout, new ResponseBatchConfiguration(batchOverrideConfig));
+            queueUrl, sqsClient, visibilityTimeout, new ResponseBatchConfiguration(batchOverrideConfig));
 
 
         // Mocking receiveMessage to return a single message
@@ -312,7 +284,7 @@ class AsyncReceiveMessageBatchTest {
             .thenReturn(CompletableFuture.completedFuture(response));
 
         // Call asyncReceiveMessage
-        batch.asyncReceiveMessage().join();
+        batch.asyncReceiveMessage().get(3, TimeUnit.SECONDS);
 
         // Verify that receiveMessage was called with the correct arguments
         ReceiveMessageRequest expectedRequest = ReceiveMessageRequest.builder()

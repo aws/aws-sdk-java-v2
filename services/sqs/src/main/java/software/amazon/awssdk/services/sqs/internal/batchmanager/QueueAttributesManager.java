@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -30,6 +31,22 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.utils.Validate;
 
+
+/**
+ * The {@code QueueAttributesManager} class is responsible for managing and retrieving specific attributes
+ * of an AWS SQS queue, such as message wait time and visibility timeout. It efficiently caches these attributes
+ * to minimize redundant API calls to SQS, ensuring that the attributes are fetched only once and reused in subsequent requests.
+ *
+ * <p>This class uses an {@link AtomicReference} to maintain the state of the attribute map, allowing concurrent access
+ * and handling cases where the fetching of attributes may fail. If an error occurs during the retrieval of attributes,
+ * the state is reset to allow for a fresh attempt in subsequent calls.</p>
+ *
+ * <p>The class provides methods to get the visibility timeout and calculate the message receive timeout, which
+ * are asynchronously retrieved and processed using {@link CompletableFuture}. These methods handle cancellation
+ * scenarios by cancelling the SQS request if the calling future is cancelled.</p>
+ *
+ * <p>This class is intended for internal use and is marked with the {@link SdkInternalApi} annotation.</p>
+ */
 @SdkInternalApi
 public final class QueueAttributesManager {
 
@@ -67,7 +84,7 @@ public final class QueueAttributesManager {
         });
 
         resultFuture.whenComplete((r, t) -> {
-            if (resultFuture.isCancelled()) {
+            if (t instanceof CancellationException) {
                 attributeFuture.cancel(true);
             }
         });
@@ -88,7 +105,7 @@ public final class QueueAttributesManager {
         });
 
         resultFuture.whenComplete((r, t) -> {
-            if (resultFuture.isCancelled()) {
+            if (t instanceof CancellationException) {
                 attributeFuture.cancel(true);
             }
         });
@@ -106,21 +123,28 @@ public final class QueueAttributesManager {
         CompletableFuture<Map<QueueAttributeName, String>> future = queueAttributeMap.get();
 
         if (future == null || future.isCompletedExceptionally()) {
-            CompletableFuture<Map<QueueAttributeName, String>> newFuture = fetchQueueAttributes();
+            CompletableFuture<Map<QueueAttributeName, String>> newFuture = new CompletableFuture<>();
+
             if (queueAttributeMap.compareAndSet(future, newFuture)) {
-                newFuture.whenComplete((r, t) -> {
+                // Only one thread will execute this block and fetch the attributes.
+                fetchQueueAttributes().whenComplete((r, t) -> {
                     if (t != null) {
-                        queueAttributeMap.compareAndSet(newFuture, null);
+                        queueAttributeMap.set(null); // Reset on failure
+                        newFuture.completeExceptionally(t); // Complete the future exceptionally
+                    } else {
+                        newFuture.complete(r); // Complete the future with the result
                     }
                 });
                 return newFuture;
+            } else {
+                // If another thread already set the future, cancel this one and use the existing one.
+                newFuture.cancel(true);
+                return queueAttributeMap.get(); // Return the future set by the winning thread
             }
-            return queueAttributeMap.get();
         }
 
         return future;
     }
-
 
     /**
      * Fetches the queue attributes from SQS and completes the provided future with the result.

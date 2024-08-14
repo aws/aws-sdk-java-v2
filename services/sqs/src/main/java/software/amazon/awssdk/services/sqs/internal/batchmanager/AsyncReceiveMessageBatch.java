@@ -17,13 +17,10 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -34,6 +31,7 @@ import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRes
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.NumericUtils;
 
 /**
  * The {@code AsyncReceiveMessageBatch} class forms a {@link  ReceiveMessageRequest} request based on configuration settings,
@@ -49,20 +47,18 @@ import software.amazon.awssdk.utils.Logger;
 public class AsyncReceiveMessageBatch {
 
     private static final Logger log = Logger.loggerFor(AsyncReceiveMessageBatch.class);
-
-    private final ScheduledExecutorService scheduledExecutorService;
     private final String queueUrl;
     private final SqsAsyncClient asyncClient;
     private final Duration visibilityTimeout;
     private final ResponseBatchConfiguration config;
-    private final AtomicBoolean open = new AtomicBoolean(false);
     private volatile Throwable exception;
-    private List<Message> messages;
+    private volatile List<Message> messages = new CopyOnWriteArrayList<>();
     private long visibilityDeadlineNano;
 
-    public AsyncReceiveMessageBatch(ScheduledExecutorService scheduledExecutorService, String queueUrl,
-                                    SqsAsyncClient asyncClient, Duration visibilityTimeout, ResponseBatchConfiguration config) {
-        this.scheduledExecutorService = scheduledExecutorService;
+    public AsyncReceiveMessageBatch(String queueUrl,
+                                    SqsAsyncClient asyncClient,
+                                    Duration visibilityTimeout,
+                                    ResponseBatchConfiguration config) {
         this.queueUrl = queueUrl;
         this.asyncClient = asyncClient;
         this.visibilityTimeout = visibilityTimeout;
@@ -77,10 +73,10 @@ public class AsyncReceiveMessageBatch {
                                  .messageAttributeNames(config.receiveMessageAttributeNames())
                                  .messageAttributeNames(config.receiveMessageAttributeNames());
 
-        request.visibilityTimeout((int) this.visibilityTimeout.get(ChronoUnit.SECONDS));
+        request.visibilityTimeout(NumericUtils.saturatedCast(this.visibilityTimeout.getSeconds()));
 
-        if (config.longPoll()) {
-            request.waitTimeSeconds(config.longPollWaitTimeoutSeconds());
+        if (config.longPollWaitTimeout() != null) {
+            request.waitTimeSeconds(NumericUtils.saturatedCast(config.longPollWaitTimeout().getSeconds()));
         }
         try {
             return asyncClient.receiveMessage(request.build())
@@ -88,9 +84,8 @@ public class AsyncReceiveMessageBatch {
                                   if (throwable != null) {
                                       setException(throwable);
                                   } else {
-                                      messages = new ArrayList<>(response.messages());
+                                      messages = new CopyOnWriteArrayList<>(response.messages());
                                   }
-                                  open.set(true);
                                   return this;
                               });
         } finally {
@@ -104,7 +99,6 @@ public class AsyncReceiveMessageBatch {
     }
 
     public Throwable getException() {
-        checkIfOpen();
         return exception;
     }
 
@@ -113,7 +107,6 @@ public class AsyncReceiveMessageBatch {
     }
 
     public Message removeMessage() {
-        checkIfOpen();
         if (isExpired()) {
             clear();
             return null;
@@ -159,12 +152,6 @@ public class AsyncReceiveMessageBatch {
                                                                                               .build();
 
         return asyncClient.changeMessageVisibilityBatch(batchRequest);
-    }
-
-    private void checkIfOpen() {
-        if (!open.get()) {
-            throw new IllegalStateException("Batch is not open");
-        }
     }
 
     public Integer messagesSize() {

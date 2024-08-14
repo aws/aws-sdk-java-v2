@@ -108,7 +108,7 @@ public class ReceiveQueueBuffer {
             int toSpawn = max - inflightReceiveMessageBatches.get();
             if (toSpawn > 0) {
                 AsyncReceiveMessageBatch asyncReceiveMessageBatch = new AsyncReceiveMessageBatch(
-                    executor, queueUrl, sqsClient, visibilityTimeoutNanos, config);
+                    queueUrl, sqsClient, visibilityTimeoutNanos, config);
                 inflightReceiveMessageBatches.incrementAndGet();
                 asyncReceiveMessageBatch.asyncReceiveMessage()
                                         .whenComplete((response, exception) -> reportBatchFinished(response));

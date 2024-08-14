@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs.BatchManager;
+package software.amazon.awssdk.services.sqs.batchmanager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +34,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ReceiveBatchManager;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration;
 
@@ -86,7 +85,7 @@ public class ReceiveBatchManagerTest {
 
     private ResponseBatchConfiguration createConfig(int maxBatchItems, boolean adaptivePrefetching,
                                                     int maxInflightReceiveBatches, int maxDoneReceiveBatches,
-                                                    Duration minReceiveWaitTimeMs) {
+                                                    Duration minReceiveWaitTime) {
         return new ResponseBatchConfiguration(BatchOverrideConfiguration.builder()
                                                                         .maxBatchItems(maxBatchItems)
                                                                         .adaptivePrefetching(adaptivePrefetching)
@@ -94,8 +93,7 @@ public class ReceiveBatchManagerTest {
                                                                         .maxDoneReceiveBatches(maxDoneReceiveBatches)
                                                                         .receiveMessageAttributeNames(Collections.emptyList())
                                                                         .visibilityTimeout(Duration.ofSeconds(2))
-                                                                        .longPoll(false)
-                                                                        .minReceiveWaitTimeMs(minReceiveWaitTimeMs)
+                                                                        .minReceiveWaitTime(minReceiveWaitTime)
                                                                         .build());
     }
 

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs.BatchManager;
+package software.amazon.awssdk.services.sqs.batchmanager;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
-import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -36,13 +35,27 @@ class BatchOverrideConfigurationTest {
 
     private static Stream<Arguments> provideConfigurations() {
         return Stream.of(
-            Arguments.of(10, 5, Duration.ofMillis(200), Duration.ofSeconds(30), 20, Duration.ofMillis(50), Arrays.asList("attr1"),
-                         Arrays.asList("msgAttr1"), true,
-                         false, 10, 5),
-            Arguments.of(null, null, null, null, null, null, null, null, null, null, null, null),
-            Arguments.of(1, 1, Duration.ofMillis(1), Duration.ofMillis(1), 1, Duration.ofMillis(1), Collections.emptyList(),
+            Arguments.of(10,
+                         5,
+                         Duration.ofMillis(200),
+                         Duration.ofSeconds(30),
+                         Duration.ofSeconds(20),
+                         Duration.ofMillis(50),
+                         Arrays.asList("attr1"),
+                         Arrays.asList("msgAttr1"),
+                         true,
+                         10,
+                         5),
+            Arguments.of(null, null, null, null, null, null, null, null, null , null, null),
+            Arguments.of(1,
+                         1,
+                         Duration.ofMillis(1),
+                         Duration.ofMillis(1),
+                         Duration.ofMillis(1),
+                         Duration.ofMillis(1),
                          Collections.emptyList(),
-                         false, true
+                         Collections.emptyList(),
+                         false
                 , 5, 2)
         );
     }
@@ -51,38 +64,36 @@ class BatchOverrideConfigurationTest {
     @MethodSource("provideConfigurations")
     void testBatchOverrideConfiguration(Integer maxBatchItems, Integer maxBatchKeys,
                                         Duration maxBatchOpenDuration, Duration visibilityTimeout,
-                                        Integer longPollWaitTimeoutSeconds, Duration minReceiveWaitTimeMs,
+                                        Duration longPollWaitTimeout, Duration minReceiveWaitTime,
                                         List<String> receiveAttributeNames, List<String> receiveMessageAttributeNames,
-                                        Boolean adaptivePrefetching, Boolean longPoll, Integer maxInflightReceiveBatches,
+                                        Boolean adaptivePrefetching, Integer maxInflightReceiveBatches,
                                         Integer maxDoneReceiveBatches) {
 
         BatchOverrideConfiguration config = BatchOverrideConfiguration.builder()
                                                                       .maxBatchItems(maxBatchItems)
                                                                       .maxBatchKeys(maxBatchKeys)
-                                                                      .maxBatchOpenInMs(maxBatchOpenDuration)
+                                                                      .maxBatchOpenDuration(maxBatchOpenDuration)
                                                                       .visibilityTimeout(visibilityTimeout)
-                                                                      .longPollWaitTimeoutSeconds(longPollWaitTimeoutSeconds)
-                                                                      .minReceiveWaitTimeMs(minReceiveWaitTimeMs)
+                                                                      .longPollWaitTimeout(longPollWaitTimeout)
+                                                                      .minReceiveWaitTime(minReceiveWaitTime)
                                                                       .receiveAttributeNames(receiveAttributeNames)
                                                                       .receiveMessageAttributeNames(receiveMessageAttributeNames)
                                                                       .adaptivePrefetching(adaptivePrefetching)
-                                                                      .longPoll(longPoll)
                                                                       .maxInflightReceiveBatches(maxInflightReceiveBatches)
                                                                       .maxDoneReceiveBatches(maxDoneReceiveBatches)
                                                                       .build();
 
         assertEquals(Optional.ofNullable(maxBatchItems), config.maxBatchItems());
         assertEquals(Optional.ofNullable(maxBatchKeys), config.maxBatchKeys());
-        assertEquals(Optional.ofNullable(maxBatchOpenDuration), config.maxBatchOpenInMs());
+        assertEquals(Optional.ofNullable(maxBatchOpenDuration), config.maxBatchOpenDuration());
         assertEquals(Optional.ofNullable(visibilityTimeout), config.visibilityTimeout());
-        assertEquals(Optional.ofNullable(longPollWaitTimeoutSeconds), config.longPollWaitTimeoutSeconds());
-        assertEquals(Optional.ofNullable(minReceiveWaitTimeMs), config.minReceiveWaitTimeMs());
+        assertEquals(Optional.ofNullable(longPollWaitTimeout), config.longPollWaitTimeout());
+        assertEquals(Optional.ofNullable(minReceiveWaitTime), config.minReceiveWaitTime());
         assertEquals(Optional.ofNullable(receiveAttributeNames).orElse(Collections.emptyList()),
                      config.receiveAttributeNames().orElse(Collections.emptyList()));
         assertEquals(Optional.ofNullable(receiveMessageAttributeNames).orElse(Collections.emptyList()),
                      config.receiveMessageAttributeNames().orElse(Collections.emptyList()));
         assertEquals(Optional.ofNullable(adaptivePrefetching), config.adaptivePrefetching());
-        assertEquals(Optional.ofNullable(longPoll), config.longPoll());
         assertEquals(Optional.ofNullable(maxInflightReceiveBatches), config.maxInflightReceiveBatches());
         assertEquals(Optional.ofNullable(maxDoneReceiveBatches), config.maxDoneReceiveBatches());
     }
@@ -99,15 +110,14 @@ class BatchOverrideConfigurationTest {
         BatchOverrideConfiguration originalConfig = BatchOverrideConfiguration.builder()
                                                                               .maxBatchItems(10)
                                                                               .maxBatchKeys(5)
-                                                                              .maxBatchOpenInMs(Duration.ofMillis(200))
+                                                                              .maxBatchOpenDuration(Duration.ofMillis(200))
                                                                               .visibilityTimeout(Duration.ofSeconds(30))
-                                                                              .longPollWaitTimeoutSeconds(20)
-                                                                              .minReceiveWaitTimeMs(Duration.ofMillis(50))
+                                                                              .longPollWaitTimeout(Duration.ofSeconds(20))
+                                                                              .minReceiveWaitTime(Duration.ofMillis(50))
                                                                               .receiveAttributeNames(Arrays.asList("attr1"))
                                                                               .receiveMessageAttributeNames(Arrays.asList(
                                                                                   "msgAttr1"))
                                                                               .adaptivePrefetching(true)
-                                                                              .longPoll(true)
                                                                               .maxInflightReceiveBatches(10)
                                                                               .maxDoneReceiveBatches(5)
                                                                               .build();

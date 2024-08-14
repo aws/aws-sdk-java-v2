@@ -27,7 +27,7 @@ public final class ResponseBatchConfiguration {
 
     public static final boolean LONG_POLL_DEFAULT = true;
     public static final Duration VISIBILITY_TIMEOUT_SECONDS_DEFAULT = null;
-    public static final int LONGPOLL_WAIT_TIMEOUT_SECONDS_DEFAULT = 20;
+    public static final Duration LONG_POLL_WAIT_TIMEOUT_DEFAULT = Duration.ofSeconds(20);
     public static final Duration MIN_RECEIVE_WAIT_TIME_MS_DEFAULT = Duration.ofMillis(50);
     public static final List<String> RECEIVE_MESSAGE_ATTRIBUTE_NAMES_DEFAULT = Collections.emptyList();
     public static final List<String> RECEIVE_ATTRIBUTE_NAMES_DEFAULT = Collections.emptyList();
@@ -36,9 +36,8 @@ public final class ResponseBatchConfiguration {
     public static final int MAX_INFLIGHT_RECEIVE_BATCHES_DEFAULT = 10;
     public static final int MAX_DONE_RECEIVE_BATCHES_DEFAULT = 10;
 
-    private final boolean longPoll;
     private final Duration visibilityTimeout;
-    private final Integer longPollWaitTimeoutSeconds;
+    private final Duration longPollWaitTimeout;
     private final Duration minReceiveWaitTime;
     private final List<String> receiveAttributeNames;
     private final List<String> receiveMessageAttributeNames;
@@ -49,12 +48,11 @@ public final class ResponseBatchConfiguration {
 
     public ResponseBatchConfiguration(BatchOverrideConfiguration overrideConfiguration) {
         Optional<BatchOverrideConfiguration> configuration = Optional.ofNullable(overrideConfiguration);
-        this.longPoll = configuration.flatMap(BatchOverrideConfiguration::longPoll).orElse(LONG_POLL_DEFAULT);
         this.visibilityTimeout = configuration.flatMap(BatchOverrideConfiguration::visibilityTimeout)
                                               .orElse(VISIBILITY_TIMEOUT_SECONDS_DEFAULT);
-        this.longPollWaitTimeoutSeconds = configuration.flatMap(BatchOverrideConfiguration::longPollWaitTimeoutSeconds)
-                                                       .orElse(LONGPOLL_WAIT_TIMEOUT_SECONDS_DEFAULT);
-        this.minReceiveWaitTime = configuration.flatMap(BatchOverrideConfiguration::minReceiveWaitTimeMs)
+        this.longPollWaitTimeout = configuration.flatMap(BatchOverrideConfiguration::longPollWaitTimeout)
+                                                .orElse(LONG_POLL_WAIT_TIMEOUT_DEFAULT);
+        this.minReceiveWaitTime = configuration.flatMap(BatchOverrideConfiguration::minReceiveWaitTime)
                                                .orElse(MIN_RECEIVE_WAIT_TIME_MS_DEFAULT);
         this.receiveAttributeNames = configuration.flatMap(BatchOverrideConfiguration::receiveAttributeNames)
                                                   .orElse(RECEIVE_ATTRIBUTE_NAMES_DEFAULT);
@@ -70,16 +68,12 @@ public final class ResponseBatchConfiguration {
                                                   .orElse(MAX_DONE_RECEIVE_BATCHES_DEFAULT);
     }
 
-    public boolean longPoll() {
-        return longPoll;
-    }
-
     public Duration visibilityTimeout() {
         return visibilityTimeout;
     }
 
-    public int longPollWaitTimeoutSeconds() {
-        return longPollWaitTimeoutSeconds;
+    public Duration longPollWaitTimeout() {
+        return longPollWaitTimeout;
     }
 
     public Duration minReceiveWaitTime() {

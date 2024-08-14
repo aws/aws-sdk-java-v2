@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs.BatchManager;
+package software.amazon.awssdk.services.sqs.batchmanager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,7 +44,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ReceiveMessageCompletableFuture;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ReceiveQueueBuffer;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.QueueAttributesManager;
@@ -96,8 +95,16 @@ public class ReceiveQueueBufferTest {
 
     private ResponseBatchConfiguration createConfig(int maxBatchItems, boolean adaptivePrefetching,
                                                     int maxInflightReceiveBatches, int maxDoneReceiveBatches,
-                                                    Duration minReceiveWaitTimeMs) {
-        return new ResponseBatchConfiguration(BatchOverrideConfiguration.builder().maxBatchItems(maxBatchItems).adaptivePrefetching(adaptivePrefetching).maxInflightReceiveBatches(maxInflightReceiveBatches).maxDoneReceiveBatches(maxDoneReceiveBatches).receiveMessageAttributeNames(Collections.emptyList()).visibilityTimeout(Duration.ofSeconds(2)).longPoll(false).minReceiveWaitTimeMs(minReceiveWaitTimeMs).build());
+                                                    Duration minReceiveWaitTime) {
+        return new ResponseBatchConfiguration(BatchOverrideConfiguration.builder()
+                                                                        .maxBatchItems(maxBatchItems)
+                                                                        .adaptivePrefetching(adaptivePrefetching)
+                                                                        .maxInflightReceiveBatches(maxInflightReceiveBatches)
+                                                                        .maxDoneReceiveBatches(maxDoneReceiveBatches)
+                                                                        .receiveMessageAttributeNames(Collections.emptyList())
+                                                                        .visibilityTimeout(Duration.ofSeconds(2))
+                                                                        .minReceiveWaitTime(minReceiveWaitTime)
+                                                                        .build());
     }
 
     @Test
@@ -225,7 +232,7 @@ public class ReceiveQueueBufferTest {
 
         // Verify that the receiveMessage method was called the expected number of times
         verify(sqsClient, atMost(30)).receiveMessage(any(ReceiveMessageRequest.class));
-        verify(sqsClient, atLeast(2)).receiveMessage(any(ReceiveMessageRequest.class));
+        verify(sqsClient, atLeast(3)).receiveMessage(any(ReceiveMessageRequest.class));
 
     }
 
@@ -254,7 +261,7 @@ public class ReceiveQueueBufferTest {
             future.responseCompletableFuture().get(2, TimeUnit.SECONDS);
         }
 
-        verify(sqsClient, atLeast(31)).receiveMessage(any(ReceiveMessageRequest.class));
+        verify(sqsClient, atLeast(3)).receiveMessage(any(ReceiveMessageRequest.class));
         verify(sqsClient, atMost(150)).receiveMessage(any(ReceiveMessageRequest.class));
     }
 

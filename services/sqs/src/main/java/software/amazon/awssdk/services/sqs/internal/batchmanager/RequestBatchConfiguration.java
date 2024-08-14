@@ -31,19 +31,19 @@ public final class RequestBatchConfiguration {
     private final Integer maxBatchItems;
     private final Integer maxBatchKeys;
     private final Integer maxBufferSize;
-    private final Duration maxBatchOpenInMs;
+    private final Duration maxBatchOpenDuration;
 
     public RequestBatchConfiguration(BatchOverrideConfiguration overrideConfiguration) {
         Optional<BatchOverrideConfiguration> configuration = Optional.ofNullable(overrideConfiguration);
         this.maxBatchItems = configuration.flatMap(BatchOverrideConfiguration::maxBatchItems).orElse(DEFAULT_MAX_BATCH_ITEMS);
         this.maxBatchKeys = configuration.flatMap(BatchOverrideConfiguration::maxBatchKeys).orElse(DEFAULT_MAX_BATCH_KEYS);
         this.maxBufferSize = configuration.flatMap(BatchOverrideConfiguration::maxBufferSize).orElse(DEFAULT_MAX_BUFFER_SIZE);
-        this.maxBatchOpenInMs = configuration.flatMap(BatchOverrideConfiguration::maxBatchOpenInMs)
+        this.maxBatchOpenDuration = configuration.flatMap(BatchOverrideConfiguration::maxBatchOpenDuration)
                                              .orElse(DEFAULT_MAX_BATCH_OPEN_IN_MS);
     }
 
-    public Duration maxBatchOpenInMs() {
-        return maxBatchOpenInMs;
+    public Duration maxBatchOpenDuration() {
+        return maxBatchOpenDuration;
     }
 
     public int maxBatchItems() {
