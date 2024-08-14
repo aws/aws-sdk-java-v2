@@ -67,7 +67,7 @@ class ResumableFileDownloadSerializerTest {
 
     @ParameterizedTest
     @MethodSource("downloadObjects")
-    void serializeDeserialize_ShouldWorkForAllDownloads(ResumableFileDownload download)  {
+    void serializeDeserialize_ShouldWorkForAllDownloads(ResumableFileDownload download) {
         byte[] serializedDownload = ResumableFileDownloadSerializer.toJson(download);
         ResumableFileDownload deserializedDownload = ResumableFileDownloadSerializer.fromJson(serializedDownload);
 
@@ -75,7 +75,7 @@ class ResumableFileDownloadSerializerTest {
     }
 
     @Test
-    void serializeDeserialize_fromStoredString_ShouldWork()  {
+    void serializeDeserialize_fromStoredString_ShouldWork() {
         ResumableFileDownload download =
             ResumableFileDownload.builder()
                                  .downloadFileRequest(d -> d.destination(Paths.get("test/request"))
@@ -95,12 +95,12 @@ class ResumableFileDownloadSerializerTest {
     }
 
     @Test
-    void serializeDeserialize_DoesNotPersistConfiguration()  {
+    void serializeDeserialize_DoesNotPersistConfiguration() {
         ResumableFileDownload download =
             ResumableFileDownload.builder()
                                  .downloadFileRequest(d -> d.destination(PATH)
                                                             .getObjectRequest(GET_OBJECT_REQUESTS.get("STANDARD"))
-                                     .addTransferListener(LoggingTransferListener.create()))
+                                                            .addTransferListener(LoggingTransferListener.create()))
                                  .bytesTransferred(1000L)
                                  .build();
 
@@ -113,7 +113,7 @@ class ResumableFileDownloadSerializerTest {
     }
 
     @Test
-    void serializeDeserialize_DoesNotPersistRequestOverrideConfiguration()  {
+    void serializeDeserialize_DoesNotPersistRequestOverrideConfiguration() {
         GetObjectRequest requestWithOverride =
             GetObjectRequest.builder()
                             .bucket("BUCKET")
@@ -139,6 +139,28 @@ class ResumableFileDownloadSerializerTest {
         assertThat(deserializedDownload).isEqualTo(download.copy(d -> d.downloadFileRequest(fileRequestCopy)));
     }
 
+    @Test
+    void serializeDeserialize_withCompletedParts_persistCompletedParts() {
+        ResumableFileDownload download =
+            ResumableFileDownload.builder()
+                                 .downloadFileRequest(d -> d.destination(Paths.get("test/request"))
+                                                            .getObjectRequest(GET_OBJECT_REQUESTS.get("ALL_TYPES")))
+                                 .bytesTransferred(1000L)
+                                 .fileLastModified(parseIso8601Date("2022-03-08T10:15:30Z"))
+                                 .totalSizeInBytes(5000L)
+                                 .s3ObjectLastModified(parseIso8601Date("2022-03-10T08:21:00Z"))
+                                 .completedParts(Arrays.asList(1, 2, 3))
+                                 .build();
+        byte[] serializedDownload = ResumableFileDownloadSerializer.toJson(download);
+        assertThat(new String(serializedDownload, StandardCharsets.UTF_8))
+            .isEqualTo(SERIALIZED_DOWNLOAD_OBJECT_WITH_COMPLETED_PARTS);
+
+        ResumableFileDownload deserializedDownload = ResumableFileDownloadSerializer.fromJson(
+            SERIALIZED_DOWNLOAD_OBJECT_WITH_COMPLETED_PARTS.getBytes(StandardCharsets.UTF_8));
+        assertThat(deserializedDownload).isEqualTo(download);
+
+    }
+
     public static Collection<ResumableFileDownload> downloadObjects() {
         return Stream.of(differentDownloadSettings(),
                          differentGetObjects())
@@ -159,7 +181,8 @@ class ResumableFileDownloadSerializerTest {
             resumableFileDownload(1000L, null, null, null, request),
             resumableFileDownload(1000L, null, DATE1, null, request),
             resumableFileDownload(1000L, 2000L, DATE1, DATE2, request),
-            resumableFileDownload(Long.MAX_VALUE, Long.MAX_VALUE, DATE1, DATE2, request)
+            resumableFileDownload(Long.MAX_VALUE, Long.MAX_VALUE, DATE1, DATE2, request),
+            resumableFileDownload(1000L, 2000L, DATE1, DATE2, request, Arrays.asList(1, 2, 3))
         );
     }
 
@@ -182,6 +205,16 @@ class ResumableFileDownloadSerializerTest {
         }
         return builder.build();
     }
+    private static ResumableFileDownload resumableFileDownload(Long bytesTransferred,
+                                                               Long totalSizeInBytes,
+                                                               Instant fileLastModified,
+                                                               Instant s3ObjectLastModified,
+                                                               DownloadFileRequest request,
+                                                               List<Integer> completedParts) {
+        ResumableFileDownload dl = resumableFileDownload(
+            bytesTransferred, totalSizeInBytes, fileLastModified, s3ObjectLastModified, request);
+        return dl.copy(b -> b.completedParts(completedParts));
+    }
 
     private static DownloadFileRequest downloadRequest(Path path, GetObjectRequest request) {
         return DownloadFileRequest.builder()
@@ -196,5 +229,16 @@ class ResumableFileDownloadSerializerTest {
                                                              + "\"getObjectRequest\":{\"Bucket\":\"BUCKET\","
                                                              + "\"If-Modified-Since\":1577880630.000,\"Key\":\"KEY\","
                                                              + "\"x-amz-request-payer\":\"requester\",\"partNumber\":1,"
-                                                             + "\"x-amz-checksum-mode\":\"ENABLED\"}}}";
+                                                             + "\"x-amz-checksum-mode\":\"ENABLED\"}},\"completedParts\":[]}";
+
+    private static final String SERIALIZED_DOWNLOAD_OBJECT_WITH_COMPLETED_PARTS =
+        "{\"bytesTransferred\":1000,"
+        + "\"fileLastModified\":1646734530.000,"
+        + "\"totalSizeInBytes\":5000,\"s3ObjectLastModified\":1646900460"
+        + ".000,\"downloadFileRequest\":{\"destination\":\"test/request\","
+        + "\"getObjectRequest\":{\"Bucket\":\"BUCKET\","
+        + "\"If-Modified-Since\":1577880630.000,\"Key\":\"KEY\","
+        + "\"x-amz-request-payer\":\"requester\",\"partNumber\":1,"
+        + "\"x-amz-checksum-mode\":\"ENABLED\"}},\"completedParts\":[1,2,3]}";
+
 }

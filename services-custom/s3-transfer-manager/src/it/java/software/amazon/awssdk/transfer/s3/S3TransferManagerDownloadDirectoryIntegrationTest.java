@@ -33,9 +33,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.opentest4j.AssertionFailedError;
 import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
@@ -97,6 +97,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         }
 
         closeQuietly(tmCrt, log.logger());
+        closeQuietly(tmJava, log.logger());
     }
 
     /**
@@ -116,21 +117,23 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      *   }
      * </pre>
      */
-    @Test
-    public void downloadDirectory() throws Exception {
-        DirectoryDownload downloadDirectory = tmCrt.downloadDirectory(u -> u.destination(directory)
-                                                                            .bucket(TEST_BUCKET));
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("transferManagers")
+    public void downloadDirectory(S3TransferManager tm) throws Exception {
+        DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destination(directory)
+                                                                         .bucket(TEST_BUCKET));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
         assertTwoDirectoriesHaveSameStructure(sourceDirectory, directory);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"notes/2021", "notes/2021/"})
-    void downloadDirectory_withPrefix(String prefix) throws Exception {
-        DirectoryDownload downloadDirectory = tmCrt.downloadDirectory(u -> u.destination(directory)
-                                                                            .listObjectsV2RequestTransformer(r -> r.prefix(prefix))
-                                                                            .bucket(TEST_BUCKET));
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("prefixTestArguments")
+    void downloadDirectory_withPrefix(S3TransferManager tm, String prefix) throws Exception {
+        DirectoryDownload downloadDirectory =
+            tm.downloadDirectory(u -> u.destination(directory)
+                                       .listObjectsV2RequestTransformer(r -> r.prefix(prefix))
+                                       .bucket(TEST_BUCKET));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
 
@@ -152,12 +155,14 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      *   }
      * </pre>
      */
-    @Test
-    void downloadDirectory_containsObjectWithPrefixInTheKey_shouldResolveCorrectly() throws Exception {
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("transferManagers")
+    void downloadDirectory_containsObjectWithPrefixInTheKey_shouldResolveCorrectly(S3TransferManager tm)
+        throws Exception {
         String prefix = "notes";
-        DirectoryDownload downloadDirectory = tmCrt.downloadDirectory(u -> u.destination(directory)
-                                                                            .listObjectsV2RequestTransformer(r -> r.prefix(prefix))
-                                                                            .bucket(TEST_BUCKET));
+        DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destination(directory)
+                                                                         .listObjectsV2RequestTransformer(r -> r.prefix(prefix))
+                                                                         .bucket(TEST_BUCKET));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
 
@@ -182,14 +187,15 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      *   }
      * </pre>
      */
-    @Test
-    public void downloadDirectory_withPrefixAndDelimiter() throws Exception {
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("transferManagers")
+    public void downloadDirectory_withPrefixAndDelimiter(S3TransferManager tm) throws Exception {
         String prefix = "notes-2021";
         DirectoryDownload downloadDirectory =
-            tmCrt.downloadDirectory(u -> u.destination(directory)
-                                          .listObjectsV2RequestTransformer(r -> r.delimiter(CUSTOM_DELIMITER)
+            tm.downloadDirectory(u -> u.destination(directory)
+                                       .listObjectsV2RequestTransformer(r -> r.delimiter(CUSTOM_DELIMITER)
                                                                               .prefix(prefix))
-                                          .bucket(TEST_BUCKET_CUSTOM_DELIMITER));
+                                       .bucket(TEST_BUCKET_CUSTOM_DELIMITER));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
         assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve("notes").resolve("2021"), directory);
@@ -206,9 +212,10 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      *   }
      * </pre>
      */
-    @Test
-    public void downloadDirectory_withFilter() throws Exception {
-        DirectoryDownload downloadDirectory = tmCrt.downloadDirectory(u -> u
+    @ParameterizedTest(autoCloseArguments = false)
+    @MethodSource("transferManagers")
+    public void downloadDirectory_withFilter(S3TransferManager tm) throws Exception {
+        DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u
             .destination(directory)
             .bucket(TEST_BUCKET)
             .filter(s3Object -> s3Object.key().startsWith("notes/2021/2")));
@@ -295,5 +302,15 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         Files.write(Paths.get(directoryName, "notes", "important.txt"),
                     RandomStringUtils.random(100).getBytes(StandardCharsets.UTF_8));
         return directory;
+    }
+
+    private static Stream<Arguments> prefixTestArguments() {
+        String[] prefixes = {"notes/2021", "notes/2021/"};
+        return Stream.of(
+            Arguments.of(tmCrt, prefixes[0]),
+            Arguments.of(tmCrt, prefixes[1]),
+            Arguments.of(tmJava, prefixes[0]),
+            Arguments.of(tmJava, prefixes[1])
+        );
     }
 }
