@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.axdbfrontend.internal;
+package software.amazon.awssdk.services.axdbfrontend;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -30,7 +30,6 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.axdbfrontend.AxdbFrontendUtilities;
 import software.amazon.awssdk.services.axdbfrontend.model.GenerateAuthenticationTokenRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;

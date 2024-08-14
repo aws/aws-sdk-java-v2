@@ -21,7 +21,6 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.axdbfrontend.internal.DefaultAxdbFrontendUtilities;
 import software.amazon.awssdk.services.axdbfrontend.model.GenerateAuthenticationTokenRequest;
 
 /**
