@@ -57,15 +57,12 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
         JAVA, CRT
     }
 
-    private static Stream<Arguments> transferManagers() {
-        return Stream.of(
-            Arguments.of(TmType.JAVA),
-            Arguments.of(TmType.CRT)
-        );
+    private static Stream<Arguments> transferManagerTypes() {
+        return Stream.of(Arguments.of(TmType.JAVA), Arguments.of(TmType.CRT));
     }
 
     @ParameterizedTest
-    @MethodSource("transferManagers")
+    @MethodSource("transferManagerTypes")
     void copy_copiedObject_hasSameContent(TmType tmType) throws Exception {
         CaptureTransferListener transferListener = new CaptureTransferListener();
         byte[] originalContent = randomBytes(OBJ_SIZE);
@@ -75,7 +72,7 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
     }
 
     @ParameterizedTest
-    @MethodSource("transferManagers")
+    @MethodSource("transferManagerTypes")
     void copy_specialCharacters_hasSameContent(TmType tmType) throws Exception {
         CaptureTransferListener transferListener = new CaptureTransferListener();
         byte[] originalContent = randomBytes(OBJ_SIZE);

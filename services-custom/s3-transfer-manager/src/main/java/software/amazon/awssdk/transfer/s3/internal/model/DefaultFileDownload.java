@@ -17,9 +17,11 @@ package software.amazon.awssdk.transfer.s3.internal.model;
 
 import java.io.File;
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadUtils;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
@@ -81,12 +83,14 @@ public final class DefaultFileDownload implements FileDownload {
         File destination = request.destination().toFile();
         long length = destination.length();
         Instant fileLastModified = Instant.ofEpochMilli(destination.lastModified());
+        List<Integer> completedParts = MultipartDownloadUtils.completedParts(request.getObjectRequest());
         return ResumableFileDownload.builder()
                                     .downloadFileRequest(request)
                                     .s3ObjectLastModified(s3objectLastModified)
                                     .fileLastModified(fileLastModified)
                                     .bytesTransferred(length)
                                     .totalSizeInBytes(totalSizeInBytes)
+                                    .completedParts(completedParts)
                                     .build();
     }
 

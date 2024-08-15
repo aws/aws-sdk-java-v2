@@ -16,6 +16,7 @@
 package software.amazon.awssdk.stability.tests.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.stability.tests.utils.StabilityTestRunner.ALLOWED_MAX_PEAK_THREAD_COUNT;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,9 +62,17 @@ public abstract class S3AsyncBaseStabilityTest extends AwsTestBase {
                                  .build();
     }
 
+    private final int allowedPeakThreads;
+
     public S3AsyncBaseStabilityTest(S3AsyncClient testClient) {
+        this(testClient, ALLOWED_MAX_PEAK_THREAD_COUNT);
+    }
+
+    public S3AsyncBaseStabilityTest(S3AsyncClient testClient, int maxThreadCount) {
+        this.allowedPeakThreads = maxThreadCount;
         this.testClient = testClient;
     }
+
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
     public void largeObject_put_get_usingFile() {
@@ -87,7 +96,7 @@ public abstract class S3AsyncBaseStabilityTest extends AwsTestBase {
     protected void doGetBucketAcl_lowTpsLongInterval() {
         IntFunction<CompletableFuture<?>> future = i -> testClient.getBucketAcl(b -> b.bucket(getTestBucketName()));
         String className = this.getClass().getSimpleName();
-        StabilityTestRunner.newRunner()
+        StabilityTestRunner.newRunner(allowedPeakThreads)
                 .testName(className + ".getBucketAcl_lowTpsLongInterval")
                 .futureFactory(future)
                 .requestCountPerRun(10)
@@ -99,7 +108,7 @@ public abstract class S3AsyncBaseStabilityTest extends AwsTestBase {
 
     protected String downloadLargeObjectToFile() {
         File randomTempFile = RandomTempFile.randomUncreatedFile();
-        StabilityTestRunner.newRunner()
+        StabilityTestRunner.newRunner(allowedPeakThreads)
                 .testName("S3AsyncStabilityTest.downloadLargeObjectToFile")
                 .futures(testClient.getObject(b -> b.bucket(getTestBucketName()).key(LARGE_KEY_NAME),
                         AsyncResponseTransformer.toFile(randomTempFile)))
@@ -120,7 +129,7 @@ public abstract class S3AsyncBaseStabilityTest extends AwsTestBase {
         try {
             file = new RandomTempFile((long) 2e+9);
             String md5 = Md5Utils.md5AsBase64(file);
-            StabilityTestRunner.newRunner()
+            StabilityTestRunner.newRunner(allowedPeakThreads)
                     .testName("S3AsyncStabilityTest.uploadLargeObjectFromFile")
                     .futures(testClient.putObject(b -> b.bucket(getTestBucketName()).key(LARGE_KEY_NAME),
                             AsyncRequestBody.fromFile(file)))
@@ -144,7 +153,7 @@ public abstract class S3AsyncBaseStabilityTest extends AwsTestBase {
                     AsyncRequestBody.fromBytes(bytes));
         };
 
-        StabilityTestRunner.newRunner()
+        StabilityTestRunner.newRunner(allowedPeakThreads)
                 .testName("S3AsyncStabilityTest.putObject")
                 .futureFactory(future)
                 .requestCountPerRun(CONCURRENCY)
@@ -160,7 +169,7 @@ public abstract class S3AsyncBaseStabilityTest extends AwsTestBase {
             return testClient.getObject(b -> b.bucket(getTestBucketName()).key(keyName), AsyncResponseTransformer.toFile(path));
         };
 
-        StabilityTestRunner.newRunner()
+        StabilityTestRunner.newRunner(allowedPeakThreads)
                 .testName("S3AsyncStabilityTest.getObject")
                 .futureFactory(future)
                 .requestCountPerRun(CONCURRENCY)
@@ -183,7 +192,7 @@ public abstract class S3AsyncBaseStabilityTest extends AwsTestBase {
 
             client.deleteBucket(DeleteBucketRequest.builder().bucket(bucketName).build()).join();
         } catch (Exception e) {
-            log.error(() -> "Failed to delete bucket: " +bucketName);
+            log.error(() -> "Failed to delete bucket: " + bucketName, e);
         }
     }
 
