@@ -223,6 +223,8 @@ public class ReceiveQueueBufferTest {
             ReceiveMessageCompletableFuture future = new ReceiveMessageCompletableFuture(1, Duration.ofSeconds(1));
             futures.add(future);
             receiveQueueBuffer.receiveMessage(future);
+            Thread.sleep(10);
+
         }
 
         // Join all futures to ensure they complete
@@ -254,6 +256,7 @@ public class ReceiveQueueBufferTest {
             ReceiveMessageCompletableFuture future = new ReceiveMessageCompletableFuture(1, Duration.ofSeconds(1));
             futures.add(future);
             receiveQueueBuffer.receiveMessage(future);
+            Thread.sleep(10);
         }
 
         // Join all futures to ensure they complete
@@ -261,8 +264,7 @@ public class ReceiveQueueBufferTest {
             future.responseCompletableFuture().get(2, TimeUnit.SECONDS);
         }
 
-        verify(sqsClient, atLeast(3)).receiveMessage(any(ReceiveMessageRequest.class));
-        verify(sqsClient, atMost(150)).receiveMessage(any(ReceiveMessageRequest.class));
+        verify(sqsClient, atLeast(300)).receiveMessage(any(ReceiveMessageRequest.class));
     }
 
 
