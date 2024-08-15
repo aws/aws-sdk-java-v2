@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Storage Service",
+    "contributor": "",
+    "description": "Amazon Simple Storage Service / Features : Adds support for pagination in the S3 ListBuckets API."
+}
