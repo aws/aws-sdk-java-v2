@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DocumentDB with MongoDB compatibility",
-    "contributor": "",
-    "description": "This release adds Global Cluster Failover capability which enables you to change your global cluster's primary AWS region, the region that serves writes, during a regional outage. Performing a failover action preserves your Global Cluster setup."
-}
