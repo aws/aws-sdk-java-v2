@@ -28,4 +28,10 @@ public class EndpointRulesClientTestSpecTest {
         ClassSpec endpointProviderSpec = new EndpointRulesClientTestSpec(ClientTestModels.queryServiceModels());
         assertThat(endpointProviderSpec, generatesTo("endpoint-rules-test-class.java"));
     }
+
+    @Test
+    public void endpointProviderTestClassWithStringArray() {
+        ClassSpec endpointProviderSpec = new EndpointProviderTestSpec(ClientTestModels.stringArrayServiceModels());
+        assertThat(endpointProviderSpec, generatesTo("endpoint-rules-stringarray-test-class.java"));
+    }
 }
