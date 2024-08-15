@@ -204,7 +204,8 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
             return false;
         }
 
-        if (maxBatchOpenDuration != null ? !maxBatchOpenDuration.equals(that.maxBatchOpenDuration) : that.maxBatchOpenDuration != null) {
+        if (maxBatchOpenDuration != null ? !maxBatchOpenDuration.equals(that.maxBatchOpenDuration) :
+            that.maxBatchOpenDuration != null) {
             return false;
         }
         if (visibilityTimeout != null ? !visibilityTimeout.equals(that.visibilityTimeout) :
