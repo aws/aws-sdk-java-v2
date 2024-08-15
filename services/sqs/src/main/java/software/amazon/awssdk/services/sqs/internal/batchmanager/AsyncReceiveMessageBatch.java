@@ -18,9 +18,11 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -52,7 +54,7 @@ public class AsyncReceiveMessageBatch {
     private final Duration visibilityTimeout;
     private final ResponseBatchConfiguration config;
     private volatile Throwable exception;
-    private volatile List<Message> messages = new CopyOnWriteArrayList<>();
+    private volatile Queue<Message> messages = new ConcurrentLinkedQueue<>(); // Thread-safe queue
     private long visibilityDeadlineNano;
 
     public AsyncReceiveMessageBatch(String queueUrl,
@@ -84,7 +86,7 @@ public class AsyncReceiveMessageBatch {
                                   if (throwable != null) {
                                       setException(throwable);
                                   } else {
-                                      messages = new CopyOnWriteArrayList<>(response.messages());
+                                      messages.addAll(response.messages()); // Safely add new messages to the queue
                                   }
                                   return this;
                               });
@@ -111,7 +113,7 @@ public class AsyncReceiveMessageBatch {
             clear();
             return null;
         }
-        return messages.isEmpty() ? null : messages.remove(messages.size() - 1);
+        return messages.poll(); // Safely remove and return the head of the queue, or null if empty
     }
 
     public boolean isExpired() {
@@ -141,7 +143,8 @@ public class AsyncReceiveMessageBatch {
             IntStream.range(0, messages.size())
                      .mapToObj(i -> ChangeMessageVisibilityBatchRequestEntry.builder()
                                                                             .id(String.valueOf(i))
-                                                                            .receiptHandle(messages.get(i).receiptHandle())
+                                                                            .receiptHandle(Objects.requireNonNull(messages.poll())
+                                                                                                  .receiptHandle())
                                                                             .visibilityTimeout(0)
                                                                             .build())
                      .collect(Collectors.toList());
