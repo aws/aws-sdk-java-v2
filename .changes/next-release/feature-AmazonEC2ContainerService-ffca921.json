@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Service",
+    "contributor": "",
+    "description": "This release introduces a new ContainerDefinition configuration to support the customer-managed keys for ECS container restart feature."
+}
