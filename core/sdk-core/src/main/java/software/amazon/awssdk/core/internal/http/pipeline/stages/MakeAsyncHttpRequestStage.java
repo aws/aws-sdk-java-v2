@@ -135,8 +135,10 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         SdkHttpContentPublisher requestProvider = context.requestProvider() == null
                                                   ? new SimpleHttpContentPublisher(request)
                                                   : new SdkHttpContentPublisherAdapter(context.requestProvider());
+
+        AtomicLong bytesRead = context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ);
         requestProvider = ProgressListenerUtils.wrapWithByteTracking(
-            requestProvider, new AtomicLong(0L),
+            requestProvider, bytesRead,
             context.progressUpdater());
 
         // Set content length if it hasn't been set already.

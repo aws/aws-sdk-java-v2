@@ -73,9 +73,12 @@ public class MakeHttpRequestStage
 
         ContentStreamProvider contentStreamProvider = null;
         if (request.contentStreamProvider().isPresent()) {
+            AtomicLong bytesRead = context.executionAttributes()
+                                          .getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ);
+
             BytesReadTrackingInputStream wrappedByteTracking = ProgressListenerUtils.wrapWithBytesReadTrackingStream(
                 AbortableInputStream.create(request.contentStreamProvider().get().newStream()),
-                new AtomicLong(0L),
+                bytesRead,
                 context.progressUpdater());
 
             contentStreamProvider = ContentStreamProvider.fromInputStream(wrappedByteTracking);
