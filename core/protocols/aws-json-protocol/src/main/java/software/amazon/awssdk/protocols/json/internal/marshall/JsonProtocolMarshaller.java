@@ -39,6 +39,7 @@ import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.InstantToString;
 import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.core.OperationMetadataAttribute;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.core.ProtocolUtils;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter.ValueToString;
@@ -161,12 +162,16 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     }
 
     private SdkHttpFullRequest.Builder fillBasicRequestParams(OperationInfo operationInfo) {
-        return ProtocolUtils.createSdkHttpRequest(operationInfo, endpoint)
-                            .applyMutation(b -> {
-                                if (operationInfo.operationIdentifier() != null) {
-                                    b.putHeader("X-Amz-Target", operationInfo.operationIdentifier());
-                                }
-                            });
+        SdkHttpFullRequest.Builder requestBuilder = ProtocolUtils.createSdkHttpRequest(operationInfo, endpoint);
+        String operationIdentifier = operationInfo.operationIdentifier();
+        if (operationIdentifier != null) {
+            requestBuilder.putHeader("X-Amz-Target", operationIdentifier);
+        }
+        String smithyProtocol = operationInfo.addtionalMetadata(OperationMetadataAttribute.SMITHY_PROTOCOL);
+        if (smithyProtocol != null) {
+            requestBuilder.putHeader("smithy-protocol", smithyProtocol);
+        }
+        return requestBuilder;
     }
 
     /**
@@ -290,7 +295,9 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     }
 
     private boolean needTopLevelJsonObject() {
-        return AwsJsonProtocol.AWS_JSON.equals(protocolMetadata.protocol())
+        AwsJsonProtocol protocol = protocolMetadata.protocol();
+        return protocol == AwsJsonProtocol.AWS_JSON
+               || protocol == AwsJsonProtocol.SMITHY_RPC_V2_CBOR
                || (!hasExplicitPayloadMember && hasImplicitPayloadMembers);
 
     }

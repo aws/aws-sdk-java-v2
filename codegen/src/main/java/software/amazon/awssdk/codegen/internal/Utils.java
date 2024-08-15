@@ -29,6 +29,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
+import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
@@ -333,7 +334,8 @@ public final class Utils {
         ShapeMarshaller marshaller = new ShapeMarshaller()
                 .withAction(operation.getName())
                 .withVerb(operation.getHttp().getMethod())
-                .withRequestUri(operation.getHttp().getRequestUri());
+                .withRequestUri(operation.getHttp().getRequestUri())
+                .withSmithyProtocol(getSmithyProtocol(service.getProtocol()));
         Input input = operation.getInput();
         if (input != null) {
             marshaller.setLocationName(input.getLocationName());
@@ -343,12 +345,21 @@ public final class Utils {
                 marshaller.setXmlNameSpaceUri(xmlNamespace.getUri());
             }
         }
-        if (Metadata.isNotRestProtocol(service.getProtocol())) {
+        if (Metadata.usesOperationIdentifier(service.getProtocol())) {
             marshaller.setTarget(StringUtils.isEmpty(service.getTargetPrefix()) ?
                                  operation.getName() :
                                  service.getTargetPrefix() + "." + operation.getName());
         }
         return marshaller;
 
+    }
+
+    private static String getSmithyProtocol(String protocol) {
+        switch (Protocol.fromValue(protocol)) {
+            case SMITHY_RPC_V2_CBOR:
+                return "rpc-v2-cbor";
+            default:
+                return null;
+        }
     }
 }

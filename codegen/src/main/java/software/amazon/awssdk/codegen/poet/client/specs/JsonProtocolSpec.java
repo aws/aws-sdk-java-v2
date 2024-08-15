@@ -59,6 +59,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
+import software.amazon.awssdk.protocols.rpcv2.SmithyRpcV2CborProtocolFactory;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class JsonProtocolSpec implements ProtocolSpec {
@@ -131,6 +132,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
     private Class<?> protocolFactoryClass() {
         if (model.getMetadata().isCborProtocol()) {
             return AwsCborProtocolFactory.class;
+        } else if (model.getMetadata().isRpcV2CborProtocol()) {
+            return SmithyRpcV2CborProtocolFactory.class;
         } else {
             return AwsJsonProtocolFactory.class;
         }

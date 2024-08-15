@@ -23,6 +23,7 @@ public enum AwsServiceProtocol {
     AWS_JSON("json"),
     REST_JSON("rest-json"),
     CBOR("cbor"),
+    SMITHY_RPC_V2_CBOR("smithy-rpc-v2-cbor"),
     QUERY("query"),
     REST_XML("rest-xml");
 
