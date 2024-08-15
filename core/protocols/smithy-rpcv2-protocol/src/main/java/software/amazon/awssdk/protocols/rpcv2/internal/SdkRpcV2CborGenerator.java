@@ -100,7 +100,9 @@ public final class SdkRpcV2CborGenerator extends SdkJsonGenerator {
      * having enabled Feature.WRITE_MINIMAL_INTS will allow us to represent the floating point values minimally.
      */
     private static boolean canConvertToLong(double value) {
-        return ((double) (long) value) == value;
+        return ((double) (long) value) == value
+            && value >= Long.MIN_VALUE
+            && value <= Long.MAX_VALUE;
     }
 
     /**
@@ -108,6 +110,8 @@ public final class SdkRpcV2CborGenerator extends SdkJsonGenerator {
      * having enabled Feature.WRITE_MINIMAL_INTS will allow us to represent the floating point values minimally.
      */
     private static boolean canConvertToLong(float value) {
-        return ((float) (long) value) == value;
+        return ((float) (long) value) == value
+               && value >= Long.MIN_VALUE
+               && value <= Long.MAX_VALUE;
     }
 }

@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.StringUtils;
  * Adds a request URI that conform to the Smithy RPCv2 protocol to each operation in the model, if there's no URI already
  * defined.
  */
-public class SmithyRpcV2CbrProtocolProcessor implements CodegenCustomizationProcessor {
+public class SmithyRpcV2CborProtocolProcessor implements CodegenCustomizationProcessor {
     @Override
     public void preprocess(ServiceModel serviceModel) {
         if (!"smithy-rpc-v2-cbor".equals(serviceModel.getMetadata().getProtocol())) {
