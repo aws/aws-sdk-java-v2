@@ -167,9 +167,9 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         if (operationIdentifier != null) {
             requestBuilder.putHeader("X-Amz-Target", operationIdentifier);
         }
-        String smithyProtocol = operationInfo.addtionalMetadata(OperationMetadataAttribute.SMITHY_PROTOCOL);
-        if (smithyProtocol != null) {
-            requestBuilder.putHeader("smithy-protocol", smithyProtocol);
+        Map<String, String> extraHeaders = operationInfo.addtionalMetadata(OperationMetadataAttribute.HTTP_EXTRA_HEADERS);
+        if (extraHeaders != null) {
+            extraHeaders.forEach(requestBuilder::putHeader);
         }
         return requestBuilder;
     }

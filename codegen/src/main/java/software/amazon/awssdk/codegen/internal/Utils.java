@@ -29,7 +29,6 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
-import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
@@ -335,7 +334,7 @@ public final class Utils {
                 .withAction(operation.getName())
                 .withVerb(operation.getHttp().getMethod())
                 .withRequestUri(operation.getHttp().getRequestUri())
-                .withSmithyProtocol(getSmithyProtocol(service.getProtocol()));
+                .withProtocol(service.getProtocol());
         Input input = operation.getInput();
         if (input != null) {
             marshaller.setLocationName(input.getLocationName());
@@ -354,12 +353,13 @@ public final class Utils {
 
     }
 
-    private static String getSmithyProtocol(String protocol) {
-        switch (Protocol.fromValue(protocol)) {
-            case SMITHY_RPC_V2_CBOR:
-                return "rpc-v2-cbor";
-            default:
-                return null;
-        }
+    /**
+     * Create the ShapeMarshaller to the input shape from the specified Operation.
+     * The input shape in the operation could be empty.
+     */
+    public static ShapeMarshaller createSyntheticInputShapeMarshaller(ServiceMetadata service, Operation operation) {
+        ShapeMarshaller result = createInputShapeMarshaller(service, operation);
+        result.withIsSynthetic(true);
+        return result;
     }
 }

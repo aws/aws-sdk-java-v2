@@ -39,6 +39,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.core.OperationMetadataAttribute;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.internal.AwsStructuredPlainJsonFactory;
 import software.amazon.awssdk.protocols.json.internal.marshall.JsonProtocolMarshallerBuilder;
@@ -56,6 +57,11 @@ public abstract class BaseAwsJsonProtocolFactory {
      * Content type resolver implementation for plain text AWS_JSON services.
      */
     protected static final JsonContentTypeResolver AWS_JSON = new DefaultJsonContentTypeResolver("application/x-amz-json-");
+
+    /**
+     * Used by operations that do not serialize the input, e.g., when the input is not defined in the model. RPCv2 uses it.
+     */
+    public static final OperationMetadataAttribute<Boolean> USE_NO_OP_GENERATOR = new OperationMetadataAttribute<>(Boolean.class);
 
     private final AwsJsonProtocolMetadata protocolMetadata;
     private final List<ExceptionMetadata> modeledExceptions;
@@ -138,14 +144,15 @@ public abstract class BaseAwsJsonProtocolFactory {
     }
 
     private StructuredJsonGenerator createGenerator(OperationInfo operationInfo) {
+        Boolean useNoOp = operationInfo.addtionalMetadata(USE_NO_OP_GENERATOR);
         AwsJsonProtocol protocol = protocolMetadata.protocol();
-        if (operationInfo.hasPayloadMembers()
-            || protocol == AwsJsonProtocol.AWS_JSON
-            || protocol == AwsJsonProtocol.SMITHY_RPC_V2_CBOR) {
-            return createGenerator();
-        } else {
+        if (useNoOp == null) {
+            useNoOp = !(operationInfo.hasPayloadMembers() || protocol == AwsJsonProtocol.AWS_JSON);
+        }
+        if (useNoOp) {
             return StructuredJsonGenerator.NO_OP;
         }
+        return createGenerator();
     }
 
     @SdkTestInternalApi

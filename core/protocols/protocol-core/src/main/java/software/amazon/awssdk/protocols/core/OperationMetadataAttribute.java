@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.protocols.core;
 
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -28,12 +29,16 @@ import software.amazon.awssdk.utils.AttributeMap;
 public final class OperationMetadataAttribute<T> extends AttributeMap.Key<T> {
 
     /**
-     * Attribute for configuring the <code>smithy-protocol</code> header.
+     * Attribute for a protocol to configure extra headers for the operation.
      */
-    public static final OperationMetadataAttribute<String> SMITHY_PROTOCOL =
-        new OperationMetadataAttribute<>(String.class);
+    public static final OperationMetadataAttribute<Map<String, String>> HTTP_EXTRA_HEADERS =
+        new OperationMetadataAttribute<>(new UnsafeValueType(Map.class));
 
     public OperationMetadataAttribute(Class<T> valueType) {
         super(valueType);
+    }
+
+    public OperationMetadataAttribute(UnsafeValueType type) {
+        super(type);
     }
 }
