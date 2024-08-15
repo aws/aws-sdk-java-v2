@@ -52,16 +52,15 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 
 @SdkProtectedApi
 public abstract class BaseAwsJsonProtocolFactory {
+    /**
+     * Used by operations that do not serialize the input, e.g., when the input is not defined in the model. RPCv2 uses it.
+     */
+    public static final OperationMetadataAttribute<Boolean> USE_NO_OP_GENERATOR = new OperationMetadataAttribute<>(Boolean.class);
 
     /**
      * Content type resolver implementation for plain text AWS_JSON services.
      */
     protected static final JsonContentTypeResolver AWS_JSON = new DefaultJsonContentTypeResolver("application/x-amz-json-");
-
-    /**
-     * Used by operations that do not serialize the input, e.g., when the input is not defined in the model. RPCv2 uses it.
-     */
-    public static final OperationMetadataAttribute<Boolean> USE_NO_OP_GENERATOR = new OperationMetadataAttribute<>(Boolean.class);
 
     private final AwsJsonProtocolMetadata protocolMetadata;
     private final List<ExceptionMetadata> modeledExceptions;
