@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.6__ __2024-08-15__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Make the LastUsedDate field in the GetAccessKeyLastUsed response optional. This may break customers who only call the API for access keys with a valid LastUsedDate. This fixes a deserialization issue for access keys without a LastUsedDate, because the field was marked as required but could be null.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - This release adds Global Cluster Failover capability which enables you to change your global cluster's primary AWS region, the region that serves writes, during a regional outage. Performing a failover action preserves your Global Cluster setup.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release introduces a new ContainerDefinition configuration to support the customer-managed keys for ECS container restart feature.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon Simple Storage Service / Features : Adds support for pagination in the S3 ListBuckets API.
+
 # __2.27.5__ __2024-08-14__
 ## __AWS CodeBuild__
   - ### Features
