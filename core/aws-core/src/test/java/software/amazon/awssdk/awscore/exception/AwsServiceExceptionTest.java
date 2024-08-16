@@ -82,6 +82,19 @@ public class AwsServiceExceptionTest {
         assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId)");
     }
 
+    @Test
+    public void exceptionMessage_withoutErrorMessage() {
+        AwsServiceException e = AwsServiceException.builder()
+                                                   .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                   .serviceName("serviceName")
+                                                                                   .errorCode("errorCode")
+                                                                                   .build())
+                                                   .statusCode(500)
+                                                   .requestId("requestId")
+                                                   .build();
+        assertThat(e.getMessage()).isEqualTo("(Service: serviceName, Status Code: 500, Request ID: requestId)");
+    }
+
     public void assertSkewed(int clientSideTimeOffset,
                              String errorCode,
                              int statusCode,
