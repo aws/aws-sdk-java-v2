@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Add new spotbugs rule to detect blocking call in the async codepath"
+}
