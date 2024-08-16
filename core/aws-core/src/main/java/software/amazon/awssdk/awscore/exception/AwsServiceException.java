@@ -33,9 +33,7 @@ import software.amazon.awssdk.http.SdkHttpResponse;
  * <p>
  * AmazonServiceException provides callers several pieces of
  * information that can be used to obtain more information about the error and
- * why it occurred. In particular, the errorType field can be used to determine
- * if the caller's request was invalid, or the service encountered an error on
- * the server side while processing it.
+ * why it occurred.
  *
  * @see SdkServiceException
  */
