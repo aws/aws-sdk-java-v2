@@ -15,14 +15,12 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 
 import com.google.common.collect.ImmutableList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,6 +31,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.DeleteRequest;
 import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
@@ -75,13 +74,31 @@ public class BatchWriteResultTest {
         ));
         BatchWriteResult builtObject =
             BatchWriteResult.builder().unprocessedRequests(batchWriteResults).consumedCapacity(ImmutableList.of(
-                ConsumedCapacity.builder().capacityUnits(0.5).build()
-            ))
-                .itemCollectionMetrics(ImmutableMap.of(
-                    "abcd", ImmutableList.of(ItemCollectionMetrics.builder().build())
-                )).build();
+                                ConsumedCapacity.builder().capacityUnits(0.5).build()
+                            ))
+                            .itemCollectionMetrics(ImmutableMap.of(
+                                "abcd", ImmutableList.of(ItemCollectionMetrics.builder().build())
+                            )).build();
 
         Assertions.assertThat(builtObject.itemCollectionMetrics()).isNotEmpty();
         Assertions.assertThat(builtObject.consumedCapacity()).isNotEmpty();
+    }
+
+    @Test
+    public void test_writeBatchResult_equalsAndHashcode() {
+
+        EqualsVerifier.forClass(BatchWriteResult.class)
+                      .withPrefabValues(WriteRequest.class,
+                                        WriteRequest.builder().putRequest(PutRequest.builder().build()).build(),
+                                        WriteRequest.builder().deleteRequest(DeleteRequest.builder().build()).build())
+                      .withPrefabValues(ItemCollectionMetrics.class,
+                                        ItemCollectionMetrics.builder().itemCollectionKey(com.google.common.collect.ImmutableMap.of("a",
+                                                                                                                                    AttributeValue.builder().build())).sizeEstimateRangeGB(20.0).build(),
+                                        ItemCollectionMetrics.builder().itemCollectionKey(com.google.common.collect.ImmutableMap.of("b",
+                                                                                                                                    AttributeValue.builder().build())).sizeEstimateRangeGB(30.0).build())
+                      .withPrefabValues(ConsumedCapacity.class, ConsumedCapacity.builder().capacityUnits(5.0).build(),
+                                        ConsumedCapacity.builder().capacityUnits(15.0).build())
+                      .withNonnullFields("unprocessedRequests")
+                      .verify();
     }
 }

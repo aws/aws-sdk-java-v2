@@ -45,6 +45,7 @@ import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 
 public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
     private static class Record1 {
@@ -71,8 +72,12 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             Record1 record1 = (Record1) o;
             return Objects.equals(id, record1.id) &&
                    Objects.equals(attribute, record1.attribute);
@@ -108,8 +113,12 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             Record2 record2 = (Record2) o;
             return Objects.equals(id, record2.id) &&
                    Objects.equals(attribute, record2.attribute);
@@ -135,7 +144,7 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
 
     private static final TableSchema<Record2> TABLE_SCHEMA_2 =
         StaticTableSchema.builder(Record2.class)
-                   .newItemSupplier(Record2::new)
+                         .newItemSupplier(Record2::new)
                          .addAttribute(Integer.class, a -> a.name("id_2")
                                                             .getter(Record2::getId)
                                                             .setter(Record2::setId)
@@ -204,7 +213,7 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
                                     .build());
 
         BatchWriteResult result =
-            enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder().writeBatches(writeBatches).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL).build()).join();
+            enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder().writeBatches(writeBatches).returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL).build()).join();
 
         Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics = result.itemCollectionMetrics();
         List<ConsumedCapacity> consumedCapacities = result.consumedCapacity();
@@ -248,7 +257,8 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
 
         BatchWriteResult result = enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder()
                                                                                                   .writeBatches(writeBatches)
-                                                                         .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                                                                                  .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                                                                                  .returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE)
                                                                                                   .build()).join();
 
         List<ConsumedCapacity> consumedCapacities = result.consumedCapacity();
@@ -291,7 +301,8 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
                                     .addDeleteItem(r -> r.key(k -> k.partitionValue(0)))
                                     .build());
 
-        BatchWriteResult result = enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder().writeBatches(writeBatches).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL).build()).join();
+        BatchWriteResult result =
+            enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder().writeBatches(writeBatches).returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL).build()).join();
 
         List<ConsumedCapacity> consumedCapacities = result.consumedCapacity();
         Assertions.assertThat(consumedCapacities).isNotEmpty();
@@ -344,7 +355,7 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
                              .build());
 
         BatchWriteResult result =
-            enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder().writeBatches(writeBatches).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL).build()).join();
+            enhancedAsyncClient.batchWriteItem(BatchWriteItemEnhancedRequest.builder().writeBatches(writeBatches).returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL).build()).join();
         List<ConsumedCapacity> consumedCapacities = result.consumedCapacity();
         Assertions.assertThat(consumedCapacities).isNotEmpty();
 
@@ -391,9 +402,11 @@ public class AsyncBatchWriteItemTest extends LocalDynamoDbAsyncTestBase {
             WriteBatch.builder(Record2.class)
                       .mappedTableResource(mappedTable2)
                       .addDeleteItem(i -> i.key(k -> k.partitionValue(0)))
-                      .build()).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)).join();
+                      .build()).returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)).join();
 
         List<ConsumedCapacity> consumedCapacities = result.consumedCapacity();
+        Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics = result.itemCollectionMetrics();
+        Assertions.assertThat(itemCollectionMetrics).isNotNull();
         Assertions.assertThat(consumedCapacities.size()).isEqualTo(2);
         Assertions.assertThat(consumedCapacities).isNotEmpty();
 

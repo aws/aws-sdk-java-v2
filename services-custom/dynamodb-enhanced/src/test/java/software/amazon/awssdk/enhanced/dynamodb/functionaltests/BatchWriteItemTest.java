@@ -39,6 +39,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.WriteBatch;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 
 public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
     private static class Record1 {
@@ -65,8 +66,12 @@ public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             Record1 record1 = (Record1) o;
             return Objects.equals(id, record1.id) &&
                    Objects.equals(attribute, record1.attribute);
@@ -102,8 +107,12 @@ public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             Record2 record2 = (Record2) o;
             return Objects.equals(id, record2.id) &&
                    Objects.equals(attribute, record2.attribute);
@@ -225,7 +234,7 @@ public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
                                                        .mappedTableResource(mappedTable2)
                                                        .addPutItem(r -> r.item(RECORDS_2.get(0)))
                                                        .build())
-                .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                         .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
                                          .build();
 
         BatchWriteResult result = enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
@@ -306,6 +315,8 @@ public class BatchWriteItemTest extends LocalDynamoDbSyncTestBase {
                                                        .mappedTableResource(mappedTable2)
                                                        .addDeleteItem(r -> r.key(k -> k.partitionValue(0)))
                                                        .build())
+                                         .returnItemCollectionMetrics(ReturnItemCollectionMetrics.SIZE)
+                                         .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
                                          .build();
 
         BatchWriteResult result = enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);

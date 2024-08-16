@@ -25,7 +25,11 @@ import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import java.util.List;
 import java.util.Map;
+import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +44,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.DeleteRequest;
+import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
@@ -114,8 +119,8 @@ public class WriteBatchTest {
 
         Key partitionKey = Key.builder().partitionValue(fakeItem.getId()).build();
         DeleteItemEnhancedRequest deleteItemRequest = DeleteItemEnhancedRequest.builder()
-                                                                        .key(partitionKey)
-                                                                        .build();
+                                                                               .key(partitionKey)
+                                                                               .build();
 
         WriteBatch.Builder<FakeItem> builder = WriteBatch.builder(FakeItem.class);
 
@@ -139,13 +144,14 @@ public class WriteBatchTest {
     }
 
     @Test
-    public void hashCode_includesConsumedCapacity() {
-        BatchWriteResult builtObject1 = BatchWriteResult.builder().build();
+    public void test_write_batch_equalsAndHashcode() {
 
-        ImmutableList<ConsumedCapacity> consumedCapacities = ImmutableList.of(ConsumedCapacity.builder().capacityUnits(12.5).build());
-        BatchWriteResult builtObject2 = BatchWriteResult.builder().consumedCapacity(consumedCapacities).build();
-
-        assertThat(builtObject1, not(equalTo(builtObject2)));
+        EqualsVerifier.forClass(WriteBatch.class)
+                      .withNonnullFields("tableName", "writeRequests")
+                      .withPrefabValues(WriteRequest.class,
+                                        WriteRequest.builder().putRequest(PutRequest.builder().build()).build(),
+                                        WriteRequest.builder().deleteRequest(DeleteRequest.builder().build()).build())
+                      .verify();
     }
 
 

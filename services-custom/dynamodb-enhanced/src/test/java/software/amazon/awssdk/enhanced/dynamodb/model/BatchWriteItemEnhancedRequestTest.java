@@ -63,9 +63,9 @@ public class BatchWriteItemEnhancedRequestTest {
     @Test
     public void builder_maximal() {
         WriteBatch writeBatch = WriteBatch.builder(FakeItem.class)
-                                         .mappedTableResource(fakeItemMappedTable)
-                                         .addDeleteItem(r -> r.key(k -> k.partitionValue("key")))
-                                         .build();
+                                          .mappedTableResource(fakeItemMappedTable)
+                                          .addDeleteItem(r -> r.key(k -> k.partitionValue("key")))
+                                          .build();
 
         BatchWriteItemEnhancedRequest builtObject = BatchWriteItemEnhancedRequest.builder()
                                                                                  .writeBatches(writeBatch)
@@ -96,14 +96,14 @@ public class BatchWriteItemEnhancedRequestTest {
                                           .build();
 
         BatchWriteItemEnhancedRequest builtObject1 = BatchWriteItemEnhancedRequest.builder()
-                                                                                 .writeBatches(writeBatch)
-            .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
-                                                                                 .build();
+                                                                                  .writeBatches(writeBatch)
+                                                                                  .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                                                                  .build();
 
         BatchWriteItemEnhancedRequest builtObject2 = BatchWriteItemEnhancedRequest.builder()
-                                                                                 .writeBatches(writeBatch)
-                                                                                 .returnConsumedCapacity(ReturnConsumedCapacity.INDEXES)
-                                                                                 .build();
+                                                                                  .writeBatches(writeBatch)
+                                                                                  .returnConsumedCapacity(ReturnConsumedCapacity.INDEXES)
+                                                                                  .build();
 
 
         assertThat(builtObject1, not(equalTo(builtObject2)));
@@ -119,9 +119,9 @@ public class BatchWriteItemEnhancedRequestTest {
                                           .build();
 
         BatchWriteItemEnhancedRequest builtObject = BatchWriteItemEnhancedRequest.builder()
-                                                                                  .writeBatches(writeBatch)
-            .returnConsumedCapacity(newValue)
-                                                                                  .build();
+                                                                                 .writeBatches(writeBatch)
+                                                                                 .returnConsumedCapacity(newValue)
+                                                                                 .build();
 
         // Assert that new value resolves to correct enum value
         assertThat(builtObject.returnConsumedCapacity(), equalTo(ReturnConsumedCapacity.UNKNOWN_TO_SDK_VERSION));

@@ -25,15 +25,16 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 
 /**
  * Defines parameters used for the batchWriteItem() operation (such as
  * {@link DynamoDbEnhancedClient#batchWriteItem(BatchWriteItemEnhancedRequest)}).
  * <p>
- * A request contains references to keys for delete actions and items for put actions,
- * organized into one {@link WriteBatch} object per accessed table.
+ * A request contains references to keys for delete actions and items for put actions, organized into one {@link WriteBatch}
+ * object per accessed table.
  */
 @SdkPublicApi
 @ThreadSafe
@@ -41,10 +42,12 @@ public final class BatchWriteItemEnhancedRequest {
 
     private final List<WriteBatch> writeBatches;
     private final String returnConsumedCapacity;
+    private final String returnItemCollectionMetrics;
 
     private BatchWriteItemEnhancedRequest(Builder builder) {
         this.writeBatches = getListIfExist(builder.writeBatches);
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
+        this.returnItemCollectionMetrics = builder.returnItemCollectionMetrics;
     }
 
     /**
@@ -58,7 +61,7 @@ public final class BatchWriteItemEnhancedRequest {
      * @return a builder with all existing values set
      */
     public Builder toBuilder() {
-        return builder().writeBatches(writeBatches).returnConsumedCapacity(returnConsumedCapacity);
+        return builder().writeBatches(writeBatches).returnConsumedCapacity(returnConsumedCapacity).returnItemCollectionMetrics(returnItemCollectionMetrics);
     }
 
     /**
@@ -68,6 +71,35 @@ public final class BatchWriteItemEnhancedRequest {
      */
     public ReturnConsumedCapacity returnConsumedCapacity() {
         return ReturnConsumedCapacity.fromValue(returnConsumedCapacity);
+    }
+
+    /**
+     * Whether to return the capacity consumed by this operation.
+     * <p>
+     * Similar to {@link #returnConsumedCapacity()} but return the value as a string. This is useful in situations where the value
+     * is not defined in {@link ReturnConsumedCapacity}.
+     */
+    public String returnConsumedCapacityAsString() {
+        return returnConsumedCapacity;
+    }
+
+    /**
+     * Whether to return the item collection metrics.
+     *
+     * @see BatchWriteItemRequest#returnItemCollectionMetrics()
+     */
+    public ReturnItemCollectionMetrics returnItemCollectionMetrics() {
+        return ReturnItemCollectionMetrics.fromValue(returnItemCollectionMetrics);
+    }
+
+    /**
+     * Whether to return the item collection metrics.
+     * <p>
+     * Similar to {@link #returnItemCollectionMetrics()} but return the value as a string. This is useful in situations where the
+     * value is not defined in {@link ReturnItemCollectionMetrics}.
+     */
+    public String returnItemCollectionMetricsAsString() {
+        return returnItemCollectionMetrics;
     }
 
     /**
@@ -86,12 +118,13 @@ public final class BatchWriteItemEnhancedRequest {
             return false;
         }
         BatchWriteItemEnhancedRequest that = (BatchWriteItemEnhancedRequest) o;
-        return Objects.equals(writeBatches, that.writeBatches) && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity);
+        return Objects.equals(writeBatches, that.writeBatches) && Objects.equals(returnConsumedCapacity,
+                                                                                 that.returnConsumedCapacity) && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(writeBatches, returnConsumedCapacity);
+        return Objects.hash(writeBatches, returnConsumedCapacity, returnItemCollectionMetrics);
     }
 
     private static List<WriteBatch> getListIfExist(List<WriteBatch> writeBatches) {
@@ -105,6 +138,7 @@ public final class BatchWriteItemEnhancedRequest {
     public static final class Builder {
         private List<WriteBatch> writeBatches;
         private String returnConsumedCapacity;
+        private String returnItemCollectionMetrics;
 
         private Builder() {
         }
@@ -126,6 +160,27 @@ public final class BatchWriteItemEnhancedRequest {
          */
         public Builder returnConsumedCapacity(String returnConsumedCapacity) {
             this.returnConsumedCapacity = returnConsumedCapacity;
+            return this;
+        }
+
+        /**
+         * Whether to return the item collection metrics.
+         *
+         * @see BatchWriteItemEnhancedRequest.Builder#returnItemCollectionMetrics(ReturnItemCollectionMetrics)
+         */
+        public BatchWriteItemEnhancedRequest.Builder returnItemCollectionMetrics(ReturnItemCollectionMetrics returnItemCollectionMetrics) {
+            this.returnItemCollectionMetrics = returnItemCollectionMetrics == null ? null :
+                                               returnItemCollectionMetrics.toString();
+            return this;
+        }
+
+        /**
+         * Whether to return the item collection metrics.
+         *
+         * @see BatchWriteItemEnhancedRequest.Builder#returnItemCollectionMetrics(String)
+         */
+        public BatchWriteItemEnhancedRequest.Builder returnItemCollectionMetrics(String returnItemCollectionMetrics) {
+            this.returnItemCollectionMetrics = returnItemCollectionMetrics;
             return this;
         }
 
@@ -152,8 +207,8 @@ public final class BatchWriteItemEnhancedRequest {
         }
 
         /**
-         * Adds a write batch to the collection of batches on this builder.
-         * If this is the first batch, the method creates a new list.
+         * Adds a write batch to the collection of batches on this builder. If this is the first batch, the method creates a new
+         * list.
          *
          * @param writeBatch a single write batch
          * @return a builder of this type
