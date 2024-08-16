@@ -152,7 +152,7 @@ public abstract class BaseAwsJsonProtocolFactory {
         Boolean useNoOp = operationInfo.addtionalMetadata(USE_NO_OP_GENERATOR);
         if (useNoOp == null) {
             AwsJsonProtocol protocol = protocolMetadata.protocol();
-            useNoOp = !(operationInfo.hasPayloadMembers() || protocol == AwsJsonProtocol.AWS_JSON);
+            useNoOp = !operationInfo.hasPayloadMembers() && protocol != AwsJsonProtocol.AWS_JSON;
         }
         if (useNoOp) {
             return StructuredJsonGenerator.NO_OP;
