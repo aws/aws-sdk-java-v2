@@ -58,6 +58,12 @@ public abstract class BaseAwsJsonProtocolFactory {
     public static final OperationMetadataAttribute<Boolean> USE_NO_OP_GENERATOR = new OperationMetadataAttribute<>(Boolean.class);
 
     /**
+     * Attribute for a protocol to configure extra headers for the operation.
+     */
+    public static final OperationMetadataAttribute<Map<String, String>> HTTP_EXTRA_HEADERS =
+        OperationMetadataAttribute.forUnsafe(Map.class);
+
+    /**
      * Content type resolver implementation for plain text AWS_JSON services.
      */
     protected static final JsonContentTypeResolver AWS_JSON = new DefaultJsonContentTypeResolver("application/x-amz-json-");
@@ -144,8 +150,8 @@ public abstract class BaseAwsJsonProtocolFactory {
 
     private StructuredJsonGenerator createGenerator(OperationInfo operationInfo) {
         Boolean useNoOp = operationInfo.addtionalMetadata(USE_NO_OP_GENERATOR);
-        AwsJsonProtocol protocol = protocolMetadata.protocol();
         if (useNoOp == null) {
+            AwsJsonProtocol protocol = protocolMetadata.protocol();
             useNoOp = !(operationInfo.hasPayloadMembers() || protocol == AwsJsonProtocol.AWS_JSON);
         }
         if (useNoOp) {

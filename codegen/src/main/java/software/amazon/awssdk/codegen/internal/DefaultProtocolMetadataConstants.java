@@ -27,7 +27,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 /**
  * Default implementation of {@link ProtocolMetadataConstants}.
  */
-public class DefaultProtocolMetadataConstants implements ProtocolMetadataConstants {
+public final class DefaultProtocolMetadataConstants implements ProtocolMetadataConstants {
     private final Set<Map.Entry<Class<?>, OperationMetadataAttribute<?>>> knownKeys = new LinkedHashSet<>();
     private final AttributeMap.Builder map = AttributeMap.builder();
 

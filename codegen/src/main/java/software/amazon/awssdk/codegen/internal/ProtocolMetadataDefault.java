@@ -29,10 +29,13 @@ public enum ProtocolMetadataDefault {
     SMITHY_RPC_V2_CBOR(Protocol.SMITHY_RPC_V2_CBOR) {
         public ProtocolMetadataConstants protocolMetadata(ShapeMarshaller shapeMarshaller) {
             ProtocolMetadataConstants attributes = new DefaultProtocolMetadataConstants();
+
             // Smithy RPCv2 requires the header "smithy-protocol" with value "rpc-v2-cbor"
             // See https://smithy.io/2.0/additional-specs/protocols/smithy-rpc-v2.html#requests.
-            attributes.put(OperationMetadataAttribute.HTTP_EXTRA_HEADERS, MapUtils.of("smithy-protocol",
-                                                                                      "rpc-v2-cbor"));
+            attributes.put(BaseAwsJsonProtocolFactory.class,
+                           BaseAwsJsonProtocolFactory.HTTP_EXTRA_HEADERS,
+                           MapUtils.of("smithy-protocol", "rpc-v2-cbor"));
+
             // If the shape is synthetic that means that no-input was defined in the model. For this
             // case the protocol requires to send an empty body with no content-type. See
             // https://smithy.io/2.0/additional-specs/protocols/smithy-rpc-v2.html#requests.

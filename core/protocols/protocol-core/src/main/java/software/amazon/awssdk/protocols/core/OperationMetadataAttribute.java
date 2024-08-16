@@ -28,17 +28,21 @@ import software.amazon.awssdk.utils.AttributeMap;
 @SdkProtectedApi
 public final class OperationMetadataAttribute<T> extends AttributeMap.Key<T> {
 
-    /**
-     * Attribute for a protocol to configure extra headers for the operation.
-     */
-    public static final OperationMetadataAttribute<Map<String, String>> HTTP_EXTRA_HEADERS =
-        new OperationMetadataAttribute<>(new UnsafeValueType(Map.class));
-
     public OperationMetadataAttribute(Class<T> valueType) {
         super(valueType);
     }
 
-    public OperationMetadataAttribute(UnsafeValueType type) {
+    OperationMetadataAttribute(UnsafeValueType type) {
         super(type);
+    }
+
+    /**
+     * Useful for parameterized types.
+     *
+     * E.g.,
+     * {@code OperationMetadataAttribute<Map<String, String>> KEY = forUnsafe(Map.class)}
+     */
+    public static <T> OperationMetadataAttribute<T> forUnsafe(Class<?> valueClass) {
+        return new OperationMetadataAttribute<>(new UnsafeValueType(valueClass));
     }
 }
