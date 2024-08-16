@@ -62,7 +62,7 @@ public final class BatchWriteResult {
     }
 
     /**
-     * The capacity units consumed by the {@code Write} operation.
+     * Returns capacity units consumed by the {@code BatchWrite} operation.
      *
      * @see BatchWriteResult#consumedCapacity() for more information.
      */
@@ -71,7 +71,7 @@ public final class BatchWriteResult {
     }
 
     /**
-     * The capacity units consumed by the {@code Write} operation.
+     * Returns ItemCollectionMetrics by the {@code BatchWrite} operation.
      *
      * @see BatchWriteResult#consumedCapacity() for more information.
      */
@@ -119,7 +119,8 @@ public final class BatchWriteResult {
             return false;
         }
         BatchWriteResult result = (BatchWriteResult) o;
-        return Objects.equals(unprocessedRequests, result.unprocessedRequests) && Objects.equals(consumedCapacity, result.consumedCapacity) && Objects.equals(itemCollectionMetrics, result.itemCollectionMetrics);
+        return Objects.equals(unprocessedRequests, result.unprocessedRequests) && Objects.equals(consumedCapacity,
+                                                                                                 result.consumedCapacity) && Objects.equals(itemCollectionMetrics, result.itemCollectionMetrics);
     }
 
     @Override
@@ -162,7 +163,7 @@ public final class BatchWriteResult {
         }
 
         /**
-         * Set the capacity units consumed by the batch write operation.
+         * Set the capacity units consumed by the batch write operation result.
          *
          * <p>
          * This is a list of ConsumedCapacity objects, one for each table in the batch write operation. The list is ordered
@@ -177,7 +178,7 @@ public final class BatchWriteResult {
         }
 
         /**
-         * Set the capacity units consumed by the batch write operation.
+         * Set the ItemCollectionMetrics consumed by the batch write operation result.
          *
          * <p>
          * This is a Map of List of ItemCollectionMetrics objects, one for each table in the batch write operation.

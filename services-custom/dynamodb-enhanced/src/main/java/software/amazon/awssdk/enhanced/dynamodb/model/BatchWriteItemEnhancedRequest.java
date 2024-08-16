@@ -144,7 +144,7 @@ public final class BatchWriteItemEnhancedRequest {
         }
 
         /**
-         * Whether to return the capacity consumed by this operation.
+         * Sets the ConsumedCapacity via ReturnConsumedCapacity object
          *
          * @see Builder#returnConsumedCapacity(ReturnConsumedCapacity)
          */
@@ -154,7 +154,7 @@ public final class BatchWriteItemEnhancedRequest {
         }
 
         /**
-         * Whether to return the capacity consumed by this operation.
+         * Sets the ConsumedCapacity via String.
          *
          * @see Builder#returnConsumedCapacity(String)
          */
@@ -164,7 +164,7 @@ public final class BatchWriteItemEnhancedRequest {
         }
 
         /**
-         * Whether to return the item collection metrics.
+         * Sets the item collection metrics.
          *
          * @see BatchWriteItemEnhancedRequest.Builder#returnItemCollectionMetrics(ReturnItemCollectionMetrics)
          */
@@ -175,7 +175,7 @@ public final class BatchWriteItemEnhancedRequest {
         }
 
         /**
-         * Whether to return the item collection metrics.
+         * Sets the item collection metrics.
          *
          * @see BatchWriteItemEnhancedRequest.Builder#returnItemCollectionMetrics(String)
          */
