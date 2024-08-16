@@ -32,6 +32,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -47,7 +48,7 @@ import software.amazon.awssdk.utils.Md5Utils;
 
 public abstract class BaseSqsBatchManagerTest {
 
-    private static final String DEFAULT_QUEUE_URL = "SomeQueueUrl";
+    protected static final String DEFAULT_QUEUE_URL = "SomeQueueUrl";
     private static final int DEFAULT_MAX_BATCH_OPEN = 200;
 
 
@@ -292,25 +293,6 @@ public abstract class BaseSqsBatchManagerTest {
     public abstract List<CompletableFuture<DeleteMessageResponse>> createAndSendDeleteMessageRequests();
 
     public abstract List<CompletableFuture<ChangeMessageVisibilityResponse>> createAndSendChangeVisibilityRequests();
-
-    SendMessageRequest createSendMessageRequest(String messageBody) {
-        return SendMessageRequest.builder()
-                                 .messageBody(messageBody)
-                                 .queueUrl(DEFAULT_QUEUE_URL)
-                                 .build();
-    }
-
-    DeleteMessageRequest createDeleteMessageRequest() {
-        return DeleteMessageRequest.builder()
-                                   .queueUrl(DEFAULT_QUEUE_URL)
-                                   .build();
-    }
-
-    ChangeMessageVisibilityRequest createChangeVisibilityRequest() {
-        return ChangeMessageVisibilityRequest.builder()
-                                             .queueUrl(DEFAULT_QUEUE_URL)
-                                             .build();
-    }
 
     private String getMd5Hash(String message) {
         byte[] expectedMd5;
