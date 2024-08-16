@@ -34,7 +34,6 @@ import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
-import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
@@ -395,7 +394,7 @@ public interface DynamoDbEnhancedClient extends DynamoDbEnhancedResource {
      *
      * @param request A {@link BatchWriteItemEnhancedRequest} containing keys grouped by tables.
      */
-    default TransactWriteItemsEnhancedResponse transactWriteItems(TransactWriteItemsEnhancedRequest request) {
+    default Void transactWriteItems(TransactWriteItemsEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
 
@@ -440,7 +439,7 @@ public interface DynamoDbEnhancedClient extends DynamoDbEnhancedResource {
      * @param requestConsumer a {@link Consumer} of {@link TransactWriteItemsEnhancedRequest} containing keys and items grouped
      * by tables.
      */
-    default TransactWriteItemsEnhancedResponse transactWriteItems(Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
+    default Void transactWriteItems(Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 

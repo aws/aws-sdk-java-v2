@@ -36,7 +36,6 @@ import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteItemEnhancedRequ
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteResult;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
-import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 @SdkInternalApi
@@ -103,13 +102,13 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
     }
 
     @Override
-    public CompletableFuture<TransactWriteItemsEnhancedResponse> transactWriteItems(TransactWriteItemsEnhancedRequest request) {
+    public CompletableFuture<Void> transactWriteItems(TransactWriteItemsEnhancedRequest request) {
         TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(request);
         return operation.executeAsync(dynamoDbClient, extension);
     }
 
     @Override
-    public CompletableFuture<TransactWriteItemsEnhancedResponse> transactWriteItems(
+    public CompletableFuture<Void> transactWriteItems(
         Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
 
         TransactWriteItemsEnhancedRequest.Builder builder = TransactWriteItemsEnhancedRequest.builder();
