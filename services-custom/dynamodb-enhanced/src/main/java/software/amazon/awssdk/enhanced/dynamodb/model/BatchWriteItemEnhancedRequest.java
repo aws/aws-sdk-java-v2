@@ -61,7 +61,9 @@ public final class BatchWriteItemEnhancedRequest {
      * @return a builder with all existing values set
      */
     public Builder toBuilder() {
-        return builder().writeBatches(writeBatches).returnConsumedCapacity(returnConsumedCapacity).returnItemCollectionMetrics(returnItemCollectionMetrics);
+        return builder().writeBatches(writeBatches)
+                        .returnConsumedCapacity(returnConsumedCapacity)
+                        .returnItemCollectionMetrics(returnItemCollectionMetrics);
     }
 
     /**
@@ -118,13 +120,17 @@ public final class BatchWriteItemEnhancedRequest {
             return false;
         }
         BatchWriteItemEnhancedRequest that = (BatchWriteItemEnhancedRequest) o;
-        return Objects.equals(writeBatches, that.writeBatches) && Objects.equals(returnConsumedCapacity,
-                                                                                 that.returnConsumedCapacity) && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics);
+        return Objects.equals(writeBatches, that.writeBatches) &&
+               Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity) &&
+               Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(writeBatches, returnConsumedCapacity, returnItemCollectionMetrics);
+        int result = writeBatches != null ? writeBatches.hashCode() : 0;
+        result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
+        result = 31 * result + (returnItemCollectionMetrics != null ? returnItemCollectionMetrics.hashCode() : 0);
+        return result;
     }
 
     private static List<WriteBatch> getListIfExist(List<WriteBatch> writeBatches) {
@@ -168,7 +174,8 @@ public final class BatchWriteItemEnhancedRequest {
          *
          * @see BatchWriteItemEnhancedRequest.Builder#returnItemCollectionMetrics(ReturnItemCollectionMetrics)
          */
-        public BatchWriteItemEnhancedRequest.Builder returnItemCollectionMetrics(ReturnItemCollectionMetrics returnItemCollectionMetrics) {
+        public BatchWriteItemEnhancedRequest.Builder returnItemCollectionMetrics(ReturnItemCollectionMetrics
+                                                                                     returnItemCollectionMetrics) {
             this.returnItemCollectionMetrics = returnItemCollectionMetrics == null ? null :
                                                returnItemCollectionMetrics.toString();
             return this;

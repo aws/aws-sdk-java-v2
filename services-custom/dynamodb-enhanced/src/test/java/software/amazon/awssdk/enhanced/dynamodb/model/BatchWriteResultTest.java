@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -88,6 +89,7 @@ public class BatchWriteResultTest {
     public void test_writeBatchResult_equalsAndHashcode() {
 
         EqualsVerifier.forClass(BatchWriteResult.class)
+                      .suppress(Warning.INHERITED_DIRECTLY_FROM_OBJECT)
                       .withPrefabValues(WriteRequest.class,
                                         WriteRequest.builder().putRequest(PutRequest.builder().build()).build(),
                                         WriteRequest.builder().deleteRequest(DeleteRequest.builder().build()).build())

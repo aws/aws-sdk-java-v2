@@ -95,18 +95,31 @@ public final class BatchWriteResult {
      * @return a list of items
      */
     public <T> List<T> unprocessedPutItemsForTable(MappedTableResource<T> mappedTable) {
-        List<WriteRequest> writeRequests =
-            unprocessedRequests.getOrDefault(mappedTable.tableName(),
-                                             Collections.emptyList());
+        List<WriteRequest> writeRequests = unprocessedRequests.getOrDefault(mappedTable.tableName(), Collections.emptyList());
 
         return writeRequests.stream()
                             .filter(writeRequest -> writeRequest.putRequest() != null)
-                            .map(WriteRequest::putRequest)
-                            .map(PutRequest::item)
+                            .map(WriteRequest::putRequest).map(PutRequest::item)
                             .map(item -> readAndTransformSingleItem(item,
                                                                     mappedTable.tableSchema(),
                                                                     DefaultOperationContext.create(mappedTable.tableName()),
-                                                                    mappedTable.mapperExtension()))
+                                                                    mappedTable.mapperExtension())).collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieve any unprocessed delete action keys belonging to the supplied table from the result. Call this method once for each
+     * table present in the batch request.
+     *
+     * @param mappedTable the table to retrieve unprocessed items for.
+     * @return a list of keys that were not processed as part of the batch request.
+     */
+    public List<Key> unprocessedDeleteItemsForTable(MappedTableResource<?> mappedTable) {
+        List<WriteRequest> writeRequests = unprocessedRequests.getOrDefault(mappedTable.tableName(), Collections.emptyList());
+
+        return writeRequests.stream().filter(writeRequest -> writeRequest.deleteRequest() != null)
+                            .map(WriteRequest::deleteRequest).map(DeleteRequest::key)
+                            .map(itemMap -> createKeyFromMap(itemMap, mappedTable.tableSchema(),
+                                                             TableMetadata.primaryIndexName()))
                             .collect(Collectors.toList());
     }
 
@@ -118,36 +131,19 @@ public final class BatchWriteResult {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         BatchWriteResult result = (BatchWriteResult) o;
-        return Objects.equals(unprocessedRequests, result.unprocessedRequests) && Objects.equals(consumedCapacity,
-                                                                                                 result.consumedCapacity) && Objects.equals(itemCollectionMetrics, result.itemCollectionMetrics);
+        return Objects.equals(unprocessedRequests, result.unprocessedRequests) &&
+               Objects.equals(consumedCapacity, result.consumedCapacity) &&
+               Objects.equals(itemCollectionMetrics, result.itemCollectionMetrics);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(unprocessedRequests, consumedCapacity, itemCollectionMetrics);
-    }
-
-    /**
-     * Retrieve any unprocessed delete action keys belonging to the supplied table from the result. Call this method once for each
-     * table present in the batch request.
-     *
-     * @param mappedTable the table to retrieve unprocessed items for.
-     * @return a list of keys that were not processed as part of the batch request.
-     */
-    public List<Key> unprocessedDeleteItemsForTable(MappedTableResource<?> mappedTable) {
-        List<WriteRequest> writeRequests =
-            unprocessedRequests.getOrDefault(mappedTable.tableName(),
-                                             Collections.emptyList());
-
-        return writeRequests.stream()
-                            .filter(writeRequest -> writeRequest.deleteRequest() != null)
-                            .map(WriteRequest::deleteRequest)
-                            .map(DeleteRequest::key)
-                            .map(itemMap -> createKeyFromMap(itemMap,
-                                                             mappedTable.tableSchema(),
-                                                             TableMetadata.primaryIndexName()))
-                            .collect(Collectors.toList());
+        int result = unprocessedRequests != null ? unprocessedRequests.hashCode() : 0;
+        result = 31 * result + (consumedCapacity != null ? consumedCapacity.hashCode() : 0);
+        result = 31 * result + (itemCollectionMetrics != null ? itemCollectionMetrics.hashCode() : 0);
+        return result;
     }
 
     /**
@@ -198,12 +194,12 @@ public final class BatchWriteResult {
          * @return a builder of this type
          */
         public Builder unprocessedRequests(Map<String, List<WriteRequest>> unprocessedRequests) {
-            this.unprocessedRequests =
-                unprocessedRequests.entrySet()
-                                   .stream()
-                                   .collect(Collectors.toMap(
-                                       Map.Entry::getKey,
-                                       entry -> Collections.unmodifiableList(entry.getValue())));
+            this.unprocessedRequests = unprocessedRequests.entrySet()
+                                                          .stream()
+                                                          .collect(Collectors.toMap(
+                                                              Map.Entry::getKey,
+                                                              entry -> Collections.unmodifiableList(entry.getValue()))
+                                                          );
             return this;
         }
 
