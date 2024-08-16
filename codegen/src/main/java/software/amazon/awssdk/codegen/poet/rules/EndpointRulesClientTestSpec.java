@@ -442,7 +442,7 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
 
         if (opParams != null) {
             opParams.forEach((n, v) -> {
-                MemberModel memberModel = opModel.getInputShape().getMemberByName(n);
+                MemberModel memberModel = opModel.getInputShape().getMemberByC2jName(n);
                 CodeBlock memberValue = createMemberValue(memberModel, v);
                 b.add(".$N($L)", memberModel.getFluentSetterMethodName(), memberValue);
             });
@@ -799,7 +799,7 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         Iterator<String> fieldNamesIter = obj.fieldNames();
         while (fieldNamesIter.hasNext()) {
             String fieldName = fieldNamesIter.next();
-            MemberModel member = shapeModel.getMemberByName(fieldName);
+            MemberModel member = shapeModel.getMemberByC2jName(fieldName);
             JrsValue value = obj.get(fieldName);
 
             b.add(".$N($L)", member.getFluentSetterMethodName(), createMemberValue(member, value));
