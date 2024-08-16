@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "Introduce Endpoint and EndpointConfig Arns in sagemaker:ListPipelineExecutionSteps API response"
-}
