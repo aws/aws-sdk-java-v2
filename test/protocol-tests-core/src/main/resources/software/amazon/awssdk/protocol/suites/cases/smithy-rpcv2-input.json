@@ -529,7 +529,10 @@
                     "contains": {
                         "Content-Type": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
-                    }
+                    },
+                    "doesNotContain": [
+                        "X-Amz-Target"
+                    ]
                 }
             }
         }
@@ -552,7 +555,36 @@
                     "contains": {
                         "Content-Type": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
-                    }
+                    },
+                    "doesNotContain": [
+                        "X-Amz-Target"
+                    ]
+                }
+            }
+        }
+    },
+    {
+        "description": "Body is empty and no Content-Type header if no input",
+        "given": {
+            "input": {}
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "NoInputOutput"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": ""
+                },
+                "headers": {
+                    "contains": {
+                        "smithy-protocol": "rpc-v2-cbor"
+                    },
+                    "doesNotContain": [
+                        "Content-Type",
+                        "X-Amz-Target"
+                    ]
                 }
             }
         }

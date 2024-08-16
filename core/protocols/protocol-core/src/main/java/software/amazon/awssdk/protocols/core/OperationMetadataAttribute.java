@@ -27,13 +27,21 @@ import software.amazon.awssdk.utils.AttributeMap;
 @SdkProtectedApi
 public final class OperationMetadataAttribute<T> extends AttributeMap.Key<T> {
 
-    /**
-     * Attribute for configuring the <code>smithy-protocol</code> header.
-     */
-    public static final OperationMetadataAttribute<String> SMITHY_PROTOCOL =
-        new OperationMetadataAttribute<>(String.class);
-
     public OperationMetadataAttribute(Class<T> valueType) {
         super(valueType);
+    }
+
+    OperationMetadataAttribute(UnsafeValueType type) {
+        super(type);
+    }
+
+    /**
+     * Useful for parameterized types.
+     *
+     * E.g.,
+     * {@code OperationMetadataAttribute<Map<String, String>> KEY = forUnsafe(Map.class)}
+     */
+    public static <T> OperationMetadataAttribute<T> forUnsafe(Class<?> valueClass) {
+        return new OperationMetadataAttribute<>(new UnsafeValueType(valueClass));
     }
 }

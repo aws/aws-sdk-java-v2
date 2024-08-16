@@ -39,6 +39,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.core.OperationMetadataAttribute;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.internal.AwsStructuredPlainJsonFactory;
 import software.amazon.awssdk.protocols.json.internal.marshall.JsonProtocolMarshallerBuilder;
@@ -51,6 +52,16 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 
 @SdkProtectedApi
 public abstract class BaseAwsJsonProtocolFactory {
+    /**
+     * Used by operations that do not serialize the input, e.g., when the input is not defined in the model. RPCv2 uses it.
+     */
+    public static final OperationMetadataAttribute<Boolean> USE_NO_OP_GENERATOR = new OperationMetadataAttribute<>(Boolean.class);
+
+    /**
+     * Attribute for a protocol to configure extra headers for the operation.
+     */
+    public static final OperationMetadataAttribute<Map<String, String>> HTTP_EXTRA_HEADERS =
+        OperationMetadataAttribute.forUnsafe(Map.class);
 
     /**
      * Content type resolver implementation for plain text AWS_JSON services.
@@ -138,14 +149,15 @@ public abstract class BaseAwsJsonProtocolFactory {
     }
 
     private StructuredJsonGenerator createGenerator(OperationInfo operationInfo) {
-        AwsJsonProtocol protocol = protocolMetadata.protocol();
-        if (operationInfo.hasPayloadMembers()
-            || protocol == AwsJsonProtocol.AWS_JSON
-            || protocol == AwsJsonProtocol.SMITHY_RPC_V2_CBOR) {
-            return createGenerator();
-        } else {
+        Boolean useNoOp = operationInfo.addtionalMetadata(USE_NO_OP_GENERATOR);
+        if (useNoOp == null) {
+            AwsJsonProtocol protocol = protocolMetadata.protocol();
+            useNoOp = !operationInfo.hasPayloadMembers() && protocol != AwsJsonProtocol.AWS_JSON;
+        }
+        if (useNoOp) {
             return StructuredJsonGenerator.NO_OP;
         }
+        return createGenerator();
     }
 
     @SdkTestInternalApi

@@ -29,7 +29,9 @@ public class ShapeMarshaller {
 
     private String xmlNameSpaceUri;
 
-    private String smithyProtocol;
+    private Boolean isSynthetic = Boolean.FALSE;
+
+    private String protocol;
 
     public String getAction() {
         return action;
@@ -109,16 +111,29 @@ public class ShapeMarshaller {
         return this;
     }
 
-    public String getSmithyProtocol() {
-        return smithyProtocol;
+    public Boolean getIsSynthetic() {
+        return isSynthetic;
     }
 
-    public void setSmithyProtocol(String smithyProtocol) {
-        this.smithyProtocol = smithyProtocol;
+    public void setIsSynthetic(Boolean isSynthetic) {
+        this.isSynthetic = isSynthetic;
     }
 
-    public ShapeMarshaller withSmithyProtocol(String smithyProtocol) {
-        setSmithyProtocol(smithyProtocol);
+    public ShapeMarshaller withIsSynthetic(Boolean isSynthetic) {
+        setIsSynthetic(isSynthetic);
+        return this;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
+
+    public ShapeMarshaller withProtocol(String protocol) {
+        setProtocol(protocol);
         return this;
     }
 }
