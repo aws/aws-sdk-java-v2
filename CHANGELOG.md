@@ -1,4 +1,30 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.7__ __2024-08-16__
+## __AWS Batch__
+  - ### Features
+    - Improvements of integration between AWS Batch and EC2.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add new spotbugs rule to detect blocking call in the async codepath
+    - Updated endpoint and partition metadata.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Amazon QuickSight launches Customer Managed Key (CMK) encryption for Data Source metadata
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introduce Endpoint and EndpointConfig Arns in sagemaker:ListPipelineExecutionSteps API response
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Marking use case description field of account details as deprecated.
+
+## __Inspector2__
+  - ### Features
+    - Update the correct format of key and values for resource tags
+
 # __2.27.6__ __2024-08-15__
 ## __AWS Identity and Access Management__
   - ### Features
