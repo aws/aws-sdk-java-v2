@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.protocols.core;
 
-import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.AttributeMap;
 

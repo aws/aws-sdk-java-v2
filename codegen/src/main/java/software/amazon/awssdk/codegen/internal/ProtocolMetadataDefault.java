@@ -17,7 +17,6 @@ package software.amazon.awssdk.codegen.internal;
 
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
-import software.amazon.awssdk.protocols.core.OperationMetadataAttribute;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.utils.MapUtils;
 

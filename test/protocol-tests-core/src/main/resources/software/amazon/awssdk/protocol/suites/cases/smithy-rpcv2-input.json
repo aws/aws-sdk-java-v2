@@ -529,7 +529,10 @@
                     "contains": {
                         "Content-Type": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
-                    }
+                    },
+                    "doesNotContain": [
+                        "X-Amz-Target"
+                    ]
                 }
             }
         }
@@ -552,7 +555,10 @@
                     "contains": {
                         "Content-Type": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
-                    }
+                    },
+                    "doesNotContain": [
+                        "X-Amz-Target"
+                    ]
                 }
             }
         }
@@ -574,7 +580,11 @@
                 "headers": {
                     "contains": {
                         "smithy-protocol": "rpc-v2-cbor"
-                    }
+                    },
+                    "doesNotContain": [
+                        "Content-Type",
+                        "X-Amz-Target"
+                    ]
                 }
             }
         }
