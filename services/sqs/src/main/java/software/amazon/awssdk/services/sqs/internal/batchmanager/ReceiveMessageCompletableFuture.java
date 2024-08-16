@@ -39,7 +39,6 @@ public class ReceiveMessageCompletableFuture {
     }
 
 
-
     public void startWaitTimer(ScheduledExecutorService executorService) {
         if (timeoutFuture != null || responseCompletableFuture.isDone()) {
             return;
@@ -76,7 +75,7 @@ public class ReceiveMessageCompletableFuture {
         }
     }
 
-    public int getRequestedSize() {
+    public int requestedSize() {
         return requestedSize;
     }
 

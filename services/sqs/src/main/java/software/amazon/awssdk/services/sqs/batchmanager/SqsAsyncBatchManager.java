@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.sqs.batchmanager;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.DefaultSqsAsyncBatchManager;
@@ -85,6 +86,29 @@ public interface SqsAsyncBatchManager extends SdkAutoCloseable {
         throw new UnsupportedOperationException();
     }
 
+
+    default CompletableFuture<SendMessageResponse> sendMessage(Consumer<SendMessageRequest.Builder> sendMessageRequest) {
+        return sendMessage(SendMessageRequest.builder().applyMutation(sendMessageRequest).build());
+    }
+
+    default CompletableFuture<DeleteMessageResponse> deleteMessage(Consumer<DeleteMessageRequest.Builder> request) {
+        return deleteMessage(DeleteMessageRequest.builder().applyMutation(request).build());
+    }
+
+
+    default CompletableFuture<ChangeMessageVisibilityResponse> changeMessageVisibility(
+        Consumer<ChangeMessageVisibilityRequest.Builder> request) {
+        return changeMessageVisibility(ChangeMessageVisibilityRequest.builder().applyMutation(request).build());
+    }
+
+
+    default CompletableFuture<ReceiveMessageResponse> receiveMessage(
+        Consumer<ReceiveMessageRequest.Builder> request) {
+        return receiveMessage(ReceiveMessageRequest.builder().applyMutation(request).build());
+    }
+
+
+
     /**
      * Buffers and retrieves messages with {@link ReceiveMessageRequest}, with a maximum of 10 messages per request. Returns an
      * empty message if no messages are available in SQS.
@@ -105,6 +129,10 @@ public interface SqsAsyncBatchManager extends SdkAutoCloseable {
          * @return This builder for method chaining.
          */
         Builder overrideConfiguration(BatchOverrideConfiguration overrideConfiguration);
+
+        default Builder overrideConfiguration(Consumer<BatchOverrideConfiguration.Builder> overrideConfiguration) {
+            return overrideConfiguration(BatchOverrideConfiguration.builder().applyMutation(overrideConfiguration).build());
+        }
 
         /**
          * Sets a custom {@link software.amazon.awssdk.services.sqs.SqsClient} for polling resources. This client must be closed

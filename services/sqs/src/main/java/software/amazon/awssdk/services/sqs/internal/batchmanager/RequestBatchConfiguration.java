@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.time.Duration;
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 
@@ -34,12 +33,25 @@ public final class RequestBatchConfiguration {
     private final Duration maxBatchOpenDuration;
 
     public RequestBatchConfiguration(BatchOverrideConfiguration overrideConfiguration) {
-        Optional<BatchOverrideConfiguration> configuration = Optional.ofNullable(overrideConfiguration);
-        this.maxBatchItems = configuration.flatMap(BatchOverrideConfiguration::maxBatchItems).orElse(DEFAULT_MAX_BATCH_ITEMS);
-        this.maxBatchKeys = configuration.flatMap(BatchOverrideConfiguration::maxBatchKeys).orElse(DEFAULT_MAX_BATCH_KEYS);
-        this.maxBufferSize = configuration.flatMap(BatchOverrideConfiguration::maxBufferSize).orElse(DEFAULT_MAX_BUFFER_SIZE);
-        this.maxBatchOpenDuration = configuration.flatMap(BatchOverrideConfiguration::maxBatchOpenDuration)
-                                             .orElse(DEFAULT_MAX_BATCH_OPEN_IN_MS);
+        if (overrideConfiguration == null) {
+            this.maxBatchItems = DEFAULT_MAX_BATCH_ITEMS;
+            this.maxBatchKeys = DEFAULT_MAX_BATCH_KEYS;
+            this.maxBufferSize = DEFAULT_MAX_BUFFER_SIZE;
+            this.maxBatchOpenDuration = DEFAULT_MAX_BATCH_OPEN_IN_MS;
+        } else {
+            this.maxBatchItems = overrideConfiguration.maxBatchItems() != null
+                                 ? overrideConfiguration.maxBatchItems()
+                                 : DEFAULT_MAX_BATCH_ITEMS;
+            this.maxBatchKeys = overrideConfiguration.maxBatchKeys() != null
+                                ? overrideConfiguration.maxBatchKeys()
+                                : DEFAULT_MAX_BATCH_KEYS;
+            this.maxBufferSize = overrideConfiguration.maxBufferSize() != null
+                                 ? overrideConfiguration.maxBufferSize()
+                                 : DEFAULT_MAX_BUFFER_SIZE;
+            this.maxBatchOpenDuration = overrideConfiguration.maxBatchOpenDuration() != null
+                                        ? overrideConfiguration.maxBatchOpenDuration()
+                                        : DEFAULT_MAX_BATCH_OPEN_IN_MS;
+        }
     }
 
     public Duration maxBatchOpenDuration() {

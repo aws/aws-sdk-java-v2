@@ -68,55 +68,55 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     /**
      * @return the optional maximum number of messages that are batched together in a single request.
      */
-    public Optional<Integer> maxBatchItems() {
-        return Optional.ofNullable(maxBatchItems);
+    public Integer maxBatchItems() {
+        return maxBatchItems;
     }
 
     /**
      * @return the optional maximum number of batchKeys to keep track of.
      */
-    public Optional<Integer> maxBatchKeys() {
-        return Optional.ofNullable(maxBatchKeys);
+    public Integer maxBatchKeys() {
+        return maxBatchKeys;
     }
 
     /**
      * @return the maximum number of items to allow to be buffered for each batchKey.
      */
-    public Optional<Integer> maxBufferSize() {
-        return Optional.ofNullable(maxBufferSize);
+    public Integer maxBufferSize() {
+        return maxBufferSize;
     }
 
-    public Optional<Integer> maxDoneReceiveBatches() {
-        return Optional.ofNullable(maxDoneReceiveBatches);
+    public Integer maxDoneReceiveBatches() {
+        return maxDoneReceiveBatches;
     }
 
     /**
      * @return the optional maximum amount of time that an outgoing call waits to be batched with messages of the same type.
      */
-    public Optional<Duration> maxBatchOpenDuration() {
-        return Optional.ofNullable(maxBatchOpenDuration);
+    public Duration maxBatchOpenDuration() {
+        return maxBatchOpenDuration;
     }
 
     /**
      * @return the custom visibility timeout to use when retrieving messages from SQS.
      */
-    public Optional<Duration> visibilityTimeout() {
-        return Optional.ofNullable(visibilityTimeout);
+    public Duration visibilityTimeout() {
+        return visibilityTimeout;
     }
 
     /**
      * @return the amount of time, the receive call will block on the server waiting for messages to arrive if the
      * queue is empty when the receive call is first made.
      */
-    public Optional<Duration> longPollWaitTimeout() {
-        return Optional.ofNullable(longPollWaitTimeout);
+    public Duration longPollWaitTimeout() {
+        return longPollWaitTimeout;
     }
 
     /**
      * @return the minimum wait time for incoming receive message requests.
      */
-    public Optional<Duration> minReceiveWaitTime() {
-        return Optional.ofNullable(minReceiveWaitTime);
+    public Duration minReceiveWaitTime() {
+        return minReceiveWaitTime;
     }
 
     /**
@@ -138,15 +138,15 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     /**
      * @return the behavior for prefetching with respect to the number of in-flight incoming receive requests.
      */
-    public Optional<Boolean> adaptivePrefetching() {
-        return Optional.ofNullable(adaptivePrefetching);
+    public Boolean adaptivePrefetching() {
+        return adaptivePrefetching;
     }
 
     /**
      * @return the maximum number of concurrent receive message batches.
      */
-    public Optional<Integer> maxInflightReceiveBatches() {
-        return Optional.ofNullable(maxInflightReceiveBatches);
+    public Integer maxInflightReceiveBatches() {
+        return maxInflightReceiveBatches;
     }
 
     @Override
@@ -315,7 +315,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         /**
          * Define the maximum amount of time that an outgoing call waits for other requests before sending out a
          * batch request.
-         *
+         * TODO : Decide if Ms needs to be added to the name in surface API review meeting
          * @param maxBatchOpenDuration The new maxBatchOpenDuration value.
          * @return This object for method chaining.
          */

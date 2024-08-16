@@ -38,6 +38,7 @@ import java.util.stream.IntStream;
 import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -285,6 +286,7 @@ public class ReceiveQueueBufferTest {
         for (int i = 0; i < 30; i++) {
             ReceiveMessageCompletableFuture future = new ReceiveMessageCompletableFuture(1, Duration.ofSeconds(1));
             futures.add(future);
+            Thread.sleep(10);
             receiveQueueBuffer.receiveMessage(future);
         }
 
@@ -293,7 +295,7 @@ public class ReceiveQueueBufferTest {
             future.responseCompletableFuture().get(2, TimeUnit.SECONDS);
         }
 
-        verify(sqsClient, atMost(11)).receiveMessage(any(ReceiveMessageRequest.class));
+        verify(sqsClient, atMost(MAX_BATCH_ITEMS)).receiveMessage(any(ReceiveMessageRequest.class));
     }
 
 

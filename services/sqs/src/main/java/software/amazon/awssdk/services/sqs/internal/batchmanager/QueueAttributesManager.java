@@ -19,7 +19,6 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -29,6 +28,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
 
 
@@ -83,13 +83,7 @@ public final class QueueAttributesManager {
             return Duration.ofMillis(Math.max(configuredWaitTime.toMillis(), waitTimeFromSqsMillis));
         });
 
-        resultFuture.whenComplete((r, t) -> {
-            if (t instanceof CancellationException) {
-                attributeFuture.cancel(true);
-            }
-        });
-
-        return resultFuture;
+        return CompletableFutureUtils.forwardExceptionTo(resultFuture, attributeFuture);
     }
 
     /**
@@ -104,14 +98,7 @@ public final class QueueAttributesManager {
             return Duration.ofSeconds(Integer.parseInt(visibilityTimeoutStr));
         });
 
-        resultFuture.whenComplete((r, t) -> {
-            if (t instanceof CancellationException) {
-                attributeFuture.cancel(true);
-            }
-        });
-
-        return resultFuture;
-
+        return CompletableFutureUtils.forwardExceptionTo(resultFuture, attributeFuture);
     }
 
     /**

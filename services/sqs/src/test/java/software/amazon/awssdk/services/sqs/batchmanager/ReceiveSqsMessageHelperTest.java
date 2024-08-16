@@ -46,7 +46,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.AsyncReceiveMessageBatch;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.ReceiveSqsMessageHelper;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
@@ -55,7 +55,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
 @ExtendWith(MockitoExtension.class)
-class AsyncReceiveMessageBatchTest {
+class ReceiveSqsMessageHelperTest {
 
     private final String queueUrl = "test-queue-url";
     private final Duration visibilityTimeout = Duration.ofSeconds(30);
@@ -64,7 +64,7 @@ class AsyncReceiveMessageBatchTest {
     @Mock
     private SqsAsyncClient sqsClient;
     private ResponseBatchConfiguration config;
-    private AsyncReceiveMessageBatch asyncReceiveMessageBatch;
+    private ReceiveSqsMessageHelper receiveSqsMessageHelper;
 
     @BeforeEach
     void setUp() {
@@ -77,12 +77,12 @@ class AsyncReceiveMessageBatchTest {
                                                                                    .build();
         config = new ResponseBatchConfiguration(batchOverrideConfig);
 
-        asyncReceiveMessageBatch = new AsyncReceiveMessageBatch(queueUrl, sqsClient, visibilityTimeout, config);
+        receiveSqsMessageHelper = new ReceiveSqsMessageHelper(queueUrl, sqsClient, visibilityTimeout, config);
     }
 
     @AfterEach
     void clear(){
-        asyncReceiveMessageBatch.clear();
+        receiveSqsMessageHelper.clear();
     }
 
     @Test
@@ -95,7 +95,7 @@ class AsyncReceiveMessageBatchTest {
         futureResponse.complete(response);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(futureResponse);
 
-        CompletableFuture<AsyncReceiveMessageBatch> result = asyncReceiveMessageBatch.asyncReceiveMessage();
+        CompletableFuture<ReceiveSqsMessageHelper> result = receiveSqsMessageHelper.asyncReceiveMessage();
         assertTrue(result.isDone());
         assertNull(result.get().getException());
         assertFalse(result.get().isEmpty());
@@ -111,7 +111,7 @@ class AsyncReceiveMessageBatchTest {
         futureResponse.complete(response);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(futureResponse);
 
-        CompletableFuture<AsyncReceiveMessageBatch> result = asyncReceiveMessageBatch.asyncReceiveMessage();
+        CompletableFuture<ReceiveSqsMessageHelper> result = receiveSqsMessageHelper.asyncReceiveMessage();
         assertEquals(10, result.get(1, TimeUnit.SECONDS).messagesSize());
         assertTrue(result.isDone());
         assertNull(result.get().getException());
@@ -128,15 +128,15 @@ class AsyncReceiveMessageBatchTest {
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(futureResponse);
 
         // Call asyncReceiveMessage and expect it to handle the exception
-        CompletableFuture<AsyncReceiveMessageBatch> result = asyncReceiveMessageBatch.asyncReceiveMessage();
+        CompletableFuture<ReceiveSqsMessageHelper> result = receiveSqsMessageHelper.asyncReceiveMessage();
 
         // Verify that the CompletableFuture is completed exceptionally
-        AsyncReceiveMessageBatch messageBatch = result.get(2, TimeUnit.SECONDS);
+        ReceiveSqsMessageHelper messageBatch = result.get(2, TimeUnit.SECONDS);
 
-        // Verify the exception in the AsyncReceiveMessageBatch
+        // Verify the exception in the ReceiveSqsMessageHelper
         assertNotNull(messageBatch.getException());
-        assertEquals("SQS error", asyncReceiveMessageBatch.getException().getMessage());
-        assertTrue(asyncReceiveMessageBatch.isEmpty());
+        assertEquals("SQS error", receiveSqsMessageHelper.getException().getMessage());
+        assertTrue(receiveSqsMessageHelper.isEmpty());
     }
 
     @Test
@@ -148,8 +148,8 @@ class AsyncReceiveMessageBatchTest {
         futureResponse.complete(response);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(futureResponse);
 
-        asyncReceiveMessageBatch.asyncReceiveMessage().get(3,TimeUnit.SECONDS);
-        assertTrue(asyncReceiveMessageBatch.isEmpty());
+        receiveSqsMessageHelper.asyncReceiveMessage().get(3, TimeUnit.SECONDS);
+        assertTrue(receiveSqsMessageHelper.isEmpty());
     }
 
     @Test
@@ -159,17 +159,17 @@ class AsyncReceiveMessageBatchTest {
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(CompletableFuture.completedFuture(response));
 
         // Calling asyncReceiveMessage to initialize messages
-        asyncReceiveMessageBatch.asyncReceiveMessage().get(3, TimeUnit.SECONDS);
+        receiveSqsMessageHelper.asyncReceiveMessage().get(3, TimeUnit.SECONDS);
 
         // Verify initial state
-        assertEquals(10, asyncReceiveMessageBatch.messagesSize());
+        assertEquals(10, receiveSqsMessageHelper.messagesSize());
 
         // Create threads to call removeMessage concurrently
         List<Thread> threads = new ArrayList<>();
         AtomicInteger successfulRemovals = new AtomicInteger(0);
         for (int i = 0; i < 10; i++) {
             threads.add(new Thread(() -> {
-                Message message = asyncReceiveMessageBatch.removeMessage();
+                Message message = receiveSqsMessageHelper.removeMessage();
                 if (message != null) {
                     int messageNumber = Integer.parseInt(message.body().split(" ")[1]);
                     assertTrue(messageNumber >= 0 && messageNumber < 10);
@@ -188,9 +188,9 @@ class AsyncReceiveMessageBatchTest {
 
         // Verify final state
         assertEquals(10, successfulRemovals.get());
-        assertEquals(0, asyncReceiveMessageBatch.messagesSize());
-        assertNull(asyncReceiveMessageBatch.removeMessage());
-        assertTrue(asyncReceiveMessageBatch.isEmpty());
+        assertEquals(0, receiveSqsMessageHelper.messagesSize());
+        assertNull(receiveSqsMessageHelper.removeMessage());
+        assertTrue(receiveSqsMessageHelper.isEmpty());
     }
 
     private ReceiveMessageResponse generateMessageResponse(int count) {
@@ -215,10 +215,10 @@ class AsyncReceiveMessageBatchTest {
         when(sqsClient.changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(ChangeMessageVisibilityBatchResponse.builder().build()));
 
-        asyncReceiveMessageBatch.asyncReceiveMessage().get(3, TimeUnit.SECONDS);
-        asyncReceiveMessageBatch.clear();
+        receiveSqsMessageHelper.asyncReceiveMessage().get(3, TimeUnit.SECONDS);
+        receiveSqsMessageHelper.clear();
 
-        assertTrue(asyncReceiveMessageBatch.isEmpty());
+        assertTrue(receiveSqsMessageHelper.isEmpty());
         verify(sqsClient, times(1)).changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class));
     }
 
@@ -232,29 +232,27 @@ class AsyncReceiveMessageBatchTest {
         futureResponse.complete(response);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(futureResponse);
 
-        CompletableFuture<AsyncReceiveMessageBatch> completableFuture = asyncReceiveMessageBatch.asyncReceiveMessage();
-        assertFalse(asyncReceiveMessageBatch.isExpired());
-        completableFuture.get(2, TimeUnit.SECONDS);
+        CompletableFuture<ReceiveSqsMessageHelper> completableFuture = receiveSqsMessageHelper.asyncReceiveMessage();
+        ReceiveSqsMessageHelper receiveSqsMessageHelper1 = completableFuture.get(2, TimeUnit.SECONDS);
+        Message message = receiveSqsMessageHelper1.removeMessage();
+        assertEquals(message, Message.builder().body("Message 1").build());
 
 
     }
 
     @Test
     public void expiredBatchesClearsItself() throws Exception {
-        // Test setup: creating a new instance of AsyncReceiveMessageBatch
-        AsyncReceiveMessageBatch batch = new AsyncReceiveMessageBatch("queueUrl", sqsClient
+        // Test setup: creating a new instance of ReceiveSqsMessageHelper
+        ReceiveSqsMessageHelper batch = new ReceiveSqsMessageHelper("queueUrl", sqsClient
             , Duration.ofNanos(1), config);
 
         // Mocking receiveMessage to return a single message to open the batch
         ReceiveMessageResponse response = generateMessageResponse(10);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(CompletableFuture.completedFuture(response));
 
-        CompletableFuture<AsyncReceiveMessageBatch> result = batch.asyncReceiveMessage();
-        AsyncReceiveMessageBatch messageBatch = result.get(1, TimeUnit.SECONDS);
-
+        CompletableFuture<ReceiveSqsMessageHelper> result = batch.asyncReceiveMessage();
+        ReceiveSqsMessageHelper messageBatch = result.get(1, TimeUnit.SECONDS);
         Thread.sleep(10);
-
-        assertTrue(messageBatch.isExpired());
         assertNull(messageBatch.removeMessage());
         assertTrue(messageBatch.isEmpty());
         verify(sqsClient, times(1))
@@ -274,7 +272,7 @@ class AsyncReceiveMessageBatchTest {
                                                                                    .longPollWaitTimeout(Duration.ofSeconds(15))
                                                                                    .build();
 
-        AsyncReceiveMessageBatch batch = new AsyncReceiveMessageBatch(
+        ReceiveSqsMessageHelper batch = new ReceiveSqsMessageHelper(
             queueUrl, sqsClient, visibilityTimeout, new ResponseBatchConfiguration(batchOverrideConfig));
 
 

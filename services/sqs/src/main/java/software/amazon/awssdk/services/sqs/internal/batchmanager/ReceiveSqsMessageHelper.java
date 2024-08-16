@@ -36,7 +36,7 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
 
 /**
- * The {@code AsyncReceiveMessageBatch} class forms a {@link  ReceiveMessageRequest} request based on configuration settings,
+ * The {@code ReceiveSqsMessageHelper} class forms a {@link  ReceiveMessageRequest} request based on configuration settings,
  * collects messages from an AWS SQS queue, and handles exceptions during the process.
  * <p>
  * It manages message visibility timeout by tracking the visibility deadline and expiring messages if not processed in time,
@@ -46,28 +46,28 @@ import software.amazon.awssdk.utils.NumericUtils;
  */
 
 @SdkInternalApi
-public class AsyncReceiveMessageBatch {
+public class ReceiveSqsMessageHelper {
 
-    private static final Logger log = Logger.loggerFor(AsyncReceiveMessageBatch.class);
+    private static final Logger log = Logger.loggerFor(ReceiveSqsMessageHelper.class);
     private final String queueUrl;
     private final SqsAsyncClient asyncClient;
     private final Duration visibilityTimeout;
     private final ResponseBatchConfiguration config;
     private volatile Throwable exception;
-    private volatile Queue<Message> messages = new ConcurrentLinkedQueue<>(); // Thread-safe queue
-    private long visibilityDeadlineNano;
+    private Queue<Message> messages = new ConcurrentLinkedQueue<>();
+    private volatile long visibilityDeadlineNano;
 
-    public AsyncReceiveMessageBatch(String queueUrl,
-                                    SqsAsyncClient asyncClient,
-                                    Duration visibilityTimeout,
-                                    ResponseBatchConfiguration config) {
+    public ReceiveSqsMessageHelper(String queueUrl,
+                                   SqsAsyncClient asyncClient,
+                                   Duration visibilityTimeout,
+                                   ResponseBatchConfiguration config) {
         this.queueUrl = queueUrl;
         this.asyncClient = asyncClient;
         this.visibilityTimeout = visibilityTimeout;
         this.config = config;
     }
 
-    public CompletableFuture<AsyncReceiveMessageBatch> asyncReceiveMessage() {
+    public CompletableFuture<ReceiveSqsMessageHelper> asyncReceiveMessage() {
         ReceiveMessageRequest.Builder request =
             ReceiveMessageRequest.builder()
                                  .queueUrl(queueUrl)
@@ -86,7 +86,7 @@ public class AsyncReceiveMessageBatch {
                                   if (throwable != null) {
                                       setException(throwable);
                                   } else {
-                                      messages.addAll(response.messages()); // Safely add new messages to the queue
+                                      messages.addAll(response.messages());
                                   }
                                   return this;
                               });
@@ -113,10 +113,10 @@ public class AsyncReceiveMessageBatch {
             clear();
             return null;
         }
-        return messages.poll(); // Safely remove and return the head of the queue, or null if empty
+        return messages.poll();
     }
 
-    public boolean isExpired() {
+    private boolean isExpired() {
         return System.nanoTime() > visibilityDeadlineNano;
     }
 

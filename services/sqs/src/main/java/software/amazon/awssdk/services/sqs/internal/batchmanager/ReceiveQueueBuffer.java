@@ -23,7 +23,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -38,13 +37,14 @@ public class ReceiveQueueBuffer {
     private final String queueUrl;
     private final  QueueAttributesManager queueAttributesManager;
 
-    private final Queue<AsyncReceiveMessageBatch> finishedTasks = new ConcurrentLinkedQueue<>();
+    private final Queue<ReceiveSqsMessageHelper> finishedTasks = new ConcurrentLinkedQueue<>();
     private final Queue<ReceiveMessageCompletableFuture> futures = new ConcurrentLinkedQueue<>();
 
     private final AtomicInteger inflightReceiveMessageBatches = new AtomicInteger(0);
     private final AtomicBoolean shutDown = new AtomicBoolean(false);
 
-    private final ReentrantLock lock = new ReentrantLock();
+    private final AtomicBoolean processingFutures = new AtomicBoolean(false);
+
 
     public ReceiveQueueBuffer(ScheduledExecutorService executor, SqsAsyncClient sqsClient,
                               ResponseBatchConfiguration config, String queueUrl, QueueAttributesManager queueAttributesManager) {
@@ -69,7 +69,7 @@ public class ReceiveQueueBuffer {
         if (this.shutDown.compareAndSet(false, true)) {
             // Clear all finished tasks
             while (!finishedTasks.isEmpty()) {
-                AsyncReceiveMessageBatch batch = finishedTasks.poll();
+                ReceiveSqsMessageHelper batch = finishedTasks.poll();
                 if (inflightReceiveMessageBatches.get() > 0) {
                     inflightReceiveMessageBatches.decrementAndGet();
                 }
@@ -103,17 +103,17 @@ public class ReceiveQueueBuffer {
             return;
         }
 
-        queueAttributesManager.getVisibilityTimeout().thenAcceptAsync(visibilityTimeoutNanos -> {
+        queueAttributesManager.getVisibilityTimeout().thenAcceptAsync(visibilityTimeout -> {
             int max = Math.max(config.maxInflightReceiveBatches(), 1);
             int toSpawn = max - inflightReceiveMessageBatches.get();
             if (toSpawn > 0) {
-                AsyncReceiveMessageBatch asyncReceiveMessageBatch = new AsyncReceiveMessageBatch(
-                    queueUrl, sqsClient, visibilityTimeoutNanos, config);
+                ReceiveSqsMessageHelper receiveSqsMessageHelper = new ReceiveSqsMessageHelper(
+                    queueUrl, sqsClient, visibilityTimeout, config);
                 inflightReceiveMessageBatches.incrementAndGet();
-                asyncReceiveMessageBatch.asyncReceiveMessage()
-                                        .whenComplete((response, exception) -> reportBatchFinished(response));
+                receiveSqsMessageHelper.asyncReceiveMessage()
+                                       .whenComplete((response, exception) -> reportBatchFinished(response));
             }
-        });
+        }, executor);
     }
 
     private int determineDesiredBatches() {
@@ -121,7 +121,7 @@ public class ReceiveQueueBuffer {
 
         if (config.adaptivePrefetching()) {
             int totalRequested = futures.stream()
-                                        .mapToInt(ReceiveMessageCompletableFuture::getRequestedSize)
+                                        .mapToInt(ReceiveMessageCompletableFuture::requestedSize)
                                         .sum();
             int batchesNeededToFulfillFutures = (int) Math.ceil((float) totalRequested / config.maxBatchItems());
             desiredBatches = Math.min(batchesNeededToFulfillFutures, desiredBatches);
@@ -130,9 +130,9 @@ public class ReceiveQueueBuffer {
         return desiredBatches;
     }
 
-    private void fulfillFuture(ReceiveMessageCompletableFuture future, AsyncReceiveMessageBatch task) {
+    private void fulfillFuture(ReceiveMessageCompletableFuture future, ReceiveSqsMessageHelper messageHelper) {
         List<Message> messages = new LinkedList<>();
-        Throwable exception = task.getException();
+        Throwable exception = messageHelper.getException();
         int numRetrieved = 0;
         boolean batchDone = false;
 
@@ -142,8 +142,8 @@ public class ReceiveQueueBuffer {
             return;
         }
 
-        while (numRetrieved < future.getRequestedSize()) {
-            Message msg = task.removeMessage();
+        while (numRetrieved < future.requestedSize()) {
+            Message msg = messageHelper.removeMessage();
             if (msg != null) {
                 messages.add(msg);
                 ++numRetrieved;
@@ -152,21 +152,18 @@ public class ReceiveQueueBuffer {
                 break;
             }
         }
-        batchDone = batchDone || task.isEmpty();
+        batchDone = batchDone || messageHelper.isEmpty();
         if (batchDone) {
-            lock.lock();
-            try {
-                finishedTasks.poll();
-            } finally {
-                lock.unlock();
-            }
+            finishedTasks.poll();
         }
         future.setSuccess(ReceiveMessageResponse.builder().messages(messages).build());
     }
 
     private void satisfyFuturesFromBuffer() {
         pruneExpiredTasks();
-        lock.lock();
+        if (!processingFutures.compareAndSet(false, true)) {
+            return;
+        }
         try {
             futures.forEach(future -> {
                 if (!finishedTasks.isEmpty()) {
@@ -175,7 +172,7 @@ public class ReceiveQueueBuffer {
                 }
             });
         } finally {
-            lock.unlock();
+            processingFutures.set(false);
         }
     }
 
@@ -183,7 +180,7 @@ public class ReceiveQueueBuffer {
         futures.removeIf(ReceiveMessageCompletableFuture::isExpired);
     }
 
-    private void reportBatchFinished(AsyncReceiveMessageBatch batch) {
+    private void reportBatchFinished(ReceiveSqsMessageHelper batch) {
         finishedTasks.offer(batch);
         inflightReceiveMessageBatches.decrementAndGet();
         satisfyFuturesFromBuffer();

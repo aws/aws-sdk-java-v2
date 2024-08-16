@@ -83,19 +83,19 @@ class BatchOverrideConfigurationTest {
                                                                       .maxDoneReceiveBatches(maxDoneReceiveBatches)
                                                                       .build();
 
-        assertEquals(Optional.ofNullable(maxBatchItems), config.maxBatchItems());
-        assertEquals(Optional.ofNullable(maxBatchKeys), config.maxBatchKeys());
-        assertEquals(Optional.ofNullable(maxBatchOpenDuration), config.maxBatchOpenDuration());
-        assertEquals(Optional.ofNullable(visibilityTimeout), config.visibilityTimeout());
-        assertEquals(Optional.ofNullable(longPollWaitTimeout), config.longPollWaitTimeout());
-        assertEquals(Optional.ofNullable(minReceiveWaitTime), config.minReceiveWaitTime());
+        assertEquals(maxBatchItems, config.maxBatchItems());
+        assertEquals(maxBatchKeys, config.maxBatchKeys());
+        assertEquals(maxBatchOpenDuration, config.maxBatchOpenDuration());
+        assertEquals(visibilityTimeout, config.visibilityTimeout());
+        assertEquals(longPollWaitTimeout, config.longPollWaitTimeout());
+        assertEquals(minReceiveWaitTime, config.minReceiveWaitTime());
         assertEquals(Optional.ofNullable(receiveAttributeNames).orElse(Collections.emptyList()),
                      config.receiveAttributeNames().orElse(Collections.emptyList()));
         assertEquals(Optional.ofNullable(receiveMessageAttributeNames).orElse(Collections.emptyList()),
                      config.receiveMessageAttributeNames().orElse(Collections.emptyList()));
-        assertEquals(Optional.ofNullable(adaptivePrefetching), config.adaptivePrefetching());
-        assertEquals(Optional.ofNullable(maxInflightReceiveBatches), config.maxInflightReceiveBatches());
-        assertEquals(Optional.ofNullable(maxDoneReceiveBatches), config.maxDoneReceiveBatches());
+        assertEquals(adaptivePrefetching, config.adaptivePrefetching());
+        assertEquals(maxInflightReceiveBatches, config.maxInflightReceiveBatches());
+        assertEquals(maxDoneReceiveBatches, config.maxDoneReceiveBatches());
     }
 
     @Test
