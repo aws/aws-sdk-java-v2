@@ -118,14 +118,16 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
     }
 
     @Override
-    public CompletableFuture<TransactWriteItemsEnhancedResponse<Void>> transactWriteItemsWithResponse(TransactWriteItemsEnhancedRequest request) {
+    public CompletableFuture<TransactWriteItemsEnhancedResponse<Void>> transactWriteItemsWithResponse(
+        TransactWriteItemsEnhancedRequest request) {
         TransactWriteItemsOperation<Void> operation =
             TransactWriteItemsOperation.create(request);
         return operation.executeAsync(dynamoDbClient, extension);
     }
 
     @Override
-    public CompletableFuture<TransactWriteItemsEnhancedResponse<Void>> transactWriteItemsWithResponse(Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
+    public CompletableFuture<TransactWriteItemsEnhancedResponse<Void>> transactWriteItemsWithResponse(
+        Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
         TransactWriteItemsEnhancedRequest.Builder builder = TransactWriteItemsEnhancedRequest.builder();
         requestConsumer.accept(builder);
         return transactWriteItemsWithResponse(builder.build());
@@ -154,8 +156,8 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
 
         DefaultDynamoDbEnhancedAsyncClient that = (DefaultDynamoDbEnhancedAsyncClient) o;
 
-        if (dynamoDbClient != null ? ! dynamoDbClient.equals(that.dynamoDbClient)
-            : that.dynamoDbClient != null) {
+        if (dynamoDbClient != null ? !dynamoDbClient.equals(that.dynamoDbClient)
+                                   : that.dynamoDbClient != null) {
 
             return false;
         }

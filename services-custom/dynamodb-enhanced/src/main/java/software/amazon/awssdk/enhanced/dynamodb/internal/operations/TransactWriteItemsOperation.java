@@ -19,8 +19,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
-import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
@@ -50,14 +50,14 @@ public class TransactWriteItemsOperation<T>
         return TransactWriteItemsRequest.builder()
                                         .transactItems(this.request.transactWriteItems())
                                         .clientRequestToken(this.request.clientRequestToken())
-            .returnConsumedCapacity(this.request.returnConsumedCapacity())
-            .returnItemCollectionMetrics(this.request.returnItemCollectionMetrics())
+                                        .returnConsumedCapacity(this.request.returnConsumedCapacity())
+                                        .returnItemCollectionMetrics(this.request.returnItemCollectionMetrics())
                                         .build();
     }
 
     @Override
     public TransactWriteItemsEnhancedResponse<T> transformResponse(TransactWriteItemsResponse response,
-    DynamoDbEnhancedClientExtension extension) {
+                                                                   DynamoDbEnhancedClientExtension extension) {
         return TransactWriteItemsEnhancedResponse.<T>builder(null)
                                                  .consumedCapacity(response.consumedCapacity())
                                                  .itemCollectionMetrics(response.itemCollectionMetrics())

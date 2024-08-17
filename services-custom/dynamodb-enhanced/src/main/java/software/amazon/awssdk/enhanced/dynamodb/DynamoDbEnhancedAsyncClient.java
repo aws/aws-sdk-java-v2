@@ -53,29 +53,28 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
     /**
      * Returns a mapped table that can be used to execute commands that work with mapped items against that table.
      *
-     * @param tableName The name of the physical table persisted by DynamoDb.
+     * @param tableName   The name of the physical table persisted by DynamoDb.
      * @param tableSchema A {@link TableSchema} that maps the table to a modelled object.
+     * @param <T>         THe modelled object type being mapped to this table.
      * @return A {@link DynamoDbAsyncTable} object that can be used to execute table operations against.
-     * @param <T> THe modelled object type being mapped to this table.
      */
     <T> DynamoDbAsyncTable<T> table(String tableName, TableSchema<T> tableSchema);
 
     /**
-     * Retrieves items from one or more tables by their primary keys, see {@link Key}. BatchGetItem is a composite operation
-     * where the request contains one batch of {@link GetItemEnhancedRequest} per targeted table.
-     * The operation makes several calls to the database; each time you iterate over the result to retrieve a page,
-     * a call is made for the items on that page.
+     * Retrieves items from one or more tables by their primary keys, see {@link Key}. BatchGetItem is a composite operation where
+     * the request contains one batch of {@link GetItemEnhancedRequest} per targeted table. The operation makes several calls to
+     * the database; each time you iterate over the result to retrieve a page, a call is made for the items on that page.
      * <p>
-     * The additional configuration parameters that the enhanced client supports are defined
-     * in the {@link BatchGetItemEnhancedRequest}.
+     * The additional configuration parameters that the enhanced client supports are defined in the
+     * {@link BatchGetItemEnhancedRequest}.
      * <p>
      * <b>Partial results</b>. A single call to DynamoDb has restraints on how much data can be retrieved.
-     * If those limits are exceeded, the call yields a partial result. This may also be the case if
-     * provisional throughput is exceeded or there is an internal DynamoDb processing failure. The operation automatically
-     * retries any unprocessed keys returned from DynamoDb in subsequent calls for pages.
+     * If those limits are exceeded, the call yields a partial result. This may also be the case if provisional throughput is
+     * exceeded or there is an internal DynamoDb processing failure. The operation automatically retries any unprocessed keys
+     * returned from DynamoDb in subsequent calls for pages.
      * <p>
-     * This operation calls the low-level {@link DynamoDbAsyncClient#batchGetItemPaginator} operation. Consult the
-     * BatchGetItem documentation for further details and constraints as well as current limits of data retrieval.
+     * This operation calls the low-level {@link DynamoDbAsyncClient#batchGetItemPaginator} operation. Consult the BatchGetItem
+     * documentation for further details and constraints as well as current limits of data retrieval.
      * <p>
      * Example:
      * <pre>
@@ -97,8 +96,8 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * </pre>
      *
      * <p>
-     * The returned {@link BatchGetResultPagePublisher} can be subscribed to request a stream of {@link BatchGetResultPage}s
-     * or a stream of flattened results belonging to the supplied table across all pages.
+     * The returned {@link BatchGetResultPagePublisher} can be subscribed to request a stream of {@link BatchGetResultPage}s or a
+     * stream of flattened results belonging to the supplied table across all pages.
      *
      * <p>
      * 1) Subscribing to {@link BatchGetResultPage}s
@@ -119,20 +118,20 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * publisher.resultsForTable(secondItemTable).subscribe(item -> System.out.println(item));
      * }
      * </pre>
-     * @see #batchGetItem(Consumer)
-     * @see DynamoDbAsyncClient#batchGetItemPaginator
+     *
      * @param request A {@link BatchGetItemEnhancedRequest} containing keys grouped by tables.
      * @return a publisher {@link SdkPublisher} with paginated results of type {@link BatchGetResultPage}.
+     * @see #batchGetItem(Consumer)
+     * @see DynamoDbAsyncClient#batchGetItemPaginator
      */
     default BatchGetResultPagePublisher batchGetItem(BatchGetItemEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Retrieves items from one or more tables by their primary keys, see {@link Key}. BatchGetItem is a composite operation
-     * where the request contains one batch of {@link GetItemEnhancedRequest} per targeted table.
-     * The operation makes several calls to the database; each time you iterate over the result to retrieve a page,
-     * a call is made for the items on that page.
+     * Retrieves items from one or more tables by their primary keys, see {@link Key}. BatchGetItem is a composite operation where
+     * the request contains one batch of {@link GetItemEnhancedRequest} per targeted table. The operation makes several calls to
+     * the database; each time you iterate over the result to retrieve a page, a call is made for the items on that page.
      * <p>
      * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to create one
      * manually via {@link BatchGetItemEnhancedRequest#builder()}.
@@ -154,10 +153,11 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * }
      * </pre>
      *
+     * @param requestConsumer a {@link Consumer} of {@link BatchGetItemEnhancedRequest.Builder} containing keys grouped by
+     *                        tables.
+     * @return a publisher {@link SdkPublisher} with paginated results of type {@link BatchGetResultPage}.
      * @see #batchGetItem(BatchGetItemEnhancedRequest)
      * @see DynamoDbAsyncClient#batchGetItem
-     * @param requestConsumer a {@link Consumer} of {@link BatchGetItemEnhancedRequest.Builder} containing keys grouped by tables.
-     * @return a publisher {@link SdkPublisher} with paginated results of type {@link BatchGetResultPage}.
      */
     default BatchGetResultPagePublisher batchGetItem(Consumer<BatchGetItemEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
@@ -167,15 +167,15 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * Puts and/or deletes multiple items in one or more tables. BatchWriteItem is a composite operation where the request
      * contains one batch of (a mix of) {@link PutItemEnhancedRequest} and {@link DeleteItemEnhancedRequest} per targeted table.
      * <p>
-     * The additional configuration parameters that the enhanced client supports are defined
-     * in the {@link BatchWriteItemEnhancedRequest}.
+     * The additional configuration parameters that the enhanced client supports are defined in the
+     * {@link BatchWriteItemEnhancedRequest}.
      * <p>
      * <b>Note: </b> BatchWriteItem cannot update items. Instead, use the individual updateItem operation
      * {@link DynamoDbAsyncTable#updateItem(UpdateItemEnhancedRequest)}.
      * <p>
      * <b>Partial updates</b><br>Each delete or put call is atomic, but the operation as a whole is not.
-     * If individual operations fail due to exceeded provisional throughput internal DynamoDb processing failures,
-     * the failed requests can be retrieved through the result, see {@link BatchWriteResult}.
+     * If individual operations fail due to exceeded provisional throughput internal DynamoDb processing failures, the failed
+     * requests can be retrieved through the result, see {@link BatchWriteResult}.
      * <p>
      * There are some conditions that cause the whole batch operation to fail. These include non-existing tables, erroneously
      * defined primary key attributes, attempting to put and delete the same item as well as referring more than once to the same
@@ -217,15 +217,15 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * Puts and/or deletes multiple items in one or more tables. BatchWriteItem is a composite operation where the request
      * contains one batch of (a mix of) {@link PutItemEnhancedRequest} and {@link DeleteItemEnhancedRequest} per targeted table.
      * <p>
-     * The additional configuration parameters that the enhanced client supports are defined
-     * in the {@link BatchWriteItemEnhancedRequest}.
+     * The additional configuration parameters that the enhanced client supports are defined in the
+     * {@link BatchWriteItemEnhancedRequest}.
      * <p>
      * <b>Note: </b> BatchWriteItem cannot update items. Instead, use the individual updateItem operation
      * {@link DynamoDbAsyncTable#updateItem}}.
      * <p>
      * <b>Partial updates</b><br>Each delete or put call is atomic, but the operation as a whole is not.
-     * If individual operations fail due to exceeded provisional throughput internal DynamoDb processing failures,
-     * the failed requests can be retrieved through the result, see {@link BatchWriteResult}.
+     * If individual operations fail due to exceeded provisional throughput internal DynamoDb processing failures, the failed
+     * requests can be retrieved through the result, see {@link BatchWriteResult}.
      * <p>
      * There are some conditions that cause the whole batch operation to fail. These include non-existing tables, erroneously
      * defined primary key attributes, attempting to put and delete the same item as well as referring more than once to the same
@@ -256,7 +256,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * </pre>
      *
      * @param requestConsumer a {@link Consumer} of {@link BatchWriteItemEnhancedRequest} containing keys and items grouped by
-     * tables.
+     *                        tables.
      * @return a {@link CompletableFuture} of {@link BatchWriteResult}, containing any unprocessed requests.
      */
     default CompletableFuture<BatchWriteResult> batchWriteItem(Consumer<BatchWriteItemEnhancedRequest.Builder> requestConsumer) {
@@ -265,11 +265,10 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
 
     /**
      * Retrieves multiple items from one or more tables in a single atomic transaction. TransactGetItem is a composite operation
-     * where the request contains a set of get requests, each containing a table reference and a
-     * {@link GetItemEnhancedRequest}.
+     * where the request contains a set of get requests, each containing a table reference and a {@link GetItemEnhancedRequest}.
      * <p>
-     * The additional configuration parameters that the enhanced client supports are defined
-     * in the {@link TransactGetItemsEnhancedRequest}.
+     * The additional configuration parameters that the enhanced client supports are defined in the
+     * {@link TransactGetItemsEnhancedRequest}.
      * <p>
      * DynamoDb will reject a call to TransactGetItems if the call exceeds limits such as provisioned throughput or allowed size
      * of items, if the request contains errors or if there are conflicting operations accessing the same item, for instance
@@ -301,11 +300,10 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
 
     /**
      * Retrieves multiple items from one or more tables in a single atomic transaction. TransactGetItem is a composite operation
-     * where the request contains a set of get requests, each containing a table reference and a
-     * {@link GetItemEnhancedRequest}.
+     * where the request contains a set of get requests, each containing a table reference and a {@link GetItemEnhancedRequest}.
      * <p>
-     * The additional configuration parameters that the enhanced client supports are defined
-     * in the {@link TransactGetItemsEnhancedRequest}.
+     * The additional configuration parameters that the enhanced client supports are defined in the
+     * {@link TransactGetItemsEnhancedRequest}.
      * <p>
      * DynamoDb will reject a call to TransactGetItems if the call exceeds limits such as provisioned throughput or allowed size
      * of items, if the request contains errors or if there are conflicting operations accessing the same item, for instance
@@ -329,7 +327,8 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * }
      * </pre>
      *
-     * @param requestConsumer a {@link Consumer} of {@link TransactGetItemsEnhancedRequest} containing keys with table references.
+     * @param requestConsumer a {@link Consumer} of {@link TransactGetItemsEnhancedRequest} containing keys with table
+     *                        references.
      * @return a {@link CompletableFuture} containing a list of {@link Document} with the results.
      */
     default CompletableFuture<List<Document>> transactGetItems(
@@ -339,8 +338,8 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
 
     /**
      * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactGetItem is a
-     * composite operation where the request contains a set of action requests, each containing a table reference and
-     * one of the following requests:
+     * composite operation where the request contains a set of action requests, each containing a table reference and one of the
+     * following requests:
      * <ul>
      *     <li>Condition check of item - {@link ConditionCheck}</li>
      *     <li>Delete item - {@link DeleteItemEnhancedRequest}</li>
@@ -387,8 +386,8 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
 
     /**
      * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactGetItem is a
-     * composite operation where the request contains a set of action requests, each containing a table reference and
-     * one of the following requests:
+     * composite operation where the request contains a set of action requests, each containing a table reference and one of the
+     * following requests:
      * <ul>
      *     <li>Condition check of item - {@link ConditionCheck}</li>
      *     <li>Delete item - {@link DeleteItemEnhancedRequest}</li>
@@ -423,7 +422,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * </pre>
      *
      * @param requestConsumer a {@link Consumer} of {@link TransactWriteItemsEnhancedRequest} containing keys and items grouped by
-     * tables.
+     *                        tables.
      * @return a {@link CompletableFuture} of {@link Void}.
      */
     default CompletableFuture<Void> transactWriteItems(Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
@@ -433,8 +432,8 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
 
     /**
      * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactWriteItem is a
-     * composite operation where the request contains a set of action requests, each containing a table reference and
-     * one of the following requests:
+     * composite operation where the request contains a set of action requests, each containing a table reference and one of the
+     * following requests:
      * <ul>
      *     <li>Condition check of item - {@link ConditionCheck}</li>
      *     <li>Delete item - {@link DeleteItemEnhancedRequest}</li>
@@ -445,7 +444,8 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * The additional configuration parameters that the enhanced client supports are defined
      * in the {@link TransactWriteItemsEnhancedRequest}.
      * <p>
-     * DynamoDb will reject a call to transactWriteItemsWithResponse if the call exceeds limits such as provisioned throughput or allowed size
+     * DynamoDb will reject a call to transactWriteItemsWithResponse if the call exceeds limits such as provisioned throughput
+     * or allowed size
      * of items, if the request contains errors or if there are conflicting operations accessing the same item. If the request
      * contains condition checks that aren't met, this will also cause rejection.
      * <p>
@@ -475,14 +475,15 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * @param request A {@link BatchWriteItemEnhancedRequest} containing keys grouped by tables.
      * @return a {@link CompletableFuture} of {@link Void}.
      */
-    default CompletableFuture<TransactWriteItemsEnhancedResponse<Void>> transactWriteItemsWithResponse(TransactWriteItemsEnhancedRequest request) {
+    default CompletableFuture<TransactWriteItemsEnhancedResponse<Void>> transactWriteItemsWithResponse(
+        TransactWriteItemsEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
 
     /**
      * Writes and/or modifies multiple items from one or more tables in a single atomic transaction. TransactWriteItem is a
-     * composite operation where the request contains a set of action requests, each containing a table reference and
-     * one of the following requests:
+     * composite operation where the request contains a set of action requests, each containing a table reference and one of the
+     * following requests:
      * <ul>
      *     <li>Condition check of item - {@link ConditionCheck}</li>
      *     <li>Delete item - {@link DeleteItemEnhancedRequest}</li>
@@ -493,7 +494,8 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * The additional configuration parameters that the enhanced client supports are defined
      * in the {@link TransactWriteItemsEnhancedRequest}.
      * <p>
-     * DynamoDb will reject a call to transactWriteItemsWithResponse if the call exceeds limits such as provisioned throughput or allowed size
+     * DynamoDb will reject a call to transactWriteItemsWithResponse if the call exceeds limits such as provisioned throughput
+     * or allowed size
      * of items, if the request contains errors or if there are conflicting operations accessing the same item. If the request
      * contains condition checks that aren't met, this will also cause rejection.
      * <p>
@@ -517,10 +519,11 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * </pre>
      *
      * @param requestConsumer a {@link Consumer} of {@link TransactWriteItemsEnhancedRequest} containing keys and items grouped by
-     * tables.
+     *                        tables.
      * @return a {@link CompletableFuture} of {@link Void}.
      */
-    default CompletableFuture<TransactWriteItemsEnhancedResponse<Void>> transactWriteItemsWithResponse(Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
+    default CompletableFuture<TransactWriteItemsEnhancedResponse<Void>> transactWriteItemsWithResponse(
+        Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
@@ -546,6 +549,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
     interface Builder extends DynamoDbEnhancedResource.Builder {
         /**
          * The regular low-level SDK client to use with the enhanced client.
+         *
          * @param dynamoDbClient an initialized {@link DynamoDbAsyncClient}
          */
         Builder dynamoDbClient(DynamoDbAsyncClient dynamoDbClient);
@@ -558,6 +562,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
 
         /**
          * Builds an enhanced client based on the settings supplied to this builder
+         *
          * @return An initialized {@link DynamoDbEnhancedAsyncClient}
          */
         DynamoDbEnhancedAsyncClient build();

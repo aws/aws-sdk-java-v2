@@ -119,7 +119,8 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
     }
 
     @Override
-    public TransactWriteItemsEnhancedResponse<Void> transactWriteItemsWithResponse(Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
+    public TransactWriteItemsEnhancedResponse<Void> transactWriteItemsWithResponse(
+        Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
         TransactWriteItemsEnhancedRequest.Builder builder = TransactWriteItemsEnhancedRequest.builder();
         requestConsumer.accept(builder);
         return transactWriteItemsWithResponse(builder.build());
@@ -148,19 +149,19 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
 
         DefaultDynamoDbEnhancedClient that = (DefaultDynamoDbEnhancedClient) o;
 
-        if (dynamoDbClient != null ? ! dynamoDbClient.equals(that.dynamoDbClient) : that.dynamoDbClient != null) {
+        if (dynamoDbClient != null ? !dynamoDbClient.equals(that.dynamoDbClient) : that.dynamoDbClient != null) {
             return false;
         }
         return extension != null ?
-            extension.equals(that.extension) :
-            that.extension == null;
+               extension.equals(that.extension) :
+               that.extension == null;
     }
 
     @Override
     public int hashCode() {
         int result = dynamoDbClient != null ? dynamoDbClient.hashCode() : 0;
         result = 31 * result + (extension != null ?
-            extension.hashCode() : 0);
+                                extension.hashCode() : 0);
         return result;
     }
 

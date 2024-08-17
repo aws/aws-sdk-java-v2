@@ -28,7 +28,6 @@ import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
 /**
  * Defines the elements returned by DynamoDB from a {@code TransactWriteItemsOperation} operation, such as
  * {@link DynamoDbEnhancedClient#transactWriteItems(TransactWriteItemsEnhancedRequest)}
- *
  */
 @SdkPublicApi
 @ThreadSafe
@@ -43,7 +42,9 @@ public final class TransactWriteItemsEnhancedResponse<T> {
         this.itemCollectionMetrics = builder.itemCollectionMetrics;
     }
 
-    public T items() { return items; }
+    public T items() {
+        return items;
+    }
 
     /**
      * The capacity units consumed by the {@code UpdateItem} operation.
@@ -71,13 +72,19 @@ public final class TransactWriteItemsEnhancedResponse<T> {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        TransactWriteItemsEnhancedResponse that = (TransactWriteItemsEnhancedResponse) o;
-        return Objects.equals(consumedCapacity, that.consumedCapacity) && Objects.equals(itemCollectionMetrics, that.itemCollectionMetrics);
+
+        TransactWriteItemsEnhancedResponse<?> that = (TransactWriteItemsEnhancedResponse<?>) o;
+        return Objects.equals(items, that.items) &&
+               Objects.equals(consumedCapacity, that.consumedCapacity) &&
+               Objects.equals(itemCollectionMetrics, that.itemCollectionMetrics);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(consumedCapacity, itemCollectionMetrics);
+        int result = Objects.hashCode(items);
+        result = 31 * result + Objects.hashCode(consumedCapacity);
+        result = 31 * result + Objects.hashCode(itemCollectionMetrics);
+        return result;
     }
 
     /**
@@ -88,7 +95,7 @@ public final class TransactWriteItemsEnhancedResponse<T> {
     }
 
     @NotThreadSafe
-    public static final class Builder<T>{
+    public static final class Builder<T> {
         public T items;
         private List<ConsumedCapacity> consumedCapacity;
         private Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics;
