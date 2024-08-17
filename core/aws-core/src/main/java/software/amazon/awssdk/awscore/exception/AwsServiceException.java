@@ -74,6 +74,9 @@ public class AwsServiceException extends SdkServiceException {
             if (message == null) {
                 message = awsErrorDetails().errorMessage();
             }
+            if (message == null) {
+                return details.toString();
+            }
             return message + " " + details;
         }
 

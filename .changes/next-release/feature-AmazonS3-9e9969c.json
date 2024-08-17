@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "When S3 returns a HEAD response, use the HTTP status text as the errorMessage."
+}

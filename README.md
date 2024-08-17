@@ -52,7 +52,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.27.2</version>
+      <version>2.27.7</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -86,12 +86,12 @@ Alternatively you can add dependencies for the specific services you use only:
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>ec2</artifactId>
-  <version>2.27.2</version>
+  <version>2.27.7</version>
 </dependency>
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3</artifactId>
-  <version>2.27.2</version>
+  <version>2.27.7</version>
 </dependency>
 ```
 
@@ -103,7 +103,7 @@ You can import the whole SDK into your project (includes *ALL* services). Please
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>aws-sdk-java</artifactId>
-  <version>2.27.2</version>
+  <version>2.27.7</version>
 </dependency>
 ```
 
@@ -150,7 +150,8 @@ For information about maintenance and support for SDK major versions and their u
 
 ## Maintenance and Support for Java Versions
 
-We maintain full support on Long-Term Support(LTS) releases: Java 8, Java 11, Java 17, and Java 21.
+We maintain full support on Long-Term Support(LTS) releases: Java 8, Java 11, Java 17, and Java 21. Note that there 
+may be individual features in newer releases that are not supported, because the SDK must be compatible with Java 8.
 
 ## Giving Feedback
 We need your help in making this SDK great. Please participate in the community and contribute to this effort by submitting issues, participating in discussion forums and submitting pull requests through the following channels:

@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "DynamoDBEnhancedClient",
+    "description": "This commit introduces ConsumedCapacity in the response of a BatchWrite response",
+    "contributor": "prateek-vats"
+}
