@@ -90,9 +90,9 @@ class BatchOverrideConfigurationTest {
         assertEquals(longPollWaitTimeout, config.longPollWaitTimeout());
         assertEquals(minReceiveWaitTime, config.minReceiveWaitTime());
         assertEquals(Optional.ofNullable(receiveAttributeNames).orElse(Collections.emptyList()),
-                     config.receiveAttributeNames().orElse(Collections.emptyList()));
+                     config.receiveAttributeNames());
         assertEquals(Optional.ofNullable(receiveMessageAttributeNames).orElse(Collections.emptyList()),
-                     config.receiveMessageAttributeNames().orElse(Collections.emptyList()));
+                     config.receiveMessageAttributeNames());
         assertEquals(adaptivePrefetching, config.adaptivePrefetching());
         assertEquals(maxInflightReceiveBatches, config.maxInflightReceiveBatches());
         assertEquals(maxDoneReceiveBatches, config.maxDoneReceiveBatches());

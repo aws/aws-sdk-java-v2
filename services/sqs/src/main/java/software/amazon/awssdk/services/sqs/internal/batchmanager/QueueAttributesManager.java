@@ -116,7 +116,6 @@ public final class QueueAttributesManager {
                 // Only one thread will execute this block and fetch the attributes.
                 fetchQueueAttributes().whenComplete((r, t) -> {
                     if (t != null) {
-                        queueAttributeMap.set(null); // Reset on failure
                         newFuture.completeExceptionally(t); // Complete the future exceptionally
                     } else {
                         newFuture.complete(r); // Complete the future with the result
@@ -158,11 +157,6 @@ public final class QueueAttributesManager {
                                           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                      });
 
-        future.whenComplete((r, t) -> {
-            if (t != null) {
-                queueAttributeMap.set(null); // Reset the future on failure
-            }
-        });
         return future;
     }
 }

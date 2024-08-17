@@ -69,10 +69,7 @@ public class ReceiveMessageCompletableFuture {
     }
 
     private void timeout() {
-
-        if (!responseCompletableFuture.isDone()) {
-            responseCompletableFuture.complete(ReceiveMessageResponse.builder().build());
-        }
+        responseCompletableFuture.complete(ReceiveMessageResponse.builder().build());
     }
 
     public int requestedSize() {

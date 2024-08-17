@@ -298,7 +298,6 @@ public class ReceiveQueueBufferTest {
         verify(sqsClient, atMost(MAX_BATCH_ITEMS)).receiveMessage(any(ReceiveMessageRequest.class));
     }
 
-
     @Test
     public void receiveMessageShutDown() throws Exception {
         ReceiveQueueBuffer receiveQueueBuffer = receiveQueueBuffer();

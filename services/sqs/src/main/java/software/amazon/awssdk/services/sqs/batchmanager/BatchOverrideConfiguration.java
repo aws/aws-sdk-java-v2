@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.sqs.batchmanager;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -122,17 +121,16 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     /**
      * @return the attributes receive calls will request.
      */
-    public Optional<List<String>> receiveAttributeNames() {
-        return Optional.ofNullable(receiveAttributeNames)
-                       .map(Collections::unmodifiableList);
+    public List<String> receiveAttributeNames() {
+        return receiveAttributeNames == null ? Collections.emptyList() : Collections.unmodifiableList(receiveAttributeNames);
     }
 
     /**
      * @return the message attributes receive calls will request.
      */
-    public Optional<List<String>> receiveMessageAttributeNames() {
-        return Optional.ofNullable(receiveMessageAttributeNames)
-                       .map(Collections::unmodifiableList);
+    public List<String> receiveMessageAttributeNames() {
+        return receiveMessageAttributeNames == null ? Collections.emptyList() :
+               Collections.unmodifiableList(receiveMessageAttributeNames);
     }
 
     /**

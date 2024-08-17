@@ -55,10 +55,12 @@ public final class ResponseBatchConfiguration {
         this.minReceiveWaitTime = overrideConfiguration.minReceiveWaitTime() != null
                                   ? overrideConfiguration.minReceiveWaitTime()
                                   : MIN_RECEIVE_WAIT_TIME_MS_DEFAULT;
-        this.receiveAttributeNames = overrideConfiguration.receiveAttributeNames()
-                                                          .orElse(RECEIVE_ATTRIBUTE_NAMES_DEFAULT);
-        this.receiveMessageAttributeNames = overrideConfiguration.receiveMessageAttributeNames()
-                                                                 .orElse(RECEIVE_MESSAGE_ATTRIBUTE_NAMES_DEFAULT);
+        this.receiveAttributeNames = overrideConfiguration.receiveAttributeNames().isEmpty()
+                                     ? RECEIVE_ATTRIBUTE_NAMES_DEFAULT
+                                     : overrideConfiguration.receiveAttributeNames();
+        this.receiveMessageAttributeNames = overrideConfiguration.receiveMessageAttributeNames().isEmpty()
+                                            ? RECEIVE_MESSAGE_ATTRIBUTE_NAMES_DEFAULT
+                                            : overrideConfiguration.receiveMessageAttributeNames();
         this.adaptivePrefetching = overrideConfiguration.adaptivePrefetching() != null
                                    ? overrideConfiguration.adaptivePrefetching()
                                    : ADAPTIVE_PREFETCHING_DEFAULT;
