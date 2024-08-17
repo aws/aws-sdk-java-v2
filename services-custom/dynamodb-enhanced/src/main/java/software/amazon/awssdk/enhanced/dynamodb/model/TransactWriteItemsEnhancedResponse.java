@@ -47,7 +47,7 @@ public final class TransactWriteItemsEnhancedResponse<T> {
     }
 
     /**
-     * The capacity units consumed by the {@code UpdateItem} operation.
+     * The capacity units consumed by the {@code TransactWriteItems} operation.
      *
      * @see TransactWriteItemsEnhancedResponse#consumedCapacity() for more information.
      */
@@ -56,7 +56,7 @@ public final class TransactWriteItemsEnhancedResponse<T> {
     }
 
     /**
-     * Information about item collections, if any, that were affected by the {@code UpdateItem} operation.
+     * Information about item collections, if any, that were affected by the {@code TransactWriteItems} operation.
      *
      * @see TransactWriteItemsEnhancedResponse#itemCollectionMetrics() for more information.
      */
