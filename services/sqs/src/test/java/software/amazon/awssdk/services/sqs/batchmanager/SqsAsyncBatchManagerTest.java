@@ -78,41 +78,26 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
 
     @Override
     public List<CompletableFuture<SendMessageResponse>> createAndSendSendMessageRequests(String message1, String message2) {
-        List<SendMessageRequest> requests = new ArrayList<>();
-        requests.add(createSendMessageRequest(message1));
-        requests.add(createSendMessageRequest(message2));
-
         List<CompletableFuture<SendMessageResponse>> responses = new ArrayList<>();
-        for (SendMessageRequest request : requests) {
-            responses.add(batchManager.sendMessage(request));
-        }
+        responses.add(batchManager.sendMessage(builder -> builder.queueUrl(DEFAULT_QUEUE_URL).messageBody(message1)));
+        responses.add(batchManager.sendMessage(builder -> builder.queueUrl(DEFAULT_QUEUE_URL).messageBody(message2)));
         return responses;
     }
 
     @Override
     public List<CompletableFuture<DeleteMessageResponse>> createAndSendDeleteMessageRequests() {
         List<DeleteMessageRequest> requests = new ArrayList<>();
-        requests.add(createDeleteMessageRequest());
-        requests.add(createDeleteMessageRequest());
         List<CompletableFuture<DeleteMessageResponse>> responses = new ArrayList<>();
-
-        for (DeleteMessageRequest request : requests) {
-            responses.add(batchManager.deleteMessage(request));
-        }
+        responses.add(batchManager.deleteMessage(builder -> builder.queueUrl(DEFAULT_QUEUE_URL)));
+        responses.add(batchManager.deleteMessage(builder -> builder.queueUrl(DEFAULT_QUEUE_URL)));
         return responses;
     }
 
     @Override
     public List<CompletableFuture<ChangeMessageVisibilityResponse>> createAndSendChangeVisibilityRequests() {
-        List<ChangeMessageVisibilityRequest> requests = new ArrayList<>();
-        requests.add(createChangeVisibilityRequest());
-        requests.add(createChangeVisibilityRequest());
-
         List<CompletableFuture<ChangeMessageVisibilityResponse>> responses = new ArrayList<>();
-        for (ChangeMessageVisibilityRequest request : requests) {
-            responses.add(batchManager.changeMessageVisibility(request));
-        }
-
+        responses.add(batchManager.changeMessageVisibility(builder -> builder.queueUrl(DEFAULT_QUEUE_URL)));
+        responses.add(batchManager.changeMessageVisibility(builder -> builder.queueUrl(DEFAULT_QUEUE_URL)));
         return responses;
     }
 }
