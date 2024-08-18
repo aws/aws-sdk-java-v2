@@ -1,0 +1,52 @@
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+
+public class VehicleDataGenerator {
+    public static void main(String[] args) {
+        List<String> vehicleModels = Arrays.asList("Toyota Corolla", "Honda Civic", "Ford Focus", "Chevrolet Cruze", "BMW 3 Series");
+        JSONArray vehicleArray = new JSONArray();
+        Random random = new Random();
+
+        for (int i = 0; i < 50; i++) {
+            JSONObject vehicleObject = new JSONObject();
+            
+            // Generate vehicle ID (empty for every 11th iteration)
+            if ((i + 1) % 11 == 0) {
+                vehicleObject.put("VehicleID", "");
+            } else {
+                vehicleObject.put("VehicleID", random.nextInt(1000));
+            }
+
+            // Randomly select a vehicle model
+            String vehicleModel = vehicleModels.get(random.nextInt(vehicleModels.size()));
+            vehicleObject.put("VehicleModel", vehicleModel);
+
+            // Generate random vehicle speed
+            int vehicleSpeed = random.nextInt(180); // Speed in km/h
+            vehicleObject.put("VehicleSpeed", vehicleSpeed);
+
+            // Generate random longitude and latitude
+            double vehicleLongitude = -180 + (180 - (-180)) * random.nextDouble();
+            double vehicleLatitude = -90 + (90 - (-90)) * random.nextDouble();
+            vehicleObject.put("VehicleLongitude", vehicleLongitude);
+            vehicleObject.put("VehicleLatitude", vehicleLatitude);
+
+            // Add vehicle object to JSON array
+            vehicleArray.put(vehicleObject);
+        }
+
+        // Write JSON array to file
+        try (FileWriter file = new FileWriter("vehicleData.json")) {
+            file.write(vehicleArray.toString(4)); // Indent with 4 spaces
+            System.out.println("Successfully generated JSON file: vehicleData.json");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
