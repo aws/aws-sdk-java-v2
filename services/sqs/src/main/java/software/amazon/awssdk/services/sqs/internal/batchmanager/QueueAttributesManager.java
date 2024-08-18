@@ -113,22 +113,19 @@ public final class QueueAttributesManager {
             CompletableFuture<Map<QueueAttributeName, String>> newFuture = new CompletableFuture<>();
 
             if (queueAttributeMap.compareAndSet(future, newFuture)) {
-                // Only one thread will execute this block and fetch the attributes.
                 fetchQueueAttributes().whenComplete((r, t) -> {
                     if (t != null) {
-                        newFuture.completeExceptionally(t); // Complete the future exceptionally
+                        newFuture.completeExceptionally(t);
                     } else {
-                        newFuture.complete(r); // Complete the future with the result
+                        newFuture.complete(r);
                     }
                 });
                 return newFuture;
             } else {
-                // If another thread already set the future, cancel this one and use the existing one.
                 newFuture.cancel(true);
-                return queueAttributeMap.get(); // Return the future set by the winning thread
+                return queueAttributeMap.get();
             }
         }
-
         return future;
     }
 

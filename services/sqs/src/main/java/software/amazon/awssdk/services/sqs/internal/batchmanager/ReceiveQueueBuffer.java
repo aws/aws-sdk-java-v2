@@ -28,9 +28,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @SdkInternalApi
-public class ReceiveQueueBuffer {
+public class ReceiveQueueBuffer implements SdkAutoCloseable {
 
     private final ScheduledExecutorService executor;
     private final SqsAsyncClient sqsClient;
@@ -66,9 +67,9 @@ public class ReceiveQueueBuffer {
         return shutDown.get();
     }
 
-    public void shutdown() {
+    @Override
+    public void close() {
         if (this.shutDown.compareAndSet(false, true)) {
-            // Clear all finished tasks
             while (!finishedTasks.isEmpty()) {
                 ReceiveSqsMessageHelper batch = finishedTasks.poll();
                 if (inflightReceiveMessageBatches.get() > 0) {
@@ -78,8 +79,6 @@ public class ReceiveQueueBuffer {
                     batch.clear();
                 }
             }
-
-            // Clear futures
             futures.forEach(futureWrapper -> {
                 if (!futureWrapper.getFuture().isDone()) {
                     futureWrapper.getFuture().completeExceptionally(new CancellationException("Shutdown in progress"));
@@ -189,7 +188,6 @@ public class ReceiveQueueBuffer {
         satisfyFuturesFromBuffer();
         spawnMoreReceiveTasks();
     }
-
 
     private static class FutureRequestWrapper {
         private final CompletableFuture<ReceiveMessageResponse> future;

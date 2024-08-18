@@ -165,7 +165,7 @@ public class ReceiveBatchManagerTest {
         ReceiveMessageRequest request = ReceiveMessageRequest.builder().maxNumberOfMessages(10).build();
         CompletableFuture<ReceiveMessageResponse> futureResponse = receiveBatchManager.processRequest(request);
 
-        receiveBatchManager.shutdown();
+        receiveBatchManager.close();
 
         assertThrows(IllegalStateException.class, () -> receiveBatchManager.processRequest(request));
 

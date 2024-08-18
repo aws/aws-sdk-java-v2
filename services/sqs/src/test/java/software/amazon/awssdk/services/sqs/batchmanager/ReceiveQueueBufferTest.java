@@ -298,7 +298,7 @@ public class ReceiveQueueBufferTest {
         receiveQueueBuffer.receiveMessage(future, 10);
 
         // Shutdown receiveQueueBuffer
-        receiveQueueBuffer.shutdown();
+        receiveQueueBuffer.close();
 
         // Verify that the future is completed exceptionally
         assertTrue(future.isCompletedExceptionally());
@@ -441,7 +441,7 @@ public void testShutdownExceptionallyCompletesAllIncompleteFutures() throws Exce
     }
 
     // Shutdown the queue buffer and assert no exceptions are thrown
-    assertDoesNotThrow(() -> receiveQueueBuffer.shutdown());
+    assertDoesNotThrow(() -> receiveQueueBuffer.close());
 
     // Verify that each future completes exceptionally with CancellationException
     for (CompletableFuture<ReceiveMessageResponse> future : futures) {
@@ -477,7 +477,7 @@ public void testShutdownExceptionallyCompletesAllIncompleteFutures() throws Exce
 
         try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
             // Shutdown the receiveQueueBuffer to trigger the visibility timeout errors
-            assertDoesNotThrow(() -> receiveQueueBuffer.shutdown());
+            assertDoesNotThrow(receiveQueueBuffer::close);
 
             // Verify that an error was logged for failing to change visibility timeout
             assertThat(logCaptor.loggedEvents()).anySatisfy(logEvent -> {

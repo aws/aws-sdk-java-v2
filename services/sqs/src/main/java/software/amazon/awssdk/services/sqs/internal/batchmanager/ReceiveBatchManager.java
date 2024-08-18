@@ -24,9 +24,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @SdkInternalApi
-public class ReceiveBatchManager {
+public class ReceiveBatchManager implements SdkAutoCloseable {
 
     private final SqsAsyncClient sqsClient;
     private final ScheduledExecutorService executor;
@@ -62,8 +63,8 @@ public class ReceiveBatchManager {
         });
     }
 
-    public void shutdown() {
-        receiveQueueBuffer.shutdown();
-        executor.shutdown();
+    @Override
+    public void close() {
+        receiveQueueBuffer.close();
     }
 }
