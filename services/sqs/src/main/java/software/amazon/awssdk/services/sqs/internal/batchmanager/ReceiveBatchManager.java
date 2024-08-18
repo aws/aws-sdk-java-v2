@@ -18,6 +18,8 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
@@ -33,9 +35,7 @@ public class ReceiveBatchManager {
     private final ReceiveQueueBuffer receiveQueueBuffer;
     private final QueueAttributesManager queueAttributesManager;
 
-    public ReceiveBatchManager(SqsAsyncClient sqsClient,
-                               ScheduledExecutorService executor,
-                               ResponseBatchConfiguration config,
+    public ReceiveBatchManager(SqsAsyncClient sqsClient, ScheduledExecutorService executor, ResponseBatchConfiguration config,
                                String queueUrl) {
         this.sqsClient = sqsClient;
         this.executor = executor;
@@ -51,14 +51,15 @@ public class ReceiveBatchManager {
         }
         int numMessages = Optional.ofNullable(rq.maxNumberOfMessages()).orElse(10);
 
-        return queueAttributesManager.getReceiveMessageTimeout(rq, config.minReceiveWaitTime())
-                                     .thenCompose(waitTimeMs -> {
-                                         ReceiveMessageCompletableFuture receiveMessageFuture =
-                                             new ReceiveMessageCompletableFuture(numMessages, waitTimeMs);
-                                         receiveQueueBuffer.receiveMessage(receiveMessageFuture);
-                                         receiveMessageFuture.startWaitTimer(executor);
-                                         return receiveMessageFuture.responseCompletableFuture();
-                                     });
+        return queueAttributesManager.getReceiveMessageTimeout(rq, config.minReceiveWaitTime()).thenCompose(waitTimeMs -> {
+            CompletableFuture<ReceiveMessageResponse> receiveMessageFuture = new CompletableFuture<>();
+            receiveQueueBuffer.receiveMessage(receiveMessageFuture, numMessages);
+            CompletableFuture<ReceiveMessageResponse> timeoutFuture = new CompletableFuture<>();
+            executor.schedule(() -> timeoutFuture.complete(ReceiveMessageResponse.builder().build()), waitTimeMs.toMillis(),
+                              TimeUnit.MILLISECONDS);
+            return receiveMessageFuture.applyToEither(timeoutFuture, Function.identity());
+
+        });
     }
 
     public void shutdown() {

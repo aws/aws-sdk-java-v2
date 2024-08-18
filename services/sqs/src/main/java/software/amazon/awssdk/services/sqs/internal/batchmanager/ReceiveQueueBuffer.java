@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,7 +39,7 @@ public class ReceiveQueueBuffer {
     private final  QueueAttributesManager queueAttributesManager;
 
     private final Queue<ReceiveSqsMessageHelper> finishedTasks = new ConcurrentLinkedQueue<>();
-    private final Queue<ReceiveMessageCompletableFuture> futures = new ConcurrentLinkedQueue<>();
+    private final Queue<FutureRequestWrapper> futures = new ConcurrentLinkedQueue<>();
 
     private final AtomicInteger inflightReceiveMessageBatches = new AtomicInteger(0);
     private final AtomicBoolean shutDown = new AtomicBoolean(false);
@@ -55,8 +56,8 @@ public class ReceiveQueueBuffer {
         this.queueAttributesManager = queueAttributesManager;
     }
 
-    public void receiveMessage(ReceiveMessageCompletableFuture receiveMessageFuture) {
-        futures.add(receiveMessageFuture);
+    public void receiveMessage(CompletableFuture<ReceiveMessageResponse> receiveMessageFuture, int numMessages) {
+        futures.add(new FutureRequestWrapper(receiveMessageFuture, numMessages));
         satisfyFuturesFromBuffer();
         spawnMoreReceiveTasks();
     }
@@ -79,15 +80,14 @@ public class ReceiveQueueBuffer {
             }
 
             // Clear futures
-            futures.forEach(future -> {
-                if (!future.responseCompletableFuture().isDone()) {
-                    future.setFailure(new CancellationException("Shutdown in progress"));
+            futures.forEach(futureWrapper -> {
+                if (!futureWrapper.getFuture().isDone()) {
+                    futureWrapper.getFuture().completeExceptionally(new CancellationException("Shutdown in progress"));
                 }
             });
             futures.clear();
         }
     }
-
 
     private void spawnMoreReceiveTasks() {
         if (shutDown.get()) {
@@ -121,7 +121,7 @@ public class ReceiveQueueBuffer {
 
         if (config.adaptivePrefetching()) {
             int totalRequested = futures.stream()
-                                        .mapToInt(ReceiveMessageCompletableFuture::requestedSize)
+                                        .mapToInt(FutureRequestWrapper::getRequestedSize)
                                         .sum();
             int batchesNeededToFulfillFutures = (int) Math.ceil((float) totalRequested / config.maxBatchItems());
             desiredBatches = Math.min(batchesNeededToFulfillFutures, desiredBatches);
@@ -130,19 +130,19 @@ public class ReceiveQueueBuffer {
         return desiredBatches;
     }
 
-    private void fulfillFuture(ReceiveMessageCompletableFuture future, ReceiveSqsMessageHelper messageHelper) {
+    private void fulfillFuture(FutureRequestWrapper futureWrapper, ReceiveSqsMessageHelper messageHelper) {
         List<Message> messages = new LinkedList<>();
         Throwable exception = messageHelper.getException();
         int numRetrieved = 0;
         boolean batchDone = false;
 
         if (exception != null) {
-            future.setFailure(exception);
+            futureWrapper.getFuture().completeExceptionally(exception);
             finishedTasks.poll();
             return;
         }
 
-        while (numRetrieved < future.requestedSize()) {
+        while (numRetrieved < futureWrapper.getRequestedSize()) {
             Message msg = messageHelper.removeMessage();
             if (msg != null) {
                 messages.add(msg);
@@ -156,7 +156,7 @@ public class ReceiveQueueBuffer {
         if (batchDone) {
             finishedTasks.poll();
         }
-        future.setSuccess(ReceiveMessageResponse.builder().messages(messages).build());
+        futureWrapper.getFuture().complete(ReceiveMessageResponse.builder().messages(messages).build());
     }
 
     private void satisfyFuturesFromBuffer() {
@@ -177,7 +177,10 @@ public class ReceiveQueueBuffer {
     }
 
     private void pruneExpiredTasks() {
-        futures.removeIf(ReceiveMessageCompletableFuture::isExpired);
+        futures.removeIf(futureWrapper -> {
+            CompletableFuture<ReceiveMessageResponse> future = futureWrapper.getFuture();
+            return future.isDone();
+        });
     }
 
     private void reportBatchFinished(ReceiveSqsMessageHelper batch) {
@@ -185,5 +188,24 @@ public class ReceiveQueueBuffer {
         inflightReceiveMessageBatches.decrementAndGet();
         satisfyFuturesFromBuffer();
         spawnMoreReceiveTasks();
+    }
+
+
+    private static class FutureRequestWrapper {
+        private final CompletableFuture<ReceiveMessageResponse> future;
+        private final int requestedSize;
+
+        FutureRequestWrapper(CompletableFuture<ReceiveMessageResponse> future, int requestedSize) {
+            this.future = future;
+            this.requestedSize = requestedSize;
+        }
+
+        public CompletableFuture<ReceiveMessageResponse> getFuture() {
+            return future;
+        }
+
+        public int getRequestedSize() {
+            return requestedSize;
+        }
     }
 }
