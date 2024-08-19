@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Systems Manager for SAP",
-    "contributor": "",
-    "description": "Add new attributes to the outputs of GetApplication and GetDatabase APIs."
-}
