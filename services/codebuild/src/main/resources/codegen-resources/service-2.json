@@ -341,7 +341,7 @@
         {"shape":"AccountLimitExceededException"},
         {"shape":"ResourceAlreadyExistsException"}
       ],
-      "documentation":"<p> Imports the source repository credentials for an CodeBuild project that has its source code stored in a GitHub, GitHub Enterprise, or Bitbucket repository. </p>"
+      "documentation":"<p> Imports the source repository credentials for an CodeBuild project that has its source code stored in a GitHub, GitHub Enterprise, GitLab, GitLab Self Managed, or Bitbucket repository. </p>"
     },
     "InvalidateProjectCache":{
       "name":"InvalidateProjectCache",
@@ -735,7 +735,8 @@
         "OAUTH",
         "BASIC_AUTH",
         "PERSONAL_ACCESS_TOKEN",
-        "CODECONNECTIONS"
+        "CODECONNECTIONS",
+        "SECRETS_MANAGER"
       ]
     },
     "BatchDeleteBuildsInput":{
@@ -1606,6 +1607,10 @@
           "documentation":"<p>The compute fleet overflow behavior.</p> <ul> <li> <p>For overflow behavior <code>QUEUE</code>, your overflow builds need to wait on the existing fleet instance to become available.</p> </li> <li> <p>For overflow behavior <code>ON_DEMAND</code>, your overflow builds run on CodeBuild on-demand.</p> <note> <p>If you choose to set your overflow behavior to on-demand while creating a VPC-connected fleet, make sure that you add the required VPC permissions to your project service role. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-create-vpc-network-interface\">Example policy statement to allow CodeBuild access to Amazon Web Services services required to create a VPC network interface</a>.</p> </note> </li> </ul>"
         },
         "vpcConfig":{"shape":"VpcConfig"},
+        "imageId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Amazon Machine Image (AMI) of the compute fleet.</p>"
+        },
         "fleetServiceRole":{
           "shape":"NonEmptyString",
           "documentation":"<p>The service role associated with the compute fleet. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-permission-policy-fleet-service-role.html\"> Allow a user to add a permission policy for a fleet service role</a> in the <i>CodeBuild User Guide</i>.</p>"
@@ -2111,7 +2116,8 @@
         "ARM_CONTAINER",
         "WINDOWS_SERVER_2019_CONTAINER",
         "LINUX_LAMBDA_CONTAINER",
-        "ARM_LAMBDA_CONTAINER"
+        "ARM_LAMBDA_CONTAINER",
+        "MAC_ARM"
       ]
     },
     "EnvironmentVariable":{
@@ -2226,6 +2232,10 @@
           "documentation":"<p>The compute fleet overflow behavior.</p> <ul> <li> <p>For overflow behavior <code>QUEUE</code>, your overflow builds need to wait on the existing fleet instance to become available.</p> </li> <li> <p>For overflow behavior <code>ON_DEMAND</code>, your overflow builds run on CodeBuild on-demand.</p> <note> <p>If you choose to set your overflow behavior to on-demand while creating a VPC-connected fleet, make sure that you add the required VPC permissions to your project service role. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-create-vpc-network-interface\">Example policy statement to allow CodeBuild access to Amazon Web Services services required to create a VPC network interface</a>.</p> </note> </li> </ul>"
         },
         "vpcConfig":{"shape":"VpcConfig"},
+        "imageId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Amazon Machine Image (AMI) of the compute fleet.</p>"
+        },
         "fleetServiceRole":{
           "shape":"NonEmptyString",
           "documentation":"<p>The service role associated with the compute fleet. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-permission-policy-fleet-service-role.html\"> Allow a user to add a permission policy for a fleet service role</a> in the <i>CodeBuild User Guide</i>.</p>"
@@ -2252,7 +2262,9 @@
       "enum":[
         "CREATE_FAILED",
         "UPDATE_FAILED",
-        "ACTION_REQUIRED"
+        "ACTION_REQUIRED",
+        "PENDING_DELETION",
+        "INSUFFICIENT_CAPACITY"
       ]
     },
     "FleetName":{
@@ -2424,7 +2436,7 @@
         },
         "token":{
           "shape":"SensitiveNonEmptyString",
-          "documentation":"<p> For GitHub or GitHub Enterprise, this is the personal access token. For Bitbucket, this is either the access token or the app password. For the <code>authType</code> CODECONNECTIONS, this is the <code>connectionArn</code>.</p>"
+          "documentation":"<p> For GitHub or GitHub Enterprise, this is the personal access token. For Bitbucket, this is either the access token or the app password. For the <code>authType</code> CODECONNECTIONS, this is the <code>connectionArn</code>. For the <code>authType</code> SECRETS_MANAGER, this is the <code>secretArn</code>.</p>"
         },
         "serverType":{
           "shape":"ServerType",
@@ -2432,7 +2444,7 @@
         },
         "authType":{
           "shape":"AuthType",
-          "documentation":"<p> The type of authentication used to connect to a GitHub, GitHub Enterprise, GitLab, GitLab Self Managed, or Bitbucket repository. An OAUTH connection is not supported by the API and must be created using the CodeBuild console. Note that CODECONNECTIONS is only valid for GitLab and GitLab Self Managed.</p>"
+          "documentation":"<p> The type of authentication used to connect to a GitHub, GitHub Enterprise, GitLab, GitLab Self Managed, or Bitbucket repository. An OAUTH connection is not supported by the API and must be created using the CodeBuild console.</p>"
         },
         "shouldOverwrite":{
           "shape":"WrapperBoolean",
@@ -3391,7 +3403,7 @@
         },
         "auth":{
           "shape":"SourceAuth",
-          "documentation":"<p>Information about the authorization settings for CodeBuild to access the source code to be built.</p> <p>This information is for the CodeBuild console's use only. Your code should not get or set this information directly.</p>"
+          "documentation":"<p>Information about the authorization settings for CodeBuild to access the source code to be built.</p>"
         },
         "reportBuildStatus":{
           "shape":"WrapperBoolean",
@@ -3986,20 +3998,21 @@
       "members":{
         "type":{
           "shape":"SourceAuthType",
-          "documentation":"<p>The authorization type to use. Valid options are OAUTH or CODECONNECTIONS.</p>"
+          "documentation":"<p>The authorization type to use. Valid options are OAUTH, CODECONNECTIONS, or SECRETS_MANAGER.</p>"
         },
         "resource":{
           "shape":"String",
           "documentation":"<p>The resource value that applies to the specified authorization type.</p>"
         }
       },
-      "documentation":"<p>Information about the authorization settings for CodeBuild to access the source code to be built.</p> <p>This information is for the CodeBuild console's use only. Your code should not get or set this information directly.</p>"
+      "documentation":"<p>Information about the authorization settings for CodeBuild to access the source code to be built.</p>"
     },
     "SourceAuthType":{
       "type":"string",
       "enum":[
         "OAUTH",
-        "CODECONNECTIONS"
+        "CODECONNECTIONS",
+        "SECRETS_MANAGER"
       ]
     },
     "SourceCredentialsInfo":{
@@ -4015,11 +4028,11 @@
         },
         "authType":{
           "shape":"AuthType",
-          "documentation":"<p> The type of authentication used by the credentials. Valid options are OAUTH, BASIC_AUTH, PERSONAL_ACCESS_TOKEN, or CODECONNECTIONS. </p>"
+          "documentation":"<p> The type of authentication used by the credentials. Valid options are OAUTH, BASIC_AUTH, PERSONAL_ACCESS_TOKEN, CODECONNECTIONS, or SECRETS_MANAGER. </p>"
         },
         "resource":{
           "shape":"String",
-          "documentation":"<p>The connection ARN if your serverType type is GITLAB or GITLAB_SELF_MANAGED and your authType is CODECONNECTIONS.</p>"
+          "documentation":"<p>The connection ARN if your authType is CODECONNECTIONS or SECRETS_MANAGER.</p>"
         }
       },
       "documentation":"<p> Information about the credentials for a GitHub, GitHub Enterprise, GitLab, GitLab Self Managed, or Bitbucket repository. </p>"
@@ -4528,6 +4541,10 @@
           "documentation":"<p>The compute fleet overflow behavior.</p> <ul> <li> <p>For overflow behavior <code>QUEUE</code>, your overflow builds need to wait on the existing fleet instance to become available.</p> </li> <li> <p>For overflow behavior <code>ON_DEMAND</code>, your overflow builds run on CodeBuild on-demand.</p> <note> <p>If you choose to set your overflow behavior to on-demand while creating a VPC-connected fleet, make sure that you add the required VPC permissions to your project service role. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-create-vpc-network-interface\">Example policy statement to allow CodeBuild access to Amazon Web Services services required to create a VPC network interface</a>.</p> </note> </li> </ul>"
         },
         "vpcConfig":{"shape":"VpcConfig"},
+        "imageId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Amazon Machine Image (AMI) of the compute fleet.</p>"
+        },
         "fleetServiceRole":{
           "shape":"NonEmptyString",
           "documentation":"<p>The service role associated with the compute fleet. For more information, see <a href=\"https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-permission-policy-fleet-service-role.html\"> Allow a user to add a permission policy for a fleet service role</a> in the <i>CodeBuild User Guide</i>.</p>"
