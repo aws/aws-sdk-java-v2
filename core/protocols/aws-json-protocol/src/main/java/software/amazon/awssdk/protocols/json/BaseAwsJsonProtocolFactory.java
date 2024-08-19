@@ -55,7 +55,7 @@ public abstract class BaseAwsJsonProtocolFactory {
     /**
      * Used by operations that do not serialize the input, e.g., when the input is not defined in the model. RPCv2 uses it.
      */
-    public static final OperationMetadataAttribute<Boolean> USE_NO_OP_GENERATOR = new OperationMetadataAttribute<>(Boolean.class);
+    public static final OperationMetadataAttribute<Boolean> GENERATES_BODY = new OperationMetadataAttribute<>(Boolean.class);
 
     /**
      * Attribute for a protocol to configure extra headers for the operation.
@@ -149,12 +149,12 @@ public abstract class BaseAwsJsonProtocolFactory {
     }
 
     private StructuredJsonGenerator createGenerator(OperationInfo operationInfo) {
-        Boolean useNoOp = operationInfo.addtionalMetadata(USE_NO_OP_GENERATOR);
-        if (useNoOp == null) {
+        Boolean generatesBody = operationInfo.addtionalMetadata(GENERATES_BODY);
+        if (generatesBody == null) {
             AwsJsonProtocol protocol = protocolMetadata.protocol();
-            useNoOp = !operationInfo.hasPayloadMembers() && protocol != AwsJsonProtocol.AWS_JSON;
+            generatesBody = ProtocolFact.from(protocol).generatesBody(operationInfo);
         }
-        if (useNoOp) {
+        if (!generatesBody) {
             return StructuredJsonGenerator.NO_OP;
         }
         return createGenerator();
