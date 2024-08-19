@@ -1,4 +1,120 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.8__ __2024-08-19__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports creating fleets with macOS platform for running builds.
+
+## __AWS Lambda__
+  - ### Features
+    - Release Lambda FunctionRecursiveConfig, enabling customers to turn recursive loop detection on or off on individual functions. This release adds two new APIs, GetFunctionRecursionConfig and PutFunctionRecursionConfig.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update service exception messages to never include the string "null" in the message.
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - Add new attributes to the outputs of GetApplication and GetDatabase APIs.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - This release adds additional search fields and provides sorting by multiple fields.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Batch Inference/ Model Invocation is a feature which allows customers to asynchronously run inference on a large set of records/files stored in S3.
+
+## __Amazon S3__
+  - ### Features
+    - When S3 returns a HEAD response, use the HTTP status text as the errorMessage.
+
+## __DynamoDBEnhancedClient__
+  - ### Features
+    - This commit introduces ConsumedCapacity in the response of a BatchWrite response
+        - Contributed by: [@prateek-vats](https://github.com/prateek-vats)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@prateek-vats](https://github.com/prateek-vats)
+# __2.27.7__ __2024-08-16__
+## __AWS Batch__
+  - ### Features
+    - Improvements of integration between AWS Batch and EC2.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add new spotbugs rule to detect blocking call in the async codepath
+    - Updated endpoint and partition metadata.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Amazon QuickSight launches Customer Managed Key (CMK) encryption for Data Source metadata
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introduce Endpoint and EndpointConfig Arns in sagemaker:ListPipelineExecutionSteps API response
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Marking use case description field of account details as deprecated.
+
+## __Inspector2__
+  - ### Features
+    - Update the correct format of key and values for resource tags
+
+# __2.27.6__ __2024-08-15__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Make the LastUsedDate field in the GetAccessKeyLastUsed response optional. This may break customers who only call the API for access keys with a valid LastUsedDate. This fixes a deserialization issue for access keys without a LastUsedDate, because the field was marked as required but could be null.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - This release adds Global Cluster Failover capability which enables you to change your global cluster's primary AWS region, the region that serves writes, during a regional outage. Performing a failover action preserves your Global Cluster setup.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release introduces a new ContainerDefinition configuration to support the customer-managed keys for ECS container restart feature.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon Simple Storage Service / Features : Adds support for pagination in the S3 ListBuckets API.
+
+# __2.27.5__ __2024-08-14__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports using Secrets Manager to store git credentials and using multiple source credentials in a single project.
+
+## __S3 Transfer Manager__
+  - ### Features
+    - This change enables multipart download for S3 Transfer Manager with the java-based Multipart S3 Async Client.
+
+# __2.27.4__ __2024-08-13__
+## __AWS Amplify__
+  - ### Features
+    - Add a new field "cacheConfig" that enables users to configure the CDN cache settings for an App
+
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - This release adds support for additional error information on experiment failure. It adds the error code, location, and account id on relevant failures to the GetExperiment and ListExperiment API responses.
+
+## __AWS Glue__
+  - ### Features
+    - Add AttributesToGet parameter support for Glue GetTables
+
+## __Amazon AppStream__
+  - ### Features
+    - This release includes following new APIs: CreateThemeForStack, DescribeThemeForStack, UpdateThemeForStack, DeleteThemeForStack to support custom branding programmatically.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Amazon Neptune Analytics provides a new option for customers to load data into a graph using the RDF (Resource Description Framework) NTRIPLES format. When loading NTRIPLES files, use the value `convertToIri` for the `blankNodeHandling` parameter.
+
 # __2.27.3__ __2024-08-12__
 ## __AWS Compute Optimizer__
   - ### Features
