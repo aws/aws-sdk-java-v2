@@ -13,12 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocols.json;
+package software.amazon.awssdk.protocols.json.internal;
 
 import java.util.Collections;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
+import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.utils.MapUtils;
 
 /**

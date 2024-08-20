@@ -45,7 +45,7 @@ import software.amazon.awssdk.protocols.core.ValueToStringConverter.ValueToStrin
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
-import software.amazon.awssdk.protocols.json.ProtocolFact;
+import software.amazon.awssdk.protocols.json.internal.ProtocolFact;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
 
 /**
