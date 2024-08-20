@@ -19,6 +19,8 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -40,7 +42,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     private final Duration longPollWaitTimeout;
     private final Duration minReceiveWaitTime;
     private final Integer maxDoneReceiveBatches;
-    private final List<String> receiveAttributeNames;
+    private final List<MessageSystemAttributeName> messageSystemAttributeNames;
     private final List<String> receiveMessageAttributeNames;
     private final Boolean adaptivePrefetching;
     private final Integer maxInflightReceiveBatches;
@@ -53,7 +55,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         this.visibilityTimeout = Validate.isPositiveOrNull(builder.visibilityTimeout, "visibilityTimeout");
         this.longPollWaitTimeout = Validate.isPositiveOrNull(builder.longPollWaitTimeout, "longPollWaitTimeout");
         this.minReceiveWaitTime = Validate.isPositiveOrNull(builder.minReceiveWaitTime, "minReceiveWaitTime");
-        this.receiveAttributeNames = builder.receiveAttributeNames;
+        this.messageSystemAttributeNames = builder.messageSystemAttributeNames;
         this.receiveMessageAttributeNames = builder.receiveMessageAttributeNames;
         this.adaptivePrefetching = builder.adaptivePrefetching;
         this.maxInflightReceiveBatches = builder.maxInflightReceiveBatches;
@@ -119,18 +121,17 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     }
 
     /**
-     * @return the attributes receive calls will request.
+     * @return the message systemAttribute Name will request {@link ReceiveMessageRequest#messageSystemAttributeNames()}.
      */
-    public List<String> receiveAttributeNames() {
-        return receiveAttributeNames == null ? Collections.emptyList() : Collections.unmodifiableList(receiveAttributeNames);
+    public List<MessageSystemAttributeName> messageSystemAttributeName() {
+        return messageSystemAttributeNames == null ? Collections.emptyList() : Collections.unmodifiableList(messageSystemAttributeNames);
     }
 
     /**
      * @return the message attributes receive calls will request.
      */
     public List<String> receiveMessageAttributeNames() {
-        return receiveMessageAttributeNames == null ? Collections.emptyList() :
-               Collections.unmodifiableList(receiveMessageAttributeNames);
+        return receiveMessageAttributeNames == null ? Collections.emptyList() : Collections.unmodifiableList(receiveMessageAttributeNames);
     }
 
     /**
@@ -157,7 +158,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
                             .longPollWaitTimeout(longPollWaitTimeout)
                             .minReceiveWaitTime(minReceiveWaitTime)
                             .maxInflightReceiveBatches(maxInflightReceiveBatches)
-                            .receiveAttributeNames(receiveAttributeNames)
+                            .messageSystemAttributeName(messageSystemAttributeNames)
                             .receiveMessageAttributeNames(receiveMessageAttributeNames)
                             .adaptivePrefetching(adaptivePrefetching)
                             .maxDoneReceiveBatches(maxDoneReceiveBatches);
@@ -173,7 +174,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
                        .add("visibilityTimeout", visibilityTimeout)
                        .add("longPollWaitTimeout", longPollWaitTimeout)
                        .add("minReceiveWaitTime", minReceiveWaitTime)
-                       .add("receiveAttributeNames", receiveAttributeNames)
+                       .add("receiveAttributeNames", messageSystemAttributeNames)
                        .add("receiveMessageAttributeNames", receiveMessageAttributeNames)
                        .add("adaptivePrefetching", adaptivePrefetching)
                        .add("maxInflightReceiveBatches", maxInflightReceiveBatches)
@@ -218,8 +219,8 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
             that.minReceiveWaitTime != null) {
             return false;
         }
-        if (receiveAttributeNames != null ? !receiveAttributeNames.equals(that.receiveAttributeNames) :
-            that.receiveAttributeNames != null) {
+        if (messageSystemAttributeNames != null ? !messageSystemAttributeNames.equals(that.messageSystemAttributeNames) :
+            that.messageSystemAttributeNames != null) {
             return false;
         }
         if (receiveMessageAttributeNames != null ? !receiveMessageAttributeNames.equals(that.receiveMessageAttributeNames) :
@@ -247,7 +248,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         result = 31 * result + (visibilityTimeout != null ? visibilityTimeout.hashCode() : 0);
         result = 31 * result + (longPollWaitTimeout != null ? longPollWaitTimeout.hashCode() : 0);
         result = 31 * result + (minReceiveWaitTime != null ? minReceiveWaitTime.hashCode() : 0);
-        result = 31 * result + (receiveAttributeNames != null ? receiveAttributeNames.hashCode() : 0);
+        result = 31 * result + (messageSystemAttributeNames != null ? messageSystemAttributeNames.hashCode() : 0);
         result = 31 * result + (receiveMessageAttributeNames != null ? receiveMessageAttributeNames.hashCode() : 0);
         result = 31 * result + (adaptivePrefetching != null ? adaptivePrefetching.hashCode() : 0);
         result = 31 * result + (maxInflightReceiveBatches != null ? maxInflightReceiveBatches.hashCode() : 0);
@@ -266,7 +267,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         private Duration minReceiveWaitTime;
         private Integer maxDoneReceiveBatches;
         private Integer maxInflightReceiveBatches;
-        private List<String> receiveAttributeNames = Collections.emptyList();
+        private List<MessageSystemAttributeName> messageSystemAttributeNames = Collections.emptyList();
         private List<String> receiveMessageAttributeNames = Collections.emptyList();
         private Boolean adaptivePrefetching;
 
@@ -390,23 +391,33 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         }
 
         /**
-         * Define the attributes receive calls will request. Only receive message requests that request the same set of attributes
-         * will be satisfied from the receive buffers.
+         * Defines the list of message system attribute names that should be requested in receive message calls.
+         * Only receive message requests that request the same set of message system attributes will be satisfied
+         * from the receive buffers. Refer to {@link ReceiveMessageRequest#messageSystemAttributeNames()}.
          *
-         * @param receiveAttributeNames The new receiveAttributeNames value.
-         * @return This object for method chaining.
+         * Note that if requests to the BatchManager are sent with different messageSystemAttributeNames than what is
+         * configured, the request will bypass the BatchManager and will instead make a direct call to SQS.
+         *
+         * @param messageSystemAttributeNames The list of message system attribute names to be requested.
+         *                                    If null, an empty list will be used.
+         * @return This builder object for method chaining.
          */
-        public Builder receiveAttributeNames(List<String> receiveAttributeNames) {
-            this.receiveAttributeNames = receiveAttributeNames != null ? receiveAttributeNames : Collections.emptyList();
+        public Builder messageSystemAttributeName(List<MessageSystemAttributeName> messageSystemAttributeNames) {
+            this.messageSystemAttributeNames = messageSystemAttributeNames != null ? messageSystemAttributeNames : Collections.emptyList();
             return this;
         }
 
         /**
-         * Define the message attributes receive calls will request. Only receive message requests that request the same set of
-         * attributes will be satisfied from the receive buffers.
+         * Defines the message attributes that receive calls will request. Only receive message requests that request the same set
+         * of message attributes will be satisfied from the Receive buffer .Refer to
+         * {@link ReceiveMessageRequest#messageAttributeNames()}.
+         * <p>
+         * Note that if requests to the BatchManager are sent with different receiveMessageAttributeNames than what is configured,
+         * the request will bypass the BatchManager and will instead make a direct call to SQS.
          *
-         * @param receiveMessageAttributeNames The new receiveMessageAttributeNames value.
-         * @return This object for method chaining.
+         * @param receiveMessageAttributeNames The list of message attributes to be requested. If null, an empty list will be
+         *                                     used.
+         * @return This builder object for method chaining.
          */
         public Builder receiveMessageAttributeNames(List<String> receiveMessageAttributeNames) {
             this.receiveMessageAttributeNames = receiveMessageAttributeNames != null ? receiveMessageAttributeNames :

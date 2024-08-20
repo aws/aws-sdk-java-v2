@@ -15,18 +15,19 @@
 
 package software.amazon.awssdk.services.sqs.batchmanager;
 
+import java.util.Optional;
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import nl.jqno.equalsverifier.EqualsVerifier;
 
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
+import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -41,12 +42,12 @@ class BatchOverrideConfigurationTest {
                          Duration.ofSeconds(30),
                          Duration.ofSeconds(20),
                          Duration.ofMillis(50),
-                         Arrays.asList("attr1"),
                          Arrays.asList("msgAttr1"),
+                         Arrays.asList(MessageSystemAttributeName.SENDER_ID),
                          true,
                          10,
                          5),
-            Arguments.of(null, null, null, null, null, null, null, null, null , null, null),
+            Arguments.of(null, null, null, null, null, null, null, null, null, null, null),
             Arguments.of(1,
                          1,
                          Duration.ofMillis(1),
@@ -54,19 +55,25 @@ class BatchOverrideConfigurationTest {
                          Duration.ofMillis(1),
                          Duration.ofMillis(1),
                          Collections.emptyList(),
-                         Collections.emptyList(),
-                         false
-                , 5, 2)
+                         Collections.singletonList(MessageSystemAttributeName.SEQUENCE_NUMBER),
+                         false,
+                         5,
+                         2)
         );
     }
 
     @ParameterizedTest
     @MethodSource("provideConfigurations")
-    void testBatchOverrideConfiguration(Integer maxBatchItems, Integer maxBatchKeys,
-                                        Duration maxBatchOpenDuration, Duration visibilityTimeout,
-                                        Duration longPollWaitTimeout, Duration minReceiveWaitTime,
-                                        List<String> receiveAttributeNames, List<String> receiveMessageAttributeNames,
-                                        Boolean adaptivePrefetching, Integer maxInflightReceiveBatches,
+    void testBatchOverrideConfiguration(Integer maxBatchItems,
+                                        Integer maxBatchKeys,
+                                        Duration maxBatchOpenDuration,
+                                        Duration visibilityTimeout,
+                                        Duration longPollWaitTimeout,
+                                        Duration minReceiveWaitTime,
+                                        List<String> receiveMessageAttributeNames,
+                                        List<MessageSystemAttributeName> messageSystemAttributeNames,
+                                        Boolean adaptivePrefetching,
+                                        Integer maxInflightReceiveBatches,
                                         Integer maxDoneReceiveBatches) {
 
         BatchOverrideConfiguration config = BatchOverrideConfiguration.builder()
@@ -76,8 +83,8 @@ class BatchOverrideConfigurationTest {
                                                                       .visibilityTimeout(visibilityTimeout)
                                                                       .longPollWaitTimeout(longPollWaitTimeout)
                                                                       .minReceiveWaitTime(minReceiveWaitTime)
-                                                                      .receiveAttributeNames(receiveAttributeNames)
                                                                       .receiveMessageAttributeNames(receiveMessageAttributeNames)
+                                                                      .messageSystemAttributeName(messageSystemAttributeNames)
                                                                       .adaptivePrefetching(adaptivePrefetching)
                                                                       .maxInflightReceiveBatches(maxInflightReceiveBatches)
                                                                       .maxDoneReceiveBatches(maxDoneReceiveBatches)
@@ -89,10 +96,10 @@ class BatchOverrideConfigurationTest {
         assertEquals(visibilityTimeout, config.visibilityTimeout());
         assertEquals(longPollWaitTimeout, config.longPollWaitTimeout());
         assertEquals(minReceiveWaitTime, config.minReceiveWaitTime());
-        assertEquals(Optional.ofNullable(receiveAttributeNames).orElse(Collections.emptyList()),
-                     config.receiveAttributeNames());
         assertEquals(Optional.ofNullable(receiveMessageAttributeNames).orElse(Collections.emptyList()),
                      config.receiveMessageAttributeNames());
+        assertEquals(Optional.ofNullable(messageSystemAttributeNames).orElse(Collections.emptyList()),
+                     config.messageSystemAttributeName());
         assertEquals(adaptivePrefetching, config.adaptivePrefetching());
         assertEquals(maxInflightReceiveBatches, config.maxInflightReceiveBatches());
         assertEquals(maxDoneReceiveBatches, config.maxDoneReceiveBatches());
@@ -114,9 +121,10 @@ class BatchOverrideConfigurationTest {
                                                                               .visibilityTimeout(Duration.ofSeconds(30))
                                                                               .longPollWaitTimeout(Duration.ofSeconds(20))
                                                                               .minReceiveWaitTime(Duration.ofMillis(50))
-                                                                              .receiveAttributeNames(Arrays.asList("attr1"))
                                                                               .receiveMessageAttributeNames(Arrays.asList(
                                                                                   "msgAttr1"))
+                                                                              .messageSystemAttributeName(Collections.singletonList(
+                                                                                  MessageSystemAttributeName.SENDER_ID))
                                                                               .adaptivePrefetching(true)
                                                                               .maxInflightReceiveBatches(10)
                                                                               .maxDoneReceiveBatches(5)

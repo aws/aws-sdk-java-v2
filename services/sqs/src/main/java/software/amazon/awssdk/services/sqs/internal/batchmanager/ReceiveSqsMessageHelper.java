@@ -72,7 +72,7 @@ public class ReceiveSqsMessageHelper {
             ReceiveMessageRequest.builder()
                                  .queueUrl(queueUrl)
                                  .maxNumberOfMessages(config.maxBatchItems())
-                                 .messageAttributeNames(config.receiveMessageAttributeNames())
+                                 .messageSystemAttributeNames(config.messageSystemAttributeNames())
                                  .messageAttributeNames(config.receiveMessageAttributeNames());
 
         request.visibilityTimeout(NumericUtils.saturatedCast(this.visibilityTimeout.getSeconds()));

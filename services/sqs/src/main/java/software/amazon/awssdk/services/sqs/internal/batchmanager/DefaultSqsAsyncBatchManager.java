@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.batchmanager.SqsAsyncBatchManager;
@@ -43,6 +42,8 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
 
     private final ChangeMessageVisibilityBatchManager changeMessageVisibilityBatchManager;
 
+    private final ReceiveMessageBatchManager receiveMessageBatchManager;
+
     private DefaultSqsAsyncBatchManager(DefaultBuilder builder) {
         this.client = Validate.notNull(builder.client, "client cannot be null");
 
@@ -57,19 +58,9 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
         this.changeMessageVisibilityBatchManager = new ChangeMessageVisibilityBatchManager(builder.overrideConfiguration,
                                                                                            scheduledExecutor,
                                                                                            client);
-        //TODO : this will be updated while implementing the Receive Message Batch Manager
-    }
 
-    @SdkTestInternalApi
-    public DefaultSqsAsyncBatchManager(
-        SqsAsyncClient client,
-        SendMessageBatchManager sendMessageBatchManager,
-        DeleteMessageBatchManager deleteMessageBatchManager,
-        ChangeMessageVisibilityBatchManager changeMessageVisibilityBatchManager) {
-        this.sendMessageBatchManager = sendMessageBatchManager;
-        this.deleteMessageBatchManager = deleteMessageBatchManager;
-        this.changeMessageVisibilityBatchManager = changeMessageVisibilityBatchManager;
-        this.client = client;
+        this.receiveMessageBatchManager = new ReceiveMessageBatchManager(client, scheduledExecutor,
+                                                                         builder.overrideConfiguration);
     }
 
     @Override
@@ -89,7 +80,7 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
 
     @Override
     public CompletableFuture<ReceiveMessageResponse> receiveMessage(ReceiveMessageRequest request) {
-        return null;
+        return this.receiveMessageBatchManager.batchRequest(request);
     }
 
     public static SqsAsyncBatchManager.Builder builder() {
@@ -101,6 +92,7 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
         sendMessageBatchManager.close();
         deleteMessageBatchManager.close();
         changeMessageVisibilityBatchManager.close();
+        receiveMessageBatchManager.close();
     }
 
     public static final class DefaultBuilder implements SqsAsyncBatchManager.Builder {
