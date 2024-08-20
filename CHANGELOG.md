@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.9__ __2024-08-20__
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only release to address various tickets
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon Simple Storage Service / Features : Add support for conditional writes for PutObject and CompleteMultipartUpload APIs.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Added FailureCode and FailureMessage to BatchGetCollectionResponse for BatchGetVPCEResponse for non-Active Collection and VPCE.
+
 # __2.27.8__ __2024-08-19__
 ## __AWS CodeBuild__
   - ### Features
