@@ -29,7 +29,28 @@ import software.amazon.awssdk.utils.MapUtils;
 @SdkInternalApi
 public interface ProtocolFact {
 
+    /**
+     * Defaults used by all protocols that do not have overrides.
+     */
     ProtocolFact DEFAULT = new ProtocolFact() {};
+
+    /**
+     * Overrides for AWS JSON.
+     */
+    ProtocolFact AWS_JSON = new ProtocolFact() {
+
+        /**
+         * AWS JSON always generates body.
+         */
+        @Override
+        public boolean generatesBody(OperationInfo info) {
+            return true;
+        }
+    };
+
+    /**
+     * Overrides for Smithy RPCv2.
+     */
     ProtocolFact SMITHY_RPC_V2_CBOR = new ProtocolFact() {
         private final Map<String, String> extraHeaders = Collections.unmodifiableMap(MapUtils.of("smithy-protocol",
                                                                                                  "rpc-v2-cbor"));
@@ -50,7 +71,6 @@ public interface ProtocolFact {
         public Map<String, String> extraHeaders() {
             return extraHeaders;
         }
-
     };
 
     /**
@@ -75,6 +95,8 @@ public interface ProtocolFact {
         switch (protocol) {
             case SMITHY_RPC_V2_CBOR:
                 return SMITHY_RPC_V2_CBOR;
+            case AWS_JSON:
+                return AWS_JSON;
             default:
                 return DEFAULT;
         }
