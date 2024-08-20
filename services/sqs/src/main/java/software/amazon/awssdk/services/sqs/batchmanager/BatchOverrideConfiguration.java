@@ -124,14 +124,16 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
      * @return the message systemAttribute Name will request {@link ReceiveMessageRequest#messageSystemAttributeNames()}.
      */
     public List<MessageSystemAttributeName> messageSystemAttributeName() {
-        return messageSystemAttributeNames == null ? Collections.emptyList() : Collections.unmodifiableList(messageSystemAttributeNames);
+        return messageSystemAttributeNames == null ? Collections.emptyList() :
+               Collections.unmodifiableList(messageSystemAttributeNames);
     }
 
     /**
      * @return the message attributes receive calls will request.
      */
     public List<String> receiveMessageAttributeNames() {
-        return receiveMessageAttributeNames == null ? Collections.emptyList() : Collections.unmodifiableList(receiveMessageAttributeNames);
+        return receiveMessageAttributeNames == null ? Collections.emptyList() :
+               Collections.unmodifiableList(receiveMessageAttributeNames);
     }
 
     /**
@@ -403,7 +405,8 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
          * @return This builder object for method chaining.
          */
         public Builder messageSystemAttributeName(List<MessageSystemAttributeName> messageSystemAttributeNames) {
-            this.messageSystemAttributeNames = messageSystemAttributeNames != null ? messageSystemAttributeNames : Collections.emptyList();
+            this.messageSystemAttributeNames = messageSystemAttributeNames != null ? messageSystemAttributeNames :
+                                               Collections.emptyList();
             return this;
         }
 
