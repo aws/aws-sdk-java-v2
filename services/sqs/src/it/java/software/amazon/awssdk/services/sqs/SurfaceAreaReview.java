@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.sqs;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -167,14 +169,30 @@ public class SurfaceAreaReview {
 
         List<CompletableFuture<ReceiveMessageResponse>> recieveFutures = new ArrayList<>();
 
-        for (int i = 0; i < 30; i++) {
+        AtomicInteger messageCounter = new AtomicInteger();
+        AtomicBoolean done = new AtomicBoolean(false);
+
+        final Instant startTime = Instant.now();
+
+        while (true){
             //[REVIEW AREA  for  receiveMessage]
-            CompletableFuture<ReceiveMessageResponse> future = sqsAsyncBatchManager.receiveMessage(r -> r.queueUrl(QUEUE_URL));
+            CompletableFuture<ReceiveMessageResponse> future = sqsAsyncBatchManager.receiveMessage(r -> r.queueUrl(QUEUE_URL)
+                                                                                                   .maxNumberOfMessages(10)).whenComplete((r,e) -> {
+
+                if(messageCounter.addAndGet(r.messages().size()) >= 400){
+                    done.set(true);
+                };
+            });
             recieveFutures.add(future);
             Thread.sleep(50); // Sleep for 200ms
 
-        }
+            if(done.get()){
+                System.out.println("Recieve Done in millis " + (Instant.now().toEpochMilli() - startTime.toEpochMilli()));
 
+                break;
+            }
+
+        }
         CompletableFuture<Void> allOf = CompletableFuture.allOf(recieveFutures.toArray(new CompletableFuture[0]));
         allOf.join();
 
@@ -258,11 +276,29 @@ public class SurfaceAreaReview {
 
         List<CompletableFuture<ReceiveMessageResponse>> recieveFutures = new ArrayList<>();
 
-        for (int i = 0; i < 30; i++) {
+        AtomicInteger messageCounter = new AtomicInteger();
+        AtomicBoolean done = new AtomicBoolean(false);
+
+        final Instant startTime = Instant.now();
+
+        while (true) {
             //[REVIEW AREA  for  receiveMessage]
-            CompletableFuture<ReceiveMessageResponse> future = sqsAsyncClient.receiveMessage(r -> r.queueUrl(QUEUE_URL));
+            CompletableFuture<ReceiveMessageResponse> future = sqsAsyncClient.receiveMessage(r -> r.queueUrl(QUEUE_URL)
+                                                                                                   .maxNumberOfMessages(10))
+                                                                             .whenComplete((r,e) -> {
+
+                    if(messageCounter.addAndGet(r.messages().size()) >= 400){
+                        done.set(true);
+                    };
+            });
             recieveFutures.add(future);
             Thread.sleep(50); // Sleep for 200ms
+
+            if(done.get()){
+                System.out.println("Recieve Done in millis " + (Instant.now().toEpochMilli() - startTime.toEpochMilli()));
+
+                break;
+            }
 
         }
 
