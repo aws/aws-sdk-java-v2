@@ -43,7 +43,6 @@
         <module>codecommit</module>
         <module>codedeploy</module>
         <module>codepipeline</module>
-        <module>codestar</module>
         <module>cognitoidentity</module>
         <module>cognitoidentityprovider</module>
         <module>cognitosync</module>
