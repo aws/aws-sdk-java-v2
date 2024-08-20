@@ -92,6 +92,9 @@ public interface ProtocolFact {
      * Returns the object representing a collection of facts for each protocol.
      */
     static ProtocolFact from(AwsJsonProtocol protocol) {
+        if (protocol == null) {
+            return DEFAULT;
+        }
         switch (protocol) {
             case SMITHY_RPC_V2_CBOR:
                 return SMITHY_RPC_V2_CBOR;
