@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
@@ -47,36 +48,46 @@ public final class ResponseBatchConfiguration {
     private final Integer maxDoneReceiveBatches;
 
     public ResponseBatchConfiguration(BatchOverrideConfiguration overrideConfiguration) {
-        this.visibilityTimeout = (overrideConfiguration != null && overrideConfiguration.visibilityTimeout() != null)
-                                 ? overrideConfiguration.visibilityTimeout()
-                                 : VISIBILITY_TIMEOUT_SECONDS_DEFAULT;
-        this.longPollWaitTimeout = (overrideConfiguration != null && overrideConfiguration.longPollWaitTimeout() != null)
-                                   ? overrideConfiguration.longPollWaitTimeout()
-                                   : LONG_POLL_WAIT_TIMEOUT_DEFAULT;
-        this.minReceiveWaitTime = (overrideConfiguration != null && overrideConfiguration.minReceiveWaitTime() != null)
-                                  ? overrideConfiguration.minReceiveWaitTime()
-                                  : MIN_RECEIVE_WAIT_TIME_MS_DEFAULT;
-        this.messageSystemAttributeValues = overrideConfiguration.messageSystemAttributeName().isEmpty()
-                                            ? MESSAGE_SYSTEM_ATTRIBUTE_NAMES_DEFAULT
-                                            : overrideConfiguration.messageSystemAttributeName();
-        this.receiveMessageAttributeNames =
-            (overrideConfiguration != null && !overrideConfiguration.receiveMessageAttributeNames().isEmpty())
-                                            ? overrideConfiguration.receiveMessageAttributeNames()
-                                            : RECEIVE_MESSAGE_ATTRIBUTE_NAMES_DEFAULT;
-        this.adaptivePrefetching = (overrideConfiguration != null && overrideConfiguration.adaptivePrefetching() != null)
-                                   ? overrideConfiguration.adaptivePrefetching()
-                                   : ADAPTIVE_PREFETCHING_DEFAULT;
-        this.maxBatchItems = (overrideConfiguration != null && overrideConfiguration.maxBatchItems() != null)
-                             ? overrideConfiguration.maxBatchItems()
-                             : MAX_BATCH_ITEMS_DEFAULT;
-        this.maxInflightReceiveBatches =
-            (overrideConfiguration != null && overrideConfiguration.maxInflightReceiveBatches() != null)
-                                         ? overrideConfiguration.maxInflightReceiveBatches()
-                                         : MAX_INFLIGHT_RECEIVE_BATCHES_DEFAULT;
-        this.maxDoneReceiveBatches = (overrideConfiguration != null && overrideConfiguration.maxDoneReceiveBatches() != null)
-                                     ? overrideConfiguration.maxDoneReceiveBatches()
-                                     : MAX_DONE_RECEIVE_BATCHES_DEFAULT;
+        this.visibilityTimeout = Optional.ofNullable(overrideConfiguration)
+                                         .map(BatchOverrideConfiguration::visibilityTimeout)
+                                         .orElse(VISIBILITY_TIMEOUT_SECONDS_DEFAULT);
+
+        this.longPollWaitTimeout = Optional.ofNullable(overrideConfiguration)
+                                           .map(BatchOverrideConfiguration::longPollWaitTimeout)
+                                           .orElse(LONG_POLL_WAIT_TIMEOUT_DEFAULT);
+
+        this.minReceiveWaitTime = Optional.ofNullable(overrideConfiguration)
+                                          .map(BatchOverrideConfiguration::minReceiveWaitTime)
+                                          .orElse(MIN_RECEIVE_WAIT_TIME_MS_DEFAULT);
+
+        this.messageSystemAttributeValues = Optional.ofNullable(overrideConfiguration)
+                                                    .map(BatchOverrideConfiguration::messageSystemAttributeName)
+                                                    .filter(list -> !list.isEmpty())
+                                                    .orElse(MESSAGE_SYSTEM_ATTRIBUTE_NAMES_DEFAULT);
+
+        this.receiveMessageAttributeNames = Optional.ofNullable(overrideConfiguration)
+                                                    .map(BatchOverrideConfiguration::receiveMessageAttributeNames)
+                                                    .filter(list -> !list.isEmpty())
+                                                    .orElse(RECEIVE_MESSAGE_ATTRIBUTE_NAMES_DEFAULT);
+
+        this.adaptivePrefetching = Optional.ofNullable(overrideConfiguration)
+                                           .map(BatchOverrideConfiguration::adaptivePrefetching)
+                                           .orElse(ADAPTIVE_PREFETCHING_DEFAULT);
+
+        this.maxBatchItems = Optional.ofNullable(overrideConfiguration)
+                                     .map(BatchOverrideConfiguration::maxBatchItems)
+                                     .orElse(MAX_BATCH_ITEMS_DEFAULT);
+
+
+        this.maxInflightReceiveBatches = Optional.ofNullable(overrideConfiguration)
+                                                 .map(BatchOverrideConfiguration::maxInflightReceiveBatches)
+                                                 .orElse(MAX_INFLIGHT_RECEIVE_BATCHES_DEFAULT);
+
+        this.maxDoneReceiveBatches = Optional.ofNullable(overrideConfiguration)
+                                             .map(BatchOverrideConfiguration::maxDoneReceiveBatches)
+                                             .orElse(MAX_DONE_RECEIVE_BATCHES_DEFAULT);
     }
+
 
     public Duration visibilityTimeout() {
         return visibilityTimeout;
