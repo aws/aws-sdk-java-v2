@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "OpenSearch Service Serverless",
-    "contributor": "",
-    "description": "Added FailureCode and FailureMessage to BatchGetCollectionResponse for BatchGetVPCEResponse for non-Active Collection and VPCE."
-}
