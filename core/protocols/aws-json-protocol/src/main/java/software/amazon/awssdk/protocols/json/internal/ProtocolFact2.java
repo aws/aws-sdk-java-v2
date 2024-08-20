@@ -24,23 +24,15 @@ import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.utils.MapUtils;
 
 /**
- * Records facts about each protocol.
+ * Represents know static facts about each protocol.
  */
 @SdkInternalApi
-public enum ProtocolFact {
-    AWS_JSON(AwsJsonProtocol.AWS_JSON) {
-        /**
-         * AWS JSON always generates a body.
-         */
-        @Override
-        public boolean generatesBody(OperationInfo info) {
-            return true;
-        }
-    },
-    SMITHY_RPC_V2_CBOR(AwsJsonProtocol.SMITHY_RPC_V2_CBOR) {
+public interface ProtocolFact2 {
+
+    ProtocolFact2 DEFAULT = new ProtocolFact2() {};
+    ProtocolFact2 SMITHY_RPC_V2_CBOR = new ProtocolFact2() {
         private final Map<String, String> extraHeaders = Collections.unmodifiableMap(MapUtils.of("smithy-protocol",
                                                                                                  "rpc-v2-cbor"));
-
         /**
          * Smithy RPCv2 only skips body generation for operation without input defined. These operations mark themselves using
          * the {@link BaseAwsJsonProtocolFactory#GENERATES_BODY} metadata attribute. Otherwise, the protocol default is to
@@ -58,39 +50,33 @@ public enum ProtocolFact {
         public Map<String, String> extraHeaders() {
             return extraHeaders;
         }
-    },
-    DEFAULT(null),
-    ;
-    private final AwsJsonProtocol protocol;
 
-    ProtocolFact(AwsJsonProtocol protocol) {
-        this.protocol = protocol;
-    }
+    };
 
     /**
      * Returns true if the operation generates a body, false otherwise. By default, this depends on whether the operation input
      * has members bound to the payload.
      */
-    public boolean generatesBody(OperationInfo info) {
+    default boolean generatesBody(OperationInfo info) {
         return info.hasPayloadMembers();
     }
 
     /**
      * Returns a configured set of headers to be added to each request of the protocol.
      */
-    public Map<String, String> extraHeaders() {
+    default Map<String, String> extraHeaders() {
         return Collections.emptyMap();
     }
 
     /**
      * Returns the object representing a collection of facts for each protocol.
      */
-    public static ProtocolFact from(AwsJsonProtocol protocol) {
-        for (ProtocolFact facts : values()) {
-            if (facts.protocol == protocol) {
-                return facts;
-            }
+    static ProtocolFact2 from(AwsJsonProtocol protocol) {
+        switch (protocol) {
+            case SMITHY_RPC_V2_CBOR:
+                return SMITHY_RPC_V2_CBOR;
+            default:
+                return DEFAULT;
         }
-        return DEFAULT;
     }
 }
