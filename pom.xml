@@ -1087,10 +1087,6 @@
                                     <packages>software.amazon.awssdk.services.marketplaceentitlement*</packages>
                                 </group>
                                 <group>
-                                    <title>CodeStar</title>
-                                    <packages>software.amazon.awssdk.services.codestar*</packages>
-                                </group>
-                                <group>
                                     <title>Lex Model Building</title>
                                     <packages>software.amazon.awssdk.services.lexmodelbuilding*</packages>
                                 </group>

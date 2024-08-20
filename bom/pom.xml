@@ -410,11 +410,6 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
-                <artifactId>codestar</artifactId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
                 <artifactId>cognitoidentity</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
