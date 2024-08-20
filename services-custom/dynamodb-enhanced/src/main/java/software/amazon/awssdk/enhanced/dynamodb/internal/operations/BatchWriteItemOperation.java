@@ -67,13 +67,19 @@ public class BatchWriteItemOperation
         return BatchWriteItemRequest.builder()
                                     .requestItems(
                                         Collections.unmodifiableMap(CollectionUtils.deepCopyMap(allRequestItems)))
+                                    .returnConsumedCapacity(request.returnConsumedCapacity())
+                                    .returnItemCollectionMetrics(request.returnItemCollectionMetrics())
                                     .build();
     }
 
     @Override
     public BatchWriteResult transformResponse(BatchWriteItemResponse response,
                                               DynamoDbEnhancedClientExtension extension) {
-        return BatchWriteResult.builder().unprocessedRequests(response.unprocessedItems()).build();
+        return BatchWriteResult.builder()
+                               .unprocessedRequests(response.unprocessedItems())
+                               .consumedCapacity(response.consumedCapacity())
+                               .itemCollectionMetrics(response.itemCollectionMetrics())
+                               .build();
     }
 
     @Override
