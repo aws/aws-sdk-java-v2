@@ -1,4 +1,69 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.8__ __2024-08-19__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports creating fleets with macOS platform for running builds.
+
+## __AWS Lambda__
+  - ### Features
+    - Release Lambda FunctionRecursiveConfig, enabling customers to turn recursive loop detection on or off on individual functions. This release adds two new APIs, GetFunctionRecursionConfig and PutFunctionRecursionConfig.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update service exception messages to never include the string "null" in the message.
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - Add new attributes to the outputs of GetApplication and GetDatabase APIs.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - This release adds additional search fields and provides sorting by multiple fields.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Batch Inference/ Model Invocation is a feature which allows customers to asynchronously run inference on a large set of records/files stored in S3.
+
+## __Amazon S3__
+  - ### Features
+    - When S3 returns a HEAD response, use the HTTP status text as the errorMessage.
+
+## __DynamoDBEnhancedClient__
+  - ### Features
+    - This commit introduces ConsumedCapacity in the response of a BatchWrite response
+        - Contributed by: [@prateek-vats](https://github.com/prateek-vats)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@prateek-vats](https://github.com/prateek-vats)
+# __2.27.7__ __2024-08-16__
+## __AWS Batch__
+  - ### Features
+    - Improvements of integration between AWS Batch and EC2.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add new spotbugs rule to detect blocking call in the async codepath
+    - Updated endpoint and partition metadata.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Amazon QuickSight launches Customer Managed Key (CMK) encryption for Data Source metadata
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introduce Endpoint and EndpointConfig Arns in sagemaker:ListPipelineExecutionSteps API response
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Marking use case description field of account details as deprecated.
+
+## __Inspector2__
+  - ### Features
+    - Update the correct format of key and values for resource tags
+
 # __2.27.6__ __2024-08-15__
 ## __AWS Identity and Access Management__
   - ### Features
