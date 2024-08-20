@@ -16,6 +16,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: software.amazon.awssdk.v2migration.S3MethodsConstructorToFluent
 displayName: Change S3 method constructors to fluent builder calls
+description: Change S3 method constructors to fluent builder calls.
 recipeList:
   - software.amazon.awssdk.v2migration.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.GetObjectRequest

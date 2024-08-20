@@ -34,6 +34,10 @@
 
     <properties>
         <awsjavasdk.version>${project.parent.version}</awsjavasdk.version>
+        <openrewrite.version>2.17.0</openrewrite.version>
+        <junit.version>5.10.3</junit.version>
+        <awssdkjavav1.version>1.12.472</awssdkjavav1.version>
+        <jacksondatabind.version>2.17.2</jacksondatabind.version>
     </properties>
 
     <dependencyManagement>
@@ -42,21 +46,21 @@
             <dependency>
                 <groupId>org.openrewrite.recipe</groupId>
                 <artifactId>rewrite-recipe-bom</artifactId>
-                <version>2.14.0</version>
+                <version>${openrewrite.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
-                <version>5.10.3</version>
+                <version>${junit.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-bom</artifactId>
-                <version>1.12.472</version>
+                <version>${awssdkjavav1.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -77,6 +81,13 @@
             <groupId>org.openrewrite.recipe</groupId>
             <artifactId>rewrite-java-dependencies</artifactId>
             <scope>runtime</scope>
+        </dependency>
+        <!--  We have to explicitly add jackson dependency to fix import issue
+         TODO: remove this once it's fixed. See JAVA-7848-->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jacksondatabind.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
