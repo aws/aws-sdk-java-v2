@@ -15,6 +15,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: software.amazon.awssdk.v2migration.UpgradeSdkDependencies
 displayName: Change v1 Maven/Gradle dependencies to v2
+description: Change v1 Maven/Gradle dependencies to v2.
 recipeList:
 
   - org.openrewrite.java.dependencies.AddDependency:
