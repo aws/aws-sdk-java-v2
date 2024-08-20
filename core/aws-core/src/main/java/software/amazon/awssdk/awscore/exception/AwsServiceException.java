@@ -31,7 +31,7 @@ import software.amazon.awssdk.http.SdkHttpResponse;
  * by an Amazon web service.
  * <p>
  * <p>
- * AmazonServiceException provides callers several pieces of
+ * AwsServiceException provides callers several pieces of
  * information that can be used to obtain more information about the error and
  * why it occurred.
  *
