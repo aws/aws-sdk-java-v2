@@ -27,10 +27,10 @@ import software.amazon.awssdk.utils.MapUtils;
  * Represents know static facts about each protocol.
  */
 @SdkInternalApi
-public interface ProtocolFact2 {
+public interface ProtocolFact {
 
-    ProtocolFact2 DEFAULT = new ProtocolFact2() {};
-    ProtocolFact2 SMITHY_RPC_V2_CBOR = new ProtocolFact2() {
+    ProtocolFact DEFAULT = new ProtocolFact() {};
+    ProtocolFact SMITHY_RPC_V2_CBOR = new ProtocolFact() {
         private final Map<String, String> extraHeaders = Collections.unmodifiableMap(MapUtils.of("smithy-protocol",
                                                                                                  "rpc-v2-cbor"));
         /**
@@ -71,7 +71,7 @@ public interface ProtocolFact2 {
     /**
      * Returns the object representing a collection of facts for each protocol.
      */
-    static ProtocolFact2 from(AwsJsonProtocol protocol) {
+    static ProtocolFact from(AwsJsonProtocol protocol) {
         switch (protocol) {
             case SMITHY_RPC_V2_CBOR:
                 return SMITHY_RPC_V2_CBOR;
