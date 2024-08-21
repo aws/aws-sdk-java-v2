@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "Add optional field JobRunQueuingEnabled to CreateJob and UpdateJob APIs."
+}
