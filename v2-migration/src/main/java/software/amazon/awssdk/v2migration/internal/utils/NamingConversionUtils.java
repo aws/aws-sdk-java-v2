@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.v2migration.internal.utils;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
@@ -24,6 +26,43 @@ public final class NamingConversionUtils {
 
     private static final String V1_PACKAGE_PREFIX = "com.amazonaws.services";
     private static final String V2_PACKAGE_PREFIX = "software.amazon.awssdk.services";
+    private static final Map<String, String> SPECIAL_MAPPING = new HashMap<>();
+
+    static {
+        SPECIAL_MAPPING.put("appregistry", "servicecatalogappregistry");
+        SPECIAL_MAPPING.put("certificatemanager", "acm");
+        SPECIAL_MAPPING.put("cloudcontrolapi", "cloudcontrol");
+        SPECIAL_MAPPING.put("cloudsearchv2", "cloudsearch");
+        SPECIAL_MAPPING.put("cloudwatchevidently", "evidently");
+        SPECIAL_MAPPING.put("logs", "cloudwatchlogs");
+        SPECIAL_MAPPING.put("cloudwatchrum", "rum");
+        SPECIAL_MAPPING.put("cognitoidp", "cognitoidentityprovider");
+        SPECIAL_MAPPING.put("connectcampaign", "connectcampaigns");
+        SPECIAL_MAPPING.put("connectwisdom", "wisdom");
+        SPECIAL_MAPPING.put("databasemigrationservice", "databasemigration");
+        SPECIAL_MAPPING.put("dynamodbv2", "dynamodb");
+        SPECIAL_MAPPING.put("elasticfilesystem", "efs");
+        SPECIAL_MAPPING.put("elasticmapreduce", "emr");
+        SPECIAL_MAPPING.put("gluedatabrew", "databrew");
+        SPECIAL_MAPPING.put("iamrolesanywhere", "rolesanywhere");
+        SPECIAL_MAPPING.put("identitymanagement", "iam");
+        SPECIAL_MAPPING.put("iotdata", "iotdataplane");
+        SPECIAL_MAPPING.put("mainframemodernization", "m2");
+        SPECIAL_MAPPING.put("managedgrafana", "grafana");
+        SPECIAL_MAPPING.put("migrationhubstrategyrecommendations", "migrationhubstrategy");
+        SPECIAL_MAPPING.put("nimblestudio", "nimble");
+        SPECIAL_MAPPING.put("private5g", "privatenetworks");
+        SPECIAL_MAPPING.put("prometheus", "amp");
+        SPECIAL_MAPPING.put("recyclebin", "rbin");
+        SPECIAL_MAPPING.put("redshiftdataapi", "redshiftdata");
+        SPECIAL_MAPPING.put("sagemakeredgemanager", "sagemakeredge");
+        SPECIAL_MAPPING.put("securitytoken", "sts");
+        SPECIAL_MAPPING.put("servermigration", "sms");
+        SPECIAL_MAPPING.put("simpleemail", "ses");
+        SPECIAL_MAPPING.put("simpleemailv2", "sesv2");
+        SPECIAL_MAPPING.put("simplesystemsmanagement", "ssm");
+        SPECIAL_MAPPING.put("stepfunctions", "sfn");
+    }
 
     private NamingConversionUtils() {
     }
@@ -51,11 +90,12 @@ public final class NamingConversionUtils {
      * Edge cases in v1 package names
      */
     private static String checkPackageServiceNameForV2Suffix(String v2PackagePrefix) {
-        if (v2PackagePrefix.contains("dynamodbv2")) {
-            return v2PackagePrefix.replace("dynamodbv2", "dynamodb");
-        }
-        if (v2PackagePrefix.contains("cloudsearchv2")) {
-            return v2PackagePrefix.replace("cloudsearchv2", "cloudsearch");
+        for (Map.Entry<String, String> entry : SPECIAL_MAPPING.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (v2PackagePrefix.contains(key)) {
+                return v2PackagePrefix.replace(key, value);
+            }
         }
         return v2PackagePrefix;
     }
@@ -64,6 +104,7 @@ public final class NamingConversionUtils {
         int lastIndexOfDot = currentFqcn.lastIndexOf(".");
         String packagePrefix = currentFqcn.substring(0, lastIndexOfDot);
         String v2PackagePrefix = packagePrefix.replace(V1_PACKAGE_PREFIX, V2_PACKAGE_PREFIX);
+        v2PackagePrefix = checkPackageServiceNameForV2Suffix(v2PackagePrefix);
         return v2PackagePrefix + ".*";
     }
 
