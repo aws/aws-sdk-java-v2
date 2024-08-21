@@ -46,6 +46,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
+import software.amazon.awssdk.protocols.json.internal.ProtocolFact;
 
 /**
  * Implementation of {@link ProtocolMarshaller} for JSON based services. This includes JSON-RPC and REST-JSON.
@@ -168,6 +169,10 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             requestBuilder.putHeader("X-Amz-Target", operationIdentifier);
         }
         Map<String, String> extraHeaders = operationInfo.addtionalMetadata(BaseAwsJsonProtocolFactory.HTTP_EXTRA_HEADERS);
+        if (extraHeaders == null) {
+            extraHeaders =
+                ProtocolFact.from(protocolMetadata.protocol()).extraHeaders();
+        }
         if (extraHeaders != null) {
             extraHeaders.forEach(requestBuilder::putHeader);
         }

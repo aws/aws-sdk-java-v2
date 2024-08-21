@@ -97,10 +97,11 @@ public class JsonProtocolSpec implements ProtocolSpec {
                       .addCode("return builder\n")
                       .addCode(".clientConfiguration(clientConfiguration)\n")
                       .addCode(".defaultServiceExceptionSupplier($T::builder)\n", baseException)
-                      .addCode(".protocol($T.$L)\n", AwsJsonProtocol.class, protocolEnumName(metadata.getProtocol()))
-                      .addCode(".protocolVersion($S)\n", metadata.getJsonVersion())
-                      .addCode("$L", customErrorCodeFieldName());
-
+                      .addCode(".protocol($T.$L)\n", AwsJsonProtocol.class, protocolEnumName(metadata.getProtocol()));
+        if (metadata.getJsonVersion() != null) {
+            methodSpec.addCode(".protocolVersion($S)\n", metadata.getJsonVersion());
+        }
+        methodSpec.addCode("$L", customErrorCodeFieldName());
         String contentType = Optional.ofNullable(model.getCustomizationConfig().getCustomServiceMetadata())
                 .map(MetadataConfig::getContentType)
                 .orElse(metadata.getContentType());
