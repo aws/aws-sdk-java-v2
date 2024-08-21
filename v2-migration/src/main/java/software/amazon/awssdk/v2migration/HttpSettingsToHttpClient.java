@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
 import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
@@ -222,7 +221,7 @@ public class HttpSettingsToHttpClient extends Recipe {
          * This method adds ".httpClientBuilder(ApacheHttpClient.builder().xxx)" right
          * before ".overrideConfiguration(xxx)" if there are HTTP settings stored in execution context
          */
-        private J.@NotNull MethodInvocation addHttpClientBuilderIfNeeded(
+        private J.MethodInvocation addHttpClientBuilderIfNeeded(
             Pair<J.MethodInvocation, J.MethodInvocation> methods, ExecutionContext executionContext) {
             J.MethodInvocation method = methods.right();
             Expression expression = method.getArguments().get(0);
@@ -389,7 +388,7 @@ public class HttpSettingsToHttpClient extends Recipe {
             return JContainer.build(Arrays.asList(JRightPadded.build(httpClientBuilderMethodInvoke)));
         }
 
-        private static J.@NotNull MethodInvocation invokeHttpSetting(Map.Entry<String, Expression> entry,
+        private static J.MethodInvocation invokeHttpSetting(Map.Entry<String, Expression> entry,
                                                                      JavaType.FullyQualified httpClientBuilderType,
                                                                      J.MethodInvocation httpClientBuilderMethodInvoke) {
 
@@ -429,7 +428,7 @@ public class HttpSettingsToHttpClient extends Recipe {
             return settingsInvoke;
         }
 
-        private J.@NotNull MethodInvocation handleClientOverrideConfiguration(
+        private J.MethodInvocation handleClientOverrideConfiguration(
             J.MethodInvocation originalMethod,
             J.MethodInvocation method,
             ExecutionContext executionContext) {
