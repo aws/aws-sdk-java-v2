@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "DescribeInstanceStatus now returns health information on EBS volumes attached to Nitro instances"
-}
