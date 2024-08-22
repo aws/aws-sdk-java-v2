@@ -162,10 +162,6 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
         }
     }
 
-    /**
-     * TODO: We should deprecate this builder - execution attributes are mutable - why do we need a builder? We can just use
-     * copy() if it's because of {@link #unmodifiableExecutionAttributes(ExecutionAttributes)}.
-     */
     public static final class Builder implements CopyableBuilder<ExecutionAttributes.Builder, ExecutionAttributes> {
         private final Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>(32);
 
