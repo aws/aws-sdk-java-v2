@@ -152,7 +152,10 @@ public class SyncClientInterface implements ClassSpec {
 
     private String getJavadoc() {
         return "Service client for accessing " + model.getMetadata().getDescriptiveServiceName() + ". This can be "
-               + "created using the static {@link #builder()} method.\n\n" + model.getMetadata().getDocumentation();
+               + "created using the static {@link #builder()} method.<p/> See our "
+               + "<a href=\"https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/using.html\">service "
+               + "client guide</a> for how to use this client.<p/>" +
+               model.getMetadata().getDocumentation();
     }
 
     private MethodSpec create() {

@@ -37,6 +37,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *   variable is set and security manager has permission to access the variable,</li>
  *   <li>Instance profile credentials delivered through the Amazon EC2 metadata service</li>
  * </ol>
+ * <p>
+ * See our <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html">default
+ * credentials provider chain documentation</a> for more information.
  *
  * @see SystemPropertyCredentialsProvider
  * @see EnvironmentVariableCredentialsProvider

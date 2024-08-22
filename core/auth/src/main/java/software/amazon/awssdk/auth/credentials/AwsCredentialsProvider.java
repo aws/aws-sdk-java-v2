@@ -23,11 +23,42 @@ import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 
 /**
  * Interface for loading {@link AwsCredentials} that are used for authentication.
- *
- * <p>Commonly-used implementations include {@link StaticCredentialsProvider} for a fixed set of credentials and the
- * {@link DefaultCredentialsProvider} for discovering credentials from the host's environment. The AWS Security Token
- * Service (STS) client also provides implementations of this interface for loading temporary, limited-privilege credentials from
- * AWS STS.</p>
+ * <p>
+ * See our <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials.html">credentials
+ * documentation</a> for more information.
+ * <p>
+ * The most common implementations of this interface include:
+ * <ul>
+ *     <li>{@link DefaultCredentialsProvider}: Discovers credentials from the host environment.</li>
+ *     <li>{@link StaticCredentialsProvider}: Uses a hard-coded set of AWS credentials for an
+ *         <a href="https://docs.aws.amazon.com/iam/">IAM</a> user or role.</li>
+ *     <li>{@link ProcessCredentialsProvider}: Allows loading credentials from an external process.</li>
+ *     <li>{@code software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider}: Use
+ *         <a href="https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html">AWS's STS AssumeRole</a>
+ *         API to assume an <a href="https://docs.aws.amazon.com/iam/">IAM</a> role. (Requires a dependency on 'sts')</li>
+ *     <li>{@code software.amazon.awssdk.services.sso.auth.SsoCredentialsProvider}: Use
+ *         <a href="https://docs.aws.amazon.com/singlesignon/latest/PortalAPIReference/API_GetRoleCredentials.html">
+ *         AWS's Identity Center GetRoleCredentials</a> to assume an <a href="https://docs.aws.amazon.com/iam/">IAM</a>
+ *         role. (Requires a dependency on 'sso')</li>
+ * </ul>
+ * <p>
+ * Implementations of this interface that are included in the {@link DefaultCredentialsProvider}, but can also be used
+ * directly include:
+ * <ul>
+ *     <li>{@link EnvironmentVariableCredentialsProvider}: Uses credentials specified in environment credentials.</li>
+ *     <li>{@link SystemPropertyCredentialsProvider}: Uses credentials specified using JVM system properties.</li>
+ *     <li>{@link ProfileCredentialsProvider} : Uses credentials from the ~/.aws/config and ~/.aws/credentials files.</li>
+ *     <li>{@link InstanceProfileCredentialsProvider}: Uses credentials from your EC2 instance profile configuration.
+ *     Requires your application to be running in EC2.</li>
+ *     <li>{@link ContainerCredentialsProvider}: Uses credentials from your ECS, EKS or GreenGrass configuration.
+ *     Requires your application to be running in one of these environments.</li>
+ * </ul>
+ * <p>
+ * Some special use-case implementation of this interface include:
+ * <ul>
+ *     <li>{@link AnonymousCredentialsProvider}: Allows anonymous access to some AWS resources.</li>
+ *     <li></li>
+ * </ul>
  */
 @FunctionalInterface
 @SdkPublicApi

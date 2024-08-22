@@ -187,8 +187,10 @@ public class AsyncClientInterface implements ClassSpec {
                + "with any {@code SdkAsyncHttpClient} supported in the SDK. "
                + "However, full non-blocking is not guaranteed as the async client may perform "
                + "blocking calls in some cases such as credentials retrieval and "
-               + "endpoint discovery as part of the async API call."
-               + "\n\n" + model.getMetadata().getDocumentation();
+               + "endpoint discovery as part of the async API call.<p/> See our "
+               + "<a href=\"https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/using.html\">service "
+               + "client guide</a> for how to use this client.<p/>" +
+               model.getMetadata().getDocumentation();
     }
 
     private MethodSpec create() {
