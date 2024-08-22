@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.11__ __2024-08-22__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Evaluation BatchDeleteEvaluationJob API allows customers to delete evaluation jobs under terminated evaluation job statuses - Stopped, Failed, or Completed. Customers can submit a batch of 25 evaluation jobs to be deleted at once.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - Correct endpoint for FIPS is configured for US Gov Regions.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Explicit query for authors and dashboard viewing sharing for embedded users
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Asia Pacific (Malaysia) Region (ap-southeast-5) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
+## __Auto Scaling__
+  - ### Features
+    - Amazon EC2 Auto Scaling now provides EBS health check to manage EC2 instance replacement
+
+## __Inspector2__
+  - ### Features
+    - Add enums for Agentless scan statuses and EC2 enablement error states
+
 # __2.27.10__ __2024-08-21__
 ## __AWS EntityResolution__
   - ### Features
