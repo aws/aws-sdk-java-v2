@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.10__ __2024-08-21__
+## __AWS EntityResolution__
+  - ### Features
+    - Increase the mapping attributes in Schema to 35.
+
+## __AWS Glue__
+  - ### Features
+    - Add optional field JobRunQueuingEnabled to CreateJob and UpdateJob APIs.
+
+## __AWS Lambda__
+  - ### Features
+    - Release FilterCriteria encryption for Lambda EventSourceMapping, enabling customers to encrypt their filter criteria using a customer-owned KMS key.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Security Hub documentation and definition updates
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - DescribeInstanceStatus now returns health information on EBS volumes attached to Nitro instances
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Enable email receiving customers to provide SES with access to their S3 buckets via an IAM role for "Deliver to S3 Action"
+
 # __2.27.9__ __2024-08-20__
 ## __Amazon EC2 Container Service__
   - ### Features

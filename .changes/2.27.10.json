@@ -1,0 +1,48 @@
+{
+    "version": "2.27.10",
+    "date": "2024-08-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS EntityResolution",
+            "contributor": "",
+            "description": "Increase the mapping attributes in Schema to 35."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Add optional field JobRunQueuingEnabled to CreateJob and UpdateJob APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Release FilterCriteria encryption for Lambda EventSourceMapping, enabling customers to encrypt their filter criteria using a customer-owned KMS key."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Security Hub documentation and definition updates"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "DescribeInstanceStatus now returns health information on EBS volumes attached to Nitro instances"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "Enable email receiving customers to provide SES with access to their S3 buckets via an IAM role for \"Deliver to S3 Action\""
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

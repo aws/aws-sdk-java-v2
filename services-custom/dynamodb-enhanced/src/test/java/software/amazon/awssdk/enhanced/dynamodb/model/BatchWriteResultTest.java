@@ -61,9 +61,9 @@ public class BatchWriteResultTest {
     @Test
     public void builder_minimal() {
         BatchWriteResult builtObject =
-            BatchWriteResult.builder().unprocessedRequests(Collections.EMPTY_MAP).consumedCapacity(ImmutableList.of()).build();
+            BatchWriteResult.builder().unprocessedRequests(Collections.EMPTY_MAP).build();
 
-        Assertions.assertThat(builtObject.itemCollectionMetrics()).isNull();
+        Assertions.assertThat(builtObject.itemCollectionMetrics()).isEmpty();
         Assertions.assertThat(builtObject.consumedCapacity()).isEmpty();
     }
 
