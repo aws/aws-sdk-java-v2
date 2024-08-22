@@ -18,7 +18,9 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromMap;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.readAndTransformSingleItem;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -56,9 +58,14 @@ public final class BatchWriteResult {
     private final Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics;
 
     private BatchWriteResult(Builder builder) {
-        this.unprocessedRequests = Collections.unmodifiableMap(builder.unprocessedRequests);
-        this.consumedCapacity = Collections.unmodifiableList(builder.consumedCapacity);
-        this.itemCollectionMetrics = builder.itemCollectionMetrics;
+        this.unprocessedRequests = builder.unprocessedRequests == null ?
+                                   Collections.unmodifiableMap(new HashMap<>()) :
+                                   Collections.unmodifiableMap(builder.unprocessedRequests);
+        this.consumedCapacity = builder.consumedCapacity == null ? Collections.unmodifiableList(new ArrayList<>()) :
+                                Collections.unmodifiableList(builder.consumedCapacity);
+        this.itemCollectionMetrics =
+            builder.itemCollectionMetrics == null ? Collections.unmodifiableMap(new HashMap<>()) :
+            Collections.unmodifiableMap(builder.itemCollectionMetrics);
     }
 
     /**
