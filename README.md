@@ -4,7 +4,7 @@
 [![Gitter](https://badges.gitter.im/aws/aws-sdk-java-v2.svg)](https://gitter.im/aws/aws-sdk-java-v2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) 
 [![codecov](https://codecov.io/gh/aws/aws-sdk-java-v2/branch/master/graph/badge.svg)](https://codecov.io/gh/aws/aws-sdk-java-v2)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-110-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-111-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The **AWS SDK for Java 2.0** is a rewrite of 1.0 with some great new features. As with version 1.0,
@@ -333,6 +333,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="http://wicket.apache.org"><img src="https://avatars.githubusercontent.com/u/980773?v=4?s=100" width="100px;" alt="Tobias Soloschenko"/><br /><sub><b>Tobias Soloschenko</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=klopfdreh" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Madrigal"><img src="https://avatars.githubusercontent.com/u/599908?v=4?s=100" width="100px;" alt="Luis Madrigal"/><br /><sub><b>Luis Madrigal</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=Madrigal" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/chaykin"><img src="https://avatars.githubusercontent.com/u/2480265?v=4?s=100" width="100px;" alt="Kirill Chaykin"/><br /><sub><b>Kirill Chaykin</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=chaykin" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/prateek-vats"><img src="https://avatars.githubusercontent.com/u/177409977?v=4?s=100" width="100px;" alt="prateek-vats"/><br /><sub><b>prateek-vats</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=prateek-vats" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
