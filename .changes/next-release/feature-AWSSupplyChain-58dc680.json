@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Supply Chain",
-    "contributor": "",
-    "description": "Update API documentation to clarify the event SLA as well as the data model expectations"
-}
