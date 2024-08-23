@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeBuild",
+    "contributor": "",
+    "description": "Added support for the MAC_ARM environment type for CodeBuild fleets."
+}
