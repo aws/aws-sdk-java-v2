@@ -57,9 +57,8 @@ public class TransactWriteItemsEnhancedResponseTest {
 
     @Test
     public void builder_minimal() {
-        TransactWriteItemsEnhancedResponse<Void> builtObject = TransactWriteItemsEnhancedResponse.<Void>builder(null).build();
+        TransactWriteItemsEnhancedResponse builtObject = TransactWriteItemsEnhancedResponse.builder().build();
 
-        assertThat(builtObject.items(), is(nullValue()));
         assertThat(builtObject.consumedCapacity(), is(nullValue()));
         assertThat(builtObject.itemCollectionMetrics(), is(nullValue()));
     }
@@ -70,13 +69,12 @@ public class TransactWriteItemsEnhancedResponseTest {
                                                                                              ImmutableList.of(ItemCollectionMetrics.builder().build())
         );
         List<ConsumedCapacity> consumedCapacity =
-            ImmutableList.of(software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity.builder().capacityUnits(2.0).build());
-        TransactWriteItemsEnhancedResponse<Void> builtObject = TransactWriteItemsEnhancedResponse.<Void>builder(null)
-                                                                                                 .itemCollectionMetrics(metricCollection)
-                                                                                                 .consumedCapacity(consumedCapacity)
-                                                                                                 .build();
+            ImmutableList.of(ConsumedCapacity.builder().capacityUnits(2.0).build());
+        TransactWriteItemsEnhancedResponse builtObject = TransactWriteItemsEnhancedResponse.builder()
+                                                                                           .itemCollectionMetrics(metricCollection)
+                                                                                           .consumedCapacity(consumedCapacity)
+                                                                                           .build();
 
-        assertThat(builtObject.items(), is(nullValue()));
         assertThat(builtObject.consumedCapacity(), is(consumedCapacity));
         assertThat(builtObject.itemCollectionMetrics(), is(metricCollection));
     }

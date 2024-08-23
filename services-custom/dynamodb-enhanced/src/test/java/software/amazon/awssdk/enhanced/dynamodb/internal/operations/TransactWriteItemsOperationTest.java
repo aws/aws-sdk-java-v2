@@ -25,7 +25,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,8 +41,6 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.Put;
-import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
-import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsResponse;
@@ -135,7 +132,7 @@ public class TransactWriteItemsOperationTest {
 
     @Test
     public void getServiceCall_callsServiceAndReturnsResult() {
-        TransactWriteItemsOperation<Void> operation = TransactWriteItemsOperation.create(emptyRequest());
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(emptyRequest());
         TransactWriteItemsRequest request =
             TransactWriteItemsRequest.builder()
                                      .transactItems(singletonList(fakeTransactWriteItem1))

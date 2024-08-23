@@ -54,8 +54,8 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * Returns a mapped table that can be used to execute commands that work with mapped items against that table.
      *
      * @param tableName   The name of the physical table persisted by DynamoDb.
-     * @param tableSchema A {@link TableSchema} that maps the table to a modelled object.
-     * @param <T>         THe modelled object type being mapped to this table.
+     * @param tableSchema A {@link TableSchema} that maps the table to a modeled object.
+     * @param <T>         The modeled object type being mapped to this table.
      * @return A {@link DynamoDbAsyncTable} object that can be used to execute table operations against.
      */
     <T> DynamoDbAsyncTable<T> table(String tableName, TableSchema<T> tableSchema);
@@ -473,9 +473,9 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      * </pre>
      *
      * @param request A {@link BatchWriteItemEnhancedRequest} containing keys grouped by tables.
-     * @return a {@link CompletableFuture} of {@link Void}.
+     * @return a {@link CompletableFuture} of {@link TransactWriteItemsEnhancedResponse}.
      */
-    default CompletableFuture<TransactWriteItemsEnhancedResponse<Void>> transactWriteItemsWithResponse(
+    default CompletableFuture<TransactWriteItemsEnhancedResponse> transactWriteItemsWithResponse(
         TransactWriteItemsEnhancedRequest request) {
         throw new UnsupportedOperationException();
     }
@@ -522,7 +522,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
      *                        tables.
      * @return a {@link CompletableFuture} of {@link Void}.
      */
-    default CompletableFuture<TransactWriteItemsEnhancedResponse<Void>> transactWriteItemsWithResponse(
+    default CompletableFuture<TransactWriteItemsEnhancedResponse> transactWriteItemsWithResponse(
         Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
@@ -531,7 +531,7 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
     /**
      * Creates a default builder for {@link DynamoDbEnhancedAsyncClient}.
      */
-    static DynamoDbEnhancedAsyncClient.Builder builder() {
+    static Builder builder() {
         return DefaultDynamoDbEnhancedAsyncClient.builder();
     }
 

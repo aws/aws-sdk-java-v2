@@ -104,8 +104,8 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
 
     @Override
     public CompletableFuture<Void> transactWriteItems(TransactWriteItemsEnhancedRequest request) {
-        TransactWriteItemsOperation<Void> operation = TransactWriteItemsOperation.create(request);
-        return operation.executeAsync(dynamoDbClient, extension).thenApply(TransactWriteItemsEnhancedResponse::items);
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(request);
+        return operation.executeAsync(dynamoDbClient, extension).thenApply(r -> null);
     }
 
     @Override
@@ -118,15 +118,14 @@ public final class DefaultDynamoDbEnhancedAsyncClient implements DynamoDbEnhance
     }
 
     @Override
-    public CompletableFuture<TransactWriteItemsEnhancedResponse<Void>> transactWriteItemsWithResponse(
+    public CompletableFuture<TransactWriteItemsEnhancedResponse> transactWriteItemsWithResponse(
         TransactWriteItemsEnhancedRequest request) {
-        TransactWriteItemsOperation<Void> operation =
-            TransactWriteItemsOperation.create(request);
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(request);
         return operation.executeAsync(dynamoDbClient, extension);
     }
 
     @Override
-    public CompletableFuture<TransactWriteItemsEnhancedResponse<Void>> transactWriteItemsWithResponse(
+    public CompletableFuture<TransactWriteItemsEnhancedResponse> transactWriteItemsWithResponse(
         Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
         TransactWriteItemsEnhancedRequest.Builder builder = TransactWriteItemsEnhancedRequest.builder();
         requestConsumer.accept(builder);

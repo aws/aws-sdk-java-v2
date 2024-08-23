@@ -27,8 +27,8 @@ import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsResponse;
 
 @SdkInternalApi
-public class TransactWriteItemsOperation<T>
-    implements DatabaseOperation<TransactWriteItemsRequest, TransactWriteItemsResponse, TransactWriteItemsEnhancedResponse<T>> {
+public class TransactWriteItemsOperation
+    implements DatabaseOperation<TransactWriteItemsRequest, TransactWriteItemsResponse, TransactWriteItemsEnhancedResponse> {
 
     private final TransactWriteItemsEnhancedRequest request;
 
@@ -36,8 +36,8 @@ public class TransactWriteItemsOperation<T>
         this.request = request;
     }
 
-    public static <T> TransactWriteItemsOperation<T> create(TransactWriteItemsEnhancedRequest request) {
-        return new TransactWriteItemsOperation<>(request);
+    public static TransactWriteItemsOperation create(TransactWriteItemsEnhancedRequest request) {
+        return new TransactWriteItemsOperation(request);
     }
 
     @Override
@@ -56,9 +56,9 @@ public class TransactWriteItemsOperation<T>
     }
 
     @Override
-    public TransactWriteItemsEnhancedResponse<T> transformResponse(TransactWriteItemsResponse response,
+    public TransactWriteItemsEnhancedResponse transformResponse(TransactWriteItemsResponse response,
                                                                    DynamoDbEnhancedClientExtension extension) {
-        return TransactWriteItemsEnhancedResponse.<T>builder(null)
+        return TransactWriteItemsEnhancedResponse.builder()
                                                  .consumedCapacity(response.consumedCapacity())
                                                  .itemCollectionMetrics(response.itemCollectionMetrics())
                                                  .build();
