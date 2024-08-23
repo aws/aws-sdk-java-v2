@@ -100,8 +100,9 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
 
     @Override
     public Void transactWriteItems(TransactWriteItemsEnhancedRequest request) {
-        TransactWriteItemsOperation<Void> operation = TransactWriteItemsOperation.create(request);
-        return operation.execute(dynamoDbClient, extension).items();
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(request);
+        operation.execute(dynamoDbClient, extension);
+        return null;
     }
 
     @Override
@@ -112,14 +113,13 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
     }
 
     @Override
-    public TransactWriteItemsEnhancedResponse<Void> transactWriteItemsWithResponse(TransactWriteItemsEnhancedRequest request) {
-        TransactWriteItemsOperation<Void> operation =
-            TransactWriteItemsOperation.create(request);
+    public TransactWriteItemsEnhancedResponse transactWriteItemsWithResponse(TransactWriteItemsEnhancedRequest request) {
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(request);
         return operation.execute(dynamoDbClient, extension);
     }
 
     @Override
-    public TransactWriteItemsEnhancedResponse<Void> transactWriteItemsWithResponse(
+    public TransactWriteItemsEnhancedResponse transactWriteItemsWithResponse(
         Consumer<TransactWriteItemsEnhancedRequest.Builder> requestConsumer) {
         TransactWriteItemsEnhancedRequest.Builder builder = TransactWriteItemsEnhancedRequest.builder();
         requestConsumer.accept(builder);

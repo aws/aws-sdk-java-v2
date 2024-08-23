@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -24,6 +26,8 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
+import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsResponse;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
  * Defines the elements returned by DynamoDB from a {@code TransactWriteItemsOperation} operation, such as
@@ -31,25 +35,22 @@ import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
  */
 @SdkPublicApi
 @ThreadSafe
-public final class TransactWriteItemsEnhancedResponse<T> {
-    private final T items;
+public final class TransactWriteItemsEnhancedResponse {
     private final List<ConsumedCapacity> consumedCapacity;
     private final Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics;
 
-    private TransactWriteItemsEnhancedResponse(Builder<T> builder) {
-        this.items = builder.items;
-        this.consumedCapacity = builder.consumedCapacity;
-        this.itemCollectionMetrics = builder.itemCollectionMetrics;
-    }
-
-    public T items() {
-        return items;
+    private TransactWriteItemsEnhancedResponse(Builder builder) {
+        this.consumedCapacity =
+            builder.consumedCapacity == null ? null : Collections.unmodifiableList(builder.consumedCapacity);
+        this.itemCollectionMetrics =
+            builder.itemCollectionMetrics == null ? null
+                                                  : CollectionUtils.deepUnmodifiableMap(builder.itemCollectionMetrics);
     }
 
     /**
      * The capacity units consumed by the {@code UpdateItem} operation.
      *
-     * @see TransactWriteItemsEnhancedResponse#consumedCapacity() for more information.
+     * @see TransactWriteItemsResponse#consumedCapacity() for more information.
      */
     public List<ConsumedCapacity> consumedCapacity() {
         return consumedCapacity;
@@ -58,7 +59,7 @@ public final class TransactWriteItemsEnhancedResponse<T> {
     /**
      * Information about item collections, if any, that were affected by the {@code UpdateItem} operation.
      *
-     * @see TransactWriteItemsEnhancedResponse#itemCollectionMetrics() for more information.
+     * @see TransactWriteItemsResponse#itemCollectionMetrics() for more information.
      */
     public Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics() {
         return itemCollectionMetrics;
@@ -73,16 +74,14 @@ public final class TransactWriteItemsEnhancedResponse<T> {
             return false;
         }
 
-        TransactWriteItemsEnhancedResponse<?> that = (TransactWriteItemsEnhancedResponse<?>) o;
-        return Objects.equals(items, that.items) &&
-               Objects.equals(consumedCapacity, that.consumedCapacity) &&
+        TransactWriteItemsEnhancedResponse that = (TransactWriteItemsEnhancedResponse) o;
+        return Objects.equals(consumedCapacity, that.consumedCapacity) &&
                Objects.equals(itemCollectionMetrics, that.itemCollectionMetrics);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(items);
-        result = 31 * result + Objects.hashCode(consumedCapacity);
+        int result = Objects.hashCode(consumedCapacity);
         result = 31 * result + Objects.hashCode(itemCollectionMetrics);
         return result;
     }
@@ -90,33 +89,28 @@ public final class TransactWriteItemsEnhancedResponse<T> {
     /**
      * Creates a newly initialized builder for a request object.
      */
-    public static <T> TransactWriteItemsEnhancedResponse.Builder<T> builder(Class<? extends T> clzz) {
-        return new TransactWriteItemsEnhancedResponse.Builder<>();
+    public static TransactWriteItemsEnhancedResponse.Builder builder() {
+        return new TransactWriteItemsEnhancedResponse.Builder();
     }
 
     @NotThreadSafe
-    public static final class Builder<T> {
-        public T items;
+    public static final class Builder {
         private List<ConsumedCapacity> consumedCapacity;
         private Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics;
 
-        public Builder<T> items(T items) {
-            this.items = items;
+        public Builder consumedCapacity(List<ConsumedCapacity> consumedCapacity) {
+            this.consumedCapacity = consumedCapacity == null ? null : new ArrayList<>(consumedCapacity);
             return this;
         }
 
-        public Builder<T> consumedCapacity(List<ConsumedCapacity> consumedCapacity) {
-            this.consumedCapacity = consumedCapacity;
+        public Builder itemCollectionMetrics(Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics) {
+            this.itemCollectionMetrics =
+                itemCollectionMetrics == null ? null : CollectionUtils.deepCopyMap(itemCollectionMetrics);
             return this;
         }
 
-        public Builder<T> itemCollectionMetrics(Map<String, List<ItemCollectionMetrics>> itemCollectionMetrics) {
-            this.itemCollectionMetrics = itemCollectionMetrics;
-            return this;
-        }
-
-        public TransactWriteItemsEnhancedResponse<T> build() {
-            return new TransactWriteItemsEnhancedResponse<T>(this);
+        public TransactWriteItemsEnhancedResponse build() {
+            return new TransactWriteItemsEnhancedResponse(this);
         }
     }
 }

@@ -39,6 +39,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
+import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
 /**
@@ -125,6 +126,16 @@ public final class TransactWriteItemsEnhancedRequest {
      */
     public ReturnItemCollectionMetrics returnItemCollectionMetrics() {
         return ReturnItemCollectionMetrics.fromValue(returnItemCollectionMetrics);
+    }
+
+    /**
+     * Whether to return the item collection metrics.
+     * <p>
+     * Similar to {@link #returnConsumedCapacity()} but return the value as a string. This is useful in situations where the value
+     * is not defined in {@link ReturnConsumedCapacity}.
+     */
+    public String returnItemCollectionMetricsAsString() {
+        return returnItemCollectionMetrics;
     }
 
     /**
@@ -379,7 +390,7 @@ public final class TransactWriteItemsEnhancedRequest {
         /**
          * Whether to return the capacity consumed by this operation.
          *
-         * @see TransactWriteItemsEnhancedRequest.Builder#returnConsumedCapacity(ReturnConsumedCapacity)
+         * @see TransactWriteItemsRequest.Builder#returnConsumedCapacity(ReturnConsumedCapacity)
          */
         public TransactWriteItemsEnhancedRequest.Builder returnConsumedCapacity(ReturnConsumedCapacity returnConsumedCapacity) {
             this.returnConsumedCapacity = returnConsumedCapacity == null ? null : returnConsumedCapacity.toString();
@@ -389,7 +400,7 @@ public final class TransactWriteItemsEnhancedRequest {
         /**
          * Whether to return the capacity consumed by this operation.
          *
-         * @see TransactWriteItemsEnhancedRequest.Builder#returnConsumedCapacity(String)
+         * @see TransactWriteItemsRequest.Builder#returnConsumedCapacity(String)
          */
         public TransactWriteItemsEnhancedRequest.Builder returnConsumedCapacity(String returnConsumedCapacity) {
             this.returnConsumedCapacity = returnConsumedCapacity;
@@ -399,12 +410,23 @@ public final class TransactWriteItemsEnhancedRequest {
         /**
          * Whether to return the item collection metrics.
          *
-         * @see UpdateItemRequest.Builder#returnItemCollectionMetrics(ReturnItemCollectionMetrics)
+         * @see TransactWriteItemsRequest.Builder#returnItemCollectionMetrics(ReturnItemCollectionMetrics)
          */
         public TransactWriteItemsEnhancedRequest.Builder returnItemCollectionMetrics(
             ReturnItemCollectionMetrics returnItemCollectionMetrics) {
             this.returnItemCollectionMetrics = returnItemCollectionMetrics == null ? null :
                                                returnItemCollectionMetrics.toString();
+            return this;
+        }
+
+        /**
+         * Whether to return the item collection metrics.
+         *
+         * @see UpdateItemRequest.Builder#returnItemCollectionMetrics(String)
+         */
+        public TransactWriteItemsEnhancedRequest.Builder returnItemCollectionMetrics(
+            String returnItemCollectionMetrics) {
+            this.returnItemCollectionMetrics = returnItemCollectionMetrics;
             return this;
         }
 

@@ -135,7 +135,7 @@ public class TransactWriteItemsOperationTest {
 
     @Test
     public void getServiceCall_callsServiceAndReturnsResult() {
-        TransactWriteItemsOperation<Void> operation = TransactWriteItemsOperation.create(emptyRequest());
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(emptyRequest());
         TransactWriteItemsRequest request =
             TransactWriteItemsRequest.builder()
                                      .transactItems(singletonList(fakeTransactWriteItem1))
