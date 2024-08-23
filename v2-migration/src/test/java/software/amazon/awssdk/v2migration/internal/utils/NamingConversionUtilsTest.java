@@ -42,6 +42,25 @@ public class NamingConversionUtilsTest {
     }
 
     @Test
+    void v1PojoSpecialCase_shouldConvertToV2() {
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.stepfunctions.model.DeleteActivityRequest"))
+            .isEqualTo("software.amazon.awssdk.services.sfn.model.DeleteActivityRequest");
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.stepfunctions.model.AWSStepFunctionsException"))
+            .isEqualTo("software.amazon.awssdk.services.sfn.model.SfnException");
+    }
+
+    @Test
+    void v1ClientSpecialCase_shouldConvertToV2() {
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.dynamodbv2.AmazonDynamoDB"))
+            .isEqualTo("software.amazon.awssdk.services.dynamodb.DynamoDbClient");
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClient"))
+            .isEqualTo("software.amazon.awssdk.services.swf.SwfClient");
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.cloudsearchv2.AmazonCloudSearch"))
+            .isEqualTo("software.amazon.awssdk.services.cloudsearch.CloudSearchClient");
+    }
+
+
+    @Test
     void v1SyncClients_shouldConvertToV2() {
         assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.iot.AWSIot"))
             .isEqualTo("software.amazon.awssdk.services.iot.IotClient");
@@ -84,6 +103,8 @@ public class NamingConversionUtilsTest {
             .isEqualTo("software.amazon.awssdk.services.iot.model.*");
         assertThat(NamingConversionUtils.getV2ModelPackageWildCardEquivalent("com.amazonaws.services.iot.*"))
             .isEqualTo("software.amazon.awssdk.services.iot.*");
+        assertThat(NamingConversionUtils.getV2ModelPackageWildCardEquivalent("com.amazonaws.services.cloudsearchv2.*"))
+            .isEqualTo("software.amazon.awssdk.services.cloudsearch.*");
     }
 
     @Test
