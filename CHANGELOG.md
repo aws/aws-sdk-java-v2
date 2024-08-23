@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.12__ __2024-08-23__
+## __AWS CodeBuild__
+  - ### Features
+    - Added support for the MAC_ARM environment type for CodeBuild fleets.
+
+## __AWS Organizations__
+  - ### Features
+    - Releasing minor partitional endpoint updates.
+
+## __AWS Supply Chain__
+  - ### Features
+    - Update API documentation to clarify the event SLA as well as the data model expectations
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Releasing the support for Action User Confirmation.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Releasing the support for Action User Confirmation.
+
+## __QBusiness__
+  - ### Features
+    - Amazon QBusiness: Enable support for SAML and OIDC federation through AWS IAM Identity Provider integration.
+
 # __2.27.11__ __2024-08-22__
 ## __AWS SDK for Java v2__
   - ### Features
