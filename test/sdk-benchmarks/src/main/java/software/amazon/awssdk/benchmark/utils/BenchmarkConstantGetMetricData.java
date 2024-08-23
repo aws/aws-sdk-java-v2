@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.benchmark.utils;
 
-public class BenchmarkConstantV2 {
+public final class BenchmarkConstantGetMetricData {
 
-    private BenchmarkConstantV2() {
+    private BenchmarkConstantGetMetricData() {
     }
 
     public static String smallPayload() {

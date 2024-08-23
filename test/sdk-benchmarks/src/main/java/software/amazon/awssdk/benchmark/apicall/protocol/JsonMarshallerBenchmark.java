@@ -23,6 +23,7 @@ import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
@@ -33,7 +34,7 @@ import org.openjdk.jmh.profile.StackProfiler;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import software.amazon.awssdk.benchmark.utils.BenchmarkConstantV2;
+import software.amazon.awssdk.benchmark.utils.BenchmarkConstantGetMetricData;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.services.protocolsmithyrpcv2.model.GetMetricDataResponse;
 
@@ -41,18 +42,19 @@ import software.amazon.awssdk.services.protocolsmithyrpcv2.model.GetMetricDataRe
  * Benchmarking for running with different protocols.
  */
 @State(Scope.Benchmark)
-@Warmup(iterations = 3, time = 15, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
-@Fork(2) // To reduce difference between each run
-@BenchmarkMode(Mode.Throughput)
+@Warmup(iterations = 3, time = 3, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1) // To reduce difference between each run
+@BenchmarkMode(Mode.AverageTime)
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class JsonMarshallerBenchmark {
 
     @State(Scope.Thread)
     public static class MarshallingState {
-        @Param({"small", "medium", "big"})
+        @Param( {"small", "medium", "big"})
         public String size;
 
-        @Param({"smithy-rpc-v2", "aws-json"})
+        @Param( {"smithy-rpc-v2", "aws-json"})
         public String protocol;
 
         GetMetricDataResponse data;
@@ -83,13 +85,13 @@ public class JsonMarshallerBenchmark {
             }
             switch (payloadSize) {
                 case "small":
-                    payload = BenchmarkConstantV2.smallPayload().getBytes(StandardCharsets.UTF_8);
+                    payload = BenchmarkConstantGetMetricData.smallPayload().getBytes(StandardCharsets.UTF_8);
                     break;
                 case "medium":
-                    payload = BenchmarkConstantV2.medPayload().getBytes(StandardCharsets.UTF_8);
+                    payload = BenchmarkConstantGetMetricData.medPayload().getBytes(StandardCharsets.UTF_8);
                     break;
                 case "big":
-                    payload = BenchmarkConstantV2.bigPayload().getBytes(StandardCharsets.UTF_8);
+                    payload = BenchmarkConstantGetMetricData.bigPayload().getBytes(StandardCharsets.UTF_8);
                     break;
                 default:
                     throw new IllegalArgumentException("size: " + size);
