@@ -42,7 +42,10 @@ import software.amazon.awssdk.protocols.json.StructuredJsonFactory;
 import software.amazon.awssdk.protocols.json.internal.marshall.JsonProtocolMarshallerBuilder;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
+import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
 import software.amazon.awssdk.protocols.rpcv2.SmithyRpcV2CborProtocolFactory;
+import software.amazon.awssdk.protocols.rpcv2.internal.SdkRpcV2CborValueNodeFactory;
+import software.amazon.awssdk.protocols.rpcv2.internal.SdkStructuredRpcV2CborFactory;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -70,6 +73,7 @@ public final class JsonCodec {
                     .builder()
                     .parser(JsonNodeParser.builder()
                                           .jsonFactory(behavior.structuredJsonFactory().getJsonFactory())
+                                          .jsonValueNodeFactory(behavior.jsonValueNodeFactory())
                                           .build())
                     .defaultTimestampFormats(behavior.timestampFormats())
                     .build();
@@ -151,6 +155,11 @@ public final class JsonCodec {
             }
 
             @Override
+            public JsonValueNodeFactory jsonValueNodeFactory() {
+                return SdkRpcV2CborValueNodeFactory.INSTANCE;
+            }
+
+            @Override
             public String contentType() {
                 return "application/cbor";
             }
@@ -161,7 +170,7 @@ public final class JsonCodec {
                                                                       .protocol(AwsJsonProtocol.AWS_JSON)
                                                                       .contentType("application/json")
                                                                       .build();
-            
+
             BaseAwsJsonProtocolFactory factory = AwsJsonProtocolFactory.builder()
                                                                        .protocol(AwsJsonProtocol.AWS_JSON)
                                                                        .clientConfiguration(EMPTY_CLIENT_CONFIGURATION)
@@ -193,6 +202,11 @@ public final class JsonCodec {
 
         public StructuredJsonFactory structuredJsonFactory() {
             throw new UnsupportedOperationException();
+        }
+
+        // JsonValueNodeFactory
+        public JsonValueNodeFactory jsonValueNodeFactory() {
+            return JsonValueNodeFactory.DEFAULT;
         }
 
         public Map<MarshallLocation, TimestampFormatTrait.Format> timestampFormats() {

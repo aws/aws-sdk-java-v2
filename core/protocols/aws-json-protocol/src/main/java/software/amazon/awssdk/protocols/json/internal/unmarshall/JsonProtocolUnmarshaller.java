@@ -18,12 +18,14 @@ package software.amazon.awssdk.protocols.json.internal.unmarshall;
 import static software.amazon.awssdk.protocols.core.StringToValueConverter.TO_SDK_BYTES;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -39,6 +41,7 @@ import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.protocols.core.NumberToInstant;
 import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
 import software.amazon.awssdk.protocols.json.internal.MarshallerUtil;
@@ -57,6 +60,8 @@ public final class JsonProtocolUnmarshaller {
 
     public final StringToValueConverter.StringToValue<Instant> instantStringToValue;
 
+    private final NumberToInstant numberToInstant;
+
     private final JsonUnmarshallerRegistry registry;
 
     private final JsonNodeParser parser;
@@ -66,11 +71,16 @@ public final class JsonProtocolUnmarshaller {
         this.instantStringToValue = StringToInstant.create(builder.defaultTimestampFormats.isEmpty() ?
                                                            new EnumMap<>(MarshallLocation.class) :
                                                            new EnumMap<>(builder.defaultTimestampFormats));
-        this.registry = createUnmarshallerRegistry(instantStringToValue);
+        this.numberToInstant = NumberToInstant.create(builder.defaultTimestampFormats.isEmpty() ?
+                                                      new EnumMap<>(MarshallLocation.class) :
+                                                      new EnumMap<>(builder.defaultTimestampFormats));
+        this.registry = createUnmarshallerRegistry(instantStringToValue, numberToInstant);
     }
 
     private static JsonUnmarshallerRegistry createUnmarshallerRegistry(
-        StringToValueConverter.StringToValue<Instant> instantStringToValue) {
+        StringToValueConverter.StringToValue<Instant> instantStringToValue,
+        NumberToInstant numberToInstant
+    ) {
 
         return JsonUnmarshallerRegistry
             .builder()
@@ -86,17 +96,24 @@ public final class JsonProtocolUnmarshaller {
             .headerUnmarshaller(MarshallingType.LIST, HeaderUnmarshaller.LIST)
 
             .payloadUnmarshaller(MarshallingType.STRING, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_STRING))
-            .payloadUnmarshaller(MarshallingType.INTEGER, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_INTEGER))
-            .payloadUnmarshaller(MarshallingType.LONG, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_LONG))
-            .payloadUnmarshaller(MarshallingType.BYTE, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_BYTE))
-            .payloadUnmarshaller(MarshallingType.SHORT, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_SHORT))
-            .payloadUnmarshaller(MarshallingType.FLOAT, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_FLOAT))
-            .payloadUnmarshaller(MarshallingType.DOUBLE, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_DOUBLE))
-            .payloadUnmarshaller(MarshallingType.BIG_DECIMAL, new SimpleTypeJsonUnmarshaller<>(
-                StringToValueConverter.TO_BIG_DECIMAL))
-            .payloadUnmarshaller(MarshallingType.BOOLEAN, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_BOOLEAN))
+            .payloadUnmarshaller(MarshallingType.INTEGER, forEmbeddable(Number.class, Number::intValue,
+                                                                        StringToValueConverter.TO_INTEGER))
+            .payloadUnmarshaller(MarshallingType.LONG, forEmbeddable(Number.class, Number::longValue,
+                                                                     StringToValueConverter.TO_LONG))
+            .payloadUnmarshaller(MarshallingType.BYTE, forEmbeddable(Number.class, Number::byteValue,
+                                                                     StringToValueConverter.TO_BYTE))
+            .payloadUnmarshaller(MarshallingType.SHORT, forEmbeddable(Number.class, Number::shortValue,
+                                                                      StringToValueConverter.TO_SHORT))
+            .payloadUnmarshaller(MarshallingType.FLOAT, forEmbeddable(Number.class, Number::floatValue,
+                                                                      StringToValueConverter.TO_FLOAT))
+            .payloadUnmarshaller(MarshallingType.DOUBLE, forEmbeddable(Number.class, Number::doubleValue,
+                                                                       StringToValueConverter.TO_DOUBLE))
+            .payloadUnmarshaller(MarshallingType.BIG_DECIMAL, forEmbeddable(BigDecimal.class,
+                                                                            StringToValueConverter.TO_BIG_DECIMAL))
+            .payloadUnmarshaller(MarshallingType.BOOLEAN, forEmbeddable(Boolean.class, StringToValueConverter.TO_BOOLEAN))
             .payloadUnmarshaller(MarshallingType.SDK_BYTES, JsonProtocolUnmarshaller::unmarshallSdkBytes)
-            .payloadUnmarshaller(MarshallingType.INSTANT, new SimpleTypeJsonUnmarshaller<>(instantStringToValue))
+            .payloadUnmarshaller(MarshallingType.INSTANT, new SimpleTypeInstantJsonUnmarshaller<>(instantStringToValue,
+                                                                                                  numberToInstant))
             .payloadUnmarshaller(MarshallingType.SDK_POJO, JsonProtocolUnmarshaller::unmarshallStructured)
             .payloadUnmarshaller(MarshallingType.LIST, JsonProtocolUnmarshaller::unmarshallList)
             .payloadUnmarshaller(MarshallingType.MAP, JsonProtocolUnmarshaller::unmarshallMap)
@@ -184,6 +201,104 @@ public final class JsonProtocolUnmarshaller {
                             SdkField<T> field) {
             return jsonContent != null && !jsonContent.isNull() ? stringToValue.convert(jsonContent.text(), field) : null;
         }
+    }
+
+    private static class EmbeddableTypeTransformingJsonUnmarshaller<T, V> implements JsonUnmarshaller<T> {
+
+        private final StringToValueConverter.StringToValue<T> stringToValue;
+        private final Class<V> embeddedType;
+        private final Function<V, T> typeConverter;
+
+        private EmbeddableTypeTransformingJsonUnmarshaller(
+            Class<V> embeddedType,
+            Function<V, T> typeConverter,
+            StringToValueConverter.StringToValue<T> stringToValue
+        ) {
+            this.stringToValue = stringToValue;
+            this.typeConverter = typeConverter;
+            this.embeddedType = embeddedType;
+        }
+
+        @Override
+        public T unmarshall(JsonUnmarshallerContext context,
+                            JsonNode jsonContent,
+                            SdkField<T> field) {
+            if (jsonContent == null || jsonContent.isNull()) {
+                return null;
+            }
+            String text = null;
+            if (jsonContent.isEmbeddedObject()) {
+                Object embedded = jsonContent.asEmbeddedObject();
+                if (embedded == null) {
+                    return null;
+                }
+                if (embeddedType.isAssignableFrom(embedded.getClass())) {
+                    return typeConverter.apply((V) embedded);
+                }
+                // Fallback in case that the embedded object is not what
+                // we were looking for.
+                text = embedded.toString();
+            }
+            if (text == null) {
+                text = jsonContent.text();
+            }
+            return stringToValue.convert(text, field);
+        }
+    }
+
+    private static class SimpleTypeInstantJsonUnmarshaller<T> implements JsonUnmarshaller<T> {
+
+        private final StringToValueConverter.StringToValue<T> stringToValue;
+        private final NumberToInstant numberToInstant;
+
+        private SimpleTypeInstantJsonUnmarshaller(
+            StringToValueConverter.StringToValue<T> stringToValue,
+            NumberToInstant numberToInstant
+        ) {
+            this.stringToValue = stringToValue;
+            this.numberToInstant = numberToInstant;
+        }
+
+        @Override
+        public T unmarshall(JsonUnmarshallerContext context,
+                            JsonNode jsonContent,
+                            SdkField<T> field) {
+            if (jsonContent == null || jsonContent.isNull()) {
+                return null;
+            }
+            String text = null;
+            if (jsonContent.isEmbeddedObject()) {
+                Object embedded = jsonContent.asEmbeddedObject();
+                if (embedded == null) {
+                    return null;
+                }
+                if (Number.class.isAssignableFrom(embedded.getClass())) {
+                    return (T) numberToInstant.convert((Number) embedded, (SdkField<Instant>) field);
+                }
+                // Fallback in case that the embedded object is not what
+                // we were looking for.
+                text = embedded.toString();
+            }
+            if (text == null) {
+                text = jsonContent.text();
+            }
+            return stringToValue.convert(text, field);
+        }
+    }
+
+    private static <T, V> EmbeddableTypeTransformingJsonUnmarshaller<T, V> forEmbeddable(
+        Class<V> embeddedType,
+        Function<V, T> transformer,
+        StringToValueConverter.StringToValue<T> stringToValue
+    ) {
+        return new EmbeddableTypeTransformingJsonUnmarshaller<>(embeddedType, transformer, stringToValue);
+    }
+
+    private static <T> EmbeddableTypeTransformingJsonUnmarshaller<T, T> forEmbeddable(
+        Class<T> embeddedType,
+        StringToValueConverter.StringToValue<T> stringToValue
+    ) {
+        return new EmbeddableTypeTransformingJsonUnmarshaller<>(embeddedType, Function.identity(), stringToValue);
     }
 
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
