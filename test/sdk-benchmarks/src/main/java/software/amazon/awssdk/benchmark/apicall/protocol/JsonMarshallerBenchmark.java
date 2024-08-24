@@ -51,10 +51,10 @@ public class JsonMarshallerBenchmark {
 
     @State(Scope.Thread)
     public static class MarshallingState {
-        @Param( {"small", "medium", "big"})
+        @Param({"small", "medium", "big"})
         public String size;
 
-        @Param( {"smithy-rpc-v2", "aws-json"})
+        @Param({"smithy-rpc-v2", "aws-json"})
         public String protocol;
 
         GetMetricDataResponse data;
