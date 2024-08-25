@@ -29,7 +29,7 @@ import software.amazon.awssdk.protocols.json.internal.MarshallerUtil;
 public final class JsonUnmarshallerContext {
 
     private final SdkHttpFullResponse response;
-    private final JsonUnmarshallerRegistry unmarshallerRegistry;
+    private final JsonUnmarshallerRegistryType unmarshallerRegistry;
 
     private JsonUnmarshallerContext(Builder builder) {
         this.response = builder.response;
@@ -73,7 +73,7 @@ public final class JsonUnmarshallerContext {
     public static final class Builder {
 
         private SdkHttpFullResponse response;
-        private JsonUnmarshallerRegistry unmarshallerRegistry;
+        private JsonUnmarshallerRegistryType unmarshallerRegistry;
 
         private Builder() {
         }
@@ -83,7 +83,7 @@ public final class JsonUnmarshallerContext {
             return this;
         }
 
-        public Builder unmarshallerRegistry(JsonUnmarshallerRegistry unmarshallerRegistry) {
+        public Builder unmarshallerRegistry(JsonUnmarshallerRegistryType unmarshallerRegistry) {
             this.unmarshallerRegistry = unmarshallerRegistry;
             return this;
         }

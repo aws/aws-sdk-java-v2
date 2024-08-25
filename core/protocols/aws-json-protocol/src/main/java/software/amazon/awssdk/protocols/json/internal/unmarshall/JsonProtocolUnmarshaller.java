@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
@@ -49,6 +48,7 @@ import software.amazon.awssdk.protocols.json.internal.MarshallerUtil;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.document.DocumentUnmarshaller;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.builder.Buildable;
 
 /**
@@ -58,12 +58,13 @@ import software.amazon.awssdk.utils.builder.Buildable;
 @SdkInternalApi
 @ThreadSafe
 public final class JsonProtocolUnmarshaller {
+    private static Lazy<JsonUnmarshallerRegistry> SHARED = new Lazy<>(JsonProtocolUnmarshaller::createSharedRegistry);
 
     public final StringToValueConverter.StringToValue<Instant> instantStringToValue;
 
     private final NumberToInstant numberToInstant;
 
-    private final JsonUnmarshallerRegistry registry;
+    private final JsonUnmarshallerExtendedRegistry registry;
 
     private final JsonNodeParser parser;
 
@@ -78,11 +79,19 @@ public final class JsonProtocolUnmarshaller {
         this.registry = createUnmarshallerRegistry(instantStringToValue, numberToInstant);
     }
 
-    private static JsonUnmarshallerRegistry createUnmarshallerRegistry(
+
+    private static JsonUnmarshallerExtendedRegistry createUnmarshallerRegistry(
         StringToValueConverter.StringToValue<Instant> instantStringToValue,
         NumberToInstant numberToInstant
     ) {
 
+        return new JsonUnmarshallerExtendedRegistry(SHARED.getValue(),
+                                                    HeaderUnmarshaller.createInstantHeaderUnmarshaller(instantStringToValue),
+                                                    new SimpleTypeInstantJsonUnmarshaller<>(instantStringToValue,
+                                                                                            numberToInstant));
+    }
+
+    private static JsonUnmarshallerRegistry createSharedRegistry() {
         return JsonUnmarshallerRegistry
             .builder()
             .statusCodeUnmarshaller(MarshallingType.INTEGER, (context, json, f) -> context.response().statusCode())
@@ -92,7 +101,6 @@ public final class JsonProtocolUnmarshaller {
             .headerUnmarshaller(MarshallingType.SHORT, HeaderUnmarshaller.SHORT)
             .headerUnmarshaller(MarshallingType.DOUBLE, HeaderUnmarshaller.DOUBLE)
             .headerUnmarshaller(MarshallingType.BOOLEAN, HeaderUnmarshaller.BOOLEAN)
-            .headerUnmarshaller(MarshallingType.INSTANT, HeaderUnmarshaller.createInstantHeaderUnmarshaller(instantStringToValue))
             .headerUnmarshaller(MarshallingType.FLOAT, HeaderUnmarshaller.FLOAT)
             .headerUnmarshaller(MarshallingType.LIST, HeaderUnmarshaller.LIST)
 
@@ -113,8 +121,6 @@ public final class JsonProtocolUnmarshaller {
                                                                             StringToValueConverter.TO_BIG_DECIMAL))
             .payloadUnmarshaller(MarshallingType.BOOLEAN, forEmbeddable(Boolean.class, StringToValueConverter.TO_BOOLEAN))
             .payloadUnmarshaller(MarshallingType.SDK_BYTES, JsonProtocolUnmarshaller::unmarshallSdkBytes)
-            .payloadUnmarshaller(MarshallingType.INSTANT, new SimpleTypeInstantJsonUnmarshaller<>(instantStringToValue,
-                                                                                                  numberToInstant))
             .payloadUnmarshaller(MarshallingType.SDK_POJO, JsonProtocolUnmarshaller::unmarshallStructured)
             .payloadUnmarshaller(MarshallingType.LIST, JsonProtocolUnmarshaller::unmarshallList)
             .payloadUnmarshaller(MarshallingType.MAP, JsonProtocolUnmarshaller::unmarshallMap)
