@@ -20,6 +20,7 @@ import static software.amazon.awssdk.protocols.core.StringToValueConverter.TO_SD
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -164,11 +165,12 @@ public final class JsonProtocolUnmarshaller {
             return null;
         }
         SdkField<Object> valueInfo = field.getTrait(MapTrait.class).valueFieldInfo();
-        Map<String, Object> map = new HashMap<>();
-        jsonContent.asObject().forEach((fieldName, value) -> {
-            JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(valueInfo.location(), valueInfo.marshallingType());
-            map.put(fieldName, unmarshaller.unmarshall(context, value, valueInfo));
-        });
+        JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(valueInfo.location(), valueInfo.marshallingType());
+        Map<String, JsonNode> asObject = jsonContent.asObject();
+        Map<String, Object> map = new HashMap<>(asObject.size());
+        for (Map.Entry<String, JsonNode> kvp : asObject.entrySet()) {
+            map.put(kvp.getKey(), unmarshaller.unmarshall(context, kvp.getValue(), valueInfo));
+        }
         return map;
     }
 
@@ -176,15 +178,15 @@ public final class JsonProtocolUnmarshaller {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         }
-        return jsonContent.asArray()
-                          .stream()
-                          .map(item -> {
-                              SdkField<Object> memberInfo = field.getTrait(ListTrait.class).memberFieldInfo();
-                              JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(memberInfo.location(),
-                                                                                              memberInfo.marshallingType());
-                              return unmarshaller.unmarshall(context, item, memberInfo);
-                          })
-                          .collect(Collectors.toList());
+        SdkField<Object> memberInfo = field.getTrait(ListTrait.class).memberFieldInfo();
+        List<JsonNode> asArray = jsonContent.asArray();
+        List<Object> result = new ArrayList<>(asArray.size());
+        for (JsonNode node : asArray) {
+            JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(memberInfo.location(),
+                                                                            memberInfo.marshallingType());
+            result.add(unmarshaller.unmarshall(context, node, memberInfo));
+        }
+        return result;
     }
 
     private static class SimpleTypeJsonUnmarshaller<T> implements JsonUnmarshaller<T> {
