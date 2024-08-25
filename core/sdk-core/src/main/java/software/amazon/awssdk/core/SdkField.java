@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core;
 
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.DataTypeConversionFailureHandlingTrait;
 import software.amazon.awssdk.core.traits.DefaultValueTrait;
+import software.amazon.awssdk.core.traits.KnownTraitType;
 import software.amazon.awssdk.core.traits.LocationTrait;
 import software.amazon.awssdk.core.traits.Trait;
 
@@ -45,12 +47,14 @@ public final class SdkField<TypeT> {
     private final Supplier<SdkPojo> constructor;
     private final BiConsumer<Object, TypeT> setter;
     private final Function<Object, TypeT> getter;
-    private final Map<Class<? extends Trait>, Trait> traits;
+    private final Map<KnownTraitType, Trait> l1Traits;
+    private final Map<Class<? extends Trait>, Trait> l2Traits;
 
     private SdkField(Builder<TypeT> builder) {
         this.memberName = builder.memberName;
         this.marshallingType = builder.marshallingType;
-        this.traits = new HashMap<>(builder.traits);
+        this.l1Traits = createL1Traits(builder.traits);
+        this.l2Traits = createL2Traits(builder.traits);
         this.constructor = builder.constructor;
         this.setter = builder.setter;
         this.getter = builder.getter;
@@ -60,6 +64,36 @@ public final class SdkField<TypeT> {
         this.location = locationTrait.location();
         this.locationName = locationTrait.locationName();
         this.unmarshallLocationName = locationTrait.unmarshallLocationName();
+    }
+
+    /**
+     * Creates an L1 traits map. This map is for fast lookup of known traits.
+     */
+    private static Map<KnownTraitType, Trait> createL1Traits(Map<Class<? extends Trait>, Trait> traits) {
+        Map<KnownTraitType, Trait> result = new EnumMap<>(KnownTraitType.class);
+        for (Map.Entry<Class<? extends Trait>, Trait> kvp : traits.entrySet()) {
+            Trait trait = kvp.getValue();
+            KnownTraitType type = trait.type();
+            if (type != null) {
+                result.put(type, trait);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Creates an L2 traits map. This map is for regular lookup of unknown traits.
+     */
+    private static Map<Class<? extends Trait>, Trait> createL2Traits(Map<Class<? extends Trait>, Trait> traits) {
+        Map<Class<? extends Trait>, Trait> result = new HashMap<>();
+        for (Map.Entry<Class<? extends Trait>, Trait> kvp : traits.entrySet()) {
+            Trait trait = kvp.getValue();
+            KnownTraitType type = trait.type();
+            if (type == null) {
+                result.put(kvp.getKey(), trait);
+            }
+        }
+        return result;
     }
 
     public String memberName() {
@@ -118,7 +152,11 @@ public final class SdkField<TypeT> {
      */
     @SuppressWarnings("unchecked")
     public <T extends Trait> T getTrait(Class<T> clzz) {
-        return (T) traits.get(clzz);
+        KnownTraitType type = KnownTraitType.from(clzz);
+        if (type != null) {
+            return (T) l1Traits.get(type);
+        }
+        return (T) l2Traits.get(clzz);
     }
 
     /**
@@ -130,7 +168,7 @@ public final class SdkField<TypeT> {
      */
     @SuppressWarnings("unchecked")
     public <T extends Trait> Optional<T> getOptionalTrait(Class<T> clzz) {
-        return Optional.ofNullable((T) traits.get(clzz));
+        return Optional.ofNullable((T) getTrait(clzz));
     }
 
     /**
@@ -143,7 +181,7 @@ public final class SdkField<TypeT> {
      */
     @SuppressWarnings("unchecked")
     public <T extends Trait> T getRequiredTrait(Class<T> clzz) throws IllegalStateException {
-        T trait = (T) traits.get(clzz);
+        T trait = (T) getTrait(clzz);
         if (trait == null) {
             throw new IllegalStateException(memberName + " member is missing " + clzz.getSimpleName());
         }
@@ -157,7 +195,7 @@ public final class SdkField<TypeT> {
      * @return True if trait is present, false if not.
      */
     public boolean containsTrait(Class<? extends Trait> clzz) {
-        return traits.containsKey(clzz);
+        return getTrait(clzz) != null;
     }
 
     /**
