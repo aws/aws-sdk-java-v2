@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.traits.KnownTraitType;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.utils.DateUtils;
 
@@ -80,7 +81,7 @@ public final class StringToInstant implements StringToValueConverter.StringToVal
     }
 
     private TimestampFormatTrait.Format resolveTimestampFormat(SdkField<Instant> field) {
-        TimestampFormatTrait trait = field.getTrait(TimestampFormatTrait.class);
+        TimestampFormatTrait trait = field.getTrait(TimestampFormatTrait.class, KnownTraitType.TIMESTAMP_FORMAT_TRAIT);
         if (trait == null) {
             TimestampFormatTrait.Format format = defaultFormats.get(field.location());
             if (format == null) {

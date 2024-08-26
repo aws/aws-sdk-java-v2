@@ -126,7 +126,7 @@ public final class SdkField<TypeT> {
      */
     public boolean ignoreDataTypeConversionFailures() {
         DataTypeConversionFailureHandlingTrait dataTypeConversionFailureHandlingTrait =
-            getTrait(DataTypeConversionFailureHandlingTrait.class);
+            getTrait(DataTypeConversionFailureHandlingTrait.class, KnownTraitType.DATA_TYPE_CONVERSION_FAILURE_HANDLING_TRAIT);
 
         return dataTypeConversionFailureHandlingTrait != null;
     }
@@ -157,6 +157,18 @@ public final class SdkField<TypeT> {
             return (T) l1Traits.get(type);
         }
         return (T) l2Traits.get(clzz);
+    }
+
+    /**
+     * Gets the trait of the specified class and known type if available.
+     *
+     * @param clzz Trait class to get.
+     * @param <T> Type of trait.
+     * @return Trait instance or null if trait is not present.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Trait> T getTrait(Class<T> clzz, KnownTraitType type) {
+        return (T) l1Traits.get(type);
     }
 
     /**
@@ -218,7 +230,7 @@ public final class SdkField<TypeT> {
      */
     public TypeT getValueOrDefault(Object pojo) {
         TypeT val = this.get(pojo);
-        DefaultValueTrait trait = getTrait(DefaultValueTrait.class);
+        DefaultValueTrait trait = getTrait(DefaultValueTrait.class, KnownTraitType.DEFAULT_VALUE_TRAIT);
         return (trait == null ? val : (TypeT) trait.resolveValue(val));
     }
 

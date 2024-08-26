@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.traits.KnownTraitType;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.core.traits.RequiredTrait;
@@ -181,7 +182,8 @@ public class XmlPayloadMarshaller {
             }
 
             if (sdkField != null && sdkField.getOptionalTrait(XmlAttributesTrait.class).isPresent()) {
-                XmlAttributesTrait attributeTrait = sdkField.getTrait(XmlAttributesTrait.class);
+                XmlAttributesTrait attributeTrait = sdkField.getTrait(XmlAttributesTrait.class,
+                                                                      KnownTraitType.XML_ATTRIBUTES_TRAIT);
                 Map<String, String> attributes = attributeTrait.attributes()
                                                                .entrySet()
                                                                .stream()

@@ -18,6 +18,7 @@ package software.amazon.awssdk.protocols.query.internal.marshall;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
+import software.amazon.awssdk.core.traits.KnownTraitType;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
 
@@ -52,7 +53,7 @@ public class ListQueryMarshaller implements QueryMarshaller<List<?>> {
             return;
         }
         for (int i = 0; i < val.size(); i++) {
-            ListTrait listTrait = sdkField.getTrait(ListTrait.class);
+            ListTrait listTrait = sdkField.getTrait(ListTrait.class, KnownTraitType.LIST_TRAIT);
             String listPath = pathResolver.resolve(path, i, listTrait);
             QueryMarshaller<Object> marshaller = context.marshallerRegistry().getMarshaller(
                 ((SdkField<?>) listTrait.memberFieldInfo()).marshallingType(), val);

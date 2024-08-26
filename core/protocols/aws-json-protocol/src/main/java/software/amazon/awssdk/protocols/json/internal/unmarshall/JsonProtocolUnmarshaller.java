@@ -35,6 +35,7 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.traits.KnownTraitType;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.core.traits.PayloadTrait;
@@ -170,7 +171,7 @@ public final class JsonProtocolUnmarshaller {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         }
-        SdkField<Object> valueInfo = field.getTrait(MapTrait.class).valueFieldInfo();
+        SdkField<Object> valueInfo = field.getTrait(MapTrait.class, KnownTraitType.MAP_TRAIT).valueFieldInfo();
         JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(valueInfo.location(), valueInfo.marshallingType());
         Map<String, JsonNode> asObject = jsonContent.asObject();
         Map<String, Object> map = new HashMap<>(asObject.size());
@@ -184,7 +185,7 @@ public final class JsonProtocolUnmarshaller {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         }
-        SdkField<Object> memberInfo = field.getTrait(ListTrait.class).memberFieldInfo();
+        SdkField<Object> memberInfo = field.getTrait(ListTrait.class, KnownTraitType.LIST_TRAIT).memberFieldInfo();
         List<JsonNode> asArray = jsonContent.asArray();
         List<Object> result = new ArrayList<>(asArray.size());
         for (JsonNode node : asArray) {

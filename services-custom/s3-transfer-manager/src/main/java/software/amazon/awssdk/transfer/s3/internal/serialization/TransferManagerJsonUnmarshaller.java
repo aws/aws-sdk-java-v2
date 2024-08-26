@@ -26,6 +26,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.traits.KnownTraitType;
 import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -83,7 +84,7 @@ public interface TransferManagerJsonUnmarshaller<T> {
                 return null;
             }
 
-            SdkField<Object> valueInfo = field.getTrait(MapTrait.class).valueFieldInfo();
+            SdkField<Object> valueInfo = field.getTrait(MapTrait.class, KnownTraitType.MAP_TRAIT).valueFieldInfo();
 
             Map<String, Object> map = new HashMap<>();
             jsonContent.asObject().forEach((fieldName, value) -> {
