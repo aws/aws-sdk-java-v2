@@ -83,16 +83,13 @@ public enum MarshallingKnownType {
             return LIST;
         }
         if (clazz == Map.class) {
-            return
-                MAP;
+            return MAP;
         }
         if (clazz == Short.class) {
-            return
-                SHORT;
+            return SHORT;
         }
         if (clazz == Byte.class) {
-            return
-                BYTE;
+            return BYTE;
         }
         if (clazz == Document.class) {
             return DOCUMENT;
