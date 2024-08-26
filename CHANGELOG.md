@@ -1,4 +1,22 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.13__ __2024-08-26__
+## __AWS IoT SiteWise__
+  - ### Features
+    - AWS IoT SiteWise now supports versioning for asset models. It enables users to retrieve active version of their asset model and perform asset model writes with optimistic lock.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - This release adds support for creating and managing directories that use AWS IAM Identity Center as user identity source. Such directories can be used to create non-Active Directory domain joined WorkSpaces Personal.Updated RegisterWorkspaceDirectory and DescribeWorkspaceDirectories APIs.
+
+## __s3__
+  - ### Bugfixes
+    - Added reflect-config.json for S3Client in s3 for native builds
+        - Contributed by: [@klopfdreh](https://github.com/klopfdreh)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@klopfdreh](https://github.com/klopfdreh)
 # __2.27.12__ __2024-08-23__
 ## __AWS CodeBuild__
   - ### Features
