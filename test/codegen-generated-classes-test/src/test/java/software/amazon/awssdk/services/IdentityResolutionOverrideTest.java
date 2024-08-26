@@ -47,7 +47,7 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 class IdentityResolutionOverrideTest {
 
-    private static final AwsCredentials BASE_CREDENTIALS =
+    private static final AwsCredentials CLIENT_CREDENTIALS =
         AwsBasicCredentials.create("akid", "skid");
 
     private static final AwsCredentials OVERRIDE_CREDENTIALS =
@@ -61,7 +61,7 @@ class IdentityResolutionOverrideTest {
     }
 
     @Test
-    void when_credentialsProviderIsOverridden_atRequestCreateTime_itIsUsed() {
+    void when_apiCall_setsCredentialsProviderInRequestOverride_overrideCredentialsAreUsed() {
         RestJsonEndpointProvidersClient syncClient = syncClientBuilder().build();
 
         assertThatThrownBy(() -> syncClient.allTypes(r -> r.overrideConfiguration(
@@ -75,7 +75,7 @@ class IdentityResolutionOverrideTest {
     // Identity is resolved in beforeExecution (and happens before user applied interceptors) and cannot
     // be affected by execution interceptors.
     @Test
-    void when_credentialsProviderIsOverridden_inExecutionInterceptor_modifyRequest_itIsNotUsed() {
+    void when_executionInterceptorModifyRequest_setsCredentialProviderInRequestOverride_clientCredentialsAreUsed() {
         ExecutionInterceptor overridingInterceptor =
             new OverrideInterceptor(b -> b.credentialsProvider(StaticCredentialsProvider.create(OVERRIDE_CREDENTIALS)));
 
@@ -83,24 +83,24 @@ class IdentityResolutionOverrideTest {
 
         assertThatThrownBy(() -> syncClient.allTypes(r -> {})).hasMessageContaining("stop");
 
-        assertSelectedAuthSchemeBeforeTransmissionContains(BASE_CREDENTIALS);
+        assertSelectedAuthSchemeBeforeTransmissionContains(CLIENT_CREDENTIALS);
     }
 
     @Test
-    void when_credentialsAreOverridden_atRequestCreateTime_theyAreNotUsed() {
+    void when_apiCall_setsCredentialsExecutionAttributeInRequestOverride_clientCredentialsAreUsed() {
         RestJsonEndpointProvidersClient syncClient = syncClientBuilder().build();
 
         assertThatThrownBy(() -> syncClient.allTypes(r -> r.overrideConfiguration(
             c -> c.putExecutionAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, OVERRIDE_CREDENTIALS))))
             .hasMessageContaining("stop");
 
-        assertSelectedAuthSchemeBeforeTransmissionContains(BASE_CREDENTIALS);
+        assertSelectedAuthSchemeBeforeTransmissionContains(CLIENT_CREDENTIALS);
     }
 
     // Updating an execution attribute inside the request override, in an interceptor doesn't work
     // Execution attributes are merged before interceptor hooks
     @Test
-    void when_credentialsAreOverridden_inInterceptor_throughOverride_theyAreNotUsed() {
+    void when_executionInterceptorModifyRequest_setsCredentialsExecutionAttributeInRequestOverride_clientCredentialsAreUsed() {
         ExecutionInterceptor overridingInterceptor =
             new OverrideInterceptor(b -> b.putExecutionAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, OVERRIDE_CREDENTIALS));
 
@@ -108,13 +108,13 @@ class IdentityResolutionOverrideTest {
 
         assertThatThrownBy(() -> syncClient.allTypes(r -> {})).hasMessageContaining("stop");
 
-        assertSelectedAuthSchemeBeforeTransmissionContains(BASE_CREDENTIALS);
+        assertSelectedAuthSchemeBeforeTransmissionContains(CLIENT_CREDENTIALS);
     }
 
     // Updating the AWS_CREDENTIALS pre-SRA credentials execution attribute in an interceptor works
     // Resolved credentials are synced both ways with AWS_CREDENTIALS.
     @Test
-    void when_credentialsAreOverridden_inInterceptor_throughExecutionAttributes_theyAreUsed() {
+    void when_executionInterceptorModifyRequest_overridesCredentialsExecutionAttribute_overrideCredentialsAreUsed() {
         ExecutionInterceptor overridingInterceptor = new ExecutionInterceptor() {
             @Override
             public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
@@ -161,7 +161,7 @@ class IdentityResolutionOverrideTest {
         }
         return RestJsonEndpointProvidersClient.builder()
                                               .region(Region.US_WEST_2)
-                                              .credentialsProvider(StaticCredentialsProvider.create(BASE_CREDENTIALS))
+                                              .credentialsProvider(StaticCredentialsProvider.create(CLIENT_CREDENTIALS))
                                               .overrideConfiguration(c -> c.executionInterceptors(interceptors));
     }
 
@@ -180,10 +180,7 @@ class IdentityResolutionOverrideTest {
 
             AwsRequestOverrideConfiguration.Builder overrideConfigBuilder = getOrCreateOverrideConfig(request);
             modifier.accept(overrideConfigBuilder);
-
-            //overrideConfigBuilder.putExecutionAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, overrideCredentials);
-            //     executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, overriddenCredentials);
-            //      overrideConfigBuilder.credentialsProvider(provider);
+            
             return awsRequest.toBuilder().overrideConfiguration(overrideConfigBuilder.build()).build();
         }
 
