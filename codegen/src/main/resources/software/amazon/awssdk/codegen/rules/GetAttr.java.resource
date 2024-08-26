@@ -160,7 +160,9 @@ public class GetAttr extends Fn {
                     if (slice < 0) {
                         throw new InnerParseError("Invalid path component: slice index must be >= 0");
                     }
-                    result.add(Part.Key.of(component.substring(0, slicePartIndex)));
+                    if (slicePartIndex > 0) {
+                    	result.add(Part.Key.of(component.substring(0, slicePartIndex)));
+                    }
                     result.add(new Part.Index(slice));
                 } catch (NumberFormatException ex) {
                     throw new InnerParseError(String.format("%s could not be parsed as a number", slicePart));

@@ -1,0 +1,48 @@
+{
+    "version": "2.27.7",
+    "date": "2024-08-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "Improvements of integration between AWS Batch and EC2."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add new spotbugs rule to detect blocking call in the async codepath"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Amazon QuickSight launches Customer Managed Key (CMK) encryption for Data Source metadata"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Introduce Endpoint and EndpointConfig Arns in sagemaker:ListPipelineExecutionSteps API response"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "Marking use case description field of account details as deprecated."
+        },
+        {
+            "type": "feature",
+            "category": "Inspector2",
+            "contributor": "",
+            "description": "Update the correct format of key and values for resource tags"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

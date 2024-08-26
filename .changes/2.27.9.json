@@ -1,0 +1,24 @@
+{
+    "version": "2.27.9",
+    "date": "2024-08-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Documentation only release to address various tickets"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Amazon Simple Storage Service / Features : Add support for conditional writes for PutObject and CompleteMultipartUpload APIs."
+        },
+        {
+            "type": "feature",
+            "category": "OpenSearch Service Serverless",
+            "contributor": "",
+            "description": "Added FailureCode and FailureMessage to BatchGetCollectionResponse for BatchGetVPCEResponse for non-Active Collection and VPCE."
+        }
+    ]
+}

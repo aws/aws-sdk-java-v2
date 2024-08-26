@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "s3",
+    "description": "Added reflect-config.json for S3Client in s3 for native builds",
+    "contributor": "klopfdreh"
+}
