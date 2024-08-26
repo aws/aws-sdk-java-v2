@@ -25,8 +25,8 @@ import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonContentTypeResolver;
 import software.amazon.awssdk.protocols.json.StructuredJsonFactory;
 import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
-import software.amazon.awssdk.protocols.rpcv2.internal.SdkStructuredRpcV2CborFactory;
 import software.amazon.awssdk.protocols.rpcv2.internal.SdkRpcV2CborValueNodeFactory;
+import software.amazon.awssdk.protocols.rpcv2.internal.SdkStructuredRpcV2CborFactory;
 
 /**
  * Protocol factory for RPCv2 CBOR protocol.

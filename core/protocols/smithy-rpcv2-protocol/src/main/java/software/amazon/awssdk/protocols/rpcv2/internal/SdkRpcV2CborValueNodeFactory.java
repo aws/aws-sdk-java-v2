@@ -77,6 +77,7 @@ public final class SdkRpcV2CborValueNodeFactory implements JsonValueNodeFactory 
                 } catch (Exception e) {
                     // ignored
                 }
+                break;
             case BIG_DECIMAL:
                 try {
                     BigDecimal bigDecimal = parser.getDecimalValue();
@@ -92,6 +93,8 @@ public final class SdkRpcV2CborValueNodeFactory implements JsonValueNodeFactory 
                 } catch (Exception e) {
                     // ignored
                 }
+                break;
+            default:
                 break;
         }
         return new NumberJsonNode(parser.getText());
