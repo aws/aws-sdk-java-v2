@@ -29,7 +29,7 @@ public final class ResponseBatchConfiguration {
     public static final boolean LONG_POLL_DEFAULT = true;
     public static final Duration VISIBILITY_TIMEOUT_SECONDS_DEFAULT = null;
     public static final Duration LONG_POLL_WAIT_TIMEOUT_DEFAULT = Duration.ofSeconds(20);
-    public static final Duration MIN_RECEIVE_WAIT_TIME_MS_DEFAULT = Duration.ofMillis(300);
+    public static final Duration MIN_RECEIVE_WAIT_TIME_MS_DEFAULT = Duration.ofMillis(50);
     public static final List<String> RECEIVE_MESSAGE_ATTRIBUTE_NAMES_DEFAULT = Collections.emptyList();
     public static final List<MessageSystemAttributeName> MESSAGE_SYSTEM_ATTRIBUTE_NAMES_DEFAULT = Collections.emptyList();
     public static final boolean ADAPTIVE_PREFETCHING_DEFAULT = false;
