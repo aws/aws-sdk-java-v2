@@ -107,6 +107,24 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
+    public static IntermediateModel stringArrayServiceModels() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/stringarray/service-2.json").getFile());
+        File endpointRuleSetModel =
+            new File(ClientTestModels.class.getResource("client/c2j/stringarray/endpoint-rule-set.json").getFile());
+        File endpointTestsModel =
+            new File(ClientTestModels.class.getResource("client/c2j/stringarray/endpoint-tests.json").getFile());
+
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(CustomizationConfig.create())
+            .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSetModel))
+            .endpointTestSuiteModel(getEndpointTestSuite(endpointTestsModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
     public static IntermediateModel queryServiceModelsWithOverrideKnowProperties() {
         File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query/service-2.json").getFile());
         File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/query/customization-endpoint-know-prop.config").getFile());

@@ -183,6 +183,10 @@ public class EndpointRulesSpecUtils {
             case VALUE_FALSE:
                 b.add("$L", Validate.isInstanceOf(JrsBoolean.class, treeNode, "Expected boolean").booleanValue());
                 break;
+            case START_ARRAY:
+                handleArrayDefaultValue(b, "stringarray",
+                                        Validate.isInstanceOf(JrsArray.class, treeNode, "Expected string array"));
+                break;
             default:
                 throw new RuntimeException("Don't know how to set default value for parameter of type "
                                            + treeNode.asToken());

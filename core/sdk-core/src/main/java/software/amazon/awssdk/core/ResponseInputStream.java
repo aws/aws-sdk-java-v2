@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.io.SdkFilterInputStream;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -57,10 +58,15 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
         return response;
     }
 
+    /**
+     * Close the underlying connection, dropping all remaining data in the stream, and not leaving the
+     * connection open to be used for future requests.
+     */
     @Override
     public void abort() {
         if (abortable != null) {
             abortable.abort();
         }
+        IoUtils.closeQuietly(in, null);
     }
 }

@@ -113,6 +113,10 @@ public final class ContainerCredentialsProvider
         }
     }
 
+    public static ContainerCredentialsProvider create() {
+        return builder().build();
+    }
+
     /**
      * Create a builder for creating a {@link ContainerCredentialsProvider}.
      */
