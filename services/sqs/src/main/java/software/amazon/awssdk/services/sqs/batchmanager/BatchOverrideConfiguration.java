@@ -37,7 +37,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     private final Integer maxBatchItems;
     private final Integer maxBatchKeys;
     private final Integer maxBufferSize;
-    private final Duration maxBatchOpenDuration;
+    private final Duration batchSendRequestFrequency;
     private final Duration visibilityTimeout;
     private final Duration longPollWaitTimeout;
     private final Duration minReceiveWaitTime;
@@ -51,7 +51,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         this.maxBatchItems = Validate.isPositiveOrNull(builder.maxBatchItems, "maxBatchItems");
         this.maxBatchKeys = Validate.isPositiveOrNull(builder.maxBatchKeys, "maxBatchKeys");
         this.maxBufferSize = Validate.isPositiveOrNull(builder.maxBufferSize, "maxBufferSize");
-        this.maxBatchOpenDuration = Validate.isPositiveOrNull(builder.maxBatchOpenDuration, "maxBatchOpenDuration");
+        this.batchSendRequestFrequency = Validate.isPositiveOrNull(builder.batchSendRequestFrequency, "batchSendRequestFrequency");
         this.visibilityTimeout = Validate.isPositiveOrNull(builder.visibilityTimeout, "visibilityTimeout");
         this.longPollWaitTimeout = Validate.isPositiveOrNull(builder.longPollWaitTimeout, "longPollWaitTimeout");
         this.minReceiveWaitTime = Validate.isPositiveOrNull(builder.minReceiveWaitTime, "minReceiveWaitTime");
@@ -94,8 +94,8 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     /**
      * @return the optional maximum amount of time that an outgoing call waits to be batched with messages of the same type.
      */
-    public Duration maxBatchOpenDuration() {
-        return maxBatchOpenDuration;
+    public Duration batchSendRequestFrequency() {
+        return batchSendRequestFrequency;
     }
 
     /**
@@ -153,7 +153,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         return new Builder().maxBatchItems(maxBatchItems)
                             .maxBatchKeys(maxBatchKeys)
                             .maxBufferSize(maxBufferSize)
-                            .maxBatchOpenDuration(maxBatchOpenDuration)
+                            .batchSendRequestFrequency(batchSendRequestFrequency)
                             .visibilityTimeout(visibilityTimeout)
                             .longPollWaitTimeout(longPollWaitTimeout)
                             .minReceiveWaitTime(minReceiveWaitTime)
@@ -170,7 +170,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
                        .add("maxBatchItems", maxBatchItems)
                        .add("maxBatchKeys", maxBatchKeys)
                        .add("maxBufferSize", maxBufferSize)
-                       .add("maxBatchOpenDuration", maxBatchOpenDuration.toMillis())
+                       .add("batchSendRequestFrequency", batchSendRequestFrequency)
                        .add("visibilityTimeout", visibilityTimeout)
                        .add("longPollWaitTimeout", longPollWaitTimeout)
                        .add("minReceiveWaitTime", minReceiveWaitTime)
@@ -203,8 +203,8 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
             return false;
         }
 
-        if (maxBatchOpenDuration != null ? !maxBatchOpenDuration.equals(that.maxBatchOpenDuration) :
-            that.maxBatchOpenDuration != null) {
+        if (batchSendRequestFrequency != null ? !batchSendRequestFrequency.equals(that.batchSendRequestFrequency) :
+            that.batchSendRequestFrequency != null) {
             return false;
         }
         if (visibilityTimeout != null ? !visibilityTimeout.equals(that.visibilityTimeout) :
@@ -244,7 +244,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         int result = maxBatchItems != null ? maxBatchItems.hashCode() : 0;
         result = 31 * result + (maxBatchKeys != null ? maxBatchKeys.hashCode() : 0);
         result = 31 * result + (maxBufferSize != null ? maxBufferSize.hashCode() : 0);
-        result = 31 * result + (maxBatchOpenDuration != null ? maxBatchOpenDuration.hashCode() : 0);
+        result = 31 * result + (batchSendRequestFrequency != null ? batchSendRequestFrequency.hashCode() : 0);
         result = 31 * result + (visibilityTimeout != null ? visibilityTimeout.hashCode() : 0);
         result = 31 * result + (longPollWaitTimeout != null ? longPollWaitTimeout.hashCode() : 0);
         result = 31 * result + (minReceiveWaitTime != null ? minReceiveWaitTime.hashCode() : 0);
@@ -261,7 +261,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         private Integer maxBatchItems;
         private Integer maxBatchKeys;
         private Integer maxBufferSize;
-        private Duration maxBatchOpenDuration;
+        private Duration batchSendRequestFrequency;
         private Duration visibilityTimeout;
         private Duration longPollWaitTimeout;
         private Duration minReceiveWaitTime;
@@ -315,11 +315,11 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
          * Define the maximum amount of time that an outgoing call waits for other requests before sending out a
          * batch request.
          * TODO : Decide if Ms needs to be added to the name in surface API review meeting
-         * @param maxBatchOpenDuration The new maxBatchOpenDuration value.
+         * @param batchSendRequestFrequency The new batchSendRequestFrequency value.
          * @return This object for method chaining.
          */
-        public Builder maxBatchOpenDuration(Duration maxBatchOpenDuration) {
-            this.maxBatchOpenDuration = maxBatchOpenDuration;
+        public Builder batchSendRequestFrequency(Duration batchSendRequestFrequency) {
+            this.batchSendRequestFrequency = batchSendRequestFrequency;
             return this;
         }
 

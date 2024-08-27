@@ -36,7 +36,7 @@ class RequestBatchBufferTest {
     @BeforeEach
     void setUp() {
         scheduledFlush = mock(ScheduledFuture.class);
-        batchBuffer = new RequestBatchBuffer<>(10, scheduledFlush);
+        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, );
     }
 
     @Test
@@ -117,12 +117,12 @@ class RequestBatchBufferTest {
     @Test
     void whenHasNextBatchEntryThenReturnTrue() {
         batchBuffer.put("request1", new CompletableFuture<>());
-        assertTrue(batchBuffer.flushableRequests(1).containsKey("0"));
+        assertTrue(batchBuffer.flushableRequests("request1").containsKey("0"));
     }
 
     @Test
     void whenNextBatchEntryThenReturnNextEntryId() {
         batchBuffer.put("request1", new CompletableFuture<>());
-        assertEquals("0", batchBuffer.flushableRequests(1).keySet().iterator().next());
+        assertEquals("0", batchBuffer.flushableRequests("request1").keySet().iterator().next());
     }
 }

@@ -66,7 +66,7 @@ class BatchOverrideConfigurationTest {
     @MethodSource("provideConfigurations")
     void testBatchOverrideConfiguration(Integer maxBatchItems,
                                         Integer maxBatchKeys,
-                                        Duration maxBatchOpenDuration,
+                                        Duration batchSendRequestFrequency,
                                         Duration visibilityTimeout,
                                         Duration longPollWaitTimeout,
                                         Duration minReceiveWaitTime,
@@ -79,7 +79,7 @@ class BatchOverrideConfigurationTest {
         BatchOverrideConfiguration config = BatchOverrideConfiguration.builder()
                                                                       .maxBatchItems(maxBatchItems)
                                                                       .maxBatchKeys(maxBatchKeys)
-                                                                      .maxBatchOpenDuration(maxBatchOpenDuration)
+                                                                      .batchSendRequestFrequency(batchSendRequestFrequency)
                                                                       .visibilityTimeout(visibilityTimeout)
                                                                       .longPollWaitTimeout(longPollWaitTimeout)
                                                                       .minReceiveWaitTime(minReceiveWaitTime)
@@ -92,7 +92,7 @@ class BatchOverrideConfigurationTest {
 
         assertEquals(maxBatchItems, config.maxBatchItems());
         assertEquals(maxBatchKeys, config.maxBatchKeys());
-        assertEquals(maxBatchOpenDuration, config.maxBatchOpenDuration());
+        assertEquals(batchSendRequestFrequency, config.batchSendRequestFrequency());
         assertEquals(visibilityTimeout, config.visibilityTimeout());
         assertEquals(longPollWaitTimeout, config.longPollWaitTimeout());
         assertEquals(minReceiveWaitTime, config.minReceiveWaitTime());
@@ -117,7 +117,7 @@ class BatchOverrideConfigurationTest {
         BatchOverrideConfiguration originalConfig = BatchOverrideConfiguration.builder()
                                                                               .maxBatchItems(10)
                                                                               .maxBatchKeys(5)
-                                                                              .maxBatchOpenDuration(Duration.ofMillis(200))
+                                                                              .batchSendRequestFrequency(Duration.ofMillis(200))
                                                                               .visibilityTimeout(Duration.ofSeconds(30))
                                                                               .longPollWaitTimeout(Duration.ofSeconds(20))
                                                                               .minReceiveWaitTime(Duration.ofMillis(50))
