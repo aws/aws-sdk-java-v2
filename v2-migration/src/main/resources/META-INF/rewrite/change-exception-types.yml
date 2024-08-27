@@ -16,6 +16,7 @@
 type: specs.openrewrite.org/v1beta/recipe
 name: software.amazon.awssdk.v2migration.ChangeExceptionTypes
 displayName: Change SDK Exception types from v1 to v2
+description: Change SDK Exception types from v1 to v2.
 recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.amazonaws.SdkBaseException

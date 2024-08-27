@@ -43,6 +43,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+import software.amazon.awssdk.awscore.AwsResponse;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -60,6 +62,7 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.DefaultS3EndpointProvider;
@@ -68,7 +71,9 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.S3Response;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Publisher;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.StringUtils;
@@ -257,7 +262,7 @@ class S3CrossRegionAsyncClientTest {
             clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION)
                            .crossRegionAccessEnabled(true).build();
 
-        String errorMessage = String.format("software.amazon.awssdk.services.s3.model.S3Exception: null "
+        String errorMessage = String.format("software.amazon.awssdk.services.s3.model.S3Exception: "
                                             + "(Service: S3, Status Code: %d, Request ID: null)"
                 , statusCode);
         assertThatExceptionOfType(CompletionException.class)
@@ -285,7 +290,7 @@ class S3CrossRegionAsyncClientTest {
 
         assertThatExceptionOfType(CompletionException.class)
             .isThrownBy(() -> crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join())
-            .withMessageContaining("software.amazon.awssdk.services.s3.model.S3Exception: null (Service: S3, Status Code: 301, "
+            .withMessageContaining("software.amazon.awssdk.services.s3.model.S3Exception: (Service: S3, Status Code: 301, "
                                    + "Request ID: null)")
             .withCauseInstanceOf(S3Exception.class).withRootCauseExactlyInstanceOf(S3Exception.class);
 
@@ -470,6 +475,7 @@ class S3CrossRegionAsyncClientTest {
             assertThat(resolvedParams.region()).isEqualTo(Region.US_EAST_1);
             assertThat(resolvedParams.useGlobalEndpoint()).isFalse();
         });
+
     }
 
     private S3AsyncClientBuilder clientBuilder() {
