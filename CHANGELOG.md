@@ -1,4 +1,118 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.13__ __2024-08-26__
+## __AWS IoT SiteWise__
+  - ### Features
+    - AWS IoT SiteWise now supports versioning for asset models. It enables users to retrieve active version of their asset model and perform asset model writes with optimistic lock.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - This release adds support for creating and managing directories that use AWS IAM Identity Center as user identity source. Such directories can be used to create non-Active Directory domain joined WorkSpaces Personal.Updated RegisterWorkspaceDirectory and DescribeWorkspaceDirectories APIs.
+
+## __s3__
+  - ### Bugfixes
+    - Added reflect-config.json for S3Client in s3 for native builds
+        - Contributed by: [@klopfdreh](https://github.com/klopfdreh)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@klopfdreh](https://github.com/klopfdreh)
+# __2.27.12__ __2024-08-23__
+## __AWS CodeBuild__
+  - ### Features
+    - Added support for the MAC_ARM environment type for CodeBuild fleets.
+
+## __AWS Organizations__
+  - ### Features
+    - Releasing minor partitional endpoint updates.
+
+## __AWS Supply Chain__
+  - ### Features
+    - Update API documentation to clarify the event SLA as well as the data model expectations
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Releasing the support for Action User Confirmation.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Releasing the support for Action User Confirmation.
+
+## __QBusiness__
+  - ### Features
+    - Amazon QBusiness: Enable support for SAML and OIDC federation through AWS IAM Identity Provider integration.
+
+# __2.27.11__ __2024-08-22__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Evaluation BatchDeleteEvaluationJob API allows customers to delete evaluation jobs under terminated evaluation job statuses - Stopped, Failed, or Completed. Customers can submit a batch of 25 evaluation jobs to be deleted at once.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - Correct endpoint for FIPS is configured for US Gov Regions.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Explicit query for authors and dashboard viewing sharing for embedded users
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Asia Pacific (Malaysia) Region (ap-southeast-5) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
+## __Auto Scaling__
+  - ### Features
+    - Amazon EC2 Auto Scaling now provides EBS health check to manage EC2 instance replacement
+
+## __Inspector2__
+  - ### Features
+    - Add enums for Agentless scan statuses and EC2 enablement error states
+
+# __2.27.10__ __2024-08-21__
+## __AWS EntityResolution__
+  - ### Features
+    - Increase the mapping attributes in Schema to 35.
+
+## __AWS Glue__
+  - ### Features
+    - Add optional field JobRunQueuingEnabled to CreateJob and UpdateJob APIs.
+
+## __AWS Lambda__
+  - ### Features
+    - Release FilterCriteria encryption for Lambda EventSourceMapping, enabling customers to encrypt their filter criteria using a customer-owned KMS key.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Security Hub documentation and definition updates
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - DescribeInstanceStatus now returns health information on EBS volumes attached to Nitro instances
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Enable email receiving customers to provide SES with access to their S3 buckets via an IAM role for "Deliver to S3 Action"
+
+# __2.27.9__ __2024-08-20__
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only release to address various tickets
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon Simple Storage Service / Features : Add support for conditional writes for PutObject and CompleteMultipartUpload APIs.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Added FailureCode and FailureMessage to BatchGetCollectionResponse for BatchGetVPCEResponse for non-Active Collection and VPCE.
+
 # __2.27.8__ __2024-08-19__
 ## __AWS CodeBuild__
   - ### Features
