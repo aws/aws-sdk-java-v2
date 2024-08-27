@@ -34,7 +34,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
     private final int maxBatchItems;
-    private final Duration maxBatchOpenInMs;
+    private final Duration maxBatchOpenDuration;
     private final BatchingMap<RequestT, ResponseT> requestsAndResponsesMaps;
     private final ScheduledExecutorService scheduledExecutor;
 
@@ -46,7 +46,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
         this.requestsAndResponsesMaps = new BatchingMap<>(batchConfiguration.maxBatchKeys(),
                                                           batchConfiguration.maxBufferSize());
         this.maxBatchItems = batchConfiguration.maxBatchItems();
-        this.maxBatchOpenInMs = batchConfiguration.maxBatchOpenInMs();
+        this.maxBatchOpenDuration = batchConfiguration.maxBatchOpenDuration();
         this.scheduledExecutor = Validate.notNull(scheduledExecutor, "Null scheduledExecutor");
         pendingBatchResponses = Collections.newSetFromMap(new ConcurrentHashMap<>());
         pendingResponses = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -58,7 +58,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
         try {
             String batchKey = getBatchKey(request);
             requestsAndResponsesMaps.put(batchKey,
-                                         () -> scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(), scheduledExecutor),
+                                         () -> scheduleBufferFlush(batchKey, maxBatchOpenDuration.toMillis(), scheduledExecutor),
                                          request,
                                          response);
             flushBufferIfNeeded(batchKey);
@@ -89,7 +89,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
                                    Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests) {
         requestsAndResponsesMaps.cancelScheduledFlush(batchKey);
         flushBuffer(batchKey, flushableRequests);
-        requestsAndResponsesMaps.putScheduledFlush(batchKey, scheduleBufferFlush(batchKey, maxBatchOpenInMs.toMillis(),
+        requestsAndResponsesMaps.putScheduledFlush(batchKey, scheduleBufferFlush(batchKey, maxBatchOpenDuration.toMillis(),
                                                                                  scheduledExecutor));
     }
 

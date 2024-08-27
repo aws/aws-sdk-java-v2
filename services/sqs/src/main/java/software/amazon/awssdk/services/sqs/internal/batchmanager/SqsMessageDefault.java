@@ -13,19 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs.BatchManager;
+package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
-import java.util.List;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+
+@SdkInternalApi
+public final class SqsMessageDefault {
+
+    public static final int MAX_SUPPORTED_SQS_RECEIVE_MSG = 10;
 
 
-public class BatchResponse {
-    private final List<BatchResponseEntry> responses;
-
-    public BatchResponse(List<BatchResponseEntry> responses) {
-        this.responses = responses;
-    }
-
-    public List<BatchResponseEntry> getResponses() {
-        return responses;
+    private SqsMessageDefault() {
     }
 }

@@ -13,13 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs.BatchManager;
+package software.amazon.awssdk.services.sqs.batchmanager;
 
-public class BatchResponseEntry {
+
+public class Response<T> {
     private final String id;
-    private final String message;
+    private final T message;
 
-    public BatchResponseEntry(String id, String message) {
+    public Response(String id, T message) {
         this.id = id;
         this.message = message;
     }
@@ -28,7 +29,7 @@ public class BatchResponseEntry {
         return id;
     }
 
-    public String getMessage() {
+    public T getMessage() {
         return message;
     }
 }
