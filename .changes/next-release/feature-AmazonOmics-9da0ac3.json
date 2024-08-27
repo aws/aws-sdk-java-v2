@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Omics",
+    "contributor": "",
+    "description": "Adds data provenance to import jobs from read sets and references"
+}
