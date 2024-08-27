@@ -27,6 +27,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.traits.KnownTraitType;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
@@ -57,7 +58,7 @@ public final class XmlPayloadUnmarshaller {
     }
 
     public static List<?> unmarshallList(XmlUnmarshallerContext context, List<XmlElement> content, SdkField<List<?>> field) {
-        ListTrait listTrait = field.getTrait(ListTrait.class);
+        ListTrait listTrait = field.getTrait(ListTrait.class, KnownTraitType.LIST_TRAIT);
         List<Object> list = new ArrayList<>();
 
         getMembers(content, listTrait).forEach(member -> {
@@ -80,7 +81,7 @@ public final class XmlPayloadUnmarshaller {
     public static Map<String, ?> unmarshallMap(XmlUnmarshallerContext context, List<XmlElement> content,
                                                SdkField<Map<String, ?>> field) {
         Map<String, Object> map = new HashMap<>();
-        MapTrait mapTrait = field.getTrait(MapTrait.class);
+        MapTrait mapTrait = field.getTrait(MapTrait.class, KnownTraitType.MAP_TRAIT);
         SdkField mapValueSdkField = mapTrait.valueFieldInfo();
 
         getEntries(content, mapTrait).forEach(entry -> {

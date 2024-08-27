@@ -30,4 +30,9 @@ public final class JsonValueTrait implements Trait {
     public static JsonValueTrait create() {
         return new JsonValueTrait();
     }
+
+    @Override
+    public KnownTraitType type() {
+        return KnownTraitType.JSON_VALUE_TRAIT;
+    }
 }

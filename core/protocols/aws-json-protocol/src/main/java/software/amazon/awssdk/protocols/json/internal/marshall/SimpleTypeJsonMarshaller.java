@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.traits.KnownTraitType;
 import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
@@ -122,7 +123,8 @@ public final class SimpleTypeJsonMarshaller {
         if (paramName != null) {
             jsonGenerator.writeFieldName(paramName);
         }
-        TimestampFormatTrait trait = sdkField != null ? sdkField.getTrait(TimestampFormatTrait.class) : null;
+        TimestampFormatTrait trait = sdkField != null ?
+                                     sdkField.getTrait(TimestampFormatTrait.class, KnownTraitType.TIMESTAMP_FORMAT_TRAIT) : null;
         if (trait != null) {
             switch (trait.format()) {
                 case UNIX_TIMESTAMP:

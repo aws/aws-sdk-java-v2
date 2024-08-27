@@ -62,4 +62,9 @@ public final class DefaultValueTrait implements Trait {
     public static DefaultValueTrait idempotencyToken() {
         return new DefaultValueTrait(IdempotentUtils.getGenerator());
     }
+
+    @Override
+    public KnownTraitType type() {
+        return KnownTraitType.DEFAULT_VALUE_TRAIT;
+    }
 }

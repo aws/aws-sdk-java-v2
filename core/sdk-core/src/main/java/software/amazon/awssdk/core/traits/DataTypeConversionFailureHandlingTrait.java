@@ -19,4 +19,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
 public class DataTypeConversionFailureHandlingTrait implements Trait {
+    @Override
+    public KnownTraitType type() {
+        return KnownTraitType.DATA_TYPE_CONVERSION_FAILURE_HANDLING_TRAIT;
+    }
 }

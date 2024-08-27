@@ -63,6 +63,11 @@ public final class ListTrait implements Trait {
         return new Builder();
     }
 
+    @Override
+    public KnownTraitType type() {
+        return KnownTraitType.LIST_TRAIT;
+    }
+
     public static final class Builder {
 
         private String memberLocationName;

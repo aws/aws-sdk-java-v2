@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.traits.KnownTraitType;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter.ValueToString;
 import software.amazon.awssdk.utils.DateUtils;
@@ -43,10 +44,13 @@ public final class InstantToString implements ValueToString<Instant> {
         if (val == null) {
             return null;
         }
-        TimestampFormatTrait.Format format =
-            sdkField.getOptionalTrait(TimestampFormatTrait.class)
-                    .map(TimestampFormatTrait::format)
-                    .orElseGet(() -> getDefaultTimestampFormat(sdkField.location(), defaultFormats));
+        TimestampFormatTrait trait = sdkField.getTrait(TimestampFormatTrait.class, KnownTraitType.TIMESTAMP_FORMAT_TRAIT);
+        TimestampFormatTrait.Format format;
+        if (trait != null) {
+            format = trait.format();
+        } else {
+            format = getDefaultTimestampFormat(sdkField.location(), defaultFormats);
+        }
         switch (format) {
             case ISO_8601:
                 return DateUtils.formatIso8601Date(val);

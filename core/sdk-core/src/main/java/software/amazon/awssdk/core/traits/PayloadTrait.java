@@ -29,4 +29,9 @@ public final class PayloadTrait implements Trait {
     public static PayloadTrait create() {
         return new PayloadTrait();
     }
+
+    @Override
+    public KnownTraitType type() {
+        return KnownTraitType.PAYLOAD_TRAIT;
+    }
 }

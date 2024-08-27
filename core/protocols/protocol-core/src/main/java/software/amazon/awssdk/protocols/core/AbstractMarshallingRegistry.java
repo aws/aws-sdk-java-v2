@@ -24,6 +24,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.MarshallingKnownType;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 
 /**
@@ -32,27 +33,99 @@ import software.amazon.awssdk.core.protocol.MarshallingType;
 @SdkProtectedApi
 public abstract class AbstractMarshallingRegistry {
 
-    private final Map<MarshallLocation, Map<MarshallingType, Object>> registry;
+    private final Map<MarshallLocation, Map<MarshallingKnownType, Object>> l1Registry;
+    private final Map<MarshallLocation, Map<MarshallingType, Object>> l2Registry;
     private final Set<MarshallingType<?>> marshallingTypes;
     private final Map<Class<?>, MarshallingType<?>> marshallingTypeCache;
 
     protected AbstractMarshallingRegistry(Builder builder) {
-        this.registry = builder.registry;
+        this.l1Registry = createL1Registry(builder.registry);
+        this.l2Registry = createL2Registry(builder.registry);
         this.marshallingTypes = builder.marshallingTypes;
         this.marshallingTypeCache = new HashMap<>(marshallingTypes.size());
 
     }
 
     /**
+     * Creates an L2 registry for looking up unknown marshalling types.
+     */
+    @SuppressWarnings("unchecked")
+    private static Map<MarshallLocation, Map<MarshallingKnownType, Object>> createL1Registry(
+        Map<MarshallLocation, Map<MarshallingType, Object>> registry
+    ) {
+        Map<MarshallLocation, Map<MarshallingKnownType, Object>> result = new EnumMap<>(MarshallLocation.class);
+        for (Map.Entry<MarshallLocation, Map<MarshallingType, Object>> kvp : registry.entrySet()) {
+            Map<MarshallingKnownType, Object> innerResult = new EnumMap<>(MarshallingKnownType.class);
+            for (Map.Entry<MarshallingType, Object> innerKvp : kvp.getValue().entrySet()) {
+                MarshallingType marshallingType = innerKvp.getKey();
+                MarshallingKnownType knownType = marshallingType.getKnownType();
+                if (knownType != null) {
+                    innerResult.put(knownType, innerKvp.getValue());
+                }
+            }
+            result.put(kvp.getKey(), innerResult);
+        }
+        return result;
+    }
+
+    /**
+     * Creates an L2 registry for looking up unknown marshalling types.
+     */
+    @SuppressWarnings("unchecked")
+    private static Map<MarshallLocation, Map<MarshallingType, Object>> createL2Registry(
+        Map<MarshallLocation, Map<MarshallingType, Object>> registry
+    ) {
+        Map<MarshallLocation, Map<MarshallingType, Object>> result = new EnumMap<>(MarshallLocation.class);
+        for (Map.Entry<MarshallLocation, Map<MarshallingType, Object>> kvp : registry.entrySet()) {
+            Map<MarshallingType, Object> innerResult = new HashMap<>();
+            for (Map.Entry<MarshallingType, Object> innerKvp : kvp.getValue().entrySet()) {
+                MarshallingType marshallingType = innerKvp.getKey();
+                MarshallingKnownType knownType = marshallingType.getKnownType();
+                if (knownType == null) {
+                    innerResult.put(marshallingType, innerKvp.getValue());
+                }
+            }
+            result.put(kvp.getKey(), innerResult);
+        }
+        return result;
+    }
+
+    /**
      * Get a registered marshaller/unmarshaller by location and type.
      *
      * @param marshallLocation Location of registered (un)marshaller.
-     * @param marshallingType Type of registered (un)marshaller.
+     * @param marshallingType  Type of registered (un)marshaller.
      * @return Registered marshaller/unmarshaller.
      * @throws SdkClientException if no marshaller/unmarshaller is registered for the given location and type.
      */
     protected Object get(MarshallLocation marshallLocation, MarshallingType<?> marshallingType) {
-        Map<MarshallingType, Object> byLocation = registry.get(marshallLocation);
+        Object result = getL1(marshallLocation, marshallingType);
+        if (result != null) {
+            return result;
+        }
+        return getL2(marshallLocation, marshallingType);
+    }
+
+    private Object getL1(MarshallLocation marshallLocation, MarshallingType<?> marshallingType) {
+        MarshallingKnownType knownType = marshallingType.getKnownType();
+        if (knownType == null) {
+            return null;
+        }
+        Map<MarshallingKnownType, Object> byLocation = l1Registry.get(marshallLocation);
+        if (byLocation == null) {
+            throw SdkClientException.create("No marshaller/unmarshaller registered for location " + marshallLocation.name());
+        }
+        Object registered = byLocation.get(knownType);
+        if (registered == null) {
+            throw SdkClientException.create(String.format("No marshaller/unmarshaller of type %s registered for location %s.",
+                                                          marshallingType,
+                                                          marshallLocation.name()));
+        }
+        return registered;
+    }
+
+    protected Object getL2(MarshallLocation marshallLocation, MarshallingType<?> marshallingType) {
+        Map<MarshallingType, Object> byLocation = l2Registry.get(marshallLocation);
         if (byLocation == null) {
             throw SdkClientException.create("No marshaller/unmarshaller registered for location " + marshallLocation.name());
         }
