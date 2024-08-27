@@ -24,14 +24,14 @@ import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfigurati
 public final class RequestBatchConfiguration {
 
     public static final int DEFAULT_MAX_BATCH_ITEMS = 10;
-    public static final int DEFAULT_MAX_BATCH_KEYS = 100;
+    public static final int DEFAULT_MAX_BATCH_KEYS = 1000;
     public static final int DEFAULT_MAX_BUFFER_SIZE = 500;
     public static final Duration DEFAULT_MAX_BATCH_OPEN_IN_MS = Duration.ofMillis(200);
 
     private final Integer maxBatchItems;
     private final Integer maxBatchKeys;
     private final Integer maxBufferSize;
-    private final Duration maxBatchOpenDuration;
+    private final Duration batchSendRequestFrequency;
 
     public RequestBatchConfiguration(BatchOverrideConfiguration overrideConfiguration) {
         this.maxBatchItems = Optional.ofNullable(overrideConfiguration)
@@ -46,13 +46,13 @@ public final class RequestBatchConfiguration {
                                      .map(BatchOverrideConfiguration::maxBufferSize)
                                      .orElse(DEFAULT_MAX_BUFFER_SIZE);
 
-        this.maxBatchOpenDuration = Optional.ofNullable(overrideConfiguration)
-                                            .map(BatchOverrideConfiguration::maxBatchOpenDuration)
+        this.batchSendRequestFrequency = Optional.ofNullable(overrideConfiguration)
+                                            .map(BatchOverrideConfiguration::batchSendRequestFrequency)
                                             .orElse(DEFAULT_MAX_BATCH_OPEN_IN_MS);
     }
 
-    public Duration maxBatchOpenDuration() {
-        return maxBatchOpenDuration;
+    public Duration batchSendRequestFrequency() {
+        return batchSendRequestFrequency;
     }
 
     public int maxBatchItems() {

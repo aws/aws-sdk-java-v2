@@ -24,9 +24,12 @@ public final class BatchingExecutionContext<RequestT, ResponseT> {
     private final RequestT request;
     private final CompletableFuture<ResponseT> response;
 
+    private final long responsePayload;
+
     public BatchingExecutionContext(RequestT request, CompletableFuture<ResponseT> response) {
         this.request = request;
         this.response = response;
+        responsePayload = ResponsePayloadCalculator.calculateMessageSize(request);
     }
 
     public RequestT request() {
@@ -35,5 +38,10 @@ public final class BatchingExecutionContext<RequestT, ResponseT> {
 
     public CompletableFuture<ResponseT> response() {
         return response;
+    }
+
+
+    public long responsePayload() {
+        return responsePayload;
     }
 }

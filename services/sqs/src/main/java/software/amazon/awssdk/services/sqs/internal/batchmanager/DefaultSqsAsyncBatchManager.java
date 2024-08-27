@@ -49,13 +49,13 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
 
         ScheduledExecutorService scheduledExecutor = builder.scheduledExecutor;
 
-        this.sendMessageBatchManager = new SendMessageBatchManager(builder.overrideConfiguration,
+        this.sendMessageBatchManager = new SendMessageBatchManager(new RequestBatchConfiguration(builder.overrideConfiguration),
                                                                    scheduledExecutor,
                                                                    client);
-        this.deleteMessageBatchManager = new DeleteMessageBatchManager(builder.overrideConfiguration,
+        this.deleteMessageBatchManager = new DeleteMessageBatchManager(new RequestBatchConfiguration(builder.overrideConfiguration),
                                                                        scheduledExecutor,
                                                                        client);
-        this.changeMessageVisibilityBatchManager = new ChangeMessageVisibilityBatchManager(builder.overrideConfiguration,
+        this.changeMessageVisibilityBatchManager = new ChangeMessageVisibilityBatchManager(new RequestBatchConfiguration(builder.overrideConfiguration),
                                                                                            scheduledExecutor,
                                                                                            client);
 

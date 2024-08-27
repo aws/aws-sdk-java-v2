@@ -20,6 +20,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
@@ -32,13 +34,15 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 public final class BatchingMap<RequestT, ResponseT> {
 
     private final int maxBatchKeys;
-    private final int maxBufferSize;
     private final Map<String, RequestBatchBuffer<RequestT, ResponseT>> batchContextMap;
+    private final BiPredicate<Map<String, BatchingExecutionContext<RequestT, ResponseT>>, RequestT> flushCondition ;
 
-    public BatchingMap(int maxBatchKeys, int maxBufferSize) {
+
+    public BatchingMap(int maxBatchKeys,
+                       BiPredicate<Map<String, BatchingExecutionContext<RequestT, ResponseT>>, RequestT> flushCondition) {
         this.batchContextMap = new ConcurrentHashMap<>();
         this.maxBatchKeys = maxBatchKeys;
-        this.maxBufferSize = maxBufferSize;
+        this.flushCondition = flushCondition;
     }
 
     public void put(String batchKey, Supplier<ScheduledFuture<?>> scheduleFlush, RequestT request,
@@ -47,7 +51,7 @@ public final class BatchingMap<RequestT, ResponseT> {
             if (batchContextMap.size() == maxBatchKeys) {
                 throw new IllegalStateException("Reached MaxBatchKeys of: " + maxBatchKeys);
             }
-            return new RequestBatchBuffer<>(maxBufferSize, scheduleFlush.get());
+            return new RequestBatchBuffer<>(scheduleFlush.get(), flushCondition);
         }).put(request, response);
     }
 
@@ -59,10 +63,14 @@ public final class BatchingMap<RequestT, ResponseT> {
         batchContextMap.forEach(action);
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests(String batchKey,
-                                                                                        int maxBatchItems) {
-        return batchContextMap.get(batchKey).flushableRequests(maxBatchItems);
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests(String batchKey, RequestT request) {
+        return batchContextMap.get(batchKey).flushableRequests(request);
     }
+
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests(String batchKey) {
+        return batchContextMap.get(batchKey).flushableRequests(null);
+    }
+
 
     public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableScheduledRequests(String batchKey,
                                                                                                  int maxBatchItems) {

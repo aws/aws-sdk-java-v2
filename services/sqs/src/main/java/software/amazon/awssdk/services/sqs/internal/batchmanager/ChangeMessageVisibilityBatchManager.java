@@ -17,9 +17,11 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -43,11 +45,24 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
 
     private final SqsAsyncClient sqsAsyncClient;
 
-    protected ChangeMessageVisibilityBatchManager(BatchOverrideConfiguration overrideConfiguration,
+
+    protected ChangeMessageVisibilityBatchManager(RequestBatchConfiguration overrideConfiguration,
                                                   ScheduledExecutorService scheduledExecutor,
                                                   SqsAsyncClient sqsAsyncClient) {
-        super(overrideConfiguration, scheduledExecutor);
+        super(overrideConfiguration,
+              scheduledExecutor, (stringBatchingExecutionContextMap, changeMessageVisibilityRequest)
+                  -> shouldFlush(stringBatchingExecutionContextMap, changeMessageVisibilityRequest, overrideConfiguration)
+        );
         this.sqsAsyncClient = sqsAsyncClient;
+    }
+
+    private static boolean shouldFlush(Map<String, BatchingExecutionContext<ChangeMessageVisibilityRequest,
+        ChangeMessageVisibilityResponse>> contextMap,
+                                       ChangeMessageVisibilityRequest request, RequestBatchConfiguration configuration) {
+        if (request != null) {
+            return false;
+        }
+        return contextMap.size() >= configuration.maxBatchItems();
     }
 
     private static ChangeMessageVisibilityBatchRequest createChangeMessageVisibilityBatchRequest(

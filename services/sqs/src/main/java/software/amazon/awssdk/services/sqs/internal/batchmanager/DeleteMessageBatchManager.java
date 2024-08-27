@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
@@ -25,8 +26,9 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchResponse;
@@ -43,12 +45,26 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
 
     private final SqsAsyncClient sqsAsyncClient;
 
-    protected DeleteMessageBatchManager(BatchOverrideConfiguration overrideConfiguration,
+    protected DeleteMessageBatchManager(RequestBatchConfiguration overrideConfiguration,
                                         ScheduledExecutorService scheduledExecutor,
                                         SqsAsyncClient sqsAsyncClient) {
-        super(overrideConfiguration, scheduledExecutor);
+        super(overrideConfiguration, scheduledExecutor, (stringBatchingExecutionContextMap, changeMessageVisibilityRequest)
+            -> shouldFlush(stringBatchingExecutionContextMap, changeMessageVisibilityRequest, overrideConfiguration)
+        );
         this.sqsAsyncClient = sqsAsyncClient;
     }
+
+
+    private static boolean shouldFlush(Map<String, BatchingExecutionContext<DeleteMessageRequest,
+        DeleteMessageResponse>> contextMap,
+                                       DeleteMessageRequest request, RequestBatchConfiguration configuration) {
+        if (request != null) {
+            return false;
+        }
+        return contextMap.size() >= configuration.maxBatchItems();
+    }
+
+
 
     private static DeleteMessageBatchRequest createDeleteMessageBatchRequest(
         List<IdentifiableMessage<DeleteMessageRequest>> identifiedRequests, String batchKey) {
