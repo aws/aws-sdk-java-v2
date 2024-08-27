@@ -47,14 +47,17 @@ public class ReceiveQueueBuffer implements SdkAutoCloseable {
 
     private final AtomicBoolean processingFutures = new AtomicBoolean(false);
 
-
-    public ReceiveQueueBuffer(ScheduledExecutorService executor, SqsAsyncClient sqsClient,
+    private ReceiveQueueBuffer(ScheduledExecutorService executor, SqsAsyncClient sqsClient,
                               ResponseBatchConfiguration config, String queueUrl, QueueAttributesManager queueAttributesManager) {
         this.executor = executor;
         this.sqsClient = sqsClient;
         this.config = config;
         this.queueUrl = queueUrl;
         this.queueAttributesManager = queueAttributesManager;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public void receiveMessage(CompletableFuture<ReceiveMessageResponse> receiveMessageFuture, int numMessages) {
@@ -102,7 +105,7 @@ public class ReceiveQueueBuffer implements SdkAutoCloseable {
             return;
         }
 
-        queueAttributesManager.getVisibilityTimeout().thenAcceptAsync(visibilityTimeout -> {
+        queueAttributesManager.getVisibilityTimeout().thenAccept(visibilityTimeout -> {
             int max = Math.max(config.maxInflightReceiveBatches(), 1);
             int toSpawn = max - inflightReceiveMessageBatches.get();
             if (toSpawn > 0) {
@@ -112,7 +115,7 @@ public class ReceiveQueueBuffer implements SdkAutoCloseable {
                 receiveSqsMessageHelper.asyncReceiveMessage()
                                        .whenComplete((response, exception) -> reportBatchFinished(response));
             }
-        }, executor);
+        });
     }
 
     private int determineDesiredBatches() {
@@ -129,9 +132,10 @@ public class ReceiveQueueBuffer implements SdkAutoCloseable {
         return desiredBatches;
     }
 
-    private void fulfillFuture(FutureRequestWrapper futureWrapper, ReceiveSqsMessageHelper messageHelper) {
+    private void fulfillFuture(FutureRequestWrapper futureWrapper) {
+        ReceiveSqsMessageHelper peekedMessage = finishedTasks.peek();
         List<Message> messages = new LinkedList<>();
-        Throwable exception = messageHelper.getException();
+        Throwable exception = peekedMessage.getException();
         int numRetrieved = 0;
         boolean batchDone = false;
 
@@ -142,7 +146,7 @@ public class ReceiveQueueBuffer implements SdkAutoCloseable {
         }
 
         while (numRetrieved < futureWrapper.getRequestedSize()) {
-            Message msg = messageHelper.removeMessage();
+            Message msg = peekedMessage.removeMessage();
             if (msg != null) {
                 messages.add(msg);
                 ++numRetrieved;
@@ -151,7 +155,7 @@ public class ReceiveQueueBuffer implements SdkAutoCloseable {
                 break;
             }
         }
-        batchDone = batchDone || messageHelper.isEmpty();
+        batchDone = batchDone || peekedMessage.isEmpty();
         if (batchDone) {
             finishedTasks.poll();
         }
@@ -159,27 +163,25 @@ public class ReceiveQueueBuffer implements SdkAutoCloseable {
     }
 
     private void satisfyFuturesFromBuffer() {
-        pruneExpiredTasks();
         if (!processingFutures.compareAndSet(false, true)) {
             return;
         }
         try {
-            futures.forEach(future -> {
-                if (!finishedTasks.isEmpty()) {
-                    fulfillFuture(future, finishedTasks.peek());
-                    futures.remove(future);
-                }
-            });
+            do {
+                futures.removeIf(future -> {
+                    if (future.getFuture().isDone()) {
+                        return true;
+                    }
+                    if (!finishedTasks.isEmpty()) {
+                        fulfillFuture(future);
+                        return true;
+                    }
+                    return false;
+                });
+            } while (!futures.isEmpty() && !finishedTasks.isEmpty());
         } finally {
             processingFutures.set(false);
         }
-    }
-
-    private void pruneExpiredTasks() {
-        futures.removeIf(futureWrapper -> {
-            CompletableFuture<ReceiveMessageResponse> future = futureWrapper.getFuture();
-            return future.isDone();
-        });
     }
 
     private void reportBatchFinished(ReceiveSqsMessageHelper batch) {
@@ -204,6 +206,43 @@ public class ReceiveQueueBuffer implements SdkAutoCloseable {
 
         public int getRequestedSize() {
             return requestedSize;
+        }
+    }
+
+    public static class Builder {
+        private ScheduledExecutorService executor;
+        private SqsAsyncClient sqsClient;
+        private ResponseBatchConfiguration config;
+        private String queueUrl;
+        private QueueAttributesManager queueAttributesManager;
+
+        public Builder executor(ScheduledExecutorService executor) {
+            this.executor = executor;
+            return this;
+        }
+
+        public Builder sqsClient(SqsAsyncClient sqsClient) {
+            this.sqsClient = sqsClient;
+            return this;
+        }
+
+        public Builder config(ResponseBatchConfiguration config) {
+            this.config = config;
+            return this;
+        }
+
+        public Builder queueUrl(String queueUrl) {
+            this.queueUrl = queueUrl;
+            return this;
+        }
+
+        public Builder queueAttributesManager(QueueAttributesManager queueAttributesManager) {
+            this.queueAttributesManager = queueAttributesManager;
+            return this;
+        }
+
+        public ReceiveQueueBuffer build() {
+            return new ReceiveQueueBuffer(executor, sqsClient, config, queueUrl, queueAttributesManager);
         }
     }
 }

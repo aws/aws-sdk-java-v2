@@ -15,7 +15,8 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
-import java.util.Optional;
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsMessageDefault.MAX_SUPPORTED_SQS_RECEIVE_MSG;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -43,14 +44,19 @@ public class ReceiveBatchManager implements SdkAutoCloseable {
         this.config = config;
         this.queueUrl = queueUrl;
         this.queueAttributesManager = new QueueAttributesManager(sqsClient, queueUrl);
-        this.receiveQueueBuffer = new ReceiveQueueBuffer(executor, sqsClient, config, queueUrl, queueAttributesManager);
+        this.receiveQueueBuffer = ReceiveQueueBuffer.builder()
+                                                    .executor(executor)
+                                                    .sqsClient(sqsClient)
+                                                    .config(config)
+                                                    .queueUrl(queueUrl)
+                                                    .queueAttributesManager(queueAttributesManager).build();
     }
 
     public CompletableFuture<ReceiveMessageResponse> processRequest(ReceiveMessageRequest rq) {
         if (receiveQueueBuffer.isShutDown()) {
             throw new IllegalStateException("The client has been shut down.");
         }
-        int numMessages = Optional.ofNullable(rq.maxNumberOfMessages()).orElse(10);
+        int numMessages = rq.maxNumberOfMessages() != null ? rq.maxNumberOfMessages() : MAX_SUPPORTED_SQS_RECEIVE_MSG;
 
         return queueAttributesManager.getReceiveMessageTimeout(rq, config.minReceiveWaitTime()).thenCompose(waitTimeMs -> {
             CompletableFuture<ReceiveMessageResponse> receiveMessageFuture = new CompletableFuture<>();

@@ -112,8 +112,13 @@ public class ReceiveQueueBufferTest {
     }
 
     private ReceiveQueueBuffer receiveQueueBuffer(BatchOverrideConfiguration configuration) {
-        return new ReceiveQueueBuffer(executor, sqsClient,new ResponseBatchConfiguration(configuration),
-                                      "queueUrl", queueAttributesManager);
+        return ReceiveQueueBuffer.builder()
+                                 .executor(executor)
+                                 .sqsClient(sqsClient)
+                                 .config(new ResponseBatchConfiguration(configuration))
+                                 .queueUrl("queueUrl")
+                                 .queueAttributesManager(queueAttributesManager)
+                                 .build();
     }
 
     @Test
@@ -227,10 +232,15 @@ public class ReceiveQueueBufferTest {
             .thenReturn(CompletableFuture.completedFuture(response));
 
         // Create receiveQueueBuffer with adaptive prefetching
-        ReceiveQueueBuffer receiveQueueBuffer = new ReceiveQueueBuffer(executor, sqsClient,  new ResponseBatchConfiguration(BatchOverrideConfiguration.builder()
-                                                                                                                                                      .adaptivePrefetching(true)
-                                                                                                                                                      .build()),
-                                                                       "queueUrl", queueAttributesManager);
+        ReceiveQueueBuffer receiveQueueBuffer = ReceiveQueueBuffer.builder()
+                                                                  .executor(executor)
+                                                                  .sqsClient(sqsClient)
+                                                                  .config(new ResponseBatchConfiguration(BatchOverrideConfiguration.builder()
+                                                                                                                                   .adaptivePrefetching(true)
+                                                                                                                                   .build()))
+                                                                  .queueUrl("queueUrl")
+                                                                  .queueAttributesManager(queueAttributesManager)
+                                                                  .build();
 
         CompletableFuture<ReceiveMessageResponse> future = new CompletableFuture<>();
         receiveQueueBuffer.receiveMessage(future, 10);
@@ -252,8 +262,15 @@ public class ReceiveQueueBufferTest {
             .thenReturn(CompletableFuture.completedFuture(response));
 
         // Create receiveQueueBuffer with adaptive prefetching
-        ReceiveQueueBuffer receiveQueueBuffer = new ReceiveQueueBuffer(executor, sqsClient, new ResponseBatchConfiguration(batchConfig().build()),
-                                                                       "queueUrl", queueAttributesManager);
+        ReceiveQueueBuffer receiveQueueBuffer = ReceiveQueueBuffer.builder()
+                                                                  .executor(executor)
+                                                                  .sqsClient(sqsClient)
+                                                                  .config(new ResponseBatchConfiguration(
+                                                                      batchConfig().build()))
+                                                                  .queueUrl("queueUrl")
+                                                                  .queueAttributesManager(queueAttributesManager)
+                                                                  .build();
+
 
         CompletableFuture<ReceiveMessageResponse> future = new CompletableFuture<>();
         receiveQueueBuffer.receiveMessage(future, 10);
@@ -273,12 +290,15 @@ public class ReceiveQueueBufferTest {
         ReceiveMessageResponse response = generateMessageResponse(MAX_BATCH_ITEMS);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(CompletableFuture.completedFuture(response));
 
+        ReceiveQueueBuffer receiveQueueBuffer = ReceiveQueueBuffer.builder()
+                                                                  .executor(executor)
+                                                                  .sqsClient(sqsClient)
+                                                                  .config(new ResponseBatchConfiguration(batchConfig().build()))
+                                                                  .queueUrl("queueUrl")
+                                                                  .queueAttributesManager(queueAttributesManager)
+                                                                  .build();
 
-        ReceiveQueueBuffer receiveQueueBuffer = new ReceiveQueueBuffer(executor, sqsClient, new ResponseBatchConfiguration(batchConfig().build()),
-                                                                       "queueUrl", queueAttributesManager);
-
-
-                                                                                    List<CompletableFuture<ReceiveMessageResponse>> futures = new ArrayList<>();
+        List<CompletableFuture<ReceiveMessageResponse>> futures = new ArrayList<>();
         for (int i = 0; i < 30; i++) {
             CompletableFuture<ReceiveMessageResponse> future = new CompletableFuture<>();
             futures.add(future);
@@ -307,9 +327,14 @@ public class ReceiveQueueBufferTest {
 
         // Create receiveQueueBuffer with adaptive prefetching
         int MAX_DONE_RECEIVE_BATCH = 1;
-        ReceiveQueueBuffer receiveQueueBuffer = new ReceiveQueueBuffer(executor, sqsClient,
-                                                                       new ResponseBatchConfiguration(batchConfig().maxDoneReceiveBatches(MAX_BATCH_ITEMS).build()),
-                                                                       "queueUrl", queueAttributesManager);
+
+        ReceiveQueueBuffer receiveQueueBuffer = ReceiveQueueBuffer.builder()
+                                                                  .executor(executor)
+                                                                  .sqsClient(sqsClient)
+                                                                  .config(new ResponseBatchConfiguration(batchConfig().maxDoneReceiveBatches(MAX_BATCH_ITEMS).build()))
+                                                                  .queueUrl("queueUrl")
+                                                                  .queueAttributesManager(queueAttributesManager)
+                                                                  .build();
 
         // Create and send multiple futures using a loop
         List<CompletableFuture<ReceiveMessageResponse>> futures = new ArrayList<>();
@@ -520,9 +545,11 @@ public void testShutdownExceptionallyCompletesAllIncompleteFutures() throws Exce
 
             // Verify that an error was logged for failing to change visibility timeout
             assertThat(logCaptor.loggedEvents()).anySatisfy(logEvent -> {
-                assertThat(logEvent.getLevel()).isEqualTo(Level.ERROR);
+                assertThat(logEvent.getLevel()).isEqualTo(Level.WARN);
                 assertThat(logEvent.getMessage().getFormattedMessage())
-                    .contains("Could not change visibility for queue queueUrl");
+                    .contains("Failed to reset the visibility timeout of unprocessed messages for queueUrl: queueUrl. As a result,"
+                              + " these unprocessed messages will remain invisible in the queue for the duration of the visibility"
+                              + " timeout (PT30S)");
             });
         }
     }

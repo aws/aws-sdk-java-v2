@@ -47,7 +47,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     private final Boolean adaptivePrefetching;
     private final Integer maxInflightReceiveBatches;
 
-    public BatchOverrideConfiguration(Builder builder) {
+    private BatchOverrideConfiguration(Builder builder) {
         this.maxBatchItems = Validate.isPositiveOrNull(builder.maxBatchItems, "maxBatchItems");
         this.maxBatchKeys = Validate.isPositiveOrNull(builder.maxBatchKeys, "maxBatchKeys");
         this.maxBufferSize = Validate.isPositiveOrNull(builder.maxBufferSize, "maxBufferSize");
@@ -124,16 +124,14 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
      * @return the message systemAttribute Name will request {@link ReceiveMessageRequest#messageSystemAttributeNames()}.
      */
     public List<MessageSystemAttributeName> messageSystemAttributeName() {
-        return messageSystemAttributeNames == null ? Collections.emptyList() :
-               Collections.unmodifiableList(messageSystemAttributeNames);
+        return messageSystemAttributeNames;
     }
 
     /**
      * @return the message attributes receive calls will request.
      */
     public List<String> receiveMessageAttributeNames() {
-        return receiveMessageAttributeNames == null ? Collections.emptyList() :
-               Collections.unmodifiableList(receiveMessageAttributeNames);
+        return receiveMessageAttributeNames;
     }
 
     /**
@@ -405,8 +403,9 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
          * @return This builder object for method chaining.
          */
         public Builder messageSystemAttributeName(List<MessageSystemAttributeName> messageSystemAttributeNames) {
-            this.messageSystemAttributeNames = messageSystemAttributeNames != null ? messageSystemAttributeNames :
-                                               Collections.emptyList();
+            this.messageSystemAttributeNames = messageSystemAttributeNames != null ?
+                                               Collections.unmodifiableList(messageSystemAttributeNames) :
+                                               Collections.emptyList() ;
             return this;
         }
 
@@ -423,7 +422,8 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
          * @return This builder object for method chaining.
          */
         public Builder receiveMessageAttributeNames(List<String> receiveMessageAttributeNames) {
-            this.receiveMessageAttributeNames = receiveMessageAttributeNames != null ? receiveMessageAttributeNames :
+            this.receiveMessageAttributeNames = receiveMessageAttributeNames != null ?
+                                                Collections.unmodifiableList(receiveMessageAttributeNames) :
                                                 Collections.emptyList();
             return this;
         }

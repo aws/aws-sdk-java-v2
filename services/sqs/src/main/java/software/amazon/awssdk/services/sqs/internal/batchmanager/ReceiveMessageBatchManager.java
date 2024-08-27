@@ -24,10 +24,13 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @SdkInternalApi
 public class ReceiveMessageBatchManager implements SdkAutoCloseable {
+
+    private static final Logger log = Logger.loggerFor(ReceiveMessageBatchManager.class);
 
     private final SqsAsyncClient sqsClient;
     private final ScheduledExecutorService executor;
@@ -43,10 +46,14 @@ public class ReceiveMessageBatchManager implements SdkAutoCloseable {
     }
 
     public CompletableFuture<ReceiveMessageResponse> batchRequest(ReceiveMessageRequest request) {
-        return canBeRetrievedFromQueueBuffer(request)
-               ? receiveBatchManagerMap.computeIfAbsent(generateBatchKey(request), key -> createReceiveBatchManager(request))
-                                       .processRequest(request)
-               : sqsClient.receiveMessage(request);
+        if (canBeRetrievedFromQueueBuffer(request)) {
+            return receiveBatchManagerMap.computeIfAbsent(generateBatchKey(request), key -> createReceiveBatchManager(request))
+                                         .processRequest(request);
+        } else {
+            log.debug(() -> "canBeRetrievedFromQueueBuffer failed, so skipping batching for request for Queue with URL: "
+                            + request.queueUrl());
+            return sqsClient.receiveMessage(request);
+        }
     }
 
     /**

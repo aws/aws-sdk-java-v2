@@ -19,19 +19,20 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
 
@@ -71,9 +72,15 @@ public class ReceiveSqsMessageHelper {
         ReceiveMessageRequest.Builder request =
             ReceiveMessageRequest.builder()
                                  .queueUrl(queueUrl)
-                                 .maxNumberOfMessages(config.maxBatchItems())
-                                 .messageSystemAttributeNames(config.messageSystemAttributeNames())
-                                 .messageAttributeNames(config.receiveMessageAttributeNames());
+                                 .maxNumberOfMessages(config.maxBatchItems());
+
+        if (!CollectionUtils.isNullOrEmpty(config.messageSystemAttributeNames())) {
+            request.messageSystemAttributeNames(config.messageSystemAttributeNames());
+        }
+
+        if (!CollectionUtils.isNullOrEmpty(config.receiveMessageAttributeNames())) {
+            request.messageAttributeNames(config.receiveMessageAttributeNames());
+        }
 
         request.visibilityTimeout(NumericUtils.saturatedCast(this.visibilityTimeout.getSeconds()));
 
@@ -84,7 +91,7 @@ public class ReceiveSqsMessageHelper {
             return asyncClient.receiveMessage(request.build())
                               .handle((response, throwable) -> {
                                   if (throwable != null) {
-                                      setException(throwable);
+                                      this.exception = throwable;
                                   } else {
                                       messages.addAll(response.messages());
                                   }
@@ -104,10 +111,6 @@ public class ReceiveSqsMessageHelper {
         return exception;
     }
 
-    public void setException(Throwable exception) {
-        this.exception = exception;
-    }
-
     public Message removeMessage() {
         if (isExpired()) {
             clear();
@@ -120,19 +123,25 @@ public class ReceiveSqsMessageHelper {
         return System.nanoTime() > visibilityDeadlineNano;
     }
 
+
     public void clear() {
         if (!isEmpty()) {
-            Optional.ofNullable(nackMessages())
-                    .ifPresent(future -> future.whenComplete((r, t) -> {
-                        // Logging an error is sufficient here as this is an asynchronous cleanup activity,
-                        // and there are no dependent tasks waiting for its completion.
-                        if (t != null) {
-                            log.error(() -> "Could not change visibility for queue " + queueUrl, t);
-                        }
-                    }));
-            messages.clear();
+            CompletableFuture<ChangeMessageVisibilityBatchResponse> nackedMessages = nackMessages();
+            if (nackedMessages != null) {
+                nackedMessages.exceptionally(throwable -> {
+                    log.warn(() -> String.format(
+                        "Failed to reset the visibility timeout of unprocessed messages for queueUrl: %s. "
+                        + "As a result, these unprocessed messages will remain invisible in the queue for the "
+                        + "duration of the visibility timeout (%s).",
+                        queueUrl, visibilityTimeout
+                    ), throwable);
+
+                    return null;
+                });
+            }
         }
     }
+
 
     private CompletableFuture<ChangeMessageVisibilityBatchResponse> nackMessages() {
         if (messages == null || messages.isEmpty()) {
@@ -157,6 +166,11 @@ public class ReceiveSqsMessageHelper {
         return asyncClient.changeMessageVisibilityBatch(batchRequest);
     }
 
+    /**
+     * messages.size() is expensive since it is ConcurrentLinkedQueue.
+     * Thus, its used only for testing the results and not used in any internal classes.
+     */
+    @SdkTestInternalApi
     public Integer messagesSize() {
         return messages != null ? messages.size() : 0;
     }
