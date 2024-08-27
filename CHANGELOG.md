@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.14__ __2024-08-27__
+## __AWS Chatbot__
+  - ### Features
+    - Update documentation to be consistent with the API docs
+
+## __Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock SDK updates for Inference Profile.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Amazon Bedrock SDK updates for Inference Profile.
+
+## __Amazon Omics__
+  - ### Features
+    - Adds data provenance to import jobs from read sets and references
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds 2 new voices: Jitka (cs-CZ) and Sabrina (de-CH).
+
 # __2.27.13__ __2024-08-26__
 ## __AWS IoT SiteWise__
   - ### Features
