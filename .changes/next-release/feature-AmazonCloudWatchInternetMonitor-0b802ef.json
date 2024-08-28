@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Internet Monitor",
-    "contributor": "",
-    "description": "Adds new querying types to show overall traffic suggestion information for monitors"
-}
