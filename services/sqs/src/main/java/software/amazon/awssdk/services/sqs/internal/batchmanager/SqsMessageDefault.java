@@ -22,14 +22,7 @@ public final class SqsMessageDefault {
 
     public static final int MAX_SUPPORTED_SQS_RECEIVE_MSG = 10;
 
-    /**
-     * https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_SendMessageBatch.html
-     * We can send upto up to 10 messages thus the buffer size is set to 10
-     */
-    public static final int MAX_SEND_MESSAGE_BATCH_SIZE = 10;
-
-
-    public static final int MAX_PAYLOAD_SIZE_BYTES = 262_144; // 256 KiB
+    public static final int MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES = 262_144; // 256 KiB
 
     /**
      * <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-message-metadata.html#sqs-message-attributes">

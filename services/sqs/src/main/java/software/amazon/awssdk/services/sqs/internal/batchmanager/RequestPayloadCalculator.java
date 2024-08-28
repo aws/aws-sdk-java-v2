@@ -36,16 +36,16 @@ public final class RequestPayloadCalculator {
      * @param <RequestT> the type of the request
      * @return an Optional containing the total size in bytes if the request is a SendMessageRequest, otherwise an empty Optional
      */
-    public static <RequestT> Optional<Long> calculateMessageSize(RequestT request) {
+    public static <RequestT> Optional<Integer> calculateMessageSize(RequestT request) {
         if (!(request instanceof SendMessageRequest)) {
             return Optional.empty();
         }
         SendMessageRequest sendMessageRequest = (SendMessageRequest) request;
-        long totalSize = calculateBodySize(sendMessageRequest) + ATTRIBUTE_MAPS_PAYLOAD_BYTES;
+        Integer totalSize = calculateBodySize(sendMessageRequest) + ATTRIBUTE_MAPS_PAYLOAD_BYTES;
         return Optional.of(totalSize);
     }
 
-    private static long calculateBodySize(SendMessageRequest request) {
+    private static int calculateBodySize(SendMessageRequest request) {
         return request.messageBody() != null ? request.messageBody().getBytes(StandardCharsets.UTF_8).length : 0;
     }
 

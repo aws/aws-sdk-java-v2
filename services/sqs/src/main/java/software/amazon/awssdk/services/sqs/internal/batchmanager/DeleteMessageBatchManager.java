@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
@@ -36,7 +35,6 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SqsException;
 import software.amazon.awssdk.utils.Either;
 
-
 @SdkInternalApi
 public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessageRequest, DeleteMessageResponse,
     DeleteMessageBatchResponse> {
@@ -49,17 +47,6 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
         super(overrideConfiguration, scheduledExecutor);
         this.sqsAsyncClient = sqsAsyncClient;
     }
-
-
-    private static boolean shouldFlush(Map<String, BatchingExecutionContext<DeleteMessageRequest,
-        DeleteMessageResponse>> contextMap,
-                                       DeleteMessageRequest request, RequestBatchConfiguration configuration) {
-        if (request != null) {
-            return false;
-        }
-        return contextMap.size() >= configuration.maxBatchItems();
-    }
-
 
     private static DeleteMessageBatchRequest createDeleteMessageBatchRequest(
         List<IdentifiableMessage<DeleteMessageRequest>> identifiedRequests, String batchKey) {

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,7 +36,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
     protected final RequestBatchConfiguration batchConfiguration ;
 
     private final int maxBatchItems;
-    private final Duration batchSendRequestFrequency;
+    private final Duration maxBatchOpenDuration;
     private final BatchingMap<RequestT, ResponseT> requestsAndResponsesMaps;
     private final ScheduledExecutorService scheduledExecutor;
 
@@ -47,34 +48,43 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
                                   ScheduledExecutorService scheduledExecutor) {
         batchConfiguration = overrideConfiguration;
         this.maxBatchItems = batchConfiguration.maxBatchItems();
-        this.batchSendRequestFrequency = batchConfiguration.batchSendRequestFrequency();
+        this.maxBatchOpenDuration = batchConfiguration.maxBatchOpenDuration();
         this.scheduledExecutor = Validate.notNull(scheduledExecutor, "Null scheduledExecutor");
         pendingBatchResponses = Collections.newSetFromMap(new ConcurrentHashMap<>());
         pendingResponses = Collections.newSetFromMap(new ConcurrentHashMap<>());
-        this.requestsAndResponsesMaps = new BatchingMap<>(batchConfiguration.maxBatchKeys(),
-                                                          overrideConfiguration.maxBatchBytesSize(),
-                                                          overrideConfiguration.maxBatchItems());
+        this.requestsAndResponsesMaps = new BatchingMap<>(overrideConfiguration);
 
     }
 
     public CompletableFuture<ResponseT> batchRequest(RequestT request) {
         CompletableFuture<ResponseT> response = new CompletableFuture<>();
         pendingResponses.add(response);
+
         try {
             String batchKey = getBatchKey(request);
-            // If there are bufferred messages then make sure adding a new message will not cause overflow of maxBytesSize
-            if (requestsAndResponsesMaps.contains(batchKey)) {
-                flushBufferIfNeeded(batchKey, request);
+
+            // Handle potential byte size overflow only if there are request in map and if feature enabled
+            if (requestsAndResponsesMaps.contains(batchKey) && batchConfiguration.maxBatchBytesSize() > 0) {
+                Optional.of(requestsAndResponsesMaps.flushableRequestsOnByteLimitBeforeAdd(batchKey, request))
+                        .filter(flushableRequests -> !flushableRequests.isEmpty())
+                        .ifPresent(flushableRequests -> manualFlushBuffer(batchKey, flushableRequests));
             }
+
+            // Add request and response to the map, scheduling a flush if necessary
             requestsAndResponsesMaps.put(batchKey,
-                                         () -> scheduleBufferFlush(batchKey, batchSendRequestFrequency.toMillis(),
-                                                                   scheduledExecutor),
+                                         () -> scheduleBufferFlush(batchKey, maxBatchOpenDuration.toMillis(), scheduledExecutor),
                                          request,
                                          response);
-            flushBufferIfNeeded(batchKey, null);
+
+            // Immediately flush if the batch is full
+            Optional.of(requestsAndResponsesMaps.flushableRequests(batchKey))
+                    .filter(flushableRequests -> !flushableRequests.isEmpty())
+                    .ifPresent(flushableRequests -> manualFlushBuffer(batchKey, flushableRequests));
+
         } catch (Exception e) {
             response.completeExceptionally(e);
         }
+
         return response;
     }
 
@@ -86,19 +96,11 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
     protected abstract List<Either<IdentifiableMessage<ResponseT>,
         IdentifiableMessage<Throwable>>> mapBatchResponse(BatchResponseT batchResponse);
 
-    private void flushBufferIfNeeded(String batchKey, RequestT requestT) {
-        Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests =
-            requestsAndResponsesMaps.flushableRequests(batchKey, requestT);
-        if (!flushableRequests.isEmpty()) {
-            manualFlushBuffer(batchKey, flushableRequests);
-        }
-    }
-
     private void manualFlushBuffer(String batchKey,
                                    Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests) {
         requestsAndResponsesMaps.cancelScheduledFlush(batchKey);
         flushBuffer(batchKey, flushableRequests);
-        requestsAndResponsesMaps.putScheduledFlush(batchKey, scheduleBufferFlush(batchKey, batchSendRequestFrequency.toMillis(),
+        requestsAndResponsesMaps.putScheduledFlush(batchKey, scheduleBufferFlush(batchKey, maxBatchOpenDuration.toMillis(),
                                                                                  scheduledExecutor));
     }
 

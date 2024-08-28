@@ -34,13 +34,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsMessageDefault.ATTRIBUTE_MAPS_PAYLOAD_BYTES;
 
 @TestInstance(Lifecycle.PER_CLASS)
-public class RequestPayloadCalculatorTest {
+class RequestPayloadCalculatorTest {
 
     @ParameterizedTest
     @MethodSource("provideRequestsForMessageSizeCalculation")
     @DisplayName("Test calculateMessageSize with different SendMessageRequest inputs")
-    void testCalculateMessageSize(SendMessageRequest request, long expectedSize) {
-        Optional<Long> actualSize = RequestPayloadCalculator.calculateMessageSize(request);
+    void testCalculateMessageSize(SendMessageRequest request, int expectedSize) {
+        Optional<Integer> actualSize = RequestPayloadCalculator.calculateMessageSize(request);
         assertEquals(Optional.of(expectedSize), actualSize);
     }
 
@@ -52,11 +52,11 @@ public class RequestPayloadCalculatorTest {
             ),
             Arguments.of(
                 SendMessageRequest.builder().messageBody("").build(),
-                0L + ATTRIBUTE_MAPS_PAYLOAD_BYTES
+                 ATTRIBUTE_MAPS_PAYLOAD_BYTES
             ),
             Arguments.of(
                 SendMessageRequest.builder().messageBody(null).build(),
-                0L + ATTRIBUTE_MAPS_PAYLOAD_BYTES
+                 ATTRIBUTE_MAPS_PAYLOAD_BYTES
             ),
             Arguments.of(
                 SendMessageRequest.builder().messageBody("Another test message").build(),
@@ -69,7 +69,7 @@ public class RequestPayloadCalculatorTest {
     @MethodSource("provideNonSendMessageRequest")
     @DisplayName("Test calculateMessageSize with non-SendMessageRequest inputs")
     void testCalculateMessageSizeWithNonSendMessageRequest(Object request) {
-        Optional<Long> actualSize = RequestPayloadCalculator.calculateMessageSize(request);
+        Optional<Integer> actualSize = RequestPayloadCalculator.calculateMessageSize(request);
         assertEquals(Optional.empty(), actualSize);
     }
 

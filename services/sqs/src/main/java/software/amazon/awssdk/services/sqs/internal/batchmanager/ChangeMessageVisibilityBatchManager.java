@@ -42,7 +42,6 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
 
     private final SqsAsyncClient sqsAsyncClient;
 
-
     protected ChangeMessageVisibilityBatchManager(RequestBatchConfiguration overrideConfiguration,
                                                   ScheduledExecutorService scheduledExecutor,
                                                   SqsAsyncClient sqsAsyncClient) {
@@ -103,7 +102,6 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
         return new IdentifiableMessage<>(key, response);
     }
 
-
     @Override
     protected CompletableFuture<ChangeMessageVisibilityBatchResponse> batchAndSend(
         List<IdentifiableMessage<ChangeMessageVisibilityRequest>> identifiedRequests, String batchKey) {
@@ -114,8 +112,8 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
 
     @Override
     protected String getBatchKey(ChangeMessageVisibilityRequest request) {
-        return request.overrideConfiguration().map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
-                      .orElseGet(request::queueUrl);
+        return  request.overrideConfiguration().map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
+                       .orElseGet(request::queueUrl);
     }
 
     @Override

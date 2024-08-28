@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 
 @SdkInternalApi
 public final class RequestBatchConfiguration {
@@ -25,12 +26,12 @@ public final class RequestBatchConfiguration {
     public static final int DEFAULT_MAX_BATCH_BYTES_SIZE = -1;
     public static final int DEFAULT_MAX_BATCH_KEYS = 1000;
     public static final int DEFAULT_MAX_BUFFER_SIZE = 500;
-    public static final Duration DEFAULT_MAX_BATCH_OPEN_IN_MS = Duration.ofMillis(50);
+    public static final Duration DEFAULT_MAX_BATCH_OPEN_IN_MS = Duration.ofMillis(200);
 
     private final Integer maxBatchItems;
     private final Integer maxBatchKeys;
     private final Integer maxBufferSize;
-    private final Duration batchSendRequestFrequency;
+    private final Duration maxBatchOpenDuration;
     private final Integer maxBatchBytesSize;
 
     private RequestBatchConfiguration(Builder builder) {
@@ -38,7 +39,7 @@ public final class RequestBatchConfiguration {
         this.maxBatchItems = builder.maxBatchItems != null ? builder.maxBatchItems : DEFAULT_MAX_BATCH_ITEMS;
         this.maxBatchKeys = builder.maxBatchKeys != null ? builder.maxBatchKeys : DEFAULT_MAX_BATCH_KEYS;
         this.maxBufferSize = builder.maxBufferSize != null ? builder.maxBufferSize : DEFAULT_MAX_BUFFER_SIZE;
-        this.batchSendRequestFrequency = builder.batchSendRequestFrequency != null ? builder.batchSendRequestFrequency :
+        this.maxBatchOpenDuration = builder.maxBatchOpenDuration != null ? builder.maxBatchOpenDuration :
                                          DEFAULT_MAX_BATCH_OPEN_IN_MS;
         this.maxBatchBytesSize = builder.maxBatchBytesSize != null ? builder.maxBatchBytesSize : DEFAULT_MAX_BATCH_BYTES_SIZE;
 
@@ -48,8 +49,19 @@ public final class RequestBatchConfiguration {
         return new Builder();
     }
 
-    public Duration batchSendRequestFrequency() {
-        return batchSendRequestFrequency;
+    public static Builder builder(BatchOverrideConfiguration configuration) {
+        if (configuration != null) {
+            return new Builder()
+                .maxBatchKeys(configuration.maxBatchKeys())
+                .maxBatchItems(configuration.maxBatchItems())
+                .maxBatchOpenDuration(configuration.maxBatchOpenDuration())
+                .maxBufferSize(configuration.maxBufferSize());
+        }
+        return new Builder();
+    }
+
+    public Duration maxBatchOpenDuration() {
+        return maxBatchOpenDuration;
     }
 
     public int maxBatchItems() {
@@ -73,7 +85,7 @@ public final class RequestBatchConfiguration {
         private Integer maxBatchItems;
         private Integer maxBatchKeys;
         private Integer maxBufferSize;
-        private Duration batchSendRequestFrequency;
+        private Duration maxBatchOpenDuration;
         private Integer maxBatchBytesSize;
 
         private Builder() {
@@ -94,8 +106,8 @@ public final class RequestBatchConfiguration {
             return this;
         }
 
-        public Builder batchSendRequestFrequency(Duration batchSendRequestFrequency) {
-            this.batchSendRequestFrequency = batchSendRequestFrequency;
+        public Builder maxBatchOpenDuration(Duration maxBatchOpenDuration) {
+            this.maxBatchOpenDuration = maxBatchOpenDuration;
             return this;
         }
 
@@ -108,6 +120,5 @@ public final class RequestBatchConfiguration {
             return new RequestBatchConfiguration(this);
         }
     }
-
 
 }

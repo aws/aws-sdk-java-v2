@@ -25,12 +25,12 @@ public final class BatchingExecutionContext<RequestT, ResponseT> {
     private final RequestT request;
     private final CompletableFuture<ResponseT> response;
 
-    private final Optional<Long> responsePayload;
+    private final Optional<Integer> responsePayloadByteSize;
 
     public BatchingExecutionContext(RequestT request, CompletableFuture<ResponseT> response) {
         this.request = request;
         this.response = response;
-        responsePayload = RequestPayloadCalculator.calculateMessageSize(request);
+        responsePayloadByteSize = RequestPayloadCalculator.calculateMessageSize(request);
     }
 
     public RequestT request() {
@@ -41,8 +41,10 @@ public final class BatchingExecutionContext<RequestT, ResponseT> {
         return response;
     }
 
-
-    public Optional<Long> responsePayload() {
-        return responsePayload;
+    /**
+     * Optional because responsePayloadByteSize is required only for SendMessageRequests and not for other requests.
+     */
+    public Optional<Integer> responsePayloadByteSize() {
+        return responsePayloadByteSize;
     }
 }
