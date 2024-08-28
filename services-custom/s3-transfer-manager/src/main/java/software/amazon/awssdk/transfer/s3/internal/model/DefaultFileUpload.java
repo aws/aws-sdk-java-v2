@@ -21,17 +21,21 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.multipart.PauseObservable;
 import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.utils.Lazy;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultFileUpload implements FileUpload {
+    private static final Logger log = Logger.loggerFor(S3TransferManager.class);
+
     private final Lazy<ResumableFileUpload> resumableFileUpload;
     private final CompletableFuture<CompletedFileUpload> completionFuture;
     private final TransferProgress progress;
@@ -70,15 +74,27 @@ public final class DefaultFileUpload implements FileUpload {
                                                                               .fileLength(sourceFile.length())
                                                                               .uploadFileRequest(request);
 
-        if (completionFuture.isDone()) {
+        boolean futureCompletedExceptionally = completionFuture.isCompletedExceptionally();
+        if (completionFuture.isDone() && !futureCompletedExceptionally) {
+            log.debug(() -> "The upload future was finished and was not completed exceptionally. There will be no S3ResumeToken "
+                            + "returned.");
+
             return resumableFileBuilder.build();
         }
 
         S3ResumeToken token = pauseObservable.pause();
 
-        // Upload hasn't started yet, or it's a single object upload
         if (token == null) {
+            log.debug(() -> "The upload hasn't started yet, or it's a single object upload. There will be no S3ResumeToken "
+                            + "returned.");
             return resumableFileBuilder.build();
+        }
+
+        if (futureCompletedExceptionally) {
+            log.debug(() -> "The upload future was completed exceptionally but has been successfully paused and a S3ResumeToken "
+                            + "was returned.");
+        } else {
+            log.debug(() -> "The upload was successfully paused and a S3ResumeToken was returned.");
         }
 
         return resumableFileBuilder.multipartUploadId(token.uploadId())
