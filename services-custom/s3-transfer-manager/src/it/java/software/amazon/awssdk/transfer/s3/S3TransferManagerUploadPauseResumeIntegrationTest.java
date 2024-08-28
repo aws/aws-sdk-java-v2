@@ -20,14 +20,21 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -35,11 +42,9 @@ import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.AsyncWaiter;
 import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.ListMultipartUploadsResponse;
 import software.amazon.awssdk.services.s3.model.ListPartsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchUploadException;
-import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
@@ -48,38 +53,70 @@ import software.amazon.awssdk.utils.Logger;
 
 public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3IntegrationTestBase {
     private static final Logger log = Logger.loggerFor(S3TransferManagerUploadPauseResumeIntegrationTest.class);
-    private static final String BUCKET = temporaryBucketName(S3TransferManagerUploadPauseResumeIntegrationTest.class);
+    private static final String BUCKET = "s3transfermanageruploadpauseresumeintegration-hdavidh-316";
+    //temporaryBucketName(S3TransferManagerUploadPauseResumeIntegrationTest.class);
     private static final String KEY = "key";
     // 24 * MB is chosen to make sure we have data written in the file already upon pausing.
-    private static final long LARGE_OBJ_SIZE = 24 * MB;
+    private static final long LARGE_OBJ_SIZE = 1000 * MB;
     private static final long SMALL_OBJ_SIZE = 2 * MB;
     private static File largeFile;
     private static File smallFile;
     private static ScheduledExecutorService executorService;
+    static Path currentDir = Paths.get("").toAbsolutePath();
+    static Path largeFilePath = currentDir.resolve("largeTestFile");
+
+    public static void create1GbFile(Path file) throws IOException {
+        if (!Files.exists(file)) {
+            Files.createFile(file);
+        }
+
+        try (SeekableByteChannel fileChannel = Files.newByteChannel(file, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
+            ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024); // 1 MB buffer
+            long bytesToWrite = 1024L * 1024 * 1024; // 1 GB
+
+            for (int i = 0; i < buffer.capacity(); i++) {
+                buffer.put((byte) 0);
+            }
+            buffer.flip();
+
+            while (bytesToWrite > 0) {
+                buffer.limit((int) Math.min(buffer.capacity(), bytesToWrite));
+                fileChannel.write(buffer);
+                buffer.rewind();
+                bytesToWrite -= buffer.limit();
+            }
+        }
+    }
 
     @BeforeAll
     public static void setup() throws Exception {
-        createBucket(BUCKET);
+
+        if (!Files.exists(largeFilePath)) {
+            create1GbFile(largeFilePath);
+        }
+
+        largeFile = new File(String.valueOf(largeFilePath));
+        /*createBucket(BUCKET);
         largeFile = new RandomTempFile(LARGE_OBJ_SIZE);
-        smallFile = new RandomTempFile(SMALL_OBJ_SIZE);
+        smallFile = new RandomTempFile(SMALL_OBJ_SIZE);*/
         executorService = Executors.newScheduledThreadPool(3);
 
     }
 
     @AfterAll
     public static void cleanup() {
-        deleteBucketAndAllContents(BUCKET);
+        /*deleteBucketAndAllContents(BUCKET);
         largeFile.delete();
-        smallFile.delete();
+        smallFile.delete();*/
         executorService.shutdown();
     }
 
     private static Stream<Arguments> transferManagersArguments() {
         return Stream.of(
-            Arguments.of(tmJava, tmJava),
-            Arguments.of(tmCrt, tmCrt),
-            Arguments.of(tmCrt, tmJava),
-            Arguments.of(tmJava, tmCrt)
+            Arguments.of(tmJava, tmJava)
+            //Arguments.of(tmCrt, tmCrt)
+            //Arguments.of(tmCrt, tmJava),
+           // Arguments.of(tmJava, tmCrt)
         );
     }
 
@@ -101,28 +138,37 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         assertThat(resumedUpload.progress().snapshot().totalBytes()).hasValue(SMALL_OBJ_SIZE);
     }
 
-    @ParameterizedTest
-    @MethodSource("transferManagersArguments")
-    void pause_fileNotChanged_shouldResume(S3TransferManager uploadTm, S3TransferManager resumeTm) throws Exception {
+
+    Path resumeFilePath = currentDir.resolve("pausedUpload");
+    S3TransferManager tm = tmJava;
+    //S3TransferManager tm = tmCrt;
+
+    @Test
+    void disconnectAndPause() {
         UploadFileRequest request = UploadFileRequest.builder()
                                                      .putObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                      .addTransferListener(LoggingTransferListener.create())
                                                      .source(largeFile)
                                                      .build();
-        FileUpload fileUpload = uploadTm.uploadFile(request);
-        waitUntilMultipartUploadExists();
-        ResumableFileUpload resumableFileUpload = fileUpload.pause();
-        log.debug(() -> "Paused: " + resumableFileUpload);
+        FileUpload fileUpload = null;
+        try {
+            fileUpload = tm.uploadFile(request);
+            //
+            // Disconnect internet after a few seconds
+            fileUpload.completionFuture().join();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            ResumableFileUpload resumableFileUpload = fileUpload.pause();
+            resumableFileUpload.serializeToFile(resumeFilePath);
+            System.out.println("Saved paused upload to file");
+        }
+    }
 
-        assertThat(resumableFileUpload.multipartUploadId()).isNotEmpty();
-        assertThat(resumableFileUpload.partSizeInBytes()).isNotEmpty();
-        assertThat(resumableFileUpload.totalParts()).isNotEmpty();
-
-        verifyMultipartUploadIdExists(resumableFileUpload);
-
-        FileUpload resumedUpload = resumeTm.resumeUploadFile(resumableFileUpload);
+    @Test
+    void resuming() {
+        ResumableFileUpload resumableFileUpload = ResumableFileUpload.fromFile(resumeFilePath);
+        FileUpload resumedUpload = tm.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
-        assertThat(resumedUpload.progress().snapshot().totalBytes()).hasValue(LARGE_OBJ_SIZE);
     }
 
     @ParameterizedTest

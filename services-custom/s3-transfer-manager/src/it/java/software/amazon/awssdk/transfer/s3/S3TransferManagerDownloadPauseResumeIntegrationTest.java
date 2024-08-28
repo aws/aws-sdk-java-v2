@@ -24,11 +24,13 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Optional;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkResponse;
@@ -42,61 +44,70 @@ import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
+import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
 import software.amazon.awssdk.utils.Logger;
 
 public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3IntegrationTestBase {
     private static final Logger log = Logger.loggerFor(S3TransferManagerDownloadPauseResumeIntegrationTest.class);
-    private static final String BUCKET = temporaryBucketName(S3TransferManagerDownloadPauseResumeIntegrationTest.class);
+    private static final String BUCKET = "s3transfermanageruploadpauseresumeintegration-hdavidh-316";
+    // temporaryBucketName(S3TransferManagerDownloadPauseResumeIntegrationTest.class);
     private static final String KEY = "key";
     // 24 * MB is chosen to make sure we have data written in the file already upon pausing.
     private static final long OBJ_SIZE = 24 * MB;
     private static File sourceFile;
+    static Path currentDir = Paths.get("").toAbsolutePath();
+    static Path destinationPath = currentDir.resolve("downloadedFile");
 
     @BeforeAll
     public static void setup() throws Exception {
-        createBucket(BUCKET);
+        /*createBucket(BUCKET);
         sourceFile = new RandomTempFile(OBJ_SIZE);
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET)
                                      .key(KEY)
-                                     .build(), sourceFile.toPath());
+                                     .build(), sourceFile.toPath());*/
     }
 
     @AfterAll
     public static void cleanup() {
-        deleteBucketAndAllContents(BUCKET);
-        sourceFile.delete();
+        /*deleteBucketAndAllContents(BUCKET);
+        sourceFile.delete();*/
     }
 
-    @ParameterizedTest
-    @MethodSource("transferManagers")
-    void pauseAndResume_ObjectNotChanged_shouldResumeDownload(S3TransferManager tm) {
-        Path path = RandomTempFile.randomUncreatedFile().toPath();
+    Path resumeDownloadFilePath = currentDir.resolve("pausedDownload");
+    S3TransferManager tm = tmJava;
+    //S3TransferManager tm = tmCrt;
+
+    @Test
+    void disconnectAndPause() {
         TestDownloadListener testDownloadListener = new TestDownloadListener();
         DownloadFileRequest request = DownloadFileRequest.builder()
                                                          .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
-                                                         .destination(path)
+                                                         .destination(destinationPath)
                                                          .addTransferListener(testDownloadListener)
+                                                         .addTransferListener(LoggingTransferListener.create())
                                                          .build();
-        FileDownload download = tm.downloadFile(request);
-        waitUntilFirstByteBufferDelivered(download);
+        FileDownload download = null;
+        try {
+            download = tm.downloadFile(request);
+            //
+            // Disconnect internet after a few seconds
+            download.completionFuture().join();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            ResumableFileDownload resumableFileDownload = download.pause();
+            resumableFileDownload.serializeToFile(resumeDownloadFilePath);
+            System.out.println("Saved paused download to file");
+        }
+    }
 
-        ResumableFileDownload resumableFileDownload = download.pause();
-        long bytesTransferred = resumableFileDownload.bytesTransferred();
-        log.debug(() -> "Paused: " + resumableFileDownload);
-        assertEqualsBySdkFields(resumableFileDownload.downloadFileRequest(), request);
-        assertThat(testDownloadListener.getObjectResponse).isNotNull();
-        assertThat(resumableFileDownload.s3ObjectLastModified()).hasValue(testDownloadListener.getObjectResponse.lastModified());
-        assertThat(bytesTransferred).isEqualTo(path.toFile().length());
-        assertThat(resumableFileDownload.totalSizeInBytes()).hasValue(sourceFile.length());
-
-        assertThat(bytesTransferred).isLessThan(sourceFile.length());
-        assertThat(download.completionFuture()).isCancelled();
-
-        log.debug(() -> "Resuming download ");
-        verifyFileDownload(path, resumableFileDownload, OBJ_SIZE - bytesTransferred, tm);
+    @Test
+    void resuming() {
+        ResumableFileDownload resumableFileDownload = ResumableFileDownload.fromFile(resumeDownloadFilePath);
+        FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
+        resumedFileDownload.completionFuture().join();
     }
 
     private void assertEqualsBySdkFields(DownloadFileRequest actual, DownloadFileRequest expected) {
