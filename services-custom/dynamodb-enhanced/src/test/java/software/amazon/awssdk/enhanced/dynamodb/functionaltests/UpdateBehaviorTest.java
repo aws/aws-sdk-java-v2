@@ -4,11 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.LogEvent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -185,7 +182,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
 
         RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
 
-        //verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord, updatedNestedCounter, TEST_ATTRIBUTE);
+        verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord, updatedNestedCounter, TEST_ATTRIBUTE);
     }
 
     @Test
