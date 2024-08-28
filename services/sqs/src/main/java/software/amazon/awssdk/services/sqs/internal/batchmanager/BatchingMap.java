@@ -20,8 +20,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
@@ -34,15 +32,17 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 public final class BatchingMap<RequestT, ResponseT> {
 
     private final int maxBatchKeys;
+    private final int maxBatchBytesSize;
+    private final int maxBatchSize;
     private final Map<String, RequestBatchBuffer<RequestT, ResponseT>> batchContextMap;
-    private final BiPredicate<Map<String, BatchingExecutionContext<RequestT, ResponseT>>, RequestT> flushCondition ;
-
 
     public BatchingMap(int maxBatchKeys,
-                       BiPredicate<Map<String, BatchingExecutionContext<RequestT, ResponseT>>, RequestT> flushCondition) {
+                       int maxBatchBytesSize,
+                       int maxBatchSize) {
         this.batchContextMap = new ConcurrentHashMap<>();
         this.maxBatchKeys = maxBatchKeys;
-        this.flushCondition = flushCondition;
+        this.maxBatchBytesSize = maxBatchBytesSize;
+        this.maxBatchSize = maxBatchSize;
     }
 
     public void put(String batchKey, Supplier<ScheduledFuture<?>> scheduleFlush, RequestT request,
@@ -51,8 +51,12 @@ public final class BatchingMap<RequestT, ResponseT> {
             if (batchContextMap.size() == maxBatchKeys) {
                 throw new IllegalStateException("Reached MaxBatchKeys of: " + maxBatchKeys);
             }
-            return new RequestBatchBuffer<>(scheduleFlush.get(), flushCondition);
+            return new RequestBatchBuffer<>(scheduleFlush.get(), maxBatchSize, maxBatchBytesSize);
         }).put(request, response);
+    }
+
+    public boolean contains(String batchKey) {
+        return batchContextMap.containsKey(batchKey);
     }
 
     public void putScheduledFlush(String batchKey, ScheduledFuture<?> scheduledFlush) {

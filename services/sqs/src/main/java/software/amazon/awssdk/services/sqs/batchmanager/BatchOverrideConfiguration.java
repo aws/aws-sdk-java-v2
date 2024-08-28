@@ -51,7 +51,8 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         this.maxBatchItems = Validate.isPositiveOrNull(builder.maxBatchItems, "maxBatchItems");
         this.maxBatchKeys = Validate.isPositiveOrNull(builder.maxBatchKeys, "maxBatchKeys");
         this.maxBufferSize = Validate.isPositiveOrNull(builder.maxBufferSize, "maxBufferSize");
-        this.batchSendRequestFrequency = Validate.isPositiveOrNull(builder.batchSendRequestFrequency, "batchSendRequestFrequency");
+        this.batchSendRequestFrequency = Validate.isPositiveOrNull(builder.batchSendRequestFrequency,
+                                                                   "batchSendRequestFrequency");
         this.visibilityTimeout = Validate.isPositiveOrNull(builder.visibilityTimeout, "visibilityTimeout");
         this.longPollWaitTimeout = Validate.isPositiveOrNull(builder.longPollWaitTimeout, "longPollWaitTimeout");
         this.minReceiveWaitTime = Validate.isPositiveOrNull(builder.minReceiveWaitTime, "minReceiveWaitTime");

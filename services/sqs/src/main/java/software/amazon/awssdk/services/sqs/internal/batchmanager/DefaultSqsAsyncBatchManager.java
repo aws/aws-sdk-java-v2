@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsMessageDefault.MAX_PAYLOAD_SIZE_BYTES;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -49,13 +51,24 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
 
         ScheduledExecutorService scheduledExecutor = builder.scheduledExecutor;
 
-        this.sendMessageBatchManager = new SendMessageBatchManager(new RequestBatchConfiguration(builder.overrideConfiguration),
+        RequestBatchConfiguration.Builder configBuilder =
+            builder.overrideConfiguration != null ?
+            RequestBatchConfiguration.builder()
+                                     .batchSendRequestFrequency(builder.overrideConfiguration.batchSendRequestFrequency())
+                                     .maxBatchItems(builder.overrideConfiguration.maxBatchItems())
+                                     .maxBufferSize(builder.overrideConfiguration.maxBufferSize())
+                                     .maxBatchKeys(builder.overrideConfiguration.maxBatchKeys())
+                                                  : RequestBatchConfiguration.builder();
+
+        this.sendMessageBatchManager = new SendMessageBatchManager(configBuilder
+                                                                       .maxBatchBytesSize(MAX_PAYLOAD_SIZE_BYTES)
+                                                                       .build(),
                                                                    scheduledExecutor,
                                                                    client);
-        this.deleteMessageBatchManager = new DeleteMessageBatchManager(new RequestBatchConfiguration(builder.overrideConfiguration),
+        this.deleteMessageBatchManager = new DeleteMessageBatchManager(configBuilder.build(),
                                                                        scheduledExecutor,
                                                                        client);
-        this.changeMessageVisibilityBatchManager = new ChangeMessageVisibilityBatchManager(new RequestBatchConfiguration(builder.overrideConfiguration),
+        this.changeMessageVisibilityBatchManager = new ChangeMessageVisibilityBatchManager(configBuilder.build(),
                                                                                            scheduledExecutor,
                                                                                            client);
 

@@ -29,7 +29,16 @@ public final class SqsMessageDefault {
     public static final int MAX_SEND_MESSAGE_BATCH_SIZE = 10;
 
 
-    public static final long MAX_PAYLOAD_SIZE_BYTES = 262_144; // 256 KiB
+    public static final int MAX_PAYLOAD_SIZE_BYTES = 262_144; // 256 KiB
+
+    /**
+     * <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-message-metadata.html#sqs-message-attributes">
+     * AWS SQS Message Attributes Documentation</a>
+     *
+     * Rounding up max payload due to attribute maps.
+     * This was not done in V1, thus an issue was reported where batch messages failed with payload size exceeding the maximum.
+     */
+    public static final int ATTRIBUTE_MAPS_PAYLOAD_BYTES = 16 * 1024; // 16 KiB
 
     private SqsMessageDefault() {
     }

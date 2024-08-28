@@ -15,27 +15,17 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsMessageDefault.MAX_PAYLOAD_SIZE_BYTES;
-
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
-import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
-import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
-import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
-import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeValue;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
@@ -55,67 +45,9 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
     protected SendMessageBatchManager(RequestBatchConfiguration overrideConfiguration,
                                       ScheduledExecutorService scheduledExecutor,
                                       SqsAsyncClient asyncClient) {
-        super(overrideConfiguration, scheduledExecutor, (stringBatchingExecutionContextMap, changeMessageVisibilityRequest)
-            -> shouldFlush(stringBatchingExecutionContextMap, changeMessageVisibilityRequest, overrideConfiguration)
-        );
+        super(overrideConfiguration, scheduledExecutor);
         this.asyncClient = asyncClient;
     }
-
-    public static long sum(SendMessageRequest request) {
-        int totalSize = 0;
-
-        // Calculate size of messageBody
-        if (request.messageBody() != null) {
-            totalSize += request.messageBody().getBytes(StandardCharsets.UTF_8).length;
-        }
-
-        // Calculate size of messageAttributes
-        if (request.messageAttributes() != null) {
-            totalSize += request.messageAttributes().entrySet().stream()
-                                .mapToInt(entry -> {
-                                    String key = entry.getKey();
-                                    MessageAttributeValue value = entry.getValue();
-                                    return key.getBytes(StandardCharsets.UTF_8).length +
-                                           value.dataType().getBytes(StandardCharsets.UTF_8).length +
-                                           (value.stringValue() != null ? value.stringValue().getBytes(StandardCharsets.UTF_8).length
-                                                              : 0);
-                                }).sum();
-        }
-
-        // Calculate size of messageSystemAttributes
-        if (request.messageSystemAttributes() != null) {
-            totalSize += request.messageSystemAttributes().entrySet().stream()
-                                .mapToInt(entry -> {
-                                    String key = entry.getKey().toString();
-                                    MessageSystemAttributeValue value = entry.getValue();
-                                    return key.getBytes(StandardCharsets.UTF_8).length +
-                                           (value.stringValue() != null ? value.stringValue().getBytes(StandardCharsets.UTF_8).length
-                                                              : 0);
-                                }).sum();
-        }
-
-        return totalSize ;
-    }
-
-
-    private static boolean shouldFlush(Map<String, BatchingExecutionContext<SendMessageRequest,
-        SendMessageResponse>> contextMap,
-                                       SendMessageRequest request, RequestBatchConfiguration configuration) {
-        if (request == null) {
-            return contextMap.size() > configuration.maxBatchItems();
-        }
-
-        if(contextMap.size() >= configuration.maxBatchItems()){
-            return true;
-        }
-        // Sum up all the responsePayload values in the contextMap
-        long totalPayloadSize = contextMap.values().stream()
-                                          .mapToLong(BatchingExecutionContext::responsePayload)
-                                          .sum();
-
-        return totalPayloadSize >= MAX_PAYLOAD_SIZE_BYTES;
-    }
-
 
     private static IdentifiableMessage<Throwable> sendMessageCreateThrowable(BatchResultErrorEntry failedEntry) {
         String key = failedEntry.id();
@@ -180,7 +112,7 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
 
     @Override
     protected CompletableFuture<SendMessageBatchResponse> batchAndSend(List<IdentifiableMessage<SendMessageRequest>>
-                                                                               identifiedRequests, String batchKey) {
+                                                                           identifiedRequests, String batchKey) {
         SendMessageBatchRequest batchRequest = createSendMessageBatchRequest(identifiedRequests, batchKey);
         return asyncClient.sendMessageBatch(batchRequest);
     }

@@ -17,17 +17,14 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
@@ -49,20 +46,8 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
     protected ChangeMessageVisibilityBatchManager(RequestBatchConfiguration overrideConfiguration,
                                                   ScheduledExecutorService scheduledExecutor,
                                                   SqsAsyncClient sqsAsyncClient) {
-        super(overrideConfiguration,
-              scheduledExecutor, (stringBatchingExecutionContextMap, changeMessageVisibilityRequest)
-                  -> shouldFlush(stringBatchingExecutionContextMap, changeMessageVisibilityRequest, overrideConfiguration)
-        );
+        super(overrideConfiguration, scheduledExecutor);
         this.sqsAsyncClient = sqsAsyncClient;
-    }
-
-    private static boolean shouldFlush(Map<String, BatchingExecutionContext<ChangeMessageVisibilityRequest,
-        ChangeMessageVisibilityResponse>> contextMap,
-                                       ChangeMessageVisibilityRequest request, RequestBatchConfiguration configuration) {
-        if (request != null) {
-            return false;
-        }
-        return contextMap.size() >= configuration.maxBatchItems();
     }
 
     private static ChangeMessageVisibilityBatchRequest createChangeMessageVisibilityBatchRequest(
@@ -79,10 +64,10 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
                                                                                             .overrideConfiguration();
         return overrideConfiguration.map(
                                         config -> ChangeMessageVisibilityBatchRequest.builder()
-                                                                                             .queueUrl(batchKey)
-                                                                                             .overrideConfiguration(config)
-                                                                                             .entries(entries)
-                                                                                             .build())
+                                                                                     .queueUrl(batchKey)
+                                                                                     .overrideConfiguration(config)
+                                                                                     .entries(entries)
+                                                                                     .build())
                                     .orElseGet(() -> ChangeMessageVisibilityBatchRequest.builder()
                                                                                         .queueUrl(batchKey)
                                                                                         .entries(entries)
@@ -119,7 +104,6 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
     }
 
 
-
     @Override
     protected CompletableFuture<ChangeMessageVisibilityBatchResponse> batchAndSend(
         List<IdentifiableMessage<ChangeMessageVisibilityRequest>> identifiedRequests, String batchKey) {
@@ -130,8 +114,8 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
 
     @Override
     protected String getBatchKey(ChangeMessageVisibilityRequest request) {
-        return  request.overrideConfiguration().map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
-                       .orElseGet(request::queueUrl);
+        return request.overrideConfiguration().map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
+                      .orElseGet(request::queueUrl);
     }
 
     @Override

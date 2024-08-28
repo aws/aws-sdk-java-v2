@@ -27,8 +27,6 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
-import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
-import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchResponse;
@@ -48,9 +46,7 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
     protected DeleteMessageBatchManager(RequestBatchConfiguration overrideConfiguration,
                                         ScheduledExecutorService scheduledExecutor,
                                         SqsAsyncClient sqsAsyncClient) {
-        super(overrideConfiguration, scheduledExecutor, (stringBatchingExecutionContextMap, changeMessageVisibilityRequest)
-            -> shouldFlush(stringBatchingExecutionContextMap, changeMessageVisibilityRequest, overrideConfiguration)
-        );
+        super(overrideConfiguration, scheduledExecutor);
         this.sqsAsyncClient = sqsAsyncClient;
     }
 
@@ -63,7 +59,6 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
         }
         return contextMap.size() >= configuration.maxBatchItems();
     }
-
 
 
     private static DeleteMessageBatchRequest createDeleteMessageBatchRequest(

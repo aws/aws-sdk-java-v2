@@ -26,14 +26,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiPredicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
+    protected final RequestBatchConfiguration batchConfiguration ;
+
     private final int maxBatchItems;
     private final Duration batchSendRequestFrequency;
     private final BatchingMap<RequestT, ResponseT> requestsAndResponsesMaps;
@@ -41,19 +41,19 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
 
     private final Set<CompletableFuture<BatchResponseT>> pendingBatchResponses ;
     private final Set<CompletableFuture<ResponseT>> pendingResponses ;
-    protected final RequestBatchConfiguration batchConfiguration ;
 
 
     protected RequestBatchManager(RequestBatchConfiguration overrideConfiguration,
-                                  ScheduledExecutorService scheduledExecutor,
-                                  BiPredicate<Map<String, BatchingExecutionContext<RequestT, ResponseT>>, RequestT> flushCondition ) {
+                                  ScheduledExecutorService scheduledExecutor) {
         batchConfiguration = overrideConfiguration;
         this.maxBatchItems = batchConfiguration.maxBatchItems();
         this.batchSendRequestFrequency = batchConfiguration.batchSendRequestFrequency();
         this.scheduledExecutor = Validate.notNull(scheduledExecutor, "Null scheduledExecutor");
         pendingBatchResponses = Collections.newSetFromMap(new ConcurrentHashMap<>());
         pendingResponses = Collections.newSetFromMap(new ConcurrentHashMap<>());
-        this.requestsAndResponsesMaps = new BatchingMap<>(batchConfiguration.maxBatchKeys(), flushCondition);
+        this.requestsAndResponsesMaps = new BatchingMap<>(batchConfiguration.maxBatchKeys(),
+                                                          overrideConfiguration.maxBatchBytesSize(),
+                                                          overrideConfiguration.maxBatchItems());
 
     }
 
@@ -62,10 +62,13 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
         pendingResponses.add(response);
         try {
             String batchKey = getBatchKey(request);
-            // Consider the current request to calculate in advance the size before adding
-            flushBufferIfNeeded(batchKey, request);
+            // If there are bufferred messages then make sure adding a new message will not cause overflow of maxBytesSize
+            if (requestsAndResponsesMaps.contains(batchKey)) {
+                flushBufferIfNeeded(batchKey, request);
+            }
             requestsAndResponsesMaps.put(batchKey,
-                                         () -> scheduleBufferFlush(batchKey, batchSendRequestFrequency.toMillis(), scheduledExecutor),
+                                         () -> scheduleBufferFlush(batchKey, batchSendRequestFrequency.toMillis(),
+                                                                   scheduledExecutor),
                                          request,
                                          response);
             flushBufferIfNeeded(batchKey, null);

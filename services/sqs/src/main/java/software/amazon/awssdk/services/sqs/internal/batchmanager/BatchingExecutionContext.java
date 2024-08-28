@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
@@ -24,12 +25,12 @@ public final class BatchingExecutionContext<RequestT, ResponseT> {
     private final RequestT request;
     private final CompletableFuture<ResponseT> response;
 
-    private final long responsePayload;
+    private final Optional<Long> responsePayload;
 
     public BatchingExecutionContext(RequestT request, CompletableFuture<ResponseT> response) {
         this.request = request;
         this.response = response;
-        responsePayload = ResponsePayloadCalculator.calculateMessageSize(request);
+        responsePayload = RequestPayloadCalculator.calculateMessageSize(request);
     }
 
     public RequestT request() {
@@ -41,7 +42,7 @@ public final class BatchingExecutionContext<RequestT, ResponseT> {
     }
 
 
-    public long responsePayload() {
+    public Optional<Long> responsePayload() {
         return responsePayload;
     }
 }

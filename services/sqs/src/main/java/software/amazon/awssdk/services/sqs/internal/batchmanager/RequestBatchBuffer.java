@@ -23,32 +23,26 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public final class RequestBatchBuffer<RequestT, ResponseT>  {
+public final class RequestBatchBuffer<RequestT, ResponseT> {
     private final Object flushLock = new Object();
 
     private final Map<String, BatchingExecutionContext<RequestT, ResponseT>> idToBatchContext;
-
-
-    private BiPredicate<Map<String, BatchingExecutionContext<RequestT, ResponseT>>, RequestT> flushCondition ;
-
+    private final int maxBatchItems;
+    private final int maxBatchSizeInBytes;
     /**
      * Batch entries in a batch request require a unique ID so nextId keeps track of the ID to assign to the next
      * BatchingExecutionContext. For simplicity, the ID is just an integer that is incremented everytime a new request and
      * response pair is received.
      */
     private int nextId;
-    private int maxBatchItems;
-
     /**
-     * Keeps track of the ID of the next entry to be added in a batch request. This ID does not necessarily correlate to a
-     * request that already exists in the idToBatchContext map since it refers to the next entry (ex. if the last entry added
-     * to idToBatchContext had an id of 22, nextBatchEntry will have a value of 23).
+     * Keeps track of the ID of the next entry to be added in a batch request. This ID does not necessarily correlate to a request
+     * that already exists in the idToBatchContext map since it refers to the next entry (ex. if the last entry added to
+     * idToBatchContext had an id of 22, nextBatchEntry will have a value of 23).
      */
     private int nextBatchEntry;
 
@@ -58,27 +52,50 @@ public final class RequestBatchBuffer<RequestT, ResponseT>  {
     private ScheduledFuture<?> scheduledFlush;
 
     public RequestBatchBuffer(ScheduledFuture<?> scheduledFlush,
-                              BiPredicate<Map<String, BatchingExecutionContext<RequestT, ResponseT>>, RequestT> flushCondition) {
+                              int maxBatchItems, int maxBatchSizeInBytes) {
         this.idToBatchContext = new ConcurrentHashMap<>();
         this.nextId = 0;
         this.nextBatchEntry = 0;
         this.scheduledFlush = scheduledFlush;
-        this.flushCondition = flushCondition;
+        this.maxBatchItems = maxBatchItems;
+        this.maxBatchSizeInBytes = maxBatchSizeInBytes;
     }
 
+    /**
+     * When request is null it checks if current contents in idToBatchContext are flushable. When request is passed it calculate
+     * if the new request can overflow of ByteSize if yes then it flushes the messages
+     */
     public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests(RequestT request) {
         synchronized (flushLock) {
-            if (flushCondition.test(idToBatchContext, request)) {
+            if (isByteSizeThresholdCrossed(request) || isMaxBatchSizeLimitReached(request)) {
                 return extractFlushedEntries(maxBatchItems);
             }
+
             return new ConcurrentHashMap<>();
         }
+    }
+
+    private boolean isMaxBatchSizeLimitReached(RequestT request) {
+        int batchSizeLimit = request != null ? this.maxBatchItems + 1 : this.maxBatchItems;
+        return idToBatchContext.size() >= batchSizeLimit;
+    }
+
+    private boolean isByteSizeThresholdCrossed(RequestT request) {
+        if (maxBatchSizeInBytes < 0) {
+            return false;
+        }
+        long incomingRequestBytes = RequestPayloadCalculator.calculateMessageSize(request).orElse(0L);
+        long totalPayloadSize = idToBatchContext.values().stream()
+                                                .map(BatchingExecutionContext::responsePayload)
+                                                .mapToLong(opt -> opt.orElse(0L))
+                                                .sum() + incomingRequestBytes;
+        return totalPayloadSize > maxBatchSizeInBytes;
     }
 
 
     public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableScheduledRequests(int maxBatchItems) {
         synchronized (flushLock) {
-            if (idToBatchContext.size() > 0) {
+            if (!idToBatchContext.isEmpty()) {
                 return extractFlushedEntries(maxBatchItems);
             }
             return new ConcurrentHashMap<>();
