@@ -64,8 +64,8 @@ public final class CrtFileUpload implements FileUpload {
 
         boolean futureCompletedExceptionally = completionFuture.isCompletedExceptionally();
         if (completionFuture.isDone()
-            // TODO - uncomment once CRT handles future completed exceptionally to return ResumeToken
-            //&& !futureCompletedExceptionally
+        // TODO - uncomment once CRT handles future completed exceptionally to return ResumeToken
+        //&& !futureCompletedExceptionally
         ) {
             log.debug(() -> "The upload future was completed. There will be no ResumeToken returned.");
 
@@ -94,7 +94,7 @@ public final class CrtFileUpload implements FileUpload {
         if (token == null) {
             if (futureCompletedExceptionally) {
                 log.debug(() -> "The upload future was completed exceptionally and the ResumeToken returned by the "
-                                + "S3MetaRequest was null.");
+                                + "S3 MetaRequest was null.");
             } else {
                 log.debug(() -> "The upload hasn't started yet or it's a single object upload. There will be no ResumeToken "
                                 + "returned");
