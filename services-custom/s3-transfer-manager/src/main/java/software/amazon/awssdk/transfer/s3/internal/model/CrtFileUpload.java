@@ -63,10 +63,7 @@ public final class CrtFileUpload implements FileUpload {
         File sourceFile = request.source().toFile();
 
         boolean futureCompletedExceptionally = completionFuture.isCompletedExceptionally();
-        if (completionFuture.isDone()
-        // TODO - uncomment once CRT handles future completed exceptionally to return ResumeToken
-        //&& !futureCompletedExceptionally
-        ) {
+        if (completionFuture.isDone() && !futureCompletedExceptionally) {
             log.debug(() -> "The upload future was completed. There will be no ResumeToken returned.");
 
             Instant fileLastModified = Instant.ofEpochMilli(sourceFile.lastModified());
@@ -92,6 +89,7 @@ public final class CrtFileUpload implements FileUpload {
 
         completionFuture.cancel(true);
         if (token == null) {
+            // TODO - remove once CRT handles future completed exceptionally to return ResumeToken
             if (futureCompletedExceptionally) {
                 log.debug(() -> "The upload future was completed exceptionally and the ResumeToken returned by the "
                                 + "S3 MetaRequest was null.");
