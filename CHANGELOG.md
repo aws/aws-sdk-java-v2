@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.16__ __2024-08-29__
+## __AWS Step Functions__
+  - ### Features
+    - This release adds support for static analysis to ValidateStateMachineDefinition API, which can now return optional WARNING diagnostics for semantic errors on the definition of an Amazon States Language (ASL) state machine.
+
+## __AWS WAFV2__
+  - ### Features
+    - The minimum request rate for a rate-based rule is now 10. Before this, it was 100.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Lifting the maximum length on Bedrock KnowledgeBase RetrievalFilter array
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Add support for imported-model in invokeModel and InvokeModelWithResponseStream.
+
+## __Amazon Personalize__
+  - ### Features
+    - This releases ability to update automatic training scheduler for customer solutions
+
+## __Amazon QuickSight__
+  - ### Features
+    - Increased Character Limit for Dataset Calculation Field expressions
+
 # __2.27.15__ __2024-08-28__
 ## __AWS Device Farm__
   - ### Features
