@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Agents for Amazon Bedrock Runtime",
-    "contributor": "",
-    "description": "Lifting the maximum length on Bedrock KnowledgeBase RetrievalFilter array"
-}
