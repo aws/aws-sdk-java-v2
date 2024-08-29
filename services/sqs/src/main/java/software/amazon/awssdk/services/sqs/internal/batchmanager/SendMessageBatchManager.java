@@ -25,7 +25,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
@@ -43,7 +42,7 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
 
     private final SqsAsyncClient asyncClient;
 
-    protected SendMessageBatchManager(BatchOverrideConfiguration overrideConfiguration,
+    protected SendMessageBatchManager(RequestBatchConfiguration overrideConfiguration,
                                       ScheduledExecutorService scheduledExecutor,
                                       SqsAsyncClient asyncClient) {
         super(overrideConfiguration, scheduledExecutor);
@@ -113,7 +112,7 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
 
     @Override
     protected CompletableFuture<SendMessageBatchResponse> batchAndSend(List<IdentifiableMessage<SendMessageRequest>>
-                                                                               identifiedRequests, String batchKey) {
+                                                                           identifiedRequests, String batchKey) {
         SendMessageBatchRequest batchRequest = createSendMessageBatchRequest(identifiedRequests, batchKey);
         return asyncClient.sendMessageBatch(batchRequest);
     }
@@ -139,4 +138,5 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
         });
         return mappedResponses;
     }
+
 }

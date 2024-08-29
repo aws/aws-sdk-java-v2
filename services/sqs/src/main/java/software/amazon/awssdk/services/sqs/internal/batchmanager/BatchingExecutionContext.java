@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
@@ -24,9 +25,12 @@ public final class BatchingExecutionContext<RequestT, ResponseT> {
     private final RequestT request;
     private final CompletableFuture<ResponseT> response;
 
+    private final Optional<Integer> responsePayloadByteSize;
+
     public BatchingExecutionContext(RequestT request, CompletableFuture<ResponseT> response) {
         this.request = request;
         this.response = response;
+        responsePayloadByteSize = RequestPayloadCalculator.calculateMessageSize(request);
     }
 
     public RequestT request() {
@@ -35,5 +39,12 @@ public final class BatchingExecutionContext<RequestT, ResponseT> {
 
     public CompletableFuture<ResponseT> response() {
         return response;
+    }
+
+    /**
+     * Optional because responsePayloadByteSize is required only for SendMessageRequests and not for other requests.
+     */
+    public Optional<Integer> responsePayloadByteSize() {
+        return responsePayloadByteSize;
     }
 }

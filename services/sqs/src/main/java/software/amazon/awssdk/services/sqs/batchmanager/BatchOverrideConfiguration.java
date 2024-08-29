@@ -170,7 +170,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
                        .add("maxBatchItems", maxBatchItems)
                        .add("maxBatchKeys", maxBatchKeys)
                        .add("maxBufferSize", maxBufferSize)
-                       .add("maxBatchOpenDuration", maxBatchOpenDuration.toMillis())
+                       .add("maxBatchOpenDuration", maxBatchOpenDuration)
                        .add("visibilityTimeout", visibilityTimeout)
                        .add("longPollWaitTimeout", longPollWaitTimeout)
                        .add("minReceiveWaitTime", minReceiveWaitTime)

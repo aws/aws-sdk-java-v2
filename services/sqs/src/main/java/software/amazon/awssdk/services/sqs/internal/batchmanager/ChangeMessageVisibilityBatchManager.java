@@ -25,7 +25,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
@@ -43,7 +42,7 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
 
     private final SqsAsyncClient sqsAsyncClient;
 
-    protected ChangeMessageVisibilityBatchManager(BatchOverrideConfiguration overrideConfiguration,
+    protected ChangeMessageVisibilityBatchManager(RequestBatchConfiguration overrideConfiguration,
                                                   ScheduledExecutorService scheduledExecutor,
                                                   SqsAsyncClient sqsAsyncClient) {
         super(overrideConfiguration, scheduledExecutor);
@@ -64,10 +63,10 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
                                                                                             .overrideConfiguration();
         return overrideConfiguration.map(
                                         config -> ChangeMessageVisibilityBatchRequest.builder()
-                                                                                             .queueUrl(batchKey)
-                                                                                             .overrideConfiguration(config)
-                                                                                             .entries(entries)
-                                                                                             .build())
+                                                                                     .queueUrl(batchKey)
+                                                                                     .overrideConfiguration(config)
+                                                                                     .entries(entries)
+                                                                                     .build())
                                     .orElseGet(() -> ChangeMessageVisibilityBatchRequest.builder()
                                                                                         .queueUrl(batchKey)
                                                                                         .entries(entries)
@@ -102,8 +101,6 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
         Throwable response = SqsException.builder().awsErrorDetails(errorDetailsBuilder).build();
         return new IdentifiableMessage<>(key, response);
     }
-
-
 
     @Override
     protected CompletableFuture<ChangeMessageVisibilityBatchResponse> batchAndSend(

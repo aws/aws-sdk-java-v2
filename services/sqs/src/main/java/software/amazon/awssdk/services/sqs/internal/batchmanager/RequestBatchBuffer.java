@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
+
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -23,29 +25,26 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 @SdkInternalApi
-public final class RequestBatchBuffer<RequestT, ResponseT>  {
+public final class RequestBatchBuffer<RequestT, ResponseT> {
     private final Object flushLock = new Object();
 
     private final Map<String, BatchingExecutionContext<RequestT, ResponseT>> idToBatchContext;
-
-    /**
-     * Maximum number of elements that can be included in the BatchBuffer.
-     */
+    private final int maxBatchItems;
     private final int maxBufferSize;
-
+    private final int maxBatchSizeInBytes;
     /**
      * Batch entries in a batch request require a unique ID so nextId keeps track of the ID to assign to the next
      * BatchingExecutionContext. For simplicity, the ID is just an integer that is incremented everytime a new request and
      * response pair is received.
      */
     private int nextId;
-
     /**
-     * Keeps track of the ID of the next entry to be added in a batch request. This ID does not necessarily correlate to a
-     * request that already exists in the idToBatchContext map since it refers to the next entry (ex. if the last entry added
-     * to idToBatchContext had an id of 22, nextBatchEntry will have a value of 23).
+     * Keeps track of the ID of the next entry to be added in a batch request. This ID does not necessarily correlate to a request
+     * that already exists in the idToBatchContext map since it refers to the next entry (ex. if the last entry added to
+     * idToBatchContext had an id of 22, nextBatchEntry will have a value of 23).
      */
     private int nextBatchEntry;
 
@@ -54,29 +53,59 @@ public final class RequestBatchBuffer<RequestT, ResponseT>  {
      */
     private ScheduledFuture<?> scheduledFlush;
 
-    public RequestBatchBuffer(int maxBufferSize, ScheduledFuture<?> scheduledFlush) {
+    public RequestBatchBuffer(ScheduledFuture<?> scheduledFlush,
+                              int maxBatchItems, int maxBatchSizeInBytes, int maxBufferSize) {
         this.idToBatchContext = new ConcurrentHashMap<>();
-        this.maxBufferSize = maxBufferSize;
         this.nextId = 0;
         this.nextBatchEntry = 0;
         this.scheduledFlush = scheduledFlush;
+        this.maxBatchItems = maxBatchItems;
+        this.maxBufferSize = maxBufferSize;
+        this.maxBatchSizeInBytes = maxBatchSizeInBytes;
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests(int maxBatchItems) {
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests() {
         synchronized (flushLock) {
-            if (idToBatchContext.size() >= maxBatchItems) {
-                return extractFlushedEntries(maxBatchItems);
-            }
-            return new ConcurrentHashMap<>();
+            return (isByteSizeThresholdCrossed(0) || isMaxBatchSizeLimitReached())
+                   ? extractFlushedEntries(maxBatchItems)
+                   : Collections.emptyMap();
         }
+    }
+
+
+    private boolean isMaxBatchSizeLimitReached() {
+        return idToBatchContext.size() >= maxBatchItems;
+    }
+
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequestsOnByteLimitBeforeAdd(RequestT request) {
+        synchronized (flushLock) {
+            if (maxBatchSizeInBytes > 0 && !idToBatchContext.isEmpty()) {
+                int incomingRequestBytes = RequestPayloadCalculator.calculateMessageSize(request).orElse(0);
+                if (isByteSizeThresholdCrossed(incomingRequestBytes)) {
+                    return extractFlushedEntries(maxBatchItems);
+                }
+            }
+            return Collections.emptyMap();
+        }
+    }
+
+    private boolean isByteSizeThresholdCrossed(int incomingRequestBytes) {
+        if (maxBatchSizeInBytes < 0) {
+            return false;
+        }
+        int totalPayloadSize = idToBatchContext.values().stream()
+                                               .map(BatchingExecutionContext::responsePayloadByteSize)
+                                               .mapToInt(opt -> opt.orElse(0))
+                                               .sum() + incomingRequestBytes;
+        return totalPayloadSize > maxBatchSizeInBytes;
     }
 
     public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableScheduledRequests(int maxBatchItems) {
         synchronized (flushLock) {
-            if (idToBatchContext.size() > 0) {
+            if (!idToBatchContext.isEmpty()) {
                 return extractFlushedEntries(maxBatchItems);
             }
-            return new ConcurrentHashMap<>();
+            return Collections.emptyMap();
         }
     }
 
