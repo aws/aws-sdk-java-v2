@@ -33,7 +33,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
-import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
 import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
 import software.amazon.awssdk.awscore.eventstream.EventStreamInitialRequestInterceptor;
@@ -44,6 +44,7 @@ import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfigur
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeResolver;
 import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
+import software.amazon.awssdk.core.SdkClientEndpointProvider;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -181,11 +182,15 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                         this::resolveDefaultS3UsEast1RegionalEndpoint)
                             .lazyOptionIfAbsent(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER,
                                                 this::resolveCredentialsIdentityProvider)
-                            // CREDENTIALS_PROVIDER is also set, since older clients may be relying on it
+                            // Set CREDENTIALS_PROVIDER, because older clients may be relying on it
                             .lazyOptionIfAbsent(AwsClientOption.CREDENTIALS_PROVIDER, this::resolveCredentialsProvider)
+                            .lazyOptionIfAbsent(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, this::resolveClientEndpointProvider)
+                            // Set ENDPOINT and ENDPOINT_OVERRIDDEN, because older clients may be relying on it
                             .lazyOptionIfAbsent(SdkClientOption.ENDPOINT, this::resolveEndpoint)
+                            .lazyOptionIfAbsent(SdkClientOption.ENDPOINT_OVERRIDDEN, this::resolveEndpointOverridden)
                             .lazyOption(AwsClientOption.SIGNING_REGION, this::resolveSigningRegion)
                             .lazyOption(SdkClientOption.HTTP_CLIENT_CONFIG, this::resolveHttpClientConfig)
+                            .applyMutation(this::configureEndpointOverride)
                             .applyMutation(this::configureRetryPolicy)
                             .applyMutation(this::configureRetryStrategy)
                             .lazyOptionIfAbsent(SdkClientOption.IDENTITY_PROVIDERS, this::resolveIdentityProviders)
@@ -293,19 +298,37 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                               .signingRegion(config.get(AwsClientOption.AWS_REGION));
     }
 
+    private SdkClientEndpointProvider resolveClientEndpointProvider(LazyValueSource config) {
+        ServiceMetadataAdvancedOption<String> useGlobalS3EndpointProperty =
+            ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT;
+        return AwsClientEndpointProvider.builder()
+                                        .serviceEndpointPrefix(serviceEndpointPrefix())
+                                        .protocol(DEFAULT_ENDPOINT_PROTOCOL)
+                                        .region(config.get(AwsClientOption.AWS_REGION))
+                                        .profileFile(config.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                        .profileName(config.get(SdkClientOption.PROFILE_NAME))
+                                        .putAdvancedOption(useGlobalS3EndpointProperty,
+                                                           config.get(useGlobalS3EndpointProperty))
+                                        .dualstackEnabled(config.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+                                        .fipsEnabled(config.get(AwsClientOption.FIPS_ENDPOINT_ENABLED))
+                                        .environmentCredentialsEnabled(false)
+                                        .build();
+    }
+
     /**
-     * Resolve the endpoint from the default-applied configuration.
+     * Resolve client endpoint. This code is only needed by old SDK client versions. Newer SDK client versions resolve
+     * the endpoint themselves.
      */
     private URI resolveEndpoint(LazyValueSource config) {
-        return new DefaultServiceEndpointBuilder(serviceEndpointPrefix(), DEFAULT_ENDPOINT_PROTOCOL)
-            .withRegion(config.get(AwsClientOption.AWS_REGION))
-            .withProfileFile(config.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-            .withProfileName(config.get(SdkClientOption.PROFILE_NAME))
-            .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
-                               config.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
-            .withDualstackEnabled(config.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
-            .withFipsEnabled(config.get(AwsClientOption.FIPS_ENDPOINT_ENABLED))
-            .getServiceEndpoint();
+        return config.get(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint();
+    }
+
+    /**
+     * Resolve whether the endpoint was overridden client endpoint provider. This code is only needed by old SDK client
+     * versions. Newer SDK client versions resolve this information themselves.
+     */
+    private boolean resolveEndpointOverridden(LazyValueSource config) {
+        return config.get(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).isEndpointOverridden();
     }
 
     /**
@@ -366,6 +389,12 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     private AwsCredentialsProvider resolveCredentialsProvider(LazyValueSource config) {
         return CredentialUtils.toCredentialsProvider(config.get(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER));
+    }
+
+    private void configureEndpointOverride(SdkClientConfiguration.Builder builder) {
+        if (builder.option(SdkClientOption.ENDPOINT) == null) {
+
+        }
     }
 
     private void configureRetryPolicy(SdkClientConfiguration.Builder config) {

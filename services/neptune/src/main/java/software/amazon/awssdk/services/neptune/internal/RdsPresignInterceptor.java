@@ -25,13 +25,12 @@ import java.time.ZoneOffset;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -218,20 +217,15 @@ public abstract class RdsPresignInterceptor<T extends NeptuneRequest> implements
     }
 
     private URI createEndpoint(String regionName, String serviceName, ExecutionAttributes attributes) {
-        Region region = Region.of(regionName);
-        if (region == null) {
-            throw SdkClientException.builder()
-                                    .message("{" + serviceName + ", " + regionName + "} was not "
-                                             + "found in region metadata. Update to latest version of SDK and try again.")
-                                    .build();
-        }
-
-        return new DefaultServiceEndpointBuilder(SERVICE_NAME, Protocol.HTTPS.toString())
-            .withRegion(region)
-            .withProfileFile(attributes.getAttribute(SdkExecutionAttribute.PROFILE_FILE_SUPPLIER))
-            .withProfileName(attributes.getAttribute(SdkExecutionAttribute.PROFILE_NAME))
-            .withDualstackEnabled(attributes.getAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED))
-            .withFipsEnabled(attributes.getAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED))
-            .getServiceEndpoint();
+        return AwsClientEndpointProvider.builder()
+                                        .serviceName(SERVICE_NAME)
+                                        .protocol(Protocol.HTTPS.toString())
+                                        .region(Region.of(regionName))
+                                        .profileFile(attributes.getAttribute(SdkExecutionAttribute.PROFILE_FILE_SUPPLIER))
+                                        .profileName(attributes.getAttribute(SdkExecutionAttribute.PROFILE_NAME))
+                                        .dualstackEnabled(attributes.getAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED))
+                                        .fipsEnabled(attributes.getAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED))
+                                        .build()
+                                        .clientEndpoint();
     }
 }

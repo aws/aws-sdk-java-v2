@@ -71,6 +71,7 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.CompressionConfiguration;
+import software.amazon.awssdk.core.SdkClientEndpointProvider;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
@@ -534,12 +535,10 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     @Override
     public final B endpointOverride(URI endpointOverride) {
         if (endpointOverride == null) {
-            clientConfiguration.option(SdkClientOption.ENDPOINT, null);
-            clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN, false);
+            clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, null);
         } else {
-            Validate.paramNotNull(endpointOverride.getScheme(), "The URI scheme of endpointOverride");
-            clientConfiguration.option(SdkClientOption.ENDPOINT, endpointOverride);
-            clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN, true);
+            clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                       SdkClientEndpointProvider.forOverrideEndpoint(endpointOverride));
         }
         return thisBuilder();
     }

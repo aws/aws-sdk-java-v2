@@ -21,7 +21,6 @@ import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttrib
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
-import java.net.URI;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -41,7 +40,7 @@ import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
-import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
@@ -238,23 +237,26 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      * Copied from {@link AwsDefaultClientBuilder}.
      */
     private SdkClientConfiguration createClientConfiguration() {
-        if (endpointOverride() != null) {
-            return SdkClientConfiguration.builder()
-                                         .option(SdkClientOption.ENDPOINT, endpointOverride())
-                                         .option(SdkClientOption.ENDPOINT_OVERRIDDEN, true)
-                                         .build();
-        } else {
-            URI defaultEndpoint = new DefaultServiceEndpointBuilder(SERVICE_NAME, "https")
-                .withRegion(region())
-                .withProfileFile(profileFileSupplier())
-                .withProfileName(profileName())
-                .withDualstackEnabled(serviceConfiguration.dualstackEnabled())
-                .withFipsEnabled(fipsEnabled())
-                .getServiceEndpoint();
-            return SdkClientConfiguration.builder()
-                                         .option(SdkClientOption.ENDPOINT, defaultEndpoint)
-                                         .build();
-        }
+        AwsClientEndpointProvider endpointResolver =
+            AwsClientEndpointProvider.builder()
+                                     .clientEndpointOverride(endpointOverride())
+                                     .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_S3")
+                                     .serviceEndpointOverrideSystemProperty("aws.endpointUrlS3")
+                                     .serviceProfileProperty("s3")
+                                     .serviceEndpointPrefix(SERVICE_NAME)
+                                     .protocol("https")
+                                     .region(region())
+                                     .profileFile(profileFileSupplier())
+                                     .profileName(profileName())
+                                     .dualstackEnabled(serviceConfiguration.dualstackEnabled())
+                                     .fipsEnabled(fipsEnabled())
+                                     .build();
+
+        return SdkClientConfiguration.builder()
+                                     .option(SdkClientOption.ENDPOINT, endpointResolver.clientEndpoint())
+                                     .option(SdkClientOption.ENDPOINT_OVERRIDDEN,
+                                             endpointResolver.isEndpointOverridden())
+                                     .build();
     }
 
     @Override

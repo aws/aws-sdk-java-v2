@@ -35,7 +35,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
-import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
 import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
@@ -427,14 +427,20 @@ public final class S3Utilities {
      * If endpoint is not present, construct a default endpoint using the region information.
      */
     private URI resolveEndpoint(URI overrideEndpoint, Region region) {
-        return overrideEndpoint != null
-               ? overrideEndpoint
-               : new DefaultServiceEndpointBuilder("s3", "https").withRegion(region)
-                                                                 .withProfileFile(profileFile)
-                                                                 .withProfileName(profileName)
-                                                                 .withDualstackEnabled(s3Configuration.dualstackEnabled())
-                                                                 .withFipsEnabled(fipsEnabled)
-                                                                 .getServiceEndpoint();
+        return AwsClientEndpointProvider.builder()
+                                        .clientEndpointOverride(overrideEndpoint)
+                                        .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_S3")
+                                        .serviceEndpointOverrideSystemProperty("aws.endpointUrlS3")
+                                        .serviceProfileProperty("s3")
+                                        .serviceEndpointPrefix(SERVICE_NAME)
+                                        .protocol("https")
+                                        .region(region)
+                                        .profileFile(profileFile)
+                                        .profileName(profileName)
+                                        .dualstackEnabled(s3Configuration.dualstackEnabled())
+                                        .fipsEnabled(fipsEnabled)
+                                        .build()
+                                        .clientEndpoint();
     }
 
     private URI getEndpointOverride(GetUrlRequest request) {

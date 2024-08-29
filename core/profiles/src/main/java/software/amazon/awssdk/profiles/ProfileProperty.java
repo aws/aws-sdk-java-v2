@@ -171,6 +171,8 @@ public final class ProfileProperty {
      */
     public static final String REQUEST_MIN_COMPRESSION_SIZE_BYTES = "request_min_compression_size_bytes";
 
+    public static final String ENDPOINT_URL = "endpoint_url";
+
     private ProfileProperty() {
     }
 }

@@ -436,7 +436,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
             builder.addCode("endpointFuture = identityFuture.thenCompose(credentials -> {")
                    .addCode("    $1T endpointDiscoveryRequest = $1T.builder()", EndpointDiscoveryRequest.class)
                    .addCode("        .required($L)", opModel.getInputShape().getEndpointDiscovery().isRequired())
-                   .addCode("        .defaultEndpoint(clientConfiguration.option($T.ENDPOINT))", SdkClientOption.class)
+                   .addCode("        .defaultEndpoint(clientConfiguration.option($T.CLIENT_ENDPOINT_PROVIDER).clientEndpoint())",
+                            SdkClientOption.class)
                    .addCode("        .overrideConfiguration($N.overrideConfiguration().orElse(null))",
                             opModel.getInput().getVariableName())
                    .addCode("        .build();")
