@@ -142,7 +142,6 @@ public class DefaultFileUploadWireMockTest {
             ResumableFileUpload resumableFileUpload = fileUpload.pause();
             assertThat(resumableFileUpload.multipartUploadId()).isPresent();
             assertThat(resumableFileUpload.multipartUploadId().get()).isEqualTo("uploadId");
-
         }
     }
 
