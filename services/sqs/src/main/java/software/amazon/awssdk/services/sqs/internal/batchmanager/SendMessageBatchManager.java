@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsMessageDefault.USER_AGENT_APPLIER;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -83,19 +85,31 @@ public class SendMessageBatchManager extends RequestBatchManager<SendMessageRequ
 
     private static SendMessageBatchRequest createSendMessageBatchRequest(
         List<IdentifiableMessage<SendMessageRequest>> identifiedRequests, String batchKey) {
-        List<SendMessageBatchRequestEntry> entries = identifiedRequests
-            .stream()
-            .map(identifiedRequest -> createSendMessageBatchRequestEntry(identifiedRequest.id(), identifiedRequest.message()))
-            .collect(Collectors.toList());
-        // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration,
-        // all requests must have the same overrideConfiguration so it is sufficient to retrieve it from the first
-        // request.
-        Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0).message()
+
+        List<SendMessageBatchRequestEntry> entries =
+            identifiedRequests.stream()
+                              .map(identifiedRequest -> createSendMessageBatchRequestEntry(identifiedRequest.id(),
+                                                                                           identifiedRequest.message()))
+                              .collect(Collectors.toList());
+
+        // All requests must have the same overrideConfiguration, so retrieve it from the first request.
+        Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
+                                                                                            .message()
                                                                                             .overrideConfiguration();
-        return overrideConfiguration.map(
-            overrideConfig -> SendMessageBatchRequest.builder().queueUrl(batchKey).overrideConfiguration(overrideConfig)
-                                                     .entries(entries).build()).orElse(
-            SendMessageBatchRequest.builder().queueUrl(batchKey).entries(entries).build());
+
+        return overrideConfiguration
+            .map(overrideConfig -> SendMessageBatchRequest.builder()
+                                                          .queueUrl(batchKey)
+                                                          .overrideConfiguration(overrideConfig.toBuilder()
+                                                                                               .applyMutation(USER_AGENT_APPLIER)
+                                                                                               .build())
+                                                          .entries(entries)
+                                                          .build())
+            .orElseGet(() -> SendMessageBatchRequest.builder()
+                                                    .queueUrl(batchKey)
+                                                    .overrideConfiguration(o -> o.applyMutation(USER_AGENT_APPLIER))
+                                                    .entries(entries)
+                                                    .build());
     }
 
     private static SendMessageBatchRequestEntry createSendMessageBatchRequestEntry(String id, SendMessageRequest request) {

@@ -30,12 +30,11 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
-import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
-import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
 
@@ -44,7 +43,6 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
 
     private static SqsAsyncClient client;
     private SqsAsyncBatchManager batchManager;
-
 
 
     private static SqsAsyncClientBuilder getAsyncClientBuilder(URI httpLocalhostUri) {
@@ -82,6 +80,11 @@ public class SqsAsyncBatchManagerTest extends BaseSqsBatchManagerTest {
         responses.add(batchManager.sendMessage(builder -> builder.queueUrl(DEFAULT_QUEUE_URL).messageBody(message1)));
         responses.add(batchManager.sendMessage(builder -> builder.queueUrl(DEFAULT_QUEUE_URL).messageBody(message2)));
         return responses;
+    }
+
+    @Override
+    public CompletableFuture<ReceiveMessageResponse> createAndReceiveMessage(ReceiveMessageRequest request) {
+        return batchManager.receiveMessage(request);
     }
 
     @Override
