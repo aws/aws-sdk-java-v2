@@ -17,6 +17,7 @@ package software.amazon.awssdk.protocols.json;
 
 import static java.util.Collections.unmodifiableList;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -49,6 +50,7 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonProtocol
 import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonResponseHandler;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonResponseHandler;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.TimestampFormatRegistryFactory;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
 
@@ -85,13 +87,13 @@ public abstract class BaseAwsJsonProtocolFactory {
         this.customErrorCodeFieldName = builder.customErrorCodeFieldName;
         this.hasAwsQueryCompatible = builder.hasAwsQueryCompatible;
         this.clientConfiguration = builder.clientConfiguration;
-        this.protocolUnmarshaller = JsonProtocolUnmarshaller
-            .builder()
+        this.protocolUnmarshaller = JsonProtocolUnmarshaller.builder()
             .parser(JsonNodeParser.builder()
                                   .jsonFactory(getSdkFactory().getJsonFactory())
-                                  .jsonValueNodeFactory(getJsonValueNodeFactory())
+                                  .jsonValueNodeFactory(builder.jsonValueNodeFactory)
                                   .build())
             .defaultTimestampFormats(getDefaultTimestampFormats())
+            .timestampFormatRegistryFactory(builder.timestampFormatRegistryFactory)
             .build();
     }
 
@@ -182,13 +184,6 @@ public abstract class BaseAwsJsonProtocolFactory {
     }
 
     /**
-     * @return Default JsonNode value factory.
-     */
-    protected JsonValueNodeFactory getJsonValueNodeFactory() {
-        return JsonValueNodeFactory.DEFAULT;
-    }
-
-    /**
      * @return Instance of {@link StructuredJsonFactory} to use in creating handlers.
      */
     protected StructuredJsonFactory getSdkFactory() {
@@ -221,7 +216,9 @@ public abstract class BaseAwsJsonProtocolFactory {
      * Builder for {@link AwsJsonProtocolFactory}.
      */
     public abstract static class Builder<SubclassT extends Builder> {
-
+        protected TimestampFormatRegistryFactory timestampFormatRegistryFactory =
+            JsonProtocolUnmarshaller::timestampFormatRegistryFactory;
+        protected JsonValueNodeFactory jsonValueNodeFactory = JsonValueNodeFactory.DEFAULT;
         private final AwsJsonProtocolMetadata.Builder protocolMetadata = AwsJsonProtocolMetadata.builder();
         private final List<ExceptionMetadata> modeledExceptions = new ArrayList<>();
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
@@ -322,10 +319,40 @@ public abstract class BaseAwsJsonProtocolFactory {
             return getSubclass();
         }
 
+        /**
+         * Provides the unmarshalling instant registry factory to be used to unmarshall {@link Instant} values in requests.
+         * This is only expected to be used by extending protocols, such as RPCv2, that requires a different registry to be
+         * able to read embedded objects instead of converting them to string and then back into a value.
+         *
+         * @param timestampFormatRegistryFactory the factory to create an unmarshall registry
+         * @return This builder for method chaining.
+         */
+        protected final SubclassT timestampFormatRegistryFactory(
+            TimestampFormatRegistryFactory timestampFormatRegistryFactory
+        ) {
+            this.timestampFormatRegistryFactory = timestampFormatRegistryFactory;
+            return getSubclass();
+        }
+
+        /**
+         * Provides the JSON node value factory to be used when parsing the input. This is only expected to be used by
+         * extending protocols, such as rpcv2, that require a different way of converting the state of the CBOR parser state
+         * into values that can be used by the unmarshaller.
+         *
+         * @param jsonValueNodeFactory the factory to create an JsonNode instances from the parsing state.
+         * @return This builder for method chaining.
+         */
+        protected final SubclassT jsonValueNodeFactory(
+            JsonValueNodeFactory jsonValueNodeFactory
+        ) {
+            this.jsonValueNodeFactory = jsonValueNodeFactory;
+            return getSubclass();
+        }
+
         @SuppressWarnings("unchecked")
         private SubclassT getSubclass() {
             return (SubclassT) this;
         }
-
     }
+
 }

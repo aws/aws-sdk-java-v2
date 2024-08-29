@@ -41,9 +41,11 @@ import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.StructuredJsonFactory;
 import software.amazon.awssdk.protocols.json.internal.marshall.JsonProtocolMarshallerBuilder;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.TimestampFormatRegistryFactory;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
 import software.amazon.awssdk.protocols.rpcv2.SmithyRpcV2CborProtocolFactory;
+import software.amazon.awssdk.protocols.rpcv2.internal.SdkRpcV2CborUnmarshaller;
 import software.amazon.awssdk.protocols.rpcv2.internal.SdkRpcV2CborValueNodeFactory;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -75,6 +77,7 @@ public final class JsonCodec {
                                           .jsonValueNodeFactory(behavior.jsonValueNodeFactory())
                                           .build())
                     .defaultTimestampFormats(behavior.timestampFormats())
+                    .timestampFormatRegistryFactory(behavior.timestampFormatRegistryFactory())
                     .build();
             SdkHttpFullResponse response = SdkHttpFullResponse
                 .builder()
@@ -159,6 +162,11 @@ public final class JsonCodec {
             }
 
             @Override
+            public TimestampFormatRegistryFactory timestampFormatRegistryFactory() {
+                return SdkRpcV2CborUnmarshaller::timestampFormatRegistryFactory;
+            }
+
+            @Override
             public String contentType() {
                 return "application/cbor";
             }
@@ -208,6 +216,10 @@ public final class JsonCodec {
 
         public Map<MarshallLocation, TimestampFormatTrait.Format> timestampFormats() {
             return TIMESTAMP_FORMATS;
+        }
+
+        public TimestampFormatRegistryFactory timestampFormatRegistryFactory() {
+            return JsonProtocolUnmarshaller::timestampFormatRegistryFactory;
         }
 
         public OperationInfo operationInfo() {
