@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.CollectionUtils;
 
 @SdkInternalApi
 public final class RequestBatchBuffer<RequestT, ResponseT> {
