@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Personalize",
+    "contributor": "",
+    "description": "This releases ability to update automatic training scheduler for customer solutions"
+}
