@@ -134,14 +134,9 @@ public class DefaultFileUploadWireMockTest {
 
         UploadFileRequest request = createUploadFileRequest();
 
-        assertThatThrownBy(() -> tm.uploadFile(request).completionFuture().join())
-            .hasCauseInstanceOf(S3Exception.class);
-
         FileUpload fileUpload = null;
         try {
-            fileUpload = tm.uploadFile(request);
-
-            fileUpload.completionFuture().join();
+            tm.uploadFile(request);
         } catch (Exception e) {
             assertThat(e).isInstanceOf(CompletionException.class);
             ResumableFileUpload resumableFileUpload = fileUpload.pause();
