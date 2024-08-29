@@ -142,8 +142,6 @@ class RequestBatchBufferTest {
         assertEquals("0", batchBuffer.flushableRequests().keySet().iterator().next());
     }
 
-
-
     @Test
     void whenRequestPassedWithLessBytesinArgs_thenCheckForSizeOnly_andDonotFlush() {
         RequestBatchBuffer<SendMessageRequest, SendMessageResponse> batchBuffer

@@ -49,24 +49,32 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
     private DefaultSqsAsyncBatchManager(DefaultBuilder builder) {
         this.client = Validate.notNull(builder.client, "client cannot be null");
         ScheduledExecutorService scheduledExecutor = builder.scheduledExecutor;
-        this.sendMessageBatchManager =
-            new SendMessageBatchManager(RequestBatchConfiguration
-                                            .builder(builder.overrideConfiguration)
-                                            .maxBatchBytesSize(MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES)
-                                            .build(),
-                                        scheduledExecutor,
-                                        client);
-        this.deleteMessageBatchManager =
-            new DeleteMessageBatchManager(RequestBatchConfiguration.builder(builder.overrideConfiguration).build(),
-                                          scheduledExecutor,
-                                          client);
-        this.changeMessageVisibilityBatchManager =
-            new ChangeMessageVisibilityBatchManager(RequestBatchConfiguration.builder(builder.overrideConfiguration).build(),
-                                                                                           scheduledExecutor,
-                                                                                           client);
 
-        this.receiveMessageBatchManager = new ReceiveMessageBatchManager(client, scheduledExecutor,
-                                                                         builder.overrideConfiguration);
+        this.sendMessageBatchManager =
+            new SendMessageBatchManager(
+                RequestBatchConfiguration.builder(builder.overrideConfiguration)
+                                         .maxBatchBytesSize(MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES)
+                                         .build(),
+                scheduledExecutor,
+                client
+            );
+
+        this.deleteMessageBatchManager =
+            new DeleteMessageBatchManager(
+                RequestBatchConfiguration.builder(builder.overrideConfiguration).build(),
+                scheduledExecutor,
+                client
+            );
+
+        this.changeMessageVisibilityBatchManager =
+            new ChangeMessageVisibilityBatchManager(
+                RequestBatchConfiguration.builder(builder.overrideConfiguration).build(),
+                scheduledExecutor,
+                client
+            );
+
+        this.receiveMessageBatchManager =
+            new ReceiveMessageBatchManager(client, scheduledExecutor, builder.overrideConfiguration);
     }
 
     @Override
