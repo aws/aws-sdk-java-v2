@@ -237,6 +237,10 @@ public class AwsClientEndpointProvider implements SdkClientEndpointProvider {
             this.advancedOptions.putAll(src.advancedOptions);
             this.dualstackEnabled = src.dualstackEnabled;
             this.fipsEnabled = src.fipsEnabled;
+            this.serviceEndpointOverrideEnvironmentVariable = src.serviceEndpointOverrideEnvironmentVariable;
+            this.serviceEndpointOverrideSystemProperty = src.serviceEndpointOverrideSystemProperty;
+            this.serviceProfileProperty = src.serviceProfileProperty;
+            this.environmentCredentialsEnabled = src.environmentCredentialsEnabled;
         }
 
         public Builder clientEndpointOverride(URI clientEndpointOverride) {
