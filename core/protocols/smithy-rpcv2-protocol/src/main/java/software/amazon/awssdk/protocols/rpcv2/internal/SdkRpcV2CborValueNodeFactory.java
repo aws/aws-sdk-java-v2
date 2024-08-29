@@ -30,7 +30,7 @@ import software.amazon.awssdk.thirdparty.jackson.core.JsonToken;
 import software.amazon.awssdk.thirdparty.jackson.dataformat.cbor.CBORParser;
 
 /**
- * Factory to create JsonNode that can embedded values from the CBOR parser.
+ * Factory to create JsonNodes that can embed values from the CBOR parser.
  */
 @SdkInternalApi
 public final class SdkRpcV2CborValueNodeFactory implements JsonValueNodeFactory {
