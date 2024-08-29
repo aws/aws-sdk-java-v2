@@ -24,6 +24,8 @@ import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonContentTypeResolver;
 import software.amazon.awssdk.protocols.json.StructuredJsonFactory;
+import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
+import software.amazon.awssdk.protocols.rpcv2.internal.SdkRpcV2CborValueNodeFactory;
 import software.amazon.awssdk.protocols.rpcv2.internal.SdkStructuredRpcV2CborFactory;
 
 /**
@@ -63,6 +65,11 @@ public final class SmithyRpcV2CborProtocolFactory extends BaseAwsJsonProtocolFac
     @Override
     protected Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
         return LazyHolder.DEFAULT_TIMESTAMP_FORMATS;
+    }
+
+    @Override
+    public JsonValueNodeFactory getJsonValueNodeFactory() {
+        return SdkRpcV2CborValueNodeFactory.INSTANCE;
     }
 
     public static Builder builder() {

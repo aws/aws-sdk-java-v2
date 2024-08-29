@@ -50,6 +50,7 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonResponse
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonResponseHandler;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
+import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
 
 @SdkProtectedApi
 public abstract class BaseAwsJsonProtocolFactory {
@@ -88,6 +89,7 @@ public abstract class BaseAwsJsonProtocolFactory {
             .builder()
             .parser(JsonNodeParser.builder()
                                   .jsonFactory(getSdkFactory().getJsonFactory())
+                                  .jsonValueNodeFactory(getJsonValueNodeFactory())
                                   .build())
             .defaultTimestampFormats(getDefaultTimestampFormats())
             .build();
@@ -177,6 +179,13 @@ public abstract class BaseAwsJsonProtocolFactory {
      */
     protected JsonContentTypeResolver getContentTypeResolver() {
         return AWS_JSON;
+    }
+
+    /**
+     * @return Default JsonNode value factory.
+     */
+    protected JsonValueNodeFactory getJsonValueNodeFactory() {
+        return JsonValueNodeFactory.DEFAULT;
     }
 
     /**
