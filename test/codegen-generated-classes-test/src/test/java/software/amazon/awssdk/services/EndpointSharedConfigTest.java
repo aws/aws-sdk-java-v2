@@ -26,8 +26,8 @@ import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 public class EndpointSharedConfigTest {
     private static final String GLOBAL_ENV_VAR = "AWS_ENDPOINT_URL";
     private static final String GLOBAL_SYS_PROP = "aws.endpointUrl";
-    private static final String SERVICE_ENV_VAR = "AWS_ENDPOINT_URL_AMAZONPROTOCOLRESTJSON";
-    private static final String SERVICE_SYS_PROP = "aws.endpointUrlAmazonProtocolRestJson";
+    private static final String SERVICE_ENV_VAR = "AWS_ENDPOINT_URL_PROTOCOL_REST_JSON";
+    private static final String SERVICE_SYS_PROP = "aws.endpointUrlProtocolRestJson";
 
     @Parameterized.Parameter
     public TestCase testCase;
@@ -72,7 +72,7 @@ public class EndpointSharedConfigTest {
                 profileFileContent.append("endpoint_url = ").append(testCase.globalProfileSetting).append("\n");
             }
             if (testCase.serviceProfileSetting != null) {
-                profileFileContent.append("amazonprotocolrestjson =\n")
+                profileFileContent.append("protocol_rest_json =\n")
                                   .append("  endpoint_url = ").append(testCase.serviceProfileSetting).append("\n");
             }
 

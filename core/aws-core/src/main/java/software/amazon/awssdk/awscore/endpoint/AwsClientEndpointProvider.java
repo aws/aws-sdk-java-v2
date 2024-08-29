@@ -92,10 +92,10 @@ public class AwsClientEndpointProvider implements SdkClientEndpointProvider {
                                           () -> systemProperty(GLOBAL_ENDPOINT_OVERRIDE_SYSTEM_PROPERTY),
                                           () -> environmentVariable(builder.serviceEndpointOverrideEnvironmentVariable),
                                           () -> environmentVariable(GLOBAL_ENDPOINT_OVERRIDE_ENVIRONMENT_VARIABLE),
-                                          () -> profileProperty(builder, ENDPOINT_OVERRIDE_PROFILE_PROPERTY),
                                           () -> profileProperty(builder,
                                                                 builder.serviceProfileProperty + "."
-                                                                + ENDPOINT_OVERRIDE_PROFILE_PROPERTY))
+                                                                + ENDPOINT_OVERRIDE_PROFILE_PROPERTY),
+                                          () -> profileProperty(builder, ENDPOINT_OVERRIDE_PROFILE_PROPERTY))
                             .map(uri -> new ClientEndpoint(uri, true));
     }
 
@@ -200,9 +200,8 @@ public class AwsClientEndpointProvider implements SdkClientEndpointProvider {
     }
 
     private static final class ClientEndpoint {
-        private URI clientEndpoint;
-        private boolean isEndpointOverridden;
-
+        private final URI clientEndpoint;
+        private final boolean isEndpointOverridden;
         private ClientEndpoint(URI clientEndpoint, boolean isEndpointOverridden) {
             this.clientEndpoint = clientEndpoint;
             this.isEndpointOverridden = isEndpointOverridden;
