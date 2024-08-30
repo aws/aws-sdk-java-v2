@@ -137,7 +137,8 @@ public final class JsonCodec {
                                                                                .build();
             Supplier<StructuredJsonFactory> structuredJsonFactory = getStructuredJsonFactory(factory);
 
-            ProtocolUnmarshallDependencies rpcv2Dependencies = SmithyRpcV2CborProtocolFactory.defaultProtocolUnmarshallDependencies();
+            ProtocolUnmarshallDependencies rpcv2Dependencies = SmithyRpcV2CborProtocolFactory
+                .defaultProtocolUnmarshallDependencies();
 
             @Override
             public AwsJsonProtocolMetadata protocolMetadata() {
@@ -186,7 +187,8 @@ public final class JsonCodec {
         ;
 
         private final AwsJsonProtocol protocol;
-        private final ProtocolUnmarshallDependencies dpendencies = JsonProtocolUnmarshaller.defaultProtocolUnmarshallDependencies();
+        private final ProtocolUnmarshallDependencies dpendencies = JsonProtocolUnmarshaller
+            .defaultProtocolUnmarshallDependencies();
 
         ProtocolBehavior(AwsJsonProtocol protocol) {
             this.protocol = protocol;
