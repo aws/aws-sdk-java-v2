@@ -21,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.multipart.PauseObservable;
 import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
@@ -34,7 +33,7 @@ import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultFileUpload implements FileUpload {
-    private static final Logger log = Logger.loggerFor(S3TransferManager.class);
+    private static final Logger log = Logger.loggerFor(DefaultFileUpload.class);
 
     private final Lazy<ResumableFileUpload> resumableFileUpload;
     private final CompletableFuture<CompletedFileUpload> completionFuture;

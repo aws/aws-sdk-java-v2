@@ -22,7 +22,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
@@ -35,7 +34,7 @@ import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class CrtFileUpload implements FileUpload {
-    private static final Logger log = Logger.loggerFor(S3TransferManager.class);
+    private static final Logger log = Logger.loggerFor(CrtFileUpload.class);
 
     private final Lazy<ResumableFileUpload> resumableFileUpload;
     private final CompletableFuture<CompletedFileUpload> completionFuture;
@@ -105,7 +104,6 @@ public final class CrtFileUpload implements FileUpload {
                                       .build();
         }
 
-        log.debug(() -> "The upload was successfully paused and a ResumeToken was returned.");
         return ResumableFileUpload.builder()
                                   .multipartUploadId(token.getUploadId())
                                   .totalParts(token.getTotalNumParts())
