@@ -77,7 +77,7 @@ public final class ResumableRequestConverter {
         }
 
         if (hasRemainingParts(getObjectRequest)) {
-            // multipart GET for the remaining parts
+            log.debug(() -> "The paused download was performed with part GET, now resuming download of remaining parts");
             Long positionToWriteFrom =
                 MultipartDownloadUtils.multipartDownloadResumeContext(originalDownloadRequest.getObjectRequest())
                 .map(MultipartDownloadResumeContext::bytesToLastCompletedParts)
@@ -92,7 +92,7 @@ public final class ResumableRequestConverter {
             return Pair.of(originalDownloadRequest, responseTransformer);
         }
 
-        // ranged GET for the remaining bytes.
+        log.debug(() -> "The paused download was performed with range GET, now resuming download of remaining bytes.");
         newDownloadFileRequest = resumedDownloadFileRequest(resumableFileDownload,
                                                             originalDownloadRequest,
                                                             getObjectRequest,
