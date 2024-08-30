@@ -270,7 +270,7 @@ class MemberCopierSpec implements ClassSpec {
                 .add("if ($1N == null || $1N instanceof $2T) {", inputVariableName, SdkAutoConstructList.class)
                 .add("$N = $T.getInstance();", outputVariableName, DefaultSdkAutoConstructList.class)
                 .add("} else {")
-                .add("$T $N = new $T<>($N.size());", listType, modifiableVariableName, ArrayList.class, inputVariableName);
+                .add("$T $N = new $T<>();", listType, modifiableVariableName, ArrayList.class);
 
             String entryInputVariable = variableSource.getNew("entry");
             code.add("$N.forEach($N -> {", inputVariableName, entryInputVariable);
@@ -299,7 +299,7 @@ class MemberCopierSpec implements ClassSpec {
                 .add("if ($1N == null || $1N instanceof $2T) {", inputVariableName, SdkAutoConstructMap.class)
                 .add("$N = $T.getInstance();", outputVariableName, DefaultSdkAutoConstructMap.class)
                 .add("} else {")
-                .add("$T $N = new $T<>($N.size());", outputMapType, modifiableVariableName, LinkedHashMap.class, inputVariableName);
+                .add("$T $N = new $T<>();", outputMapType, modifiableVariableName, LinkedHashMap.class);
 
             String keyInputVariable = variableSource.getNew("key");
             String valueInputVariable = variableSource.getNew("value");
