@@ -15,20 +15,17 @@
 
 package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
-import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.protocol.MarshallLocation;
-import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 
 /**
- * Interface used to create an {@link DefaultJsonUnmarshallerRegistry} that will unmarshall using the given default formats for
- * each of the locations in the formats map.
+ * Interface used to create an {@link UnmarshallerRegistryFactory} that will unmarshall using the given default formats for each
+ * of the locations in the formats map.
  */
 @SdkInternalApi
-public interface TimestampFormatRegistryFactory {
+public interface UnmarshallerRegistryFactory {
 
     /**
      * Returns a unmarshaller registry that uses the default timestamp formats passed in.
      */
-    JsonUnmarshallerRegistry get(Map<MarshallLocation, TimestampFormatTrait.Format> formats);
+    JsonUnmarshallerRegistry get();
 }

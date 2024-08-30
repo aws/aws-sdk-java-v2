@@ -41,12 +41,8 @@ import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.StructuredJsonFactory;
 import software.amazon.awssdk.protocols.json.internal.marshall.JsonProtocolMarshallerBuilder;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller;
-import software.amazon.awssdk.protocols.json.internal.unmarshall.TimestampFormatRegistryFactory;
-import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
-import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.ProtocolUnmarshallDependencies;
 import software.amazon.awssdk.protocols.rpcv2.SmithyRpcV2CborProtocolFactory;
-import software.amazon.awssdk.protocols.rpcv2.internal.SdkRpcV2CborUnmarshaller;
-import software.amazon.awssdk.protocols.rpcv2.internal.SdkRpcV2CborValueNodeFactory;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -72,12 +68,7 @@ public final class JsonCodec {
             JsonProtocolUnmarshaller unmarshaller =
                 JsonProtocolUnmarshaller
                     .builder()
-                    .parser(JsonNodeParser.builder()
-                                          .jsonFactory(behavior.structuredJsonFactory().getJsonFactory())
-                                          .jsonValueNodeFactory(behavior.jsonValueNodeFactory())
-                                          .build())
-                    .defaultTimestampFormats(behavior.timestampFormats())
-                    .timestampFormatRegistryFactory(behavior.timestampFormatRegistryFactory())
+                    .protocolUnmarshallDependencies(behavior.protocolUnmarshallDependencies())
                     .build();
             SdkHttpFullResponse response = SdkHttpFullResponse
                 .builder()
@@ -146,6 +137,8 @@ public final class JsonCodec {
                                                                                .build();
             Supplier<StructuredJsonFactory> structuredJsonFactory = getStructuredJsonFactory(factory);
 
+            ProtocolUnmarshallDependencies rpcv2Dependencies = SmithyRpcV2CborProtocolFactory.defaultProtocolUnmarshallDependencies();
+
             @Override
             public AwsJsonProtocolMetadata protocolMetadata() {
                 return metadata;
@@ -157,14 +150,10 @@ public final class JsonCodec {
             }
 
             @Override
-            public JsonValueNodeFactory jsonValueNodeFactory() {
-                return SdkRpcV2CborValueNodeFactory.INSTANCE;
+            public ProtocolUnmarshallDependencies protocolUnmarshallDependencies() {
+                return rpcv2Dependencies;
             }
 
-            @Override
-            public TimestampFormatRegistryFactory timestampFormatRegistryFactory() {
-                return SdkRpcV2CborUnmarshaller::timestampFormatRegistryFactory;
-            }
 
             @Override
             public String contentType() {
@@ -197,6 +186,7 @@ public final class JsonCodec {
         ;
 
         private final AwsJsonProtocol protocol;
+        private final ProtocolUnmarshallDependencies dpendencies = JsonProtocolUnmarshaller.defaultProtocolUnmarshallDependencies();
 
         ProtocolBehavior(AwsJsonProtocol protocol) {
             this.protocol = protocol;
@@ -210,16 +200,8 @@ public final class JsonCodec {
             throw new UnsupportedOperationException();
         }
 
-        public JsonValueNodeFactory jsonValueNodeFactory() {
-            return JsonValueNodeFactory.DEFAULT;
-        }
-
-        public Map<MarshallLocation, TimestampFormatTrait.Format> timestampFormats() {
-            return TIMESTAMP_FORMATS;
-        }
-
-        public TimestampFormatRegistryFactory timestampFormatRegistryFactory() {
-            return JsonProtocolUnmarshaller::timestampFormatRegistryFactory;
+        public ProtocolUnmarshallDependencies protocolUnmarshallDependencies() {
+            return dpendencies;
         }
 
         public OperationInfo operationInfo() {

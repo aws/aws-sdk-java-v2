@@ -33,10 +33,8 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnm
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonUnmarshaller;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonUnmarshallerContext;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonUnmarshallerRegistry;
-import software.amazon.awssdk.protocols.json.internal.unmarshall.TimestampAwareJsonProtocolUnmarshallerRegistry;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.internal.EmbeddedObjectJsonNode;
-import software.amazon.awssdk.utils.Lazy;
 
 /**
  * Unmarshalling support for the Smithy RPCv2 protocol.
@@ -44,16 +42,15 @@ import software.amazon.awssdk.utils.Lazy;
 @SdkInternalApi
 public final class SdkRpcV2CborUnmarshaller {
 
-    private static final Lazy<JsonUnmarshallerRegistry> DEFAULT =
-        new Lazy<>(SdkRpcV2CborUnmarshaller::createUnmarshallerRegistry);
-
     private SdkRpcV2CborUnmarshaller() {
     }
 
     public static JsonUnmarshallerRegistry timestampFormatRegistryFactory(
         Map<MarshallLocation, TimestampFormatTrait.Format> formats
     ) {
-        DefaultJsonUnmarshallerRegistry.Builder builder = JsonProtocolUnmarshaller.registryForInstant(formats).toBuilder();
+        DefaultJsonUnmarshallerRegistry.Builder builder =
+            JsonProtocolUnmarshaller.createSharedRegistry()
+                .toBuilder();
         StringToValueConverter.StringToValue<Instant> instantStringToValue = StringToInstant
             .create(formats.isEmpty() ?
                     new EnumMap<>(MarshallLocation.class) :
@@ -67,21 +64,14 @@ public final class SdkRpcV2CborUnmarshaller {
         SimpleTypeInstantJsonUnmarshaller<Instant> payloadUnmarshaller =
             new SimpleTypeInstantJsonUnmarshaller<>(instantStringToValue, instantNumberToValue);
 
-        JsonUnmarshallerRegistry instantRegistry = builder
-            .payloadUnmarshaller(MarshallingType.INSTANT, payloadUnmarshaller)
-            .build();
-        JsonUnmarshallerRegistry shared = DEFAULT.getValue();
-        return TimestampAwareJsonProtocolUnmarshallerRegistry.builder()
-                                                             .instantRegistry(instantRegistry)
-                                                             .registry(shared)
-                                                             .build();
+        builder.payloadUnmarshaller(MarshallingType.INSTANT, payloadUnmarshaller);
+        return setPayloadOverrides(builder).build();
     }
 
     /**
      * Creates an unmarshalling registry that knows how to read embedded values from the parse result.
      */
-    static JsonUnmarshallerRegistry createUnmarshallerRegistry() {
-        DefaultJsonUnmarshallerRegistry.Builder builder = JsonProtocolUnmarshaller.getShared().toBuilder();
+    public static DefaultJsonUnmarshallerRegistry.Builder setPayloadOverrides(DefaultJsonUnmarshallerRegistry.Builder builder) {
         builder.payloadUnmarshaller(MarshallingType.INTEGER, forEmbeddable(Number.class, Number::intValue,
                                                                            StringToValueConverter.TO_INTEGER))
                .payloadUnmarshaller(MarshallingType.LONG, forEmbeddable(Number.class, Number::longValue,
@@ -98,7 +88,7 @@ public final class SdkRpcV2CborUnmarshaller {
                                                                                StringToValueConverter.TO_BIG_DECIMAL))
                .payloadUnmarshaller(MarshallingType.BOOLEAN, forEmbeddable(Boolean.class,
                                                                            StringToValueConverter.TO_BOOLEAN));
-        return builder.build();
+        return builder;
     }
 
     /**
@@ -209,6 +199,4 @@ public final class SdkRpcV2CborUnmarshaller {
             return stringToValue.convert(text, field);
         }
     }
-
-
 }

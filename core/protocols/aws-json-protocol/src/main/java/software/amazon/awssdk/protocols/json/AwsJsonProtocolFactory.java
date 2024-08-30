@@ -17,6 +17,7 @@ package software.amazon.awssdk.protocols.json;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller;
 
 /**
  * Factory to generate the various JSON protocol handlers and generators to be used for
@@ -40,6 +41,7 @@ public final class AwsJsonProtocolFactory extends BaseAwsJsonProtocolFactory {
     public static final class Builder extends BaseAwsJsonProtocolFactory.Builder<Builder> {
 
         private Builder() {
+            protocolUnmarshallDependencies(JsonProtocolUnmarshaller::defaultProtocolUnmarshallDependencies);
         }
 
         public AwsJsonProtocolFactory build() {
