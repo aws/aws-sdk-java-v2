@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import org.w3c.dom.Attr;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -98,7 +99,7 @@ public class UpdateItemOperation<T>
         // If ignoreNulls is set to true, check for nested params to be updated
         // If needed, Transform itemMap for it to be able to handle them.
         Map<String, AttributeValue> itemMap = Boolean.TRUE.equals(ignoreNulls) ?
-                                              transformItemToMapForUpdateExpression(itemMapImmutable) : itemMapImmutable;
+                                             transformItemToMapForUpdateExpression(itemMapImmutable) : itemMapImmutable;
         
         TableMetadata tableMetadata = tableSchema.tableMetadata();
 
@@ -161,7 +162,7 @@ public class UpdateItemOperation<T>
         Map<String, AttributeValue> nestedAttributes = new HashMap<>();
         
         itemToMap.forEach((key, value) -> {
-            if (value.hasM()) {
+            if (value.hasM() && isNotEmptyMap(value.m())) {
                 nestedAttributes.put(key, value);
             }
         });
@@ -193,10 +194,23 @@ public class UpdateItemOperation<T>
         });
         return itemToMap;
     }
+
+    private boolean isNotEmptyMap(Map<String, AttributeValue> map) {
+        if (map.isEmpty()) {
+            return false;
+        }
+
+        // Checks if a fully empty map is being set. If that is the case, no input transformations are applied to the map
+        for (Map.Entry<String, AttributeValue> entry : map.entrySet()) {
+            if (attributeValueNonNullOrShouldWriteNull(entry.getValue())) {
+               return true;
+            }
+        }
+        return false;
+    }
     
     private boolean attributeValueNonNullOrShouldWriteNull(AttributeValue attributeValue) {
         return !isNullAttributeValue(attributeValue);
-        //return true;
     }
 
     @Override

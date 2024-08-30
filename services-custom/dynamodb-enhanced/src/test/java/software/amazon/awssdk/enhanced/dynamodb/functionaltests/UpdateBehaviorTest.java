@@ -207,9 +207,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         mappedTable.updateItem(r -> r.item(update_record).ignoreNulls(true));
 
         RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
-
-        verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord, nestedRecord.getNestedCounter(),
-                                                       nestedRecord.getAttribute());
+        assertThat(persistedRecord.getNestedRecord()).isNull();
     }
 
     private NestedRecordWithUpdateBehavior createNestedWithDefaults(String id, Long counter) {
@@ -303,6 +301,21 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         assertThatThrownBy(() -> mappedTable.updateItem(r -> r.item(update_record).ignoreNulls(true)))
             .isInstanceOf(DynamoDbException.class);
     }
+
+    @Test
+    public void test() {
+        String randomId = "id123";
+
+        RecordWithUpdateBehaviors record = new RecordWithUpdateBehaviors();
+        record.setId(randomId);
+        record.setNestedRecord(new NestedRecordWithUpdateBehavior());
+
+        mappedTable.updateItem(r -> r.item(record).ignoreNulls(true));
+
+        RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
+        assertThat(persistedRecord.getNestedRecord()).isNull();
+    }
+
 
     @Test
     public void when_updatingNestedObjectWithSingleLevelFlattened_existingInformationIsPreserved() {
