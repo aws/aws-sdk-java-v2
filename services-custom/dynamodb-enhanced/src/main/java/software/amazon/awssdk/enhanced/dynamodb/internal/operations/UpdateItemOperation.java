@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import org.w3c.dom.Attr;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -203,7 +202,7 @@ public class UpdateItemOperation<T>
         // Checks if a fully empty map is being set. If that is the case, no input transformations are applied to the map
         for (Map.Entry<String, AttributeValue> entry : map.entrySet()) {
             if (attributeValueNonNullOrShouldWriteNull(entry.getValue())) {
-               return true;
+                return true;
             }
         }
         return false;
