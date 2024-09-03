@@ -69,8 +69,13 @@ public interface MarshallingType<T> {
 
     Class<? super T> getTargetClass();
 
+    default MarshallingKnownType getKnownType() {
+        return null;
+    }
+
     static <T> MarshallingType<T> newType(Class<? super T> clzz) {
         return new MarshallingType<T>() {
+            private final MarshallingKnownType knownType = MarshallingKnownType.from(clzz);
 
             @Override
             public Class<? super T> getTargetClass() {
@@ -78,11 +83,14 @@ public interface MarshallingType<T> {
             }
 
             @Override
+            public MarshallingKnownType getKnownType() {
+                return knownType;
+            }
+
+            @Override
             public String toString() {
                 return clzz.getSimpleName();
             }
         };
-
     }
-
 }
