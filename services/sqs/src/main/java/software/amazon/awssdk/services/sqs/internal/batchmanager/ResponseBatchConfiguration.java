@@ -49,19 +49,19 @@ public final class ResponseBatchConfiguration {
 
     public ResponseBatchConfiguration(BatchOverrideConfiguration overrideConfiguration) {
         this.visibilityTimeout = Optional.ofNullable(overrideConfiguration)
-                                         .map(BatchOverrideConfiguration::visibilityTimeout)
+                                         .map(BatchOverrideConfiguration::receiveMessageVisibilityTimeout)
                                          .orElse(VISIBILITY_TIMEOUT_SECONDS_DEFAULT);
 
         this.longPollWaitTimeout = Optional.ofNullable(overrideConfiguration)
-                                           .map(BatchOverrideConfiguration::longPollWaitTimeout)
+                                           .map(BatchOverrideConfiguration::receiveMessageLongPollWaitDuration)
                                            .orElse(LONG_POLL_WAIT_TIMEOUT_DEFAULT);
 
         this.minReceiveWaitTime = Optional.ofNullable(overrideConfiguration)
-                                          .map(BatchOverrideConfiguration::minReceiveWaitTime)
+                                          .map(BatchOverrideConfiguration::receiveMessageMinWaitTime)
                                           .orElse(MIN_RECEIVE_WAIT_TIME_MS_DEFAULT);
 
         this.messageSystemAttributeValues = Optional.ofNullable(overrideConfiguration)
-                                                    .map(BatchOverrideConfiguration::messageSystemAttributeName)
+                                                    .map(BatchOverrideConfiguration::receiveMessageSystemAttributeNames)
                                                     .filter(list -> !list.isEmpty())
                                                     .orElse(MESSAGE_SYSTEM_ATTRIBUTE_NAMES_DEFAULT);
 
@@ -75,7 +75,7 @@ public final class ResponseBatchConfiguration {
                                            .orElse(ADAPTIVE_PREFETCHING_DEFAULT);
 
         this.maxBatchItems = Optional.ofNullable(overrideConfiguration)
-                                     .map(BatchOverrideConfiguration::maxBatchItems)
+                                     .map(BatchOverrideConfiguration::outboundBatchSizeLimit)
                                      .orElse(MAX_BATCH_ITEMS_DEFAULT);
 
 

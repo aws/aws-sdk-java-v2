@@ -31,7 +31,7 @@ public final class RequestBatchConfiguration {
     private final Integer maxBatchItems;
     private final Integer maxBatchKeys;
     private final Integer maxBufferSize;
-    private final Duration maxBatchOpenDuration;
+    private final Duration maxOutboundBatchCollectionDuration;
     private final Integer maxBatchBytesSize;
 
     private RequestBatchConfiguration(Builder builder) {
@@ -39,7 +39,7 @@ public final class RequestBatchConfiguration {
         this.maxBatchItems = builder.maxBatchItems != null ? builder.maxBatchItems : DEFAULT_MAX_BATCH_ITEMS;
         this.maxBatchKeys = builder.maxBatchKeys != null ? builder.maxBatchKeys : DEFAULT_MAX_BATCH_KEYS;
         this.maxBufferSize = builder.maxBufferSize != null ? builder.maxBufferSize : DEFAULT_MAX_BUFFER_SIZE;
-        this.maxBatchOpenDuration = builder.maxBatchOpenDuration != null ? builder.maxBatchOpenDuration :
+        this.maxOutboundBatchCollectionDuration = builder.maxOutboundBatchCollectionDuration != null ? builder.maxOutboundBatchCollectionDuration :
                                          DEFAULT_MAX_BATCH_OPEN_IN_MS;
         this.maxBatchBytesSize = builder.maxBatchBytesSize != null ? builder.maxBatchBytesSize : DEFAULT_MAX_BATCH_BYTES_SIZE;
 
@@ -53,15 +53,15 @@ public final class RequestBatchConfiguration {
         if (configuration != null) {
             return new Builder()
                 .maxBatchKeys(configuration.maxBatchKeys())
-                .maxBatchItems(configuration.maxBatchItems())
-                .maxBatchOpenDuration(configuration.maxBatchOpenDuration())
+                .maxBatchItems(configuration.outboundBatchSizeLimit())
+                .maxOutboundBatchCollectionDuration(configuration.outboundBatchCollectionDuration())
                 .maxBufferSize(configuration.maxBufferSize());
         }
         return new Builder();
     }
 
-    public Duration maxBatchOpenDuration() {
-        return maxBatchOpenDuration;
+    public Duration maxOutboundBatchCollectionDuration() {
+        return maxOutboundBatchCollectionDuration;
     }
 
     public int maxBatchItems() {
@@ -85,7 +85,7 @@ public final class RequestBatchConfiguration {
         private Integer maxBatchItems;
         private Integer maxBatchKeys;
         private Integer maxBufferSize;
-        private Duration maxBatchOpenDuration;
+        private Duration maxOutboundBatchCollectionDuration;
         private Integer maxBatchBytesSize;
 
         private Builder() {
@@ -106,8 +106,8 @@ public final class RequestBatchConfiguration {
             return this;
         }
 
-        public Builder maxBatchOpenDuration(Duration maxBatchOpenDuration) {
-            this.maxBatchOpenDuration = maxBatchOpenDuration;
+        public Builder maxOutboundBatchCollectionDuration(Duration maxOutboundBatchCollectionDuration) {
+            this.maxOutboundBatchCollectionDuration = maxOutboundBatchCollectionDuration;
             return this;
         }
 

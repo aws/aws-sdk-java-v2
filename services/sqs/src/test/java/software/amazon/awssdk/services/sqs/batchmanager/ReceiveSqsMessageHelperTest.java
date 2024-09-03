@@ -69,11 +69,11 @@ class ReceiveSqsMessageHelperTest {
     @BeforeEach
     void setUp() {
         BatchOverrideConfiguration batchOverrideConfig = BatchOverrideConfiguration.builder()
-                                                                                   .maxBatchItems(10)
+                                                                                   .outboundBatchSizeLimit(10)
                                                                                    .receiveMessageAttributeNames(Arrays.asList(
                                                                                        "attribute1", "attribute2"))
-                                                                                   .visibilityTimeout(Duration.ofSeconds(20))
-                                                                                   .longPollWaitTimeout(Duration.ofSeconds(15))
+                                                                                   .receiveMsgVisibilityTimeout(Duration.ofSeconds(20))
+                                                                                   .receiveMsgLongPollWaitTimeout(Duration.ofSeconds(15))
                                                                                    .build();
         config = new ResponseBatchConfiguration(batchOverrideConfig);
 
@@ -265,11 +265,11 @@ class ReceiveSqsMessageHelperTest {
 
         Duration visibilityTimeout = Duration.ofSeconds(9);
         BatchOverrideConfiguration batchOverrideConfig = BatchOverrideConfiguration.builder()
-                                                                                   .maxBatchItems(10)
+                                                                                   .outboundBatchSizeLimit(10)
                                                                                    .receiveMessageAttributeNames(Arrays.asList(
                                                                                        "custom1", "custom2"))
-                                                                                   .visibilityTimeout(visibilityTimeout)
-                                                                                   .longPollWaitTimeout(Duration.ofSeconds(15))
+                                                                                   .receiveMsgVisibilityTimeout(visibilityTimeout)
+                                                                                   .receiveMsgLongPollWaitTimeout(Duration.ofSeconds(15))
                                                                                    .build();
 
         ReceiveSqsMessageHelper batch = new ReceiveSqsMessageHelper(

@@ -87,13 +87,13 @@ public class ReceiveBatchManagerTest {
                                                     int maxInflightReceiveBatches, int maxDoneReceiveBatches,
                                                     Duration minReceiveWaitTime) {
         return new ResponseBatchConfiguration(BatchOverrideConfiguration.builder()
-                                                                        .maxBatchItems(maxBatchItems)
+                                                                        .outboundBatchSizeLimit(maxBatchItems)
                                                                         .adaptivePrefetching(adaptivePrefetching)
                                                                         .maxInflightReceiveBatches(maxInflightReceiveBatches)
                                                                         .maxDoneReceiveBatches(maxDoneReceiveBatches)
                                                                         .receiveMessageAttributeNames(Collections.emptyList())
-                                                                        .visibilityTimeout(Duration.ofSeconds(2))
-                                                                        .minReceiveWaitTime(minReceiveWaitTime)
+                                                                        .receiveMsgVisibilityTimeout(Duration.ofSeconds(2))
+                                                                        .receiveMessageMinWaitTime(minReceiveWaitTime)
                                                                         .build());
     }
 

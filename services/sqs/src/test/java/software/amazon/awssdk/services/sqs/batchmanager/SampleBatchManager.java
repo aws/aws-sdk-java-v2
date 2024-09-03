@@ -33,9 +33,9 @@ public class SampleBatchManager extends RequestBatchManager<String, String, Batc
                                  ScheduledExecutorService executorService,
                                  CustomClient client) {
         super(RequestBatchConfiguration.builder()
-                                       .maxBatchOpenDuration(batchOverrideConfiguration.maxBatchOpenDuration())
+                                       .maxOutboundBatchCollectionDuration(batchOverrideConfiguration.outboundBatchCollectionDuration())
                                        .maxBatchBytesSize(SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES)
-                                       .maxBatchItems(batchOverrideConfiguration.maxBatchItems())
+                                       .maxBatchItems(batchOverrideConfiguration.outboundBatchSizeLimit())
                                        .maxBufferSize(batchOverrideConfiguration.maxBufferSize())
                                        .maxBatchKeys(batchOverrideConfiguration.maxBatchKeys())
                                        .build(),
