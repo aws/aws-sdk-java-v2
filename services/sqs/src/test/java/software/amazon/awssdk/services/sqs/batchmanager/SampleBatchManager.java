@@ -24,7 +24,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchConfiguration;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchManager;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.SqsMessageDefault;
 import software.amazon.awssdk.utils.Either;
 
 public class SampleBatchManager extends RequestBatchManager<String, String, BatchResponse> {

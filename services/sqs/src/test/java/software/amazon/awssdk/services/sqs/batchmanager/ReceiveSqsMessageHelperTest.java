@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchManager.USER_AGENT_APPLIER;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -48,7 +49,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ReceiveSqsMessageHelper;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.SqsMessageDefault;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -293,7 +293,7 @@ class ReceiveSqsMessageHelperTest {
                                  .messageAttributeNames("custom1", "custom2")
                                  .visibilityTimeout(9)
                                  .waitTimeSeconds(15)
-                                 .overrideConfiguration(o -> o.applyMutation(SqsMessageDefault.USER_AGENT_APPLIER))
+                                 .overrideConfiguration(o -> o.applyMutation(USER_AGENT_APPLIER))
                                  .build();
 
         verify(sqsClient, times(1)).receiveMessage(eq(expectedRequest));

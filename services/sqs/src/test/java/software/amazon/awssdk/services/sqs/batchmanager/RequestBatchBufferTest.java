@@ -24,8 +24,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchBuffer;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchingExecutionContext;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.SqsMessageDefault;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
