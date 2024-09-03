@@ -24,12 +24,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchBuffer;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchingExecutionContext;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.SqsMessageDefault;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES;
 
 class RequestBatchBufferTest {
 
@@ -45,7 +47,7 @@ class RequestBatchBufferTest {
 
     @Test
     void whenPutRequestThenBufferContainsRequest() {
-        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
         CompletableFuture<String> response = new CompletableFuture<>();
         batchBuffer.put("request1", response);
         assertEquals(1, batchBuffer.responses().size());
@@ -53,7 +55,7 @@ class RequestBatchBufferTest {
 
     @Test
     void whenFlushableRequestsThenReturnRequestsUpToMaxBatchItems() {
-        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 1, SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 1, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
         CompletableFuture<String> response = new CompletableFuture<>();
         batchBuffer.put("request1", response);
         Map<String, BatchingExecutionContext<String, String>> flushedRequests = batchBuffer.flushableRequests();
@@ -63,7 +65,7 @@ class RequestBatchBufferTest {
 
     @Test
     void whenFlushableScheduledRequestsThenReturnAllRequests() {
-        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
         CompletableFuture<String> response = new CompletableFuture<>();
         batchBuffer.put("request1", response);
         Map<String, BatchingExecutionContext<String, String>> flushedRequests = batchBuffer.flushableScheduledRequests(1);
@@ -73,7 +75,7 @@ class RequestBatchBufferTest {
 
     @Test
     void whenMaxBufferSizeReachedThenThrowException() {
-        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 3, SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, 10);
+        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 3, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, 10);
         for (int i = 0; i < 10; i++) {
             batchBuffer.put("request" + i, new CompletableFuture<>());
         }
@@ -82,7 +84,7 @@ class RequestBatchBufferTest {
 
     @Test
     void whenPutScheduledFlushThenFlushIsSet() {
-        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
         ScheduledFuture<?> newScheduledFlush = mock(ScheduledFuture.class);
         batchBuffer.putScheduledFlush(newScheduledFlush);
         assertNotNull(newScheduledFlush);
@@ -90,14 +92,14 @@ class RequestBatchBufferTest {
 
     @Test
     void whenCancelScheduledFlushThenFlushIsCancelled() {
-        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
         batchBuffer.cancelScheduledFlush();
         verify(scheduledFlush).cancel(false);
     }
 
     @Test
     void whenGetResponsesThenReturnAllResponses() {
-        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
         CompletableFuture<String> response1 = new CompletableFuture<>();
         CompletableFuture<String> response2 = new CompletableFuture<>();
         batchBuffer.put("request1", response1);
@@ -110,7 +112,7 @@ class RequestBatchBufferTest {
 
     @Test
     void whenClearBufferThenBufferIsEmpty() {
-        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
         CompletableFuture<String> response = new CompletableFuture<>();
         batchBuffer.put("request1", response);
         batchBuffer.clear();
@@ -119,7 +121,7 @@ class RequestBatchBufferTest {
 
     @Test
     void whenExtractFlushedEntriesThenReturnCorrectEntries() {
-        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 5, SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 5, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
         for (int i = 0; i < 5; i++) {
             batchBuffer.put("request" + i, new CompletableFuture<>());
         }
@@ -129,7 +131,7 @@ class RequestBatchBufferTest {
 
     @Test
     void whenHasNextBatchEntryThenReturnTrue() {
-        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 1, SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 1, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
         batchBuffer.put("request1", new CompletableFuture<>());
         assertTrue(batchBuffer.flushableRequests().containsKey("0"));
     }
@@ -137,7 +139,7 @@ class RequestBatchBufferTest {
 
     @Test
     void whenNextBatchEntryThenReturnNextEntryId() {
-        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 1, SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 1, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
         batchBuffer.put("request1", new CompletableFuture<>());
         assertEquals("0", batchBuffer.flushableRequests().keySet().iterator().next());
     }
@@ -145,7 +147,7 @@ class RequestBatchBufferTest {
     @Test
     void whenRequestPassedWithLessBytesinArgs_thenCheckForSizeOnly_andDonotFlush() {
         RequestBatchBuffer<SendMessageRequest, SendMessageResponse> batchBuffer
-            = new RequestBatchBuffer<>(scheduledFlush, 5, SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+            = new RequestBatchBuffer<>(scheduledFlush, 5, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
         for (int i = 0; i < 5; i++) {
             batchBuffer.put(SendMessageRequest.builder().build(),
                             new CompletableFuture<>());
@@ -160,7 +162,7 @@ class RequestBatchBufferTest {
     @Test
     void testFlushWhenPayloadExceedsMaxSize() {
         RequestBatchBuffer<SendMessageRequest, SendMessageResponse> batchBuffer
-            = new RequestBatchBuffer<>(scheduledFlush, 5, SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+            = new RequestBatchBuffer<>(scheduledFlush, 5, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
 
         String largeMessageBody = createLargeString('a',245_760);
         batchBuffer.put(SendMessageRequest.builder().messageBody(largeMessageBody).build(),
@@ -173,7 +175,7 @@ class RequestBatchBufferTest {
     @Test
     void testFlushWhenCumulativePayloadExceedsMaxSize() {
         RequestBatchBuffer<SendMessageRequest, SendMessageResponse> batchBuffer
-            = new RequestBatchBuffer<>(scheduledFlush, 5, SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+            = new RequestBatchBuffer<>(scheduledFlush, 5, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
 
         String largeMessageBody = createLargeString('a',130_000);
         batchBuffer.put(SendMessageRequest.builder().messageBody(largeMessageBody).build(),

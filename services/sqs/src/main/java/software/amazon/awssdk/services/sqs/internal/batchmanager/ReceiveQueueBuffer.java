@@ -47,13 +47,12 @@ public class ReceiveQueueBuffer implements SdkAutoCloseable {
 
     private final AtomicBoolean processingFutures = new AtomicBoolean(false);
 
-    private ReceiveQueueBuffer(ScheduledExecutorService executor, SqsAsyncClient sqsClient,
-                              ResponseBatchConfiguration config, String queueUrl, QueueAttributesManager queueAttributesManager) {
-        this.executor = executor;
-        this.sqsClient = sqsClient;
-        this.config = config;
-        this.queueUrl = queueUrl;
-        this.queueAttributesManager = queueAttributesManager;
+    private ReceiveQueueBuffer(Builder builder) {
+        this.executor = builder.executor;
+        this.sqsClient = builder.sqsClient;
+        this.config = builder.config;
+        this.queueUrl = builder.queueUrl;
+        this.queueAttributesManager = builder.queueAttributesManager;
     }
 
     public static Builder builder() {
@@ -242,7 +241,7 @@ public class ReceiveQueueBuffer implements SdkAutoCloseable {
         }
 
         public ReceiveQueueBuffer build() {
-            return new ReceiveQueueBuffer(executor, sqsClient, config, queueUrl, queueAttributesManager);
+            return new ReceiveQueueBuffer(this);
         }
     }
 }

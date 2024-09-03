@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsMessageDefault.MAX_SUPPORTED_SQS_RECEIVE_MSG;
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration.MAX_SUPPORTED_SQS_RECEIVE_MSG;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
