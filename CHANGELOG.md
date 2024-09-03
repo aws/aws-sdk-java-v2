@@ -1,4 +1,112 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.18__ __2024-09-03__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Added MinQP as a Rate Control option for H264 and H265 encodes.
+
+## __AWS MediaConnect__
+  - ### Features
+    - AWS Elemental MediaConnect introduces thumbnails for Flow source monitoring. Thumbnails provide still image previews of the live content feeding your MediaConnect Flow allowing you to easily verify that your source is operating as expected.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Release ReplicaConfiguration as part of DescribeInstance
+
+## __Amazon DataZone__
+  - ### Features
+    - Add support to let data publisher specify a subset of the data asset that a subscriber will have access to based on the asset filters provided, when accepting a subscription request.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker now supports automatic mounting of a user's home folder in the Amazon Elastic File System (EFS) associated with the SageMaker Studio domain to their Studio Spaces to enable users to share data between their own private spaces.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for configuring TCP idle timeout on NLB and GWLB listeners.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - Timestream for InfluxDB now supports compute scaling and deployment type conversion. This release adds the DbInstanceType and DeploymentType parameters to the UpdateDbInstance API.
+
+# __2.27.17__ __2024-08-30__
+## __AWS Backup__
+  - ### Features
+    - The latest update introduces two new attributes, VaultType and VaultState, to the DescribeBackupVault and ListBackupVaults APIs. The VaultState attribute reflects the current status of the vault, while the VaultType attribute indicates the specific category of the vault.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release introduces a new optional parameter: Entity, in PutLogEvents request
+
+## __Amazon DataZone__
+  - ### Features
+    - Amazon DataZone now adds new governance capabilities of Domain Units for organization within your Data Domains, and Authorization Policies for tighter controls.
+
+## __Redshift Data API Service__
+  - ### Features
+    - The release include the new Redshift DataAPI feature for session use, customer execute query with --session-keep-alive-seconds parameter and can submit follow-up queries to same sessions with returned`session-id`
+
+# __2.27.16__ __2024-08-29__
+## __AWS Step Functions__
+  - ### Features
+    - This release adds support for static analysis to ValidateStateMachineDefinition API, which can now return optional WARNING diagnostics for semantic errors on the definition of an Amazon States Language (ASL) state machine.
+
+## __AWS WAFV2__
+  - ### Features
+    - The minimum request rate for a rate-based rule is now 10. Before this, it was 100.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Lifting the maximum length on Bedrock KnowledgeBase RetrievalFilter array
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Add support for imported-model in invokeModel and InvokeModelWithResponseStream.
+
+## __Amazon Personalize__
+  - ### Features
+    - This releases ability to update automatic training scheduler for customer solutions
+
+## __Amazon QuickSight__
+  - ### Features
+    - Increased Character Limit for Dataset Calculation Field expressions
+
+# __2.27.15__ __2024-08-28__
+## __AWS Device Farm__
+  - ### Features
+    - This release removed support for Calabash, UI Automation, Built-in Explorer, remote access record, remote access replay, and web performance profile framework in ScheduleRun API.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Introducing AWS Parallel Computing Service (AWS PCS), a new service makes it easy to setup and manage high performance computing (HPC) clusters, and build scientific and engineering models at virtually any scale on AWS.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon AppConfig__
+  - ### Features
+    - This release adds support for deletion protection, which is a safety guardrail to prevent the unintentional deletion of a recently used AWS AppConfig Configuration Profile or Environment. This also includes a change to increase the maximum length of the Name parameter in UpdateConfigurationProfile.
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - Adds new querying types to show overall traffic suggestion information for monitors
+
+## __Amazon DataZone__
+  - ### Features
+    - Update regex to include dot character to be consistent with IAM role creation in the authorized principal field for create and update subscription target.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon VPC IP Address Manager (IPAM) now allows customers to provision IPv4 CIDR blocks and allocate Elastic IP Addresses directly from IPAM pools with public IPv4 space
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Documentation-only update that clarifies the StartWorkspaces and StopWorkspaces actions, and a few other minor edits.
+
 # __2.27.14__ __2024-08-27__
 ## __AWS Chatbot__
   - ### Features
