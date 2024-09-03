@@ -1,0 +1,6 @@
+{
+    "category": "DynamoDB Enhanced Client", 
+    "contributor": "shetsa-amzn", 
+    "type": "feature", 
+    "description": "Adding support for Select in ScanEnhancedRequest"
+}
