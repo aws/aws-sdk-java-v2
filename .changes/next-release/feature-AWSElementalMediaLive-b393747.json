@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaLive",
-    "contributor": "",
-    "description": "Added MinQP as a Rate Control option for H264 and H265 encodes."
-}
