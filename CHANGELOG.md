@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.18__ __2024-09-03__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Added MinQP as a Rate Control option for H264 and H265 encodes.
+
+## __AWS MediaConnect__
+  - ### Features
+    - AWS Elemental MediaConnect introduces thumbnails for Flow source monitoring. Thumbnails provide still image previews of the live content feeding your MediaConnect Flow allowing you to easily verify that your source is operating as expected.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Release ReplicaConfiguration as part of DescribeInstance
+
+## __Amazon DataZone__
+  - ### Features
+    - Add support to let data publisher specify a subset of the data asset that a subscriber will have access to based on the asset filters provided, when accepting a subscription request.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker now supports automatic mounting of a user's home folder in the Amazon Elastic File System (EFS) associated with the SageMaker Studio domain to their Studio Spaces to enable users to share data between their own private spaces.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for configuring TCP idle timeout on NLB and GWLB listeners.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - Timestream for InfluxDB now supports compute scaling and deployment type conversion. This release adds the DbInstanceType and DeploymentType parameters to the UpdateDbInstance API.
+
 # __2.27.17__ __2024-08-30__
 ## __AWS Backup__
   - ### Features
