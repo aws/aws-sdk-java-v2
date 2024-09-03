@@ -15,7 +15,10 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.ApiName;
 
 @SdkInternalApi
 public final class SqsMessageDefault {
@@ -23,6 +26,11 @@ public final class SqsMessageDefault {
     public static final int MAX_SUPPORTED_SQS_RECEIVE_MSG = 10;
 
     public static final int MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES = 262_144; // 256 KiB
+
+    // abm stands for Automatic Batching Manager
+    public static final Consumer<AwsRequestOverrideConfiguration.Builder> USER_AGENT_APPLIER =
+        b -> b.addApiName(ApiName.builder().version("abm").name("hll").build());
+
 
     /**
      * <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-message-metadata.html#sqs-message-attributes">

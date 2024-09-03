@@ -48,6 +48,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ReceiveSqsMessageHelper;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.SqsMessageDefault;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -285,13 +286,15 @@ class ReceiveSqsMessageHelperTest {
         batch.asyncReceiveMessage().get(3, TimeUnit.SECONDS);
 
         // Verify that receiveMessage was called with the correct arguments
-        ReceiveMessageRequest expectedRequest = ReceiveMessageRequest.builder()
-                                                                     .queueUrl(queueUrl)
-                                                                     .maxNumberOfMessages(10)
-                                                                     .messageAttributeNames("custom1", "custom2")
-                                                                     .visibilityTimeout(9)
-                                                                     .waitTimeSeconds(15)
-                                                                     .build();
+        ReceiveMessageRequest expectedRequest =
+            ReceiveMessageRequest.builder()
+                                 .queueUrl(queueUrl)
+                                 .maxNumberOfMessages(10)
+                                 .messageAttributeNames("custom1", "custom2")
+                                 .visibilityTimeout(9)
+                                 .waitTimeSeconds(15)
+                                 .overrideConfiguration(o -> o.applyMutation(SqsMessageDefault.USER_AGENT_APPLIER))
+                                 .build();
 
         verify(sqsClient, times(1)).receiveMessage(eq(expectedRequest));
     }
