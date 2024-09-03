@@ -49,8 +49,7 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonProtocol
 import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonResponseHandler;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonResponseHandler;
-import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
-import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.ProtocolUnmarshallDependencies;
 
 @SdkProtectedApi
 public abstract class BaseAwsJsonProtocolFactory {
@@ -85,14 +84,11 @@ public abstract class BaseAwsJsonProtocolFactory {
         this.customErrorCodeFieldName = builder.customErrorCodeFieldName;
         this.hasAwsQueryCompatible = builder.hasAwsQueryCompatible;
         this.clientConfiguration = builder.clientConfiguration;
-        this.protocolUnmarshaller = JsonProtocolUnmarshaller
-            .builder()
-            .parser(JsonNodeParser.builder()
-                                  .jsonFactory(getSdkFactory().getJsonFactory())
-                                  .jsonValueNodeFactory(getJsonValueNodeFactory())
-                                  .build())
-            .defaultTimestampFormats(getDefaultTimestampFormats())
-            .build();
+        this.protocolUnmarshaller = JsonProtocolUnmarshaller.builder()
+                                                            .protocolUnmarshallDependencies(
+                                                                builder.protocolUnmarshallDependencies.get())
+                                                            .build();
+
     }
 
     /**
@@ -182,13 +178,6 @@ public abstract class BaseAwsJsonProtocolFactory {
     }
 
     /**
-     * @return Default JsonNode value factory.
-     */
-    protected JsonValueNodeFactory getJsonValueNodeFactory() {
-        return JsonValueNodeFactory.DEFAULT;
-    }
-
-    /**
      * @return Instance of {@link StructuredJsonFactory} to use in creating handlers.
      */
     protected StructuredJsonFactory getSdkFactory() {
@@ -221,7 +210,8 @@ public abstract class BaseAwsJsonProtocolFactory {
      * Builder for {@link AwsJsonProtocolFactory}.
      */
     public abstract static class Builder<SubclassT extends Builder> {
-
+        protected Supplier<ProtocolUnmarshallDependencies> protocolUnmarshallDependencies =
+            JsonProtocolUnmarshaller::defaultProtocolUnmarshallDependencies;
         private final AwsJsonProtocolMetadata.Builder protocolMetadata = AwsJsonProtocolMetadata.builder();
         private final List<ExceptionMetadata> modeledExceptions = new ArrayList<>();
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
@@ -322,10 +312,23 @@ public abstract class BaseAwsJsonProtocolFactory {
             return getSubclass();
         }
 
+        /**
+         * Provides the unmarshalling dependencies instance.
+         *
+         * @param protocolUnmarshallDependencies the set of dependencies used to create an unmarshaller
+         * @return This builder for method chaining.
+         */
+        protected final SubclassT protocolUnmarshallDependencies(
+            Supplier<ProtocolUnmarshallDependencies> protocolUnmarshallDependencies
+        ) {
+            this.protocolUnmarshallDependencies = protocolUnmarshallDependencies;
+            return getSubclass();
+        }
+
         @SuppressWarnings("unchecked")
         private SubclassT getSubclass() {
             return (SubclassT) this;
         }
-
     }
+
 }

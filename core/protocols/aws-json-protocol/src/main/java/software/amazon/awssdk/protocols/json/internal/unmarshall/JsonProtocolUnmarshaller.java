@@ -18,15 +18,14 @@ package software.amazon.awssdk.protocols.json.internal.unmarshall;
 import static software.amazon.awssdk.protocols.core.StringToValueConverter.TO_SDK_BYTES;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
@@ -41,48 +40,73 @@ import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.protocols.core.NumberToInstant;
 import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
+import software.amazon.awssdk.protocols.json.internal.AwsStructuredPlainJsonFactory;
 import software.amazon.awssdk.protocols.json.internal.MarshallerUtil;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.document.DocumentUnmarshaller;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
+import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.builder.Buildable;
 
 /**
- * Unmarshaller implementation for both JSON RPC and REST JSON services. This class is thread-safe and it is
- * recommended to reuse a single instance for best performance.
+ * Unmarshaller implementation for both JSON RPC and REST JSON services. This class is thread-safe and it is recommended to reuse
+ * a single instance for best performance.
  */
 @SdkInternalApi
 @ThreadSafe
-public final class JsonProtocolUnmarshaller {
-
-    public final StringToValueConverter.StringToValue<Instant> instantStringToValue;
-
-    private final NumberToInstant numberToInstant;
+public class JsonProtocolUnmarshaller {
+    private static final Lazy<DefaultProtocolUnmarshallDependencies> DEFAULT_DEPENDENCIES =
+        new Lazy<>(JsonProtocolUnmarshaller::newProtocolUnmarshallDependencies);
 
     private final JsonUnmarshallerRegistry registry;
-
     private final JsonNodeParser parser;
 
     private JsonProtocolUnmarshaller(Builder builder) {
-        this.parser = builder.parser;
-        this.instantStringToValue = StringToInstant.create(builder.defaultTimestampFormats.isEmpty() ?
-                                                           new EnumMap<>(MarshallLocation.class) :
-                                                           new EnumMap<>(builder.defaultTimestampFormats));
-        this.numberToInstant = NumberToInstant.create(builder.defaultTimestampFormats.isEmpty() ?
-                                                      new EnumMap<>(MarshallLocation.class) :
-                                                      new EnumMap<>(builder.defaultTimestampFormats));
-        this.registry = createUnmarshallerRegistry(instantStringToValue, numberToInstant);
+        ProtocolUnmarshallDependencies dependencies = builder.protocolUnmarshallDependencies;
+        this.parser = createParser(builder, dependencies);
+        this.registry = dependencies.jsonUnmarshallerRegistry();
     }
 
-    private static JsonUnmarshallerRegistry createUnmarshallerRegistry(
-        StringToValueConverter.StringToValue<Instant> instantStringToValue,
-        NumberToInstant numberToInstant
-    ) {
+    private JsonNodeParser createParser(Builder builder, ProtocolUnmarshallDependencies dependencies) {
+        if (builder.parser != null) {
+            return parser;
+        }
+        return JsonNodeParser
+            .builder()
+            .jsonFactory(dependencies.jsonFactory())
+            .jsonValueNodeFactory(dependencies.nodeValueFactory())
+            .build();
+    }
 
-        return JsonUnmarshallerRegistry
+    public static DefaultProtocolUnmarshallDependencies defaultProtocolUnmarshallDependencies() {
+        return DEFAULT_DEPENDENCIES.getValue();
+    }
+
+    public static DefaultProtocolUnmarshallDependencies newProtocolUnmarshallDependencies() {
+        return DefaultProtocolUnmarshallDependencies.builder()
+                                                    .jsonUnmarshallerRegistry(defaultJsonUnmarshallerRegistry())
+                                                    .nodeValueFactory(JsonValueNodeFactory.DEFAULT)
+                                                    .timestampFormats(defaultFormats())
+                                                    .jsonFactory(AwsStructuredPlainJsonFactory.SDK_JSON_FACTORY.getJsonFactory())
+                                                    .build();
+    }
+
+    private static Map<MarshallLocation, TimestampFormatTrait.Format> defaultFormats() {
+        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new EnumMap<>(MarshallLocation.class);
+        formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);
+        formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.UNIX_TIMESTAMP);
+        return Collections.unmodifiableMap(formats);
+    }
+
+    private static JsonUnmarshallerRegistry defaultJsonUnmarshallerRegistry() {
+        return timestampFormatRegistryFactory(defaultFormats());
+    }
+
+    public static DefaultJsonUnmarshallerRegistry createSharedRegistry() {
+        return DefaultJsonUnmarshallerRegistry
             .builder()
             .statusCodeUnmarshaller(MarshallingType.INTEGER, (context, json, f) -> context.response().statusCode())
             .headerUnmarshaller(MarshallingType.STRING, HeaderUnmarshaller.STRING)
@@ -91,34 +115,25 @@ public final class JsonProtocolUnmarshaller {
             .headerUnmarshaller(MarshallingType.SHORT, HeaderUnmarshaller.SHORT)
             .headerUnmarshaller(MarshallingType.DOUBLE, HeaderUnmarshaller.DOUBLE)
             .headerUnmarshaller(MarshallingType.BOOLEAN, HeaderUnmarshaller.BOOLEAN)
-            .headerUnmarshaller(MarshallingType.INSTANT, HeaderUnmarshaller.createInstantHeaderUnmarshaller(instantStringToValue))
             .headerUnmarshaller(MarshallingType.FLOAT, HeaderUnmarshaller.FLOAT)
             .headerUnmarshaller(MarshallingType.LIST, HeaderUnmarshaller.LIST)
 
             .payloadUnmarshaller(MarshallingType.STRING, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_STRING))
-            .payloadUnmarshaller(MarshallingType.INTEGER, forEmbeddable(Number.class, Number::intValue,
-                                                                        StringToValueConverter.TO_INTEGER))
-            .payloadUnmarshaller(MarshallingType.LONG, forEmbeddable(Number.class, Number::longValue,
-                                                                     StringToValueConverter.TO_LONG))
-            .payloadUnmarshaller(MarshallingType.BYTE, forEmbeddable(Number.class, Number::byteValue,
-                                                                     StringToValueConverter.TO_BYTE))
-            .payloadUnmarshaller(MarshallingType.SHORT, forEmbeddable(Number.class, Number::shortValue,
-                                                                      StringToValueConverter.TO_SHORT))
-            .payloadUnmarshaller(MarshallingType.FLOAT, forEmbeddable(Number.class, Number::floatValue,
-                                                                      StringToValueConverter.TO_FLOAT))
-            .payloadUnmarshaller(MarshallingType.DOUBLE, forEmbeddable(Number.class, Number::doubleValue,
-                                                                       StringToValueConverter.TO_DOUBLE))
-            .payloadUnmarshaller(MarshallingType.BIG_DECIMAL, forEmbeddable(BigDecimal.class,
-                                                                            StringToValueConverter.TO_BIG_DECIMAL))
-            .payloadUnmarshaller(MarshallingType.BOOLEAN, forEmbeddable(Boolean.class, StringToValueConverter.TO_BOOLEAN))
+            .payloadUnmarshaller(MarshallingType.INTEGER, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_INTEGER))
+            .payloadUnmarshaller(MarshallingType.LONG, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_LONG))
+            .payloadUnmarshaller(MarshallingType.BYTE, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_BYTE))
+            .payloadUnmarshaller(MarshallingType.SHORT, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_SHORT))
+            .payloadUnmarshaller(MarshallingType.FLOAT, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_FLOAT))
+            .payloadUnmarshaller(MarshallingType.DOUBLE, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_DOUBLE))
+            .payloadUnmarshaller(MarshallingType.BIG_DECIMAL, new SimpleTypeJsonUnmarshaller<>(
+                StringToValueConverter.TO_BIG_DECIMAL))
+            .payloadUnmarshaller(MarshallingType.BOOLEAN, new SimpleTypeJsonUnmarshaller<>(StringToValueConverter.TO_BOOLEAN))
             .payloadUnmarshaller(MarshallingType.SDK_BYTES, JsonProtocolUnmarshaller::unmarshallSdkBytes)
-            .payloadUnmarshaller(MarshallingType.INSTANT, new SimpleTypeInstantJsonUnmarshaller<>(instantStringToValue,
-                                                                                                  numberToInstant))
             .payloadUnmarshaller(MarshallingType.SDK_POJO, JsonProtocolUnmarshaller::unmarshallStructured)
             .payloadUnmarshaller(MarshallingType.LIST, JsonProtocolUnmarshaller::unmarshallList)
             .payloadUnmarshaller(MarshallingType.MAP, JsonProtocolUnmarshaller::unmarshallMap)
             .payloadUnmarshaller(MarshallingType.DOCUMENT, JsonProtocolUnmarshaller::unmarshallDocument)
-                .build();
+            .build();
     }
 
     private static SdkBytes unmarshallSdkBytes(JsonUnmarshallerContext context,
@@ -163,12 +178,14 @@ public final class JsonProtocolUnmarshaller {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         }
+
         SdkField<Object> valueInfo = field.getTrait(MapTrait.class).valueFieldInfo();
-        Map<String, Object> map = new HashMap<>();
-        jsonContent.asObject().forEach((fieldName, value) -> {
-            JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(valueInfo.location(), valueInfo.marshallingType());
-            map.put(fieldName, unmarshaller.unmarshall(context, value, valueInfo));
-        });
+        JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(valueInfo.location(), valueInfo.marshallingType());
+        Map<String, JsonNode> asObject = jsonContent.asObject();
+        Map<String, Object> map = new HashMap<>(asObject.size());
+        for (Map.Entry<String, JsonNode> kvp : asObject.entrySet()) {
+            map.put(kvp.getKey(), unmarshaller.unmarshall(context, kvp.getValue(), valueInfo));
+        }
         return map;
     }
 
@@ -176,15 +193,16 @@ public final class JsonProtocolUnmarshaller {
         if (jsonContent == null || jsonContent.isNull()) {
             return null;
         }
-        return jsonContent.asArray()
-                          .stream()
-                          .map(item -> {
-                              SdkField<Object> memberInfo = field.getTrait(ListTrait.class).memberFieldInfo();
-                              JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(memberInfo.location(),
-                                                                                              memberInfo.marshallingType());
-                              return unmarshaller.unmarshall(context, item, memberInfo);
-                          })
-                          .collect(Collectors.toList());
+
+        SdkField<Object> memberInfo = field.getTrait(ListTrait.class).memberFieldInfo();
+        List<JsonNode> asArray = jsonContent.asArray();
+        List<Object> result = new ArrayList<>(asArray.size());
+        for (JsonNode node : asArray) {
+            JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(memberInfo.location(),
+                                                                            memberInfo.marshallingType());
+            result.add(unmarshaller.unmarshall(context, node, memberInfo));
+        }
+        return result;
     }
 
     private static class SimpleTypeJsonUnmarshaller<T> implements JsonUnmarshaller<T> {
@@ -203,116 +221,23 @@ public final class JsonProtocolUnmarshaller {
         }
     }
 
-    private static class EmbeddableTypeTransformingJsonUnmarshaller<T, V> implements JsonUnmarshaller<T> {
-
-        private final StringToValueConverter.StringToValue<T> stringToValue;
-        private final Class<V> embeddedType;
-        private final Function<V, T> typeConverter;
-
-        private EmbeddableTypeTransformingJsonUnmarshaller(
-            Class<V> embeddedType,
-            Function<V, T> typeConverter,
-            StringToValueConverter.StringToValue<T> stringToValue
-        ) {
-            this.stringToValue = stringToValue;
-            this.typeConverter = typeConverter;
-            this.embeddedType = embeddedType;
-        }
-
-        @Override
-        public T unmarshall(JsonUnmarshallerContext context,
-                            JsonNode jsonContent,
-                            SdkField<T> field) {
-            if (jsonContent == null || jsonContent.isNull()) {
-                return null;
-            }
-            String text = null;
-            if (jsonContent.isEmbeddedObject()) {
-                Object embedded = jsonContent.asEmbeddedObject();
-                if (embedded == null) {
-                    return null;
-                }
-                if (embeddedType.isAssignableFrom(embedded.getClass())) {
-                    return typeConverter.apply((V) embedded);
-                }
-                // Fallback in case that the embedded object is not what
-                // we were looking for.
-                text = embedded.toString();
-            }
-            if (text == null) {
-                text = jsonContent.text();
-            }
-            return stringToValue.convert(text, field);
-        }
-    }
-
-    private static class SimpleTypeInstantJsonUnmarshaller<T> implements JsonUnmarshaller<T> {
-
-        private final StringToValueConverter.StringToValue<T> stringToValue;
-        private final NumberToInstant numberToInstant;
-
-        private SimpleTypeInstantJsonUnmarshaller(
-            StringToValueConverter.StringToValue<T> stringToValue,
-            NumberToInstant numberToInstant
-        ) {
-            this.stringToValue = stringToValue;
-            this.numberToInstant = numberToInstant;
-        }
-
-        @Override
-        public T unmarshall(JsonUnmarshallerContext context,
-                            JsonNode jsonContent,
-                            SdkField<T> field) {
-            if (jsonContent == null || jsonContent.isNull()) {
-                return null;
-            }
-            String text = null;
-            if (jsonContent.isEmbeddedObject()) {
-                Object embedded = jsonContent.asEmbeddedObject();
-                if (embedded == null) {
-                    return null;
-                }
-                if (Number.class.isAssignableFrom(embedded.getClass())) {
-                    return (T) numberToInstant.convert((Number) embedded, (SdkField<Instant>) field);
-                }
-                // Fallback in case that the embedded object is not what
-                // we were looking for.
-                text = embedded.toString();
-            }
-            if (text == null) {
-                text = jsonContent.text();
-            }
-            return stringToValue.convert(text, field);
-        }
-    }
-
-    private static <T, V> EmbeddableTypeTransformingJsonUnmarshaller<T, V> forEmbeddable(
-        Class<V> embeddedType,
-        Function<V, T> transformer,
-        StringToValueConverter.StringToValue<T> stringToValue
-    ) {
-        return new EmbeddableTypeTransformingJsonUnmarshaller<>(embeddedType, transformer, stringToValue);
-    }
-
-    private static <T> EmbeddableTypeTransformingJsonUnmarshaller<T, T> forEmbeddable(
-        Class<T> embeddedType,
-        StringToValueConverter.StringToValue<T> stringToValue
-    ) {
-        return new EmbeddableTypeTransformingJsonUnmarshaller<>(embeddedType, Function.identity(), stringToValue);
-    }
-
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
-                            SdkHttpFullResponse response) throws IOException {
+                                                    SdkHttpFullResponse response) throws IOException {
         JsonNode jsonNode = hasJsonPayload(sdkPojo, response) ? parser.parse(response.content().get()) : null;
         return unmarshall(sdkPojo, response, jsonNode);
     }
 
     private boolean hasJsonPayload(SdkPojo sdkPojo, SdkHttpFullResponse response) {
-        return sdkPojo.sdkFields()
-                      .stream()
-                      .anyMatch(f -> isPayloadMemberOnUnmarshall(f) && !isExplicitBlobPayloadMember(f)
-                                     && !isExplicitStringPayloadMember(f))
-               && response.content().isPresent();
+        if (!response.content().isPresent()) {
+            return false;
+        }
+        for (SdkField<?> field : sdkPojo.sdkFields()) {
+            if (isPayloadMemberOnUnmarshall(field) && !isExplicitBlobPayloadMember(field)
+                && !isExplicitStringPayloadMember(field)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isExplicitBlobPayloadMember(SdkField<?> f) {
@@ -332,8 +257,8 @@ public final class JsonProtocolUnmarshaller {
     }
 
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
-                            SdkHttpFullResponse response,
-                            JsonNode jsonContent) {
+                                                    SdkHttpFullResponse response,
+                                                    JsonNode jsonContent) {
         JsonUnmarshallerContext context = JsonUnmarshallerContext.builder()
                                                                  .unmarshallerRegistry(registry)
                                                                  .response(response)
@@ -388,12 +313,32 @@ public final class JsonProtocolUnmarshaller {
     }
 
     /**
+     * Creates the default {@link JsonProtocolUnmarshaller}, which parses {@link Instant} using the default formats passed in.
+     */
+    public static JsonUnmarshallerRegistry timestampFormatRegistryFactory(
+        Map<MarshallLocation, TimestampFormatTrait.Format> formats
+    ) {
+        StringToValueConverter.StringToValue<Instant> instantStringToValue = StringToInstant
+            .create(formats.isEmpty() ?
+                    new EnumMap<>(MarshallLocation.class) :
+                    new EnumMap<>(formats));
+
+        return createSharedRegistry()
+            .toBuilder()
+            .headerUnmarshaller(MarshallingType.INSTANT,
+                                HeaderUnmarshaller.createInstantHeaderUnmarshaller(instantStringToValue))
+            .payloadUnmarshaller(MarshallingType.INSTANT,
+                                 new SimpleTypeJsonUnmarshaller<>(instantStringToValue))
+            .build();
+    }
+
+    /**
      * Builder for {@link JsonProtocolUnmarshaller}.
      */
     public static final class Builder {
 
         private JsonNodeParser parser;
-        private Map<MarshallLocation, TimestampFormatTrait.Format> defaultTimestampFormats;
+        private ProtocolUnmarshallDependencies protocolUnmarshallDependencies;
 
         private Builder() {
         }
@@ -410,11 +355,24 @@ public final class JsonProtocolUnmarshaller {
         /**
          * @param formats The default timestamp formats for each location in the HTTP response.
          * @return This builder for method chaining.
+         * @deprecated Use instead {@link #protocolUnmarshallDependencies}
          */
+        @Deprecated
         public Builder defaultTimestampFormats(Map<MarshallLocation, TimestampFormatTrait.Format> formats) {
-            this.defaultTimestampFormats = formats;
             return this;
         }
+
+        /**
+         * @param protocolUnmarshallDependencies The default instant registry unmarshaller factory.
+         * @return This builder for method chaining.
+         */
+        public Builder protocolUnmarshallDependencies(
+            ProtocolUnmarshallDependencies protocolUnmarshallDependencies
+        ) {
+            this.protocolUnmarshallDependencies = protocolUnmarshallDependencies;
+            return this;
+        }
+
 
         /**
          * @return New instance of {@link JsonProtocolUnmarshaller}.
@@ -423,5 +381,4 @@ public final class JsonProtocolUnmarshaller {
             return new JsonProtocolUnmarshaller(this);
         }
     }
-
 }

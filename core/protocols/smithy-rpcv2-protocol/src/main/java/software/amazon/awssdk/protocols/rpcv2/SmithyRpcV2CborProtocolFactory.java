@@ -24,15 +24,22 @@ import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonContentTypeResolver;
 import software.amazon.awssdk.protocols.json.StructuredJsonFactory;
-import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.DefaultProtocolUnmarshallDependencies;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonUnmarshallerRegistry;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.ProtocolUnmarshallDependencies;
+import software.amazon.awssdk.protocols.rpcv2.internal.SdkRpcV2CborUnmarshaller;
 import software.amazon.awssdk.protocols.rpcv2.internal.SdkRpcV2CborValueNodeFactory;
 import software.amazon.awssdk.protocols.rpcv2.internal.SdkStructuredRpcV2CborFactory;
+import software.amazon.awssdk.utils.Lazy;
 
 /**
  * Protocol factory for RPCv2 CBOR protocol.
  */
 @SdkProtectedApi
 public final class SmithyRpcV2CborProtocolFactory extends BaseAwsJsonProtocolFactory {
+
+    private static final Lazy<ProtocolUnmarshallDependencies> DEPENDENCIES =
+        new Lazy<>(SmithyRpcV2CborProtocolFactory::newProtocolUnmarshallDependencies);
 
     /**
      * Content type resolver implementation for RPC_V2_CBOR enabled services.
@@ -67,13 +74,30 @@ public final class SmithyRpcV2CborProtocolFactory extends BaseAwsJsonProtocolFac
         return LazyHolder.DEFAULT_TIMESTAMP_FORMATS;
     }
 
-    @Override
-    public JsonValueNodeFactory getJsonValueNodeFactory() {
-        return SdkRpcV2CborValueNodeFactory.INSTANCE;
-    }
-
     public static Builder builder() {
         return new Builder();
+    }
+
+    public static ProtocolUnmarshallDependencies defaultProtocolUnmarshallDependencies() {
+        return DEPENDENCIES.getValue();
+    }
+
+    public static DefaultProtocolUnmarshallDependencies newProtocolUnmarshallDependencies() {
+        return DefaultProtocolUnmarshallDependencies
+            .builder()
+            .jsonUnmarshallerRegistry(defaultCborUnmarshallerRegistry())
+            .nodeValueFactory(SdkRpcV2CborValueNodeFactory.INSTANCE)
+            .timestampFormats(defaultFormats())
+            .jsonFactory(SdkStructuredRpcV2CborFactory.SDK_CBOR_FACTORY.getJsonFactory())
+            .build();
+    }
+
+    private static Map<MarshallLocation, TimestampFormatTrait.Format> defaultFormats() {
+        return LazyHolder.DEFAULT_TIMESTAMP_FORMATS;
+    }
+
+    private static JsonUnmarshallerRegistry defaultCborUnmarshallerRegistry() {
+        return SdkRpcV2CborUnmarshaller.timestampFormatRegistryFactory(defaultFormats());
     }
 
     /**
@@ -82,6 +106,7 @@ public final class SmithyRpcV2CborProtocolFactory extends BaseAwsJsonProtocolFac
     public static final class Builder extends BaseAwsJsonProtocolFactory.Builder<Builder> {
 
         private Builder() {
+            protocolUnmarshallDependencies(SmithyRpcV2CborProtocolFactory::defaultProtocolUnmarshallDependencies);
         }
 
         public SmithyRpcV2CborProtocolFactory build() {
@@ -101,7 +126,6 @@ public final class SmithyRpcV2CborProtocolFactory extends BaseAwsJsonProtocolFac
             Map<MarshallLocation, TimestampFormatTrait.Format> formats = new EnumMap<>(MarshallLocation.class);
             formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.UNIX_TIMESTAMP);
             return Collections.unmodifiableMap(formats);
-
         }
     }
 }

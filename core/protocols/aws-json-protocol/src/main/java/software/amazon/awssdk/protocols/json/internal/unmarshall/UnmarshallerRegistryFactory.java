@@ -16,17 +16,16 @@
 package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.protocol.MarshallLocation;
-import software.amazon.awssdk.core.protocol.MarshallingType;
 
 /**
- * Registry of {@link JsonUnmarshaller} implementations by location and type.
+ * Interface used to create an {@link UnmarshallerRegistryFactory} that will unmarshall using the given default formats for each
+ * of the locations in the formats map.
  */
 @SdkInternalApi
-public interface JsonUnmarshallerRegistry {
+public interface UnmarshallerRegistryFactory {
 
     /**
-     * Returns the unmarshaller for the given location and type. Throws an exception if no unmarshaller is found.
+     * Returns a unmarshaller registry that uses the default timestamp formats passed in.
      */
-    <T> JsonUnmarshaller<Object> getUnmarshaller(MarshallLocation marshallLocation, MarshallingType<T> marshallingType);
+    JsonUnmarshallerRegistry get();
 }

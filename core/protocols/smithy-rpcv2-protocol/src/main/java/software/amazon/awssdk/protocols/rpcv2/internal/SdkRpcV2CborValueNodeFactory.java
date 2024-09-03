@@ -71,29 +71,14 @@ public final class SdkRpcV2CborValueNodeFactory implements JsonValueNodeFactory 
             case LONG:
             case FLOAT:
             case DOUBLE:
-                try {
-                    Number javaNumber = parser.getNumberValue();
-                    return new EmbeddedObjectJsonNode(javaNumber);
-                } catch (Exception e) {
-                    // ignored
-                }
-                break;
+                Number javaNumber = parser.getNumberValue();
+                return new EmbeddedObjectJsonNode(javaNumber);
             case BIG_DECIMAL:
-                try {
-                    BigDecimal bigDecimal = parser.getDecimalValue();
-                    return new EmbeddedObjectJsonNode(bigDecimal);
-                } catch (Exception e) {
-                    // ignored
-                }
-                break;
+                BigDecimal bigDecimal = parser.getDecimalValue();
+                return new EmbeddedObjectJsonNode(bigDecimal);
             case BIG_INTEGER:
-                try {
-                    BigInteger bigInteger = parser.getBigIntegerValue();
-                    return new EmbeddedObjectJsonNode(bigInteger);
-                } catch (Exception e) {
-                    // ignored
-                }
-                break;
+                BigInteger bigInteger = parser.getBigIntegerValue();
+                return new EmbeddedObjectJsonNode(bigInteger);
             default:
         }
         return new NumberJsonNode(parser.getText());
