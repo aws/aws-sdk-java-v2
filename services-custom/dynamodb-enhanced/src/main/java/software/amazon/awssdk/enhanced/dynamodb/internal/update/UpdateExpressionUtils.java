@@ -103,7 +103,7 @@ public final class UpdateExpressionUtils {
     private static RemoveAction remove(String attributeName) {
         return RemoveAction.builder()
                            .path(keyRef(attributeName))
-                           .expressionNames(expressionNamesFor(attributeName))
+                           .expressionNames(Collections.singletonMap(keyRef(attributeName), attributeName))
                            .build();
     }
 

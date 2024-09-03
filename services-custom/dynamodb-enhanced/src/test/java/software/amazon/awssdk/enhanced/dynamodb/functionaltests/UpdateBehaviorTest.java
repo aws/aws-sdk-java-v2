@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.After;
@@ -18,7 +19,10 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FlattenRe
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedRecordWithUpdateBehavior;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecordWithUpdateBehaviors;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.ExtensionResolver;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 
 public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     private static final Instant INSTANT_1 = Instant.parse("2020-05-03T10:00:00Z");
@@ -303,17 +307,31 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void test() {
-        String randomId = "id123";
+    public void when_emptyNestedRecordIsSet_emotyMapIsStoredInTable() {
+        String key = "id123";
 
         RecordWithUpdateBehaviors record = new RecordWithUpdateBehaviors();
-        record.setId(randomId);
+        record.setId(key);
         record.setNestedRecord(new NestedRecordWithUpdateBehavior());
 
         mappedTable.updateItem(r -> r.item(record).ignoreNulls(true));
 
-        RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
-        assertThat(persistedRecord.getNestedRecord()).isNull();
+        GetItemResponse getItemResponse = getDynamoDbClient().getItem(GetItemRequest.builder()
+                                                                                    .key(Collections.singletonMap("id",
+                                                                                                                  AttributeValue.fromS(key)))
+                                                                                    .tableName(getConcreteTableName("table-name"))
+                                                                                    .build());
+
+        assertThat(getItemResponse.item().get("nestedRecord")).isNotNull();
+        assertThat(getItemResponse.item().get("nestedRecord").toString()).isEqualTo("AttributeValue(M={nestedTimeAttribute"
+                                                                                + "=AttributeValue(NUL=true), "
+                                                                                + "nestedRecord=AttributeValue(NUL=true), "
+                                                                                + "attribute=AttributeValue(NUL=true), "
+                                                                                + "id=AttributeValue(NUL=true), "
+                                                                                + "nestedUpdateBehaviorAttribute=AttributeValue"
+                                                                                + "(NUL=true), nestedCounter=AttributeValue"
+                                                                                + "(NUL=true), nestedVersionedAttribute"
+                                                                                + "=AttributeValue(NUL=true)})");
     }
 
 

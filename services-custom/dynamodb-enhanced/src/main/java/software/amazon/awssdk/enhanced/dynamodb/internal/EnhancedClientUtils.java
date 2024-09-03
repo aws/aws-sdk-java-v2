@@ -43,7 +43,7 @@ public final class EnhancedClientUtils {
     private static final Set<Character> SPECIAL_CHARACTERS = Stream.of(
         '*', '.', '-', '#', '+', ':', '/', '(', ')', ' ',
         '&', '<', '>', '?', '=', '!', '@', '%', '$', '|').collect(Collectors.toSet());
-    private static final Pattern PATTERN = Pattern.compile(NESTED_OBJECT_UPDATE);
+    private static final Pattern NESTED_OBJECT_PATTERN = Pattern.compile(NESTED_OBJECT_UPDATE);
 
     private EnhancedClientUtils() {
 
@@ -81,7 +81,7 @@ public final class EnhancedClientUtils {
     public static String keyRef(String key) {
         String cleanAttributeName = cleanAttributeName(key);
         cleanAttributeName = isNestedAttribute(cleanAttributeName) ?
-                             PATTERN.matcher(cleanAttributeName).replaceAll(".#AMZN_MAPPED_")
+                             NESTED_OBJECT_PATTERN.matcher(cleanAttributeName).replaceAll(".#AMZN_MAPPED_")
                                                     : cleanAttributeName;
         return "#AMZN_MAPPED_" + cleanAttributeName;
     }
@@ -92,7 +92,7 @@ public final class EnhancedClientUtils {
     public static String valueRef(String value) {
         String cleanAttributeName = cleanAttributeName(value);
         cleanAttributeName = isNestedAttribute(cleanAttributeName) ?
-                             PATTERN.matcher(cleanAttributeName).replaceAll("_")
+                             NESTED_OBJECT_PATTERN.matcher(cleanAttributeName).replaceAll("_")
                                                                    : cleanAttributeName;
         return ":AMZN_MAPPED_" + cleanAttributeName;
     }

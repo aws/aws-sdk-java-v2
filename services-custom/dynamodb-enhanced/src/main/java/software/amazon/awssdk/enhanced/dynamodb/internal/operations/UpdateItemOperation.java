@@ -195,17 +195,8 @@ public class UpdateItemOperation<T>
     }
 
     private boolean isNotEmptyMap(Map<String, AttributeValue> map) {
-        if (map.isEmpty()) {
-            return false;
-        }
-
-        // Checks if a fully empty map is being set. If that is the case, no input transformations are applied to the map
-        for (Map.Entry<String, AttributeValue> entry : map.entrySet()) {
-            if (attributeValueNonNullOrShouldWriteNull(entry.getValue())) {
-                return true;
-            }
-        }
-        return false;
+        return !map.isEmpty() && map.values().stream()
+                                    .anyMatch(this::attributeValueNonNullOrShouldWriteNull);
     }
     
     private boolean attributeValueNonNullOrShouldWriteNull(AttributeValue attributeValue) {
