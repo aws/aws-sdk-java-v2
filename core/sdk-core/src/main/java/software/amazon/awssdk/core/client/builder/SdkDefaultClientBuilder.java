@@ -71,7 +71,7 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.CompressionConfiguration;
-import software.amazon.awssdk.core.SdkClientEndpointProvider;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
@@ -538,7 +538,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
             clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, null);
         } else {
             clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-                                       SdkClientEndpointProvider.forOverrideEndpoint(endpointOverride));
+                                       ClientEndpointProvider.forOverrideEndpoint(endpointOverride));
         }
         return thisBuilder();
     }

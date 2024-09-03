@@ -33,7 +33,7 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
-import software.amazon.awssdk.core.SdkClientEndpointProvider;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -163,7 +163,7 @@ public class ServiceClientConfigurationUtils {
         return CodeBlock.builder()
                         .beginControlFlow("if (endpointOverride != null)")
                         .addStatement("config.option($T.CLIENT_ENDPOINT_PROVIDER, $T.forOverrideEndpoint(endpointOverride))",
-                                      SdkClientOption.class, SdkClientEndpointProvider.class)
+                                      SdkClientOption.class, ClientEndpointProvider.class)
                         .nextControlFlow("else")
                         .addStatement("config.option($T.CLIENT_ENDPOINT_PROVIDER, null)", SdkClientOption.class)
                         .endControlFlow()
@@ -174,7 +174,7 @@ public class ServiceClientConfigurationUtils {
     private CodeBlock endpointOverrideConfigGetter() {
         return CodeBlock.builder()
                         .addStatement("$T clientEndpoint = config.option($T.CLIENT_ENDPOINT_PROVIDER)",
-                             SdkClientEndpointProvider.class, SdkClientOption.class)
+                                      ClientEndpointProvider.class, SdkClientOption.class)
                         .beginControlFlow("if (clientEndpoint != null && clientEndpoint.isEndpointOverridden())")
                         .addStatement("return clientEndpoint.clientEndpoint()")
                         .endControlFlow()

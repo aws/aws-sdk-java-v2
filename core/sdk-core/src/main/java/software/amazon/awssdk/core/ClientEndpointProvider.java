@@ -20,10 +20,10 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkProtectedApi
-public interface SdkClientEndpointProvider {
-    static SdkClientEndpointProvider forOverrideEndpoint(URI uri) {
+public interface ClientEndpointProvider {
+    static ClientEndpointProvider forOverrideEndpoint(URI uri) {
         Validate.paramNotNull(uri.getScheme(), "The URI scheme of endpointOverride");
-        return new SdkClientEndpointProvider() {
+        return new ClientEndpointProvider() {
             @Override
             public URI clientEndpoint() {
                 return uri;

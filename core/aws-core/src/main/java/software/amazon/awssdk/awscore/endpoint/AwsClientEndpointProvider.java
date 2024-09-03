@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.SdkClientEndpointProvider;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -39,7 +39,7 @@ import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 
 @SdkProtectedApi
-public class AwsClientEndpointProvider implements SdkClientEndpointProvider {
+public class AwsClientEndpointProvider implements ClientEndpointProvider {
     private static final String GLOBAL_ENDPOINT_OVERRIDE_ENVIRONMENT_VARIABLE = "AWS_ENDPOINT_URL";
     private static final String GLOBAL_ENDPOINT_OVERRIDE_SYSTEM_PROPERTY = "aws.endpointUrl";
     private static final String ENDPOINT_OVERRIDE_PROFILE_PROPERTY = "endpoint_url";

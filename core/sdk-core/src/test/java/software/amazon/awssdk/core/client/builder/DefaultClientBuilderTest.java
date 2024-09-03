@@ -65,6 +65,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -307,6 +308,8 @@ public class DefaultClientBuilderTest {
         TestClient client = testClientBuilder().endpointOverride(ENDPOINT).build();
 
         assertThat(client.clientConfiguration.option(SdkClientOption.ENDPOINT)).isEqualTo(ENDPOINT);
+        assertThat(client.clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint())
+            .isEqualTo(ENDPOINT);
     }
 
     @Test
@@ -482,7 +485,8 @@ public class DefaultClientBuilderTest {
 
         @Override
         protected SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
-            return configuration.merge(c -> c.option(SdkClientOption.ENDPOINT, DEFAULT_ENDPOINT));
+            return configuration.merge(c -> c.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                                     ClientEndpointProvider.forOverrideEndpoint(DEFAULT_ENDPOINT)));
         }
 
         @Override
@@ -513,7 +517,8 @@ public class DefaultClientBuilderTest {
 
         @Override
         protected SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
-            return configuration.merge(c -> c.option(SdkClientOption.ENDPOINT, DEFAULT_ENDPOINT));
+            return configuration.merge(c -> c.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                                     ClientEndpointProvider.forOverrideEndpoint(DEFAULT_ENDPOINT)));
         }
 
         @Override

@@ -27,6 +27,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.core.Protocol;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -60,13 +61,15 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 @SdkInternalApi
 public abstract class RdsPresignInterceptor<T extends NeptuneRequest> implements ExecutionInterceptor {
 
-    private static final URI CUSTOM_ENDPOINT_LOCALHOST = URI.create("http://localhost");
+    private static final ClientEndpointProvider CUSTOM_ENDPOINT_PROVIDER_LOCALHOST =
+        ClientEndpointProvider.forOverrideEndpoint(URI.create("http://localhost"));
 
     protected static final AwsQueryProtocolFactory PROTOCOL_FACTORY = AwsQueryProtocolFactory
         .builder()
         // Need an endpoint to marshall but this will be overwritten in modifyHttpRequest
         .clientConfiguration(SdkClientConfiguration.builder()
-                                                   .option(SdkClientOption.ENDPOINT, CUSTOM_ENDPOINT_LOCALHOST)
+                                                   .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                                           CUSTOM_ENDPOINT_PROVIDER_LOCALHOST)
                                                    .build())
         .build();
 
@@ -218,7 +221,7 @@ public abstract class RdsPresignInterceptor<T extends NeptuneRequest> implements
 
     private URI createEndpoint(String regionName, String serviceName, ExecutionAttributes attributes) {
         return AwsClientEndpointProvider.builder()
-                                        .serviceName(SERVICE_NAME)
+                                        .serviceEndpointPrefix(SERVICE_NAME)
                                         .protocol(Protocol.HTTPS.toString())
                                         .region(Region.of(regionName))
                                         .profileFile(attributes.getAttribute(SdkExecutionAttribute.PROFILE_FILE_SUPPLIER))

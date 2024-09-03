@@ -44,7 +44,7 @@ import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfigur
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeResolver;
 import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
-import software.amazon.awssdk.core.SdkClientEndpointProvider;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -190,7 +190,6 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                             .lazyOptionIfAbsent(SdkClientOption.ENDPOINT_OVERRIDDEN, this::resolveEndpointOverridden)
                             .lazyOption(AwsClientOption.SIGNING_REGION, this::resolveSigningRegion)
                             .lazyOption(SdkClientOption.HTTP_CLIENT_CONFIG, this::resolveHttpClientConfig)
-                            .applyMutation(this::configureEndpointOverride)
                             .applyMutation(this::configureRetryPolicy)
                             .applyMutation(this::configureRetryStrategy)
                             .lazyOptionIfAbsent(SdkClientOption.IDENTITY_PROVIDERS, this::resolveIdentityProviders)
@@ -298,7 +297,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                               .signingRegion(config.get(AwsClientOption.AWS_REGION));
     }
 
-    private SdkClientEndpointProvider resolveClientEndpointProvider(LazyValueSource config) {
+    private ClientEndpointProvider resolveClientEndpointProvider(LazyValueSource config) {
         ServiceMetadataAdvancedOption<String> useGlobalS3EndpointProperty =
             ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT;
         return AwsClientEndpointProvider.builder()
@@ -389,12 +388,6 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     private AwsCredentialsProvider resolveCredentialsProvider(LazyValueSource config) {
         return CredentialUtils.toCredentialsProvider(config.get(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER));
-    }
-
-    private void configureEndpointOverride(SdkClientConfiguration.Builder builder) {
-        if (builder.option(SdkClientOption.ENDPOINT) == null) {
-
-        }
     }
 
     private void configureRetryPolicy(SdkClientConfiguration.Builder config) {

@@ -17,11 +17,13 @@ package software.amazon.awssdk.protocols.json;
 
 import static java.util.Collections.unmodifiableList;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -183,13 +185,23 @@ public abstract class BaseAwsJsonProtocolFactory {
 
     public final ProtocolMarshaller<SdkHttpFullRequest> createProtocolMarshaller(OperationInfo operationInfo) {
         return JsonProtocolMarshallerBuilder.create()
-                                            .endpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
+                                            .endpoint(endpoint(clientConfiguration))
                                             .jsonGenerator(createGenerator(operationInfo))
                                             .contentType(getContentType())
                                             .operationInfo(operationInfo)
                                             .sendExplicitNullForPayload(false)
                                             .protocolMetadata(protocolMetadata)
                                             .build();
+    }
+
+    private URI endpoint(SdkClientConfiguration clientConfiguration) {
+        URI endpoint = clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint();
+        if (endpoint != null) {
+            return endpoint;
+        }
+
+        // Some old client versions may not use the endpoint provider. In that case, use the legacy endpoint field.
+        return clientConfiguration.option(SdkClientOption.ENDPOINT);
     }
 
     /**

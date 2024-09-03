@@ -98,8 +98,14 @@ public class DefaultAwsClientBuilderTest {
     public void buildWithRegionShouldHaveCorrectEndpointAndSigningRegion() {
         TestClient client = testClientBuilder().region(Region.US_WEST_1).build();
 
+        assertThat(client.clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint())
+            .hasToString("https://" + ENDPOINT_PREFIX + ".us-west-1.amazonaws.com");
+        assertThat(client.clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).isEndpointOverridden())
+            .isEqualTo(false);
         assertThat(client.clientConfiguration.option(SdkClientOption.ENDPOINT))
             .hasToString("https://" + ENDPOINT_PREFIX + ".us-west-1.amazonaws.com");
+        assertThat(client.clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
+            .isEqualTo(false);
         assertThat(client.clientConfiguration.option(SIGNING_REGION)).isEqualTo(Region.US_WEST_1);
         assertThat(client.clientConfiguration.option(SERVICE_SIGNING_NAME)).isEqualTo(SIGNING_NAME);
     }
@@ -130,7 +136,13 @@ public class DefaultAwsClientBuilderTest {
     public void buildWithEndpointShouldHaveCorrectEndpointAndSigningRegion() {
         TestClient client = testClientBuilder().region(Region.US_WEST_1).endpointOverride(ENDPOINT).build();
 
+        assertThat(client.clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint())
+            .isEqualTo(ENDPOINT);
+        assertThat(client.clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).isEndpointOverridden())
+            .isEqualTo(true);
         assertThat(client.clientConfiguration.option(SdkClientOption.ENDPOINT)).isEqualTo(ENDPOINT);
+        assertThat(client.clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
+            .isEqualTo(true);
         assertThat(client.clientConfiguration.option(SIGNING_REGION)).isEqualTo(Region.US_WEST_1);
         assertThat(client.clientConfiguration.option(SERVICE_SIGNING_NAME)).isEqualTo(SIGNING_NAME);
     }

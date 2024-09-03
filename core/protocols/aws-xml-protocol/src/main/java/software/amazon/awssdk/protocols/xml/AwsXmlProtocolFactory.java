@@ -17,6 +17,7 @@ package software.amazon.awssdk.protocols.xml;
 
 import static java.util.Collections.unmodifiableList;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -100,10 +101,20 @@ public class AwsXmlProtocolFactory {
      */
     public ProtocolMarshaller<SdkHttpFullRequest> createProtocolMarshaller(OperationInfo operationInfo) {
         return XmlProtocolMarshaller.builder()
-                                    .endpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
+                                    .endpoint(endpoint(clientConfiguration))
                                     .xmlGenerator(createGenerator(operationInfo))
                                     .operationInfo(operationInfo)
                                     .build();
+    }
+
+    private URI endpoint(SdkClientConfiguration clientConfiguration) {
+        URI endpoint = clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint();
+        if (endpoint != null) {
+            return endpoint;
+        }
+
+        // Some old client versions may not use the endpoint provider. In that case, use the legacy endpoint field.
+        return clientConfiguration.option(SdkClientOption.ENDPOINT);
     }
 
     public <T extends SdkPojo> HttpResponseHandler<T> createResponseHandler(Supplier<SdkPojo> pojoSupplier,

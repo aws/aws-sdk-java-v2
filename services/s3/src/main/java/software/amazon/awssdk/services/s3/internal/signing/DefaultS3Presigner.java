@@ -237,7 +237,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      * Copied from {@link AwsDefaultClientBuilder}.
      */
     private SdkClientConfiguration createClientConfiguration() {
-        AwsClientEndpointProvider endpointResolver =
+        AwsClientEndpointProvider endpointProvider =
             AwsClientEndpointProvider.builder()
                                      .clientEndpointOverride(endpointOverride())
                                      .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_S3")
@@ -253,9 +253,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                      .build();
 
         return SdkClientConfiguration.builder()
-                                     .option(SdkClientOption.ENDPOINT, endpointResolver.clientEndpoint())
-                                     .option(SdkClientOption.ENDPOINT_OVERRIDDEN,
-                                             endpointResolver.isEndpointOverridden())
+                                     .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                             endpointProvider)
                                      .build();
     }
 
@@ -396,9 +395,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, serviceConfiguration())
             .putAttribute(PRESIGNER_EXPIRATION, expiration)
             .putAttribute(AwsSignerExecutionAttribute.SIGNING_CLOCK, signingClock)
-            .putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, clientConfiguration.option(SdkClientOption.ENDPOINT))
-            .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN,
-                          clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
+            .putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
+                          clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER))
             .putAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED, fipsEnabled())
             .putAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED, serviceConfiguration.dualstackEnabled())
             .putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER, S3EndpointProvider.defaultProvider())
