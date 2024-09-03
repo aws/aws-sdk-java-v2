@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "Release ReplicaConfiguration as part of DescribeInstance"
+}
