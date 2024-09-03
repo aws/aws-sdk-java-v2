@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsMessageDefault.USER_AGENT_APPLIER;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

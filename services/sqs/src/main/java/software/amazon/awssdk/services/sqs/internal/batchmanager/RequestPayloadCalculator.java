@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsMessageDefault.ATTRIBUTE_MAPS_PAYLOAD_BYTES;
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration.ATTRIBUTE_MAPS_PAYLOAD_BYTES;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
