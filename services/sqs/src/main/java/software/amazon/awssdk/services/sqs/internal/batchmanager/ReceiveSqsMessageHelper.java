@@ -75,7 +75,7 @@ public class ReceiveSqsMessageHelper {
             ReceiveMessageRequest.builder()
                                  .queueUrl(queueUrl)
                                  .maxNumberOfMessages(config.maxBatchItems())
-                .overrideConfiguration(o -> o.applyMutation(USER_AGENT_APPLIER));
+                                 .overrideConfiguration(o -> o.applyMutation(USER_AGENT_APPLIER));
 
         if (!CollectionUtils.isNullOrEmpty(config.messageSystemAttributeNames())) {
             request.messageSystemAttributeNames(config.messageSystemAttributeNames());

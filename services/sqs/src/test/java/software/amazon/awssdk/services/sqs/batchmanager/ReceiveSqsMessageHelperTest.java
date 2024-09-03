@@ -286,14 +286,15 @@ class ReceiveSqsMessageHelperTest {
         batch.asyncReceiveMessage().get(3, TimeUnit.SECONDS);
 
         // Verify that receiveMessage was called with the correct arguments
-        ReceiveMessageRequest expectedRequest = ReceiveMessageRequest.builder()
-                                                                     .queueUrl(queueUrl)
-                                                                     .maxNumberOfMessages(10)
-                                                                     .messageAttributeNames("custom1", "custom2")
-                                                                     .visibilityTimeout(9)
-                                                                     .waitTimeSeconds(15)
-            .overrideConfiguration(o -> o.applyMutation(SqsMessageDefault.USER_AGENT_APPLIER))
-                                                                     .build();
+        ReceiveMessageRequest expectedRequest =
+            ReceiveMessageRequest.builder()
+                                 .queueUrl(queueUrl)
+                                 .maxNumberOfMessages(10)
+                                 .messageAttributeNames("custom1", "custom2")
+                                 .visibilityTimeout(9)
+                                 .waitTimeSeconds(15)
+                                 .overrideConfiguration(o -> o.applyMutation(SqsMessageDefault.USER_AGENT_APPLIER))
+                                 .build();
 
         verify(sqsClient, times(1)).receiveMessage(eq(expectedRequest));
     }
