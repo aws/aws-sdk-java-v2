@@ -27,6 +27,7 @@ import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -51,13 +52,15 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 @SdkInternalApi
 public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
 
-    private static final URI CUSTOM_ENDPOINT_LOCALHOST = URI.create("http://localhost");
+    private static final ClientEndpointProvider CUSTOM_ENDPOINT_PROVIDER_LOCALHOST =
+        ClientEndpointProvider.forEndpointOverride(URI.create("http://localhost"));
 
     private static final AwsEc2ProtocolFactory PROTOCOL_FACTORY = AwsEc2ProtocolFactory
         .builder()
         // Need an endpoint to marshall but this will be overwritten in modifyHttpRequest
         .clientConfiguration(SdkClientConfiguration.builder()
-                                                   .option(SdkClientOption.ENDPOINT, CUSTOM_ENDPOINT_LOCALHOST)
+                                                   .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                                           CUSTOM_ENDPOINT_PROVIDER_LOCALHOST)
                                                    .build())
         .build();
 
