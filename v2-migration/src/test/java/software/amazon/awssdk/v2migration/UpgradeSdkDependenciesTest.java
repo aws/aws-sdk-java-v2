@@ -22,17 +22,25 @@ import static org.openrewrite.maven.Assertions.pomXml;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.Proxy;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.condition.EnabledOnJre;
 import org.junit.jupiter.api.condition.JRE;
 import org.openrewrite.java.Java8Parser;
+import org.openrewrite.maven.internal.MavenPomDownloader;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import software.amazon.awssdk.testutils.SdkVersionUtils;
+import software.amazon.awssdk.utils.IoUtils;
 
 public class UpgradeSdkDependenciesTest implements RewriteTest {
 
@@ -67,25 +75,36 @@ public class UpgradeSdkDependenciesTest implements RewriteTest {
     }
 
     private static String getVersion() throws IOException {
-        // TODO: uncomment the following code to dynamically get version
-        //  once we update the version
-        // Path root = Paths.get(".").normalize().toAbsolutePath();
-        // Path pomFile = root.resolve("pom.xml");
-        // Optional<String> versionString =
-        //     Files.readAllLines(pomFile)
-        //          .stream().filter(l -> l.contains("<version>")).findFirst();
-        //
-        // if (!versionString.isPresent()) {
-        //     throw new AssertionError("No version is found");
-        // }
-        //
-        // String string = versionString.get().trim();
-        // String substring = string.substring(9, string.indexOf('/') - 1);
-        return "2.27.0";
+        Path root = Paths.get("../").toAbsolutePath();
+        Path pomFile = root.resolve("pom.xml");
+        Optional<String> versionString =
+            Files.readAllLines(pomFile)
+                 .stream().filter(l -> l.contains("<awsjavasdk.previous.version>")).findFirst();
+
+        if (!versionString.isPresent()) {
+            throw new AssertionError("No version is found");
+        }
+
+        String string = versionString.get().trim();
+        String substring = string.substring(29, string.indexOf('/') - 1);
+        return substring;
+    }
+
+    boolean versionAvailable() {
+        try {
+            return SdkVersionUtils.checkVersionAvailability(sdkVersion,
+                                                            "apache-client",
+                                                            "netty-nio-client",
+                                                            "aws-core",
+                                                            "sqs");
+        } catch (Exception exception) {
+            return false;
+        }
     }
 
     @Test
     @EnabledOnJre({JRE.JAVA_8})
+    @EnabledIf("versionAvailable")
     void standardClient_shouldChangeDependencyGroupIdAndArtifactId() throws IOException {
         rewriteRun(
             mavenProject("project", srcMainJava(java(noClientConfiguration)),
@@ -124,12 +143,12 @@ public class UpgradeSdkDependenciesTest implements RewriteTest {
                               + "        </dependency>\n"
                               + "    </dependencies>\n"
                               + "</project>", sdkVersion)
-
             )));
     }
 
     @Test
     @EnabledOnJre({JRE.JAVA_8})
+    @EnabledIf("versionAvailable")
     void useClientConfiguration_shouldAddHttpDependencies() throws IOException {
         rewriteRun(
             mavenProject("project", srcMainJava(java(useClientConfiguration)),

@@ -19,6 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.HttpURLConnection;
+import java.net.Proxy;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,6 +32,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.opentest4j.AssertionFailedError;
+import software.amazon.awssdk.testutils.SdkVersionUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
@@ -41,22 +45,22 @@ public class TestUtils {
         assertLeftHasRight(b, a);
     }
 
+    public static boolean versionAvailable(String sdkVersion) {
+        try {
+            return SdkVersionUtils.checkVersionAvailability(sdkVersion,
+                                                            "apache-client",
+                                                            "netty-nio-client",
+                                                            "dynamodb",
+                                                            "sqs",
+                                                            "s3");
+        } catch (Exception exception) {
+            return false;
+        }
+    }
+
     public static String getVersion() throws IOException {
-        // TODO: uncomment the following code to dynamically get version
-        //  once we update the version
-        // Path root = Paths.get(".").normalize().toAbsolutePath();
-        // Path pomFile = root.resolve("pom.xml");
-        // Optional<String> versionString =
-        //     Files.readAllLines(pomFile)
-        //          .stream().filter(l -> l.contains("<version>")).findFirst();
-        //
-        // if (!versionString.isPresent()) {
-        //     throw new AssertionError("No version is found");
-        // }
-        //
-        // String string = versionString.get().trim();
-        // String substring = string.substring(9, string.indexOf('/') - 1);
-        return "2.27.0";
+        Path root = Paths.get(".").toAbsolutePath().getParent().getParent().getParent();
+        return SdkVersionUtils.getSdkPreviousReleaseVersion(root.resolve("pom.xml"));
     }
 
     public static String getMigrationToolVersion() throws IOException {
