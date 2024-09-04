@@ -1,4 +1,46 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.19__ __2024-09-04__
+## __AWS AppSync__
+  - ### Features
+    - Adds new logging levels (INFO and DEBUG) for additional log output control
+
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - This release adds safety levers, a new mechanism to stop all running experiments and prevent new experiments from starting.
+
+## __AWS S3 Control__
+  - ### Features
+    - Amazon Simple Storage Service /S3 Access Grants / Features : This release launches new Access Grants API - ListCallerAccessGrants.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Introduce a new method to transform input to be able to perform update operations on nested DynamoDB object attributes.
+        - Contributed by: [@anirudh9391](https://github.com/anirudh9391)
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Add support for user metadata inside PromptVariant.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Update to support new APIs for delivery of logs from AWS services.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Adding support for Select in ScanEnhancedRequest
+        - Contributed by: [@shetsa-amzn](https://github.com/shetsa-amzn)
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Updates Finspace documentation for smaller instances.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@anirudh9391](https://github.com/anirudh9391), [@shetsa-amzn](https://github.com/shetsa-amzn)
 # __2.27.18__ __2024-09-03__
 ## __AWS Elemental MediaLive__
   - ### Features

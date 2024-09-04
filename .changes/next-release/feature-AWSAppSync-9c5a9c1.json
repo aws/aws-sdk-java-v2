@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS AppSync",
-    "contributor": "",
-    "description": "Adds new logging levels (INFO and DEBUG) for additional log output control"
-}
