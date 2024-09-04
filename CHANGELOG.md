@@ -1,4 +1,96 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.19__ __2024-09-04__
+## __AWS AppSync__
+  - ### Features
+    - Adds new logging levels (INFO and DEBUG) for additional log output control
+
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - This release adds safety levers, a new mechanism to stop all running experiments and prevent new experiments from starting.
+
+## __AWS S3 Control__
+  - ### Features
+    - Amazon Simple Storage Service /S3 Access Grants / Features : This release launches new Access Grants API - ListCallerAccessGrants.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Introduce a new method to transform input to be able to perform update operations on nested DynamoDB object attributes.
+        - Contributed by: [@anirudh9391](https://github.com/anirudh9391)
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Add support for user metadata inside PromptVariant.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Update to support new APIs for delivery of logs from AWS services.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Adding support for Select in ScanEnhancedRequest
+        - Contributed by: [@shetsa-amzn](https://github.com/shetsa-amzn)
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Updates Finspace documentation for smaller instances.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@anirudh9391](https://github.com/anirudh9391), [@shetsa-amzn](https://github.com/shetsa-amzn)
+# __2.27.18__ __2024-09-03__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Added MinQP as a Rate Control option for H264 and H265 encodes.
+
+## __AWS MediaConnect__
+  - ### Features
+    - AWS Elemental MediaConnect introduces thumbnails for Flow source monitoring. Thumbnails provide still image previews of the live content feeding your MediaConnect Flow allowing you to easily verify that your source is operating as expected.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Release ReplicaConfiguration as part of DescribeInstance
+
+## __Amazon DataZone__
+  - ### Features
+    - Add support to let data publisher specify a subset of the data asset that a subscriber will have access to based on the asset filters provided, when accepting a subscription request.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker now supports automatic mounting of a user's home folder in the Amazon Elastic File System (EFS) associated with the SageMaker Studio domain to their Studio Spaces to enable users to share data between their own private spaces.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for configuring TCP idle timeout on NLB and GWLB listeners.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - Timestream for InfluxDB now supports compute scaling and deployment type conversion. This release adds the DbInstanceType and DeploymentType parameters to the UpdateDbInstance API.
+
+# __2.27.17__ __2024-08-30__
+## __AWS Backup__
+  - ### Features
+    - The latest update introduces two new attributes, VaultType and VaultState, to the DescribeBackupVault and ListBackupVaults APIs. The VaultState attribute reflects the current status of the vault, while the VaultType attribute indicates the specific category of the vault.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release introduces a new optional parameter: Entity, in PutLogEvents request
+
+## __Amazon DataZone__
+  - ### Features
+    - Amazon DataZone now adds new governance capabilities of Domain Units for organization within your Data Domains, and Authorization Policies for tighter controls.
+
+## __Redshift Data API Service__
+  - ### Features
+    - The release include the new Redshift DataAPI feature for session use, customer execute query with --session-keep-alive-seconds parameter and can submit follow-up queries to same sessions with returned`session-id`
+
 # __2.27.16__ __2024-08-29__
 ## __AWS Step Functions__
   - ### Features
