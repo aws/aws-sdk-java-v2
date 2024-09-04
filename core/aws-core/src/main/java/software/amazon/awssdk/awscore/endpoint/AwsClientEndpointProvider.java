@@ -34,12 +34,16 @@ import software.amazon.awssdk.regions.ServiceEndpointKey;
 import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.utils.Lazy;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.OptionalUtils;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 
 @SdkProtectedApi
 public class AwsClientEndpointProvider implements ClientEndpointProvider {
+    private static final Logger log = Logger.loggerFor(AwsClientEndpointProvider.class);
+
     private static final String GLOBAL_ENDPOINT_OVERRIDE_ENVIRONMENT_VARIABLE = "AWS_ENDPOINT_URL";
     private static final String GLOBAL_ENDPOINT_OVERRIDE_SYSTEM_PROPERTY = "aws.endpointUrl";
     private static final String ENDPOINT_OVERRIDE_PROFILE_PROPERTY = "endpoint_url";
@@ -68,26 +72,36 @@ public class AwsClientEndpointProvider implements ClientEndpointProvider {
 
     private ClientEndpoint resolveClientEndpoint(Builder builder) {
         return OptionalUtils.firstPresent(clientEndpointFromClientOverride(builder),
-                                          () -> clientEndpointFromEnvironment(builder))
-                            .orElseGet(() -> clientEndpointFromServiceMetadata(builder));
+                                          () -> clientEndpointFromEnvironment(builder),
+                                          () -> clientEndpointFromServiceMetadata(builder))
+                            .orElseThrow(AwsClientEndpointProvider::failToLoadEndpointException);
+    }
+
+    private static SdkClientException failToLoadEndpointException() {
+        return SdkClientException.create("Unable to determine the default client endpoint. Enable TRACE logging on " +
+                                         AwsClientEndpointProvider.class.getName() + " for more information.");
     }
 
     private Optional<ClientEndpoint> clientEndpointFromClientOverride(Builder builder) {
-        return Optional.ofNullable(builder.clientEndpointOverride)
-                       .map(uri -> new ClientEndpoint(uri, true));
+        Optional<ClientEndpoint> result = Optional.ofNullable(builder.clientEndpointOverride)
+                                                  .map(uri -> new ClientEndpoint(uri, true));
+        result.ifPresent(e -> log.trace(() -> "Client was configured with endpoint override: " + e.clientEndpoint));
+        return result;
     }
 
     private Optional<ClientEndpoint> clientEndpointFromEnvironment(Builder builder) {
-        if (!builder.environmentCredentialsEnabled) {
+        if (builder.serviceEndpointOverrideEnvironmentVariable == null ||
+            builder.serviceEndpointOverrideSystemProperty == null ||
+            builder.serviceProfileProperty == null) {
+            Validate.isTrue(builder.serviceEndpointOverrideEnvironmentVariable == null &&
+                            builder.serviceEndpointOverrideSystemProperty == null &&
+                            builder.serviceProfileProperty == null ,
+                            "If any of the service endpoint override environment variable, system property or profile "
+                            + "property are configured, they must all be configured.");
+            log.trace(() -> "Environment was not checked for client endpoint.");
             return Optional.empty();
         }
 
-        Validate.paramNotNull(builder.serviceEndpointOverrideEnvironmentVariable,
-                              "serviceEndpointOverrideEnvironmentVariable");
-        Validate.paramNotNull(builder.serviceEndpointOverrideSystemProperty,
-                              "serviceEndpointOverrideSystemProperty");
-        Validate.paramNotNull(builder.serviceProfileProperty,
-                              "serviceProfileProperty");
         return OptionalUtils.firstPresent(systemProperty(builder.serviceEndpointOverrideSystemProperty),
                                           () -> systemProperty(GLOBAL_ENDPOINT_OVERRIDE_SYSTEM_PROPERTY),
                                           () -> environmentVariable(builder.serviceEndpointOverrideEnvironmentVariable),
@@ -100,8 +114,10 @@ public class AwsClientEndpointProvider implements ClientEndpointProvider {
     }
 
     private Optional<URI> systemProperty(String systemProperty) {
+        // CHECKSTYLE:OFF - We have to read system properties directly here to match the load order of the other SDKs
         return createUri("system property " + systemProperty,
                          Optional.ofNullable(System.getProperty(systemProperty)));
+        // CHECKSTYLE:ON
     }
 
     private Optional<URI> environmentVariable(String environmentVariable) {
@@ -117,9 +133,22 @@ public class AwsClientEndpointProvider implements ClientEndpointProvider {
                                  .flatMap(p -> p.property(profileProperty)));
     }
 
-    private ClientEndpoint clientEndpointFromServiceMetadata(Builder builder) {
-        // This value is generally overridden, after endpoints 2.0. It seems to exist for backwards-compatibility
+    private Optional<ClientEndpoint> clientEndpointFromServiceMetadata(Builder builder) {
+        // This value is generally overridden after endpoints 2.0. It seems to exist for backwards-compatibility
         // with older client versions or interceptors.
+
+        if (builder.serviceEndpointPrefix == null ||
+            builder.region == null ||
+            builder.protocol == null) {
+            // Make sure that people didn't set just one value and expect it to be used.
+            Validate.isTrue(builder.serviceEndpointPrefix == null &&
+                            builder.region == null &&
+                            builder.protocol == null,
+                            "If any of the service endpoint prefix, region or protocol are configured, they must all "
+                            + "be configured.");
+            log.trace(() -> "Service metadata was not checked for client endpoint.");
+            return Optional.empty();
+        }
 
         Validate.paramNotNull(builder.serviceEndpointPrefix, "serviceName");
         Validate.paramNotNull(builder.region, "region");
@@ -176,15 +205,19 @@ public class AwsClientEndpointProvider implements ClientEndpointProvider {
             throw SdkClientException.create(error);
         }
 
-        return new ClientEndpoint(endpoint, false);
+        log.trace(() -> "Client endpoint was loaded from service metadata, but this endpoint will likely be overridden "
+                        + "at the request-level by the endpoint resolver: " + endpoint);
+        return Optional.of(new ClientEndpoint(endpoint, false));
     }
 
     private Optional<URI> createUri(String source, Optional<String> uri) {
         return uri.map(u -> {
             try {
-                return new URI(uri.get());
+                URI parsedUri = new URI(uri.get());
+                log.trace(() -> "Client endpoint was loaded from the " + source + ": " + parsedUri);
+                return parsedUri;
             } catch (URISyntaxException e) {
-                throw new IllegalStateException("An invalid URI was configured in " + source, e);
+                throw SdkClientException.create("An invalid URI was configured in " + source, e);
             }
         });
     }
@@ -202,13 +235,22 @@ public class AwsClientEndpointProvider implements ClientEndpointProvider {
     private static final class ClientEndpoint {
         private final URI clientEndpoint;
         private final boolean isEndpointOverridden;
+
         private ClientEndpoint(URI clientEndpoint, boolean isEndpointOverridden) {
             this.clientEndpoint = clientEndpoint;
             this.isEndpointOverridden = isEndpointOverridden;
         }
+
+        @Override
+        public String toString() {
+            return ToString.builder("ClientEndpoint")
+                           .add("clientEndpoint", clientEndpoint)
+                           .add("isEndpointOverridden", isEndpointOverridden)
+                           .build();
+        }
     }
 
-    public static class Builder {
+    public static final class Builder {
         private URI clientEndpointOverride;
         private String serviceEndpointPrefix;
         private String protocol;
@@ -221,7 +263,6 @@ public class AwsClientEndpointProvider implements ClientEndpointProvider {
         private String serviceEndpointOverrideEnvironmentVariable;
         private String serviceEndpointOverrideSystemProperty;
         private String serviceProfileProperty;
-        private boolean environmentCredentialsEnabled = true;
 
         private Builder() {
         }
@@ -239,11 +280,12 @@ public class AwsClientEndpointProvider implements ClientEndpointProvider {
             this.serviceEndpointOverrideEnvironmentVariable = src.serviceEndpointOverrideEnvironmentVariable;
             this.serviceEndpointOverrideSystemProperty = src.serviceEndpointOverrideSystemProperty;
             this.serviceProfileProperty = src.serviceProfileProperty;
-            this.environmentCredentialsEnabled = src.environmentCredentialsEnabled;
         }
 
         public Builder clientEndpointOverride(URI clientEndpointOverride) {
-            Validate.paramNotNull(clientEndpointOverride.getScheme(), "The scheme of the endpoint override");
+            if (clientEndpointOverride != null) {
+                Validate.paramNotNull(clientEndpointOverride.getScheme(), "The scheme of the endpoint override");
+            }
             this.clientEndpointOverride = clientEndpointOverride;
             return this;
         }
@@ -253,7 +295,7 @@ public class AwsClientEndpointProvider implements ClientEndpointProvider {
             return this;
         }
 
-        public Builder protocol(String protocol) {
+        public Builder defaultProtocol(String protocol) {
             this.protocol = protocol;
             return this;
         }
@@ -300,11 +342,6 @@ public class AwsClientEndpointProvider implements ClientEndpointProvider {
 
         public Builder serviceProfileProperty(String serviceProfileProperty) {
             this.serviceProfileProperty = serviceProfileProperty;
-            return this;
-        }
-
-        public Builder environmentCredentialsEnabled(boolean environmentCredentialsEnabled) {
-            this.environmentCredentialsEnabled = environmentCredentialsEnabled;
             return this;
         }
 

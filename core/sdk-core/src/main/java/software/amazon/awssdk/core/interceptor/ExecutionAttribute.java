@@ -87,7 +87,7 @@ public final class ExecutionAttribute<T> {
     public static <T, U> DerivedAttributeBuilder<T, U> derivedBuilder(String name,
                                                                       @SuppressWarnings("unused") Class<T> attributeType,
                                                                       ExecutionAttribute<U> realAttribute) {
-        return derivedBuilder(name, attributeType, realAttribute);
+        return new DerivedAttributeBuilder<>(name, () -> realAttribute);
     }
 
     /**

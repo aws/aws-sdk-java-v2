@@ -347,7 +347,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
                                         .serviceEndpointOverrideSystemProperty("aws.endpointUrlPolly")
                                         .serviceProfileProperty("polly")
                                         .serviceEndpointPrefix(SERVICE_NAME)
-                                        .protocol("https")
+                                        .defaultProtocol("https")
                                         .region(region)
                                         .profileFile(profileFile)
                                         .profileName(profileName)

@@ -33,7 +33,8 @@ public class CommonInternalGeneratorTasks extends BaseGeneratorTasks {
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
-        return Arrays.asList(createClientOptionTask(), createUserAgentTask());
+        return Arrays.asList(createClientOptionTask(),
+                             createUserAgentTask());
     }
 
     private PoetGeneratorTask createClientOptionTask() {

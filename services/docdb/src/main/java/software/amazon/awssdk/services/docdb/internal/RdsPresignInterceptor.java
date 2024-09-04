@@ -26,8 +26,8 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
-import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -221,11 +221,12 @@ public abstract class RdsPresignInterceptor<T extends DocDbRequest> implements E
     private URI createEndpoint(String regionName, String serviceName, ExecutionAttributes attributes) {
         return AwsClientEndpointProvider.builder()
                                         .serviceEndpointPrefix(SERVICE_NAME)
-                                        .protocol(Protocol.HTTPS.toString())
+                                        .defaultProtocol(Protocol.HTTPS.toString())
                                         .region(Region.of(regionName))
                                         .profileFile(attributes.getAttribute(SdkExecutionAttribute.PROFILE_FILE_SUPPLIER))
                                         .profileName(attributes.getAttribute(SdkExecutionAttribute.PROFILE_NAME))
-                                        .dualstackEnabled(attributes.getAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED))
+                                        .dualstackEnabled(
+                                            attributes.getAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED))
                                         .fipsEnabled(attributes.getAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED))
                                         .build()
                                         .clientEndpoint();

@@ -17,12 +17,15 @@ package software.amazon.awssdk.services.s3.internal.s3express;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
+import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -72,6 +75,8 @@ class S3ExpressAuthSchemeProviderTest {
                                          DefaultIdentityProviders.builder()
                                                                  .putIdentityProvider(DefaultCredentialsProvider.create())
                                                                  .build());
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
+                                         ClientEndpointProvider.forOverrideEndpoint(URI.create("https://localhost")));
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER,
                                          S3EndpointProvider.defaultProvider());
         return executionAttributes;

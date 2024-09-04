@@ -37,5 +37,6 @@ public interface ClientEndpointProvider {
     }
 
     URI clientEndpoint();
+
     boolean isEndpointOverridden();
 }

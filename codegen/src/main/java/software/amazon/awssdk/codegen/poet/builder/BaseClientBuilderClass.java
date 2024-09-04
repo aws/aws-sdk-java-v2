@@ -465,7 +465,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                .addCode("    .serviceEndpointOverrideSystemProperty($S)", "aws.endpointUrl" + serviceNameForSystemProperty)
                .addCode("    .serviceProfileProperty($S)", serviceNameForProfileFile)
                .addCode("    .serviceEndpointPrefix(serviceEndpointPrefix())")
-               .addCode("    .protocol($S)", "https")
+               .addCode("    .defaultProtocol($S)", "https")
                .addCode("    .region(c.get($T.AWS_REGION))", AwsClientOption.class)
                .addCode("    .profileFile(c.get($T.PROFILE_FILE_SUPPLIER))", SdkClientOption.class)
                .addCode("    .profileName(c.get($T.PROFILE_NAME))", SdkClientOption.class)

@@ -50,6 +50,7 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -214,11 +215,33 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             builder.option(RETRY_STRATEGY, defaultBuilder.build());
         });
         builder.putAll(overrideConfig);
+
+        checkEndpointOverriddenOverride(configuration, builder);
+
         // Forget anything we configured in the override configuration else it might be re-applied.
         builder.option(CONFIGURED_RETRY_MODE, null);
         builder.option(CONFIGURED_RETRY_STRATEGY, null);
         builder.option(CONFIGURED_RETRY_CONFIGURATOR, null);
         return builder.build();
+    }
+
+    private void checkEndpointOverriddenOverride(SdkClientConfiguration configuration, SdkClientConfiguration.Builder builder) {
+        Optional<Boolean> endpointOverriddenOverride =
+            overrideConfig.advancedOption(SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE);
+        endpointOverriddenOverride.ifPresent(override -> {
+            ClientEndpointProvider clientEndpoint = configuration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER);
+            builder.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, new ClientEndpointProvider() {
+                @Override
+                public URI clientEndpoint() {
+                    return clientEndpoint.clientEndpoint();
+                }
+
+                @Override
+                public boolean isEndpointOverridden() {
+                    return override;
+                }
+            });
+        });
     }
 
     /**
@@ -302,7 +325,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT;
         return AwsClientEndpointProvider.builder()
                                         .serviceEndpointPrefix(serviceEndpointPrefix())
-                                        .protocol(DEFAULT_ENDPOINT_PROTOCOL)
+                                        .defaultProtocol(DEFAULT_ENDPOINT_PROTOCOL)
                                         .region(config.get(AwsClientOption.AWS_REGION))
                                         .profileFile(config.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
                                         .profileName(config.get(SdkClientOption.PROFILE_NAME))
@@ -310,7 +333,6 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                                            config.get(useGlobalS3EndpointProperty))
                                         .dualstackEnabled(config.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
                                         .fipsEnabled(config.get(AwsClientOption.FIPS_ENDPOINT_ENABLED))
-                                        .environmentCredentialsEnabled(false)
                                         .build();
     }
 

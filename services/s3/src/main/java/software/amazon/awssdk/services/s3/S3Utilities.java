@@ -39,8 +39,8 @@ import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
 import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
-import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -433,7 +433,7 @@ public final class S3Utilities {
                                         .serviceEndpointOverrideSystemProperty("aws.endpointUrlS3")
                                         .serviceProfileProperty("s3")
                                         .serviceEndpointPrefix(SERVICE_NAME)
-                                        .protocol("https")
+                                        .defaultProtocol("https")
                                         .region(region)
                                         .profileFile(profileFile)
                                         .profileName(profileName)

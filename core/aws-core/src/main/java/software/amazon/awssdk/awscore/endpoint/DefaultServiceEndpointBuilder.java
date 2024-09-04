@@ -33,13 +33,19 @@ import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 @Deprecated
 public final class DefaultServiceEndpointBuilder {
     private final AwsClientEndpointProvider.Builder endpointResolver = AwsClientEndpointProvider.builder();
+    private Region region;
 
     public DefaultServiceEndpointBuilder(String serviceName, String protocol) {
         endpointResolver.serviceEndpointPrefix(serviceName)
-                        .protocol(protocol);
+                        .defaultProtocol(protocol);
+    }
+
+    public Region getRegion() {
+        return region;
     }
 
     public DefaultServiceEndpointBuilder withRegion(Region region) {
+        this.region = region;
         endpointResolver.region(region);
         return this;
     }

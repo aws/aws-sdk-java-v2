@@ -286,7 +286,6 @@ public class DefaultClientBuilderTest {
         assertThat(config.option(PROFILE_NAME)).isEqualTo(profileName);
         assertThat(config.option(METRIC_PUBLISHERS)).contains(metricPublisher);
         assertThat(config.option(EXECUTION_ATTRIBUTES).getAttribute(execAttribute)).isEqualTo("value");
-        assertThat(config.option(ENDPOINT_OVERRIDDEN)).isEqualTo(Boolean.TRUE);
 
         // Ensure that the SDK won't close the scheduled executor service we provided.
         config.close();
@@ -307,7 +306,6 @@ public class DefaultClientBuilderTest {
     public void buildWithEndpointShouldHaveCorrectEndpointAndSigningRegion() {
         TestClient client = testClientBuilder().endpointOverride(ENDPOINT).build();
 
-        assertThat(client.clientConfiguration.option(SdkClientOption.ENDPOINT)).isEqualTo(ENDPOINT);
         assertThat(client.clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint())
             .isEqualTo(ENDPOINT);
     }

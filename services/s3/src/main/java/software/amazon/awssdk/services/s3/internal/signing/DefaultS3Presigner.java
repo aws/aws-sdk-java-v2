@@ -244,13 +244,17 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                      .serviceEndpointOverrideSystemProperty("aws.endpointUrlS3")
                                      .serviceProfileProperty("s3")
                                      .serviceEndpointPrefix(SERVICE_NAME)
-                                     .protocol("https")
+                                     .defaultProtocol("https")
                                      .region(region())
                                      .profileFile(profileFileSupplier())
                                      .profileName(profileName())
                                      .dualstackEnabled(serviceConfiguration.dualstackEnabled())
                                      .fipsEnabled(fipsEnabled())
                                      .build();
+
+        // Make sure the endpoint resolver can actually resolve an endpoint, so that we fail now instead of
+        // when a request is made.
+        endpointProvider.clientEndpoint();
 
         return SdkClientConfiguration.builder()
                                      .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,

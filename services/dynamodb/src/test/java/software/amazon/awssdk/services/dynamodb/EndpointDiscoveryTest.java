@@ -32,7 +32,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public class EndpointDiscoveryTest {
-    @Test//(timeout = 10_000)
+    @Test(timeout = 10_000)
     public void canBeEnabledViaProfileOnOverrideConfiguration() throws InterruptedException {
         ExecutionInterceptor interceptor = Mockito.spy(AbstractExecutionInterceptor.class);
 
