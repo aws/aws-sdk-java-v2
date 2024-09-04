@@ -62,7 +62,7 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 public abstract class RdsPresignInterceptor<T extends NeptuneRequest> implements ExecutionInterceptor {
 
     private static final ClientEndpointProvider CUSTOM_ENDPOINT_PROVIDER_LOCALHOST =
-        ClientEndpointProvider.forOverrideEndpoint(URI.create("http://localhost"));
+        ClientEndpointProvider.forEndpointOverride(URI.create("http://localhost"));
 
     protected static final AwsQueryProtocolFactory PROTOCOL_FACTORY = AwsQueryProtocolFactory
         .builder()

@@ -28,6 +28,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -194,9 +195,9 @@ public abstract class BaseAwsJsonProtocolFactory {
     }
 
     private URI endpoint(SdkClientConfiguration clientConfiguration) {
-        URI endpoint = clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint();
-        if (endpoint != null) {
-            return endpoint;
+        ClientEndpointProvider endpointProvider = clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER);
+        if (endpointProvider != null) {
+            return endpointProvider.clientEndpoint();
         }
 
         // Some old client versions may not use the endpoint provider. In that case, use the legacy endpoint field.

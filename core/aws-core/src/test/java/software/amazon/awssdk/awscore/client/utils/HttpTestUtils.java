@@ -52,7 +52,7 @@ public class HttpTestUtils {
         return SdkClientConfiguration.builder()
                                      .option(SdkClientOption.EXECUTION_INTERCEPTORS, new ArrayList<>())
                                      .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-                                             ClientEndpointProvider.forOverrideEndpoint(URI.create("http://localhost:8080")))
+                                             ClientEndpointProvider.forEndpointOverride(URI.create("http://localhost:8080")))
                                      .option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.defaultRetryStrategy())
                                      .option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, new HashMap<>())
                                      .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)

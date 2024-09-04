@@ -92,16 +92,17 @@ public class SdkExecutionAttribute {
      * True indicates that the configured endpoint of the client is a value that was supplied as an override and not
      * generated from regional metadata.
      *
-     * @deprecated This value is no longer available. To modify the endpoint used for requests, you should decorate the
+     * @deprecated This value should not be trusted. To modify the endpoint used for requests, you should decorate the
      * {@link EndpointProvider} of the client. This value can be determined there, by checking for the existence of an
      * override endpoint.
      */
+    @Deprecated
     public static final ExecutionAttribute<Boolean> ENDPOINT_OVERRIDDEN =
         ExecutionAttribute.derivedBuilder("EndpointOverridden",
                                           Boolean.class,
                                           () -> SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER)
                           .readMapping(ClientEndpointProvider::isEndpointOverridden)
-                          .writeMapping(SdkExecutionAttribute::clientEndpointOverriddenWriteMapping)
+                          .writeMapping((ep, overridden) -> ClientEndpointProvider.create(ep.clientEndpoint(), overridden))
                           .build();
 
     /**
@@ -118,7 +119,7 @@ public class SdkExecutionAttribute {
                                           URI.class,
                                           () -> SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER)
                           .readMapping(ClientEndpointProvider::clientEndpoint)
-                          .writeMapping(SdkExecutionAttribute::clientEndpointWriteMapping)
+                          .writeMapping((ep, uri) -> ClientEndpointProvider.create(uri, ep.isEndpointOverridden()))
                           .build();
 
     /**
@@ -200,30 +201,6 @@ public class SdkExecutionAttribute {
                             .headerName(checksumAlgorithm != null ? checksumHeaderName(checksumAlgorithm) : null)
                             .responseValidationAlgorithms(checksumSpecs.responseValidationAlgorithms())
                             .build();
-    }
-
-    private static ClientEndpointProvider clientEndpointOverriddenWriteMapping(ClientEndpointProvider clientEndpointProvider,
-                                                                               Boolean endpointOverridden) {
-        return createClientEndpointProvider(clientEndpointProvider.clientEndpoint(), endpointOverridden);
-    }
-
-    private static ClientEndpointProvider clientEndpointWriteMapping(ClientEndpointProvider clientEndpointProvider,
-                                                                     URI uri) {
-        return createClientEndpointProvider(uri, clientEndpointProvider.isEndpointOverridden());
-    }
-
-    private static ClientEndpointProvider createClientEndpointProvider(URI uri, boolean isEndpointOverridden) {
-        return new ClientEndpointProvider() {
-            @Override
-            public URI clientEndpoint() {
-                return uri;
-            }
-
-            @Override
-            public boolean isEndpointOverridden() {
-                return isEndpointOverridden;
-            }
-        };
     }
 
     /**

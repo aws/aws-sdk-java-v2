@@ -53,7 +53,7 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
 
     private static final ClientEndpointProvider CUSTOM_ENDPOINT_PROVIDER_LOCALHOST =
-        ClientEndpointProvider.forOverrideEndpoint(URI.create("http://localhost"));
+        ClientEndpointProvider.forEndpointOverride(URI.create("http://localhost"));
 
     private static final AwsEc2ProtocolFactory PROTOCOL_FACTORY = AwsEc2ProtocolFactory
         .builder()

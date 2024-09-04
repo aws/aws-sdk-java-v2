@@ -104,10 +104,10 @@ public class CodegenServiceClientConfigurationTest {
                     .build(),
             TestCase.<ClientEndpointProvider>builder()
                     .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER)
-                    .value(ClientEndpointProvider.forOverrideEndpoint(new URI("http://localhost:8080")))
+                    .value(ClientEndpointProvider.forEndpointOverride(new URI("http://localhost:8080")))
                     .setter((b, p) -> b.endpointOverride(p.clientEndpoint()))
-                    .getter(b -> b.endpointOverride() == null ? null : ClientEndpointProvider.forOverrideEndpoint(b.endpointOverride()))
-                    .dataGetter(x -> x.endpointOverride().map(ClientEndpointProvider::forOverrideEndpoint).orElse(null))
+                    .getter(b -> b.endpointOverride() == null ? null : ClientEndpointProvider.forEndpointOverride(b.endpointOverride()))
+                    .dataGetter(x -> x.endpointOverride().map(ClientEndpointProvider::forEndpointOverride).orElse(null))
                     .build(),
             TestCase.<EndpointProvider>builder()
                     .option(SdkClientOption.ENDPOINT_PROVIDER)

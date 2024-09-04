@@ -226,10 +226,6 @@ public enum SdkSystemSetting implements SystemSetting {
      */
     AWS_PARTITIONS_FILE("aws.partitionsFile", null)
 
-    /**
-     * Defines a location from which 
-     */
-
     ;
 
     private final String systemProperty;

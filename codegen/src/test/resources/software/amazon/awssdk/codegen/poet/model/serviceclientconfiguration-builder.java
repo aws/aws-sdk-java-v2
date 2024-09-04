@@ -58,7 +58,7 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder implements JsonP
     @Override
     public JsonProtocolTestsServiceClientConfiguration.Builder endpointOverride(URI endpointOverride) {
         if (endpointOverride != null) {
-            config.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, ClientEndpointProvider.forOverrideEndpoint(endpointOverride));
+            config.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, ClientEndpointProvider.forEndpointOverride(endpointOverride));
         } else {
             config.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, null);
         }

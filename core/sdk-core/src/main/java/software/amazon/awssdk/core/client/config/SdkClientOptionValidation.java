@@ -42,8 +42,6 @@ public class SdkClientOptionValidation {
     }
 
     private static void validateClientOptions(SdkClientConfiguration c) {
-        require("clientEndpointProvider", c.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER));
-
         require("overrideConfiguration.additionalHttpHeaders", c.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS));
         require("overrideConfiguration.executionInterceptors", c.option(SdkClientOption.EXECUTION_INTERCEPTORS));
         require("overrideConfiguration.retryStrategy", c.option(SdkClientOption.RETRY_STRATEGY));

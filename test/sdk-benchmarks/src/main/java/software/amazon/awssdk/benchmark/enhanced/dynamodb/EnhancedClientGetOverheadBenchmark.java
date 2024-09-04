@@ -64,7 +64,7 @@ public class EnhancedClientGetOverheadBenchmark {
             .builder()
             .clientConfiguration(SdkClientConfiguration.builder()
                     .option(CLIENT_ENDPOINT_PROVIDER,
-                            ClientEndpointProvider.forOverrideEndpoint(URI.create("https://dynamodb.amazonaws.com")))
+                            ClientEndpointProvider.forEndpointOverride(URI.create("https://dynamodb.amazonaws.com")))
                     .build())
             .defaultServiceExceptionSupplier(DynamoDbException::builder)
             .protocol(AwsJsonProtocol.AWS_JSON)

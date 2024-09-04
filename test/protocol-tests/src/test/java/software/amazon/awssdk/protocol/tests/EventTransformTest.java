@@ -55,7 +55,7 @@ public class EventTransformTest {
                                                 .clientConfiguration(
                                                     SdkClientConfiguration.builder()
                                                                           .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-                                                                                  ClientEndpointProvider.forOverrideEndpoint(URI.create("http://foo.amazonaws.com")))
+                                                                                  ClientEndpointProvider.forEndpointOverride(URI.create("http://foo.amazonaws.com")))
                                                                           .build())
                                                 .protocol(AwsJsonProtocol.AWS_JSON)
                                                 .build();

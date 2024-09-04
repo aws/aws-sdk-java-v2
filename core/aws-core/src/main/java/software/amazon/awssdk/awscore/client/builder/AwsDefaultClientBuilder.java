@@ -225,22 +225,17 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         return builder.build();
     }
 
+    /**
+     * Check {@link SdkInternalTestAdvancedClientOption#ENDPOINT_OVERRIDDEN_OVERRIDE} to see if we should override the
+     * value returned by {@link SdkClientOption#CLIENT_ENDPOINT_PROVIDER}'s isEndpointOverridden.
+     */
     private void checkEndpointOverriddenOverride(SdkClientConfiguration configuration, SdkClientConfiguration.Builder builder) {
         Optional<Boolean> endpointOverriddenOverride =
             overrideConfig.advancedOption(SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE);
         endpointOverriddenOverride.ifPresent(override -> {
             ClientEndpointProvider clientEndpoint = configuration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER);
-            builder.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, new ClientEndpointProvider() {
-                @Override
-                public URI clientEndpoint() {
-                    return clientEndpoint.clientEndpoint();
-                }
-
-                @Override
-                public boolean isEndpointOverridden() {
-                    return override;
-                }
-            });
+            builder.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                           ClientEndpointProvider.create(clientEndpoint.clientEndpoint(), override));
         });
     }
 
@@ -320,6 +315,11 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                               .signingRegion(config.get(AwsClientOption.AWS_REGION));
     }
 
+    /**
+     * Specify the client endpoint provider to use for the client, if the client didn't specify one itself.
+     * <p>
+     * This is only used for older client versions. Newer clients specify this value themselves.
+     */
     private ClientEndpointProvider resolveClientEndpointProvider(LazyValueSource config) {
         ServiceMetadataAdvancedOption<String> useGlobalS3EndpointProperty =
             ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT;
@@ -337,16 +337,16 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     /**
-     * Resolve client endpoint. This code is only needed by old SDK client versions. Newer SDK client versions resolve
-     * the endpoint themselves.
+     * Resolve the client endpoint. This code is only needed by old SDK client versions. Newer SDK client versions
+     * resolve this information from the client endpoint provider.
      */
     private URI resolveEndpoint(LazyValueSource config) {
         return config.get(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint();
     }
 
     /**
-     * Resolve whether the endpoint was overridden client endpoint provider. This code is only needed by old SDK client
-     * versions. Newer SDK client versions resolve this information themselves.
+     * Resolve whether the endpoint was overridden by the customer. This code is only needed by old SDK client
+     * versions. Newer SDK client versions resolve this information from the client endpoint provider.
      */
     private boolean resolveEndpointOverridden(LazyValueSource config) {
         return config.get(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).isEndpointOverridden();

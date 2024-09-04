@@ -24,7 +24,6 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -76,7 +75,7 @@ class S3ExpressAuthSchemeProviderTest {
                                                                  .putIdentityProvider(DefaultCredentialsProvider.create())
                                                                  .build());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
-                                         ClientEndpointProvider.forOverrideEndpoint(URI.create("https://localhost")));
+                                         ClientEndpointProvider.forEndpointOverride(URI.create("https://localhost")));
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER,
                                          S3EndpointProvider.defaultProvider());
         return executionAttributes;

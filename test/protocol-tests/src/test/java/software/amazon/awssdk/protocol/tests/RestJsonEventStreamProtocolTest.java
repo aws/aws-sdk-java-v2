@@ -163,7 +163,7 @@ public class RestJsonEventStreamProtocolTest {
                                      .clientConfiguration(
                                          SdkClientConfiguration.builder()
                                                                .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-                                                                       ClientEndpointProvider.forOverrideEndpoint(URI.create("http://test.aws.com")))
+                                                                       ClientEndpointProvider.forEndpointOverride(URI.create("http://test.aws.com")))
                                                                .build())
                                      .defaultServiceExceptionSupplier(ProtocolRestJsonContentTypeException::builder)
                                      .protocol(AwsJsonProtocol.REST_JSON)

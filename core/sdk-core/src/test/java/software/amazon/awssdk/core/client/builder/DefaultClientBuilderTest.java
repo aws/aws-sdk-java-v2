@@ -30,7 +30,6 @@ import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_ATTEMPT_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_TIMEOUT;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.ENDPOINT_OVERRIDDEN;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
@@ -484,7 +483,7 @@ public class DefaultClientBuilderTest {
         @Override
         protected SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
             return configuration.merge(c -> c.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-                                                     ClientEndpointProvider.forOverrideEndpoint(DEFAULT_ENDPOINT)));
+                                                     ClientEndpointProvider.forEndpointOverride(DEFAULT_ENDPOINT)));
         }
 
         @Override
@@ -516,7 +515,7 @@ public class DefaultClientBuilderTest {
         @Override
         protected SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
             return configuration.merge(c -> c.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-                                                     ClientEndpointProvider.forOverrideEndpoint(DEFAULT_ENDPOINT)));
+                                                     ClientEndpointProvider.forEndpointOverride(DEFAULT_ENDPOINT)));
         }
 
         @Override

@@ -538,7 +538,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
             clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, null);
         } else {
             clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-                                       ClientEndpointProvider.forOverrideEndpoint(endpointOverride));
+                                       ClientEndpointProvider.forEndpointOverride(endpointOverride));
         }
         return thisBuilder();
     }

@@ -44,7 +44,7 @@ public class PutItemRequestMarshallerTest {
                               .clientConfiguration(
                                   SdkClientConfiguration.builder()
                                                         .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-                                                                ClientEndpointProvider.forOverrideEndpoint(URI.create("http://localhost")))
+                                                                ClientEndpointProvider.forEndpointOverride(URI.create("http://localhost")))
                                                         .build())
                               .protocolVersion("1.1")
                               .protocol(AwsJsonProtocol.AWS_JSON)

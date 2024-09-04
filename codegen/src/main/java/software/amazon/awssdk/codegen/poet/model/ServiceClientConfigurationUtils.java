@@ -162,7 +162,7 @@ public class ServiceClientConfigurationUtils {
     private CodeBlock endpointOverrideConfigSetter() {
         return CodeBlock.builder()
                         .beginControlFlow("if (endpointOverride != null)")
-                        .addStatement("config.option($T.CLIENT_ENDPOINT_PROVIDER, $T.forOverrideEndpoint(endpointOverride))",
+                        .addStatement("config.option($T.CLIENT_ENDPOINT_PROVIDER, $T.forEndpointOverride(endpointOverride))",
                                       SdkClientOption.class, ClientEndpointProvider.class)
                         .nextControlFlow("else")
                         .addStatement("config.option($T.CLIENT_ENDPOINT_PROVIDER, null)", SdkClientOption.class)

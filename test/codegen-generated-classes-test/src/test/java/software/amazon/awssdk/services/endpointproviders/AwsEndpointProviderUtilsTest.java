@@ -23,7 +23,6 @@ import org.junit.Test;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -112,7 +111,7 @@ public class AwsEndpointProviderUtilsTest {
         URI endpoint = URI.create("https://example.com/path?foo=bar");
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
-                           ClientEndpointProvider.forOverrideEndpoint(endpoint));
+                           ClientEndpointProvider.forEndpointOverride(endpoint));
 
         assertThat(AwsEndpointProviderUtils.endpointBuiltIn(attrs).toString()).isEqualTo("https://example.com/path");
     }
@@ -216,16 +215,6 @@ public class AwsEndpointProviderUtilsTest {
     }
 
     private static ClientEndpointProvider endpointProvider(boolean isEndpointOverridden) {
-        return new ClientEndpointProvider() {
-            @Override
-            public URI clientEndpoint() {
-                return null;
-            }
-
-            @Override
-            public boolean isEndpointOverridden() {
-                return isEndpointOverridden;
-            }
-        };
+        return ClientEndpointProvider.create(URI.create("https://foo.aws"), isEndpointOverridden);
     }
 }

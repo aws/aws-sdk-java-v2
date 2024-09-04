@@ -3,8 +3,14 @@ package software.amazon.awssdk.core.internal;
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
+/**
+ * An implementation of {@link ClientEndpointProvider} that uses static values.
+ *
+ * @see ClientEndpointProvider#create(URI, boolean)
+ */
 @SdkInternalApi
 public class StaticClientEndpointProvider implements ClientEndpointProvider {
     private final URI clientEndpoint;
@@ -48,5 +54,13 @@ public class StaticClientEndpointProvider implements ClientEndpointProvider {
         int result = clientEndpoint.hashCode();
         result = 31 * result + (isEndpointOverridden ? 1 : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("ClientEndpointProvider")
+                       .add("clientEndpoint", clientEndpoint)
+                       .add("isEndpointOverridden", isEndpointOverridden)
+                       .build();
     }
 }

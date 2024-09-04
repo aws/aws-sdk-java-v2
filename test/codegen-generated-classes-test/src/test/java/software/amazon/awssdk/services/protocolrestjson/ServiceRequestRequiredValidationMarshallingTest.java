@@ -47,7 +47,7 @@ class ServiceRequestRequiredValidationMarshallingTest {
             .clientConfiguration(SdkClientConfiguration
                                      .builder()
                                      .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-                                             ClientEndpointProvider.forOverrideEndpoint(URI.create("http://localhost")))
+                                             ClientEndpointProvider.forEndpointOverride(URI.create("http://localhost")))
                                      .build())
             .build();
         marshaller = new QueryParameterOperationRequestMarshaller(awsJsonProtocolFactory);

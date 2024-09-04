@@ -18,15 +18,39 @@ package software.amazon.awssdk.core;
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.StaticClientEndpointProvider;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 
+/**
+ * Client endpoint providers are responsible for resolving client-level endpoints. {@link EndpointProvider}s are
+ * ultimately responsible for resolving the endpoint used for a request.
+ * <p>
+ * {@link EndpointProvider}s may choose to honor or completely ignore the client-level endpoint. Default endpoint
+ * providers will ignore the client-level endpoint, unless {@link #isEndpointOverridden()} is true.
+ */
 @SdkProtectedApi
 public interface ClientEndpointProvider {
-    static ClientEndpointProvider forOverrideEndpoint(URI uri) {
+    /**
+     * Create a client endpoint provider that uses the provided URI and returns true from {@link #isEndpointOverridden()}.
+     */
+    static ClientEndpointProvider forEndpointOverride(URI uri) {
         return new StaticClientEndpointProvider(uri, true);
     }
 
+    /**
+     * Create a client endpoint provider that uses the provided static URI and override settings.
+     */
+    static ClientEndpointProvider create(URI uri, boolean isEndpointOverridden) {
+        return new StaticClientEndpointProvider(uri, isEndpointOverridden);
+    }
+
+    /**
+     * Retrieve the client endpoint from this provider.
+     */
     URI clientEndpoint();
 
+    /**
+     * Returns true if this endpoint was specified as an override by the customer, or false if it was determined
+     * automatically by the SDK.
+     */
     boolean isEndpointOverridden();
 }
