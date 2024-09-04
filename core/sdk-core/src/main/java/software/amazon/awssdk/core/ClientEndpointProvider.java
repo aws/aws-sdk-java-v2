@@ -17,23 +17,13 @@ package software.amazon.awssdk.core;
 
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.internal.StaticClientEndpointProvider;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkProtectedApi
 public interface ClientEndpointProvider {
     static ClientEndpointProvider forOverrideEndpoint(URI uri) {
-        Validate.paramNotNull(uri.getScheme(), "The URI scheme of endpointOverride");
-        return new ClientEndpointProvider() {
-            @Override
-            public URI clientEndpoint() {
-                return uri;
-            }
-
-            @Override
-            public boolean isEndpointOverridden() {
-                return true;
-            }
-        };
+        return new StaticClientEndpointProvider(uri, true);
     }
 
     URI clientEndpoint();
