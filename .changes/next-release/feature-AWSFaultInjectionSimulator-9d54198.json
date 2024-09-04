@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Fault Injection Simulator",
+    "contributor": "",
+    "description": "This release adds safety levers, a new mechanism to stop all running experiments and prevent new experiments from starting."
+}
