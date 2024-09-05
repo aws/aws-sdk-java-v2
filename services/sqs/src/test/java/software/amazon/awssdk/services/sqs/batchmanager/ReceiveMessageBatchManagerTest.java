@@ -47,7 +47,6 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -60,7 +59,6 @@ class ReceiveMessageBatchManagerTest {
 
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(4);
 
-
     private ReceiveMessageBatchManager receiveMessageBatchManager;
 
 
@@ -68,16 +66,16 @@ class ReceiveMessageBatchManagerTest {
     @MethodSource("provideBatchOverrideConfigurations")
     @DisplayName("Test BatchRequest with various configurations")
     void testBatchRequest_WhenBufferingDisabledAndInCompatible_ShouldNotUseBatchManager(String testCaseName,
-                                                                                               BatchOverrideConfiguration overrideConfig,
+                                                                                               ResponseBatchConfiguration overrideConfig,
                                                                                                ReceiveMessageRequest request,
                                                                                                boolean useBatchManager) throws Exception {
 
         // Initialize the ResponseBatchConfiguration and ReceiveMessageBatchManager
         ResponseBatchConfiguration config = ResponseBatchConfiguration.builder()
-            .messageSystemAttributeNames(overrideConfig.receiveMessageSystemAttributeNames())
+            .messageSystemAttributeNames(overrideConfig.messageSystemAttributeNames())
             .receiveMessageAttributeNames(overrideConfig.receiveMessageAttributeNames())
-            .visibilityTimeout(overrideConfig.receiveMessageVisibilityTimeout())
-            .messageMinWaitDuration(overrideConfig.receiveMessageMinWaitDuration()).build();
+            .visibilityTimeout(overrideConfig.visibilityTimeout())
+            .messageMinWaitDuration(overrideConfig.messageMinWaitDuration()).build();
 
         receiveMessageBatchManager = new ReceiveMessageBatchManager(sqsClient, executor, overrideConfig);
 
@@ -122,9 +120,9 @@ class ReceiveMessageBatchManagerTest {
         return Stream.of(
             Arguments.of(
                 "Buffering enabled, compatible system and message attributes, and no visibility timeout",
-                BatchOverrideConfiguration.builder()
+                ResponseBatchConfiguration.builder()
                                           .receiveMessageAttributeNames(Collections.singletonList("attr1"))
-                                          .receiveMessageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.SENDER_ID))
+                                          .messageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.SENDER_ID))
                                           .build(),
                 ReceiveMessageRequest.builder()
                                      .queueUrl("testQueueUrl")
@@ -135,9 +133,9 @@ class ReceiveMessageBatchManagerTest {
             ),
             Arguments.of(
                 "Buffering , compatible attributes, and no visibility timeout",
-                BatchOverrideConfiguration.builder()
+                ResponseBatchConfiguration.builder()
                                           .receiveMessageAttributeNames(Collections.singletonList("attr1"))
-                                          .receiveMessageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.SENDER_ID))
+                                          .messageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.SENDER_ID))
                                           .build(),
                 ReceiveMessageRequest.builder()
                                      .queueUrl("testQueueUrl")
@@ -150,9 +148,9 @@ class ReceiveMessageBatchManagerTest {
             ),
             Arguments.of(
                 "Buffering disabled, incompatible system attributes, and no visibility timeout",
-                BatchOverrideConfiguration.builder()
+                ResponseBatchConfiguration.builder()
                                           .receiveMessageAttributeNames(Collections.singletonList("attr1"))
-                                          .receiveMessageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.SENT_TIMESTAMP))
+                                          .messageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.SENT_TIMESTAMP))
                                           .build(),
                 ReceiveMessageRequest.builder()
                                      .queueUrl("testQueueUrl")
@@ -164,9 +162,9 @@ class ReceiveMessageBatchManagerTest {
             ),
             Arguments.of(
                 "Buffering disabled, compatible attributes, but visibility timeout is set",
-                BatchOverrideConfiguration.builder()
+                ResponseBatchConfiguration.builder()
                                           .receiveMessageAttributeNames(Collections.singletonList("attr1"))
-                                          .receiveMessageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.SENDER_ID))
+                                          .messageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.SENDER_ID))
                                           .build(),
                 ReceiveMessageRequest.builder()
                                      .queueUrl("testQueueUrl")
@@ -178,9 +176,9 @@ class ReceiveMessageBatchManagerTest {
             ),
             Arguments.of(
                 "Buffering disabled, compatible attributes, no visibility timeout, but request has attribute names",
-                BatchOverrideConfiguration.builder()
+                ResponseBatchConfiguration.builder()
                                           .receiveMessageAttributeNames(Collections.singletonList("attr1"))
-                                          .receiveMessageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.SENDER_ID))
+                                          .messageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.SENDER_ID))
                                           .build(),
                 ReceiveMessageRequest.builder()
                                      .queueUrl("testQueueUrl")
@@ -192,8 +190,8 @@ class ReceiveMessageBatchManagerTest {
             ),
             Arguments.of(
                 "Buffering enabled, with messageSystemAttributeName in Config and simple ReceiveMessageRequest",
-                BatchOverrideConfiguration.builder()
-                                          .receiveMessageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.SENDER_ID))
+                ResponseBatchConfiguration.builder()
+                                          .messageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.SENDER_ID))
                                           .build(),
                 ReceiveMessageRequest.builder()
                                      .queueUrl("testQueueUrl")

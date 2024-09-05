@@ -39,10 +39,10 @@ public class ReceiveMessageBatchManager implements SdkAutoCloseable {
 
     public ReceiveMessageBatchManager(SqsAsyncClient sqsClient,
                                       ScheduledExecutorService executor,
-                                      BatchOverrideConfiguration config) {
+                                      ResponseBatchConfiguration config) {
         this.sqsClient = sqsClient;
         this.executor = executor;
-        this.config = ResponseBatchConfiguration.builder(config).build();
+        this.config = config;
 
 
     }
