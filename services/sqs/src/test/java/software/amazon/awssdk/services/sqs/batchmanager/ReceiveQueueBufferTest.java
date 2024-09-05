@@ -193,7 +193,7 @@ class ReceiveQueueBufferTest {
     }
 
     @Test
-    void testReceiveMessageWithAdaptivePrefetchingTrue() throws Exception {
+    void testReceiveMessageWithAdaptivePrefetchingOfReceieveMessageApiCalls() throws Exception {
         // Mock response
         ReceiveMessageResponse response = generateMessageResponse(10);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
@@ -225,7 +225,7 @@ class ReceiveQueueBufferTest {
 
 
     @Test
-    void testReceiveMessageWithAdaptivePrefetchingTrueForSingleCall() throws Exception {
+    void testReceiveMessageWithAdaptivePrefetchingForASingleCall() throws Exception {
 
         ReceiveMessageResponse response = generateMessageResponse(10);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
@@ -251,101 +251,7 @@ class ReceiveQueueBufferTest {
     }
 
     @Test
-    void testReceiveMessageWithAdaptivePrefetchingFalseForSingleCall() throws Exception {
-        ReceiveMessageResponse response = generateMessageResponse(10);
-        when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
-            .thenReturn(CompletableFuture.completedFuture(response));
-
-        // Create receiveQueueBuffer with adaptive prefetching
-        ReceiveQueueBuffer receiveQueueBuffer = ReceiveQueueBuffer.builder()
-                                                                  .executor(executor)
-                                                                  .sqsClient(sqsClient)
-                                                                  .config(ResponseBatchConfiguration.builder().adaptivePrefetching(false).build())
-                                                                  .queueUrl("queueUrl")
-                                                                  .queueAttributesManager(queueAttributesManager)
-                                                                  .build();
-
-
-        CompletableFuture<ReceiveMessageResponse> future = new CompletableFuture<>();
-        receiveQueueBuffer.receiveMessage(future, 10);
-
-        ReceiveMessageResponse receiveMessageResponse = future.get(1, TimeUnit.SECONDS);
-        System.out.println(receiveMessageResponse);
-        assertThat(receiveMessageResponse.messages().size()).isEqualTo(10);
-        Thread.sleep(1000);
-
-        verify(sqsClient, times(11)).receiveMessage(any(ReceiveMessageRequest.class));
-    }
-
-    @Test
-    void testReceiveMessageWithAdaptivePrefetchingFalse() throws Exception {
-        // Mock response
-        ReceiveMessageResponse response = generateMessageResponse(10);
-        when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(CompletableFuture.completedFuture(response));
-
-        ReceiveQueueBuffer receiveQueueBuffer = ReceiveQueueBuffer.builder()
-                                                                  .executor(executor)
-                                                                  .sqsClient(sqsClient)
-                                                                  .config(ResponseBatchConfiguration.builder()
-                                                                                                    .adaptivePrefetching(false)
-                                                                                                    .build())
-                                                                  .queueUrl("queueUrl")
-                                                                  .queueAttributesManager(queueAttributesManager)
-                                                                  .build();
-
-        List<CompletableFuture<ReceiveMessageResponse>> futures = new ArrayList<>();
-        for (int i = 0; i < 30; i++) {
-            CompletableFuture<ReceiveMessageResponse> future = new CompletableFuture<>();
-            futures.add(future);
-            receiveQueueBuffer.receiveMessage(future, 1);
-            Thread.sleep(10);
-        }
-
-        // Join all futures to ensure they complete
-        for (CompletableFuture<ReceiveMessageResponse> future : futures) {
-            future.get(2, TimeUnit.SECONDS);
-        }
-
-        verify(sqsClient, times(13)).receiveMessage(any(ReceiveMessageRequest.class));
-    }
-
-    @Test
-    void testReceiveMessageWithAdaptivePrefetchingFalse_followsMaxDoneRecieveBatches() throws Exception {
-        // Mock response
-        int MAX_BATCH_ITEMS = 10;
-        ReceiveMessageResponse response = generateMessageResponse(MAX_BATCH_ITEMS);
-        when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(CompletableFuture.completedFuture(response));
-
-        ReceiveQueueBuffer receiveQueueBuffer = ReceiveQueueBuffer.builder()
-                                                                  .executor(executor)
-                                                                  .sqsClient(sqsClient)
-                                                                  .config(ResponseBatchConfiguration
-                                                                              .builder()
-                                                                              .adaptivePrefetching(false)
-                                                                              .build())
-                                                                  .queueUrl("queueUrl")
-                                                                  .queueAttributesManager(queueAttributesManager)
-                                                                  .build();
-
-        // Create and send multiple futures using a loop
-        List<CompletableFuture<ReceiveMessageResponse>> futures = new ArrayList<>();
-        for (int i = 0; i < 30; i++) {
-            CompletableFuture<ReceiveMessageResponse> future = new CompletableFuture<>();
-            futures.add(future);
-            Thread.sleep(10);
-            receiveQueueBuffer.receiveMessage(future, 1);
-        }
-
-        // Join all futures to ensure they complete
-        for (CompletableFuture<ReceiveMessageResponse> future : futures) {
-            future.get(2, TimeUnit.SECONDS);
-        }
-
-        verify(sqsClient, times(13)).receiveMessage(any(ReceiveMessageRequest.class));
-    }
-
-    @Test
-    void receiveMessageShutDown() throws Exception {
+    void receiveMessageShutDown()  {
         ReceiveQueueBuffer receiveQueueBuffer = receiveQueueBuffer(ResponseBatchConfiguration.builder().build());
 
         // Create future and call receiveMessage

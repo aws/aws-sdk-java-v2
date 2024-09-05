@@ -45,7 +45,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
     protected final RequestBatchConfiguration batchConfiguration ;
 
     private final int maxBatchItems;
-    private final Duration sendMessageFrequency;
+    private final Duration sendRequestFrequency;
     private final BatchingMap<RequestT, ResponseT> requestsAndResponsesMaps;
     private final ScheduledExecutorService scheduledExecutor;
     private final Set<CompletableFuture<BatchResponseT>> pendingBatchResponses ;
@@ -56,7 +56,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
                                   ScheduledExecutorService scheduledExecutor) {
         batchConfiguration = overrideConfiguration;
         this.maxBatchItems = batchConfiguration.maxBatchItems();
-        this.sendMessageFrequency = batchConfiguration.sendMessageFrequency();
+        this.sendRequestFrequency = batchConfiguration.sendRequestFrequency();
         this.scheduledExecutor = Validate.notNull(scheduledExecutor, "Null scheduledExecutor");
         pendingBatchResponses = Collections.newSetFromMap(new ConcurrentHashMap<>());
         pendingResponses = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -80,7 +80,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
             // Add request and response to the map, scheduling a flush if necessary
             requestsAndResponsesMaps.put(batchKey,
                                          () -> scheduleBufferFlush(batchKey,
-                                                                   sendMessageFrequency.toMillis(),
+                                                                   sendRequestFrequency.toMillis(),
                                                                    scheduledExecutor),
                                          request,
                                          response);
@@ -111,7 +111,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
         flushBuffer(batchKey, flushableRequests);
         requestsAndResponsesMaps.putScheduledFlush(batchKey,
                                                    scheduleBufferFlush(batchKey,
-                                                                       sendMessageFrequency.toMillis(),
+                                                                       sendRequestFrequency.toMillis(),
                                                                        scheduledExecutor));
     }
 

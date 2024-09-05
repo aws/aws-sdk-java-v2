@@ -121,14 +121,11 @@ public class ReceiveQueueBuffer implements SdkAutoCloseable {
 
     private int determineDesiredBatches() {
         int desiredBatches = Math.max(config.maxDoneReceiveBatches(), 1);
-
-        if (config.adaptivePrefetching()) {
-            int totalRequested = futures.stream()
-                                        .mapToInt(FutureRequestWrapper::getRequestedSize)
-                                        .sum();
-            int batchesNeededToFulfillFutures = (int) Math.ceil((float) totalRequested / MAX_SUPPORTED_SQS_RECEIVE_MSG);
-            desiredBatches = Math.min(batchesNeededToFulfillFutures, desiredBatches);
-        }
+        int totalRequested = futures.stream()
+                                    .mapToInt(FutureRequestWrapper::getRequestedSize)
+                                    .sum();
+        int batchesNeededToFulfillFutures = (int) Math.ceil((float) totalRequested / MAX_SUPPORTED_SQS_RECEIVE_MSG);
+        desiredBatches = Math.min(batchesNeededToFulfillFutures, desiredBatches);
 
         return desiredBatches;
     }

@@ -39,7 +39,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     BatchOverrideConfiguration> {
 
     private final Integer maxBatchSize;
-    private final Duration sendMessageFrequency;
+    private final Duration sendRequestFrequency;
     private final Duration receiveMessageVisibilityTimeout;
     private final Duration receiveMessageMinWaitDuration;
     private final List<MessageSystemAttributeName> receiveMessageSystemAttributeNames;
@@ -52,8 +52,8 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         Validate.isTrue(this.maxBatchSize == null || this.maxBatchSize <= 10,
                         "The maxBatchSize must be less than or equal to 10. A batch can contain up to 10 messages.");
 
-        this.sendMessageFrequency = Validate.isPositiveOrNull(builder.sendMessageFrequency,
-                                                                     "sendMessageFrequency");
+        this.sendRequestFrequency = Validate.isPositiveOrNull(builder.sendRequestFrequency,
+                                                                     "sendRequestFrequency");
         this.receiveMessageVisibilityTimeout = Validate.isPositiveOrNull(builder.receiveMessageVisibilityTimeout,
                                                                          "receiveMessageVisibilityTimeout");
         this.receiveMessageMinWaitDuration = Validate.isPositiveOrNull(builder.receiveMessageMinWaitDuration,
@@ -86,8 +86,8 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
      *         If the {@link #maxBatchSize()} is reached before this duration, the batch will be sent immediately.
      *         The default value is 200 milliseconds.
      */
-    public Duration sendMessageFrequency() {
-        return sendMessageFrequency;
+    public Duration sendRequestFrequency() {
+        return sendRequestFrequency;
     }
 
     /**
@@ -127,7 +127,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     public Builder toBuilder() {
         return new Builder()
             .maxBatchSize(maxBatchSize)
-            .sendMessageFrequency(sendMessageFrequency)
+            .sendRequestFrequency(sendRequestFrequency)
             .receiveMessageVisibilityTimeout(receiveMessageVisibilityTimeout)
             .receiveMessageMinWaitDuration(receiveMessageMinWaitDuration)
             .receiveMessageSystemAttributeNames(receiveMessageSystemAttributeNames)
@@ -138,7 +138,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     public String toString() {
         return ToString.builder("BatchOverrideConfiguration")
                        .add("maxBatchSize", maxBatchSize)
-                       .add("sendMessageFrequency", sendMessageFrequency)
+                       .add("sendRequestFrequency", sendRequestFrequency)
                        .add("receiveMessageVisibilityTimeout", receiveMessageVisibilityTimeout)
                        .add("receiveMessageMinWaitDuration", receiveMessageMinWaitDuration)
                        .add("receiveMessageSystemAttributeNames", receiveMessageSystemAttributeNames)
@@ -160,8 +160,8 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
         if (maxBatchSize != null ? !maxBatchSize.equals(that.maxBatchSize) : that.maxBatchSize != null) {
             return false;
         }
-        if (sendMessageFrequency != null ? !sendMessageFrequency.equals(that.sendMessageFrequency) :
-            that.sendMessageFrequency != null) {
+        if (sendRequestFrequency != null ? !sendRequestFrequency.equals(that.sendRequestFrequency) :
+            that.sendRequestFrequency != null) {
             return false;
         }
         if (receiveMessageVisibilityTimeout != null
@@ -185,7 +185,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     @Override
     public int hashCode() {
         int result = maxBatchSize != null ? maxBatchSize.hashCode() : 0;
-        result = 31 * result + (sendMessageFrequency != null ? sendMessageFrequency.hashCode() : 0);
+        result = 31 * result + (sendRequestFrequency != null ? sendRequestFrequency.hashCode() : 0);
         result = 31 * result + (receiveMessageVisibilityTimeout != null ? receiveMessageVisibilityTimeout.hashCode() : 0);
         result = 31 * result + (receiveMessageMinWaitDuration != null ? receiveMessageMinWaitDuration.hashCode() : 0);
         result = 31 * result + (receiveMessageSystemAttributeNames != null ? receiveMessageSystemAttributeNames.hashCode() : 0);
@@ -196,7 +196,7 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     public static final class Builder implements CopyableBuilder<Builder, BatchOverrideConfiguration> {
 
         private Integer maxBatchSize = 10;
-        private Duration sendMessageFrequency ;
+        private Duration sendRequestFrequency ;
         private Duration receiveMessageVisibilityTimeout;
         private Duration receiveMessageMinWaitDuration ;
         private List<MessageSystemAttributeName> receiveMessageSystemAttributeNames = Collections.emptyList();
@@ -226,15 +226,15 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
          * requests before being sent. Outbound requests include SendMessageBatchRequest,
          * ChangeMessageVisibilityBatchRequest, and DeleteMessageBatchRequest. If the maxBatchSize is reached
          * before this duration, the batch will be sent immediately.
-         * Increasing the {@code sendMessageFrequency} gives more time for additional messages to be added to
+         * Increasing the {@code sendRequestFrequency} gives more time for additional messages to be added to
          * the batch, which can reduce the number of requests and increase throughput. However, a higher
          * frequency may also result in increased average message latency. The default value is 200 milliseconds.
          *
-         * @param sendMessageFrequency The new value for the frequency at which outbound requests are sent.
+         * @param sendRequestFrequency The new value for the frequency at which outbound requests are sent.
          * @return This Builder object for method chaining.
          */
-        public Builder sendMessageFrequency(Duration sendMessageFrequency) {
-            this.sendMessageFrequency = sendMessageFrequency;
+        public Builder sendRequestFrequency(Duration sendRequestFrequency) {
+            this.sendRequestFrequency = sendRequestFrequency;
             return this;
         }
 

@@ -56,7 +56,7 @@ class BatchOverrideConfigurationTest {
     @ParameterizedTest
     @MethodSource("provideConfigurations")
     void testBatchOverrideConfiguration(Integer maxBatchSize,
-                                        Duration sendMessageFrequency,
+                                        Duration sendRequestFrequency,
                                         Duration receiveMessageVisibilityTimeout,
                                         Duration receiveMessageMinWaitDuration,
                                         List<String> receiveMessageAttributeNames,
@@ -64,7 +64,7 @@ class BatchOverrideConfigurationTest {
 
         BatchOverrideConfiguration config = BatchOverrideConfiguration.builder()
                                                                       .maxBatchSize(maxBatchSize)
-                                                                      .sendMessageFrequency(sendMessageFrequency)
+                                                                      .sendRequestFrequency(sendRequestFrequency)
                                                                       .receiveMessageVisibilityTimeout(receiveMessageVisibilityTimeout)
                                                                       .receiveMessageMinWaitDuration(receiveMessageMinWaitDuration)
                                                                       .receiveMessageAttributeNames(receiveMessageAttributeNames)
@@ -72,7 +72,7 @@ class BatchOverrideConfigurationTest {
                                                                       .build();
 
         assertEquals(maxBatchSize, config.maxBatchSize());
-        assertEquals(sendMessageFrequency, config.sendMessageFrequency());
+        assertEquals(sendRequestFrequency, config.sendRequestFrequency());
         assertEquals(receiveMessageVisibilityTimeout, config.receiveMessageVisibilityTimeout());
         assertEquals(receiveMessageMinWaitDuration, config.receiveMessageMinWaitDuration());
         assertEquals(Optional.ofNullable(receiveMessageAttributeNames).orElse(Collections.emptyList()),
@@ -92,7 +92,7 @@ class BatchOverrideConfigurationTest {
     void testToBuilder() {
         BatchOverrideConfiguration originalConfig = BatchOverrideConfiguration.builder()
                                                                               .maxBatchSize(10)
-                                                                              .sendMessageFrequency(Duration.ofMillis(200))
+                                                                              .sendRequestFrequency(Duration.ofMillis(200))
                                                                               .receiveMessageVisibilityTimeout(Duration.ofSeconds(30))
                                                                               .receiveMessageMinWaitDuration(Duration.ofMillis(50))
                                                                               .receiveMessageAttributeNames(Arrays.asList("msgAttr1"))
@@ -107,7 +107,7 @@ class BatchOverrideConfigurationTest {
         builder.maxBatchSize(9);
         assertNotEquals(originalConfig.maxBatchSize(), builder.build().maxBatchSize());
         // Ensure that all other fields are still equal after modifying the maxBatchSize
-        assertEquals(originalConfig.sendMessageFrequency(), builder.build().sendMessageFrequency());
+        assertEquals(originalConfig.sendRequestFrequency(), builder.build().sendRequestFrequency());
         assertEquals(originalConfig.receiveMessageVisibilityTimeout(), builder.build().receiveMessageVisibilityTimeout());
         assertEquals(originalConfig.receiveMessageMinWaitDuration(), builder.build().receiveMessageMinWaitDuration());
         assertEquals(originalConfig.receiveMessageAttributeNames(), builder.build().receiveMessageAttributeNames());

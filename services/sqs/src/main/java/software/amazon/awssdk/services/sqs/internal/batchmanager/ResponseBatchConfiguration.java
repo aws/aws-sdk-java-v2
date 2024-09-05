@@ -29,7 +29,6 @@ public final class ResponseBatchConfiguration {
     public static final Duration MIN_RECEIVE_WAIT_TIME_MS_DEFAULT = Duration.ofMillis(50);
     public static final List<String> RECEIVE_MESSAGE_ATTRIBUTE_NAMES_DEFAULT = Collections.emptyList();
     public static final List<MessageSystemAttributeName> MESSAGE_SYSTEM_ATTRIBUTE_NAMES_DEFAULT = Collections.emptyList();
-    public static final boolean ADAPTIVE_PREFETCHING_DEFAULT = true;
     public static final int MAX_INFLIGHT_RECEIVE_BATCHES_DEFAULT = 10;
     public static final int MAX_DONE_RECEIVE_BATCHES_DEFAULT = 10;
 
@@ -50,7 +49,6 @@ public final class ResponseBatchConfiguration {
     private final Duration messageMinWaitDuration;
     private final List<MessageSystemAttributeName> messageSystemAttributeNames;
     private final List<String> receiveMessageAttributeNames;
-    private final Boolean adaptivePrefetching;
     private final Integer maxBatchItems;
     private final Integer maxInflightReceiveBatches;
     private final Integer maxDoneReceiveBatches;
@@ -71,10 +69,6 @@ public final class ResponseBatchConfiguration {
         this.receiveMessageAttributeNames = builder.receiveMessageAttributeNames != null
                                             ? builder.receiveMessageAttributeNames
                                             : RECEIVE_MESSAGE_ATTRIBUTE_NAMES_DEFAULT;
-
-        this.adaptivePrefetching = builder.adaptivePrefetching != null
-                                   ? builder.adaptivePrefetching
-                                   : ADAPTIVE_PREFETCHING_DEFAULT;
 
         this.maxBatchItems = builder.maxBatchItems != null
                              ? builder.maxBatchItems
@@ -104,10 +98,6 @@ public final class ResponseBatchConfiguration {
 
     public List<String> receiveMessageAttributeNames() {
         return Collections.unmodifiableList(receiveMessageAttributeNames);
-    }
-
-    public boolean adaptivePrefetching() {
-        return adaptivePrefetching;
     }
 
     public int maxBatchItems() {
@@ -142,7 +132,6 @@ public final class ResponseBatchConfiguration {
         private Duration messageMinWaitDuration;
         private List<MessageSystemAttributeName> messageSystemAttributeNames;
         private List<String> receiveMessageAttributeNames;
-        private Boolean adaptivePrefetching;
         private Integer maxBatchItems;
         private Integer maxInflightReceiveBatches;
         private Integer maxDoneReceiveBatches;
@@ -164,11 +153,6 @@ public final class ResponseBatchConfiguration {
 
         public Builder receiveMessageAttributeNames(List<String> receiveMessageAttributeNames) {
             this.receiveMessageAttributeNames = receiveMessageAttributeNames;
-            return this;
-        }
-
-        public Builder adaptivePrefetching(Boolean adaptivePrefetching) {
-            this.adaptivePrefetching = adaptivePrefetching;
             return this;
         }
 
