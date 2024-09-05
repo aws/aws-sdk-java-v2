@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Amazon SageMaker now supports idle shutdown of JupyterLab and CodeEditor applications on SageMaker Studio."
+}
