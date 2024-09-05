@@ -15,12 +15,10 @@
 
 package software.amazon.awssdk.services.sqs.batchmanager;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -52,13 +50,14 @@ import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchCo
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
 @ExtendWith(MockitoExtension.class)
 class ReceiveSqsMessageHelperTest {
 
-    private final String queueUrl = "test-queue-url";
+    private static final String QUEUE_URL = "test-queue-url";
     private final Duration visibilityTimeout = Duration.ofSeconds(30);
     @Mock
     private ScheduledExecutorService scheduledExecutorService;
@@ -69,16 +68,13 @@ class ReceiveSqsMessageHelperTest {
 
     @BeforeEach
     void setUp() {
-        BatchOverrideConfiguration batchOverrideConfig = BatchOverrideConfiguration.builder()
-                                                                                   .maxBatchItems(10)
-                                                                                   .receiveMessageAttributeNames(Arrays.asList(
-                                                                                       "attribute1", "attribute2"))
-                                                                                   .visibilityTimeout(Duration.ofSeconds(20))
-                                                                                   .longPollWaitTimeout(Duration.ofSeconds(15))
-                                                                                   .build();
-        config = new ResponseBatchConfiguration(batchOverrideConfig);
 
-        receiveSqsMessageHelper = new ReceiveSqsMessageHelper(queueUrl, sqsClient, visibilityTimeout, config);
+        config = ResponseBatchConfiguration.builder()
+                                           .receiveMessageAttributeNames(Arrays.asList(
+                                               "attribute1", "attribute2"))
+                                           .visibilityTimeout(Duration.ofSeconds(20))
+                                           .build();
+        receiveSqsMessageHelper = new ReceiveSqsMessageHelper(QUEUE_URL, sqsClient, visibilityTimeout, config);
     }
 
     @AfterEach
@@ -103,7 +99,6 @@ class ReceiveSqsMessageHelperTest {
         assertEquals(1, result.get().messagesSize());
     }
 
-
     @Test
     void multipleMessageGetsAdded() throws Exception {
         ReceiveMessageResponse response = generateMessageResponse(10);
@@ -117,9 +112,7 @@ class ReceiveSqsMessageHelperTest {
         assertTrue(result.isDone());
         assertNull(result.get().getException());
         assertFalse(result.get().isEmpty());
-
     }
-
 
     @Test
     void asyncReceiveMessageFailure() throws Exception {
@@ -154,7 +147,7 @@ class ReceiveSqsMessageHelperTest {
     }
 
     @Test
-    public void concurrencyTestForRemoveMessage() throws Exception {
+    void concurrencyTestForRemoveMessage() throws Exception {
         // Mocking receiveMessage to return 10 messages
         ReceiveMessageResponse response = generateMessageResponse(10);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(CompletableFuture.completedFuture(response));
@@ -178,15 +171,12 @@ class ReceiveSqsMessageHelperTest {
                 }
             }));
         }
-
         // Start all threads
         threads.forEach(Thread::start);
-
         // Wait for all threads to finish
         for (Thread thread : threads) {
             thread.join();
         }
-
         // Verify final state
         assertEquals(10, successfulRemovals.get());
         assertEquals(0, receiveSqsMessageHelper.messagesSize());
@@ -237,12 +227,10 @@ class ReceiveSqsMessageHelperTest {
         ReceiveSqsMessageHelper receiveSqsMessageHelper1 = completableFuture.get(2, TimeUnit.SECONDS);
         Message message = receiveSqsMessageHelper1.removeMessage();
         assertEquals(message, Message.builder().body("Message 1").build());
-
-
     }
 
     @Test
-    public void expiredBatchesClearsItself() throws Exception {
+    void expiredBatchesClearsItself() throws Exception {
         // Test setup: creating a new instance of ReceiveSqsMessageHelper
         ReceiveSqsMessageHelper batch = new ReceiveSqsMessageHelper("queueUrl", sqsClient
             , Duration.ofNanos(1), config);
@@ -262,19 +250,20 @@ class ReceiveSqsMessageHelperTest {
     }
 
     @Test
-    public void asyncReceiveMessageArgs() throws Exception {
+    void asyncReceiveMessageArgs() throws Exception {
 
-        Duration visibilityTimeout = Duration.ofSeconds(9);
-        BatchOverrideConfiguration batchOverrideConfig = BatchOverrideConfiguration.builder()
-                                                                                   .maxBatchItems(10)
+        ResponseBatchConfiguration batchOverrideConfig = ResponseBatchConfiguration.builder()
+
                                                                                    .receiveMessageAttributeNames(Arrays.asList(
                                                                                        "custom1", "custom2"))
-                                                                                   .visibilityTimeout(visibilityTimeout)
-                                                                                   .longPollWaitTimeout(Duration.ofSeconds(15))
+                                                                                   .messageSystemAttributeNames(Arrays.asList(
+                                                                                       MessageSystemAttributeName.APPROXIMATE_RECEIVE_COUNT))
+                                                                                   .visibilityTimeout(Duration.ofSeconds(9))
+                                                                                   .messageMinWaitDuration(Duration.ofMillis(200))
                                                                                    .build();
 
         ReceiveSqsMessageHelper batch = new ReceiveSqsMessageHelper(
-            queueUrl, sqsClient, visibilityTimeout, new ResponseBatchConfiguration(batchOverrideConfig));
+            QUEUE_URL, sqsClient, Duration.ofSeconds(9), batchOverrideConfig);
 
 
         // Mocking receiveMessage to return a single message
@@ -288,18 +277,16 @@ class ReceiveSqsMessageHelperTest {
         // Verify that receiveMessage was called with the correct arguments
         ReceiveMessageRequest expectedRequest =
             ReceiveMessageRequest.builder()
-                                 .queueUrl(queueUrl)
+                                 .queueUrl(QUEUE_URL)
                                  .maxNumberOfMessages(10)
                                  .messageAttributeNames("custom1", "custom2")
+                                 .messageSystemAttributeNames(Arrays.asList(
+                                     MessageSystemAttributeName.APPROXIMATE_RECEIVE_COUNT))
                                  .visibilityTimeout(9)
-                                 .waitTimeSeconds(15)
                                  .overrideConfiguration(o -> o.applyMutation(USER_AGENT_APPLIER))
                                  .build();
 
         verify(sqsClient, times(1)).receiveMessage(eq(expectedRequest));
     }
-
-
-
 
 }

@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
-
-
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -27,13 +25,10 @@ import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 @SdkInternalApi
 public final class ResponseBatchConfiguration {
 
-    public static final boolean LONG_POLL_DEFAULT = true;
     public static final Duration VISIBILITY_TIMEOUT_SECONDS_DEFAULT = null;
-    public static final Duration LONG_POLL_WAIT_TIMEOUT_DEFAULT = Duration.ofSeconds(20);
-    public static final Duration MIN_RECEIVE_WAIT_TIME_MS_DEFAULT = Duration.ofMillis(300);
+    public static final Duration MIN_RECEIVE_WAIT_TIME_MS_DEFAULT = Duration.ofMillis(50);
     public static final List<String> RECEIVE_MESSAGE_ATTRIBUTE_NAMES_DEFAULT = Collections.emptyList();
     public static final List<MessageSystemAttributeName> MESSAGE_SYSTEM_ATTRIBUTE_NAMES_DEFAULT = Collections.emptyList();
-    public static final boolean ADAPTIVE_PREFETCHING_DEFAULT = false;
     public static final int MAX_INFLIGHT_RECEIVE_BATCHES_DEFAULT = 10;
     public static final int MAX_DONE_RECEIVE_BATCHES_DEFAULT = 10;
 
@@ -50,84 +45,59 @@ public final class ResponseBatchConfiguration {
      */
     public static final int ATTRIBUTE_MAPS_PAYLOAD_BYTES = 16 * 1024; // 16 KiB
 
-
     private final Duration visibilityTimeout;
-    private final Duration longPollWaitTimeout;
-    private final Duration minReceiveWaitTime;
-    private final List<MessageSystemAttributeName> messageSystemAttributeValues;
+    private final Duration messageMinWaitDuration;
+    private final List<MessageSystemAttributeName> messageSystemAttributeNames;
     private final List<String> receiveMessageAttributeNames;
-    private final Boolean adaptivePrefetching;
     private final Integer maxBatchItems;
     private final Integer maxInflightReceiveBatches;
     private final Integer maxDoneReceiveBatches;
 
-    public ResponseBatchConfiguration(BatchOverrideConfiguration overrideConfiguration) {
-        this.visibilityTimeout = overrideConfiguration != null && overrideConfiguration.visibilityTimeout() != null
-                                 ? overrideConfiguration.visibilityTimeout()
+    private ResponseBatchConfiguration(Builder builder) {
+        this.visibilityTimeout = builder.visibilityTimeout != null
+                                 ? builder.visibilityTimeout
                                  : VISIBILITY_TIMEOUT_SECONDS_DEFAULT;
 
-        this.longPollWaitTimeout = overrideConfiguration != null && overrideConfiguration.longPollWaitTimeout() != null
-                                   ? overrideConfiguration.longPollWaitTimeout()
-                                   : LONG_POLL_WAIT_TIMEOUT_DEFAULT;
-
-        this.minReceiveWaitTime = overrideConfiguration != null && overrideConfiguration.minReceiveWaitTime() != null
-                                  ? overrideConfiguration.minReceiveWaitTime()
+        this.messageMinWaitDuration = builder.messageMinWaitDuration != null
+                                  ? builder.messageMinWaitDuration
                                   : MIN_RECEIVE_WAIT_TIME_MS_DEFAULT;
 
-        this.messageSystemAttributeValues = overrideConfiguration != null
-                                            && overrideConfiguration.messageSystemAttributeName() != null
-                                            && !overrideConfiguration.messageSystemAttributeName().isEmpty()
-                                            ? overrideConfiguration.messageSystemAttributeName()
+        this.messageSystemAttributeNames = builder.messageSystemAttributeNames != null
+                                            ? builder.messageSystemAttributeNames
                                             : MESSAGE_SYSTEM_ATTRIBUTE_NAMES_DEFAULT;
 
-        this.receiveMessageAttributeNames = overrideConfiguration != null
-                                            && overrideConfiguration.receiveMessageAttributeNames() != null
-                                            && !overrideConfiguration.receiveMessageAttributeNames().isEmpty()
-                                            ? overrideConfiguration.receiveMessageAttributeNames()
+        this.receiveMessageAttributeNames = builder.receiveMessageAttributeNames != null
+                                            ? builder.receiveMessageAttributeNames
                                             : RECEIVE_MESSAGE_ATTRIBUTE_NAMES_DEFAULT;
 
-        this.adaptivePrefetching = overrideConfiguration != null && overrideConfiguration.adaptivePrefetching() != null
-                                   ? overrideConfiguration.adaptivePrefetching()
-                                   : ADAPTIVE_PREFETCHING_DEFAULT;
-
-        this.maxBatchItems = overrideConfiguration != null && overrideConfiguration.maxBatchItems() != null
-                             ? overrideConfiguration.maxBatchItems()
+        this.maxBatchItems = builder.maxBatchItems != null
+                             ? builder.maxBatchItems
                              : MAX_SUPPORTED_SQS_RECEIVE_MSG;
 
-        this.maxInflightReceiveBatches = overrideConfiguration != null
-                                         && overrideConfiguration.maxInflightReceiveBatches() != null
-                                         ? overrideConfiguration.maxInflightReceiveBatches()
+        this.maxInflightReceiveBatches = builder.maxInflightReceiveBatches != null
+                                         ? builder.maxInflightReceiveBatches
                                          : MAX_INFLIGHT_RECEIVE_BATCHES_DEFAULT;
 
-        this.maxDoneReceiveBatches = overrideConfiguration != null && overrideConfiguration.maxDoneReceiveBatches() != null
-                                     ? overrideConfiguration.maxDoneReceiveBatches()
+        this.maxDoneReceiveBatches = builder.maxDoneReceiveBatches != null
+                                     ? builder.maxDoneReceiveBatches
                                      : MAX_DONE_RECEIVE_BATCHES_DEFAULT;
     }
-
 
 
     public Duration visibilityTimeout() {
         return visibilityTimeout;
     }
 
-    public Duration longPollWaitTimeout() {
-        return longPollWaitTimeout;
-    }
-
-    public Duration minReceiveWaitTime() {
-        return minReceiveWaitTime;
+    public Duration messageMinWaitDuration() {
+        return messageMinWaitDuration;
     }
 
     public List<MessageSystemAttributeName> messageSystemAttributeNames() {
-        return Collections.unmodifiableList(messageSystemAttributeValues);
+        return Collections.unmodifiableList(messageSystemAttributeNames);
     }
 
     public List<String> receiveMessageAttributeNames() {
         return Collections.unmodifiableList(receiveMessageAttributeNames);
-    }
-
-    public boolean adaptivePrefetching() {
-        return adaptivePrefetching;
     }
 
     public int maxBatchItems() {
@@ -140,5 +110,69 @@ public final class ResponseBatchConfiguration {
 
     public int maxDoneReceiveBatches() {
         return maxDoneReceiveBatches;
+    }
+
+    public static Builder builder(BatchOverrideConfiguration overrideConfiguration) {
+        Builder builder = new Builder();
+        if (overrideConfiguration != null) {
+            builder.messageMinWaitDuration(overrideConfiguration.receiveMessageMinWaitDuration())
+                   .receiveMessageAttributeNames(overrideConfiguration.receiveMessageAttributeNames())
+                   .messageSystemAttributeNames(overrideConfiguration.receiveMessageSystemAttributeNames())
+                   .visibilityTimeout(overrideConfiguration.receiveMessageVisibilityTimeout());
+        }
+        return builder;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private Duration visibilityTimeout;
+        private Duration messageMinWaitDuration;
+        private List<MessageSystemAttributeName> messageSystemAttributeNames;
+        private List<String> receiveMessageAttributeNames;
+        private Integer maxBatchItems;
+        private Integer maxInflightReceiveBatches;
+        private Integer maxDoneReceiveBatches;
+
+        public Builder visibilityTimeout(Duration visibilityTimeout) {
+            this.visibilityTimeout = visibilityTimeout;
+            return this;
+        }
+
+        public Builder messageMinWaitDuration(Duration messageMinWaitDuration) {
+            this.messageMinWaitDuration = messageMinWaitDuration;
+            return this;
+        }
+
+        public Builder messageSystemAttributeNames(List<MessageSystemAttributeName> messageSystemAttributeNames) {
+            this.messageSystemAttributeNames = messageSystemAttributeNames;
+            return this;
+        }
+
+        public Builder receiveMessageAttributeNames(List<String> receiveMessageAttributeNames) {
+            this.receiveMessageAttributeNames = receiveMessageAttributeNames;
+            return this;
+        }
+
+        public Builder maxBatchItems(Integer maxBatchItems) {
+            this.maxBatchItems = maxBatchItems;
+            return this;
+        }
+
+        public Builder maxInflightReceiveBatches(Integer maxInflightReceiveBatches) {
+            this.maxInflightReceiveBatches = maxInflightReceiveBatches;
+            return this;
+        }
+
+        public Builder maxDoneReceiveBatches(Integer maxDoneReceiveBatches) {
+            this.maxDoneReceiveBatches = maxDoneReceiveBatches;
+            return this;
+        }
+
+        public ResponseBatchConfiguration build() {
+            return new ResponseBatchConfiguration(this);
+        }
     }
 }

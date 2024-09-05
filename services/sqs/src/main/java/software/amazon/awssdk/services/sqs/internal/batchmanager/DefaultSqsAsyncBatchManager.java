@@ -75,7 +75,9 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
             );
 
         this.receiveMessageBatchManager =
-            new ReceiveMessageBatchManager(client, scheduledExecutor, builder.overrideConfiguration);
+            new ReceiveMessageBatchManager(client,
+                                           scheduledExecutor,
+                                           ResponseBatchConfiguration.builder(builder.overrideConfiguration).build());
     }
 
     @Override

@@ -52,7 +52,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ReceiveBatchManagerTest {
+class ReceiveBatchManagerTest {
 
     @Mock
     private SqsAsyncClient sqsClient;
@@ -79,22 +79,16 @@ public class ReceiveBatchManagerTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         executor.shutdownNow();
     }
 
-    private ResponseBatchConfiguration createConfig(int maxBatchItems, boolean adaptivePrefetching,
-                                                    int maxInflightReceiveBatches, int maxDoneReceiveBatches,
-                                                    Duration minReceiveWaitTime) {
-        return new ResponseBatchConfiguration(BatchOverrideConfiguration.builder()
-                                                                        .maxBatchItems(maxBatchItems)
-                                                                        .adaptivePrefetching(adaptivePrefetching)
-                                                                        .maxInflightReceiveBatches(maxInflightReceiveBatches)
-                                                                        .maxDoneReceiveBatches(maxDoneReceiveBatches)
-                                                                        .receiveMessageAttributeNames(Collections.emptyList())
-                                                                        .visibilityTimeout(Duration.ofSeconds(2))
-                                                                        .minReceiveWaitTime(minReceiveWaitTime)
-                                                                        .build());
+    private ResponseBatchConfiguration createConfig(Duration minReceiveWaitTime) {
+        return ResponseBatchConfiguration.builder()
+                                         .receiveMessageAttributeNames(Collections.emptyList())
+                                         .visibilityTimeout(Duration.ofSeconds(2))
+                                         .messageMinWaitDuration(minReceiveWaitTime)
+                                         .build();
     }
 
     private ReceiveMessageResponse generateMessageResponse(int count) {
@@ -105,12 +99,12 @@ public class ReceiveBatchManagerTest {
     }
 
     @Test
-    public void testProcessRequestSuccessful() throws Exception {
+    void testProcessRequestSuccessful() throws Exception {
         ReceiveMessageResponse response = generateMessageResponse(10);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(response));
 
-        receiveBatchManager = new ReceiveBatchManager(sqsClient, executor, createConfig(10, true, 2, 1, Duration.ofMillis(50)), "queueUrl");
+        receiveBatchManager = new ReceiveBatchManager(sqsClient, executor, createConfig( Duration.ofMillis(50)), "queueUrl");
 
         ReceiveMessageRequest request = ReceiveMessageRequest.builder().maxNumberOfMessages(10).build();
         CompletableFuture<ReceiveMessageResponse> futureResponse = receiveBatchManager.processRequest(request);
@@ -121,12 +115,12 @@ public class ReceiveBatchManagerTest {
     }
 
     @Test
-    public void testProcessRequestWithCustomMaxMessages() throws Exception {
+    void testProcessRequestWithCustomMaxMessages() throws Exception {
         ReceiveMessageResponse response = generateMessageResponse(5);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(response));
 
-        receiveBatchManager = new ReceiveBatchManager(sqsClient, executor, createConfig(10, true, 2, 1, Duration.ofMillis(50)), "queueUrl");
+        receiveBatchManager = new ReceiveBatchManager(sqsClient, executor, createConfig(Duration.ofMillis(50)), "queueUrl");
 
         ReceiveMessageRequest request = ReceiveMessageRequest.builder().maxNumberOfMessages(5).build();
         CompletableFuture<ReceiveMessageResponse> futureResponse = receiveBatchManager.processRequest(request);
@@ -137,12 +131,12 @@ public class ReceiveBatchManagerTest {
     }
 
     @Test
-    public void testProcessRequestErrorHandling() throws Exception {
+    void testProcessRequestErrorHandling() throws Exception {
         CompletableFuture<ReceiveMessageResponse> futureResponse = new CompletableFuture<>();
         futureResponse.completeExceptionally(new RuntimeException("SQS error"));
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(futureResponse);
 
-        receiveBatchManager = new ReceiveBatchManager(sqsClient, executor, createConfig(10, true, 2, 1, Duration.ofMillis(50)), "queueUrl");
+        receiveBatchManager = new ReceiveBatchManager(sqsClient, executor, createConfig(Duration.ofMillis(50)), "queueUrl");
 
         ReceiveMessageRequest request = ReceiveMessageRequest.builder().maxNumberOfMessages(10).build();
 
@@ -158,9 +152,9 @@ public class ReceiveBatchManagerTest {
     }
 
     @Test
-    public void testShutdown() throws Exception {
+    void testShutdown() throws Exception {
 
-        receiveBatchManager = new ReceiveBatchManager(sqsClient, executor, createConfig(10, true, 2, 1, Duration.ofMillis(50)), "queueUrl");
+        receiveBatchManager = new ReceiveBatchManager(sqsClient, executor, createConfig(Duration.ofMillis(50)), "queueUrl");
 
         ReceiveMessageRequest request = ReceiveMessageRequest.builder().maxNumberOfMessages(10).build();
         CompletableFuture<ReceiveMessageResponse> futureResponse = receiveBatchManager.processRequest(request);
@@ -173,12 +167,12 @@ public class ReceiveBatchManagerTest {
     }
 
     @Test
-    public void testProcessRequestMultipleMessages() throws Exception {
+    void testProcessRequestMultipleMessages() throws Exception {
         ReceiveMessageResponse response = generateMessageResponse(10);
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
             .thenReturn(CompletableFuture.completedFuture(response));
 
-        receiveBatchManager = new ReceiveBatchManager(sqsClient, executor, createConfig(10, true, 2, 1, Duration.ofMillis(50)), "queueUrl");
+        receiveBatchManager = new ReceiveBatchManager(sqsClient, executor, createConfig( Duration.ofMillis(50)), "queueUrl");
 
         List<ReceiveMessageRequest> requests = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
@@ -202,14 +196,11 @@ public class ReceiveBatchManagerTest {
 
 
     @Test
-    public void testProcessRequestWithQueueAttributes() throws Exception {
+    void testProcessRequestWithQueueAttributes() throws Exception {
         // Prepare configuration with specific message attribute names
-        ResponseBatchConfiguration configuration = new ResponseBatchConfiguration(
-            BatchOverrideConfiguration.builder()
+        ResponseBatchConfiguration configuration =  ResponseBatchConfiguration.builder()
                                       .receiveMessageAttributeNames(Arrays.asList("AttributeValue7", "AttributeValue9"))
-                .adaptivePrefetching(true)
-                .maxDoneReceiveBatches(1).build()
-        );
+                                      .build();
 
         // Mock response for receiveMessage
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))

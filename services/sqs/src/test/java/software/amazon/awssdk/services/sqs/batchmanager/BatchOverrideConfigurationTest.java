@@ -31,78 +31,54 @@ import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BatchOverrideConfigurationTest {
 
     private static Stream<Arguments> provideConfigurations() {
         return Stream.of(
             Arguments.of(10,
-                         5,
                          Duration.ofMillis(200),
                          Duration.ofSeconds(30),
-                         Duration.ofSeconds(20),
                          Duration.ofMillis(50),
                          Arrays.asList("msgAttr1"),
-                         Arrays.asList(MessageSystemAttributeName.SENDER_ID),
-                         true,
-                         10,
-                         5),
-            Arguments.of(null, null, null, null, null, null, null, null, null, null, null),
+                         Arrays.asList(MessageSystemAttributeName.SENDER_ID)),
+            Arguments.of(null, null, null, null, null, null),
             Arguments.of(1,
-                         1,
-                         Duration.ofMillis(1),
                          Duration.ofMillis(1),
                          Duration.ofMillis(1),
                          Duration.ofMillis(1),
                          Collections.emptyList(),
-                         Collections.singletonList(MessageSystemAttributeName.SEQUENCE_NUMBER),
-                         false,
-                         5,
-                         2)
+                         Collections.singletonList(MessageSystemAttributeName.SEQUENCE_NUMBER))
         );
     }
 
     @ParameterizedTest
     @MethodSource("provideConfigurations")
-    void testBatchOverrideConfiguration(Integer maxBatchItems,
-                                        Integer maxBatchKeys,
-                                        Duration maxBatchOpenDuration,
-                                        Duration visibilityTimeout,
-                                        Duration longPollWaitTimeout,
-                                        Duration minReceiveWaitTime,
+    void testBatchOverrideConfiguration(Integer maxBatchSize,
+                                        Duration sendRequestFrequency,
+                                        Duration receiveMessageVisibilityTimeout,
+                                        Duration receiveMessageMinWaitDuration,
                                         List<String> receiveMessageAttributeNames,
-                                        List<MessageSystemAttributeName> messageSystemAttributeNames,
-                                        Boolean adaptivePrefetching,
-                                        Integer maxInflightReceiveBatches,
-                                        Integer maxDoneReceiveBatches) {
+                                        List<MessageSystemAttributeName> receiveMessageSystemAttributeNames) {
 
         BatchOverrideConfiguration config = BatchOverrideConfiguration.builder()
-                                                                      .maxBatchItems(maxBatchItems)
-                                                                      .maxBatchKeys(maxBatchKeys)
-                                                                      .maxBatchOpenDuration(maxBatchOpenDuration)
-                                                                      .visibilityTimeout(visibilityTimeout)
-                                                                      .longPollWaitTimeout(longPollWaitTimeout)
-                                                                      .minReceiveWaitTime(minReceiveWaitTime)
+                                                                      .maxBatchSize(maxBatchSize)
+                                                                      .sendRequestFrequency(sendRequestFrequency)
+                                                                      .receiveMessageVisibilityTimeout(receiveMessageVisibilityTimeout)
+                                                                      .receiveMessageMinWaitDuration(receiveMessageMinWaitDuration)
                                                                       .receiveMessageAttributeNames(receiveMessageAttributeNames)
-                                                                      .messageSystemAttributeName(messageSystemAttributeNames)
-                                                                      .adaptivePrefetching(adaptivePrefetching)
-                                                                      .maxInflightReceiveBatches(maxInflightReceiveBatches)
-                                                                      .maxDoneReceiveBatches(maxDoneReceiveBatches)
+                                                                      .receiveMessageSystemAttributeNames(receiveMessageSystemAttributeNames)
                                                                       .build();
 
-        assertEquals(maxBatchItems, config.maxBatchItems());
-        assertEquals(maxBatchKeys, config.maxBatchKeys());
-        assertEquals(maxBatchOpenDuration, config.maxBatchOpenDuration());
-        assertEquals(visibilityTimeout, config.visibilityTimeout());
-        assertEquals(longPollWaitTimeout, config.longPollWaitTimeout());
-        assertEquals(minReceiveWaitTime, config.minReceiveWaitTime());
+        assertEquals(maxBatchSize, config.maxBatchSize());
+        assertEquals(sendRequestFrequency, config.sendRequestFrequency());
+        assertEquals(receiveMessageVisibilityTimeout, config.receiveMessageVisibilityTimeout());
+        assertEquals(receiveMessageMinWaitDuration, config.receiveMessageMinWaitDuration());
         assertEquals(Optional.ofNullable(receiveMessageAttributeNames).orElse(Collections.emptyList()),
                      config.receiveMessageAttributeNames());
-        assertEquals(Optional.ofNullable(messageSystemAttributeNames).orElse(Collections.emptyList()),
-                     config.messageSystemAttributeName());
-        assertEquals(adaptivePrefetching, config.adaptivePrefetching());
-        assertEquals(maxInflightReceiveBatches, config.maxInflightReceiveBatches());
-        assertEquals(maxDoneReceiveBatches, config.maxDoneReceiveBatches());
+        assertEquals(Optional.ofNullable(receiveMessageSystemAttributeNames).orElse(Collections.emptyList()),
+                     config.receiveMessageSystemAttributeNames());
     }
 
     @Test
@@ -115,26 +91,42 @@ class BatchOverrideConfigurationTest {
     @Test
     void testToBuilder() {
         BatchOverrideConfiguration originalConfig = BatchOverrideConfiguration.builder()
-                                                                              .maxBatchItems(10)
-                                                                              .maxBatchKeys(5)
-                                                                              .maxBatchOpenDuration(Duration.ofMillis(200))
-                                                                              .visibilityTimeout(Duration.ofSeconds(30))
-                                                                              .longPollWaitTimeout(Duration.ofSeconds(20))
-                                                                              .minReceiveWaitTime(Duration.ofMillis(50))
-                                                                              .receiveMessageAttributeNames(Arrays.asList(
-                                                                                  "msgAttr1"))
-                                                                              .messageSystemAttributeName(Collections.singletonList(
+                                                                              .maxBatchSize(10)
+                                                                              .sendRequestFrequency(Duration.ofMillis(200))
+                                                                              .receiveMessageVisibilityTimeout(Duration.ofSeconds(30))
+                                                                              .receiveMessageMinWaitDuration(Duration.ofMillis(50))
+                                                                              .receiveMessageAttributeNames(Arrays.asList("msgAttr1"))
+                                                                              .receiveMessageSystemAttributeNames(Collections.singletonList(
                                                                                   MessageSystemAttributeName.SENDER_ID))
-                                                                              .adaptivePrefetching(true)
-                                                                              .maxInflightReceiveBatches(10)
-                                                                              .maxDoneReceiveBatches(5)
                                                                               .build();
 
         BatchOverrideConfiguration.Builder builder = originalConfig.toBuilder();
         BatchOverrideConfiguration newConfig = builder.build();
         assertEquals(originalConfig, newConfig);
         // Ensure that modifying the builder does not affect the original config
-        builder.maxBatchItems(20);
-        assertNotEquals(originalConfig.maxBatchItems(), builder.build().maxBatchItems());
+        builder.maxBatchSize(9);
+        assertNotEquals(originalConfig.maxBatchSize(), builder.build().maxBatchSize());
+        // Ensure that all other fields are still equal after modifying the maxBatchSize
+        assertEquals(originalConfig.sendRequestFrequency(), builder.build().sendRequestFrequency());
+        assertEquals(originalConfig.receiveMessageVisibilityTimeout(), builder.build().receiveMessageVisibilityTimeout());
+        assertEquals(originalConfig.receiveMessageMinWaitDuration(), builder.build().receiveMessageMinWaitDuration());
+        assertEquals(originalConfig.receiveMessageAttributeNames(), builder.build().receiveMessageAttributeNames());
+        assertEquals(originalConfig.receiveMessageSystemAttributeNames(), builder.build().receiveMessageSystemAttributeNames());
     }
+
+    @Test
+    void testMaxBatchSizeExceedsLimitThrowsException() {
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            BatchOverrideConfiguration.builder()
+                                      .maxBatchSize(11) // Set an invalid max batch size (exceeds limit)
+                                      .build();         // This should throw IllegalArgumentException
+        });
+
+        // Assert that the exception message matches the expected output
+        assertEquals("The maxBatchSize must be less than or equal to 10. A batch can contain up to 10 messages.",
+                     exception.getMessage());
+    }
+
+
 }

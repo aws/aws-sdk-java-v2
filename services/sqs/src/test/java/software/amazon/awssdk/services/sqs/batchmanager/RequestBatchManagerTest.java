@@ -18,13 +18,17 @@ package software.amazon.awssdk.services.sqs.batchmanager;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,7 +73,7 @@ class RequestBatchManagerTest {
         when(mockClient.sendBatchAsync(any(), eq(batchKey))).thenReturn(batchResponseFuture);
 
         SampleBatchManager batchManager =
-        new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchItems(1).build(), scheduledExecutor, mockClient);
+        new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchSize(1).build(), scheduledExecutor, mockClient);
         CompletableFuture<String> response = batchManager.batchRequest(request);
         assertEquals("testResponse0", response.get(1, TimeUnit.SECONDS));
     }
@@ -83,7 +87,9 @@ class RequestBatchManagerTest {
                                                                                                                  "testResponse"));
         when(mockClient.sendBatchAsync(any(), eq(batchKey1))).thenReturn(batchResponseFuture);
         SampleBatchManager batchManager=
-            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchItems(2).maxBatchOpenDuration(Duration.ofHours(1)).build(), scheduledExecutor, mockClient);
+            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchSize(2)
+                                                             .sendRequestFrequency(Duration.ofHours(1)).build(),
+                                   scheduledExecutor, mockClient);
         CompletableFuture<String> response1 = batchManager.batchRequest(request1);
         CompletableFuture<String> response2 = batchManager.batchRequest(request2);
         assertEquals("testResponse0", response1.get(1, TimeUnit.SECONDS));
@@ -103,7 +109,7 @@ class RequestBatchManagerTest {
         when(mockClient.sendBatchAsync(any(), eq(KEY_TWO))).thenReturn(batchResponseFutureTwo);
 
         SampleBatchManager batchManager=
-            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchItems(2).maxBatchOpenDuration(Duration.ofHours(1)).build(), scheduledExecutor, mockClient);
+            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchSize(2).sendRequestFrequency(Duration.ofHours(1)).build(), scheduledExecutor, mockClient);
         CompletableFuture<String> response1 = batchManager.batchRequest(KEY_ONE + ":0");
         CompletableFuture<String> response2 = batchManager.batchRequest(KEY_TWO + ":0");
         CompletableFuture<String> response3 = batchManager.batchRequest(KEY_ONE + ":1");
@@ -157,7 +163,7 @@ class RequestBatchManagerTest {
         when(mockClient.sendBatchAsync(any(), eq(batchKey))).thenReturn(batchResponseFuture);
 
         SampleBatchManager batchManager=
-            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchItems(2).maxBatchOpenDuration(Duration.ofHours(1)).build(), scheduledExecutor, mockClient);
+            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchSize(2).sendRequestFrequency(Duration.ofHours(1)).build(), scheduledExecutor, mockClient);
 
         CompletableFuture<String> response1 = batchManager.batchRequest(request1);
         CompletableFuture<String> response2 = batchManager.batchRequest(request2);
@@ -185,7 +191,7 @@ class RequestBatchManagerTest {
         when(mockClient.sendBatchAsync(any(), eq(batchKey))).thenReturn(batchResponseFuture);
 
         SampleBatchManager batchManager =
-            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchItems(1).build(), scheduledExecutor, mockClient);
+            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchSize(1).build(), scheduledExecutor, mockClient);
         CompletableFuture<String> response = batchManager.batchRequest(request);
 
         batchManager.close();
@@ -196,27 +202,36 @@ class RequestBatchManagerTest {
 
     @Test
     void batchRequest_MoreThanBufferSize_Fails() throws Exception {
-        String KEY_ONE = "testRequestOne";
-        String KEY_TWO = "testRequestTwo";
+        final int MAX_QUEUES_THRESHOLD = 10000;
 
-        CompletableFuture<BatchResponse> batchResponseFutureOne = CompletableFuture.completedFuture(batchedResponse(2, KEY_ONE));
-        CompletableFuture<BatchResponse> batchResponseFutureTwo = CompletableFuture.completedFuture(batchedResponse(2, KEY_TWO));
+        // Generate unique keys up to MAX_QUEUES_THRESHOLD
+        List<String> keys = IntStream.range(0, MAX_QUEUES_THRESHOLD)
+                                     .mapToObj(i -> String.format("testRequest%d:%d", i, i))
+                                     .collect(Collectors.toList());
 
-        when(mockClient.sendBatchAsync(any(), eq(KEY_ONE))).thenReturn(batchResponseFutureOne);
-        when(mockClient.sendBatchAsync(any(), eq(KEY_TWO))).thenReturn(batchResponseFutureTwo);
+        // Create mock responses for all keys
+        keys.forEach(key ->
+                         when(mockClient.sendBatchAsync(any(), eq(key)))
+                             .thenReturn(CompletableFuture.completedFuture(batchedResponse(2, key)))
+        );
 
-        SampleBatchManager batchManager=
-            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchKeys(1).maxBatchItems(2).maxBatchOpenDuration(Duration.ofHours(1)).build(), scheduledExecutor, mockClient);
-        CompletableFuture<String> response1 = batchManager.batchRequest(KEY_ONE + ":0");
-        CompletableFuture<String> response2 = batchManager.batchRequest(KEY_TWO + ":0");
-        CompletableFuture<String> response3 = batchManager.batchRequest(KEY_ONE + ":1");
-        CompletableFuture<String> response4 = batchManager.batchRequest(KEY_TWO + ":1");
+        SampleBatchManager batchManager = new SampleBatchManager(
+            BatchOverrideConfiguration.builder()
+                                      .maxBatchSize(2)
+                                      .sendRequestFrequency(Duration.ofHours(1))
+                                      .build(),
+            scheduledExecutor,
+            mockClient
+        );
 
-        assertEquals("testRequestOne0", response1.get(1, TimeUnit.SECONDS));
-        assertEquals("testRequestOne1", response3.get(1, TimeUnit.SECONDS));
+        List<CompletableFuture<String>> responses = new ArrayList<>();
+        for (String key : keys) {
+            responses.add(batchManager.batchRequest(key));
+        }
 
-        ExecutionException exception = assertThrows(ExecutionException.class, () -> response2.get(1, TimeUnit.SECONDS));
-        assertEquals("java.lang.IllegalStateException: Reached MaxBatchKeys of: 1", exception.getCause().toString());
+        CompletableFuture<String> extraResponse = batchManager.batchRequest(String.format("testRequest%d:%d", MAX_QUEUES_THRESHOLD, MAX_QUEUES_THRESHOLD));
+        ExecutionException exception = assertThrows(ExecutionException.class, () -> extraResponse.get(1, TimeUnit.SECONDS));
+        assertEquals(String.format("java.lang.IllegalStateException: Reached MaxBatchKeys of: %d", MAX_QUEUES_THRESHOLD), exception.getCause().toString());
     }
 
     @AfterAll

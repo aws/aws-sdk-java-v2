@@ -87,9 +87,6 @@ public class ReceiveSqsMessageHelper {
 
         request.visibilityTimeout(NumericUtils.saturatedCast(this.visibilityTimeout.getSeconds()));
 
-        if (config.longPollWaitTimeout() != null) {
-            request.waitTimeSeconds(NumericUtils.saturatedCast(config.longPollWaitTimeout().getSeconds()));
-        }
         try {
             return asyncClient.receiveMessage(request.build())
                               .handle((response, throwable) -> {

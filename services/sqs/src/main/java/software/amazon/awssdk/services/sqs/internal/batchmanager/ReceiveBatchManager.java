@@ -58,7 +58,7 @@ public class ReceiveBatchManager implements SdkAutoCloseable {
         }
         int numMessages = rq.maxNumberOfMessages() != null ? rq.maxNumberOfMessages() : MAX_SUPPORTED_SQS_RECEIVE_MSG;
 
-        return queueAttributesManager.getReceiveMessageTimeout(rq, config.minReceiveWaitTime()).thenCompose(waitTimeMs -> {
+        return queueAttributesManager.getReceiveMessageTimeout(rq, config.messageMinWaitDuration()).thenCompose(waitTimeMs -> {
             CompletableFuture<ReceiveMessageResponse> receiveMessageFuture = new CompletableFuture<>();
             receiveQueueBuffer.receiveMessage(receiveMessageFuture, numMessages);
             CompletableFuture<ReceiveMessageResponse> timeoutFuture = new CompletableFuture<>();

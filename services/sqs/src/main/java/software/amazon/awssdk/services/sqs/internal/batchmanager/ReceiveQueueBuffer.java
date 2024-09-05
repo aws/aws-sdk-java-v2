@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration.MAX_SUPPORTED_SQS_RECEIVE_MSG;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -119,14 +121,11 @@ public class ReceiveQueueBuffer implements SdkAutoCloseable {
 
     private int determineDesiredBatches() {
         int desiredBatches = Math.max(config.maxDoneReceiveBatches(), 1);
-
-        if (config.adaptivePrefetching()) {
-            int totalRequested = futures.stream()
-                                        .mapToInt(FutureRequestWrapper::getRequestedSize)
-                                        .sum();
-            int batchesNeededToFulfillFutures = (int) Math.ceil((float) totalRequested / config.maxBatchItems());
-            desiredBatches = Math.min(batchesNeededToFulfillFutures, desiredBatches);
-        }
+        int totalRequested = futures.stream()
+                                    .mapToInt(FutureRequestWrapper::getRequestedSize)
+                                    .sum();
+        int batchesNeededToFulfillFutures = (int) Math.ceil((float) totalRequested / MAX_SUPPORTED_SQS_RECEIVE_MSG);
+        desiredBatches = Math.min(batchesNeededToFulfillFutures, desiredBatches);
 
         return desiredBatches;
     }

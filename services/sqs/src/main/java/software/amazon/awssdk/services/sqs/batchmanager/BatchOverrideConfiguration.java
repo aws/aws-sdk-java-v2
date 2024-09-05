@@ -16,50 +16,55 @@
 package software.amazon.awssdk.services.sqs.batchmanager;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Configuration values for the BatchManager Implementation.  All values are optional, and the default values will be used if they
- * are not specified.
+ * Configuration values for the BatchManager implementation used for controlling batch operations.
+ * All values are optional, and default values will be used if they are not specified.
  */
 @SdkPublicApi
 public final class BatchOverrideConfiguration implements ToCopyableBuilder<BatchOverrideConfiguration.Builder,
     BatchOverrideConfiguration> {
 
-    private final Integer maxBatchItems;
-    private final Integer maxBatchKeys;
-    private final Integer maxBufferSize;
-    private final Duration maxBatchOpenDuration;
-    private final Duration visibilityTimeout;
-    private final Duration longPollWaitTimeout;
-    private final Duration minReceiveWaitTime;
-    private final Integer maxDoneReceiveBatches;
-    private final List<MessageSystemAttributeName> messageSystemAttributeNames;
+    private final Integer maxBatchSize;
+    private final Duration sendRequestFrequency;
+    private final Duration receiveMessageVisibilityTimeout;
+    private final Duration receiveMessageMinWaitDuration;
+    private final List<MessageSystemAttributeName> receiveMessageSystemAttributeNames;
     private final List<String> receiveMessageAttributeNames;
-    private final Boolean adaptivePrefetching;
-    private final Integer maxInflightReceiveBatches;
+
 
     private BatchOverrideConfiguration(Builder builder) {
-        this.maxBatchItems = Validate.isPositiveOrNull(builder.maxBatchItems, "maxBatchItems");
-        this.maxBatchKeys = Validate.isPositiveOrNull(builder.maxBatchKeys, "maxBatchKeys");
-        this.maxBufferSize = Validate.isPositiveOrNull(builder.maxBufferSize, "maxBufferSize");
-        this.maxBatchOpenDuration = Validate.isPositiveOrNull(builder.maxBatchOpenDuration, "maxBatchOpenDuration");
-        this.visibilityTimeout = Validate.isPositiveOrNull(builder.visibilityTimeout, "visibilityTimeout");
-        this.longPollWaitTimeout = Validate.isPositiveOrNull(builder.longPollWaitTimeout, "longPollWaitTimeout");
-        this.minReceiveWaitTime = Validate.isPositiveOrNull(builder.minReceiveWaitTime, "minReceiveWaitTime");
-        this.messageSystemAttributeNames = builder.messageSystemAttributeNames;
-        this.receiveMessageAttributeNames = builder.receiveMessageAttributeNames;
-        this.adaptivePrefetching = builder.adaptivePrefetching;
-        this.maxInflightReceiveBatches = builder.maxInflightReceiveBatches;
-        this.maxDoneReceiveBatches = builder.maxDoneReceiveBatches;
+        this.maxBatchSize = Validate.isPositiveOrNull(builder.maxBatchSize,
+                                                                "maxBatchSize");
+        Validate.isTrue(this.maxBatchSize == null || this.maxBatchSize <= 10,
+                        "The maxBatchSize must be less than or equal to 10. A batch can contain up to 10 messages.");
+
+        this.sendRequestFrequency = Validate.isPositiveOrNull(builder.sendRequestFrequency,
+                                                                     "sendRequestFrequency");
+        this.receiveMessageVisibilityTimeout = Validate.isPositiveOrNull(builder.receiveMessageVisibilityTimeout,
+                                                                         "receiveMessageVisibilityTimeout");
+        this.receiveMessageMinWaitDuration = Validate.isPositiveOrNull(builder.receiveMessageMinWaitDuration,
+                                                                   "receiveMessageMinWaitDuration");
+        this.receiveMessageSystemAttributeNames =
+            builder.receiveMessageSystemAttributeNames == null ? Collections.emptyList() :
+            Collections.unmodifiableList(builder.receiveMessageSystemAttributeNames);
+
+        this.receiveMessageAttributeNames =
+            builder.receiveMessageAttributeNames == null ? Collections.emptyList() :
+            Collections.unmodifiableList(builder.receiveMessageAttributeNames);
     }
 
     public static Builder builder() {
@@ -67,118 +72,77 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     }
 
     /**
-     * @return the optional maximum number of messages that are batched together in a single request.
+     * @return the maximum number of items that can be batched together in a single outbound SQS request
+     *         (e.g., for {@link SendMessageBatchRequest}, {@link ChangeMessageVisibilityBatchRequest}, or
+     *         {@link DeleteMessageBatchRequest}). A batch can contain up to a maximum of 10 messages.
+     *         The default value is 10.
      */
-    public Integer maxBatchItems() {
-        return maxBatchItems;
+    public Integer maxBatchSize() {
+        return maxBatchSize;
     }
 
     /**
-     * @return the optional maximum number of batchKeys to keep track of.
+     * @return the maximum duration an outgoing call waits for additional messages of the same type before being sent.
+     *         If the {@link #maxBatchSize()} is reached before this duration, the batch will be sent immediately.
+     *         The default value is 200 milliseconds.
      */
-    public Integer maxBatchKeys() {
-        return maxBatchKeys;
+    public Duration sendRequestFrequency() {
+        return sendRequestFrequency;
     }
 
     /**
-     * @return the maximum number of items to allow to be buffered for each batchKey.
+     * @return the custom visibility timeout to use when retrieving messages from SQS. If not set,
+     *         the default visibility timeout configured on the SQS queue will be used.
      */
-    public Integer maxBufferSize() {
-        return maxBufferSize;
-    }
-
-    public Integer maxDoneReceiveBatches() {
-        return maxDoneReceiveBatches;
+    public Duration receiveMessageVisibilityTimeout() {
+        return receiveMessageVisibilityTimeout;
     }
 
     /**
-     * @return the optional maximum amount of time that an outgoing call waits to be batched with messages of the same type.
+     * @return the minimum wait time for incoming receive message requests. Without a non-zero minimum wait time,
+     *         threads can waste CPU resources busy-waiting for messages. The default value is 50 milliseconds.
      */
-    public Duration maxBatchOpenDuration() {
-        return maxBatchOpenDuration;
+    public Duration receiveMessageMinWaitDuration() {
+        return receiveMessageMinWaitDuration;
     }
 
     /**
-     * @return the custom visibility timeout to use when retrieving messages from SQS.
+     * @return the system attribute names to request for {@link ReceiveMessageRequest}. Requests with differing
+     *         system attribute names will bypass the batch manager and make a direct call to SQS.
      */
-    public Duration visibilityTimeout() {
-        return visibilityTimeout;
+    public List<MessageSystemAttributeName> receiveMessageSystemAttributeNames() {
+        return receiveMessageSystemAttributeNames;
     }
 
     /**
-     * @return the amount of time, the receive call will block on the server waiting for messages to arrive if the
-     * queue is empty when the receive call is first made.
-     */
-    public Duration longPollWaitTimeout() {
-        return longPollWaitTimeout;
-    }
-
-    /**
-     * @return the minimum wait time for incoming receive message requests.
-     */
-    public Duration minReceiveWaitTime() {
-        return minReceiveWaitTime;
-    }
-
-    /**
-     * @return the message systemAttribute Name will request {@link ReceiveMessageRequest#messageSystemAttributeNames()}.
-     */
-    public List<MessageSystemAttributeName> messageSystemAttributeName() {
-        return messageSystemAttributeNames;
-    }
-
-    /**
-     * @return the message attributes receive calls will request.
+     * @return the message attribute names to request for {@link ReceiveMessageRequest}. Requests with different
+     *         message attribute names will bypass the batch manager and make a direct call to SQS.
      */
     public List<String> receiveMessageAttributeNames() {
         return receiveMessageAttributeNames;
     }
 
-    /**
-     * @return the behavior for prefetching with respect to the number of in-flight incoming receive requests.
-     */
-    public Boolean adaptivePrefetching() {
-        return adaptivePrefetching;
-    }
-
-    /**
-     * @return the maximum number of concurrent receive message batches.
-     */
-    public Integer maxInflightReceiveBatches() {
-        return maxInflightReceiveBatches;
-    }
 
     @Override
     public Builder toBuilder() {
-        return new Builder().maxBatchItems(maxBatchItems)
-                            .maxBatchKeys(maxBatchKeys)
-                            .maxBufferSize(maxBufferSize)
-                            .maxBatchOpenDuration(maxBatchOpenDuration)
-                            .visibilityTimeout(visibilityTimeout)
-                            .longPollWaitTimeout(longPollWaitTimeout)
-                            .minReceiveWaitTime(minReceiveWaitTime)
-                            .maxInflightReceiveBatches(maxInflightReceiveBatches)
-                            .messageSystemAttributeName(messageSystemAttributeNames)
-                            .receiveMessageAttributeNames(receiveMessageAttributeNames)
-                            .adaptivePrefetching(adaptivePrefetching)
-                            .maxDoneReceiveBatches(maxDoneReceiveBatches);
+        return new Builder()
+            .maxBatchSize(maxBatchSize)
+            .sendRequestFrequency(sendRequestFrequency)
+            .receiveMessageVisibilityTimeout(receiveMessageVisibilityTimeout)
+            .receiveMessageMinWaitDuration(receiveMessageMinWaitDuration)
+            .receiveMessageSystemAttributeNames(receiveMessageSystemAttributeNames)
+            .receiveMessageAttributeNames(receiveMessageAttributeNames);
     }
 
     @Override
     public String toString() {
         return ToString.builder("BatchOverrideConfiguration")
-                       .add("maxBatchItems", maxBatchItems)
-                       .add("maxBatchKeys", maxBatchKeys)
-                       .add("maxBufferSize", maxBufferSize)
-                       .add("maxBatchOpenDuration", maxBatchOpenDuration)
-                       .add("visibilityTimeout", visibilityTimeout)
-                       .add("longPollWaitTimeout", longPollWaitTimeout)
-                       .add("minReceiveWaitTime", minReceiveWaitTime)
-                       .add("receiveAttributeNames", messageSystemAttributeNames)
+                       .add("maxBatchSize", maxBatchSize)
+                       .add("sendRequestFrequency", sendRequestFrequency)
+                       .add("receiveMessageVisibilityTimeout", receiveMessageVisibilityTimeout)
+                       .add("receiveMessageMinWaitDuration", receiveMessageMinWaitDuration)
+                       .add("receiveMessageSystemAttributeNames", receiveMessageSystemAttributeNames)
                        .add("receiveMessageAttributeNames", receiveMessageAttributeNames)
-                       .add("adaptivePrefetching", adaptivePrefetching)
-                       .add("maxInflightReceiveBatches", maxInflightReceiveBatches)
-                       .add("maxDoneReceiveBatches", maxDoneReceiveBatches)
                        .build();
     }
 
@@ -193,255 +157,158 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
 
         BatchOverrideConfiguration that = (BatchOverrideConfiguration) o;
 
-        if (maxBatchItems != null ? !maxBatchItems.equals(that.maxBatchItems) : that.maxBatchItems != null) {
+        if (maxBatchSize != null ? !maxBatchSize.equals(that.maxBatchSize) : that.maxBatchSize != null) {
             return false;
         }
-        if (maxBatchKeys != null ? !maxBatchKeys.equals(that.maxBatchKeys) : that.maxBatchKeys != null) {
+        if (sendRequestFrequency != null ? !sendRequestFrequency.equals(that.sendRequestFrequency) :
+            that.sendRequestFrequency != null) {
             return false;
         }
-        if (maxBufferSize != null ? !maxBufferSize.equals(that.maxBufferSize) : that.maxBufferSize != null) {
+        if (receiveMessageVisibilityTimeout != null
+            ? !receiveMessageVisibilityTimeout.equals(that.receiveMessageVisibilityTimeout) :
+            that.receiveMessageVisibilityTimeout != null) {
             return false;
         }
-
-        if (maxBatchOpenDuration != null ? !maxBatchOpenDuration.equals(that.maxBatchOpenDuration) :
-            that.maxBatchOpenDuration != null) {
+        if (receiveMessageMinWaitDuration != null ? !receiveMessageMinWaitDuration.equals(that.receiveMessageMinWaitDuration) :
+            that.receiveMessageMinWaitDuration != null) {
             return false;
         }
-        if (visibilityTimeout != null ? !visibilityTimeout.equals(that.visibilityTimeout) :
-            that.visibilityTimeout != null) {
+        if (receiveMessageSystemAttributeNames != null ?
+            !receiveMessageSystemAttributeNames.equals(that.receiveMessageSystemAttributeNames)
+                                                       : that.receiveMessageSystemAttributeNames != null) {
             return false;
         }
-        if (longPollWaitTimeout != null ? !longPollWaitTimeout.equals(that.longPollWaitTimeout) :
-            that.longPollWaitTimeout != null) {
-            return false;
-        }
-        if (minReceiveWaitTime != null ? !minReceiveWaitTime.equals(that.minReceiveWaitTime) :
-            that.minReceiveWaitTime != null) {
-            return false;
-        }
-        if (messageSystemAttributeNames != null ? !messageSystemAttributeNames.equals(that.messageSystemAttributeNames) :
-            that.messageSystemAttributeNames != null) {
-            return false;
-        }
-        if (receiveMessageAttributeNames != null ? !receiveMessageAttributeNames.equals(that.receiveMessageAttributeNames) :
-            that.receiveMessageAttributeNames != null) {
-            return false;
-        }
-        if (adaptivePrefetching != null ? !adaptivePrefetching.equals(that.adaptivePrefetching) :
-            that.adaptivePrefetching != null) {
-            return false;
-        }
-        if (maxInflightReceiveBatches != null ? !maxInflightReceiveBatches.equals(that.maxInflightReceiveBatches) :
-            that.maxInflightReceiveBatches != null) {
-            return false;
-        }
-        return maxDoneReceiveBatches != null ? maxDoneReceiveBatches.equals(that.maxDoneReceiveBatches) :
-               that.maxDoneReceiveBatches == null;
+        return receiveMessageAttributeNames != null ? receiveMessageAttributeNames.equals(that.receiveMessageAttributeNames) :
+               that.receiveMessageAttributeNames == null;
     }
 
     @Override
     public int hashCode() {
-        int result = maxBatchItems != null ? maxBatchItems.hashCode() : 0;
-        result = 31 * result + (maxBatchKeys != null ? maxBatchKeys.hashCode() : 0);
-        result = 31 * result + (maxBufferSize != null ? maxBufferSize.hashCode() : 0);
-        result = 31 * result + (maxBatchOpenDuration != null ? maxBatchOpenDuration.hashCode() : 0);
-        result = 31 * result + (visibilityTimeout != null ? visibilityTimeout.hashCode() : 0);
-        result = 31 * result + (longPollWaitTimeout != null ? longPollWaitTimeout.hashCode() : 0);
-        result = 31 * result + (minReceiveWaitTime != null ? minReceiveWaitTime.hashCode() : 0);
-        result = 31 * result + (messageSystemAttributeNames != null ? messageSystemAttributeNames.hashCode() : 0);
+        int result = maxBatchSize != null ? maxBatchSize.hashCode() : 0;
+        result = 31 * result + (sendRequestFrequency != null ? sendRequestFrequency.hashCode() : 0);
+        result = 31 * result + (receiveMessageVisibilityTimeout != null ? receiveMessageVisibilityTimeout.hashCode() : 0);
+        result = 31 * result + (receiveMessageMinWaitDuration != null ? receiveMessageMinWaitDuration.hashCode() : 0);
+        result = 31 * result + (receiveMessageSystemAttributeNames != null ? receiveMessageSystemAttributeNames.hashCode() : 0);
         result = 31 * result + (receiveMessageAttributeNames != null ? receiveMessageAttributeNames.hashCode() : 0);
-        result = 31 * result + (adaptivePrefetching != null ? adaptivePrefetching.hashCode() : 0);
-        result = 31 * result + (maxInflightReceiveBatches != null ? maxInflightReceiveBatches.hashCode() : 0);
-        result = 31 * result + (maxDoneReceiveBatches != null ? maxDoneReceiveBatches.hashCode() : 0);
         return result;
     }
 
     public static final class Builder implements CopyableBuilder<Builder, BatchOverrideConfiguration> {
 
-        private Integer maxBatchItems;
-        private Integer maxBatchKeys;
-        private Integer maxBufferSize;
-        private Duration maxBatchOpenDuration;
-        private Duration visibilityTimeout;
-        private Duration longPollWaitTimeout;
-        private Duration minReceiveWaitTime;
-        private Integer maxDoneReceiveBatches;
-        private Integer maxInflightReceiveBatches;
-        private List<MessageSystemAttributeName> messageSystemAttributeNames = Collections.emptyList();
+        private Integer maxBatchSize = 10;
+        private Duration sendRequestFrequency ;
+        private Duration receiveMessageVisibilityTimeout;
+        private Duration receiveMessageMinWaitDuration ;
+        private List<MessageSystemAttributeName> receiveMessageSystemAttributeNames = Collections.emptyList();
         private List<String> receiveMessageAttributeNames = Collections.emptyList();
-        private Boolean adaptivePrefetching;
+
 
         private Builder() {
         }
 
         /**
-         * Define the maximum number of messages that are batched together in a single request.
+         * Specifies the maximum number of items that the buffered client will include in a single outbound batch request.
+         * Outbound requests include {@link SendMessageBatchRequest}, {@link ChangeMessageVisibilityBatchRequest},
+         * and {@link DeleteMessageBatchRequest}.
+         * A batch can contain up to a maximum of 10 messages. The default value is 10.
          *
-         * @param maxBatchItems The new maxBatchItems value.
-         * @return This object for method chaining.
+         * @param maxBatchSize The maximum number of items to be batched together in a single request.
+         * @return This Builder object for method chaining.
          */
-        public Builder maxBatchItems(Integer maxBatchItems) {
-            this.maxBatchItems = maxBatchItems;
+        public Builder maxBatchSize(Integer maxBatchSize) {
+            this.maxBatchSize = maxBatchSize;
             return this;
         }
 
         /**
-         * Define the maximum number of batchKeys to keep track of. A batchKey determines which requests are batched together and
-         * is calculated by the client based on the information in a request.
+         * Specifies the frequency at which outbound batches are sent.
+         * This defines the maximum duration that an outbound batch is held open for additional outbound
+         * requests before being sent. Outbound requests include SendMessageBatchRequest,
+         * ChangeMessageVisibilityBatchRequest, and DeleteMessageBatchRequest. If the maxBatchSize is reached
+         * before this duration, the batch will be sent immediately.
+         * Increasing the {@code sendRequestFrequency} gives more time for additional messages to be added to
+         * the batch, which can reduce the number of requests and increase throughput. However, a higher
+         * frequency may also result in increased average message latency. The default value is 200 milliseconds.
+         *
+         * @param sendRequestFrequency The new value for the frequency at which outbound requests are sent.
+         * @return This Builder object for method chaining.
+         */
+        public Builder sendRequestFrequency(Duration sendRequestFrequency) {
+            this.sendRequestFrequency = sendRequestFrequency;
+            return this;
+        }
+
+        /**
+         * Defines the custom visibility timeout to use when retrieving messages from SQS. If set to a positive value,
+         * this timeout will override the default visibility timeout set on the SQS queue. If no value is set,
+         * then by default, the visibility timeout of the queue will be used. Only positive values are supported.
+         *
+         * @param receiveMessageVisibilityTimeout The new visibilityTimeout value.
+         * @return This Builder object for method chaining.
+         */
+        public Builder receiveMessageVisibilityTimeout(Duration receiveMessageVisibilityTimeout) {
+            this.receiveMessageVisibilityTimeout = receiveMessageVisibilityTimeout;
+            return this;
+        }
+
+        /**
+         * Configures the minimum wait time for incoming receive message requests. The default value is 50 milliseconds.
+         * Without a non-zero minimum wait time, threads can easily waste CPU time by busy-waiting against empty local buffers.
+         * Avoid setting this to 0 unless you are confident that threads will perform useful work between each call
+         * to receive messages.
+         * The call may return sooner than the configured `WaitTimeSeconds` if there are messages in the buffer.
+         * If no messages are available and the wait time expires, the call will return an empty message list.
+         *
+         * @param receiveMessageMinWaitDuration The new minimum wait time value.
+         * @return This Builder object for method chaining.
+         */
+        public Builder receiveMessageMinWaitDuration(Duration receiveMessageMinWaitDuration) {
+            this.receiveMessageMinWaitDuration = receiveMessageMinWaitDuration;
+            return this;
+        }
+
+        /**
+         * Defines the list of message system attribute names to request in receive message calls.
+         * If no `messageSystemAttributeNames` are set in the individual request, the ones configured here will be used.
          * <p>
-         * Ex. SQS determines a batchKey based on a request's queueUrl in combination with its overrideConfiguration, so requests
-         * with the same queueUrl and overrideConfiguration will have the same batchKey and be batched together.
+         * Requests with different `messageSystemAttributeNames` than those configured here will bypass the
+         * BatchManager and make a direct call to SQS. Only requests with matching attribute names will be
+         * batched and fulfilled from the receive buffers.
          *
-         * @param maxBatchKeys the new maxBatchKeys value.
-         * @return This object for method chaining.
-         */
-        public Builder maxBatchKeys(Integer maxBatchKeys) {
-            this.maxBatchKeys = maxBatchKeys;
-            return this;
-        }
-
-        /**
-         * Define the maximum number of items to allow to be buffered for each batchKey.
-         *
-         * @param maxBufferSize the new maxBufferSize value.
-         * @return This object for method chaining.
-         */
-        public Builder maxBufferSize(Integer maxBufferSize) {
-            this.maxBufferSize = maxBufferSize;
-            return this;
-        }
-
-        /**
-         * Define the maximum amount of time that an outgoing call waits for other requests before sending out a
-         * batch request.
-         * TODO : Decide if Ms needs to be added to the name in surface API review meeting
-         * @param maxBatchOpenDuration The new maxBatchOpenDuration value.
-         * @return This object for method chaining.
-         */
-        public Builder maxBatchOpenDuration(Duration maxBatchOpenDuration) {
-            this.maxBatchOpenDuration = maxBatchOpenDuration;
-            return this;
-        }
-
-        /**
-         * Define the custom visibility timeout to use when retrieving messages from SQS. If set to a value greater than zero,
-         * this timeout will override the default visibility timeout set on the SQS queue. Set it to -1 to use the default
-         * visibility timeout of the queue. Visibility timeout of 0 seconds is not supported.
-         *
-         * @param visibilityTimeout The new visibilityTimeout value.
-         * @return This object for method chaining.
-         */
-        public Builder visibilityTimeout(Duration visibilityTimeout) {
-            this.visibilityTimeout = visibilityTimeout;
-            return this;
-        }
-
-        /**
-         * Define the amount of time, the receive call will block on the server waiting for messages to arrive if the
-         * queue is empty when the receive call is first made. This setting has no effect if long polling is disabled.
-         *
-         * @param longPollWaitTimeout The new longPollWaitTimeout value.
-         * @return This object for method chaining.
-         */
-        public Builder longPollWaitTimeout(Duration longPollWaitTimeout) {
-            this.longPollWaitTimeout = longPollWaitTimeout;
-            return this;
-        }
-
-        /**
-         * Define the minimum wait time for incoming receive message requests. Without a non-zero minimum wait time, threads can
-         * easily waste CPU time busy-waiting against empty local buffers. Avoid setting this to 0 unless you are confident
-         * threads will do useful work in-between each call to receive messages!
-         *
-         * @param minReceiveWaitTime The new minReceiveWaitTime value.
-         * @return This object for method chaining.
-         */
-        public Builder minReceiveWaitTime(Duration minReceiveWaitTime) {
-            this.minReceiveWaitTime = minReceiveWaitTime;
-            return this;
-        }
-
-        /**
-         * Define the maximum number of concurrent receive message batches. The greater this number, the faster the queue will be
-         * pulling messages from the SQS servers (at the expense of consuming more threads).
-         *
-         * @param maxInflightReceiveBatches The new maxInflightReceiveBatches value.
-         * @return This object for method chaining.
-         */
-        public Builder maxInflightReceiveBatches(Integer maxInflightReceiveBatches) {
-            this.maxInflightReceiveBatches = maxInflightReceiveBatches;
-            return this;
-        }
-
-        /**
-         * Define the maximum number of done receive batches. If more than that number of completed receive batches are waiting in
-         * the buffer, the querying for new messages will stop. The larger this number, the more messages the buffer queue will
-         * pre-fetch and keep in the buffer on the client side, and the faster receive requests will be satisfied. The visibility
-         * timeout of a pre-fetched message starts at the point of pre-fetch, which means that while the message is in the local
-         * buffer it is unavailable for other clients to process, and when this client retrieves it, part of the visibility
-         * timeout may have already expired. The number of messages prefetched will not exceed maxBatchSize *
-         * maxDoneReceiveBatches.
-         *
-         * @param maxDoneReceiveBatches The new maxDoneReceiveBatches value.
-         * @return This object for method chaining.
-         */
-        public Builder maxDoneReceiveBatches(Integer maxDoneReceiveBatches) {
-            this.maxDoneReceiveBatches = maxDoneReceiveBatches;
-            return this;
-        }
-
-        /**
-         * Defines the list of message system attribute names that should be requested in receive message calls.
-         * Only receive message requests that request the same set of message system attributes will be satisfied
-         * from the receive buffers. Refer to {@link ReceiveMessageRequest#messageSystemAttributeNames()}.
-         *
-         * Note that if requests to the BatchManager are sent with different messageSystemAttributeNames than what is
-         * configured, the request will bypass the BatchManager and will instead make a direct call to SQS.
-         *
-         * @param messageSystemAttributeNames The list of message system attribute names to be requested.
+         * @param receiveMessageSystemAttributeNames The list of message system attribute names to request.
          *                                    If null, an empty list will be used.
          * @return This builder object for method chaining.
          */
-        public Builder messageSystemAttributeName(List<MessageSystemAttributeName> messageSystemAttributeNames) {
-            this.messageSystemAttributeNames = messageSystemAttributeNames != null ?
-                                               Collections.unmodifiableList(messageSystemAttributeNames) :
-                                               Collections.emptyList() ;
+        public Builder receiveMessageSystemAttributeNames(List<MessageSystemAttributeName> receiveMessageSystemAttributeNames) {
+            this.receiveMessageSystemAttributeNames = receiveMessageSystemAttributeNames != null ?
+                                                      new ArrayList<>(receiveMessageSystemAttributeNames) :
+                                                      Collections.emptyList();
             return this;
         }
 
         /**
-         * Defines the message attributes that receive calls will request. Only receive message requests that request the same set
-         * of message attributes will be satisfied from the Receive buffer .Refer to
-         * {@link ReceiveMessageRequest#messageAttributeNames()}.
+         * Defines the list of message attribute names to request in receive message calls.
+         * If no `receiveMessageAttributeNames` are set in the individual requests, the ones configured here will be used.
          * <p>
-         * Note that if requests to the BatchManager are sent with different receiveMessageAttributeNames than what is configured,
-         * the request will bypass the BatchManager and will instead make a direct call to SQS.
+         * Requests with different `receiveMessageAttributeNames` than those configured here will bypass the batched and
+         * fulfilled from the receive buffers.
          *
-         * @param receiveMessageAttributeNames The list of message attributes to be requested. If null, an empty list will be
-         *                                     used.
+         * @param receiveMessageAttributeNames The list of message attribute names to request.
+         *                                     If null, an empty list will be used.
          * @return This builder object for method chaining.
          */
         public Builder receiveMessageAttributeNames(List<String> receiveMessageAttributeNames) {
             this.receiveMessageAttributeNames = receiveMessageAttributeNames != null ?
-                                                Collections.unmodifiableList(receiveMessageAttributeNames) :
+                                                new ArrayList<>(receiveMessageAttributeNames) :
                                                 Collections.emptyList();
             return this;
         }
 
         /**
-         * Define the behavior for prefetching with respect to the number of in-flight incoming receive requests made to the
-         * client. The advantage of this is reducing the number of outgoing requests made to SQS when incoming requests are
-         * reduced: in particular, if all incoming requests stop no future requests to SQS will be made. The disadvantage is
-         * increased latency when incoming requests first start occurring.
+         * Builds a new {@link BatchOverrideConfiguration} object based on the values set in this builder.
          *
-         * @param adaptivePrefetching The new adaptivePrefetching value.
-         * @return This object for method chaining.
+         * @return A new {@link BatchOverrideConfiguration} object.
          */
-        public Builder adaptivePrefetching(Boolean adaptivePrefetching) {
-            this.adaptivePrefetching = adaptivePrefetching;
-            return this;
-        }
-
         public BatchOverrideConfiguration build() {
             return new BatchOverrideConfiguration(this);
         }
