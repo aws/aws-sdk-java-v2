@@ -51,26 +51,34 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
 
     private static ChangeMessageVisibilityBatchRequest createChangeMessageVisibilityBatchRequest(
         List<IdentifiableMessage<ChangeMessageVisibilityRequest>> identifiedRequests, String batchKey) {
-        List<ChangeMessageVisibilityBatchRequestEntry> entries = identifiedRequests
-            .stream()
-            .map(identifiedRequest -> createChangeMessageVisibilityBatchRequestEntry(identifiedRequest.id(),
-                                                                                     identifiedRequest.message()))
-            .collect(Collectors.toList());
-        // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration,
-        // all requests must have the same overrideConfiguration so it is sufficient to retrieve it from the first
-        // request.
-        Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0).message()
+
+        List<ChangeMessageVisibilityBatchRequestEntry> entries =
+            identifiedRequests.stream()
+                              .map(identifiedRequest -> createChangeMessageVisibilityBatchRequestEntry(
+                                  identifiedRequest.id(),
+                                  identifiedRequest.message()))
+                              .collect(Collectors.toList());
+
+        // All requests have the same overrideConfiguration, so it's sufficient to retrieve it from the first request.
+        Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
+                                                                                            .message()
                                                                                             .overrideConfiguration();
-        return overrideConfiguration.map(
-                                        config -> ChangeMessageVisibilityBatchRequest.builder()
-                                                                                     .queueUrl(batchKey)
-                                                                                     .overrideConfiguration(config)
-                                                                                     .entries(entries)
-                                                                                     .build())
-                                    .orElseGet(() -> ChangeMessageVisibilityBatchRequest.builder()
-                                                                                        .queueUrl(batchKey)
-                                                                                        .entries(entries)
-                                                                                        .build());
+
+        return overrideConfiguration
+            .map(config -> ChangeMessageVisibilityBatchRequest.builder()
+                                                              .queueUrl(batchKey)
+                                                              .overrideConfiguration(config.toBuilder()
+                                                                                           .applyMutation(USER_AGENT_APPLIER)
+                                                                                           .build())
+                                                              .entries(entries)
+                                                              .build())
+            .orElseGet(() -> ChangeMessageVisibilityBatchRequest.builder()
+                                                                .queueUrl(batchKey)
+                                                                .overrideConfiguration(o -> o
+                                                                    .applyMutation(USER_AGENT_APPLIER)
+                                                                    .build())
+                                                                .entries(entries)
+                                                                .build());
     }
 
     private static ChangeMessageVisibilityBatchRequestEntry createChangeMessageVisibilityBatchRequestEntry(

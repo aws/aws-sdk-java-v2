@@ -38,27 +38,25 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class BatchOverrideConfiguration implements ToCopyableBuilder<BatchOverrideConfiguration.Builder,
     BatchOverrideConfiguration> {
 
-    private final Integer outboundBatchSizeLimit;
-    private final Duration outboundBatchWindowDuration;
+    private final Integer maxBatchSize;
+    private final Duration sendRequestFrequency;
     private final Duration receiveMessageVisibilityTimeout;
-    private final Duration receiveMessageLongPollWaitDuration;
     private final Duration receiveMessageMinWaitTime;
     private final List<MessageSystemAttributeName> receiveMessageSystemAttributeNames;
     private final List<String> receiveMessageAttributeNames;
 
 
     private BatchOverrideConfiguration(Builder builder) {
-        this.outboundBatchSizeLimit = Validate.isPositiveOrNull(builder.outboundBatchSizeLimit,
-                                                                "outboundBatchSizeLimit");
-        Validate.isTrue(this.outboundBatchSizeLimit == null || this.outboundBatchSizeLimit <= 10,
+        this.maxBatchSize = Validate.isPositiveOrNull(builder.maxBatchSize,
+                                                                "maxBatchSize");
+        Validate.isTrue(this.maxBatchSize == null || this.maxBatchSize <= 10,
                         "A batch can contain up to 10 messages.");
 
-        this.outboundBatchWindowDuration = Validate.isPositiveOrNull(builder.outboundBatchWindowDuration,
-                                                                     "outboundBatchWindowDuration");
+        this.sendRequestFrequency = Validate.isPositiveOrNull(builder.sendRequestFrequency,
+                                                                     "sendRequestFrequency");
         this.receiveMessageVisibilityTimeout = Validate.isPositiveOrNull(builder.receiveMessageVisibilityTimeout,
                                                                          "receiveMessageVisibilityTimeout");
-        this.receiveMessageLongPollWaitDuration = Validate.isPositiveOrNull(builder.receiveMessageLongPollWaitDuration,
-                                                                            "receiveMessageLongPollWaitDuration");
+
         this.receiveMessageMinWaitTime = Validate.isPositiveOrNull(builder.receiveMessageMinWaitTime,
                                                                    "receiveMessageMinWaitTime");
 
@@ -81,16 +79,16 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
      * A batch can contain up to a maximum of 10 messages.
      * The default value is 10.
      */
-    public Integer outboundBatchSizeLimit() {
-        return outboundBatchSizeLimit;
+    public Integer maxBatchSize() {
+        return maxBatchSize;
     }
 
     /**
      * @return the maximum amount of time that an outgoing call waits to be batched with messages of the same type.
      * The default value is 200 milliseconds.
      */
-    public Duration outboundBatchWindowDuration() {
-        return outboundBatchWindowDuration;
+    public Duration sendRequestFrequency() {
+        return sendRequestFrequency;
     }
 
     /**
@@ -98,14 +96,6 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
      */
     public Duration receiveMessageVisibilityTimeout() {
         return receiveMessageVisibilityTimeout;
-    }
-
-    /**
-     * @return the amount of time the receive call will block on the server, waiting for messages to arrive if the
-     * queue is empty when the call is initially made.
-     */
-    public Duration receiveMessageLongPollWaitDuration() {
-        return receiveMessageLongPollWaitDuration;
     }
 
     /**
@@ -135,10 +125,9 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     @Override
     public Builder toBuilder() {
         return new Builder()
-            .outboundBatchSizeLimit(outboundBatchSizeLimit)
-            .outboundBatchWindowDuration(outboundBatchWindowDuration)
+            .maxBatchSize(maxBatchSize)
+            .sendRequestFrequency(sendRequestFrequency)
             .receiveMessageVisibilityTimeout(receiveMessageVisibilityTimeout)
-            .receiveMessageLongPollWaitDuration(receiveMessageLongPollWaitDuration)
             .receiveMessageMinWaitTime(receiveMessageMinWaitTime)
             .receiveMessageSystemAttributeNames(receiveMessageSystemAttributeNames)
             .receiveMessageAttributeNames(receiveMessageAttributeNames);
@@ -148,10 +137,9 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
     @Override
     public String toString() {
         return ToString.builder("BatchOverrideConfiguration")
-                       .add("outboundBatchSizeLimit", outboundBatchSizeLimit)
-                       .add("outboundBatchWindowDuration", outboundBatchWindowDuration)
+                       .add("maxBatchSize", maxBatchSize)
+                       .add("sendRequestFrequency", sendRequestFrequency)
                        .add("receiveMessageVisibilityTimeout", receiveMessageVisibilityTimeout)
-                       .add("receiveMessageLongPollWaitDuration", receiveMessageLongPollWaitDuration)
                        .add("receiveMessageMinWaitTime", receiveMessageMinWaitTime)
                        .add("receiveMessageSystemAttributeNames", receiveMessageSystemAttributeNames)
                        .add("receiveMessageAttributeNames", receiveMessageAttributeNames)
@@ -169,19 +157,15 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
 
         BatchOverrideConfiguration that = (BatchOverrideConfiguration) o;
 
-        if (outboundBatchSizeLimit != null ? !outboundBatchSizeLimit.equals(that.outboundBatchSizeLimit) : that.outboundBatchSizeLimit != null) {
+        if (maxBatchSize != null ? !maxBatchSize.equals(that.maxBatchSize) : that.maxBatchSize != null) {
             return false;
         }
-        if (outboundBatchWindowDuration != null ? !outboundBatchWindowDuration.equals(that.outboundBatchWindowDuration) :
-            that.outboundBatchWindowDuration != null) {
+        if (sendRequestFrequency != null ? !sendRequestFrequency.equals(that.sendRequestFrequency) :
+            that.sendRequestFrequency != null) {
             return false;
         }
         if (receiveMessageVisibilityTimeout != null ? !receiveMessageVisibilityTimeout.equals(that.receiveMessageVisibilityTimeout) :
             that.receiveMessageVisibilityTimeout != null) {
-            return false;
-        }
-        if (receiveMessageLongPollWaitDuration != null ? !receiveMessageLongPollWaitDuration.equals(that.receiveMessageLongPollWaitDuration) :
-            that.receiveMessageLongPollWaitDuration != null) {
             return false;
         }
         if (receiveMessageMinWaitTime != null ? !receiveMessageMinWaitTime.equals(that.receiveMessageMinWaitTime) :
@@ -198,10 +182,9 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
 
     @Override
     public int hashCode() {
-        int result = outboundBatchSizeLimit != null ? outboundBatchSizeLimit.hashCode() : 0;
-        result = 31 * result + (outboundBatchWindowDuration != null ? outboundBatchWindowDuration.hashCode() : 0);
+        int result = maxBatchSize != null ? maxBatchSize.hashCode() : 0;
+        result = 31 * result + (sendRequestFrequency != null ? sendRequestFrequency.hashCode() : 0);
         result = 31 * result + (receiveMessageVisibilityTimeout != null ? receiveMessageVisibilityTimeout.hashCode() : 0);
-        result = 31 * result + (receiveMessageLongPollWaitDuration != null ? receiveMessageLongPollWaitDuration.hashCode() : 0);
         result = 31 * result + (receiveMessageMinWaitTime != null ? receiveMessageMinWaitTime.hashCode() : 0);
         result = 31 * result + (receiveMessageSystemAttributeNames != null ? receiveMessageSystemAttributeNames.hashCode() : 0);
         result = 31 * result + (receiveMessageAttributeNames != null ? receiveMessageAttributeNames.hashCode() : 0);
@@ -210,10 +193,9 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
 
     public static final class Builder implements CopyableBuilder<Builder, BatchOverrideConfiguration> {
 
-        private Integer outboundBatchSizeLimit = 10;
-        private Duration outboundBatchWindowDuration = Duration.ofMillis(200);
+        private Integer maxBatchSize = 10;
+        private Duration sendRequestFrequency = Duration.ofMillis(200);
         private Duration receiveMessageVisibilityTimeout;
-        private Duration receiveMessageLongPollWaitDuration;
         private Duration receiveMessageMinWaitTime = Duration.ofMillis(50);
         private List<MessageSystemAttributeName> receiveMessageSystemAttributeNames = Collections.emptyList();
         private List<String> receiveMessageAttributeNames = Collections.emptyList();
@@ -228,28 +210,29 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
          * and {@link DeleteMessageBatchRequest}.
          * A batch can contain up to a maximum of 10 messages. The default value is 10.
          *
-         * @param outboundBatchSizeLimit The maximum number of items to be batched together in a single request.
+         * @param maxBatchSize The maximum number of items to be batched together in a single request.
          * @return This Builder object for method chaining.
          */
-        public Builder outboundBatchSizeLimit(Integer outboundBatchSizeLimit) {
-            this.outboundBatchSizeLimit = outboundBatchSizeLimit;
+        public Builder maxBatchSize(Integer maxBatchSize) {
+            this.maxBatchSize = maxBatchSize;
             return this;
         }
 
         /**
-         * Specifies the maximum duration that an outbound batch is held open for additional outbound requests
-         * before being sent. Outbound requests include {@link SendMessageBatchRequest},
-         * {@link ChangeMessageVisibilityBatchRequest}, and {@link DeleteMessageBatchRequest}. If the
-         * {@link #outboundBatchSizeLimit} is reached before this duration, the batch will be sent immediately.
-         * The longer this duration, the more time messages have to be added to the batch, which can reduce the
-         * number of calls made and increase throughput, but it may also increase average message latency.
-         * The default value is 200 milliseconds.
+         * Specifies the frequency at which outbound batches are sent.
+         * This defines the maximum duration that an outbound batch is held open for additional outbound
+         * requests before being sent. Outbound requests include SendMessageBatchRequest,
+         * ChangeMessageVisibilityBatchRequest, and DeleteMessageBatchRequest. If the maxBatchSize is reached
+         * before this duration, the batch will be sent immediately.
+         * Increasing the {@code sendRequestFrequency} gives more time for additional messages to be added to
+         * the batch, which can reduce the number of requests and increase throughput. However, a higher
+         * frequency may also result in increased average message latency. The default value is 200 milliseconds.
          *
-         * @param outboundBatchWindowDuration The new outboundBatchWindowDuration value.
+         * @param sendRequestFrequency The new value for the frequency at which outbound requests are sent.
          * @return This Builder object for method chaining.
          */
-        public Builder outboundBatchWindowDuration(Duration outboundBatchWindowDuration) {
-            this.outboundBatchWindowDuration = outboundBatchWindowDuration;
+        public Builder sendRequestFrequency(Duration sendRequestFrequency) {
+            this.sendRequestFrequency = sendRequestFrequency;
             return this;
         }
 
@@ -263,19 +246,6 @@ public final class BatchOverrideConfiguration implements ToCopyableBuilder<Batch
          */
         public Builder receiveMessageVisibilityTimeout(Duration receiveMessageVisibilityTimeout) {
             this.receiveMessageVisibilityTimeout = receiveMessageVisibilityTimeout;
-            return this;
-        }
-
-        /**
-         * Specifies the amount of time the receive call will block on the server waiting for messages to arrive if the
-         * queue is empty when the receive call is first made. By default, this value is not set, meaning no long
-         * polling wait time on the server side.
-         *
-         * @param receiveMessageLongPollWaitDuration The new longPollWaitTimeout value.
-         * @return This Builder object for method chaining.
-         */
-        public Builder receiveMessageLongPollWaitDuration(Duration receiveMessageLongPollWaitDuration) {
-            this.receiveMessageLongPollWaitDuration = receiveMessageLongPollWaitDuration;
             return this;
         }
 

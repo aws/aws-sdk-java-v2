@@ -17,8 +17,14 @@ package software.amazon.awssdk.services.sqs.batchmanager;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,15 +38,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityResponse;
-import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
-import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SqsException;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -54,9 +58,9 @@ public abstract class BaseSqsBatchManagerTest {
 
     @RegisterExtension
     static WireMockExtension wireMock = WireMockExtension.newInstance()
-                                                        .options(wireMockConfig().dynamicPort().dynamicHttpsPort())
-                                                        .configureStaticDsl(true)
-                                                        .build();
+                                                         .options(wireMockConfig().dynamicPort().dynamicHttpsPort())
+                                                         .configureStaticDsl(true)
+                                                         .build();
 
     @Test
     public void sendMessageBatchFunction_batchMessageCorrectly() {
@@ -87,6 +91,8 @@ public abstract class BaseSqsBatchManagerTest {
         SendMessageResponse completedResponse2 = responses.get(1).join();
         assertThat(completedResponse1.md5OfMessageBody()).isEqualTo(messageBody1);
         assertThat(completedResponse2.md5OfMessageBody()).isEqualTo(messageBody2);
+        verify(anyRequestedFor(anyUrl())
+                   .withHeader("User-Agent", containing("hll/abm")));
     }
 
     @Test
@@ -156,7 +162,7 @@ public abstract class BaseSqsBatchManagerTest {
     }
 
     @Test
-    public void deleteMessageBatchFunction_batchMessageCorrectly() throws ExecutionException, InterruptedException, TimeoutException {
+    public void deleteMessageBatchFunction_batchMessageCorrectly() throws Exception {
         String id1 = "0";
         String id2 = "1";
         String responseBody = String.format(
@@ -170,6 +176,9 @@ public abstract class BaseSqsBatchManagerTest {
         CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).get(3, TimeUnit.SECONDS);
 
         assertThat(Duration.ofNanos(endTime - startTime).toMillis()).isLessThan(DEFAULT_MAX_BATCH_OPEN + 100);
+
+        verify(anyRequestedFor(anyUrl())
+                   .withHeader("User-Agent", containing("hll/abm")));
     }
 
     @Test
@@ -221,7 +230,7 @@ public abstract class BaseSqsBatchManagerTest {
     }
 
     @Test
-    public void changeVisibilityBatchFunction_batchMessageCorrectly() throws ExecutionException, InterruptedException, TimeoutException {
+    public void changeVisibilityBatchFunction_batchMessageCorrectly() throws Exception {
         String id1 = "0";
         String id2 = "1";
         String responseBody = String.format(
@@ -234,6 +243,10 @@ public abstract class BaseSqsBatchManagerTest {
         CompletableFuture.allOf(responses.toArray(new CompletableFuture[0])).get(5, TimeUnit.SECONDS);
 
         assertThat(Duration.ofNanos(endTime - startTime).toMillis()).isLessThan(DEFAULT_MAX_BATCH_OPEN + 100);
+
+        verify(anyRequestedFor(anyUrl())
+                   .withHeader("User-Agent", containing("hll/abm")));
+
     }
 
     @Test
@@ -271,6 +284,63 @@ public abstract class BaseSqsBatchManagerTest {
 
     }
 
+
+    @Test
+    public void receieveBatchFunction_batchMessageCorrectly() throws Exception{
+        String queueAttributeResponse = String.format(
+            "{\n" +
+            "    \"Attributes\": {\n" +
+            "        \"ReceiveMessageWaitTimeSeconds\": \"%s\",\n" +
+            "        \"VisibilityTimeout\": \"%s\"\n" +
+            "    }\n" +
+            "}",
+            "0",
+            "30"
+        );
+
+
+    String receiveBody = "{\n"
+                         + "  \"Messages\": [\n"
+                         + "    {\n"
+                         + "      \"Body\": \"Message 5\",\n"
+                         + "      \"MD5OfBody\": \"a7f5bea7c5781b5ccaf7585aa766aa4b\",\n"
+                         + "      \"MessageId\": \"6fb1\",\n"
+                         + "      \"ReceiptHandle\": \"AQEB\"\n"
+                         + "    },\n"
+                         + "    {\n"
+                         + "      \"Body\": \"Message 6\",\n"
+                         + "      \"MD5OfBody\": \"05d2a129ebdb00cfa6e92aaf9f090547\",\n"
+                         + "      \"MessageId\": \"57d2\",\n"
+                         + "      \"ReceiptHandle\": \"AQEB\"\n"
+                         + "    }\n"
+                         + "  ]\n"
+                         + "}";
+
+
+        stubFor(post(urlEqualTo("/"))
+                    .withHeader("x-amz-target", equalTo("AmazonSQS.GetQueueAttributes"))
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withBody(queueAttributeResponse)));
+        stubFor(post(urlEqualTo("/"))
+                    .withHeader("x-amz-target", equalTo("AmazonSQS.ReceiveMessage"))
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withBody(receiveBody)));
+
+
+        CompletableFuture<ReceiveMessageResponse> receiveMessage =
+            createAndReceiveMessage(ReceiveMessageRequest.builder().queueUrl("queurl").build());
+
+        ReceiveMessageResponse receiveMessageResponse = receiveMessage.get(1, TimeUnit.SECONDS);
+
+
+        assertThat(receiveMessageResponse.messages()).hasSize(2);
+
+        verify(anyRequestedFor(anyUrl())
+                   .withHeader("User-Agent", containing("hll/abm")));
+    }
+
     @Test
     public void changeVisibilityBatchFunctionReturnsWithError_completeMessagesExceptionally() {
         String responseBody = "{\n" +
@@ -289,6 +359,8 @@ public abstract class BaseSqsBatchManagerTest {
 
     public abstract List<CompletableFuture<SendMessageResponse>> createAndSendSendMessageRequests(String message1,
                                                                                                  String message2);
+
+    public abstract CompletableFuture<ReceiveMessageResponse> createAndReceiveMessage(ReceiveMessageRequest request);
 
     public abstract List<CompletableFuture<DeleteMessageResponse>> createAndSendDeleteMessageRequests();
 

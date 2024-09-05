@@ -27,12 +27,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
+
+
+    // abm stands for Automatic Batching Manager
+    public static final Consumer<AwsRequestOverrideConfiguration.Builder> USER_AGENT_APPLIER =
+        b -> b.addApiName(ApiName.builder().version("abm").name("hll").build());
+
     protected final RequestBatchConfiguration batchConfiguration ;
 
     private final int maxBatchItems;
@@ -62,7 +71,6 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
 
         try {
             String batchKey = getBatchKey(request);
-
             // Handle potential byte size overflow only if there are request in map and if feature enabled
             if (requestsAndResponsesMaps.contains(batchKey) && batchConfiguration.maxBatchBytesSize() > 0) {
                 Optional.of(requestsAndResponsesMaps.flushableRequestsOnByteLimitBeforeAdd(batchKey, request))

@@ -42,7 +42,16 @@ public class ReceiveMessageBatchManager implements SdkAutoCloseable {
                                       BatchOverrideConfiguration config) {
         this.sqsClient = sqsClient;
         this.executor = executor;
-        this.config = new ResponseBatchConfiguration(config);
+        this.config = config != null
+                      ? ResponseBatchConfiguration.builder()
+                                                  .minReceiveWaitTime(config.receiveMessageMinWaitTime())
+                                                  .receiveMessageAttributeNames(config.receiveMessageAttributeNames())
+                                                  .messageSystemAttributeNames(config.receiveMessageSystemAttributeNames())
+                                                  .visibilityTimeout(config.receiveMessageVisibilityTimeout())
+                                                  .build()
+                      : ResponseBatchConfiguration.builder().build();
+
+
     }
 
     public CompletableFuture<ReceiveMessageResponse> batchRequest(ReceiveMessageRequest request) {

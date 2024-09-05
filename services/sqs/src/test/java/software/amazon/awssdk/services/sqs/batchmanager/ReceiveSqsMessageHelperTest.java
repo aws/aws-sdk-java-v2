@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchManager.USER_AGENT_APPLIER;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ import software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchCo
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
 import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
@@ -68,14 +70,12 @@ class ReceiveSqsMessageHelperTest {
 
     @BeforeEach
     void setUp() {
-        BatchOverrideConfiguration batchOverrideConfig = BatchOverrideConfiguration.builder()
-                                                                                   .outboundBatchSizeLimit(10)
-                                                                                   .receiveMessageAttributeNames(Arrays.asList(
-                                                                                       "attribute1", "attribute2"))
-                                                                                   .receiveMsgVisibilityTimeout(Duration.ofSeconds(20))
-                                                                                   .receiveMsgLongPollWaitTimeout(Duration.ofSeconds(15))
-                                                                                   .build();
-        config = new ResponseBatchConfiguration(batchOverrideConfig);
+
+        config = ResponseBatchConfiguration.builder()
+                                           .receiveMessageAttributeNames(Arrays.asList(
+                                               "attribute1", "attribute2"))
+                                           .visibilityTimeout(Duration.ofSeconds(20))
+                                           .build();
 
         receiveSqsMessageHelper = new ReceiveSqsMessageHelper(queueUrl, sqsClient, visibilityTimeout, config);
     }
@@ -264,16 +264,18 @@ class ReceiveSqsMessageHelperTest {
     public void asyncReceiveMessageArgs() throws Exception {
 
         Duration visibilityTimeout = Duration.ofSeconds(9);
-        BatchOverrideConfiguration batchOverrideConfig = BatchOverrideConfiguration.builder()
-                                                                                   .outboundBatchSizeLimit(10)
+        ResponseBatchConfiguration batchOverrideConfig = ResponseBatchConfiguration.builder()
+
                                                                                    .receiveMessageAttributeNames(Arrays.asList(
                                                                                        "custom1", "custom2"))
-                                                                                   .receiveMsgVisibilityTimeout(visibilityTimeout)
-                                                                                   .receiveMsgLongPollWaitTimeout(Duration.ofSeconds(15))
+                                                                                   .messageSystemAttributeNames(Arrays.asList(
+                                                                                       MessageSystemAttributeName.APPROXIMATE_RECEIVE_COUNT))
+                                                                                   .visibilityTimeout(visibilityTimeout)
+                                                                                   .minReceiveWaitTime(Duration.ofMillis(200))
                                                                                    .build();
 
         ReceiveSqsMessageHelper batch = new ReceiveSqsMessageHelper(
-            queueUrl, sqsClient, visibilityTimeout, new ResponseBatchConfiguration(batchOverrideConfig));
+            queueUrl, sqsClient, visibilityTimeout, batchOverrideConfig);
 
 
         // Mocking receiveMessage to return a single message
@@ -285,13 +287,16 @@ class ReceiveSqsMessageHelperTest {
         batch.asyncReceiveMessage().get(3, TimeUnit.SECONDS);
 
         // Verify that receiveMessage was called with the correct arguments
-        ReceiveMessageRequest expectedRequest = ReceiveMessageRequest.builder()
-                                                                     .queueUrl(queueUrl)
-                                                                     .maxNumberOfMessages(10)
-                                                                     .messageAttributeNames("custom1", "custom2")
-                                                                     .visibilityTimeout(9)
-                                                                     .waitTimeSeconds(15)
-                                                                     .build();
+        ReceiveMessageRequest expectedRequest =
+            ReceiveMessageRequest.builder()
+                                 .queueUrl(queueUrl)
+                                 .maxNumberOfMessages(10)
+                                 .messageAttributeNames("custom1", "custom2")
+                                 .messageSystemAttributeNames(Arrays.asList(
+                                     MessageSystemAttributeName.APPROXIMATE_RECEIVE_COUNT))
+                                 .visibilityTimeout(9)
+                                 .overrideConfiguration(o -> o.applyMutation(USER_AGENT_APPLIER))
+                                 .build();
 
         verify(sqsClient, times(1)).receiveMessage(eq(expectedRequest));
     }

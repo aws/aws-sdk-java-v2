@@ -31,7 +31,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static software.amazon.awssdk.services.sqs.internal.batchmanager.SqsMessageDefault.ATTRIBUTE_MAPS_PAYLOAD_BYTES;
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration.ATTRIBUTE_MAPS_PAYLOAD_BYTES;
 
 @TestInstance(Lifecycle.PER_CLASS)
 class RequestPayloadCalculatorTest {

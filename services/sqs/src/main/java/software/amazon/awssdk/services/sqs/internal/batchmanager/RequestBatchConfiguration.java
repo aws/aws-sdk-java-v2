@@ -24,7 +24,7 @@ public final class RequestBatchConfiguration {
 
     public static final int DEFAULT_MAX_BATCH_ITEMS = 10;
     public static final int DEFAULT_MAX_BATCH_BYTES_SIZE = -1;
-    public static final int DEFAULT_MAX_BATCH_KEYS = 1000;
+    public static final int DEFAULT_MAX_BATCH_KEYS = 10000;
     public static final int DEFAULT_MAX_BUFFER_SIZE = 500;
     public static final Duration DEFAULT_MAX_BATCH_OPEN_IN_MS = Duration.ofMillis(200);
 
@@ -52,10 +52,9 @@ public final class RequestBatchConfiguration {
     public static Builder builder(BatchOverrideConfiguration configuration) {
         if (configuration != null) {
             return new Builder()
-                .maxBatchKeys(configuration.maxBatchKeys())
-                .maxBatchItems(configuration.outboundBatchSizeLimit())
-                .maxOutboundBatchCollectionDuration(configuration.outboundBatchCollectionDuration())
-                .maxBufferSize(configuration.maxBufferSize());
+                .maxBatchItems(configuration.maxBatchSize())
+                .maxOutboundBatchCollectionDuration(configuration.sendRequestFrequency())
+                .maxBatchBytesSize(configuration.maxBatchSize());
         }
         return new Builder();
     }

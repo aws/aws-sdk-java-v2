@@ -18,74 +18,74 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 
 @SdkInternalApi
 public final class ResponseBatchConfiguration {
 
-    public static final boolean LONG_POLL_DEFAULT = true;
     public static final Duration VISIBILITY_TIMEOUT_SECONDS_DEFAULT = null;
-    public static final Duration LONG_POLL_WAIT_TIMEOUT_DEFAULT = Duration.ofSeconds(20);
-    public static final Duration MIN_RECEIVE_WAIT_TIME_MS_DEFAULT = Duration.ofMillis(300);
+    public static final Duration MIN_RECEIVE_WAIT_TIME_MS_DEFAULT = Duration.ofMillis(50);
     public static final List<String> RECEIVE_MESSAGE_ATTRIBUTE_NAMES_DEFAULT = Collections.emptyList();
     public static final List<MessageSystemAttributeName> MESSAGE_SYSTEM_ATTRIBUTE_NAMES_DEFAULT = Collections.emptyList();
-    public static final boolean ADAPTIVE_PREFETCHING_DEFAULT = false;
-    public static final int MAX_BATCH_ITEMS_DEFAULT = 10;
+    public static final boolean ADAPTIVE_PREFETCHING_DEFAULT = true;
     public static final int MAX_INFLIGHT_RECEIVE_BATCHES_DEFAULT = 10;
     public static final int MAX_DONE_RECEIVE_BATCHES_DEFAULT = 10;
 
+    public static final int MAX_SUPPORTED_SQS_RECEIVE_MSG = 10;
+
+    public static final int MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES = 262_144; // 256 KiB
+
+    /**
+     * <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-message-metadata.html#sqs-message-attributes">
+     * AWS SQS Message Attributes Documentation</a>
+     *
+     * Rounding up max payload due to attribute maps.
+     * This was not done in V1, thus an issue was reported where batch messages failed with payload size exceeding the maximum.
+     */
+    public static final int ATTRIBUTE_MAPS_PAYLOAD_BYTES = 16 * 1024; // 16 KiB
+
     private final Duration visibilityTimeout;
-    private final Duration longPollWaitTimeout;
     private final Duration minReceiveWaitTime;
-    private final List<MessageSystemAttributeName> messageSystemAttributeValues;
+    private final List<MessageSystemAttributeName> messageSystemAttributeNames;
     private final List<String> receiveMessageAttributeNames;
     private final Boolean adaptivePrefetching;
     private final Integer maxBatchItems;
     private final Integer maxInflightReceiveBatches;
     private final Integer maxDoneReceiveBatches;
 
-    public ResponseBatchConfiguration(BatchOverrideConfiguration overrideConfiguration) {
-        this.visibilityTimeout = Optional.ofNullable(overrideConfiguration)
-                                         .map(BatchOverrideConfiguration::receiveMessageVisibilityTimeout)
-                                         .orElse(VISIBILITY_TIMEOUT_SECONDS_DEFAULT);
+    private ResponseBatchConfiguration(Builder builder) {
+        this.visibilityTimeout = builder.visibilityTimeout != null
+                                 ? builder.visibilityTimeout
+                                 : VISIBILITY_TIMEOUT_SECONDS_DEFAULT;
 
-        this.longPollWaitTimeout = Optional.ofNullable(overrideConfiguration)
-                                           .map(BatchOverrideConfiguration::receiveMessageLongPollWaitDuration)
-                                           .orElse(LONG_POLL_WAIT_TIMEOUT_DEFAULT);
+        this.minReceiveWaitTime = builder.minReceiveWaitTime != null
+                                  ? builder.minReceiveWaitTime
+                                  : MIN_RECEIVE_WAIT_TIME_MS_DEFAULT;
 
-        this.minReceiveWaitTime = Optional.ofNullable(overrideConfiguration)
-                                          .map(BatchOverrideConfiguration::receiveMessageMinWaitTime)
-                                          .orElse(MIN_RECEIVE_WAIT_TIME_MS_DEFAULT);
+        this.messageSystemAttributeNames = builder.messageSystemAttributeNames != null
+                                            ? builder.messageSystemAttributeNames
+                                            : MESSAGE_SYSTEM_ATTRIBUTE_NAMES_DEFAULT;
 
-        this.messageSystemAttributeValues = Optional.ofNullable(overrideConfiguration)
-                                                    .map(BatchOverrideConfiguration::receiveMessageSystemAttributeNames)
-                                                    .filter(list -> !list.isEmpty())
-                                                    .orElse(MESSAGE_SYSTEM_ATTRIBUTE_NAMES_DEFAULT);
+        this.receiveMessageAttributeNames = builder.receiveMessageAttributeNames != null
+                                            ? builder.receiveMessageAttributeNames
+                                            : RECEIVE_MESSAGE_ATTRIBUTE_NAMES_DEFAULT;
 
-        this.receiveMessageAttributeNames = Optional.ofNullable(overrideConfiguration)
-                                                    .map(BatchOverrideConfiguration::receiveMessageAttributeNames)
-                                                    .filter(list -> !list.isEmpty())
-                                                    .orElse(RECEIVE_MESSAGE_ATTRIBUTE_NAMES_DEFAULT);
+        this.adaptivePrefetching = builder.adaptivePrefetching != null
+                                   ? builder.adaptivePrefetching
+                                   : ADAPTIVE_PREFETCHING_DEFAULT;
 
-        this.adaptivePrefetching = Optional.ofNullable(overrideConfiguration)
-                                           .map(BatchOverrideConfiguration::adaptivePrefetching)
-                                           .orElse(ADAPTIVE_PREFETCHING_DEFAULT);
+        this.maxBatchItems = builder.maxBatchItems != null
+                             ? builder.maxBatchItems
+                             : MAX_SUPPORTED_SQS_RECEIVE_MSG;
 
-        this.maxBatchItems = Optional.ofNullable(overrideConfiguration)
-                                     .map(BatchOverrideConfiguration::outboundBatchSizeLimit)
-                                     .orElse(MAX_BATCH_ITEMS_DEFAULT);
+        this.maxInflightReceiveBatches = builder.maxInflightReceiveBatches != null
+                                         ? builder.maxInflightReceiveBatches
+                                         : MAX_INFLIGHT_RECEIVE_BATCHES_DEFAULT;
 
-
-        this.maxInflightReceiveBatches = Optional.ofNullable(overrideConfiguration)
-                                                 .map(BatchOverrideConfiguration::maxInflightReceiveBatches)
-                                                 .orElse(MAX_INFLIGHT_RECEIVE_BATCHES_DEFAULT);
-
-        this.maxDoneReceiveBatches = Optional.ofNullable(overrideConfiguration)
-                                             .map(BatchOverrideConfiguration::maxDoneReceiveBatches)
-                                             .orElse(MAX_DONE_RECEIVE_BATCHES_DEFAULT);
+        this.maxDoneReceiveBatches = builder.maxDoneReceiveBatches != null
+                                     ? builder.maxDoneReceiveBatches
+                                     : MAX_DONE_RECEIVE_BATCHES_DEFAULT;
     }
 
 
@@ -93,16 +93,12 @@ public final class ResponseBatchConfiguration {
         return visibilityTimeout;
     }
 
-    public Duration longPollWaitTimeout() {
-        return longPollWaitTimeout;
-    }
-
     public Duration minReceiveWaitTime() {
         return minReceiveWaitTime;
     }
 
     public List<MessageSystemAttributeName> messageSystemAttributeNames() {
-        return Collections.unmodifiableList(messageSystemAttributeValues);
+        return Collections.unmodifiableList(messageSystemAttributeNames);
     }
 
     public List<String> receiveMessageAttributeNames() {
@@ -123,5 +119,65 @@ public final class ResponseBatchConfiguration {
 
     public int maxDoneReceiveBatches() {
         return maxDoneReceiveBatches;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+
+    public static class Builder {
+        private Duration visibilityTimeout;
+        private Duration minReceiveWaitTime;
+        private List<MessageSystemAttributeName> messageSystemAttributeNames;
+        private List<String> receiveMessageAttributeNames;
+        private Boolean adaptivePrefetching;
+        private Integer maxBatchItems;
+        private Integer maxInflightReceiveBatches;
+        private Integer maxDoneReceiveBatches;
+
+        public Builder visibilityTimeout(Duration visibilityTimeout) {
+            this.visibilityTimeout = visibilityTimeout;
+            return this;
+        }
+
+        public Builder minReceiveWaitTime(Duration minReceiveWaitTime) {
+            this.minReceiveWaitTime = minReceiveWaitTime;
+            return this;
+        }
+
+        public Builder messageSystemAttributeNames(List<MessageSystemAttributeName> messageSystemAttributeNames) {
+            this.messageSystemAttributeNames = messageSystemAttributeNames;
+            return this;
+        }
+
+        public Builder receiveMessageAttributeNames(List<String> receiveMessageAttributeNames) {
+            this.receiveMessageAttributeNames = receiveMessageAttributeNames;
+            return this;
+        }
+
+        public Builder adaptivePrefetching(Boolean adaptivePrefetching) {
+            this.adaptivePrefetching = adaptivePrefetching;
+            return this;
+        }
+
+        public Builder maxBatchItems(Integer maxBatchItems) {
+            this.maxBatchItems = maxBatchItems;
+            return this;
+        }
+
+        public Builder maxInflightReceiveBatches(Integer maxInflightReceiveBatches) {
+            this.maxInflightReceiveBatches = maxInflightReceiveBatches;
+            return this;
+        }
+
+        public Builder maxDoneReceiveBatches(Integer maxDoneReceiveBatches) {
+            this.maxDoneReceiveBatches = maxDoneReceiveBatches;
+            return this;
+        }
+
+        public ResponseBatchConfiguration build() {
+            return new ResponseBatchConfiguration(this);
+        }
     }
 }

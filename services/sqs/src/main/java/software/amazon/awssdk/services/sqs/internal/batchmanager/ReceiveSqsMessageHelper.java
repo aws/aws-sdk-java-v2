@@ -16,6 +16,8 @@
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchManager.USER_AGENT_APPLIER;
+
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -72,7 +74,8 @@ public class ReceiveSqsMessageHelper {
         ReceiveMessageRequest.Builder request =
             ReceiveMessageRequest.builder()
                                  .queueUrl(queueUrl)
-                                 .maxNumberOfMessages(config.maxBatchItems());
+                                 .maxNumberOfMessages(config.maxBatchItems())
+                                 .overrideConfiguration(o -> o.applyMutation(USER_AGENT_APPLIER));
 
         if (!CollectionUtils.isNullOrEmpty(config.messageSystemAttributeNames())) {
             request.messageSystemAttributeNames(config.messageSystemAttributeNames());
@@ -84,9 +87,6 @@ public class ReceiveSqsMessageHelper {
 
         request.visibilityTimeout(NumericUtils.saturatedCast(this.visibilityTimeout.getSeconds()));
 
-        if (config.longPollWaitTimeout() != null) {
-            request.waitTimeSeconds(NumericUtils.saturatedCast(config.longPollWaitTimeout().getSeconds()));
-        }
         try {
             return asyncClient.receiveMessage(request.build())
                               .handle((response, throwable) -> {
@@ -158,10 +158,12 @@ public class ReceiveSqsMessageHelper {
                                                                             .build())
                      .collect(Collectors.toList());
 
-        ChangeMessageVisibilityBatchRequest batchRequest = ChangeMessageVisibilityBatchRequest.builder()
-                                                                                              .queueUrl(queueUrl)
-                                                                                              .entries(entries)
-                                                                                              .build();
+        ChangeMessageVisibilityBatchRequest batchRequest =
+            ChangeMessageVisibilityBatchRequest.builder()
+                                               .queueUrl(queueUrl)
+                                               .entries(entries)
+                                               .overrideConfiguration(o -> o.applyMutation(USER_AGENT_APPLIER))
+                                               .build();
 
         return asyncClient.changeMessageVisibilityBatch(batchRequest);
     }

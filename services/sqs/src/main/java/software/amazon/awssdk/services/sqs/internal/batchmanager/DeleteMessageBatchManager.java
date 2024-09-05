@@ -50,20 +50,38 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
 
     private static DeleteMessageBatchRequest createDeleteMessageBatchRequest(
         List<IdentifiableMessage<DeleteMessageRequest>> identifiedRequests, String batchKey) {
+
         List<DeleteMessageBatchRequestEntry> entries = identifiedRequests
             .stream()
-            .map(identifiedRequest -> createDeleteMessageBatchRequestEntry(identifiedRequest.id(),
-                                                                           identifiedRequest.message()))
+            .map(identifiedRequest -> createDeleteMessageBatchRequestEntry(
+                identifiedRequest.id(), identifiedRequest.message()
+            ))
             .collect(Collectors.toList());
+
         // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration,
-        // all requests must have the same overrideConfiguration so it is sufficient to retrieve it from the first
-        // request.
+        // all requests must have the same overrideConfiguration, so it is sufficient to retrieve it from the first request.
         Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0).message()
                                                                                             .overrideConfiguration();
+
         return overrideConfiguration.map(
-            overrideConfig -> DeleteMessageBatchRequest.builder().queueUrl(batchKey).overrideConfiguration(overrideConfig)
-                                                       .entries(entries).build()).orElse(
-            DeleteMessageBatchRequest.builder().queueUrl(batchKey).entries(entries).build());
+            overrideConfig -> DeleteMessageBatchRequest.builder()
+                                                       .queueUrl(batchKey)
+                                                       .overrideConfiguration(
+                                                           overrideConfig.toBuilder()
+                                                                         .applyMutation(USER_AGENT_APPLIER)
+                                                                         .build()
+                                                       )
+                                                       .entries(entries)
+                                                       .build()
+        ).orElseGet(
+            () -> DeleteMessageBatchRequest.builder()
+                                           .queueUrl(batchKey)
+                                           .overrideConfiguration(o ->
+                                                                      o.applyMutation(USER_AGENT_APPLIER).build()
+                                           )
+                                           .entries(entries)
+                                           .build()
+        );
     }
 
     private static DeleteMessageBatchRequestEntry createDeleteMessageBatchRequestEntry(String id, DeleteMessageRequest request) {

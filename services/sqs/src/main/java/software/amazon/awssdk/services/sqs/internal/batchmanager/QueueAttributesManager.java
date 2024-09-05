@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
+
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchManager.USER_AGENT_APPLIER;
+
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -138,22 +141,21 @@ public final class QueueAttributesManager {
         GetQueueAttributesRequest request = GetQueueAttributesRequest.builder()
                                                                      .queueUrl(queueUrl)
                                                                      .attributeNames(QUEUE_ATTRIBUTE_NAMES)
+                                                                     .overrideConfiguration(o -> o
+                                                                         .applyMutation(USER_AGENT_APPLIER))
                                                                      .build();
 
-        CompletableFuture<Map<QueueAttributeName, String>> future =
-            sqsClient.getQueueAttributes(request)
-                     .thenApply(response -> {
-                         Map<QueueAttributeName, String> attributes = response.attributes();
-                         Validate.notNull(attributes.get(QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS),
-                                          QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS
-                                          + " attribute is null in SQS.");
-                         Validate.notNull(attributes.get(QueueAttributeName.VISIBILITY_TIMEOUT),
-                                          QueueAttributeName.VISIBILITY_TIMEOUT + " attribute is null in SQS.");
-                         return attributes.entrySet().stream()
-                                          .filter(entry -> QUEUE_ATTRIBUTE_NAMES.contains(entry.getKey()))
-                                          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-                     });
-
-        return future;
+        return sqsClient.getQueueAttributes(request)
+                        .thenApply(response -> {
+                            Map<QueueAttributeName, String> attributes = response.attributes();
+                            Validate.notNull(attributes.get(QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS),
+                                             QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS
+                                             + " attribute is null in SQS.");
+                            Validate.notNull(attributes.get(QueueAttributeName.VISIBILITY_TIMEOUT),
+                                             QueueAttributeName.VISIBILITY_TIMEOUT + " attribute is null in SQS.");
+                            return attributes.entrySet().stream()
+                                             .filter(entry -> QUEUE_ATTRIBUTE_NAMES.contains(entry.getKey()))
+                                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                        });
     }
 }

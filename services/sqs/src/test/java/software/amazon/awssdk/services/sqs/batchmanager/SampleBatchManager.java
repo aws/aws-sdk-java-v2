@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.sqs.batchmanager;
 
+import static software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -22,7 +24,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchConfiguration;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchManager;
-import software.amazon.awssdk.services.sqs.internal.batchmanager.SqsMessageDefault;
 import software.amazon.awssdk.utils.Either;
 
 public class SampleBatchManager extends RequestBatchManager<String, String, BatchResponse> {
@@ -33,11 +34,7 @@ public class SampleBatchManager extends RequestBatchManager<String, String, Batc
                                  ScheduledExecutorService executorService,
                                  CustomClient client) {
         super(RequestBatchConfiguration.builder()
-                                       .maxOutboundBatchCollectionDuration(batchOverrideConfiguration.outboundBatchCollectionDuration())
-                                       .maxBatchBytesSize(SqsMessageDefault.MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES)
-                                       .maxBatchItems(batchOverrideConfiguration.outboundBatchSizeLimit())
-                                       .maxBufferSize(batchOverrideConfiguration.maxBufferSize())
-                                       .maxBatchKeys(batchOverrideConfiguration.maxBatchKeys())
+                                       .maxBatchItems(batchOverrideConfiguration.maxBatchSize())
                                        .build(),
               executorService);
         this.client = client;
