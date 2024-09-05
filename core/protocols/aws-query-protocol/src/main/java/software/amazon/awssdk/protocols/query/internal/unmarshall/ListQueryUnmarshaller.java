@@ -22,6 +22,7 @@ import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.traits.ListTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 
 @SdkInternalApi
@@ -29,7 +30,7 @@ public final class ListQueryUnmarshaller implements QueryUnmarshaller<List<?>> {
 
     @Override
     public List<?> unmarshall(QueryUnmarshallerContext context, List<XmlElement> content, SdkField<List<?>> field) {
-        ListTrait listTrait = field.getTrait(ListTrait.class);
+        ListTrait listTrait = field.getTrait(ListTrait.class, TraitType.LIST_TRAIT);
         List<Object> list = new ArrayList<>();
         getMembers(content, listTrait).forEach(member -> {
             QueryUnmarshaller unmarshaller = context.getUnmarshaller(listTrait.memberFieldInfo().location(),

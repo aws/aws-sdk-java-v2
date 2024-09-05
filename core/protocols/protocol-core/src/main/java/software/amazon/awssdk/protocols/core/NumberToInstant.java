@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 
 /**
  * Converts a number value to an {@link Instant} type. Respects the {@link TimestampFormatTrait} if present.
@@ -59,7 +60,7 @@ public final class NumberToInstant {
     }
 
     private TimestampFormatTrait.Format resolveTimestampFormat(SdkField<Instant> field) {
-        TimestampFormatTrait trait = field.getTrait(TimestampFormatTrait.class);
+        TimestampFormatTrait trait = field.getTrait(TimestampFormatTrait.class, TraitType.TIMESTAMP_FORMAT_TRAIT);
         if (trait == null) {
             TimestampFormatTrait.Format format = defaultFormats.get(field.location());
             if (format == null) {

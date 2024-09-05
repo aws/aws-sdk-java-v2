@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.RequiredTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -79,7 +80,7 @@ public final class HeaderMarshaller {
             if (!shouldEmit(list)) {
                 return;
             }
-            SdkField memberFieldInfo = sdkField.getRequiredTrait(ListTrait.class).memberFieldInfo();
+            SdkField memberFieldInfo = sdkField.getRequiredTrait(ListTrait.class, TraitType.LIST_TRAIT).memberFieldInfo();
             for (Object listValue : list) {
                 if (shouldSkipElement(listValue)) {
                     continue;
@@ -102,7 +103,7 @@ public final class HeaderMarshaller {
     };
 
     public static final XmlMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
-        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class)) {
+        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class, TraitType.REQUIRED_TRAIT)) {
             throw new IllegalArgumentException(String.format("Parameter '%s' must not be null", paramName));
         }
     };
