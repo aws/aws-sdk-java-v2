@@ -87,7 +87,7 @@ class ReceiveBatchManagerTest {
         return ResponseBatchConfiguration.builder()
                                          .receiveMessageAttributeNames(Collections.emptyList())
                                          .visibilityTimeout(Duration.ofSeconds(2))
-                                         .minReceiveWaitTime(minReceiveWaitTime)
+                                         .messageMinWaitDuration(minReceiveWaitTime)
                                          .build();
     }
 

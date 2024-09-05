@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 
 @SdkInternalApi
@@ -46,7 +47,7 @@ public final class ResponseBatchConfiguration {
     public static final int ATTRIBUTE_MAPS_PAYLOAD_BYTES = 16 * 1024; // 16 KiB
 
     private final Duration visibilityTimeout;
-    private final Duration minReceiveWaitTime;
+    private final Duration messageMinWaitDuration;
     private final List<MessageSystemAttributeName> messageSystemAttributeNames;
     private final List<String> receiveMessageAttributeNames;
     private final Boolean adaptivePrefetching;
@@ -59,8 +60,8 @@ public final class ResponseBatchConfiguration {
                                  ? builder.visibilityTimeout
                                  : VISIBILITY_TIMEOUT_SECONDS_DEFAULT;
 
-        this.minReceiveWaitTime = builder.minReceiveWaitTime != null
-                                  ? builder.minReceiveWaitTime
+        this.messageMinWaitDuration = builder.messageMinWaitDuration != null
+                                  ? builder.messageMinWaitDuration
                                   : MIN_RECEIVE_WAIT_TIME_MS_DEFAULT;
 
         this.messageSystemAttributeNames = builder.messageSystemAttributeNames != null
@@ -93,8 +94,8 @@ public final class ResponseBatchConfiguration {
         return visibilityTimeout;
     }
 
-    public Duration minReceiveWaitTime() {
-        return minReceiveWaitTime;
+    public Duration messageMinWaitDuration() {
+        return messageMinWaitDuration;
     }
 
     public List<MessageSystemAttributeName> messageSystemAttributeNames() {
@@ -121,14 +122,24 @@ public final class ResponseBatchConfiguration {
         return maxDoneReceiveBatches;
     }
 
+    public static Builder builder(BatchOverrideConfiguration overrideConfiguration) {
+        Builder builder = new Builder();
+        if (overrideConfiguration != null) {
+            builder.messageMinWaitDuration(overrideConfiguration.receiveMessageMinWaitDuration())
+                   .receiveMessageAttributeNames(overrideConfiguration.receiveMessageAttributeNames())
+                   .messageSystemAttributeNames(overrideConfiguration.receiveMessageSystemAttributeNames())
+                   .visibilityTimeout(overrideConfiguration.receiveMessageVisibilityTimeout());
+        }
+        return builder;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
 
-
     public static class Builder {
         private Duration visibilityTimeout;
-        private Duration minReceiveWaitTime;
+        private Duration messageMinWaitDuration;
         private List<MessageSystemAttributeName> messageSystemAttributeNames;
         private List<String> receiveMessageAttributeNames;
         private Boolean adaptivePrefetching;
@@ -141,8 +152,8 @@ public final class ResponseBatchConfiguration {
             return this;
         }
 
-        public Builder minReceiveWaitTime(Duration minReceiveWaitTime) {
-            this.minReceiveWaitTime = minReceiveWaitTime;
+        public Builder messageMinWaitDuration(Duration messageMinWaitDuration) {
+            this.messageMinWaitDuration = messageMinWaitDuration;
             return this;
         }
 

@@ -17,13 +17,11 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import static software.amazon.awssdk.services.sqs.internal.batchmanager.ResponseBatchConfiguration.MAX_SUPPORTED_SQS_RECEIVE_MSG;
 
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
@@ -60,7 +58,7 @@ public class ReceiveBatchManager implements SdkAutoCloseable {
         }
         int numMessages = rq.maxNumberOfMessages() != null ? rq.maxNumberOfMessages() : MAX_SUPPORTED_SQS_RECEIVE_MSG;
 
-        return queueAttributesManager.getReceiveMessageTimeout(rq, config.minReceiveWaitTime()).thenCompose(waitTimeMs -> {
+        return queueAttributesManager.getReceiveMessageTimeout(rq, config.messageMinWaitDuration()).thenCompose(waitTimeMs -> {
             CompletableFuture<ReceiveMessageResponse> receiveMessageFuture = new CompletableFuture<>();
             receiveQueueBuffer.receiveMessage(receiveMessageFuture, numMessages);
             CompletableFuture<ReceiveMessageResponse> timeoutFuture = new CompletableFuture<>();

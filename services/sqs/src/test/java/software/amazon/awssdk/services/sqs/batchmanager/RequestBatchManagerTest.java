@@ -88,7 +88,7 @@ class RequestBatchManagerTest {
         when(mockClient.sendBatchAsync(any(), eq(batchKey1))).thenReturn(batchResponseFuture);
         SampleBatchManager batchManager=
             new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchSize(2)
-                                                             .sendRequestFrequency(Duration.ofHours(1)).build(),
+                                                             .sendMessageFrequency(Duration.ofHours(1)).build(),
                                    scheduledExecutor, mockClient);
         CompletableFuture<String> response1 = batchManager.batchRequest(request1);
         CompletableFuture<String> response2 = batchManager.batchRequest(request2);
@@ -109,7 +109,7 @@ class RequestBatchManagerTest {
         when(mockClient.sendBatchAsync(any(), eq(KEY_TWO))).thenReturn(batchResponseFutureTwo);
 
         SampleBatchManager batchManager=
-            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchSize(2).sendRequestFrequency(Duration.ofHours(1)).build(), scheduledExecutor, mockClient);
+            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchSize(2).sendMessageFrequency(Duration.ofHours(1)).build(), scheduledExecutor, mockClient);
         CompletableFuture<String> response1 = batchManager.batchRequest(KEY_ONE + ":0");
         CompletableFuture<String> response2 = batchManager.batchRequest(KEY_TWO + ":0");
         CompletableFuture<String> response3 = batchManager.batchRequest(KEY_ONE + ":1");
@@ -163,7 +163,7 @@ class RequestBatchManagerTest {
         when(mockClient.sendBatchAsync(any(), eq(batchKey))).thenReturn(batchResponseFuture);
 
         SampleBatchManager batchManager=
-            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchSize(2).sendRequestFrequency(Duration.ofHours(1)).build(), scheduledExecutor, mockClient);
+            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchSize(2).sendMessageFrequency(Duration.ofHours(1)).build(), scheduledExecutor, mockClient);
 
         CompletableFuture<String> response1 = batchManager.batchRequest(request1);
         CompletableFuture<String> response2 = batchManager.batchRequest(request2);
@@ -218,7 +218,7 @@ class RequestBatchManagerTest {
         SampleBatchManager batchManager = new SampleBatchManager(
             BatchOverrideConfiguration.builder()
                                       .maxBatchSize(2)
-                                      .sendRequestFrequency(Duration.ofHours(1))
+                                      .sendMessageFrequency(Duration.ofHours(1))
                                       .build(),
             scheduledExecutor,
             mockClient

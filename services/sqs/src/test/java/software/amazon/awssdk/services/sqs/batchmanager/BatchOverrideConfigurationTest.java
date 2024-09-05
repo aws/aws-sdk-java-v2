@@ -56,25 +56,25 @@ class BatchOverrideConfigurationTest {
     @ParameterizedTest
     @MethodSource("provideConfigurations")
     void testBatchOverrideConfiguration(Integer maxBatchSize,
-                                        Duration sendRequestFrequency,
+                                        Duration sendMessageFrequency,
                                         Duration receiveMessageVisibilityTimeout,
-                                        Duration receiveMessageMinWaitTime,
+                                        Duration receiveMessageMinWaitDuration,
                                         List<String> receiveMessageAttributeNames,
                                         List<MessageSystemAttributeName> receiveMessageSystemAttributeNames) {
 
         BatchOverrideConfiguration config = BatchOverrideConfiguration.builder()
                                                                       .maxBatchSize(maxBatchSize)
-                                                                      .sendRequestFrequency(sendRequestFrequency)
+                                                                      .sendMessageFrequency(sendMessageFrequency)
                                                                       .receiveMessageVisibilityTimeout(receiveMessageVisibilityTimeout)
-                                                                      .receiveMessageMinWaitTime(receiveMessageMinWaitTime)
+                                                                      .receiveMessageMinWaitDuration(receiveMessageMinWaitDuration)
                                                                       .receiveMessageAttributeNames(receiveMessageAttributeNames)
                                                                       .receiveMessageSystemAttributeNames(receiveMessageSystemAttributeNames)
                                                                       .build();
 
         assertEquals(maxBatchSize, config.maxBatchSize());
-        assertEquals(sendRequestFrequency, config.sendRequestFrequency());
+        assertEquals(sendMessageFrequency, config.sendMessageFrequency());
         assertEquals(receiveMessageVisibilityTimeout, config.receiveMessageVisibilityTimeout());
-        assertEquals(receiveMessageMinWaitTime, config.receiveMessageMinWaitTime());
+        assertEquals(receiveMessageMinWaitDuration, config.receiveMessageMinWaitDuration());
         assertEquals(Optional.ofNullable(receiveMessageAttributeNames).orElse(Collections.emptyList()),
                      config.receiveMessageAttributeNames());
         assertEquals(Optional.ofNullable(receiveMessageSystemAttributeNames).orElse(Collections.emptyList()),
@@ -92,9 +92,9 @@ class BatchOverrideConfigurationTest {
     void testToBuilder() {
         BatchOverrideConfiguration originalConfig = BatchOverrideConfiguration.builder()
                                                                               .maxBatchSize(10)
-                                                                              .sendRequestFrequency(Duration.ofMillis(200))
+                                                                              .sendMessageFrequency(Duration.ofMillis(200))
                                                                               .receiveMessageVisibilityTimeout(Duration.ofSeconds(30))
-                                                                              .receiveMessageMinWaitTime(Duration.ofMillis(50))
+                                                                              .receiveMessageMinWaitDuration(Duration.ofMillis(50))
                                                                               .receiveMessageAttributeNames(Arrays.asList("msgAttr1"))
                                                                               .receiveMessageSystemAttributeNames(Collections.singletonList(
                                                                                   MessageSystemAttributeName.SENDER_ID))
@@ -107,9 +107,9 @@ class BatchOverrideConfigurationTest {
         builder.maxBatchSize(9);
         assertNotEquals(originalConfig.maxBatchSize(), builder.build().maxBatchSize());
         // Ensure that all other fields are still equal after modifying the maxBatchSize
-        assertEquals(originalConfig.sendRequestFrequency(), builder.build().sendRequestFrequency());
+        assertEquals(originalConfig.sendMessageFrequency(), builder.build().sendMessageFrequency());
         assertEquals(originalConfig.receiveMessageVisibilityTimeout(), builder.build().receiveMessageVisibilityTimeout());
-        assertEquals(originalConfig.receiveMessageMinWaitTime(), builder.build().receiveMessageMinWaitTime());
+        assertEquals(originalConfig.receiveMessageMinWaitDuration(), builder.build().receiveMessageMinWaitDuration());
         assertEquals(originalConfig.receiveMessageAttributeNames(), builder.build().receiveMessageAttributeNames());
         assertEquals(originalConfig.receiveMessageSystemAttributeNames(), builder.build().receiveMessageSystemAttributeNames());
     }
@@ -124,7 +124,8 @@ class BatchOverrideConfigurationTest {
         });
 
         // Assert that the exception message matches the expected output
-        assertEquals("A batch can contain up to 10 messages.", exception.getMessage());
+        assertEquals("The maxBatchSize must be less than or equal to 10. A batch can contain up to 10 messages.",
+                     exception.getMessage());
     }
 
 

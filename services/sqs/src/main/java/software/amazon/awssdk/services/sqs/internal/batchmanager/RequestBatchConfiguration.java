@@ -31,7 +31,7 @@ public final class RequestBatchConfiguration {
     private final Integer maxBatchItems;
     private final Integer maxBatchKeys;
     private final Integer maxBufferSize;
-    private final Duration maxOutboundBatchCollectionDuration;
+    private final Duration sendMessageFrequency;
     private final Integer maxBatchBytesSize;
 
     private RequestBatchConfiguration(Builder builder) {
@@ -39,7 +39,8 @@ public final class RequestBatchConfiguration {
         this.maxBatchItems = builder.maxBatchItems != null ? builder.maxBatchItems : DEFAULT_MAX_BATCH_ITEMS;
         this.maxBatchKeys = builder.maxBatchKeys != null ? builder.maxBatchKeys : DEFAULT_MAX_BATCH_KEYS;
         this.maxBufferSize = builder.maxBufferSize != null ? builder.maxBufferSize : DEFAULT_MAX_BUFFER_SIZE;
-        this.maxOutboundBatchCollectionDuration = builder.maxOutboundBatchCollectionDuration != null ? builder.maxOutboundBatchCollectionDuration :
+        this.sendMessageFrequency = builder.sendMessageFrequency != null ?
+                                                  builder.sendMessageFrequency :
                                          DEFAULT_MAX_BATCH_OPEN_IN_MS;
         this.maxBatchBytesSize = builder.maxBatchBytesSize != null ? builder.maxBatchBytesSize : DEFAULT_MAX_BATCH_BYTES_SIZE;
 
@@ -53,14 +54,14 @@ public final class RequestBatchConfiguration {
         if (configuration != null) {
             return new Builder()
                 .maxBatchItems(configuration.maxBatchSize())
-                .maxOutboundBatchCollectionDuration(configuration.sendRequestFrequency())
+                .sendMessageFrequency(configuration.sendMessageFrequency())
                 .maxBatchBytesSize(configuration.maxBatchSize());
         }
         return new Builder();
     }
 
-    public Duration maxOutboundBatchCollectionDuration() {
-        return maxOutboundBatchCollectionDuration;
+    public Duration sendMessageFrequency() {
+        return sendMessageFrequency;
     }
 
     public int maxBatchItems() {
@@ -84,7 +85,7 @@ public final class RequestBatchConfiguration {
         private Integer maxBatchItems;
         private Integer maxBatchKeys;
         private Integer maxBufferSize;
-        private Duration maxOutboundBatchCollectionDuration;
+        private Duration sendMessageFrequency;
         private Integer maxBatchBytesSize;
 
         private Builder() {
@@ -105,8 +106,8 @@ public final class RequestBatchConfiguration {
             return this;
         }
 
-        public Builder maxOutboundBatchCollectionDuration(Duration maxOutboundBatchCollectionDuration) {
-            this.maxOutboundBatchCollectionDuration = maxOutboundBatchCollectionDuration;
+        public Builder sendMessageFrequency(Duration sendMessageFrequency) {
+            this.sendMessageFrequency = sendMessageFrequency;
             return this;
         }
 

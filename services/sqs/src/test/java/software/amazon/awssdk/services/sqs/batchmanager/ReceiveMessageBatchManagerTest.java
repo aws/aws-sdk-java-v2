@@ -77,7 +77,7 @@ class ReceiveMessageBatchManagerTest {
             .messageSystemAttributeNames(overrideConfig.receiveMessageSystemAttributeNames())
             .receiveMessageAttributeNames(overrideConfig.receiveMessageAttributeNames())
             .visibilityTimeout(overrideConfig.receiveMessageVisibilityTimeout())
-            .minReceiveWaitTime(overrideConfig.receiveMessageMinWaitTime()).build();
+            .messageMinWaitDuration(overrideConfig.receiveMessageMinWaitDuration()).build();
 
         receiveMessageBatchManager = new ReceiveMessageBatchManager(sqsClient, executor, overrideConfig);
 

@@ -33,10 +33,7 @@ public class SampleBatchManager extends RequestBatchManager<String, String, Batc
     protected SampleBatchManager(BatchOverrideConfiguration batchOverrideConfiguration,
                                  ScheduledExecutorService executorService,
                                  CustomClient client) {
-        super(RequestBatchConfiguration.builder()
-                                       .maxBatchItems(batchOverrideConfiguration.maxBatchSize())
-                                       .build(),
-              executorService);
+        super(RequestBatchConfiguration.builder(batchOverrideConfiguration).build(), executorService);
         this.client = client;
     }
 
