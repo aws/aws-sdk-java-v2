@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.20__ __2024-09-05__
+## __AWS CodePipeline__
+  - ### Features
+    - Updates to add recent notes to APIs and to replace example S3 bucket names globally.
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - Amazon CloudWatch Application Signals now supports creating Service Level Objectives using a new calculation type. Users can now create SLOs which are configured with request-based SLIs to help meet their specific business requirements.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Custom Vocabulary now supports Catalan (Spain), Danish (Denmark), Dutch (Netherlands), Finnish (Finland), Indonesian (Indonesia), Malay (Malaysia), Norwegian Bokmal (Norway), Polish (Poland), Swedish (Sweden), and Tagalog/Filipino (Philippines).
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift provides additional events for tracking the fleet creation process.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for Flink 1.20 in Managed Service for Apache Flink
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker now supports idle shutdown of JupyterLab and CodeEditor applications on SageMaker Studio.
+
 # __2.27.19__ __2024-09-04__
 ## __AWS AppSync__
   - ### Features
@@ -40,7 +65,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@anirudh9391](https://github.com/anirudh9391), [@shetsa-amzn](https://github.com/shetsa-amzn)
+[@shetsa-amzn](https://github.com/shetsa-amzn), [@anirudh9391](https://github.com/anirudh9391)
 # __2.27.18__ __2024-09-03__
 ## __AWS Elemental MediaLive__
   - ### Features
