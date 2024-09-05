@@ -36,7 +36,6 @@ import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
-    // TODO : update the validation here while implementing this class in next PR
     private final SqsAsyncClient client;
 
     private final SendMessageBatchManager sendMessageBatchManager;
