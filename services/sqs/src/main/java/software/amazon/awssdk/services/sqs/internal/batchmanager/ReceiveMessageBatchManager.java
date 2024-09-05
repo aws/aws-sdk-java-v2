@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.utils.Logger;
@@ -48,12 +47,12 @@ public class ReceiveMessageBatchManager implements SdkAutoCloseable {
     }
 
     public CompletableFuture<ReceiveMessageResponse> batchRequest(ReceiveMessageRequest request) {
-        if (canBeRetrievedFromQueueBuffer(request)) {
+        String ineligibleReason = checkBatchingEligibility(request);
+        if (ineligibleReason == null) {
             return receiveBatchManagerMap.computeIfAbsent(generateBatchKey(request), key -> createReceiveBatchManager(request))
                                          .processRequest(request);
         } else {
-            log.debug(() -> "canBeRetrievedFromQueueBuffer failed, so skipping batching for request for Queue with URL: "
-                            + request.queueUrl());
+            log.debug(() -> String.format("Batching skipped. Reason: %s", ineligibleReason));
             return sqsClient.receiveMessage(request);
         }
     }
@@ -79,10 +78,24 @@ public class ReceiveMessageBatchManager implements SdkAutoCloseable {
         receiveBatchManagerMap.values().forEach(ReceiveBatchManager::close);
     }
 
-    private boolean canBeRetrievedFromQueueBuffer(ReceiveMessageRequest rq) {
-        return hasCompatibleAttributes(rq) && isBufferingEnabled() && rq.visibilityTimeout() == null;
+    private String checkBatchingEligibility(ReceiveMessageRequest rq) {
+        if (!hasCompatibleAttributes(rq)) {
+            return "Incompatible attributes.";
+        }
+        if (rq.visibilityTimeout() != null) {
+            return "Visibility timeout is set.";
+        }
+        if (!isBufferingEnabled()) {
+            return "Buffering is disabled.";
+        }
+        if (rq.overrideConfiguration().isPresent()) {
+            return "Request has override configurations.";
+        }
+        if (rq.waitTimeSeconds() != null && rq.waitTimeSeconds() != 0) {
+            return "Request has long polling enabled.";
+        }
+        return null;
     }
-
 
     private boolean hasCompatibleAttributes(ReceiveMessageRequest rq) {
         return !rq.hasAttributeNames()
