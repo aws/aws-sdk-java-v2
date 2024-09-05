@@ -61,8 +61,20 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
     private static final Function<String, String> VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER = key -> ":old_" + key + "_value";
     private static final String CUSTOM_METADATA_KEY = "VersionedRecordExtension:VersionAttribute";
     private static final VersionAttribute VERSION_ATTRIBUTE = new VersionAttribute();
+    private static final AttributeValue DEFAULT_VALUE = AttributeValue.fromNul(Boolean.TRUE);
 
-    private VersionedRecordExtension() {
+    private final int startingValue;
+    private final int increment;
+
+    /**
+     * Creates a new {@link VersionedRecordExtension} using the supplied starting and incrementing value.
+     *
+     * @param startingValue the value used to compare if a record is the initial version of a record.
+     * @param increment the amount to increment the version by with each subsequent update.
+     */
+    private VersionedRecordExtension(int startingValue, int increment) {
+        this.startingValue = startingValue;
+        this.increment = increment;
     }
 
     public static Builder builder() {
@@ -119,23 +131,24 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
     private Pair<AttributeValue, Expression> getRecordUpdates(String versionAttributeKey,
                                                               Map<String, AttributeValue> itemToTransform) {
-        Optional<AttributeValue> existingVersionValue =
-            Optional.ofNullable(itemToTransform.get(versionAttributeKey));
+        // Default to NUL if not present to reduce additional checks further along
+        AttributeValue existingVersionValue = itemToTransform.getOrDefault(versionAttributeKey, DEFAULT_VALUE);
 
         if (isInitialVersion(existingVersionValue)) {
             // First version of the record ensure it does not exist
             return createInitialRecord(versionAttributeKey);
         }
         // Existing record, increment version
-        return updateExistingRecord(versionAttributeKey, existingVersionValue.get());
+        return updateExistingRecord(versionAttributeKey, existingVersionValue);
     }
 
-    private boolean isInitialVersion(Optional<AttributeValue> existingVersionValue) {
-        return !existingVersionValue.isPresent() || isNullAttributeValue(existingVersionValue.get());
+    private boolean isInitialVersion(AttributeValue existingVersionValue) {
+        return isNullAttributeValue(existingVersionValue)
+               || getExistingVersion(existingVersionValue) == this.startingValue;
     }
 
     private Pair<AttributeValue, Expression> createInitialRecord(String versionAttributeKey) {
-        AttributeValue newVersionValue = incrementVersion(0);
+        AttributeValue newVersionValue = incrementVersion(this.startingValue);
 
         String attributeKeyRef = keyRef(versionAttributeKey);
 
@@ -177,16 +190,43 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
     }
 
     private AttributeValue incrementVersion(int version) {
-        return AttributeValue.fromN(Integer.toString(version + 1));
+        return AttributeValue.fromN(Integer.toString(version + this.increment));
     }
 
     @NotThreadSafe
     public static final class Builder {
+        private int startingValue = 0;
+        private int increment = 1;
+
         private Builder() {
         }
 
+        /**
+         * Sets the startingValue used to compare if a record is the initial version of a record.
+         * Default value - {@code 0}.
+         *
+         * @param startingValue
+         * @return the builder instance
+         */
+        public Builder startAt(int startingValue) {
+            this.startingValue = startingValue;
+            return this;
+        }
+
+        /**
+         * Sets the amount to increment the version by with each subsequent update.
+         * Default value - {@code 1}.
+         *
+         * @param increment
+         * @return the builder instance
+         */
+        public Builder incrementBy(int increment) {
+            this.increment = increment;
+            return this;
+        }
+
         public VersionedRecordExtension build() {
-            return new VersionedRecordExtension();
+            return new VersionedRecordExtension(this.startingValue, this.increment);
         }
     }
 }
