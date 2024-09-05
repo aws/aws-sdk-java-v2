@@ -21,7 +21,7 @@
     "dnsSuffix" : "amazonaws.com",
     "partition" : "aws",
     "partitionName" : "AWS Standard",
-    "regionRegex" : "^(us|eu|ap|sa|ca|me|af|il)\\-\\w+\\-\\d+$",
+    "regionRegex" : "^(us|eu|ap|sa|ca|me|af|il|mx)\\-\\w+\\-\\d+$",
     "regions" : {
       "af-south-1" : {
         "description" : "Africa (Cape Town)"
@@ -17527,7 +17527,18 @@
             "protocols" : [ "https" ]
           },
           "ca-central-1" : {
-            "protocols" : [ "https" ]
+            "protocols" : [ "https" ],
+            "variants" : [ {
+              "hostname" : "serverlessrepo-fips.ca-central-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
+          "ca-central-1-fips" : {
+            "credentialScope" : {
+              "region" : "ca-central-1"
+            },
+            "deprecated" : true,
+            "hostname" : "serverlessrepo-fips.ca-central-1.amazonaws.com"
           },
           "eu-central-1" : {
             "protocols" : [ "https" ]
