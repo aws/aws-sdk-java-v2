@@ -60,11 +60,9 @@ public class ReceiveBatchManager implements SdkAutoCloseable {
         return queueAttributesManager.getReceiveMessageTimeout(rq, config.messageMinWaitDuration()).thenCompose(waitTimeMs -> {
             CompletableFuture<ReceiveMessageResponse> receiveMessageFuture = new CompletableFuture<>();
             receiveQueueBuffer.receiveMessage(receiveMessageFuture, numMessages);
-            executor.schedule(() -> {
-                if (!receiveMessageFuture.isDone()) {
-                    receiveMessageFuture.complete(ReceiveMessageResponse.builder().build());
-                }
-            }, waitTimeMs.toMillis(), TimeUnit.MILLISECONDS);
+            executor.schedule(() -> receiveMessageFuture.complete(ReceiveMessageResponse.builder().build()),
+                              waitTimeMs.toMillis(),
+                              TimeUnit.MILLISECONDS);
             return receiveMessageFuture;
 
         });
