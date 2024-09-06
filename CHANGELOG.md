@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.21__ __2024-09-06__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __QApps__
+  - ### Features
+    - Adds UpdateLibraryItemMetadata api to change status of app for admin verification feature and returns isVerified field in any api returning the app or library item.
+
 # __2.27.20__ __2024-09-05__
 ## __AWS CodePipeline__
   - ### Features
@@ -65,7 +74,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@shetsa-amzn](https://github.com/shetsa-amzn), [@anirudh9391](https://github.com/anirudh9391)
+[@anirudh9391](https://github.com/anirudh9391), [@shetsa-amzn](https://github.com/shetsa-amzn)
 # __2.27.18__ __2024-09-03__
 ## __AWS Elemental MediaLive__
   - ### Features
