@@ -20,10 +20,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.HTTP;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.IO;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.RETRY_MODE;
 import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.concurrent.ExecutorService;
 
 import org.junit.Assert;
@@ -41,15 +43,18 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
+import software.amazon.awssdk.core.internal.useragent.SdkClientUserAgentProperties;
+import software.amazon.awssdk.core.internal.useragent.SdkUserAgentBuilder;
 import software.amazon.awssdk.core.retry.RetryMode;
-import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.util.SystemUserAgent;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 import utils.HttpTestUtils;
 import utils.ValidSdkObjects;
 
@@ -81,13 +86,11 @@ public class AmazonHttpClientTest {
 
         when(abortableCallable.call()).thenThrow(ioException);
 
-        ExecutionContext context = ClientExecutionAndRequestTimerTestUtils.executionContext(null);
-
         try {
             client.requestExecutionBuilder()
                     .request(ValidSdkObjects.sdkHttpFullRequest().build())
                     .originalRequest(NoopTestRequest.builder().build())
-                    .executionContext(context)
+                    .executionContext(executionContext())
                     .execute(combinedSyncResponseHandler(null, null));
             Assert.fail("No exception when request repeatedly fails!");
 
@@ -101,18 +104,16 @@ public class AmazonHttpClientTest {
 
     @Test
     public void testRetryIoExceptionFromHandler() throws Exception {
-        final IOException exception = new IOException("BOOM");
+        IOException exception = new IOException("BOOM");
 
         HttpResponseHandler<?> mockHandler = mock(HttpResponseHandler.class);
         when(mockHandler.handle(any(), any())).thenThrow(exception);
-
-        ExecutionContext context = ClientExecutionAndRequestTimerTestUtils.executionContext(null);
 
         try {
             client.requestExecutionBuilder()
                     .request(ValidSdkObjects.sdkHttpFullRequest().build())
                     .originalRequest(NoopTestRequest.builder().build())
-                    .executionContext(context)
+                    .executionContext(executionContext())
                     .execute(combinedSyncResponseHandler(mockHandler, null));
             Assert.fail("No exception when request repeatedly fails!");
 
@@ -132,13 +133,17 @@ public class AmazonHttpClientTest {
 
         HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
 
-        String clientUserAgent =
-            ApplyUserAgentStage.resolveClientUserAgent(prefix, "", ClientType.SYNC, sdkHttpClient, null,
-                                                       RetryMode.STANDARD.toString());
+        SdkClientUserAgentProperties userAgentProperties = new SdkClientUserAgentProperties();
+        userAgentProperties.putAttribute(RETRY_MODE, RetryMode.STANDARD.toString());
+        userAgentProperties.putAttribute(IO, ClientType.SYNC.name());
+        userAgentProperties.putAttribute(HTTP, SdkHttpUtils.urlEncode(sdkHttpClient.clientName()));
+        String clientUserAgent = SdkUserAgentBuilder.buildClientUserAgentString(SystemUserAgent.getOrCreate(),
+                                                                               userAgentProperties);
 
         SdkClientConfiguration config = HttpTestUtils.testClientConfiguration().toBuilder()
-                                                     .option(SdkAdvancedClientOption.USER_AGENT_SUFFIX, suffix)
                                                      .option(SdkClientOption.CLIENT_USER_AGENT, clientUserAgent)
+                                                     .option(SdkAdvancedClientOption.USER_AGENT_PREFIX, prefix)
+                                                     .option(SdkAdvancedClientOption.USER_AGENT_SUFFIX, suffix)
                                                      .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
                                                      .build();
         AmazonSyncHttpClient client = new AmazonSyncHttpClient(config);
@@ -146,14 +151,14 @@ public class AmazonHttpClientTest {
         client.requestExecutionBuilder()
               .request(ValidSdkObjects.sdkHttpFullRequest().build())
               .originalRequest(NoopTestRequest.builder().build())
-              .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(null))
+              .executionContext(executionContext())
               .execute(combinedSyncResponseHandler(handler, null));
 
         ArgumentCaptor<HttpExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
         verify(sdkHttpClient).prepareRequest(httpRequestCaptor.capture());
 
-        final String userAgent = httpRequestCaptor.getValue().httpRequest().firstMatchingHeader("User-Agent")
-                                                  .orElseThrow(() -> new AssertionError("User-Agent header was not found"));
+        String userAgent = httpRequestCaptor.getValue().httpRequest().firstMatchingHeader("User-Agent")
+                                            .orElseThrow(() -> new AssertionError("User-Agent header was not found"));
 
         Assert.assertTrue(userAgent.startsWith(prefix));
         Assert.assertTrue(userAgent.endsWith(suffix));
@@ -163,39 +168,43 @@ public class AmazonHttpClientTest {
     public void testUserAgentContainsHttpClientInfo() {
         HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
 
-        String clientUserAgent =
-            ApplyUserAgentStage.resolveClientUserAgent(null, null, ClientType.SYNC, sdkHttpClient, null,
-                                                       RetryMode.STANDARD.toString());
+        SdkClientUserAgentProperties userAgentProperties = new SdkClientUserAgentProperties();
+        userAgentProperties.putAttribute(IO, StringUtils.lowerCase(ClientType.SYNC.name()));
+        userAgentProperties.putAttribute(HTTP, SdkHttpUtils.urlEncode(sdkHttpClient.clientName()));
+        String clientUserAgent = SdkUserAgentBuilder.buildClientUserAgentString(SystemUserAgent.getOrCreate(),
+                                                                                userAgentProperties);
+
         SdkClientConfiguration config = HttpTestUtils.testClientConfiguration().toBuilder()
+                                                     .option(SdkClientOption.CLIENT_USER_AGENT, clientUserAgent)
                                                      .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
                                                      .option(SdkClientOption.CLIENT_TYPE, ClientType.SYNC)
-                                                     .option(SdkClientOption.CLIENT_USER_AGENT, clientUserAgent)
                                                      .build();
         AmazonSyncHttpClient client = new AmazonSyncHttpClient(config);
 
         client.requestExecutionBuilder()
               .request(ValidSdkObjects.sdkHttpFullRequest().build())
               .originalRequest(NoopTestRequest.builder().build())
-              .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(null))
+              .executionContext(executionContext())
               .execute(combinedSyncResponseHandler(handler, null));
 
         ArgumentCaptor<HttpExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
         verify(sdkHttpClient).prepareRequest(httpRequestCaptor.capture());
 
-        final String userAgent = httpRequestCaptor.getValue().httpRequest().firstMatchingHeader("User-Agent")
-                                                  .orElseThrow(() -> new AssertionError("User-Agent header was not found"));
+        String userAgent = httpRequestCaptor.getValue().httpRequest().firstMatchingHeader("User-Agent")
+                                            .orElseThrow(() -> new AssertionError("User-Agent header was not found"));
 
-        Assert.assertTrue(userAgent.contains("io/sync"));
-        Assert.assertTrue(userAgent.contains("http/UNKNOWN"));
+        Assert.assertTrue(userAgent.contains("io#sync"));
+        Assert.assertTrue(userAgent.contains("http#UNKNOWN"));
     }
 
     @Test
     public void testUserAgentContainsRetryModeInfo() {
         HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
 
-        String clientUserAgent =
-            ApplyUserAgentStage.resolveClientUserAgent(null, null, ClientType.SYNC, sdkHttpClient, null,
-                                                       RetryMode.STANDARD.toString());
+        SdkClientUserAgentProperties userAgentProperties = new SdkClientUserAgentProperties();
+        userAgentProperties.putAttribute(RETRY_MODE, RetryMode.STANDARD.toString().toLowerCase());
+        String clientUserAgent = SdkUserAgentBuilder.buildClientUserAgentString(SystemUserAgent.getOrCreate(),
+                                                                                userAgentProperties);
 
         SdkClientConfiguration config = HttpTestUtils.testClientConfiguration().toBuilder()
                                                      .option(SdkClientOption.CLIENT_USER_AGENT, clientUserAgent)
@@ -206,16 +215,16 @@ public class AmazonHttpClientTest {
         client.requestExecutionBuilder()
               .request(ValidSdkObjects.sdkHttpFullRequest().build())
               .originalRequest(NoopTestRequest.builder().build())
-              .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(null))
+              .executionContext(executionContext())
               .execute(combinedSyncResponseHandler(handler, null));
 
         ArgumentCaptor<HttpExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
         verify(sdkHttpClient).prepareRequest(httpRequestCaptor.capture());
 
-        final String userAgent = httpRequestCaptor.getValue().httpRequest().firstMatchingHeader("User-Agent")
-                                                  .orElseThrow(() -> new AssertionError("User-Agent header was not found"));
+        String userAgent = httpRequestCaptor.getValue().httpRequest().firstMatchingHeader("User-Agent")
+                                            .orElseThrow(() -> new AssertionError("User-Agent header was not found"));
 
-        Assert.assertTrue(userAgent.contains("cfg/retry-mode/standard"));
+        Assert.assertTrue(userAgent.contains("cfg/retry-mode#standard"));
     }
 
     @Test
@@ -230,6 +239,10 @@ public class AmazonHttpClientTest {
         client.close();
         verify(sdkHttpClient).close();
         verify(executor).shutdown();
+    }
+
+    private ExecutionContext executionContext() {
+        return ClientExecutionAndRequestTimerTestUtils.executionContext(null);
     }
 
     private void stubSuccessfulResponse() throws Exception {
