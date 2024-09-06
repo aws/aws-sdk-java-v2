@@ -91,9 +91,6 @@ public class ReceiveMessageBatchManager implements SdkAutoCloseable {
         if (rq.overrideConfiguration().isPresent()) {
             return "Request has override configurations.";
         }
-        if (rq.waitTimeSeconds() != null && rq.waitTimeSeconds() != 0) {
-            return "Request has long polling enabled.";
-        }
         return null;
     }
 
