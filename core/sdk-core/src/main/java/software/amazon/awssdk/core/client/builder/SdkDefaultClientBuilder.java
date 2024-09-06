@@ -18,12 +18,8 @@ package software.amazon.awssdk.core.client.builder;
 import static software.amazon.awssdk.core.ClientType.ASYNC;
 import static software.amazon.awssdk.core.ClientType.SYNC;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
-import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
-import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.CLIENT_TYPE;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.CLIENT_USER_AGENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.COMPRESSION_CONFIGURATION;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGURED_ASYNC_HTTP_CLIENT_BUILDER;
@@ -39,15 +35,12 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.DEFAULT_
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.HTTP_CLIENT_CONFIG;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.IDENTITY_PROVIDERS;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.INTERNAL_USER_AGENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE_SUPPLIER;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_NAME;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.SYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
@@ -81,13 +74,10 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.CompressRequestStage;
 import software.amazon.awssdk.core.internal.interceptor.HttpChecksumValidationInterceptor;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
-import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -98,9 +88,6 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
-import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
-import software.amazon.awssdk.retries.LegacyRetryStrategy;
-import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.AttributeMap.LazyValueSource;
@@ -282,8 +269,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                                   .lazyOption(PROFILE_FILE, conf -> conf.get(PROFILE_FILE_SUPPLIER).get())
                                                   .option(PROFILE_NAME,
                                                           ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow())
-                                                  .option(USER_AGENT_PREFIX, SdkUserAgent.create().userAgent())
-                                                  .option(USER_AGENT_SUFFIX, "")
                                                   .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
                                                   .option(CONFIGURED_COMPRESSION_CONFIGURATION,
                                                           CompressionConfiguration.builder().build()));
@@ -327,7 +312,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                      .lazyOption(SCHEDULED_EXECUTOR_SERVICE, this::resolveScheduledExecutorService)
                      .lazyOptionIfAbsent(RETRY_STRATEGY, this::resolveRetryStrategy)
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
-                     .lazyOption(CLIENT_USER_AGENT, this::resolveClientUserAgent)
                      .lazyOption(COMPRESSION_CONFIGURATION, this::resolveCompressionConfiguration)
                      .lazyOptionIfAbsent(IDENTITY_PROVIDERS, c -> IdentityProviders.builder().build())
                      .build();
@@ -381,32 +365,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     @SdkPreviewApi
     protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
         return config;
-    }
-
-    private String resolveRetryMode(RetryPolicy retryPolicy, RetryStrategy retryStrategy) {
-        if (retryPolicy != null) {
-            return retryPolicy.retryMode().toString();
-        }
-        if (retryStrategy instanceof StandardRetryStrategy) {
-            return RetryMode.STANDARD.toString();
-        }
-        if (retryStrategy instanceof LegacyRetryStrategy) {
-            return RetryMode.LEGACY.toString();
-        }
-        if (retryStrategy instanceof AdaptiveRetryStrategy) {
-            return RetryMode.ADAPTIVE.toString();
-        }
-        return "UnknownRetryMode";
-    }
-
-    private String resolveClientUserAgent(LazyValueSource config) {
-        String retryMode = resolveRetryMode(config.get(RETRY_POLICY), config.get(RETRY_STRATEGY));
-        return ApplyUserAgentStage.resolveClientUserAgent(config.get(USER_AGENT_PREFIX),
-                                                          config.get(INTERNAL_USER_AGENT),
-                                                          config.get(CLIENT_TYPE),
-                                                          config.get(SYNC_HTTP_CLIENT),
-                                                          config.get(ASYNC_HTTP_CLIENT),
-                                                          retryMode);
     }
 
     private RetryStrategy resolveRetryStrategy(LazyValueSource config) {

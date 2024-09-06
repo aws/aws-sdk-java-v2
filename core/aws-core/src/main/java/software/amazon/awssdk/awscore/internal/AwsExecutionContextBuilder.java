@@ -16,7 +16,17 @@
 package software.amazon.awssdk.awscore.internal;
 
 import static software.amazon.awssdk.auth.signer.internal.util.SignerMethodResolver.resolveSigningMethodUsed;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CLIENT_TYPE;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.INTERNAL_USER_AGENT;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.SYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.HTTP;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.INTERNAL_METADATA_MARKER;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.IO;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.RETRY_MODE;
 
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -27,6 +37,7 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategy;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategyFactory;
 import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
+import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -43,14 +54,25 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
+import software.amazon.awssdk.core.internal.useragent.SdkUserAgentProperties;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
+import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
+import software.amazon.awssdk.retries.LegacyRetryStrategy;
+import software.amazon.awssdk.retries.StandardRetryStrategy;
+import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
 public final class AwsExecutionContextBuilder {
@@ -147,6 +169,9 @@ public final class AwsExecutionContextBuilder {
                                              signer, executionAttributes, executionAttributes.getOptionalAttribute(
                                                  AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null)));
 
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.USER_AGENT_PROPERTIES,
+                                         createUserAgentContext(clientConfig));
+
         return ExecutionContext.builder()
                                .interceptorChain(executionInterceptorChain)
                                .interceptorContext(interceptorContext)
@@ -154,6 +179,52 @@ public final class AwsExecutionContextBuilder {
                                .signer(signer)
                                .metricCollector(metricCollector)
                                .build();
+    }
+
+    private static SdkUserAgentProperties createUserAgentContext(SdkClientConfiguration config) {
+        SdkUserAgentProperties userAgent = new SdkUserAgentProperties();
+
+        ClientType clientType = config.option(CLIENT_TYPE);
+        ClientType resolvedClientType = clientType == null ? ClientType.UNKNOWN : config.option(CLIENT_TYPE);
+
+        userAgent.putAttribute(RETRY_MODE, StringUtils.lowerCase(resolveRetryMode(config.option(RETRY_POLICY),
+                                                                                  config.option(RETRY_STRATEGY))));
+        userAgent.putAttribute(INTERNAL_METADATA_MARKER, StringUtils.trimToEmpty(config.option(INTERNAL_USER_AGENT)));
+        userAgent.putAttribute(IO, StringUtils.lowerCase(resolvedClientType.name()));
+        userAgent.putAttribute(HTTP, SdkHttpUtils.urlEncode(clientName(resolvedClientType,
+                                                                       config.option(SYNC_HTTP_CLIENT),
+                                                                       config.option(ASYNC_HTTP_CLIENT))));
+
+        return userAgent;
+    }
+
+    //TODO (useragent): Refactor this as part of moving value to business metrics (UA 2.1)
+    private static String resolveRetryMode(RetryPolicy retryPolicy, RetryStrategy retryStrategy) {
+        if (retryPolicy != null) {
+            return retryPolicy.retryMode().toString();
+        }
+        if (retryStrategy instanceof StandardRetryStrategy) {
+            return RetryMode.STANDARD.toString();
+        }
+        if (retryStrategy instanceof LegacyRetryStrategy) {
+            return RetryMode.LEGACY.toString();
+        }
+        if (retryStrategy instanceof AdaptiveRetryStrategy) {
+            return RetryMode.ADAPTIVE.toString();
+        }
+        return "UnknownRetryMode";
+    }
+
+    private static String clientName(ClientType clientType, SdkHttpClient syncHttpClient, SdkAsyncHttpClient asyncHttpClient) {
+        if (clientType == ClientType.SYNC) {
+            return syncHttpClient == null ? "null" : syncHttpClient.clientName();
+        }
+
+        if (clientType == ClientType.ASYNC) {
+            return asyncHttpClient == null ? "null" : asyncHttpClient.clientName();
+        }
+
+        return ClientType.UNKNOWN.name();
     }
 
     /**

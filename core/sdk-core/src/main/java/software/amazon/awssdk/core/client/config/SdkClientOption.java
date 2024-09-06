@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.useragent.SdkUserAgentProperties;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.endpoints.EndpointProvider;
@@ -249,6 +250,8 @@ public final class SdkClientOption<T> extends ClientOption<T> {
 
     /**
      * A user agent prefix that is specific to the client (agnostic of the request).
+     *
+     * Not currently in use, since the introduction of {@link SdkUserAgentProperties}
      */
     public static final SdkClientOption<String> CLIENT_USER_AGENT = new SdkClientOption<>(String.class);
 
