@@ -236,7 +236,7 @@ class ReceiveMessageBatchManagerTest {
                 "Request has override configurations."
             ),
             Arguments.of(
-                "Buffering disabled, with waitTimeSeconds in ReceiveMessageRequest",
+                "Buffering enabled, with waitTimeSeconds in ReceiveMessageRequest",
                 ResponseBatchConfiguration.builder()
                                           .messageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.SENDER_ID))
                                           .build(),
@@ -245,8 +245,8 @@ class ReceiveMessageBatchManagerTest {
                                      .maxNumberOfMessages(3)
                                      .waitTimeSeconds(3)
                                      .build(),
-                false,
-                "Request has long polling enabled."
+                true,
+                ""
             )
         );
     }

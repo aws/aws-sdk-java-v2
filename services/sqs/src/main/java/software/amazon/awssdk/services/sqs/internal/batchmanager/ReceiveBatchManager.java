@@ -20,7 +20,6 @@ import static software.amazon.awssdk.services.sqs.internal.batchmanager.Response
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
@@ -61,10 +60,12 @@ public class ReceiveBatchManager implements SdkAutoCloseable {
         return queueAttributesManager.getReceiveMessageTimeout(rq, config.messageMinWaitDuration()).thenCompose(waitTimeMs -> {
             CompletableFuture<ReceiveMessageResponse> receiveMessageFuture = new CompletableFuture<>();
             receiveQueueBuffer.receiveMessage(receiveMessageFuture, numMessages);
-            CompletableFuture<ReceiveMessageResponse> timeoutFuture = new CompletableFuture<>();
-            executor.schedule(() -> timeoutFuture.complete(ReceiveMessageResponse.builder().build()), waitTimeMs.toMillis(),
-                              TimeUnit.MILLISECONDS);
-            return receiveMessageFuture.applyToEither(timeoutFuture, Function.identity());
+            executor.schedule(() -> {
+                if (!receiveMessageFuture.isDone()) {
+                    receiveMessageFuture.complete(ReceiveMessageResponse.builder().build());
+                }
+            }, waitTimeMs.toMillis(), TimeUnit.MILLISECONDS);
+            return receiveMessageFuture;
 
         });
     }
