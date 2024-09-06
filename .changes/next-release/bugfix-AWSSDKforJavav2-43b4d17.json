@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Removed reflect-config.json from sdk-core, as it referenced a deleted interceptor. See [#5552](https://github.com/aws/aws-sdk-java-v2/issues/5552)."
+}
