@@ -54,6 +54,7 @@ public class TestUtils {
                                                             "sqs",
                                                             "s3");
         } catch (Exception exception) {
+            log.warn(() -> "Exception occurred, ignoring", exception);
             return false;
         }
     }
