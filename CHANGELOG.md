@@ -1,4 +1,36 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.22__ __2024-09-09__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Removed reflect-config.json from sdk-core, as it referenced a deleted interceptor. See [#5552](https://github.com/aws/aws-sdk-java-v2/issues/5552).
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Doc-only update for DynamoDB. Added information about async behavior for TagResource and UntagResource APIs and updated the description of ResourceInUseException.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - IVS Real-Time now offers customers the ability to broadcast to Stages using RTMP(S).
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - AWS SageMaker Runtime feature: Add sticky routing to support stateful inference models.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon Sagemaker supports orchestrating SageMaker HyperPod clusters with Amazon EKS
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Add paginators for the ELBv2 DescribeListenerCertificates and DescribeRules APIs. Fix broken waiter for the ELBv2 DescribeLoadBalancers API.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK Replicator can now replicate data to identically named topics between MSK clusters within the same AWS Region or across different AWS Regions.
+
 # __2.27.21__ __2024-09-06__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -74,7 +106,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@anirudh9391](https://github.com/anirudh9391), [@shetsa-amzn](https://github.com/shetsa-amzn)
+[@shetsa-amzn](https://github.com/shetsa-amzn), [@anirudh9391](https://github.com/anirudh9391)
 # __2.27.18__ __2024-09-03__
 ## __AWS Elemental MediaLive__
   - ### Features
