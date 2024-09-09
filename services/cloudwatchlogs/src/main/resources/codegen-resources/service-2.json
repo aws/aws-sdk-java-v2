@@ -375,6 +375,22 @@
       ],
       "documentation":"<p>Returns a list of all CloudWatch Logs account policies in the account.</p>"
     },
+    "DescribeConfigurationTemplates":{
+      "name":"DescribeConfigurationTemplates",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeConfigurationTemplatesRequest"},
+      "output":{"shape":"DescribeConfigurationTemplatesResponse"},
+      "errors":[
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Use this operation to return the valid and default values that are used when creating delivery sources, delivery destinations, and deliveries. For more information about deliveries, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateDelivery.html\">CreateDelivery</a>.</p>"
+    },
     "DescribeDeliveries":{
       "name":"DescribeDeliveries",
       "http":{
@@ -820,7 +836,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"LimitExceededException"}
       ],
-      "documentation":"<p>Creates an account-level data protection policy or subscription filter policy that applies to all log groups or a subset of log groups in the account.</p> <p> <b>Data protection policy</b> </p> <p>A data protection policy can help safeguard sensitive data that's ingested by your log groups by auditing and masking the sensitive log data. Each account can have only one account-level data protection policy.</p> <important> <p>Sensitive data is detected and masked when it is ingested into a log group. When you set a data protection policy, log events ingested into the log groups before that time are not masked.</p> </important> <p>If you use <code>PutAccountPolicy</code> to create a data protection policy for your whole account, it applies to both existing log groups and all log groups that are created later in this account. The account-level policy is applied to existing log groups with eventual consistency. It might take up to 5 minutes before sensitive data in existing log groups begins to be masked.</p> <p>By default, when a user views a log event that includes masked data, the sensitive data is replaced by asterisks. A user who has the <code>logs:Unmask</code> permission can use a <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogEvents.html\">GetLogEvents</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_FilterLogEvents.html\">FilterLogEvents</a> operation with the <code>unmask</code> parameter set to <code>true</code> to view the unmasked log events. Users with the <code>logs:Unmask</code> can also view unmasked data in the CloudWatch Logs console by running a CloudWatch Logs Insights query with the <code>unmask</code> query command.</p> <p>For more information, including a list of types of data that can be audited and masked, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data.html\">Protect sensitive log data with masking</a>.</p> <p>To use the <code>PutAccountPolicy</code> operation for a data protection policy, you must be signed on with the <code>logs:PutDataProtectionPolicy</code> and <code>logs:PutAccountPolicy</code> permissions.</p> <p>The <code>PutAccountPolicy</code> operation applies to all log groups in the account. You can use <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDataProtectionPolicy.html\">PutDataProtectionPolicy</a> to create a data protection policy that applies to just one log group. If a log group has its own data protection policy and the account also has an account-level data protection policy, then the two policies are cumulative. Any sensitive term specified in either policy is masked.</p> <p> <b>Subscription filter policy</b> </p> <p>A subscription filter policy sets up a real-time feed of log events from CloudWatch Logs to other Amazon Web Services services. Account-level subscription filter policies apply to both existing log groups and log groups that are created later in this account. Supported destinations are Kinesis Data Streams, Firehose, and Lambda. When log events are sent to the receiving service, they are Base64 encoded and compressed with the GZIP format.</p> <p>The following destinations are supported for subscription filters:</p> <ul> <li> <p>An Kinesis Data Streams data stream in the same account as the subscription policy, for same-account delivery.</p> </li> <li> <p>An Firehose data stream in the same account as the subscription policy, for same-account delivery.</p> </li> <li> <p>A Lambda function in the same account as the subscription policy, for same-account delivery.</p> </li> <li> <p>A logical destination in a different account created with <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDestination.html\">PutDestination</a>, for cross-account delivery. Kinesis Data Streams and Firehose are supported as logical destinations.</p> </li> </ul> <p>Each account can have one account-level subscription filter policy. If you are updating an existing filter, you must specify the correct name in <code>PolicyName</code>. To perform a <code>PutAccountPolicy</code> subscription filter operation for any destination except a Lambda function, you must also have the <code>iam:PassRole</code> permission.</p>"
+      "documentation":"<p>Creates an account-level data protection policy or subscription filter policy that applies to all log groups or a subset of log groups in the account.</p> <p> <b>Data protection policy</b> </p> <p>A data protection policy can help safeguard sensitive data that's ingested by your log groups by auditing and masking the sensitive log data. Each account can have only one account-level data protection policy.</p> <important> <p>Sensitive data is detected and masked when it is ingested into a log group. When you set a data protection policy, log events ingested into the log groups before that time are not masked.</p> </important> <p>If you use <code>PutAccountPolicy</code> to create a data protection policy for your whole account, it applies to both existing log groups and all log groups that are created later in this account. The account-level policy is applied to existing log groups with eventual consistency. It might take up to 5 minutes before sensitive data in existing log groups begins to be masked.</p> <p>By default, when a user views a log event that includes masked data, the sensitive data is replaced by asterisks. A user who has the <code>logs:Unmask</code> permission can use a <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_GetLogEvents.html\">GetLogEvents</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_FilterLogEvents.html\">FilterLogEvents</a> operation with the <code>unmask</code> parameter set to <code>true</code> to view the unmasked log events. Users with the <code>logs:Unmask</code> can also view unmasked data in the CloudWatch Logs console by running a CloudWatch Logs Insights query with the <code>unmask</code> query command.</p> <p>For more information, including a list of types of data that can be audited and masked, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data.html\">Protect sensitive log data with masking</a>.</p> <p>To use the <code>PutAccountPolicy</code> operation for a data protection policy, you must be signed on with the <code>logs:PutDataProtectionPolicy</code> and <code>logs:PutAccountPolicy</code> permissions.</p> <p>The <code>PutAccountPolicy</code> operation applies to all log groups in the account. You can use <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDataProtectionPolicy.html\">PutDataProtectionPolicy</a> to create a data protection policy that applies to just one log group. If a log group has its own data protection policy and the account also has an account-level data protection policy, then the two policies are cumulative. Any sensitive term specified in either policy is masked.</p> <p> <b>Subscription filter policy</b> </p> <p>A subscription filter policy sets up a real-time feed of log events from CloudWatch Logs to other Amazon Web Services services. Account-level subscription filter policies apply to both existing log groups and log groups that are created later in this account. Supported destinations are Kinesis Data Streams, Firehose, and Lambda. When log events are sent to the receiving service, they are Base64 encoded and compressed with the GZIP format.</p> <p>The following destinations are supported for subscription filters:</p> <ul> <li> <p>An Kinesis Data Streams data stream in the same account as the subscription policy, for same-account delivery.</p> </li> <li> <p>An Firehose data stream in the same account as the subscription policy, for same-account delivery.</p> </li> <li> <p>A Lambda function in the same account as the subscription policy, for same-account delivery.</p> </li> <li> <p>A logical destination in a different account created with <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDestination.html\">PutDestination</a>, for cross-account delivery. Kinesis Data Streams and Firehose are supported as logical destinations.</p> </li> </ul> <p>Each account can have one account-level subscription filter policy per Region. If you are updating an existing filter, you must specify the correct name in <code>PolicyName</code>. To perform a <code>PutAccountPolicy</code> subscription filter operation for any destination except a Lambda function, you must also have the <code>iam:PassRole</code> permission.</p>"
     },
     "PutDataProtectionPolicy":{
       "name":"PutDataProtectionPolicy",
@@ -952,7 +968,7 @@
         {"shape":"LimitExceededException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Creates or updates a metric filter and associates it with the specified log group. With metric filters, you can configure rules to extract metric data from log events ingested through <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html\">PutLogEvents</a>.</p> <p>The maximum number of metric filters that can be associated with a log group is 100.</p> <p>When you create a metric filter, you can also optionally assign a unit and dimensions to the metric that is created.</p> <important> <p>Metrics extracted from log events are charged as custom metrics. To prevent unexpected high charges, do not specify high-cardinality fields such as <code>IPAddress</code> or <code>requestID</code> as dimensions. Each different value found for a dimension is treated as a separate metric and accrues charges as a separate custom metric. </p> <p>CloudWatch Logs might disable a metric filter if it generates 1,000 different name/value pairs for your specified dimensions within one hour.</p> <p>You can also set up a billing alarm to alert you if your charges are higher than expected. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/monitor_estimated_charges_with_cloudwatch.html\"> Creating a Billing Alarm to Monitor Your Estimated Amazon Web Services Charges</a>. </p> </important>"
+      "documentation":"<p>Creates or updates a metric filter and associates it with the specified log group. With metric filters, you can configure rules to extract metric data from log events ingested through <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html\">PutLogEvents</a>.</p> <p>The maximum number of metric filters that can be associated with a log group is 100.</p> <p>Using regular expressions to create metric filters is supported. For these filters, there is a quotas of quota of two regular expression patterns within a single filter pattern. There is also a quota of five regular expression patterns per log group. For more information about using regular expressions in metric filters, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html\"> Filter pattern syntax for metric filters, subscription filters, filter log events, and Live Tail</a>.</p> <p>When you create a metric filter, you can also optionally assign a unit and dimensions to the metric that is created.</p> <important> <p>Metrics extracted from log events are charged as custom metrics. To prevent unexpected high charges, do not specify high-cardinality fields such as <code>IPAddress</code> or <code>requestID</code> as dimensions. Each different value found for a dimension is treated as a separate metric and accrues charges as a separate custom metric. </p> <p>CloudWatch Logs might disable a metric filter if it generates 1,000 different name/value pairs for your specified dimensions within one hour.</p> <p>You can also set up a billing alarm to alert you if your charges are higher than expected. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/monitor_estimated_charges_with_cloudwatch.html\"> Creating a Billing Alarm to Monitor Your Estimated Amazon Web Services Charges</a>. </p> </important>"
     },
     "PutQueryDefinition":{
       "name":"PutQueryDefinition",
@@ -1014,7 +1030,7 @@
         {"shape":"LimitExceededException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Creates or updates a subscription filter and associates it with the specified log group. With subscription filters, you can subscribe to a real-time stream of log events ingested through <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html\">PutLogEvents</a> and have them delivered to a specific destination. When log events are sent to the receiving service, they are Base64 encoded and compressed with the GZIP format.</p> <p>The following destinations are supported for subscription filters:</p> <ul> <li> <p>An Amazon Kinesis data stream belonging to the same account as the subscription filter, for same-account delivery.</p> </li> <li> <p>A logical destination created with <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDestination.html\">PutDestination</a> that belongs to a different account, for cross-account delivery. We currently support Kinesis Data Streams and Firehose as logical destinations.</p> </li> <li> <p>An Amazon Kinesis Data Firehose delivery stream that belongs to the same account as the subscription filter, for same-account delivery.</p> </li> <li> <p>An Lambda function that belongs to the same account as the subscription filter, for same-account delivery.</p> </li> </ul> <p>Each log group can have up to two subscription filters associated with it. If you are updating an existing filter, you must specify the correct name in <code>filterName</code>. </p> <p>To perform a <code>PutSubscriptionFilter</code> operation for any destination except a Lambda function, you must also have the <code>iam:PassRole</code> permission.</p>"
+      "documentation":"<p>Creates or updates a subscription filter and associates it with the specified log group. With subscription filters, you can subscribe to a real-time stream of log events ingested through <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html\">PutLogEvents</a> and have them delivered to a specific destination. When log events are sent to the receiving service, they are Base64 encoded and compressed with the GZIP format.</p> <p>The following destinations are supported for subscription filters:</p> <ul> <li> <p>An Amazon Kinesis data stream belonging to the same account as the subscription filter, for same-account delivery.</p> </li> <li> <p>A logical destination created with <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDestination.html\">PutDestination</a> that belongs to a different account, for cross-account delivery. We currently support Kinesis Data Streams and Firehose as logical destinations.</p> </li> <li> <p>An Amazon Kinesis Data Firehose delivery stream that belongs to the same account as the subscription filter, for same-account delivery.</p> </li> <li> <p>An Lambda function that belongs to the same account as the subscription filter, for same-account delivery.</p> </li> </ul> <p>Each log group can have up to two subscription filters associated with it. If you are updating an existing filter, you must specify the correct name in <code>filterName</code>. </p> <p>Using regular expressions to create subscription filters is supported. For these filters, there is a quotas of quota of two regular expression patterns within a single filter pattern. There is also a quota of five regular expression patterns per log group. For more information about using regular expressions in subscription filters, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html\"> Filter pattern syntax for metric filters, subscription filters, filter log events, and Live Tail</a>.</p> <p>To perform a <code>PutSubscriptionFilter</code> operation for any destination except a Lambda function, you must also have the <code>iam:PassRole</code> permission.</p>"
     },
     "StartLiveTail":{
       "name":"StartLiveTail",
@@ -1031,7 +1047,7 @@
         {"shape":"LimitExceededException"},
         {"shape":"InvalidOperationException"}
       ],
-      "documentation":"<p>Starts a Live Tail streaming session for one or more log groups. A Live Tail session returns a stream of log events that have been recently ingested in the log groups. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs_LiveTail.html\">Use Live Tail to view logs in near real time</a>. </p> <p>The response to this operation is a response stream, over which the server sends live log events and the client receives them.</p> <p>The following objects are sent over the stream:</p> <ul> <li> <p>A single <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_LiveTailSessionStart.html\">LiveTailSessionStart</a> object is sent at the start of the session.</p> </li> <li> <p>Every second, a <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_LiveTailSessionUpdate.html\">LiveTailSessionUpdate</a> object is sent. Each of these objects contains an array of the actual log events.</p> <p>If no new log events were ingested in the past second, the <code>LiveTailSessionUpdate</code> object will contain an empty array.</p> <p>The array of log events contained in a <code>LiveTailSessionUpdate</code> can include as many as 500 log events. If the number of log events matching the request exceeds 500 per second, the log events are sampled down to 500 log events to be included in each <code>LiveTailSessionUpdate</code> object.</p> <p>If your client consumes the log events slower than the server produces them, CloudWatch Logs buffers up to 10 <code>LiveTailSessionUpdate</code> events or 5000 log events, after which it starts dropping the oldest events.</p> </li> <li> <p>A <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_SessionStreamingException.html\">SessionStreamingException</a> object is returned if an unknown error occurs on the server side.</p> </li> <li> <p>A <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_SessionTimeoutException.html\">SessionTimeoutException</a> object is returned when the session times out, after it has been kept open for three hours.</p> </li> </ul> <important> <p>You can end a session before it times out by closing the session stream or by closing the client that is receiving the stream. The session also ends if the established connection between the client and the server breaks.</p> </important> <p>For examples of using an SDK to start a Live Tail session, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/example_cloudwatch-logs_StartLiveTail_section.html\"> Start a Live Tail session using an Amazon Web Services SDK</a>.</p>",
+      "documentation":"<p>Starts a Live Tail streaming session for one or more log groups. A Live Tail session returns a stream of log events that have been recently ingested in the log groups. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs_LiveTail.html\">Use Live Tail to view logs in near real time</a>. </p> <p>The response to this operation is a response stream, over which the server sends live log events and the client receives them.</p> <p>The following objects are sent over the stream:</p> <ul> <li> <p>A single <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_LiveTailSessionStart.html\">LiveTailSessionStart</a> object is sent at the start of the session.</p> </li> <li> <p>Every second, a <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_LiveTailSessionUpdate.html\">LiveTailSessionUpdate</a> object is sent. Each of these objects contains an array of the actual log events.</p> <p>If no new log events were ingested in the past second, the <code>LiveTailSessionUpdate</code> object will contain an empty array.</p> <p>The array of log events contained in a <code>LiveTailSessionUpdate</code> can include as many as 500 log events. If the number of log events matching the request exceeds 500 per second, the log events are sampled down to 500 log events to be included in each <code>LiveTailSessionUpdate</code> object.</p> <p>If your client consumes the log events slower than the server produces them, CloudWatch Logs buffers up to 10 <code>LiveTailSessionUpdate</code> events or 5000 log events, after which it starts dropping the oldest events.</p> </li> <li> <p>A <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartLiveTailResponseStream.html#CWL-Type-StartLiveTailResponseStream-SessionStreamingException\">SessionStreamingException</a> object is returned if an unknown error occurs on the server side.</p> </li> <li> <p>A <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_StartLiveTailResponseStream.html#CWL-Type-StartLiveTailResponseStream-SessionTimeoutException\">SessionTimeoutException</a> object is returned when the session times out, after it has been kept open for three hours.</p> </li> </ul> <important> <p>You can end a session before it times out by closing the session stream or by closing the client that is receiving the stream. The session also ends if the established connection between the client and the server breaks.</p> </important> <p>For examples of using an SDK to start a Live Tail session, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/example_cloudwatch-logs_StartLiveTail_section.html\"> Start a Live Tail session using an Amazon Web Services SDK</a>.</p>",
       "endpoint":{"hostPrefix":"streaming-"}
     },
     "StartQuery":{
@@ -1153,6 +1169,24 @@
       ],
       "documentation":"<p>Use this operation to <i>suppress</i> anomaly detection for a specified anomaly or pattern. If you suppress an anomaly, CloudWatch Logs won’t report new occurrences of that anomaly and won't update that anomaly with new data. If you suppress a pattern, CloudWatch Logs won’t report any anomalies related to that pattern.</p> <p>You must specify either <code>anomalyId</code> or <code>patternId</code>, but you can't specify both parameters in the same operation.</p> <p>If you have previously used this operation to suppress detection of a pattern or anomaly, you can use it again to cause CloudWatch Logs to end the suppression. To do this, use this operation and specify the anomaly or pattern to stop suppressing, and omit the <code>suppressionType</code> and <code>suppressionPeriod</code> parameters.</p>"
     },
+    "UpdateDeliveryConfiguration":{
+      "name":"UpdateDeliveryConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateDeliveryConfigurationRequest"},
+      "output":{"shape":"UpdateDeliveryConfigurationResponse"},
+      "errors":[
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"ConflictException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Use this operation to update the configuration of a <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_Delivery.html\">delivery</a> to change either the S3 path pattern or the format of the delivered logs. You can't use this operation to change the source or destination of the delivery.</p>"
+    },
     "UpdateLogAnomalyDetector":{
       "name":"UpdateLogAnomalyDetector",
       "http":{
@@ -1232,6 +1266,15 @@
       "documentation":"<p>A structure that contains information about one CloudWatch Logs account policy.</p>"
     },
     "AccountPolicyDocument":{"type":"string"},
+    "AllowedActionForAllowVendedLogsDeliveryForResource":{"type":"string"},
+    "AllowedFieldDelimiters":{
+      "type":"list",
+      "member":{"shape":"FieldDelimiter"}
+    },
+    "AllowedFields":{
+      "type":"list",
+      "member":{"shape":"RecordField"}
+    },
     "AmazonResourceName":{
       "type":"string",
       "max":1011,
@@ -1448,6 +1491,74 @@
       "min":36,
       "pattern":"\\S{36,128}"
     },
+    "ConfigurationTemplate":{
+      "type":"structure",
+      "members":{
+        "service":{
+          "shape":"Service",
+          "documentation":"<p>A string specifying which service this configuration template applies to. For more information about supported services see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html\">Enable logging from Amazon Web Services services.</a>.</p>"
+        },
+        "logType":{
+          "shape":"LogType",
+          "documentation":"<p>A string specifying which log type this configuration template applies to.</p>"
+        },
+        "resourceType":{
+          "shape":"ResourceType",
+          "documentation":"<p>A string specifying which resource type this configuration template applies to.</p>"
+        },
+        "deliveryDestinationType":{
+          "shape":"DeliveryDestinationType",
+          "documentation":"<p>A string specifying which destination type this configuration template applies to.</p>"
+        },
+        "defaultDeliveryConfigValues":{
+          "shape":"ConfigurationTemplateDeliveryConfigValues",
+          "documentation":"<p>A mapping that displays the default value of each property within a delivery’s configuration, if it is not specified in the request.</p>"
+        },
+        "allowedFields":{
+          "shape":"AllowedFields",
+          "documentation":"<p>The allowed fields that a caller can use in the <code>recordFields</code> parameter of a <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateDelivery.html\">CreateDelivery</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_UpdateDeliveryConfiguration.html\">UpdateDeliveryConfiguration</a> operation.</p>"
+        },
+        "allowedOutputFormats":{
+          "shape":"OutputFormats",
+          "documentation":"<p>The list of delivery destination output formats that are supported by this log source.</p>"
+        },
+        "allowedActionForAllowVendedLogsDeliveryForResource":{
+          "shape":"AllowedActionForAllowVendedLogsDeliveryForResource",
+          "documentation":"<p>The action permissions that a caller needs to have to be able to successfully create a delivery source on the desired resource type when calling <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDeliverySource.html\">PutDeliverySource</a>.</p>"
+        },
+        "allowedFieldDelimiters":{
+          "shape":"AllowedFieldDelimiters",
+          "documentation":"<p>The valid values that a caller can use as field delimiters when calling <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateDelivery.html\">CreateDelivery</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_UpdateDeliveryConfiguration.html\">UpdateDeliveryConfiguration</a> on a delivery that delivers in <code>Plain</code>, <code>W3C</code>, or <code>Raw</code> format.</p>"
+        },
+        "allowedSuffixPathFields":{
+          "shape":"RecordFields",
+          "documentation":"<p>The list of variable fields that can be used in the suffix path of a delivery that delivers to an S3 bucket.</p>"
+        }
+      },
+      "documentation":"<p>A structure containing information about the deafult settings and available settings that you can use to configure a <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_Delivery.html\">delivery</a> or a <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DeliveryDestination.html\">delivery destination</a>.</p>"
+    },
+    "ConfigurationTemplateDeliveryConfigValues":{
+      "type":"structure",
+      "members":{
+        "recordFields":{
+          "shape":"RecordFields",
+          "documentation":"<p>The default record fields that will be delivered when a list of record fields is not provided in a <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateDelivery.html\">CreateDelivery</a> operation.</p>"
+        },
+        "fieldDelimiter":{
+          "shape":"FieldDelimiter",
+          "documentation":"<p>The default field delimiter that is used in a <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateDelivery.html\">CreateDelivery</a> operation when the field delimiter is not specified in that operation. The field delimiter is used only when the final output delivery is in <code>Plain</code>, <code>W3C</code>, or <code>Raw</code> format.</p>"
+        },
+        "s3DeliveryConfiguration":{
+          "shape":"S3DeliveryConfiguration",
+          "documentation":"<p>The delivery parameters that are used when you create a delivery to a delivery destination that is an S3 Bucket.</p>"
+        }
+      },
+      "documentation":"<p>This structure contains the default values that are used for each configuration parameter when you use <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateDelivery.html\">CreateDelivery</a> to create a deliver under the current service type, resource type, and log type.</p>"
+    },
+    "ConfigurationTemplates":{
+      "type":"list",
+      "member":{"shape":"ConfigurationTemplate"}
+    },
     "ConflictException":{
       "type":"structure",
       "members":{
@@ -1470,6 +1581,18 @@
         "deliveryDestinationArn":{
           "shape":"Arn",
           "documentation":"<p>The ARN of the delivery destination to use for this delivery.</p>"
+        },
+        "recordFields":{
+          "shape":"RecordFields",
+          "documentation":"<p>The list of record fields to be delivered to the destination, in order. If the delivery’s log source has mandatory fields, they must be included in this list.</p>"
+        },
+        "fieldDelimiter":{
+          "shape":"FieldDelimiter",
+          "documentation":"<p>The field delimiter to use between record fields when the final output format of a delivery is in <code>Plain</code>, <code>W3C</code>, or <code>Raw</code> format.</p>"
+        },
+        "s3DeliveryConfiguration":{
+          "shape":"S3DeliveryConfiguration",
+          "documentation":"<p>This structure contains parameters that are valid only when the delivery’s delivery destination is an S3 bucket.</p>"
         },
         "tags":{
           "shape":"Tags",
@@ -1852,6 +1975,18 @@
           "shape":"DeliveryDestinationType",
           "documentation":"<p>Displays whether the delivery destination associated with this delivery is CloudWatch Logs, Amazon S3, or Firehose.</p>"
         },
+        "recordFields":{
+          "shape":"RecordFields",
+          "documentation":"<p>The record fields used in this delivery.</p>"
+        },
+        "fieldDelimiter":{
+          "shape":"FieldDelimiter",
+          "documentation":"<p>The field delimiter that is used between record fields when the final output format of a delivery is in <code>Plain</code>, <code>W3C</code>, or <code>Raw</code> format.</p>"
+        },
+        "s3DeliveryConfiguration":{
+          "shape":"S3DeliveryConfiguration",
+          "documentation":"<p>This structure contains delivery configurations that apply only when the delivery destination resource is an S3 bucket.</p>"
+        },
         "tags":{
           "shape":"Tags",
           "documentation":"<p>The tags that have been assigned to this delivery.</p>"
@@ -1919,6 +2054,12 @@
         "FH"
       ]
     },
+    "DeliveryDestinationTypes":{
+      "type":"list",
+      "member":{"shape":"DeliveryDestinationType"},
+      "max":3,
+      "min":1
+    },
     "DeliveryDestinations":{
       "type":"list",
       "member":{"shape":"DeliveryDestination"}
@@ -1969,6 +2110,11 @@
       "type":"list",
       "member":{"shape":"DeliverySource"}
     },
+    "DeliverySuffixPath":{
+      "type":"string",
+      "max":256,
+      "min":1
+    },
     "Descending":{"type":"boolean"},
     "DescribeAccountPoliciesRequest":{
       "type":"structure",
@@ -1995,6 +2141,42 @@
           "shape":"AccountPolicies",
           "documentation":"<p>An array of structures that contain information about the CloudWatch Logs account policies that match the specified filters.</p>"
         }
+      }
+    },
+    "DescribeConfigurationTemplatesRequest":{
+      "type":"structure",
+      "members":{
+        "service":{
+          "shape":"Service",
+          "documentation":"<p>Use this parameter to filter the response to include only the configuration templates that apply to the Amazon Web Services service that you specify here.</p>"
+        },
+        "logTypes":{
+          "shape":"LogTypes",
+          "documentation":"<p>Use this parameter to filter the response to include only the configuration templates that apply to the log types that you specify here.</p>"
+        },
+        "resourceTypes":{
+          "shape":"ResourceTypes",
+          "documentation":"<p>Use this parameter to filter the response to include only the configuration templates that apply to the resource types that you specify here.</p>"
+        },
+        "deliveryDestinationTypes":{
+          "shape":"DeliveryDestinationTypes",
+          "documentation":"<p>Use this parameter to filter the response to include only the configuration templates that apply to the delivery destination types that you specify here.</p>"
+        },
+        "nextToken":{"shape":"NextToken"},
+        "limit":{
+          "shape":"DescribeLimit",
+          "documentation":"<p>Use this parameter to limit the number of configuration templates that are returned in the response.</p>"
+        }
+      }
+    },
+    "DescribeConfigurationTemplatesResponse":{
+      "type":"structure",
+      "members":{
+        "configurationTemplates":{
+          "shape":"ConfigurationTemplates",
+          "documentation":"<p>An array of objects, where each object describes one configuration template that matches the filters that you specified in the request.</p>"
+        },
+        "nextToken":{"shape":"NextToken"}
       }
     },
     "DescribeDeliveriesRequest":{
@@ -2445,6 +2627,66 @@
       "type":"string",
       "max":256
     },
+    "Entity":{
+      "type":"structure",
+      "members":{
+        "keyAttributes":{
+          "shape":"EntityKeyAttributes",
+          "documentation":"<p>Reserved for internal use.</p>"
+        },
+        "attributes":{
+          "shape":"EntityAttributes",
+          "documentation":"<p>Reserved for internal use.</p>"
+        }
+      },
+      "documentation":"<p>Reserved for internal use.</p>"
+    },
+    "EntityAttributes":{
+      "type":"map",
+      "key":{"shape":"EntityAttributesKey"},
+      "value":{"shape":"EntityAttributesValue"},
+      "max":10,
+      "min":0
+    },
+    "EntityAttributesKey":{
+      "type":"string",
+      "max":256,
+      "min":1
+    },
+    "EntityAttributesValue":{
+      "type":"string",
+      "max":512,
+      "min":1
+    },
+    "EntityKeyAttributes":{
+      "type":"map",
+      "key":{"shape":"EntityKeyAttributesKey"},
+      "value":{"shape":"EntityKeyAttributesValue"},
+      "max":3,
+      "min":2
+    },
+    "EntityKeyAttributesKey":{
+      "type":"string",
+      "max":32,
+      "min":1
+    },
+    "EntityKeyAttributesValue":{
+      "type":"string",
+      "max":512,
+      "min":1
+    },
+    "EntityRejectionErrorType":{
+      "type":"string",
+      "enum":[
+        "InvalidEntity",
+        "InvalidTypeValue",
+        "InvalidKeyAttributes",
+        "InvalidAttributes",
+        "EntitySizeTooLarge",
+        "UnsupportedLogGroupType",
+        "MissingRequiredFields"
+      ]
+    },
     "Enumerations":{
       "type":"map",
       "key":{"shape":"TokenString"},
@@ -2584,6 +2826,16 @@
       "value":{"shape":"Value"}
     },
     "Field":{"type":"string"},
+    "FieldDelimiter":{
+      "type":"string",
+      "max":5,
+      "min":0
+    },
+    "FieldHeader":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
     "FilterCount":{"type":"integer"},
     "FilterLogEventsRequest":{
       "type":"structure",
@@ -2598,11 +2850,11 @@
         },
         "logStreamNames":{
           "shape":"InputLogStreamNames",
-          "documentation":"<p>Filters the results to only logs from the log streams in this list.</p> <p>If you specify a value for both <code>logStreamNamePrefix</code> and <code>logStreamNames</code>, the action returns an <code>InvalidParameterException</code> error.</p>"
+          "documentation":"<p>Filters the results to only logs from the log streams in this list.</p> <p>If you specify a value for both <code>logStreamNames</code> and <code>logStreamNamePrefix</code>, the action returns an <code>InvalidParameterException</code> error.</p>"
         },
         "logStreamNamePrefix":{
           "shape":"LogStreamName",
-          "documentation":"<p>Filters the results to include only events from log streams that have names starting with this prefix.</p> <p>If you specify a value for both <code>logStreamNamePrefix</code> and <code>logStreamNames</code>, but the value for <code>logStreamNamePrefix</code> does not match any log stream names specified in <code>logStreamNames</code>, the action returns an <code>InvalidParameterException</code> error.</p>"
+          "documentation":"<p>Filters the results to include only events from log streams that have names starting with this prefix.</p> <p>If you specify a value for both <code>logStreamNamePrefix</code> and <code>logStreamNames</code>, the action returns an <code>InvalidParameterException</code> error.</p>"
         },
         "startTime":{
           "shape":"Timestamp",
@@ -3450,6 +3702,12 @@
       "min":1,
       "pattern":"[\\w]*"
     },
+    "LogTypes":{
+      "type":"list",
+      "member":{"shape":"LogType"},
+      "max":10,
+      "min":1
+    },
     "MalformedQueryException":{
       "type":"structure",
       "members":{
@@ -3594,6 +3852,10 @@
         "parquet"
       ]
     },
+    "OutputFormats":{
+      "type":"list",
+      "member":{"shape":"OutputFormat"}
+    },
     "OutputLogEvent":{
       "type":"structure",
       "members":{
@@ -3649,7 +3911,7 @@
           "documentation":"<p>Contains the values found for a dynamic token, and the number of times each value was found.</p>"
         }
       },
-      "documentation":"<p>A tructures that contains information about one pattern token related to an anomaly.</p> <p>For more information about patterns and tokens, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateLogAnomalyDetector.html\">CreateLogAnomalyDetector</a>. </p>"
+      "documentation":"<p>A structure that contains information about one pattern token related to an anomaly.</p> <p>For more information about patterns and tokens, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateLogAnomalyDetector.html\">CreateLogAnomalyDetector</a>. </p>"
     },
     "PatternTokens":{
       "type":"list",
@@ -3701,7 +3963,7 @@
         },
         "policyDocument":{
           "shape":"AccountPolicyDocument",
-          "documentation":"<p>Specify the policy, in JSON.</p> <p> <b>Data protection policy</b> </p> <p>A data protection policy must include two JSON blocks:</p> <ul> <li> <p>The first block must include both a <code>DataIdentifer</code> array and an <code>Operation</code> property with an <code>Audit</code> action. The <code>DataIdentifer</code> array lists the types of sensitive data that you want to mask. For more information about the available options, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data-types.html\">Types of data that you can mask</a>.</p> <p>The <code>Operation</code> property with an <code>Audit</code> action is required to find the sensitive data terms. This <code>Audit</code> action must contain a <code>FindingsDestination</code> object. You can optionally use that <code>FindingsDestination</code> object to list one or more destinations to send audit findings to. If you specify destinations such as log groups, Firehose streams, and S3 buckets, they must already exist.</p> </li> <li> <p>The second block must include both a <code>DataIdentifer</code> array and an <code>Operation</code> property with an <code>Deidentify</code> action. The <code>DataIdentifer</code> array must exactly match the <code>DataIdentifer</code> array in the first block of the policy.</p> <p>The <code>Operation</code> property with the <code>Deidentify</code> action is what actually masks the data, and it must contain the <code> \"MaskConfig\": {}</code> object. The <code> \"MaskConfig\": {}</code> object must be empty.</p> </li> </ul> <p>For an example data protection policy, see the <b>Examples</b> section on this page.</p> <important> <p>The contents of the two <code>DataIdentifer</code> arrays must match exactly.</p> </important> <p>In addition to the two JSON blocks, the <code>policyDocument</code> can also include <code>Name</code>, <code>Description</code>, and <code>Version</code> fields. The <code>Name</code> is different than the operation's <code>policyName</code> parameter, and is used as a dimension when CloudWatch Logs reports audit findings metrics to CloudWatch.</p> <p>The JSON specified in <code>policyDocument</code> can be up to 30,720 characters long.</p> <p> <b>Subscription filter policy</b> </p> <p>A subscription filter policy can include the following attributes in a JSON block:</p> <ul> <li> <p> <b>DestinationArn</b> The ARN of the destination to deliver log events to. Supported destinations are:</p> <ul> <li> <p>An Kinesis Data Streams data stream in the same account as the subscription policy, for same-account delivery.</p> </li> <li> <p>An Firehose data stream in the same account as the subscription policy, for same-account delivery.</p> </li> <li> <p>A Lambda function in the same account as the subscription policy, for same-account delivery.</p> </li> <li> <p>A logical destination in a different account created with <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDestination.html\">PutDestination</a>, for cross-account delivery. Kinesis Data Streams and Firehose are supported as logical destinations.</p> </li> </ul> </li> <li> <p> <b>RoleArn</b> The ARN of an IAM role that grants CloudWatch Logs permissions to deliver ingested log events to the destination stream. You don't need to provide the ARN when you are working with a logical destination for cross-account delivery.</p> </li> <li> <p> <b>FilterPattern</b> A filter pattern for subscribing to a filtered stream of log events.</p> </li> <li> <p> <b>Distribution</b>The method used to distribute log data to the destination. By default, log data is grouped by log stream, but the grouping can be set to <code>Random</code> for a more even distribution. This property is only applicable when the destination is an Kinesis Data Streams data stream.</p> </li> </ul>"
+          "documentation":"<p>Specify the policy, in JSON.</p> <p> <b>Data protection policy</b> </p> <p>A data protection policy must include two JSON blocks:</p> <ul> <li> <p>The first block must include both a <code>DataIdentifer</code> array and an <code>Operation</code> property with an <code>Audit</code> action. The <code>DataIdentifer</code> array lists the types of sensitive data that you want to mask. For more information about the available options, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/mask-sensitive-log-data-types.html\">Types of data that you can mask</a>.</p> <p>The <code>Operation</code> property with an <code>Audit</code> action is required to find the sensitive data terms. This <code>Audit</code> action must contain a <code>FindingsDestination</code> object. You can optionally use that <code>FindingsDestination</code> object to list one or more destinations to send audit findings to. If you specify destinations such as log groups, Firehose streams, and S3 buckets, they must already exist.</p> </li> <li> <p>The second block must include both a <code>DataIdentifer</code> array and an <code>Operation</code> property with an <code>Deidentify</code> action. The <code>DataIdentifer</code> array must exactly match the <code>DataIdentifer</code> array in the first block of the policy.</p> <p>The <code>Operation</code> property with the <code>Deidentify</code> action is what actually masks the data, and it must contain the <code> \"MaskConfig\": {}</code> object. The <code> \"MaskConfig\": {}</code> object must be empty.</p> </li> </ul> <p>For an example data protection policy, see the <b>Examples</b> section on this page.</p> <important> <p>The contents of the two <code>DataIdentifer</code> arrays must match exactly.</p> </important> <p>In addition to the two JSON blocks, the <code>policyDocument</code> can also include <code>Name</code>, <code>Description</code>, and <code>Version</code> fields. The <code>Name</code> is different than the operation's <code>policyName</code> parameter, and is used as a dimension when CloudWatch Logs reports audit findings metrics to CloudWatch.</p> <p>The JSON specified in <code>policyDocument</code> can be up to 30,720 characters long.</p> <p> <b>Subscription filter policy</b> </p> <p>A subscription filter policy can include the following attributes in a JSON block:</p> <ul> <li> <p> <b>DestinationArn</b> The ARN of the destination to deliver log events to. Supported destinations are:</p> <ul> <li> <p>An Kinesis Data Streams data stream in the same account as the subscription policy, for same-account delivery.</p> </li> <li> <p>An Firehose data stream in the same account as the subscription policy, for same-account delivery.</p> </li> <li> <p>A Lambda function in the same account as the subscription policy, for same-account delivery.</p> </li> <li> <p>A logical destination in a different account created with <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutDestination.html\">PutDestination</a>, for cross-account delivery. Kinesis Data Streams and Firehose are supported as logical destinations.</p> </li> </ul> </li> <li> <p> <b>RoleArn</b> The ARN of an IAM role that grants CloudWatch Logs permissions to deliver ingested log events to the destination stream. You don't need to provide the ARN when you are working with a logical destination for cross-account delivery.</p> </li> <li> <p> <b>FilterPattern</b> A filter pattern for subscribing to a filtered stream of log events.</p> </li> <li> <p> <b>Distribution</b> The method used to distribute log data to the destination. By default, log data is grouped by log stream, but the grouping can be set to <code>Random</code> for a more even distribution. This property is only applicable when the destination is an Kinesis Data Streams data stream.</p> </li> </ul>"
         },
         "policyType":{
           "shape":"PolicyType",
@@ -3838,7 +4100,7 @@
         },
         "logType":{
           "shape":"LogType",
-          "documentation":"<p>Defines the type of log that the source is sending.</p> <ul> <li> <p>For Amazon CodeWhisperer, the valid value is <code>EVENT_LOGS</code>.</p> </li> <li> <p>For IAM Identity Centerr, the valid value is <code>ERROR_LOGS</code>.</p> </li> <li> <p>For Amazon WorkMail, the valid values are <code>ACCESS_CONTROL_LOGS</code>, <code>AUTHENTICATION_LOGS</code>, <code>WORKMAIL_AVAILABILITY_PROVIDER_LOGS</code>, and <code>WORKMAIL_MAILBOX_ACCESS_LOGS</code>.</p> </li> </ul>"
+          "documentation":"<p>Defines the type of log that the source is sending.</p> <ul> <li> <p>For Amazon Bedrock, the valid value is <code>APPLICATION_LOGS</code>.</p> </li> <li> <p>For Amazon CodeWhisperer, the valid value is <code>EVENT_LOGS</code>.</p> </li> <li> <p>For IAM Identity Center, the valid value is <code>ERROR_LOGS</code>.</p> </li> <li> <p>For Amazon WorkMail, the valid values are <code>ACCESS_CONTROL_LOGS</code>, <code>AUTHENTICATION_LOGS</code>, <code>WORKMAIL_AVAILABILITY_PROVIDER_LOGS</code>, and <code>WORKMAIL_MAILBOX_ACCESS_LOGS</code>.</p> </li> </ul>"
         },
         "tags":{
           "shape":"Tags",
@@ -3934,6 +4196,10 @@
         "sequenceToken":{
           "shape":"SequenceToken",
           "documentation":"<p>The sequence token obtained from the response of the previous <code>PutLogEvents</code> call.</p> <important> <p>The <code>sequenceToken</code> parameter is now ignored in <code>PutLogEvents</code> actions. <code>PutLogEvents</code> actions are now accepted and never return <code>InvalidSequenceTokenException</code> or <code>DataAlreadyAcceptedException</code> even if the sequence token is not valid.</p> </important>"
+        },
+        "entity":{
+          "shape":"Entity",
+          "documentation":"<p>Reserved for internal use.</p>"
         }
       }
     },
@@ -3947,6 +4213,10 @@
         "rejectedLogEventsInfo":{
           "shape":"RejectedLogEventsInfo",
           "documentation":"<p>The rejected events.</p>"
+        },
+        "rejectedEntityInfo":{
+          "shape":"RejectedEntityInfo",
+          "documentation":"<p>Reserved for internal use.</p>"
         }
       }
     },
@@ -4235,6 +4505,37 @@
       "max":10000,
       "min":0
     },
+    "RecordField":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"FieldHeader",
+          "documentation":"<p>The name to use when specifying this record field in a <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateDelivery.html\">CreateDelivery</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_UpdateDeliveryConfiguration.html\">UpdateDeliveryConfiguration</a> operation. </p>"
+        },
+        "mandatory":{
+          "shape":"Boolean",
+          "documentation":"<p>If this is <code>true</code>, the record field must be present in the <code>recordFields</code> parameter provided to a <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateDelivery.html\">CreateDelivery</a> or <a href=\"https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_UpdateDeliveryConfiguration.html\">UpdateDeliveryConfiguration</a> operation.</p>"
+        }
+      },
+      "documentation":"<p>A structure that represents a valid record field header and whether it is mandatory.</p>"
+    },
+    "RecordFields":{
+      "type":"list",
+      "member":{"shape":"FieldHeader"},
+      "max":128,
+      "min":0
+    },
+    "RejectedEntityInfo":{
+      "type":"structure",
+      "required":["errorType"],
+      "members":{
+        "errorType":{
+          "shape":"EntityRejectionErrorType",
+          "documentation":"<p>Reserved for internal use.</p>"
+        }
+      },
+      "documentation":"<p>Reserved for internal use.</p>"
+    },
     "RejectedLogEventsInfo":{
       "type":"structure",
       "members":{
@@ -4304,6 +4605,18 @@
       },
       "documentation":"<p>A policy enabling one or more entities to put logs to a log group in this account.</p>"
     },
+    "ResourceType":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[\\w-_]*"
+    },
+    "ResourceTypes":{
+      "type":"list",
+      "member":{"shape":"ResourceType"},
+      "max":10,
+      "min":1
+    },
     "ResultField":{
       "type":"structure",
       "members":{
@@ -4325,6 +4638,21 @@
     "RoleArn":{
       "type":"string",
       "min":1
+    },
+    "S3DeliveryConfiguration":{
+      "type":"structure",
+      "members":{
+        "suffixPath":{
+          "shape":"DeliverySuffixPath",
+          "documentation":"<p>This string allows re-configuring the S3 object prefix to contain either static or variable sections. The valid variables to use in the suffix path will vary by each log source. See ConfigurationTemplate$allowedSuffixPathFields for more info on what values are supported in the suffix path for each log source.</p>"
+        },
+        "enableHiveCompatiblePath":{
+          "shape":"Boolean",
+          "documentation":"<p>This parameter causes the S3 objects that contain delivered logs to use a prefix structure that allows for integration with Apache Hive.</p>",
+          "box":true
+        }
+      },
+      "documentation":"<p>This structure contains delivery configurations that apply only when the delivery destination resource is an S3 bucket.</p>"
     },
     "Scope":{
       "type":"string",
@@ -4357,7 +4685,7 @@
       "type":"string",
       "max":255,
       "min":1,
-      "pattern":"[\\w]*"
+      "pattern":"[\\w_-]*"
     },
     "ServiceQuotaExceededException":{
       "type":"structure",
@@ -4835,6 +5163,33 @@
           "shape":"SuppressionPeriod",
           "documentation":"<p>If you are temporarily suppressing an anomaly or pattern, use this structure to specify how long the suppression is to last.</p>"
         }
+      }
+    },
+    "UpdateDeliveryConfigurationRequest":{
+      "type":"structure",
+      "required":["id"],
+      "members":{
+        "id":{
+          "shape":"DeliveryId",
+          "documentation":"<p>The ID of the delivery to be updated by this request.</p>"
+        },
+        "recordFields":{
+          "shape":"RecordFields",
+          "documentation":"<p>The list of record fields to be delivered to the destination, in order. If the delivery’s log source has mandatory fields, they must be included in this list.</p>"
+        },
+        "fieldDelimiter":{
+          "shape":"FieldDelimiter",
+          "documentation":"<p>The field delimiter to use between record fields when the final output format of a delivery is in <code>Plain</code>, <code>W3C</code>, or <code>Raw</code> format.</p>"
+        },
+        "s3DeliveryConfiguration":{
+          "shape":"S3DeliveryConfiguration",
+          "documentation":"<p>This structure contains parameters that are valid only when the delivery’s delivery destination is an S3 bucket.</p>"
+        }
+      }
+    },
+    "UpdateDeliveryConfigurationResponse":{
+      "type":"structure",
+      "members":{
       }
     },
     "UpdateLogAnomalyDetectorRequest":{
