@@ -319,7 +319,6 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
             if (oldValue != null) {
                 dependencyGraph.valueUpdated(oldValue, value);
             }
-
         }
 
         /**
