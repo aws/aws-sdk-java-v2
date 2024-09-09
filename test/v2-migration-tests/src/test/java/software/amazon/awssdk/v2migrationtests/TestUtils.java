@@ -52,7 +52,9 @@ public class TestUtils {
                                                             "netty-nio-client",
                                                             "dynamodb",
                                                             "sqs",
-                                                            "s3");
+                                                            "s3",
+                                                            "http-auth-aws-eventstream",
+                                                            "utils");
         } catch (Exception exception) {
             log.warn(() -> "Exception occurred, ignoring", exception);
             return false;
