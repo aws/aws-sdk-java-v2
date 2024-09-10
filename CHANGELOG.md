@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.23__ __2024-09-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation update for Security Hub
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Documentation-only update that clarifies the ValidateE911Address action of the Amazon Chime SDK Voice APIs.
+
+## __Amazon Cognito Identity__
+  - ### Features
+    - This release adds sensitive trait to some required shapes.
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - This release adds support for customer managed KMS keys in Amazon EventBridge Pipe
+
 # __2.27.22__ __2024-09-09__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -106,7 +127,7 @@
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@shetsa-amzn](https://github.com/shetsa-amzn), [@anirudh9391](https://github.com/anirudh9391)
+[@anirudh9391](https://github.com/anirudh9391), [@shetsa-amzn](https://github.com/shetsa-amzn)
 # __2.27.18__ __2024-09-03__
 ## __AWS Elemental MediaLive__
   - ### Features
