@@ -31,6 +31,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.profiles.internal.ProfileFileReader;
 import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -233,6 +234,14 @@ public final class ProfileFile {
      * required fields.
      */
     public interface Builder extends SdkBuilder<Builder, ProfileFile> {
+        /**
+         * Configure the content of the profile file. This stream will be read from and then closed when {@link #build()} is
+         * invoked.
+         */
+        default Builder content(String content) {
+            return content(new StringInputStream(content));
+        }
+
         /**
          * Configure the content of the profile file. This stream will be read from and then closed when {@link #build()} is
          * invoked.

@@ -1,4 +1,91 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.23__ __2024-09-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation update for Security Hub
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Documentation-only update that clarifies the ValidateE911Address action of the Amazon Chime SDK Voice APIs.
+
+## __Amazon Cognito Identity__
+  - ### Features
+    - This release adds sensitive trait to some required shapes.
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - This release adds support for customer managed KMS keys in Amazon EventBridge Pipe
+
+# __2.27.22__ __2024-09-09__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Removed reflect-config.json from sdk-core, as it referenced a deleted interceptor. See [#5552](https://github.com/aws/aws-sdk-java-v2/issues/5552).
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Doc-only update for DynamoDB. Added information about async behavior for TagResource and UntagResource APIs and updated the description of ResourceInUseException.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - IVS Real-Time now offers customers the ability to broadcast to Stages using RTMP(S).
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - AWS SageMaker Runtime feature: Add sticky routing to support stateful inference models.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon Sagemaker supports orchestrating SageMaker HyperPod clusters with Amazon EKS
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Add paginators for the ELBv2 DescribeListenerCertificates and DescribeRules APIs. Fix broken waiter for the ELBv2 DescribeLoadBalancers API.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK Replicator can now replicate data to identically named topics between MSK clusters within the same AWS Region or across different AWS Regions.
+
+# __2.27.21__ __2024-09-06__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __QApps__
+  - ### Features
+    - Adds UpdateLibraryItemMetadata api to change status of app for admin verification feature and returns isVerified field in any api returning the app or library item.
+
+# __2.27.20__ __2024-09-05__
+## __AWS CodePipeline__
+  - ### Features
+    - Updates to add recent notes to APIs and to replace example S3 bucket names globally.
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - Amazon CloudWatch Application Signals now supports creating Service Level Objectives using a new calculation type. Users can now create SLOs which are configured with request-based SLIs to help meet their specific business requirements.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Custom Vocabulary now supports Catalan (Spain), Danish (Denmark), Dutch (Netherlands), Finnish (Finland), Indonesian (Indonesia), Malay (Malaysia), Norwegian Bokmal (Norway), Polish (Poland), Swedish (Sweden), and Tagalog/Filipino (Philippines).
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift provides additional events for tracking the fleet creation process.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for Flink 1.20 in Managed Service for Apache Flink
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker now supports idle shutdown of JupyterLab and CodeEditor applications on SageMaker Studio.
+
 # __2.27.19__ __2024-09-04__
 ## __AWS AppSync__
   - ### Features
