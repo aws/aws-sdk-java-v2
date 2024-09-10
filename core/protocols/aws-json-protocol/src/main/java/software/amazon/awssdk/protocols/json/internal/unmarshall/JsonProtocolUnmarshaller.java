@@ -38,6 +38,7 @@ import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
@@ -179,7 +180,7 @@ public class JsonProtocolUnmarshaller {
             return null;
         }
 
-        SdkField<Object> valueInfo = field.getTrait(MapTrait.class).valueFieldInfo();
+        SdkField<Object> valueInfo = field.getTrait(MapTrait.class, TraitType.MAP_TRAIT).valueFieldInfo();
         JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(valueInfo.location(), valueInfo.marshallingType());
         Map<String, JsonNode> asObject = jsonContent.asObject();
         Map<String, Object> map = new HashMap<>(asObject.size());
@@ -194,7 +195,7 @@ public class JsonProtocolUnmarshaller {
             return null;
         }
 
-        SdkField<Object> memberInfo = field.getTrait(ListTrait.class).memberFieldInfo();
+        SdkField<Object> memberInfo = field.getTrait(ListTrait.class, TraitType.LIST_TRAIT).memberFieldInfo();
         List<JsonNode> asArray = jsonContent.asArray();
         List<Object> result = new ArrayList<>(asArray.size());
         for (JsonNode node : asArray) {
@@ -249,7 +250,7 @@ public class JsonProtocolUnmarshaller {
     }
 
     private static boolean isExplicitPayloadMember(SdkField<?> f) {
-        return f.containsTrait(PayloadTrait.class);
+        return f.containsTrait(PayloadTrait.class, TraitType.PAYLOAD_TRAIT);
     }
 
     private boolean isPayloadMemberOnUnmarshall(SdkField<?> f) {
