@@ -406,7 +406,11 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addStatement("builder.option($1T.EXECUTION_INTERCEPTORS, interceptors)", SdkClientOption.class);
 
         if (model.getCustomizationConfig().getServiceConfig().hasDualstackProperty()) {
-            builder.addStatement("builder.option($T.DUALSTACK_ENDPOINT_ENABLED, finalServiceConfig.dualstackEnabled())",
+            // NOTE: usage of serviceConfigBuilder and not finalServiceConfig is intentional. We need the nullable boolean here
+            // to ensure fallback resolution of the dualstack configuration if dualstack was not explicitly configured on
+            // serviceConfigBuilder; the service configuration classes (e.g. S3Configuration) return primitive booleans that
+            // have a default when not present.
+            builder.addStatement("builder.option($T.DUALSTACK_ENDPOINT_ENABLED, serviceConfigBuilder.dualstackEnabled())",
                             AwsClientOption.class);
         }
 
