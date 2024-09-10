@@ -45,7 +45,7 @@ class SqsAsyncBatchManagerBuilderTest {
     }
 
     @ParameterizedTest
-    @MethodSource("inCompleteBuilders")
+    @MethodSource("incompleteBuilders")
     void testIncompleteBuilders(SqsAsyncBatchManager.Builder builder, String errorMessage) {
         assertThatExceptionOfType(NullPointerException.class)
             .isThrownBy(builder::build)
