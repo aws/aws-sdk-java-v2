@@ -48,8 +48,8 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
 
     private DefaultSqsAsyncBatchManager(DefaultBuilder builder) {
         this.client = Validate.notNull(builder.client, "client cannot be null");
-        ScheduledExecutorService scheduledExecutor = builder.scheduledExecutor;
-
+        ScheduledExecutorService scheduledExecutor  = Validate.notNull(builder.scheduledExecutor,
+                                                                       "scheduledExecutor cannot be null");
         this.sendMessageBatchManager =
             new SendMessageBatchManager(
                 RequestBatchConfiguration.builder(builder.overrideConfiguration)
