@@ -124,7 +124,8 @@ public class DefaultNamingStrategy implements NamingStrategy {
     public String getServiceNameForEnvironmentVariables() {
         String baseName = serviceId();
         baseName = removeRedundantPrefixesAndSuffixes(baseName);
-        baseName = screamCase(baseName);
+        baseName = baseName.replace(' ', '_');
+        baseName = StringUtils.upperCase(baseName);
         return baseName;
     }
 
