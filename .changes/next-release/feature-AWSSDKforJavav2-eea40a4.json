@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Add support for specify endpoint overrides using environment variables, system properties or profile files. More information about this feature is available here: https://docs.aws.amazon.com/sdkref/latest/guide/feature-ss-endpoints.html"
+    "description": "Add support for specifying endpoint overrides using environment variables, system properties or profile files. More information about this feature is available here: https://docs.aws.amazon.com/sdkref/latest/guide/feature-ss-endpoints.html"
 }
