@@ -31,7 +31,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 class SqsAsyncBatchManagerBuilderTest {
 
 
-    static Stream<Arguments> inCompleteBuilders() {
+    static Stream<Arguments> incompleteBuilders() {
         return Stream.of(
             Arguments.of(SqsAsyncBatchManager.builder()
                                              .client(null)
