@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Cognito Identity",
-    "contributor": "",
-    "description": "This release adds sensitive trait to some required shapes."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Chime SDK Voice",
-    "contributor": "",
-    "description": "Documentation-only update that clarifies the ValidateE911Address action of the Amazon Chime SDK Voice APIs."
-}
