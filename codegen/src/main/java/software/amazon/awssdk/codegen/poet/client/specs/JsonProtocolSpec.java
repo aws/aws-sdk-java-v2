@@ -46,6 +46,7 @@ import software.amazon.awssdk.codegen.poet.client.traits.NoneAuthTypeRequestTrai
 import software.amazon.awssdk.codegen.poet.client.traits.RequestCompressionTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
+import software.amazon.awssdk.codegen.utils.SpecUtils;
 import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -216,7 +217,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
         boolean isRestJson = isRestJson(intermediateModel);
         TypeName pojoResponseType = getPojoResponseType(opModel, poetExtensions);
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
-        ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
 
         String asyncRequestBody = opModel.hasStreamingInput() ? ".withAsyncRequestBody(requestBody)"
                                                               : "";
@@ -246,7 +246,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
         }
 
         boolean isStreaming = opModel.hasStreamingOutput() || opModel.hasEventStreamOutput();
-        String protocolFactory = protocolFactoryLiteral(intermediateModel, opModel);
         TypeName responseType = opModel.hasEventStreamOutput() && !isRestJson ? ClassName.get(SdkResponse.class)
                                                                               : pojoResponseType;
         TypeName executeFutureValueType = executeFutureValueType(opModel, poetExtensions);
@@ -255,21 +254,25 @@ public class JsonProtocolSpec implements ProtocolSpec {
                .add(opModel.getEndpointDiscovery() != null ? "endpointFuture.thenCompose(cachedEndpoint -> " : "")
                .add("clientHandler.execute(new $T<$T, $T>()\n", ClientExecutionParams.class, requestType, responseType)
                .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
-               .add(".withProtocolMetadata(protocolMetadata)\n")
-               .add(".withMarshaller($L)\n", asyncMarshaller(model, opModel, marshaller, protocolFactory))
-               .add(asyncRequestBody(opModel))
-               .add(fullDuplex(opModel))
-               .add(hasInitialRequestEvent(opModel, isRestJson))
-               .add(".withResponseHandler($L)\n", responseHandlerName(opModel, isRestJson))
-               .add(".withErrorResponseHandler(errorResponseHandler)\n")
-               .add(".withRequestConfiguration(clientConfiguration)")
-               .add(".withMetricCollector(apiCallMetricCollector)\n")
-               .add(hostPrefixExpression(opModel))
-               .add(discoveredEndpoint(opModel))
-               .add(credentialType(opModel, model))
-               .add(asyncRequestBody)
-               .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
-               .add(HttpChecksumTrait.create(opModel));
+               .add(".withProtocolMetadata(protocolMetadata)\n");
+
+        addMarshaller(builder, opModel, intermediateModel);
+
+        builder
+            .add(asyncRequestBody(opModel))
+            .add(fullDuplex(opModel))
+            .add(hasInitialRequestEvent(opModel, isRestJson))
+            .add(".withResponseHandler($L)\n", responseHandlerName(opModel, isRestJson))
+            .add(".withErrorResponseHandler(errorResponseHandler)\n")
+            .add(".withRequestConfiguration(clientConfiguration)")
+            .add(".withMetricCollector(apiCallMetricCollector)\n")
+            .add(hostPrefixExpression(opModel))
+            .add(discoveredEndpoint(opModel))
+            .add(credentialType(opModel, model))
+            .add(asyncRequestBody)
+            .add(SpecUtils.putPresignedUrlAttribute(opModel))
+            .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
+            .add(HttpChecksumTrait.create(opModel));
 
         if (!useSraAuth) {
             builder.add(NoneAuthTypeRequestTrait.create(opModel));
@@ -301,6 +304,18 @@ public class JsonProtocolSpec implements ProtocolSpec {
             builder.addStatement("return executeFuture");
         }
         return builder.build();
+    }
+
+    private void addMarshaller(CodeBlock.Builder builder, OperationModel opModel, IntermediateModel intermediateModel) {
+        ShapeModel inputShape = opModel.getInputShape();
+
+        if (inputShape.getMarshallerFqcn() != null) {
+            SpecUtils.addCustomMarshaller(builder, opModel);
+        } else {
+            String protocolFactory = protocolFactoryLiteral(intermediateModel, opModel);
+            ClassName marshaller = poetExtensions.getRequestTransformClass(inputShape.getShapeName() + "Marshaller");
+            builder.add(".withMarshaller($L)\n", asyncMarshaller(model, opModel, marshaller, protocolFactory));
+        }
     }
 
     private String responseHandlerName(OperationModel opModel, boolean isRestJson) {

@@ -335,11 +335,16 @@ public class AsyncClientInterface implements ClassSpec {
 
     protected MethodSpec traditionalMethod(OperationModel opModel) {
         ClassName responsePojoType = getPojoResponseType(opModel);
-        ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
+        ClassName requestType;
+        if (opModel.getInputShape().getFqcn() != null) {
+            requestType = PoetUtils.classNameFromFqcn(opModel.getInputShape().getFqcn());
+        } else {
+            requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
+        }
 
         MethodSpec.Builder builder = methodSignatureWithReturnType(opModel)
-                .addParameter(requestType, opModel.getInput().getVariableName())
-                .addJavadoc(opModel.getDocs(model, ClientType.ASYNC));
+            .addParameter(requestType, opModel.getInput().getVariableName())
+            .addJavadoc(opModel.getDocs(model, ClientType.ASYNC));
 
         if (opModel.hasStreamingInput()) {
             builder.addParameter(ClassName.get(AsyncRequestBody.class), ASYNC_STREAMING_INPUT_PARAM);

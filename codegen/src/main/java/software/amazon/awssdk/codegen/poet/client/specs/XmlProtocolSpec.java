@@ -40,6 +40,7 @@ import software.amazon.awssdk.codegen.poet.client.traits.NoneAuthTypeRequestTrai
 import software.amazon.awssdk.codegen.poet.client.traits.RequestCompressionTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
+import software.amazon.awssdk.codegen.utils.SpecUtils;
 import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -185,7 +186,6 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
 
         ClassName pojoResponseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
-        ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
         String eventStreamTransformFutureName = "eventStreamTransformFuture";
 
         CodeBlock.Builder builder = CodeBlock.builder();
@@ -205,8 +205,9 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                     ClientExecutionParams.class, requestType, pojoResponseType)
                .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
                .add(".withRequestConfiguration(clientConfiguration)")
-               .add(".withProtocolMetadata(protocolMetadata)\n")
-               .add(".withMarshaller($L)\n", asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"));
+               .add(".withProtocolMetadata(protocolMetadata)\n");
+
+        addMarshaller(builder, opModel);
 
         if (opModel.hasEventStreamOutput()) {
             builder.add(".withResponseHandler(responseHandler)")
@@ -219,6 +220,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                .add(credentialType(opModel, model))
                .add(".withMetricCollector(apiCallMetricCollector)\n")
                .add(asyncRequestBody(opModel))
+               .add(SpecUtils.putPresignedUrlAttribute(opModel))
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                .add(HttpChecksumTrait.create(opModel));
 
@@ -259,6 +261,17 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         }
 
         return builder.build();
+    }
+
+    private void addMarshaller(CodeBlock.Builder builder, OperationModel opModel) {
+        ShapeModel inputShape = opModel.getInputShape();
+
+        if (inputShape.getMarshallerFqcn() != null) {
+            SpecUtils.addCustomMarshaller(builder, opModel);
+        } else {
+            ClassName marshaller = poetExtensions.getRequestTransformClass(inputShape.getShapeName() + "Marshaller");
+            builder.add(".withMarshaller($L)\n", asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"));
+        }
     }
 
     private String asyncRequestBody(OperationModel opModel) {

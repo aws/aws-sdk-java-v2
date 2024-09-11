@@ -27,12 +27,14 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.NoneAuthTypeRequestTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.RequestCompressionTrait;
+import software.amazon.awssdk.codegen.utils.SpecUtils;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -142,7 +144,6 @@ public class QueryProtocolSpec implements ProtocolSpec {
     public CodeBlock asyncExecutionHandler(IntermediateModel intermediateModel, OperationModel opModel) {
         ClassName pojoResponseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
-        ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
 
         String asyncRequestBody = opModel.hasStreamingInput() ? ".withAsyncRequestBody(requestBody)"
                                                               : "";
@@ -153,16 +154,19 @@ public class QueryProtocolSpec implements ProtocolSpec {
                           CompletableFuture.class, executeFutureValueType, ClientExecutionParams.class,
                           requestType, pojoResponseType)
                      .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
-                     .add(".withProtocolMetadata(protocolMetadata)\n")
-                     .add(".withMarshaller($L)\n",
-                          asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"))
-                     .add(".withResponseHandler(responseHandler)\n")
-                     .add(".withErrorResponseHandler(errorResponseHandler)\n")
-                     .add(credentialType(opModel, intermediateModel))
-                     .add(".withRequestConfiguration(clientConfiguration)")
-                     .add(".withMetricCollector(apiCallMetricCollector)\n")
-                     .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
-                     .add(HttpChecksumTrait.create(opModel));
+                     .add(".withProtocolMetadata(protocolMetadata)\n");
+
+        addMarshaller(builder, opModel);
+
+        builder
+            .add(".withResponseHandler(responseHandler)\n")
+            .add(".withErrorResponseHandler(errorResponseHandler)\n")
+            .add(credentialType(opModel, intermediateModel))
+            .add(".withRequestConfiguration(clientConfiguration)")
+            .add(".withMetricCollector(apiCallMetricCollector)\n")
+            .add(SpecUtils.putPresignedUrlAttribute(opModel))
+            .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
+            .add(HttpChecksumTrait.create(opModel));
 
         if (!useSraAuth) {
             builder.add(NoneAuthTypeRequestTrait.create(opModel));
@@ -189,6 +193,17 @@ public class QueryProtocolSpec implements ProtocolSpec {
         builder.addStatement("return $T.forwardExceptionTo($N, executeFuture)", CompletableFutureUtils.class,
                 whenCompleteFutureName);
         return builder.build();
+    }
+
+    private void addMarshaller(CodeBlock.Builder builder, OperationModel opModel) {
+        ShapeModel inputShape = opModel.getInputShape();
+
+        if (inputShape.getMarshallerFqcn() != null) {
+            SpecUtils.addCustomMarshaller(builder, opModel);
+        } else {
+            ClassName marshaller = poetExtensions.getRequestTransformClass(inputShape.getShapeName() + "Marshaller");
+            builder.add(".withMarshaller($L)\n", asyncMarshaller(intermediateModel, opModel, marshaller, "protocolFactory"));
+        }
     }
 
     @Override
