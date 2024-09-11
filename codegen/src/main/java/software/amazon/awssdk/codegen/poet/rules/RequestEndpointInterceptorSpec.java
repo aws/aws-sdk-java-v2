@@ -71,6 +71,13 @@ public class RequestEndpointInterceptorSpec implements ClassSpec {
          .addStatement("return context.httpRequest()")
          .endControlFlow().build();
 
+        if (endpointRulesSpecUtils.isS3()) {
+            b.beginControlFlow("if (executionAttributes.getAttribute($T.PRESIGNED_URL) != null)",
+                               SdkInternalExecutionAttribute.class)
+             .addStatement("return context.httpRequest()")
+             .endControlFlow().build();
+        }
+
         b.addStatement("$1T endpoint = ($1T) executionAttributes.getAttribute($2T.RESOLVED_ENDPOINT)",
                        Endpoint.class,
                        SdkInternalExecutionAttribute.class);

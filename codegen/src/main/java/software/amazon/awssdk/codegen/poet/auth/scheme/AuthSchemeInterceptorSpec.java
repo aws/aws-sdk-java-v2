@@ -50,6 +50,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
@@ -97,6 +98,11 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                .addMethod(generateTrySelectAuthScheme())
                .addMethod(generateGetIdentityMetric())
                .addMethod(putSelectedAuthSchemeMethodSpec());
+
+        if (endpointRulesSpecUtils.isS3()) {
+            builder.addMethod(generateNoAuthAuthScheme());
+        }
+
         return builder.build();
     }
 
@@ -109,11 +115,43 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                                .addParameter(ExecutionAttributes.class,
                                                              "executionAttributes");
 
+        if (endpointRulesSpecUtils.isS3()) {
+            builder.beginControlFlow("if (executionAttributes.getAttribute($T.PRESIGNED_URL) != null)",
+                                     SdkInternalExecutionAttribute.class)
+                   .addStatement("noAuthAuthScheme(executionAttributes)")
+                   .addStatement("return")
+                   .endControlFlow();
+        }
+
         builder.addStatement("$T authOptions = resolveAuthOptions(context, executionAttributes)",
                              listOf(AuthSchemeOption.class))
                .addStatement("$T selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes)",
                              wildcardSelectedAuthScheme())
                .addStatement("putSelectedAuthScheme(executionAttributes, selectedAuthScheme)");
+        return builder.build();
+    }
+
+    private MethodSpec generateNoAuthAuthScheme() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("noAuthAuthScheme")
+                                               .addModifiers(Modifier.PRIVATE)
+                                               .returns(void.class)
+                                               .addParameter(ExecutionAttributes.class,
+                                                             "executionAttributes");
+
+        builder.addStatement("$T authSchemes = executionAttributes.getAttribute($T.AUTH_SCHEMES)",
+                             mapOf(String.class, wildcardAuthScheme()),
+                             SdkInternalExecutionAttribute.class)
+               .addStatement("$1T authScheme = ($1T) authSchemes.get($2T.SCHEME_ID)",
+                             ParameterizedTypeName.get(AuthScheme.class, Identity.class), NoAuthAuthScheme.class)
+               .addStatement("$T identity = authScheme.identityProvider(null).resolveIdentity()", wildcardIdentityFuture())
+               .addStatement("$1T authSchemeOption = $1T.builder().schemeId(\"NoAuth\").build()", AuthSchemeOption.class);
+
+        builder.addStatement("$T noAuthAuthScheme = new $T<>(identity, authScheme.signer(), authSchemeOption)",
+                             wildcardSelectedAuthScheme(), SelectedAuthScheme.class);
+
+        builder.addStatement("executionAttributes.putAttribute($T.SELECTED_AUTH_SCHEME, noAuthAuthScheme)",
+                             SdkInternalExecutionAttribute.class);
+
         return builder.build();
     }
 
@@ -392,6 +430,12 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
     private TypeName namedIdentityFuture() {
         return ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
                                          WildcardTypeName.subtypeOf(TypeVariableName.get("T")));
+    }
+
+    // CompletableFuture<? extends Identity>
+    private TypeName wildcardIdentityFuture() {
+        return ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
+                                         WildcardTypeName.subtypeOf(Identity.class));
     }
 
     // AuthScheme<T>
