@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Container Registry",
+    "contributor": "",
+    "description": "Added KMS_DSSE to EncryptionType"
+}
