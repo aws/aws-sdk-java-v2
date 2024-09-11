@@ -1,0 +1,16 @@
+{
+  "pagination": {
+    "PaginatedOperationWithResultKey": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "Items"
+    },
+    "PaginatedOperationWithMoreResults": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "more_results": "Truncated",
+      "limit_key": "MaxResults"
+    }
+  }
+}
