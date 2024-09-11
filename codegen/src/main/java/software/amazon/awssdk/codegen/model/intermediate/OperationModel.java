@@ -77,6 +77,8 @@ public class OperationModel extends DocumentationModel {
 
     private boolean httpChecksumRequired;
 
+    private boolean isPresignedUrl;
+
     private HttpChecksum httpChecksum;
 
     private RequestCompression requestcompression;
@@ -336,6 +338,14 @@ public class OperationModel extends DocumentationModel {
 
     public void setHttpChecksumRequired(boolean httpChecksumRequired) {
         this.httpChecksumRequired = httpChecksumRequired;
+    }
+
+    public boolean isPresignedUrl() {
+        return isPresignedUrl;
+    }
+
+    public void setPresignedUrl(boolean isPresignedUrl) {
+        this.isPresignedUrl = isPresignedUrl;
     }
 
     public HttpChecksum getHttpChecksum() {

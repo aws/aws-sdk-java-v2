@@ -19,6 +19,10 @@ public class Input {
 
     private String shape;
 
+    private String fqcn;
+
+    private String marshallerFqcn;
+
     private String documentation;
 
     private String locationName;
@@ -31,6 +35,22 @@ public class Input {
 
     public void setShape(String shape) {
         this.shape = shape;
+    }
+
+    public String getFqcn() {
+        return fqcn;
+    }
+
+    public void setFqcn(String fqcn) {
+        this.fqcn = fqcn;
+    }
+
+    public String getMarshallerFqcn() {
+        return marshallerFqcn;
+    }
+
+    public void setMarshallerFqcn(String marshallerFqcn) {
+        this.marshallerFqcn = marshallerFqcn;
     }
 
     public String getDocumentation() {

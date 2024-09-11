@@ -316,7 +316,9 @@ public final class Utils {
     }
 
     public static List<ShapeModel> findShapesByC2jName(IntermediateModel intermediateModel, String shapeC2jName) {
-        return intermediateModel.getShapes().values().stream().filter(s -> s.getC2jName().equals(shapeC2jName)).collect(toList());
+        return intermediateModel.getShapes().values().stream()
+                                .filter(s -> s.getC2jName() != null)
+                                .filter(s -> s.getC2jName().equals(shapeC2jName)).collect(toList());
     }
 
     /**

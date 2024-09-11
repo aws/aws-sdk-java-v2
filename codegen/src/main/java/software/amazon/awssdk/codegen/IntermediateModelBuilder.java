@@ -36,10 +36,12 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.CustomOperationContextParam;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
+import software.amazon.awssdk.codegen.model.service.Input;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
@@ -221,21 +223,28 @@ public class IntermediateModelBuilder {
     }
 
     private void linkOperationsToInputOutputShapes(IntermediateModel model) {
-        for (Map.Entry<String, OperationModel> entry : model.getOperations().entrySet()) {
+        model.getOperations().forEach((key, value) -> {
 
-            Operation operation = service.getOperations().get(entry.getKey());
+            Operation operation = service.getOperations().get(key);
 
-            if (entry.getValue().getInput() != null) {
-                entry.getValue().setInputShape(model.getShapes().get(entry.getValue().getInput().getSimpleType()));
+            Input input = operation.getInput();
+            if (input != null && input.getFqcn() != null) {
+                ShapeModel shapeModel = new ShapeModel();
+                shapeModel.setFqcn(input.getFqcn());
+                shapeModel.setMarshallerFqcn(input.getMarshallerFqcn());
+                shapeModel.setType(ShapeType.Request);
+                value.setInputShape(shapeModel);
+            } else if (value.getInput() != null) {
+                value.setInputShape(model.getShapes().get(value.getInput().getSimpleType()));
             }
 
             if (operation.getOutput() != null) {
                 String outputShapeName = operation.getOutput().getShape();
                 ShapeModel outputShape =
-                    model.getShapeByNameAndC2jName(entry.getValue().getReturnType().getReturnType(), outputShapeName);
-                entry.getValue().setOutputShape(outputShape);
+                    model.getShapeByNameAndC2jName(value.getReturnType().getReturnType(), outputShapeName);
+                value.setOutputShape(outputShape);
             }
-        }
+        });
     }
 
     private void linkCustomAuthorizationToRequestShapes(IntermediateModel model) {

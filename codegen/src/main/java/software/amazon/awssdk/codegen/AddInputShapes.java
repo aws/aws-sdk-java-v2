@@ -53,6 +53,14 @@ final class AddInputShapes extends AddShapes implements IntermediateModelShapePr
             Input input = operation.getInput();
 
             if (input != null) {
+                if (input.getFqcn() != null) {
+                    ShapeModel shapeModel = new ShapeModel();
+                    shapeModel.setFqcn(input.getFqcn());
+                    shapeModel.setMarshallerFqcn(input.getMarshallerFqcn());
+                    shapeModel.setType(ShapeType.Request);
+                    javaShapes.put(operationName, shapeModel);
+                    continue;
+                }
 
                 String javaRequestShapeName = getNamingStrategy()
                         .getRequestClassName(operationName);

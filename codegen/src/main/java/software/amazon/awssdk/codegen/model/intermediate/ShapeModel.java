@@ -36,6 +36,8 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     private String c2jName;
     // shapeName might be later modified by the customization.
     private String shapeName;
+    private String fqcn;
+    private String marshallerFqcn;
     // the local variable name inside marshaller/unmarshaller implementation
     private boolean deprecated;
     private String deprecatedMessage;
@@ -91,6 +93,22 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     public void setShapeName(String shapeName) {
         this.shapeName = shapeName;
+    }
+
+    public String getFqcn() {
+        return fqcn;
+    }
+
+    public void setFqcn(String fqcn) {
+        this.fqcn = fqcn;
+    }
+
+    public String getMarshallerFqcn() {
+        return marshallerFqcn;
+    }
+
+    public void setMarshallerFqcn(String marshallerFqcn) {
+        this.marshallerFqcn = marshallerFqcn;
     }
 
     @Override

@@ -346,10 +346,11 @@ abstract class AddShapes {
      */
     private String findRequestUri(Shape parentShape, Map<String, Shape> allC2jShapes) {
         return builder.getService().getOperations().values().stream()
-                .filter(o -> o.getInput() != null)
-                .filter(o -> allC2jShapes.get(o.getInput().getShape()).equals(parentShape))
-                .map(o -> o.getHttp().getRequestUri())
-                .findFirst().orElseThrow(() -> new RuntimeException("Could not find request URI for input shape"));
+                      .filter(o -> o.getInput() != null)
+                      .filter(o -> allC2jShapes.get(o.getInput().getShape()) != null)
+                      .filter(o -> allC2jShapes.get(o.getInput().getShape()).equals(parentShape))
+                      .map(o -> o.getHttp().getRequestUri())
+                      .findFirst().orElseThrow(() -> new RuntimeException("Could not find request URI for input shape"));
     }
 
     private String deriveUnmarshallerLocationName(Shape memberShape, String memberName, Member member) {

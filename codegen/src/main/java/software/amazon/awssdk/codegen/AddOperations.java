@@ -19,6 +19,7 @@ import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -183,12 +184,21 @@ final class AddOperations {
             operationModel.setOperationContextParams(op.getOperationContextParams());
             operationModel.setAuth(getAuthFromOperation(op));
 
+            if (op.getInput() != null && op.getInput().getFqcn() != null) {
+                operationModel.setPresignedUrl(op.getInput().getFqcn().toLowerCase(Locale.ROOT).contains("presigned"));
+            }
+
             Input input = op.getInput();
             if (input != null) {
                 String originalShapeName = input.getShape();
                 String inputShape = namingStrategy.getRequestClassName(operationName);
-                String documentation = input.getDocumentation() != null ? input.getDocumentation() :
-                                       c2jShapes.get(originalShapeName).getDocumentation();
+
+                String documentation = null;
+                if (input.getDocumentation() != null) {
+                    documentation = input.getDocumentation();
+                } else if (c2jShapes.get(originalShapeName) != null) {
+                    documentation = c2jShapes.get(originalShapeName).getDocumentation();
+                }
 
                 operationModel.setInput(new VariableModel(unCapitalize(inputShape), inputShape)
                                             .withDocumentation(documentation));
