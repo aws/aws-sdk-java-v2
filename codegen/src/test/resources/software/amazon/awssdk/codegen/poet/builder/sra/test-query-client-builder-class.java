@@ -105,9 +105,9 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
             SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
             c -> AwsClientEndpointProvider
                 .builder()
-                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_QUERY")
+                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_QUERY_SERVICE")
                 .serviceEndpointOverrideSystemProperty("aws.endpointUrlQuery")
-                .serviceProfileProperty("query")
+                .serviceProfileProperty("query_service")
                 .serviceEndpointPrefix(serviceEndpointPrefix())
                 .defaultProtocol("https")
                 .region(c.get(AwsClientOption.AWS_REGION))
@@ -235,4 +235,3 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
                          "The 'tokenProvider' must be configured in the client builder.");
     }
 }
-

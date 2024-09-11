@@ -82,9 +82,9 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
             SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
             c -> AwsClientEndpointProvider
                 .builder()
-                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_DATABASE")
+                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_DATABASE_SERVICE")
                 .serviceEndpointOverrideSystemProperty("aws.endpointUrlDatabase")
-                .serviceProfileProperty("database")
+                .serviceProfileProperty("database_service")
                 .serviceEndpointPrefix(serviceEndpointPrefix())
                 .defaultProtocol("https")
                 .region(c.get(AwsClientOption.AWS_REGION))
@@ -177,4 +177,3 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
     protected static void validateClientOptions(SdkClientConfiguration c) {
     }
 }
-

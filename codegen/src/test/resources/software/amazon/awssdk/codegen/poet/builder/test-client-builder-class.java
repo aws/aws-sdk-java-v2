@@ -162,9 +162,9 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
             SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
             c -> AwsClientEndpointProvider
                 .builder()
-                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_JSON")
+                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_JSON_SERVICE")
                 .serviceEndpointOverrideSystemProperty("aws.endpointUrlJson")
-                .serviceProfileProperty("json")
+                .serviceProfileProperty("json_service")
                 .serviceEndpointPrefix(serviceEndpointPrefix())
                 .defaultProtocol("https")
                 .region(c.get(AwsClientOption.AWS_REGION))
@@ -269,4 +269,3 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
                          "The 'tokenProvider' must be configured in the client builder.");
     }
 }
-
