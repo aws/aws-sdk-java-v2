@@ -8,6 +8,7 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.AwsClient;
+import software.amazon.awssdk.codegen.poet.model.PresignedCustomOperation;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.builder.Builder;
@@ -40,6 +41,7 @@ import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKe
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse;
+import software.amazon.awssdk.services.json.model.PresignedCustomOperationResponse;
 import software.amazon.awssdk.services.json.model.PutOperationWithChecksumRequest;
 import software.amazon.awssdk.services.json.model.PutOperationWithChecksumResponse;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationRequest;
@@ -1243,6 +1245,62 @@ public interface JsonAsyncClient extends AwsClient {
         Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
         return paginatedOperationWithoutResultKeyPaginator(PaginatedOperationWithoutResultKeyRequest.builder()
                                                                                                     .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
+    }
+
+    /**
+     * Invokes the PresignedCustomOperation operation asynchronously.
+     *
+     * @param presignedCustomOperationRequest
+     * @return A Java Future containing the result of the PresignedCustomOperation operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.PresignedCustomOperation
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PresignedCustomOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<PresignedCustomOperationResponse> presignedCustomOperation(
+        PresignedCustomOperation presignedCustomOperationRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Invokes the PresignedCustomOperation operation asynchronously.<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link PresignedCustomOperationRequest.Builder} avoiding
+     * the need to create one manually via {@link PresignedCustomOperationRequest#builder()}
+     * </p>
+     *
+     * @param presignedCustomOperationRequest
+     *        A {@link Consumer} that will call methods on {@link
+     *        software.amazon.awssdk.services.json.model.null.Builder} to create a request.
+     * @return A Java Future containing the result of the PresignedCustomOperation operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
+     *         {@link Throwable#getCause} to retrieve the underlying exception.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.PresignedCustomOperation
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PresignedCustomOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<PresignedCustomOperationResponse> presignedCustomOperation(
+        Consumer<PresignedCustomOperation.Builder> presignedCustomOperationRequest) {
+        return presignedCustomOperation(PresignedCustomOperation.builder().applyMutation(presignedCustomOperationRequest).build());
     }
 
     /**

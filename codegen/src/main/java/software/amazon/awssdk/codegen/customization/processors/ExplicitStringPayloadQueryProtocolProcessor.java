@@ -62,7 +62,7 @@ public class ExplicitStringPayloadQueryProtocolProcessor implements CodegenCusto
     }
 
     private boolean isExplicitStringPayload(Map<String, Shape> c2jShapes, Shape shape) {
-        if (shape.getPayload() == null) {
+        if (shape == null || shape.getPayload() == null) {
             return false;
         }
 

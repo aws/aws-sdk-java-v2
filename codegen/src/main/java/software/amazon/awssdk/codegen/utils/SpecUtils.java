@@ -22,7 +22,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 
 public final class SpecUtils {
-    private SpecUtils(){
+    private SpecUtils() {
     }
 
     public static void addCustomMarshaller(CodeBlock.Builder builder, OperationModel opModel) {
