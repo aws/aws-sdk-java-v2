@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lex Model Building V2",
-    "contributor": "",
-    "description": "Support new Polly voice engines in VoiceSettings: long-form and generative"
-}

@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.27.24__ __2024-09-11__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adds AV1 Codec support, SRT ouputs, and MediaLive Anywhere support.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Knowledge Bases now supports using inference profiles to increase throughput and improve resilience.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Amazon Bedrock Knowledge Bases now supports using inference profiles to increase throughput and improve resilience.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Added KMS_DSSE to EncryptionType
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add support for new statistic types in GetFindingsStatistics.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Support new Polly voice engines in VoiceSettings: long-form and generative
+
 # __2.27.23__ __2024-09-10__
 ## __AWS SDK for Java v2__
   - ### Features
