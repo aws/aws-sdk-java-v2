@@ -1,0 +1,36 @@
+{
+    "version": "2.27.23",
+    "date": "2024-09-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Documentation update for Security Hub"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Voice",
+            "contributor": "",
+            "description": "Documentation-only update that clarifies the ValidateE911Address action of the Amazon Chime SDK Voice APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity",
+            "contributor": "",
+            "description": "This release adds sensitive trait to some required shapes."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge Pipes",
+            "contributor": "",
+            "description": "This release adds support for customer managed KMS keys in Amazon EventBridge Pipe"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
