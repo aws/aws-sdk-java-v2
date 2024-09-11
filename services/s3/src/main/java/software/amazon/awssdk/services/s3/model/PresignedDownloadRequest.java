@@ -23,6 +23,7 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -40,7 +41,7 @@ public final class PresignedDownloadRequest
 
     private PresignedDownloadRequest(BuilderImpl builder) {
         super(builder);
-        this.presignedUrl = builder.presignedUrl;
+        this.presignedUrl = Validate.notNull(builder.presignedUrl, "Presigned URL must not be null");
         this.startByte = builder.startByte;
         this.endByte = builder.endByte;
         this.customHeaders = builder.customHeaders != null ? builder.customHeaders  : Collections.emptyMap();
