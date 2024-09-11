@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -88,6 +89,12 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Endpoint> RESOLVED_ENDPOINT =
         new ExecutionAttribute<>("ResolvedEndpoint");
+
+    /**
+     * The presigned URL for the request.
+     */
+    public static final ExecutionAttribute<URI> PRESIGNED_URL =
+        new ExecutionAttribute<>("PresignedUrl");
 
     /**
      * The values of client context params declared for this service. Client contet params are one possible source of inputs into
