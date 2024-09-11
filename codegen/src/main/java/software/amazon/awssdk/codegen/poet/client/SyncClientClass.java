@@ -237,6 +237,8 @@ public class SyncClientClass extends SyncClientInterface {
     @Override
     protected List<MethodSpec> operations() {
         return model.getOperations().values().stream()
+                    // TODO - determine if whether we want to add presignedDownload API for sync client as well
+                    .filter(o -> !o.isPresignedUrl())
                     .filter(o -> !o.hasEventStreamInput())
                     .filter(o -> !o.hasEventStreamOutput())
                     .flatMap(this::operations)
