@@ -61,6 +61,7 @@ public class CustomizationConfig {
     private Map<String, OperationModifier> operationModifiers;
     private Map<String, ShapeSubstitution> shapeSubstitutions;
     private CustomSdkShapes customSdkShapes;
+    private CustomSdkOperations customSdkOperations;
     private Map<String, ShapeModifier> shapeModifiers;
     /**
      * Sets the custom field name that identifies the type of modeled exception for JSON protocols.
@@ -371,6 +372,14 @@ public class CustomizationConfig {
 
     public void setCustomSdkShapes(CustomSdkShapes customSdkShapes) {
         this.customSdkShapes = customSdkShapes;
+    }
+
+    public CustomSdkOperations getCustomSdkOperations() {
+        return customSdkOperations;
+    }
+
+    public void setCustomSdkOperations(CustomSdkOperations customSdkOperations) {
+        this.customSdkOperations = customSdkOperations;
     }
 
     public Map<String, ShapeSubstitution> getShapeSubstitutions() {
