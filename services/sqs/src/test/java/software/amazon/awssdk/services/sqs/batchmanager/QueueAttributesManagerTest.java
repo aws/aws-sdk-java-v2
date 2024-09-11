@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -59,7 +60,7 @@ public class QueueAttributesManagerTest {
         Duration configuredWaitTime = Duration.ofSeconds(5);
 
         CompletableFuture<Duration> result = queueAttributesManager.getReceiveMessageTimeout(request, configuredWaitTime);
-        assertEquals(Duration.ofSeconds(15), result.get());
+        assertEquals(Duration.ofSeconds(15), result.get(3, TimeUnit.SECONDS));
     }
 
     @Test
@@ -70,7 +71,7 @@ public class QueueAttributesManagerTest {
         Duration configuredWaitTime = Duration.ofSeconds(5);
 
         CompletableFuture<Duration> result = queueAttributesManager.getReceiveMessageTimeout(request, configuredWaitTime);
-        assertEquals(Duration.ofSeconds(10), result.get());
+        assertEquals(Duration.ofSeconds(10), result.get(3, TimeUnit.SECONDS));
     }
 
     @Test
@@ -78,7 +79,7 @@ public class QueueAttributesManagerTest {
         mockGetQueueAttributesResponse("10", "30");
 
         CompletableFuture<Duration> result = queueAttributesManager.getVisibilityTimeout();
-        assertEquals(Duration.ofSeconds(30), result.get());
+        assertEquals(Duration.ofSeconds(30), result.get(3, TimeUnit.SECONDS));
     }
 
     @Test
@@ -91,8 +92,8 @@ public class QueueAttributesManagerTest {
 
         CompletableFuture.allOf(future1, future2).join();
 
-        assertEquals(Duration.ofSeconds(10), future1.get());
-        assertEquals(Duration.ofSeconds(30), future2.get());
+        assertEquals(Duration.ofSeconds(10), future1.get(3, TimeUnit.SECONDS));
+        assertEquals(Duration.ofSeconds(30), future2.get(3, TimeUnit.SECONDS));
 
         // Verify that the SQS client call was only made once
         verify(sqsClient, times(1)).getQueueAttributes(any(GetQueueAttributesRequest.class));

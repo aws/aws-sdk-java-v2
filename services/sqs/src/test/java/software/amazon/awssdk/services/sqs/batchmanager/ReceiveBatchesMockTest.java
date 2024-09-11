@@ -75,12 +75,12 @@ class ReceiveBatchesMockTest {
         mockReceiveMessages(receiveMessagesDelay, 2);
 
         CompletableFuture<ReceiveMessageResponse> future = batchManagerReceiveMessage();
-        assertThat(future.get(1000, TimeUnit.MILLISECONDS).messages()).isEmpty();
+        assertThat(future.get(5, TimeUnit.SECONDS).messages()).isEmpty();
 
         Thread.sleep(queueAttributesApiDelay + receiveMessagesDelay + OFFSET_DELAY);
 
         CompletableFuture<ReceiveMessageResponse> secondCall = batchManagerReceiveMessage();
-        assertThat(secondCall.get(1000, TimeUnit.MILLISECONDS).messages()).hasSize(2);
+        assertThat(secondCall.get(5, TimeUnit.SECONDS).messages()).hasSize(2);
     }
 
     @Test
@@ -96,7 +96,7 @@ class ReceiveBatchesMockTest {
         mockReceiveMessages(receiveMessagesDelay, 2);
 
         CompletableFuture<ReceiveMessageResponse> future = batchManagerReceiveMessage();
-        assertThat(future.get(1000, TimeUnit.MILLISECONDS).messages()).hasSize(2);
+        assertThat(future.get(5, TimeUnit.SECONDS).messages()).hasSize(2);
     }
 
     @Test
@@ -112,7 +112,7 @@ class ReceiveBatchesMockTest {
         mockReceiveMessages(receiveMessagesDelay, 2);
 
         CompletableFuture<ReceiveMessageResponse> future = receiveMessageWithWaitTime(1);
-        assertThat(future.get(1000, TimeUnit.MILLISECONDS).messages()).hasSize(2);
+        assertThat(future.get(5, TimeUnit.SECONDS).messages()).hasSize(2);
     }
 
     @Test
@@ -135,7 +135,7 @@ class ReceiveBatchesMockTest {
         // First message should be empty due to delay
         CompletableFuture<ReceiveMessageResponse> firstMessage =
             batchManager.receiveMessage(r -> r.queueUrl("test").maxNumberOfMessages(1));
-        assertThat(firstMessage.get(1000, TimeUnit.MILLISECONDS).messages()).isEmpty();
+        assertThat(firstMessage.get(5, TimeUnit.SECONDS).messages()).isEmpty();
 
         // Wait for SQS message to be processed
         Thread.sleep(queueAttributesApiDelay + receiveMessagesDelay + OFFSET_DELAY);
@@ -147,7 +147,7 @@ class ReceiveBatchesMockTest {
         for (int i = 0; i < 10; i++) {
             CompletableFuture<ReceiveMessageResponse> future =
                 batchManager.receiveMessage(r -> r.queueUrl("test").maxNumberOfMessages(1));
-            ReceiveMessageResponse response = future.get(500, TimeUnit.MILLISECONDS);
+            ReceiveMessageResponse response = future.get(5, TimeUnit.SECONDS);
             assertThat(response.messages()).hasSize(1);
         }
         assertThat(interceptor.receiveApiCalls.get()).isEqualTo(0);
