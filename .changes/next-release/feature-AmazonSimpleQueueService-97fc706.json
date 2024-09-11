@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Queue Service",
+    "contributor": "",
+    "description": "The AWS SDK for Java now supports a new `BatchManager` for Amazon Simple Queue Service (SQS), allowing for client-side request batching with `SqsAsyncClient`. This feature improves cost efficiency by buffering up to 10 requests before sending them as a batch to SQS. The implementation also supports receive message polling, which further enhances throughput by minimizing the number of individual requests sent. The batched requests help to optimize performance and reduce the costs associated with using Amazon SQS."
+}
