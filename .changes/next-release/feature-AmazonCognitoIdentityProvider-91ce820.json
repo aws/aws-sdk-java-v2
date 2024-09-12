@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Cognito Identity Provider",
+    "contributor": "",
+    "description": "Added email MFA option to user pools with advanced security features."
+}
