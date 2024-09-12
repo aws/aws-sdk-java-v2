@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.poet.client;
 
+import static com.squareup.javapoet.TypeSpec.Builder;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static javax.lang.model.element.Modifier.FINAL;
@@ -104,6 +105,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private final ClassName serviceClientConfigurationClassName;
     private final ServiceClientConfigurationUtils configurationUtils;
     private final boolean useSraAuth;
+    private boolean hasScheduledExecutor;
 
     public AsyncClientClass(GeneratorTaskParams dependencies) {
         super(dependencies.getModel());
@@ -139,7 +141,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
     }
 
     @Override
-    protected void addFields(TypeSpec.Builder type) {
+    protected void addFields(Builder type) {
         type.addField(FieldSpec.builder(ClassName.get(Logger.class), "log")
                                .addModifiers(PRIVATE, STATIC, FINAL)
                                .initializer("$T.getLogger($T.class)", LoggerFactory.class,
@@ -153,6 +155,10 @@ public final class AsyncClientClass extends AsyncClientInterface {
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
         if (model.getMetadata().isCborProtocol()) {
             type.addField(AwsJsonProtocolFactory.class, "jsonProtocolFactory", PRIVATE, FINAL);
+        }
+
+        if (shouldAddScheduledExecutor()) {
+            addScheduledExecutorIfNeeded(type);
         }
 
         model.getEndpointOperation().ifPresent(
@@ -180,9 +186,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
     @Override
     protected void addWaiterMethod(TypeSpec.Builder type) {
-        type.addField(FieldSpec.builder(ClassName.get(ScheduledExecutorService.class), "executorService")
-                                       .addModifiers(PRIVATE, FINAL)
-                                       .build());
 
         MethodSpec waiter = MethodSpec.methodBuilder("waiter")
                                       .addModifiers(PUBLIC)
@@ -263,12 +266,16 @@ public final class AsyncClientClass extends AsyncClientInterface {
             builder.endControlFlow();
         }
 
-        if (model.hasWaiters()) {
+        if (shouldAddScheduledExecutor()) {
             builder.addStatement("this.executorService = clientConfiguration.option($T.SCHEDULED_EXECUTOR_SERVICE)",
                                  SdkClientOption.class);
         }
 
         return builder.build();
+    }
+
+    private boolean shouldAddScheduledExecutor() {
+        return model.hasWaiters() || model.getCustomizationConfig().getBatchManagerSupported();
     }
 
     private boolean hasOperationWithEventStreamOutput() {
@@ -549,6 +556,26 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .build();
     }
 
+    @Override
+    protected void addBatchManagerMethod(Builder type) {
+
+        String scheduledExecutor = "executorService";
+        ClassName returnType;
+
+        returnType = poetExtensions.getBatchManagerAsyncInterface();
+
+        MethodSpec batchManager = MethodSpec.methodBuilder("batchManager")
+                                            .addModifiers(PUBLIC)
+                                            .addAnnotation(Override.class)
+                                            .returns(returnType)
+                                            .addStatement("return $T.builder().client(this).scheduledExecutor($N).build()",
+                                                          returnType, scheduledExecutor)
+                                            .build();
+
+
+        type.addMethod(batchManager);
+    }
+
     private MethodSpec resolveMetricPublishersMethod() {
         String clientConfigName = "clientConfiguration";
         String requestOverrideConfigName = "requestOverrideConfiguration";
@@ -622,5 +649,14 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private boolean hasStreamingV4AuthOperations() {
         return model.getOperations().values().stream()
                 .anyMatch(this::shouldUseAsyncWithBodySigner);
+    }
+
+    private void addScheduledExecutorIfNeeded(Builder classBuilder) {
+        if (!hasScheduledExecutor) {
+            classBuilder.addField(FieldSpec.builder(ClassName.get(ScheduledExecutorService.class), "executorService")
+                                           .addModifiers(PRIVATE, FINAL)
+                                           .build());
+            hasScheduledExecutor = true;
+        }
     }
 }
