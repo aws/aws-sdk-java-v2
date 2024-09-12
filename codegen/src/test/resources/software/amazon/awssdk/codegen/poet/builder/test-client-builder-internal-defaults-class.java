@@ -9,6 +9,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -21,6 +22,7 @@ import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
+import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEndpointInterceptor;
@@ -48,8 +50,8 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
-                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+                                  .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
     }
 
     @Override
@@ -67,7 +69,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         endpointInterceptors.add(new JsonRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-                .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
+            .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
@@ -82,6 +84,22 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
             return result.build();
         });
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
+        builder.lazyOptionIfAbsent(
+            SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+            c -> AwsClientEndpointProvider
+                .builder()
+                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_JSON_SERVICE")
+                .serviceEndpointOverrideSystemProperty("aws.endpointUrlJson")
+                .serviceProfileProperty("json_service")
+                .serviceEndpointPrefix(serviceEndpointPrefix())
+                .defaultProtocol("https")
+                .region(c.get(AwsClientOption.AWS_REGION))
+                .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                .profileName(c.get(SdkClientOption.PROFILE_NAME))
+                .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                                   c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
+                .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+                .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
         return builder.build();
     }
 
@@ -144,6 +162,6 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
         Validate.notNull(c.option(SdkAdvancedClientOption.SIGNER),
-                "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
+                         "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
     }
 }

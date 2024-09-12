@@ -14,6 +14,7 @@ import software.amazon.awssdk.auth.credentials.TokenUtils;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.codegen.poet.plugins.InternalTestPlugin1;
 import software.amazon.awssdk.codegen.poet.plugins.InternalTestPlugin2;
@@ -31,6 +32,7 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.json.auth.scheme.JsonAuthSchemeProvider;
 import software.amazon.awssdk.services.json.auth.scheme.internal.JsonAuthSchemeInterceptor;
@@ -163,6 +165,22 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
             builder.option(SdkClientOption.RETRY_POLICY, MyServiceRetryPolicy.resolveRetryPolicy(config));
         }
         builder.option(SdkClientOption.SERVICE_CONFIGURATION, finalServiceConfig);
+        builder.lazyOptionIfAbsent(
+            SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+            c -> AwsClientEndpointProvider
+                .builder()
+                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_JSON_SERVICE")
+                .serviceEndpointOverrideSystemProperty("aws.endpointUrlJson")
+                .serviceProfileProperty("json_service")
+                .serviceEndpointPrefix(serviceEndpointPrefix())
+                .defaultProtocol("https")
+                .region(c.get(AwsClientOption.AWS_REGION))
+                .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                .profileName(c.get(SdkClientOption.PROFILE_NAME))
+                .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                                   c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
+                .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+                .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
         return builder.build();
     }
 
