@@ -56,7 +56,7 @@ import software.amazon.awssdk.utils.internal.SystemSettingUtils;
  * </ol>
  */
 @SdkProtectedApi
-public class AwsClientEndpointProvider implements ClientEndpointProvider {
+public final class AwsClientEndpointProvider implements ClientEndpointProvider {
     private static final Logger log = Logger.loggerFor(AwsClientEndpointProvider.class);
 
     private static final String GLOBAL_ENDPOINT_OVERRIDE_ENVIRONMENT_VARIABLE = "AWS_ENDPOINT_URL";
