@@ -254,8 +254,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                                                "AsyncEndpointDiscoveryCacheLoader"));
 
             if (model.getCustomizationConfig().allowEndpointOverrideForEndpointDiscoveryRequiredOperations()) {
-                builder.beginControlFlow("if (clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == "
-                                        + "Boolean.TRUE)");
+                builder.beginControlFlow("if (clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER)"
+                                         + ".isEndpointOverridden())");
                 builder.addStatement("log.warn($S)",
                                      "Endpoint discovery is enabled for this client, and an endpoint override was also "
                                      + "specified. This will disable endpoint discovery for methods that require it, instead "
@@ -401,7 +401,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
             builder.addStatement("boolean endpointDiscoveryEnabled = "
                                  + "clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)");
             builder.addStatement("boolean endpointOverridden = "
-                                 + "clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == Boolean.TRUE");
+                                 + "clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER)"
+                                 + ".isEndpointOverridden()");
 
             if (opModel.getEndpointDiscovery().isRequired()) {
                 if (!model.getCustomizationConfig().allowEndpointOverrideForEndpointDiscoveryRequiredOperations()) {
@@ -443,7 +444,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
             builder.addCode("endpointFuture = identityFuture.thenCompose(credentials -> {")
                    .addCode("    $1T endpointDiscoveryRequest = $1T.builder()", EndpointDiscoveryRequest.class)
                    .addCode("        .required($L)", opModel.getInputShape().getEndpointDiscovery().isRequired())
-                   .addCode("        .defaultEndpoint(clientConfiguration.option($T.ENDPOINT))", SdkClientOption.class)
+                   .addCode("        .defaultEndpoint(clientConfiguration.option($T.CLIENT_ENDPOINT_PROVIDER).clientEndpoint())",
+                            SdkClientOption.class)
                    .addCode("        .overrideConfiguration($N.overrideConfiguration().orElse(null))",
                             opModel.getInput().getVariableName())
                    .addCode("        .build();")
