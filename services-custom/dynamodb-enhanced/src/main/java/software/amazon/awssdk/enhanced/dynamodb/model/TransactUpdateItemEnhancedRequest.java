@@ -40,12 +40,14 @@ public class TransactUpdateItemEnhancedRequest<T> {
 
     private final T item;
     private final Boolean ignoreNulls;
+    private final IgnoreNullsMode ignoreNullsMode;
     private final Expression conditionExpression;
     private final String returnValuesOnConditionCheckFailure;
 
     private TransactUpdateItemEnhancedRequest(Builder<T> builder) {
         this.item = builder.item;
         this.ignoreNulls = builder.ignoreNulls;
+        this.ignoreNullsMode = builder.ignoreNullsMode;
         this.conditionExpression = builder.conditionExpression;
         this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
     }
@@ -67,6 +69,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
     public Builder<T> toBuilder() {
         return new Builder<T>().item(item)
                                .ignoreNulls(ignoreNulls)
+                               .ignoreNullsMode(ignoreNullsMode)
                                .conditionExpression(conditionExpression)
                                .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
     }
@@ -81,8 +84,16 @@ public class TransactUpdateItemEnhancedRequest<T> {
     /**
      * Returns if the update operation should ignore attributes with null values, or false if it has not been set.
      */
+    @Deprecated
     public Boolean ignoreNulls() {
         return ignoreNulls;
+    }
+
+    /**
+     * Returns the mode of update to be performed
+     */
+    public IgnoreNullsMode ignoreNullsMode() {
+        return ignoreNullsMode;
     }
 
     /**
@@ -161,6 +172,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
     public static final class Builder<T> {
         private T item;
         private Boolean ignoreNulls;
+        private IgnoreNullsMode ignoreNullsMode;
         private Expression conditionExpression;
         private String returnValuesOnConditionCheckFailure;
 
@@ -178,8 +190,14 @@ public class TransactUpdateItemEnhancedRequest<T> {
          * @param ignoreNulls the boolean value
          * @return a builder of this type
          */
+        @Deprecated
         public Builder<T> ignoreNulls(Boolean ignoreNulls) {
             this.ignoreNulls = ignoreNulls;
+            return this;
+        }
+
+        public Builder<T> ignoreNullsMode(IgnoreNullsMode ignoreNullsMode) {
+            this.ignoreNullsMode = ignoreNullsMode;
             return this;
         }
 

@@ -47,6 +47,7 @@ public final class UpdateItemEnhancedRequest<T> {
 
     private final T item;
     private final Boolean ignoreNulls;
+    private final IgnoreNullsMode ignoreNullsMode;
     private final Expression conditionExpression;
     private final String returnValues;
     private final String returnConsumedCapacity;
@@ -58,6 +59,7 @@ public final class UpdateItemEnhancedRequest<T> {
         this.item = builder.item;
         this.ignoreNulls = builder.ignoreNulls;
         this.conditionExpression = builder.conditionExpression;
+        this.ignoreNullsMode = builder.ignoreNullsMode;
         this.returnValues = builder.returnValues;
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
         this.returnItemCollectionMetrics = builder.returnItemCollectionMetrics;
@@ -81,6 +83,7 @@ public final class UpdateItemEnhancedRequest<T> {
     public Builder<T> toBuilder() {
         return new Builder<T>().item(item)
                                .ignoreNulls(ignoreNulls)
+                               .ignoreNullsMode(ignoreNullsMode)
                                .conditionExpression(conditionExpression)
                                .returnValues(returnValues)
                                .returnConsumedCapacity(returnConsumedCapacity)
@@ -98,8 +101,16 @@ public final class UpdateItemEnhancedRequest<T> {
     /**
      * Returns if the update operation should ignore attributes with null values, or false if it has not been set.
      */
+    @Deprecated
     public Boolean ignoreNulls() {
         return ignoreNulls;
+    }
+
+    /**
+     * Returns the mode of update to be performed
+     */
+    public IgnoreNullsMode ignoreNullsMode() {
+        return ignoreNullsMode;
     }
 
     /**
@@ -225,6 +236,7 @@ public final class UpdateItemEnhancedRequest<T> {
     public static final class Builder<T> {
         private T item;
         private Boolean ignoreNulls;
+        private IgnoreNullsMode ignoreNullsMode;
         private Expression conditionExpression;
         private String returnValues;
         private String returnConsumedCapacity;
@@ -244,8 +256,14 @@ public final class UpdateItemEnhancedRequest<T> {
          * @param ignoreNulls the boolean value
          * @return a builder of this type
          */
+        @Deprecated
         public Builder<T> ignoreNulls(Boolean ignoreNulls) {
             this.ignoreNulls = ignoreNulls;
+            return this;
+        }
+
+        public Builder<T> ignoreNullsMode(IgnoreNullsMode ignoreNullsMode) {
+            this.ignoreNullsMode = ignoreNullsMode;
             return this;
         }
 

@@ -36,6 +36,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionConverter;
+import software.amazon.awssdk.enhanced.dynamodb.model.IgnoreNullsMode;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
@@ -92,13 +93,21 @@ public class UpdateItemOperation<T>
         Boolean ignoreNulls = request.map(r -> Optional.ofNullable(r.ignoreNulls()),
                                           r -> Optional.ofNullable(r.ignoreNulls()))
                                      .orElse(null);
-        
+
+        IgnoreNullsMode ignoreNullsMode = request.map(r -> Optional.ofNullable(r.ignoreNullsMode()),
+                                                     r -> Optional.ofNullable(r.ignoreNullsMode()))
+                                                        .orElse(IgnoreNullsMode.DEFAULT);
+
+        if (ignoreNullsMode == IgnoreNullsMode.SCALAR_ONLY) {
+            ignoreNulls = true;
+        }
         Map<String, AttributeValue> itemMapImmutable = tableSchema.itemToMap(item, Boolean.TRUE.equals(ignoreNulls));
         
         // If ignoreNulls is set to true, check for nested params to be updated
         // If needed, Transform itemMap for it to be able to handle them.
-        Map<String, AttributeValue> itemMap = Boolean.TRUE.equals(ignoreNulls) ?
-                                             transformItemToMapForUpdateExpression(itemMapImmutable) : itemMapImmutable;
+
+        Map<String, AttributeValue> itemMap = ignoreNullsMode == IgnoreNullsMode.SCALAR_ONLY ?
+                                              transformItemToMapForUpdateExpression(itemMapImmutable) : itemMapImmutable;
         
         TableMetadata tableMetadata = tableSchema.tableMetadata();
 

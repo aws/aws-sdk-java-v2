@@ -19,6 +19,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FlattenRe
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedRecordWithUpdateBehavior;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecordWithUpdateBehaviors;
 import software.amazon.awssdk.enhanced.dynamodb.internal.client.ExtensionResolver;
+import software.amazon.awssdk.enhanced.dynamodb.model.IgnoreNullsMode;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
@@ -162,7 +163,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void when_updatingNestedObjectWithSingleLevel_existingInformationIsPreserved_ignoreNulls() {
+    public void when_updatingNestedObjectWithSingleLevel_existingInformationIsPreserved_scalar_only_update() {
 
         NestedRecordWithUpdateBehavior nestedRecord = createNestedWithDefaults("id456", 5L);
 
@@ -175,22 +176,48 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         NestedRecordWithUpdateBehavior updatedNestedRecord = new NestedRecordWithUpdateBehavior();
         long updatedNestedCounter = 10L;
         updatedNestedRecord.setNestedCounter(updatedNestedCounter);
-        updatedNestedRecord.setAttribute(TEST_ATTRIBUTE);
 
         RecordWithUpdateBehaviors update_record = new RecordWithUpdateBehaviors();
         update_record.setId("id123");
         update_record.setVersion(1L);
         update_record.setNestedRecord(updatedNestedRecord);
-        
-        mappedTable.updateItem(r -> r.item(update_record).ignoreNulls(true));
+
+        mappedTable.updateItem(r -> r.item(update_record).ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY));
 
         RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
 
-        verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord, updatedNestedCounter, TEST_ATTRIBUTE);
+        verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord.getNestedRecord(), updatedNestedCounter);
     }
 
     @Test
-    public void when_updatingNestedObjectToEmptyWithSingleLevel_existingInformationIsPreserved_ignoreNulls() {
+    public void when_updatingNestedObjectWithSingleLevel_default_mode_update_existingInformationIsErased() {
+
+        NestedRecordWithUpdateBehavior nestedRecord = createNestedWithDefaults("id456", 5L);
+
+        RecordWithUpdateBehaviors record = new RecordWithUpdateBehaviors();
+        record.setId("id123");
+        record.setNestedRecord(nestedRecord);
+
+        mappedTable.putItem(record);
+
+        NestedRecordWithUpdateBehavior updatedNestedRecord = new NestedRecordWithUpdateBehavior();
+        long updatedNestedCounter = 10L;
+        updatedNestedRecord.setNestedCounter(updatedNestedCounter);
+
+        RecordWithUpdateBehaviors update_record = new RecordWithUpdateBehaviors();
+        update_record.setId("id123");
+        update_record.setVersion(1L);
+        update_record.setNestedRecord(updatedNestedRecord);
+
+        mappedTable.updateItem(r -> r.item(update_record).ignoreNullsMode(IgnoreNullsMode.DEFAULT));
+
+        RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
+
+        verifySingleLevelNestingDefaultUpdateBehavior(persistedRecord.getNestedRecord(), updatedNestedCounter);
+    }
+
+    @Test
+    public void when_updatingNestedObjectToEmptyWithSingleLevel_existingInformationIsPreserved_scalar_only_update() {
 
         NestedRecordWithUpdateBehavior nestedRecord = createNestedWithDefaults("id456", 5L);
         nestedRecord.setAttribute(TEST_ATTRIBUTE);
@@ -208,7 +235,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         update_record.setVersion(1L);
         update_record.setNestedRecord(updatedNestedRecord);
 
-        mappedTable.updateItem(r -> r.item(update_record).ignoreNulls(true));
+        mappedTable.updateItem(r -> r.item(update_record).ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY));
 
         RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
         assertThat(persistedRecord.getNestedRecord()).isNull();
@@ -224,29 +251,47 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         return nestedRecordWithDefaults;
     }
 
-    private void verifyMultipleLevelNestingTargetedUpdateBehavior(RecordWithUpdateBehaviors persistedRecord,
+    private void verifyMultipleNestingDefaultBehaviour(NestedRecordWithUpdateBehavior nestedRecord,
                                                                   long updatedOuterNestedCounter,
                                                                   long updatedInnerNestedCounter) {
-        assertThat(persistedRecord.getNestedRecord()).isNotNull();
-        assertThat(persistedRecord.getNestedRecord().getNestedRecord()).isNotNull();
+        assertThat(nestedRecord).isNotNull();
+        assertThat(nestedRecord.getNestedRecord()).isNotNull();
 
-        assertThat(persistedRecord.getNestedRecord().getNestedCounter()).isEqualTo(updatedOuterNestedCounter);
-        assertThat(persistedRecord.getNestedRecord().getNestedRecord()).isNotNull();
-        assertThat(persistedRecord.getNestedRecord().getNestedRecord().getNestedCounter()).isEqualTo(updatedInnerNestedCounter);
-        assertThat(persistedRecord.getNestedRecord().getNestedRecord().getNestedUpdateBehaviorAttribute()).isEqualTo(
-            TEST_BEHAVIOUR_ATTRIBUTE);
-        assertThat(persistedRecord.getNestedRecord().getNestedRecord().getAttribute()).isEqualTo(
-            TEST_ATTRIBUTE);
-        assertThat(persistedRecord.getNestedRecord().getNestedRecord().getNestedTimeAttribute()).isEqualTo(INSTANT_1);
+        assertThat(nestedRecord.getNestedCounter()).isEqualTo(updatedOuterNestedCounter);
+        assertThat(nestedRecord.getNestedRecord()).isNotNull();
+        assertThat(nestedRecord.getNestedRecord().getNestedCounter()).isEqualTo(updatedInnerNestedCounter);
+        assertThat(nestedRecord.getNestedRecord().getNestedUpdateBehaviorAttribute()).isNull();
+        assertThat(nestedRecord.getNestedRecord().getNestedTimeAttribute()).isNull();
     }
 
-    private void verifySingleLevelNestingTargetedUpdateBehavior(RecordWithUpdateBehaviors persistedRecord,
-                                                                  long updatedNestedCounter, String testAttribute) {
-        assertThat(persistedRecord.getNestedRecord()).isNotNull();
-        assertThat(persistedRecord.getNestedRecord().getNestedCounter()).isEqualTo(updatedNestedCounter);
-        assertThat(persistedRecord.getNestedRecord().getNestedUpdateBehaviorAttribute()).isEqualTo(TEST_BEHAVIOUR_ATTRIBUTE);
-        assertThat(persistedRecord.getNestedRecord().getNestedTimeAttribute()).isEqualTo(INSTANT_1);
-        assertThat(persistedRecord.getNestedRecord().getAttribute()).isEqualTo(testAttribute);
+    private void verifySingleLevelNestingDefaultUpdateBehavior(NestedRecordWithUpdateBehavior nestedRecord,
+                                                                long updatedNestedCounter) {
+        assertThat(nestedRecord).isNotNull();
+        assertThat(nestedRecord.getNestedCounter()).isEqualTo(updatedNestedCounter);
+        assertThat(nestedRecord.getNestedUpdateBehaviorAttribute()).isNull();
+        assertThat(nestedRecord.getNestedTimeAttribute()).isNull();
+    }
+
+    private void verifyMultipleLevelNestingTargetedUpdateBehavior(NestedRecordWithUpdateBehavior nestedRecord,
+                                                                  long updatedOuterNestedCounter,
+                                                                  long updatedInnerNestedCounter) {
+        assertThat(nestedRecord).isNotNull();
+        assertThat(nestedRecord.getNestedRecord()).isNotNull();
+
+        assertThat(nestedRecord.getNestedCounter()).isEqualTo(updatedOuterNestedCounter);
+        assertThat(nestedRecord.getNestedRecord()).isNotNull();
+        assertThat(nestedRecord.getNestedRecord().getNestedCounter()).isEqualTo(updatedInnerNestedCounter);
+        assertThat(nestedRecord.getNestedRecord().getNestedUpdateBehaviorAttribute()).isEqualTo(
+            TEST_BEHAVIOUR_ATTRIBUTE);
+        assertThat(nestedRecord.getNestedRecord().getNestedTimeAttribute()).isEqualTo(INSTANT_1);
+    }
+
+    private void verifySingleLevelNestingTargetedUpdateBehavior(NestedRecordWithUpdateBehavior nestedRecord,
+                                                                  long updatedNestedCounter) {
+        assertThat(nestedRecord).isNotNull();
+        assertThat(nestedRecord.getNestedCounter()).isEqualTo(updatedNestedCounter);
+        assertThat(nestedRecord.getNestedUpdateBehaviorAttribute()).isEqualTo(TEST_BEHAVIOUR_ATTRIBUTE);
+        assertThat(nestedRecord.getNestedTimeAttribute()).isEqualTo(INSTANT_1);
     }
 
     @Test
@@ -266,7 +311,6 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         NestedRecordWithUpdateBehavior updatedNestedRecord2 = new NestedRecordWithUpdateBehavior();
         long innerNestedCounter = 100L;
         updatedNestedRecord2.setNestedCounter(innerNestedCounter);
-        updatedNestedRecord2.setAttribute(TEST_ATTRIBUTE);
 
         NestedRecordWithUpdateBehavior updatedNestedRecord1 = new NestedRecordWithUpdateBehavior();
         updatedNestedRecord1.setNestedRecord(updatedNestedRecord2);
@@ -278,15 +322,50 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         update_record.setVersion(1L);
         update_record.setNestedRecord(updatedNestedRecord1);
 
-        mappedTable.updateItem(r -> r.item(update_record).ignoreNulls(true));
+        mappedTable.updateItem(r -> r.item(update_record).ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY));
 
         RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
 
-        verifyMultipleLevelNestingTargetedUpdateBehavior(persistedRecord, outerNestedCounter, innerNestedCounter);
+        verifyMultipleLevelNestingTargetedUpdateBehavior(persistedRecord.getNestedRecord(), outerNestedCounter, innerNestedCounter);
     }
 
     @Test
-    public void when_updatingNestedNonScalarObject_DynamoDBExceptionIsThrown() {
+    public void when_updatingNestedObjectWithMultipleLevels_default_mode_existingInformationIsErased() {
+
+        NestedRecordWithUpdateBehavior nestedRecord1 = createNestedWithDefaults("id789", 50L);
+
+        NestedRecordWithUpdateBehavior nestedRecord2 = createNestedWithDefaults("id456", 0L);
+        nestedRecord2.setNestedRecord(nestedRecord1);
+
+        RecordWithUpdateBehaviors record = new RecordWithUpdateBehaviors();
+        record.setId("id123");
+        record.setNestedRecord(nestedRecord2);
+
+        mappedTable.putItem(record);
+
+        NestedRecordWithUpdateBehavior updatedNestedRecord2 = new NestedRecordWithUpdateBehavior();
+        long innerNestedCounter = 100L;
+        updatedNestedRecord2.setNestedCounter(innerNestedCounter);
+
+        NestedRecordWithUpdateBehavior updatedNestedRecord1 = new NestedRecordWithUpdateBehavior();
+        updatedNestedRecord1.setNestedRecord(updatedNestedRecord2);
+        long outerNestedCounter = 200L;
+        updatedNestedRecord1.setNestedCounter(outerNestedCounter);
+
+        RecordWithUpdateBehaviors update_record = new RecordWithUpdateBehaviors();
+        update_record.setId("id123");
+        update_record.setVersion(1L);
+        update_record.setNestedRecord(updatedNestedRecord1);
+
+        mappedTable.updateItem(r -> r.item(update_record));
+
+        RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
+
+        verifyMultipleNestingDefaultBehaviour(persistedRecord.getNestedRecord(), outerNestedCounter, innerNestedCounter);
+    }
+
+    @Test
+    public void when_updatingNestedNonScalarObject_scalar_only_update_throwsDynamoDBException() {
 
         NestedRecordWithUpdateBehavior nestedRecord = createNestedWithDefaults("id456", 5L);
         nestedRecord.setAttribute(TEST_ATTRIBUTE);
@@ -302,19 +381,43 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         update_record.setKey("abc");
         update_record.setNestedRecord(nestedRecord);
 
-        assertThatThrownBy(() -> mappedTable.updateItem(r -> r.item(update_record).ignoreNulls(true)))
+        assertThatThrownBy(() -> mappedTable.updateItem(r -> r.item(update_record).ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY)))
             .isInstanceOf(DynamoDbException.class);
     }
 
     @Test
-    public void when_emptyNestedRecordIsSet_emotyMapIsStoredInTable() {
+    public void updatingNestedMap_maps_only_update() {
+
+        RecordWithUpdateBehaviors record = new RecordWithUpdateBehaviors();
+        record.setId("id123");
+
+        mappedTable.putItem(record);
+
+        RecordWithUpdateBehaviors update_record = new RecordWithUpdateBehaviors();
+        update_record.setId("id123");
+        update_record.setVersion(1L);
+        update_record.setKey("abc");
+
+        NestedRecordWithUpdateBehavior nestedRecord = createNestedWithDefaults("id456", 5L);
+        nestedRecord.setAttribute(TEST_ATTRIBUTE);
+        update_record.setNestedRecord(nestedRecord);
+
+        RecordWithUpdateBehaviors persistedRecord =
+            mappedTable.updateItem(r -> r.item(update_record).ignoreNullsMode(IgnoreNullsMode.MAPS_ONLY));
+
+        verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord.getNestedRecord(),5L);
+        assertThat(persistedRecord.getNestedRecord().getAttribute()).isEqualTo(TEST_ATTRIBUTE);
+    }
+
+    @Test
+    public void when_emptyNestedRecordIsSet_emptyMapIsStoredInTable() {
         String key = "id123";
 
         RecordWithUpdateBehaviors record = new RecordWithUpdateBehaviors();
         record.setId(key);
         record.setNestedRecord(new NestedRecordWithUpdateBehavior());
 
-        mappedTable.updateItem(r -> r.item(record).ignoreNulls(true));
+        mappedTable.updateItem(r -> r.item(record));
 
         GetItemResponse getItemResponse = getDynamoDbClient().getItem(GetItemRequest.builder()
                                                                                     .key(Collections.singletonMap("id",
@@ -336,7 +439,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
 
 
     @Test
-    public void when_updatingNestedObjectWithSingleLevelFlattened_existingInformationIsPreserved() {
+    public void when_updatingNestedObjectWithSingleLevelFlattened_existingInformationIsPreserved_scalar_only_update() {
 
         NestedRecordWithUpdateBehavior nestedRecord = createNestedWithDefaults("id123", 10L);
 
@@ -358,15 +461,18 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         FlattenRecord updatedFlattenRecord = new FlattenRecord();
         updatedFlattenRecord.setId("id456");
         updatedFlattenRecord.setCompositeRecord(updateCompositeRecord);
-        
-        FlattenRecord persistedFlattenedRecord = flattenedMappedTable.updateItem(r -> r.item(updatedFlattenRecord).ignoreNulls(true));
-        
+
+        FlattenRecord persistedFlattenedRecord =
+            flattenedMappedTable.updateItem(r -> r.item(updatedFlattenRecord).ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY));
+
         assertThat(persistedFlattenedRecord.getCompositeRecord()).isNotNull();
-        assertThat(persistedFlattenedRecord.getCompositeRecord().getNestedRecord().getNestedCounter()).isEqualTo(100L);
+        verifySingleLevelNestingTargetedUpdateBehavior(persistedFlattenedRecord.getCompositeRecord().getNestedRecord(), 100L);
     }
+
+
     
     @Test
-    public void when_updatingNestedObjectWithMultipleLevelFlattened_existingInformationIsPreserved() {
+    public void when_updatingNestedObjectWithMultipleLevelFlattened_existingInformationIsPreserved_scalar_only_update() {
 
         NestedRecordWithUpdateBehavior outerNestedRecord = createNestedWithDefaults("id123", 10L);
         NestedRecordWithUpdateBehavior innerNestedRecord = createNestedWithDefaults("id456", 5L);
@@ -396,13 +502,14 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         updateFlattenRecord.setCompositeRecord(updateCompositeRecord);
         updateFlattenRecord.setId("id789");
         
-        FlattenRecord persistedFlattenedRecord = flattenedMappedTable.updateItem(r -> r.item(updateFlattenRecord).ignoreNulls(true));
+        FlattenRecord persistedFlattenedRecord =
+            flattenedMappedTable.updateItem(r -> r.item(updateFlattenRecord).ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY));
         
         assertThat(persistedFlattenedRecord.getCompositeRecord()).isNotNull();
+        verifyMultipleLevelNestingTargetedUpdateBehavior(persistedFlattenedRecord.getCompositeRecord().getNestedRecord(), 100L, 50L);
         assertThat(persistedFlattenedRecord.getCompositeRecord().getNestedRecord().getNestedCounter()).isEqualTo(100L);
         assertThat(persistedFlattenedRecord.getCompositeRecord().getNestedRecord().getNestedRecord().getNestedCounter()).isEqualTo(50L);
     }
-
 
     /**
      * Currently, nested records are not updated through extensions.
