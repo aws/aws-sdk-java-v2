@@ -1,1 +1,38 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.0__ __2024-09-12__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes support for dynamic video overlay workflows, including picture-in-picture and squeezeback
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue is introducing two new optimizers for Apache Iceberg tables: snapshot retention and orphan file deletion. Customers can enable these optimizers and customize their configurations to perform daily maintenance tasks on their Iceberg tables based on their specific requirements.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - The S3 File Gateway now supports DSSE-KMS encryption. A new parameter EncryptionType is added to these APIs: CreateSmbFileShare, CreateNfsFileShare, UpdateSmbFileShare, UpdateNfsFileShare, DescribeSmbFileShares, DescribeNfsFileShares. Also, in favor of EncryptionType, KmsEncrypted is deprecated.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Added email MFA option to user pools with advanced security features.
+
+## __Amazon EMR__
+  - ### Features
+    - Update APIs to allow modification of ODCR options, allocation strategy, and InstanceTypeConfigs on running InstanceFleet clusters.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for the os-upgrade pending maintenance action for Amazon Aurora DB clusters.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - The AWS SDK for Java now supports a new `BatchManager` for Amazon Simple Queue Service (SQS), allowing for client-side request batching with `SqsAsyncClient`. This feature improves cost efficiency by buffering up to 10 requests before sending them as a batch to SQS. The implementation also supports receive message polling, which further enhances throughput by minimizing the number of individual requests sent. The batched requests help to optimize performance and reduce the costs associated with using Amazon SQS.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Correct incorrectly mapped error in ELBv2 waiters
+
+## __Synthetics__
+  - ### Features
+    - This release introduces two features. The first is tag replication, which allows for the propagation of canary tags onto Synthetics related resources, such as Lambda functions. The second is a limit increase in canary name length, which has now been increased from 21 to 255 characters.
+

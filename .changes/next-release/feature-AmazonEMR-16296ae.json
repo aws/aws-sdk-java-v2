@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EMR",
-    "contributor": "",
-    "description": "Update APIs to allow modification of ODCR options, allocation strategy, and InstanceTypeConfigs on running InstanceFleet clusters."
-}

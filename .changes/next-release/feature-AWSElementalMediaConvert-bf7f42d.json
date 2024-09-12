@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaConvert",
-    "contributor": "",
-    "description": "This release includes support for dynamic video overlay workflows, including picture-in-picture and squeezeback"
-}
