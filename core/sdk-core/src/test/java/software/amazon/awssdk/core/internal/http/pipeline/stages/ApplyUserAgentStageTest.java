@@ -118,7 +118,6 @@ public class ApplyUserAgentStageTest {
         List<String> userAgentHeaders = request.headers().get(HEADER_USER_AGENT);
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
         assertThat(userAgentHeaders.get(0)).contains("myLib/1.0");
-        System.out.println(userAgentHeaders.get(0));
     }
 
     @Test
@@ -131,7 +130,6 @@ public class ApplyUserAgentStageTest {
         List<String> userAgentHeaders = request.headers().get(HEADER_USER_AGENT);
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
         assertThat(userAgentHeaders.get(0)).contains("auth-source#proc");
-        System.out.println(userAgentHeaders.get(0));
     }
 
     private static HttpClientDependencies dependencies(String clientUserAgent) {

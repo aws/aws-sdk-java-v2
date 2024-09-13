@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
- * Represents AWS SDK user agent client and request level values.
+ * Represents AWS SDK user agent client values.
  */
 @NotThreadSafe
 @SdkProtectedApi
