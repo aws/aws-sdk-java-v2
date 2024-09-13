@@ -1,4 +1,30 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.1__ __2024-09-13__
+## __AWS Amplify__
+  - ### Features
+    - Doc only update to Amplify to explain platform setting for Next.js 14 SSG only applications
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for specifying endpoint overrides using environment variables, system properties or profile files. More information about this feature is available here: https://docs.aws.amazon.com/sdkref/latest/guide/feature-ss-endpoints.html
+    - Updated endpoint and partition metadata.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Updates to all tags descriptions.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Updates to all tags descriptions.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix issue where the `AWS_USE_DUALSTACK_ENDPOINT` environment variable and `aws.useDualstackEndpoint` system property are not resolved during client creation time.
+
+## __Amazon S3 Control__
+  - ### Bugfixes
+    - Fix issue where the `AWS_USE_DUALSTACK_ENDPOINT` environment variable and `aws.useDualstackEndpoint` system property are not resolved during client creation time.
+
 # __2.28.0__ __2024-09-12__
 ## __AWS Elemental MediaConvert__
   - ### Features

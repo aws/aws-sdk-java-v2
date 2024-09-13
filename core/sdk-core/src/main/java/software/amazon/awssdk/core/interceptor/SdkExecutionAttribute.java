@@ -26,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.ServiceConfiguration;
@@ -33,6 +34,8 @@ import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
@@ -86,16 +89,38 @@ public class SdkExecutionAttribute {
         new ExecutionAttribute<>("ApiCallAttemptMetricCollector");
 
     /**
-     * If true indicates that the configured endpoint of the client is a value that was supplied as an override and not
+     * True indicates that the configured endpoint of the client is a value that was supplied as an override and not
      * generated from regional metadata.
+     *
+     * @deprecated This value should not be trusted. To modify the endpoint used for requests, you should decorate the
+     * {@link EndpointProvider} of the client. This value can be determined there, by checking for the existence of an
+     * override endpoint.
      */
-    public static final ExecutionAttribute<Boolean> ENDPOINT_OVERRIDDEN = new ExecutionAttribute<>("EndpointOverridden");
+    @Deprecated
+    public static final ExecutionAttribute<Boolean> ENDPOINT_OVERRIDDEN =
+        ExecutionAttribute.derivedBuilder("EndpointOverridden",
+                                          Boolean.class,
+                                          () -> SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER)
+                          .readMapping(ClientEndpointProvider::isEndpointOverridden)
+                          .writeMapping((ep, overridden) -> ClientEndpointProvider.create(ep.clientEndpoint(), overridden))
+                          .build();
 
     /**
-     * This is the endpointOverride (if {@link #ENDPOINT_OVERRIDDEN} is true), otherwise the endpoint generated from regional
-     * metadata.
+     * This is the endpointOverride (if {@link #ENDPOINT_OVERRIDDEN} is true), otherwise the endpoint generated from
+     * regional metadata.
+     *
+     * @deprecated This value is not usually accurate, now that the endpoint is almost entirely determined by the
+     * service's endpoint rules. Use {@link SdkHttpRequest#getUri()} from interceptors, to get or modify the actual
+     * endpoint.
      */
-    public static final ExecutionAttribute<URI> CLIENT_ENDPOINT = new ExecutionAttribute<>("EndpointOverride");
+    @Deprecated
+    public static final ExecutionAttribute<URI> CLIENT_ENDPOINT =
+        ExecutionAttribute.derivedBuilder("EndpointOverride",
+                                          URI.class,
+                                          () -> SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER)
+                          .readMapping(ClientEndpointProvider::clientEndpoint)
+                          .writeMapping((ep, uri) -> ClientEndpointProvider.create(uri, ep.isEndpointOverridden()))
+                          .build();
 
     /**
      * If the client signer value has been overridden.

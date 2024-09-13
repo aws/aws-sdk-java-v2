@@ -19,47 +19,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
-import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
-import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
-import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
-import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.AwsEndpointProviderUtils;
-import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Identifier;
-import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Value;
-import software.amazon.awssdk.utils.MapUtils;
 
 public class AwsEndpointProviderUtilsTest {
     @Test
     public void endpointOverridden_attrIsFalse_returnsFalse() {
         ExecutionAttributes attrs = new ExecutionAttributes();
-        attrs.putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, false);
-        assertThat(AwsEndpointProviderUtils.endpointIsOverridden(attrs)).isFalse();
-    }
-
-    @Test
-    public void endpointOverridden_attrIsAbsent_returnsFalse() {
-        ExecutionAttributes attrs = new ExecutionAttributes();
+        attrs.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER, endpointProvider(false));
         assertThat(AwsEndpointProviderUtils.endpointIsOverridden(attrs)).isFalse();
     }
 
     @Test
     public void endpointOverridden_attrIsTrue_returnsTrue() {
         ExecutionAttributes attrs = new ExecutionAttributes();
-        attrs.putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, true);
+        attrs.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER, endpointProvider(true));
         assertThat(AwsEndpointProviderUtils.endpointIsOverridden(attrs)).isTrue();
     }
 
@@ -128,8 +110,8 @@ public class AwsEndpointProviderUtilsTest {
     public void endpointBuiltIn_doesNotIncludeQueryParams() {
         URI endpoint = URI.create("https://example.com/path?foo=bar");
         ExecutionAttributes attrs = new ExecutionAttributes();
-        attrs.putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, true);
-        attrs.putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, endpoint);
+        attrs.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
+                           ClientEndpointProvider.forEndpointOverride(endpoint));
 
         assertThat(AwsEndpointProviderUtils.endpointBuiltIn(attrs).toString()).isEqualTo("https://example.com/path");
     }
@@ -230,5 +212,9 @@ public class AwsEndpointProviderUtilsTest {
         assertThatThrownBy(() -> AwsEndpointProviderUtils.addHostPrefix(e, "foo#bar.*baz"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("component must match the pattern");
+    }
+
+    private static ClientEndpointProvider endpointProvider(boolean isEndpointOverridden) {
+        return ClientEndpointProvider.create(URI.create("https://foo.aws"), isEndpointOverridden);
     }
 }

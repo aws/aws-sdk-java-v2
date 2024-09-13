@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -45,7 +46,8 @@ class ServiceRequestRequiredValidationMarshallingTest {
             .builder()
             .clientConfiguration(SdkClientConfiguration
                                      .builder()
-                                     .option(SdkClientOption.ENDPOINT, URI.create("http://localhost"))
+                                     .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                             ClientEndpointProvider.forEndpointOverride(URI.create("http://localhost")))
                                      .build())
             .build();
         marshaller = new QueryParameterOperationRequestMarshaller(awsXmlProtocolFactory);
