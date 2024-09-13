@@ -83,6 +83,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
 
     /**
      * Returns if the update operation should ignore attributes with null values, or false if it has not been set.
+     * This is deprecated in favour of ignoreNullsMode()
      */
     @Deprecated
     public Boolean ignoreNulls() {
