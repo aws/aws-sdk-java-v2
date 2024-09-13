@@ -106,6 +106,7 @@ public final class NamingConversionUtils {
         CLIENT_MAPPING.put("IoTJobsDataPlane", "IotJobsDataPlane");
         CLIENT_MAPPING.put("IoTWireless", "IotWireless");
         CLIENT_MAPPING.put("IotData", "IotDataPlane");
+        CLIENT_MAPPING.put("KinesisFirehose", "Firehose");
         CLIENT_MAPPING.put("KinesisVideoSignalingChannels", "KinesisVideoSignaling");
         CLIENT_MAPPING.put("Logs", "CloudWatchLogs");
         CLIENT_MAPPING.put("LookoutforVision", "LookoutVision");
