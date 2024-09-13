@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon S3 Control",
-    "contributor": "",
-    "description": "Fix issue where the `AWS_USE_DUALSTACK_ENDPOINT` environment variable and `aws.useDualstackEndpoint` system property are not resolved during client creation time."
-}
