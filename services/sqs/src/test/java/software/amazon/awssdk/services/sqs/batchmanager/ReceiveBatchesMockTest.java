@@ -87,13 +87,9 @@ class ReceiveBatchesMockTest {
     void testResponseReceivedBeforeTimeout() throws Exception {
         setupBatchManager();
 
-        // Delays for testing
-        int queueAttributesApiDelay = 5;
-        int receiveMessagesDelay = 5;
-
-        // Set short delays to ensure response before timeout
-        mockQueueAttributes(queueAttributesApiDelay);
-        mockReceiveMessages(receiveMessagesDelay, 2);
+        // No delays set since we mock quick response from SQS.
+        mockQueueAttributes();
+        mockReceiveMessages(2);
 
         CompletableFuture<ReceiveMessageResponse> future = batchManagerReceiveMessage();
         assertThat(future.get(5, TimeUnit.SECONDS).messages()).hasSize(2);
@@ -177,6 +173,22 @@ class ReceiveBatchesMockTest {
                                     .withStatus(200)
                                     .withBody(generateMessagesJson(numMessages))
                                     .withFixedDelay(delay)));
+    }
+
+    private void mockReceiveMessages(int numMessages) {
+        stubFor(post(urlEqualTo("/"))
+                    .withHeader("x-amz-target", equalTo("AmazonSQS.ReceiveMessage"))
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withBody(generateMessagesJson(numMessages))));
+    }
+
+    private void mockQueueAttributes( ) {
+        stubFor(post(urlEqualTo("/"))
+                    .withHeader("x-amz-target", equalTo("AmazonSQS.GetQueueAttributes"))
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withBody(String.format(QUEUE_ATTRIBUTE_RESPONSE, "0", "30"))));
     }
 
     private CompletableFuture<ReceiveMessageResponse> batchManagerReceiveMessage() {
