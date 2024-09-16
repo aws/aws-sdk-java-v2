@@ -12,8 +12,9 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
-import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBuilder;
+import software.amazon.awssdk.services.protocolrestjsonwithconfig.ProtocolRestJsonWithConfigClient;
+import software.amazon.awssdk.services.protocolrestjsonwithconfig.ProtocolRestJsonWithConfigClientBuilder;
+import software.amazon.awssdk.services.protocolrestjsonwithconfig.ProtocolRestJsonWithConfigConfiguration;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.Validate;
@@ -29,10 +30,17 @@ public class DualstackEndpointTest {
         EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
 
         try {
-            ProtocolRestJsonClientBuilder builder =
-                ProtocolRestJsonClient.builder()
-                                      .region(Region.US_WEST_2)
-                                      .credentialsProvider(AnonymousCredentialsProvider.create());
+            ProtocolRestJsonWithConfigClientBuilder builder =
+                ProtocolRestJsonWithConfigClient.builder()
+                                                .region(Region.US_WEST_2)
+                                                .credentialsProvider(AnonymousCredentialsProvider.create());
+
+            if (testCase.serviceConfigSetting != null) {
+                builder.serviceConfiguration(
+                    ProtocolRestJsonWithConfigConfiguration.builder()
+                                                           .dualstackEnabled(testCase.serviceConfigSetting)
+                                                           .build());
+            }
 
             if (testCase.clientSetting != null) {
                 builder.dualstackEnabled(testCase.clientSetting);
@@ -62,7 +70,7 @@ public class DualstackEndpointTest {
                                                 .addExecutionInterceptor(interceptor));
 
             if (testCase instanceof SuccessCase) {
-                ProtocolRestJsonClient client = builder.build();
+                ProtocolRestJsonWithConfigClient client = builder.build();
 
                 try {
                     client.allTypes();
@@ -92,32 +100,38 @@ public class DualstackEndpointTest {
 
     @Parameterized.Parameters(name = "{0}")
     public static Iterable<TestCase> testCases() {
-        return Arrays.asList(new SuccessCase(true, "false", "false", "false", true, "Client highest priority (true)"),
-                             new SuccessCase(false, "true", "true", "true", false, "Client highest priority (false)"),
-                             new SuccessCase(null, "true", "false", "false", true, "System property second priority (true)"),
-                             new SuccessCase(null, "false", "true", "true", false, "System property second priority (false)"),
-                             new SuccessCase(null, null, "true", "false", true, "Env var third priority (true)"),
-                             new SuccessCase(null, null, "false", "true", false, "Env var third priority (false)"),
-                             new SuccessCase(null, null, null, "true", true, "Profile last priority (true)"),
-                             new SuccessCase(null, null, null, "false", false, "Profile last priority (false)"),
-                             new SuccessCase(null, null, null, null, false, "Default is false."),
-                             new SuccessCase(null, "tRuE", null, null, true, "System property is not case sensitive."),
-                             new SuccessCase(null, null, "tRuE", null, true, "Env var is not case sensitive."),
-                             new SuccessCase(null, null, null, "tRuE", true, "Profile property is not case sensitive."),
-                             new FailureCase(null, "FOO", null, null, "FOO", "Invalid system property values fail."),
-                             new FailureCase(null, null, "FOO", null, "FOO", "Invalid env var values fail."),
-                             new FailureCase(null, null, null, "FOO", "FOO", "Invalid profile values fail."));
+        return Arrays.asList(new SuccessCase(true, null, "false", "false", "false", true, "Client config highest priority (true)"),
+                             new SuccessCase(false, null, "true", "true", "true", false, "Client config highest priority (false)"),
+                             new SuccessCase(null, true, "false", "false", "false", true, "Client highest priority (true)"),
+                             new SuccessCase(null, false, "true", "true", "true", false, "Client highest priority (false)"),
+                             new SuccessCase(null, null, "true", "false", "false", true, "System property second priority (true)"),
+                             new SuccessCase(null, null, "false", "true", "true", false, "System property second priority (false)"),
+                             new SuccessCase(null, null, null, "true", "false", true, "Env var third priority (true)"),
+                             new SuccessCase(null, null, null, "false", "true", false, "Env var third priority (false)"),
+                             new SuccessCase(null, null, null, null, "true", true, "Profile last priority (true)"),
+                             new SuccessCase(null, null, null, null, "false", false, "Profile last priority (false)"),
+                             new SuccessCase(null, null, null, null, null, false, "Default is false."),
+                             new SuccessCase(null, null, "tRuE", null, null, true, "System property is not case sensitive."),
+                             new SuccessCase(null, null, null, "tRuE", null, true, "Env var is not case sensitive."),
+                             new SuccessCase(null, null, null, null, "tRuE", true, "Profile property is not case sensitive."),
+                             new FailureCase(null, null, "FOO", null, null, "FOO", "Invalid system property values fail."),
+                             new FailureCase(null, null, null, "FOO", null, "FOO", "Invalid env var values fail."),
+                             new FailureCase(null, null, null, null, "FOO", "FOO", "Invalid profile values fail."),
+                             new FailureCase(true, false, null, null, "FOO", "Dualstack has been configured on both ProtocolRestJsonWithConfigConfiguration and the client/global level", "Invalid - config and client builder both set"));
     }
 
     public static class TestCase {
+        private final Boolean serviceConfigSetting;
         private final Boolean clientSetting;
         private final String envVarSetting;
         private final String systemPropSetting;
         private final String profileSetting;
         private final String caseName;
 
-        public TestCase(Boolean clientSetting, String systemPropSetting, String envVarSetting, String profileSetting,
+        public TestCase(Boolean serviceConfigSetting, Boolean clientSetting, String systemPropSetting, String envVarSetting,
+                        String profileSetting,
                         String caseName) {
+            this.serviceConfigSetting = serviceConfigSetting;
             this.clientSetting = clientSetting;
             this.envVarSetting = envVarSetting;
             this.systemPropSetting = systemPropSetting;
@@ -134,13 +148,14 @@ public class DualstackEndpointTest {
     public static class SuccessCase extends TestCase {
         private final boolean expectedValue;
 
-        public SuccessCase(Boolean clientSetting,
+        public SuccessCase(Boolean serviceConfigSetting,
+                           Boolean clientSetting,
                            String systemPropSetting,
                            String envVarSetting,
                            String profileSetting,
                            boolean expectedValue,
                            String caseName) {
-            super(clientSetting, systemPropSetting, envVarSetting, profileSetting, caseName);
+            super(serviceConfigSetting, clientSetting, systemPropSetting, envVarSetting, profileSetting, caseName);
             this.expectedValue = expectedValue;
         }
     }
@@ -148,13 +163,14 @@ public class DualstackEndpointTest {
     private static class FailureCase extends TestCase {
         private final String exceptionMessage;
 
-        public FailureCase(Boolean clientSetting,
+        public FailureCase(Boolean serviceConfigSetting,
+                           Boolean clientSetting,
                            String systemPropSetting,
                            String envVarSetting,
                            String profileSetting,
                            String exceptionMessage,
                            String caseName) {
-            super(clientSetting, systemPropSetting, envVarSetting, profileSetting, caseName);
+            super(serviceConfigSetting, clientSetting, systemPropSetting, envVarSetting, profileSetting, caseName);
             this.exceptionMessage = exceptionMessage;
         }
     }

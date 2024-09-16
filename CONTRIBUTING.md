@@ -99,10 +99,9 @@ Please keep the following in mind when considering a code contribution:
   be assigned to it.
 
   If you are thinking about adding entirely new functionality, open a [Feature
-  Request](#feature-requests) or [ping][gitter] the maintainers to ask for
-  feedback first before beginning work; again this is to make sure that no one
-  else is already working on it, and also that it makes sense to be included in
-  the SDK.
+  Request](#feature-requests) to ask for feedback first before beginning work;
+  again this is to make sure that no one else is already working on it, and
+  also that it makes sense to be included in the SDK.
 * All code contributions must be accompanied with new or modified tests that
   verify that the code works as expected; i.e. that the issue has been fixed or
   that the functionality works as intended.
@@ -162,6 +161,5 @@ when contributing to the SDK.
 [label-doc-issue]: https://github.com/aws/aws-sdk-java-v2/labels/documentation
 [label-feature-request]: https://github.com/aws/aws-sdk-java-v2/labels/feature-request
 [git-rewriting-history]: https://git-scm.com/book/en/v2/Git-Tools-Rewriting-History
-[gitter]: https://gitter.im/aws/aws-sdk-java-v2
 [bug-report]: https://github.com/aws/aws-sdk-java-v2/issues/new?assignees=&labels=bug%2Cneeds-triage&template=bug-report.yml&title=%28short+issue+description%29
 [feature-request]: https://github.com/aws/aws-sdk-java-v2/issues/new?assignees=&labels=feature-request%2Cneeds-triage&template=feature-request.yml&title=%28short+issue+description%29

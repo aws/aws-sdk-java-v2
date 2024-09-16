@@ -90,7 +90,10 @@ public class SsoCredentialsProviderTest {
 
 
     private GetRoleCredentialsRequestSupplier getRequestSupplier() {
-        return new GetRoleCredentialsRequestSupplier(GetRoleCredentialsRequest.builder().build(), "cachedToken");
+        return new GetRoleCredentialsRequestSupplier(GetRoleCredentialsRequest.builder()
+                                                                              .accountId("123456789")
+                                                                              .build(),
+                                                     "cachedToken");
     }
 
     private GetRoleCredentialsResponse getResponse(RoleCredentials roleCredentials) {
@@ -134,6 +137,7 @@ public class SsoCredentialsProviderTest {
                 assertThat(actualCredentials.secretAccessKey()).isEqualTo("b");
                 assertThat(actualCredentials.sessionToken()).isEqualTo("c");
                 assertThat(actualCredentials.providerName()).isPresent().contains("SsoCredentialsProvider");
+                assertThat(actualCredentials.accountId()).isPresent().contains("123456789");
             }
         }
 

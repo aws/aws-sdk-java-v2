@@ -102,8 +102,8 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED,
                           clientConfig.option(AwsClientOption.FIPS_ENDPOINT_ENABLED))
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, executionParams.getOperationName())
-            .putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, clientConfig.option(SdkClientOption.ENDPOINT))
-            .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
+            .putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
+                          clientConfig.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER))
             .putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER,
                           resolveEndpointProvider(originalRequest, clientConfig))
             .putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS,

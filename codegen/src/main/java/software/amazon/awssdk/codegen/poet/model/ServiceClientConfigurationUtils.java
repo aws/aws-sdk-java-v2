@@ -33,6 +33,7 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -161,11 +162,10 @@ public class ServiceClientConfigurationUtils {
     private CodeBlock endpointOverrideConfigSetter() {
         return CodeBlock.builder()
                         .beginControlFlow("if (endpointOverride != null)")
-                        .addStatement("config.option($T.ENDPOINT, endpointOverride)", SdkClientOption.class)
-                        .addStatement("config.option($T.ENDPOINT_OVERRIDDEN, true)", SdkClientOption.class)
+                        .addStatement("config.option($T.CLIENT_ENDPOINT_PROVIDER, $T.forEndpointOverride(endpointOverride))",
+                                      SdkClientOption.class, ClientEndpointProvider.class)
                         .nextControlFlow("else")
-                        .addStatement("config.option($T.ENDPOINT, null)", SdkClientOption.class)
-                        .addStatement("config.option($T.ENDPOINT_OVERRIDDEN, false)", SdkClientOption.class)
+                        .addStatement("config.option($T.CLIENT_ENDPOINT_PROVIDER, null)", SdkClientOption.class)
                         .endControlFlow()
                         .addStatement("return this")
                         .build();
@@ -173,9 +173,10 @@ public class ServiceClientConfigurationUtils {
 
     private CodeBlock endpointOverrideConfigGetter() {
         return CodeBlock.builder()
-                        .beginControlFlow("if (Boolean.TRUE.equals(config.option($T.ENDPOINT_OVERRIDDEN)))",
-                                          SdkClientOption.class)
-                        .addStatement("return config.option($T.ENDPOINT)", SdkClientOption.class)
+                        .addStatement("$T clientEndpoint = config.option($T.CLIENT_ENDPOINT_PROVIDER)",
+                                      ClientEndpointProvider.class, SdkClientOption.class)
+                        .beginControlFlow("if (clientEndpoint != null && clientEndpoint.isEndpointOverridden())")
+                        .addStatement("return clientEndpoint.clientEndpoint()")
                         .endControlFlow()
                         .addStatement("return null")
                         .build();

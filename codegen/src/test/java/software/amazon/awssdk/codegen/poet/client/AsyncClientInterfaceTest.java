@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.batchManagerModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
@@ -27,5 +28,11 @@ public class AsyncClientInterfaceTest {
     public void asyncClientInterface() {
         ClassSpec asyncClientInterface = new AsyncClientInterface(restJsonServiceModels());
         assertThat(asyncClientInterface, generatesTo("test-json-async-client-interface.java"));
+    }
+
+    @Test
+    public void asyncClientInterfaceWithBatchManager() {
+        ClassSpec asyncClientInterface = new AsyncClientInterface(batchManagerModels());
+        assertThat(asyncClientInterface, generatesTo("test-json-async-client-interface-batchmanager.java"));
     }
 }

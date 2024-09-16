@@ -196,4 +196,9 @@ public class PoetExtension {
     public boolean isRequest(ShapeModel shapeModel) {
         return shapeModel.getShapeType() == ShapeType.Request;
     }
+
+    public ClassName getBatchManagerAsyncInterface() {
+        return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(),
+                             model.getMetadata().getServiceName() + "AsyncBatchManager");
+    }
 }
