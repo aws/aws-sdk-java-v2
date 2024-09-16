@@ -203,7 +203,8 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                   if (dynamoDbFlatten != null) {
                       builder.flatten(TableSchema.fromClass(propertyDescriptor.getReadMethod().getReturnType()),
                                       getterForProperty(propertyDescriptor, beanClass),
-                                      setterForProperty(propertyDescriptor, beanClass));
+                                      setterForProperty(propertyDescriptor, beanClass),
+                                      getFlattenedPrefix(propertyDescriptor, dynamoDbFlatten));
                   } else {
                       AttributeConfiguration attributeConfiguration =
                           resolveAttributeConfiguration(propertyDescriptor);
@@ -223,6 +224,14 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         builder.attributes(attributes);
 
         return builder.build();
+    }
+
+    private static String getFlattenedPrefix(PropertyDescriptor propertyDescriptor, DynamoDbFlatten dynamoDbFlatten) {
+        boolean useAutoPrefix = DynamoDbFlatten.AUTO_PREFIX.equals(dynamoDbFlatten.prefix());
+        if (!useAutoPrefix) {
+            return dynamoDbFlatten.prefix();
+        }
+        return attributeNameForProperty(propertyDescriptor) + ".";
     }
 
     private static AttributeConfiguration resolveAttributeConfiguration(PropertyDescriptor propertyDescriptor) {

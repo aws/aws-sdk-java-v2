@@ -1,0 +1,6 @@
+{
+    "category": "Amazon DynamoDB", 
+    "contributor": "kiesler", 
+    "type": "feature", 
+    "description": "Support optional prefix for `@DynamoDbFlatten` fields"
+}

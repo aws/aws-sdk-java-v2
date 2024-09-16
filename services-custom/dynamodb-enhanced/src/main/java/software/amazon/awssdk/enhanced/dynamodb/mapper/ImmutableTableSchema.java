@@ -201,7 +201,8 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
                   if (dynamoDbFlatten != null) {
                       builder.flatten(TableSchema.fromClass(propertyDescriptor.getter().getReturnType()),
                                       getterForProperty(propertyDescriptor, immutableClass),
-                                      setterForProperty(propertyDescriptor, builderClass));
+                                      setterForProperty(propertyDescriptor, builderClass),
+                                      getFlattenedPrefix(propertyDescriptor, dynamoDbFlatten));
                   } else {
                       AttributeConfiguration beanAttributeConfiguration = resolveAttributeConfiguration(propertyDescriptor);
                       ImmutableAttribute.Builder<T, B, ?> attributeBuilder =
@@ -223,6 +224,14 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
         builder.attributes(attributes);
 
         return builder.build();
+    }
+
+    private static String getFlattenedPrefix(ImmutablePropertyDescriptor propertyDescriptor, DynamoDbFlatten dynamoDbFlatten) {
+        boolean useAutoPrefix = DynamoDbFlatten.AUTO_PREFIX.equals(dynamoDbFlatten.prefix());
+        if (!useAutoPrefix) {
+            return dynamoDbFlatten.prefix();
+        }
+        return attributeNameForProperty(propertyDescriptor) + ".";
     }
 
     private static List<AttributeConverterProvider> createConverterProvidersFromAnnotation(Class<?> immutableClass,
