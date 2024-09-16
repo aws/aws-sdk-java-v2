@@ -18,20 +18,18 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * This enum offers users different modes of performing DDB item updates
  * <p>
- * In the SCALAR_ONLY mode, updates to scalar attributes and nested scalar, i.e.
- * string, integers, other scalar attributes within a map, are supported
+ * SCALAR_ONLY mode is used for updates to nested scalar attributes when the
+ * user wants to provide ONLY the delta to be updated
+ * This mode does NOT support updates to nested map structures, i.e.
+ * setting null valued / non-existent maps to non-null values in this mode
+ * will throw a 400x DynamoDB error
  * <p>
- * In the MAPS_ONLY mode, updates to nested map structures are supported, i.e.
- * setting null/non-existent maps to non-null values are supported
- * <p>
- * The DEFAULT mode operates by setting ignoreNulls to false, and requires the user to
- * fetch existing DDB item, make modifications to it and then update the item
+ * The DEFAULT mode denotes that the entire item is provided. This supports updates
+ * to both scalar and non-scalar attributes.
  */
 @SdkPublicApi
 public enum IgnoreNullsMode {
     SCALAR_ONLY,
-    MAPS_ONLY,
     DEFAULT
 }
