@@ -186,7 +186,8 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
 
         RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
 
-        verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord.getNestedRecord(), updatedNestedCounter);
+        verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord.getNestedRecord(), updatedNestedCounter,
+                                                       TEST_BEHAVIOUR_ATTRIBUTE, INSTANT_1);
     }
 
     @Test
@@ -213,7 +214,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
 
         RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
 
-        verifySingleLevelNestingDefaultUpdateBehavior(persistedRecord.getNestedRecord(), updatedNestedCounter);
+        verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord.getNestedRecord(), updatedNestedCounter, null, null);
     }
 
     @Test
@@ -251,30 +252,11 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         return nestedRecordWithDefaults;
     }
 
-    private void verifyMultipleNestingDefaultBehaviour(NestedRecordWithUpdateBehavior nestedRecord,
-                                                                  long updatedOuterNestedCounter,
-                                                                  long updatedInnerNestedCounter) {
-        assertThat(nestedRecord).isNotNull();
-        assertThat(nestedRecord.getNestedRecord()).isNotNull();
-
-        assertThat(nestedRecord.getNestedCounter()).isEqualTo(updatedOuterNestedCounter);
-        assertThat(nestedRecord.getNestedRecord()).isNotNull();
-        assertThat(nestedRecord.getNestedRecord().getNestedCounter()).isEqualTo(updatedInnerNestedCounter);
-        assertThat(nestedRecord.getNestedRecord().getNestedUpdateBehaviorAttribute()).isNull();
-        assertThat(nestedRecord.getNestedRecord().getNestedTimeAttribute()).isNull();
-    }
-
-    private void verifySingleLevelNestingDefaultUpdateBehavior(NestedRecordWithUpdateBehavior nestedRecord,
-                                                                long updatedNestedCounter) {
-        assertThat(nestedRecord).isNotNull();
-        assertThat(nestedRecord.getNestedCounter()).isEqualTo(updatedNestedCounter);
-        assertThat(nestedRecord.getNestedUpdateBehaviorAttribute()).isNull();
-        assertThat(nestedRecord.getNestedTimeAttribute()).isNull();
-    }
-
     private void verifyMultipleLevelNestingTargetedUpdateBehavior(NestedRecordWithUpdateBehavior nestedRecord,
                                                                   long updatedOuterNestedCounter,
-                                                                  long updatedInnerNestedCounter) {
+                                                                  long updatedInnerNestedCounter,
+                                                                  String test_behav_attribute,
+                                                                  Instant expected_time) {
         assertThat(nestedRecord).isNotNull();
         assertThat(nestedRecord.getNestedRecord()).isNotNull();
 
@@ -282,16 +264,17 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         assertThat(nestedRecord.getNestedRecord()).isNotNull();
         assertThat(nestedRecord.getNestedRecord().getNestedCounter()).isEqualTo(updatedInnerNestedCounter);
         assertThat(nestedRecord.getNestedRecord().getNestedUpdateBehaviorAttribute()).isEqualTo(
-            TEST_BEHAVIOUR_ATTRIBUTE);
-        assertThat(nestedRecord.getNestedRecord().getNestedTimeAttribute()).isEqualTo(INSTANT_1);
+            test_behav_attribute);
+        assertThat(nestedRecord.getNestedRecord().getNestedTimeAttribute()).isEqualTo(expected_time);
     }
 
     private void verifySingleLevelNestingTargetedUpdateBehavior(NestedRecordWithUpdateBehavior nestedRecord,
-                                                                  long updatedNestedCounter) {
+                                                                  long updatedNestedCounter, String expected_behav_attr,
+                                                                Instant expected_time) {
         assertThat(nestedRecord).isNotNull();
         assertThat(nestedRecord.getNestedCounter()).isEqualTo(updatedNestedCounter);
-        assertThat(nestedRecord.getNestedUpdateBehaviorAttribute()).isEqualTo(TEST_BEHAVIOUR_ATTRIBUTE);
-        assertThat(nestedRecord.getNestedTimeAttribute()).isEqualTo(INSTANT_1);
+        assertThat(nestedRecord.getNestedUpdateBehaviorAttribute()).isEqualTo(expected_behav_attr);
+        assertThat(nestedRecord.getNestedTimeAttribute()).isEqualTo(expected_time);
     }
 
     @Test
@@ -326,7 +309,8 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
 
         RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
 
-        verifyMultipleLevelNestingTargetedUpdateBehavior(persistedRecord.getNestedRecord(), outerNestedCounter, innerNestedCounter);
+        verifyMultipleLevelNestingTargetedUpdateBehavior(persistedRecord.getNestedRecord(), outerNestedCounter,
+                                                         innerNestedCounter, TEST_BEHAVIOUR_ATTRIBUTE, INSTANT_1);
     }
 
     @Test
@@ -361,7 +345,8 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
 
         RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
 
-        verifyMultipleNestingDefaultBehaviour(persistedRecord.getNestedRecord(), outerNestedCounter, innerNestedCounter);
+        verifyMultipleLevelNestingTargetedUpdateBehavior(persistedRecord.getNestedRecord(), outerNestedCounter, innerNestedCounter, null,
+                                               null);
     }
 
     @Test
@@ -405,7 +390,8 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         RecordWithUpdateBehaviors persistedRecord =
             mappedTable.updateItem(r -> r.item(update_record).ignoreNullsMode(IgnoreNullsMode.MAPS_ONLY));
 
-        verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord.getNestedRecord(),5L);
+        verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord.getNestedRecord(), 5L, TEST_BEHAVIOUR_ATTRIBUTE,
+                                                       INSTANT_1);
         assertThat(persistedRecord.getNestedRecord().getAttribute()).isEqualTo(TEST_ATTRIBUTE);
     }
 
@@ -466,7 +452,8 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
             flattenedMappedTable.updateItem(r -> r.item(updatedFlattenRecord).ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY));
 
         assertThat(persistedFlattenedRecord.getCompositeRecord()).isNotNull();
-        verifySingleLevelNestingTargetedUpdateBehavior(persistedFlattenedRecord.getCompositeRecord().getNestedRecord(), 100L);
+        verifySingleLevelNestingTargetedUpdateBehavior(persistedFlattenedRecord.getCompositeRecord().getNestedRecord(), 100L,
+                                                       TEST_BEHAVIOUR_ATTRIBUTE, INSTANT_1);
     }
 
 
@@ -506,7 +493,8 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
             flattenedMappedTable.updateItem(r -> r.item(updateFlattenRecord).ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY));
         
         assertThat(persistedFlattenedRecord.getCompositeRecord()).isNotNull();
-        verifyMultipleLevelNestingTargetedUpdateBehavior(persistedFlattenedRecord.getCompositeRecord().getNestedRecord(), 100L, 50L);
+        verifyMultipleLevelNestingTargetedUpdateBehavior(persistedFlattenedRecord.getCompositeRecord().getNestedRecord(), 100L,
+                                                         50L, TEST_BEHAVIOUR_ATTRIBUTE, INSTANT_1);
         assertThat(persistedFlattenedRecord.getCompositeRecord().getNestedRecord().getNestedCounter()).isEqualTo(100L);
         assertThat(persistedFlattenedRecord.getCompositeRecord().getNestedRecord().getNestedRecord().getNestedCounter()).isEqualTo(50L);
     }
