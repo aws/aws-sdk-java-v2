@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.2__ __2024-09-16__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Removing the ON_PREMISE enum from the input settings field.
+
+## __AWS IoT__
+  - ### Features
+    - This release adds additional enhancements to AWS IoT Device Management Software Package Catalog and Jobs. It also adds SBOM support in Software Package Version.
+
+## __AWS Organizations__
+  - ### Features
+    - Doc only update for AWS Organizations that fixes several customer-reported issues
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - This feature adds cross account s3 bucket and VPC support to ModelInvocation jobs. To use a cross account bucket, pass in the accountId of the bucket to s3BucketOwner in the ModelInvocationJobInputDataConfig or ModelInvocationJobOutputDataConfig.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Launching Global Cluster tagging.
+
+## __Private CA Connector for SCEP__
+  - ### Features
+    - This is a general availability (GA) release of Connector for SCEP, a feature of AWS Private CA. Connector for SCEP links your SCEP-enabled and mobile device management systems to AWS Private CA for digital signature installation and certificate management.
+
 # __2.28.1__ __2024-09-13__
 ## __AWS Amplify__
   - ### Features
