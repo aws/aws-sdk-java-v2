@@ -17,6 +17,7 @@ package software.amazon.awssdk.v2migration;
 
 import static software.amazon.awssdk.v2migration.internal.utils.NamingConversionUtils.getV2Equivalent;
 import static software.amazon.awssdk.v2migration.internal.utils.NamingConversionUtils.getV2ModelPackageWildCardEquivalent;
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isCustomSdk;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV1ClientClass;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV1ModelClass;
 
@@ -145,7 +146,15 @@ public class ChangeSdkType extends Recipe {
                 return false;
             }
 
-            return isV1ModelClass(fullyQualified) || isV1ClientClass(fullyQualified);
+            if (!isV1ModelClass(fullyQualified) && !isV1ClientClass(fullyQualified)) {
+                return false;
+            }
+
+            if (isCustomSdk(fullyQualifiedName)) {
+                log.info(() -> String.format("Skipping transformation for %s because it is a custom SDK", fullyQualifiedName));
+                return false;
+            }
+            return true;
         }
 
         private static boolean shouldSkip(String fqcn) {
