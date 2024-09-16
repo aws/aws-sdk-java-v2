@@ -98,7 +98,8 @@ public class UpdateItemOperation<T>
                                                      r -> Optional.ofNullable(r.ignoreNullsMode()))
                                                         .orElse(IgnoreNullsMode.DEFAULT);
 
-        if (ignoreNullsMode == IgnoreNullsMode.SCALAR_ONLY) {
+        if (ignoreNullsMode == IgnoreNullsMode.SCALAR_ONLY
+            || ignoreNullsMode == IgnoreNullsMode.MAPS_ONLY) {
             ignoreNulls = true;
         }
         Map<String, AttributeValue> itemMapImmutable = tableSchema.itemToMap(item, Boolean.TRUE.equals(ignoreNulls));

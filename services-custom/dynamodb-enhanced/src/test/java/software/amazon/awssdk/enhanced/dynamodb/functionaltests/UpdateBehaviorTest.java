@@ -278,7 +278,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void when_updatingNestedObjectWithMultipleLevels_existingInformationIsPreserved() {
+    public void when_updatingNestedObjectWithMultipleLevels_inScalarOnlyMode_existingInformationIsPreserved() {
 
         NestedRecordWithUpdateBehavior nestedRecord1 = createNestedWithDefaults("id789", 50L);
 
@@ -311,6 +311,37 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
 
         verifyMultipleLevelNestingTargetedUpdateBehavior(persistedRecord.getNestedRecord(), outerNestedCounter,
                                                          innerNestedCounter, TEST_BEHAVIOUR_ATTRIBUTE, INSTANT_1);
+    }
+
+    @Test
+    public void when_updatingNestedObjectWithMultipleLevels_inMapsOnlyMode_existingInformationIsPreserved() {
+
+        NestedRecordWithUpdateBehavior nestedRecord1 = createNestedWithDefaults("id789", 50L);
+
+        NestedRecordWithUpdateBehavior nestedRecord2 = createNestedWithDefaults("id456", 0L);
+
+        RecordWithUpdateBehaviors record = new RecordWithUpdateBehaviors();
+        record.setId("id123");
+        record.setNestedRecord(nestedRecord2);
+
+        mappedTable.putItem(record);
+
+        NestedRecordWithUpdateBehavior updatedNestedRecord1 = new NestedRecordWithUpdateBehavior();
+        updatedNestedRecord1.setNestedRecord(nestedRecord1);
+        long outerNestedCounter = 200L;
+        updatedNestedRecord1.setNestedCounter(outerNestedCounter);
+
+        RecordWithUpdateBehaviors update_record = new RecordWithUpdateBehaviors();
+        update_record.setId("id123");
+        update_record.setVersion(1L);
+        update_record.setNestedRecord(updatedNestedRecord1);
+
+        mappedTable.updateItem(r -> r.item(update_record).ignoreNullsMode(IgnoreNullsMode.MAPS_ONLY));
+
+        RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
+
+        verifyMultipleLevelNestingTargetedUpdateBehavior(persistedRecord.getNestedRecord(), outerNestedCounter,
+                                                         50L, TEST_BEHAVIOUR_ATTRIBUTE, INSTANT_1);
     }
 
     @Test
@@ -371,7 +402,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void updatingNestedMap_map_update() {
+    public void when_updatingNestedMap_mapsOnlyMode_newMapIsCreatedAndStored() {
 
         RecordWithUpdateBehaviors record = new RecordWithUpdateBehaviors();
         record.setId("id123");
@@ -388,7 +419,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         update_record.setNestedRecord(nestedRecord);
 
         RecordWithUpdateBehaviors persistedRecord =
-            mappedTable.updateItem(r -> r.item(update_record).ignoreNullsMode(IgnoreNullsMode.DEFAULT));
+            mappedTable.updateItem(r -> r.item(update_record).ignoreNullsMode(IgnoreNullsMode.MAPS_ONLY));
 
         verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord.getNestedRecord(), 5L, TEST_BEHAVIOUR_ATTRIBUTE,
                                                        INSTANT_1);
