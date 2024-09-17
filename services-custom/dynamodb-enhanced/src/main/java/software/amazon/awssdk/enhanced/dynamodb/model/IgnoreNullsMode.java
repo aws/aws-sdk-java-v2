@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * <p>
  * In the SCALAR_ONLY mode, updates to nested scalar attributes are supported in the ignoreNulls = true mode, i.e. when the user
  * wants to update nested scalar attributes by providing only the delta of changes to be updated. This mode does not support
- * updates to maps and is expected to throw a 400x DynamoDB exception if done so.
+ * updates to maps and is expected to throw a 4xx DynamoDB exception if done so.
  * <p>
  * In the MAPS_ONLY mode, updates to nested map structures are supported, i.e. setting null/non-existent maps to non-null values
  * are supported in the ignoreNulls = true mode, i.e. when user only provides the delta of changes to be updated.
