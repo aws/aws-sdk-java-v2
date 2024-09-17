@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeBuild",
+    "contributor": "",
+    "description": "GitLab Enhancements - Add support for Self-Hosted GitLab runners in CodeBuild. Add group webhooks"
+}
