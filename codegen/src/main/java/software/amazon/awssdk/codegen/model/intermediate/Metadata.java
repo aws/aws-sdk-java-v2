@@ -71,6 +71,8 @@ public class Metadata {
 
     private String waitersPackageName;
 
+    private String batchManagerPackageName;
+
     private String endpointRulesPackageName;
 
     private String authSchemePackageName;
@@ -793,6 +795,24 @@ public class Metadata {
 
     public String getFullInternalJmesPathPackageName() {
         return joinPackageNames(getFullJmesPathPackageName(), "internal");
+    }
+
+    public Metadata withBatchmanagerPackageName(String batchmanagerPackageName) {
+        setBatchManagerPackageName(batchmanagerPackageName);
+        return this;
+    }
+
+
+    public String getBatchManagerPackageName() {
+        return batchManagerPackageName;
+    }
+
+    public void setBatchManagerPackageName(String batchManagerPackageName) {
+        this.batchManagerPackageName = batchManagerPackageName;
+    }
+
+    public String getFullBatchManagerPackageName() {
+        return joinPackageNames(rootPackageName, getBatchManagerPackageName());
     }
 
 }

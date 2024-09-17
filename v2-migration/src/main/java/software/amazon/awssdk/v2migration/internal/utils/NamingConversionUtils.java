@@ -31,6 +31,7 @@ public final class NamingConversionUtils {
 
     static {
         PACKAGE_MAPPING.put("appregistry", "servicecatalogappregistry");
+        PACKAGE_MAPPING.put("augmentedairuntime", "sagemakera2iruntime");
         PACKAGE_MAPPING.put("certificatemanager", "acm");
         PACKAGE_MAPPING.put("cloudcontrolapi", "cloudcontrol");
         PACKAGE_MAPPING.put("cloudsearchv2", "cloudsearch");
@@ -48,6 +49,9 @@ public final class NamingConversionUtils {
         PACKAGE_MAPPING.put("iamrolesanywhere", "rolesanywhere");
         PACKAGE_MAPPING.put("identitymanagement", "iam");
         PACKAGE_MAPPING.put("iotdata", "iotdataplane");
+        PACKAGE_MAPPING.put("kinesisfirehose", "firehose");
+        PACKAGE_MAPPING.put("kinesisvideosignalingchannels", "kinesisvideosignaling");
+        PACKAGE_MAPPING.put("lookoutforvision", "lookoutvision");
         PACKAGE_MAPPING.put("mainframemodernization", "m2");
         PACKAGE_MAPPING.put("managedgrafana", "grafana");
         PACKAGE_MAPPING.put("migrationhubstrategyrecommendations", "migrationhubstrategy");
@@ -101,6 +105,7 @@ public final class NamingConversionUtils {
         CLIENT_MAPPING.put("IoTJobsDataPlane", "IotJobsDataPlane");
         CLIENT_MAPPING.put("IoTWireless", "IotWireless");
         CLIENT_MAPPING.put("IotData", "IotDataPlane");
+        CLIENT_MAPPING.put("KinesisFirehose", "Firehose");
         CLIENT_MAPPING.put("KinesisVideoSignalingChannels", "KinesisVideoSignaling");
         CLIENT_MAPPING.put("Logs", "CloudWatchLogs");
         CLIENT_MAPPING.put("LookoutforVision", "LookoutVision");

@@ -20,6 +20,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
 import static software.amazon.awssdk.enhanced.dynamodb.JsonTestUtils.toJsonNode;
@@ -59,6 +60,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 
 public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     private DynamoDbClient lowLevelClient;
@@ -668,5 +670,58 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
             final boolean b = resultsAttributeToProject.hasNext();
             Page<EnhancedDocument> next = resultsAttributeToProject.next();
         });
+    }
+
+    @Test
+    public void scanAllRecordsDefaultSettings_select() {
+        insertDocuments();
+
+        Iterator<Page<EnhancedDocument>> results =
+            docMappedtable.scan(b -> b.select(Select.ALL_ATTRIBUTES)).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<EnhancedDocument> page = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page.items().size(), is(DOCUMENTS.size()));
+
+        EnhancedDocument firstRecord = page.items().get(0);
+        assertThat(firstRecord.getString("id"), is("id-value"));
+        assertThat(firstRecord.getNumber("sort").intValue(), is(0));
+        assertThat(firstRecord.getNumber("value").intValue(), is(0));
+    }
+
+    @Test
+    public void scanAllRecordsDefaultSettings_select_specific_attr() {
+        insertDocuments();
+
+        Iterator<Page<EnhancedDocument>> results =
+            docMappedtable.scan(b -> b.attributesToProject("sort").select(Select.SPECIFIC_ATTRIBUTES)).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<EnhancedDocument> page = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page.items().size(), is(DOCUMENTS.size()));
+
+        EnhancedDocument firstRecord = page.items().get(0);
+        assertThat(firstRecord.getString("id"), is(nullValue()));
+        assertThat(firstRecord.getNumber("sort").intValue(), is(0));
+    }
+
+
+    @Test
+    public void scanAllRecordsDefaultSettings_select_count() {
+        insertDocuments();
+
+        Iterator<Page<EnhancedDocument>> results =
+            docMappedtable.scan(b -> b.select(Select.COUNT)).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<EnhancedDocument> page = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page.count(), is(DOCUMENTS.size()));
+        assertThat(page.items().size(), is(0));
     }
 }

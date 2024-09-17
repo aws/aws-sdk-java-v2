@@ -342,6 +342,11 @@ public class CustomizationConfig {
      */
     private Map<String, PreClientExecutionRequestCustomizer> preClientExecutionRequestCustomizer;
 
+    /**
+     * A boolean flag to indicate if Automatic Batch Request is supported.
+     */
+    private boolean batchManagerSupported;
+
     private CustomizationConfig() {
     }
 
@@ -899,6 +904,14 @@ public class CustomizationConfig {
     public void setPreClientExecutionRequestCustomizer(Map<String, PreClientExecutionRequestCustomizer>
                                                            preClientExecutionRequestCustomizer) {
         this.preClientExecutionRequestCustomizer = preClientExecutionRequestCustomizer;
+    }
+
+    public boolean getBatchManagerSupported() {
+        return batchManagerSupported;
+    }
+
+    public void setBatchManagerSupported(boolean batchManagerSupported) {
+        this.batchManagerSupported = batchManagerSupported;
     }
 
 }

@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.interceptor;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.SdkProtocolMetadata;
 import software.amazon.awssdk.core.SelectedAuthScheme;
@@ -76,6 +77,13 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
 
     public static final ExecutionAttribute<Boolean> IS_NONE_AUTH_TYPE_REQUEST =
         new ExecutionAttribute<>("IsNoneAuthTypeRequest");
+
+    /**
+     * The endpoint provider used to resolve the endpoint of the client. This will be overridden during the request
+     * pipeline by the {@link #ENDPOINT_PROVIDER}.
+     */
+    public static final ExecutionAttribute<ClientEndpointProvider> CLIENT_ENDPOINT_PROVIDER =
+        new ExecutionAttribute<>("ClientEndpointProvider");
 
     /**
      * The endpoint provider used to resolve the destination endpoint for a request.

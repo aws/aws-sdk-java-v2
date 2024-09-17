@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.internal;
 
 import static java.util.stream.Collectors.toList;
+import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.io.Closeable;
 import java.io.File;
@@ -133,7 +134,7 @@ public final class Utils {
         if (str == null) {
             return null;
         }
-        if (str.startsWith(toRemove)) {
+        if (lowerCase(str).startsWith(lowerCase(toRemove))) {
             return str.substring(toRemove.length());
         }
         return str;
@@ -143,7 +144,7 @@ public final class Utils {
         if (str == null) {
             return null;
         }
-        if (str.endsWith(toRemove)) {
+        if (lowerCase(str).endsWith(lowerCase(toRemove))) {
             return str.substring(0, str.length() - toRemove.length());
         }
         return str;

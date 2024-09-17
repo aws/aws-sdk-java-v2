@@ -17,6 +17,7 @@ package software.amazon.awssdk.protocols.json;
 
 import static java.util.Collections.unmodifiableList;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -27,6 +28,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -197,13 +199,23 @@ public abstract class BaseAwsJsonProtocolFactory {
 
     public final ProtocolMarshaller<SdkHttpFullRequest> createProtocolMarshaller(OperationInfo operationInfo) {
         return JsonProtocolMarshallerBuilder.create()
-                                            .endpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
+                                            .endpoint(endpoint(clientConfiguration))
                                             .jsonGenerator(createGenerator(operationInfo))
                                             .contentType(getContentType())
                                             .operationInfo(operationInfo)
                                             .sendExplicitNullForPayload(false)
                                             .protocolMetadata(protocolMetadata)
                                             .build();
+    }
+
+    private URI endpoint(SdkClientConfiguration clientConfiguration) {
+        ClientEndpointProvider endpointProvider = clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER);
+        if (endpointProvider != null) {
+            return endpointProvider.clientEndpoint();
+        }
+
+        // Some old client versions may not use the endpoint provider. In that case, use the legacy endpoint field.
+        return clientConfiguration.option(SdkClientOption.ENDPOINT);
     }
 
     /**

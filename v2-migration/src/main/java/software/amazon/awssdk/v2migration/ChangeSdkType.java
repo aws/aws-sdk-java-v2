@@ -17,11 +17,11 @@ package software.amazon.awssdk.v2migration;
 
 import static software.amazon.awssdk.v2migration.internal.utils.NamingConversionUtils.getV2Equivalent;
 import static software.amazon.awssdk.v2migration.internal.utils.NamingConversionUtils.getV2ModelPackageWildCardEquivalent;
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isCustomSdk;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV1ClientClass;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV1ModelClass;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -64,10 +64,6 @@ public class ChangeSdkType extends Recipe {
     private static final String V1_SERVICE_MODEL_WILD_CARD_CLASS_PATTERN =
         "com\\.amazonaws\\.services\\.[a-zA-Z0-9]+\\.model\\.\\*";
     private static final String V1_SERVICE_WILD_CARD_CLASS_PATTERN = "com\\.amazonaws\\.services\\.[a-zA-Z0-9]+\\.\\*";
-
-    private static final Set<String> PACKAGES_TO_SKIP = new HashSet<>(
-        Arrays.asList("com.amazonaws.services.s3.transfer",
-                      "com.amazonaws.services.dynamodbv2.datamodeling"));
 
     @Override
     public String getDisplayName() {
@@ -139,17 +135,16 @@ public class ChangeSdkType extends Recipe {
 
         private static boolean isV1Class(JavaType.FullyQualified fullyQualified) {
             String fullyQualifiedName = fullyQualified.getFullyQualifiedName();
-            if (shouldSkip(fullyQualifiedName)) {
-                log.info(() -> String.format("Skipping transformation for %s because it is not supported in the migration "
-                                             + "tooling at the moment", fullyQualifiedName));
+
+            if (!isV1ModelClass(fullyQualified) && !isV1ClientClass(fullyQualified)) {
                 return false;
             }
 
-            return isV1ModelClass(fullyQualified) || isV1ClientClass(fullyQualified);
-        }
-
-        private static boolean shouldSkip(String fqcn) {
-            return PACKAGES_TO_SKIP.stream().anyMatch(fqcn::startsWith);
+            if (isCustomSdk(fullyQualifiedName)) {
+                log.info(() -> String.format("Skipping transformation for %s because it is a custom SDK", fullyQualifiedName));
+                return false;
+            }
+            return true;
         }
 
         @Override
