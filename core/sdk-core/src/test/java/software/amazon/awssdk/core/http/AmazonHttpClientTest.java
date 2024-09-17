@@ -134,9 +134,9 @@ public class AmazonHttpClientTest {
         HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
 
         SdkClientUserAgentProperties userAgentProperties = new SdkClientUserAgentProperties();
-        userAgentProperties.putAttribute(RETRY_MODE, RetryMode.STANDARD.toString());
-        userAgentProperties.putAttribute(IO, ClientType.SYNC.name());
-        userAgentProperties.putAttribute(HTTP, SdkHttpUtils.urlEncode(sdkHttpClient.clientName()));
+        userAgentProperties.putProperty(RETRY_MODE, RetryMode.STANDARD.toString());
+        userAgentProperties.putProperty(IO, ClientType.SYNC.name());
+        userAgentProperties.putProperty(HTTP, SdkHttpUtils.urlEncode(sdkHttpClient.clientName()));
         String clientUserAgent = SdkUserAgentBuilder.buildClientUserAgentString(SystemUserAgent.getOrCreate(),
                                                                                userAgentProperties);
 
@@ -169,8 +169,8 @@ public class AmazonHttpClientTest {
         HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
 
         SdkClientUserAgentProperties userAgentProperties = new SdkClientUserAgentProperties();
-        userAgentProperties.putAttribute(IO, StringUtils.lowerCase(ClientType.SYNC.name()));
-        userAgentProperties.putAttribute(HTTP, SdkHttpUtils.urlEncode(sdkHttpClient.clientName()));
+        userAgentProperties.putProperty(IO, StringUtils.lowerCase(ClientType.SYNC.name()));
+        userAgentProperties.putProperty(HTTP, SdkHttpUtils.urlEncode(sdkHttpClient.clientName()));
         String clientUserAgent = SdkUserAgentBuilder.buildClientUserAgentString(SystemUserAgent.getOrCreate(),
                                                                                 userAgentProperties);
 
@@ -202,7 +202,7 @@ public class AmazonHttpClientTest {
         HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
 
         SdkClientUserAgentProperties userAgentProperties = new SdkClientUserAgentProperties();
-        userAgentProperties.putAttribute(RETRY_MODE, RetryMode.STANDARD.toString().toLowerCase());
+        userAgentProperties.putProperty(RETRY_MODE, RetryMode.STANDARD.toString().toLowerCase());
         String clientUserAgent = SdkUserAgentBuilder.buildClientUserAgentString(SystemUserAgent.getOrCreate(),
                                                                                 userAgentProperties);
 

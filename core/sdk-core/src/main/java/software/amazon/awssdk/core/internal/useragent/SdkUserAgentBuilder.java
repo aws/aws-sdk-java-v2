@@ -57,7 +57,7 @@ public final class SdkUserAgentBuilder {
         appendNonEmptyField(uaString, JAVA_SDK_METADATA, systemValues.sdkVersion());
         appendAdditionalSdkMetadata(uaString, userAgentProperties);
 
-        if (userAgentProperties.getAttribute(INTERNAL_METADATA_MARKER) != null) {
+        if (userAgentProperties.getProperty(INTERNAL_METADATA_MARKER) != null) {
             appendFieldAndSpace(uaString, METADATA, INTERNAL_METADATA_MARKER);
         }
 
@@ -71,7 +71,7 @@ public final class SdkUserAgentBuilder {
             appendFieldAndSpace(uaString, ENV_METADATA, envMetadata);
         }
 
-        String retryMode = userAgentProperties.getAttribute(RETRY_MODE);
+        String retryMode = userAgentProperties.getProperty(RETRY_MODE);
         if (!StringUtils.isEmpty(retryMode)) {
             appendFieldAndSpace(uaString, CONFIG_METADATA, uaPair(RETRY_MODE, retryMode));
         }
@@ -111,8 +111,8 @@ public final class SdkUserAgentBuilder {
     }
 
     private static void appendAdditionalSdkMetadata(StringBuilder builder, SdkClientUserAgentProperties userAgentProperties) {
-        appendNonEmptyField(builder, METADATA, uaPairOrNull(IO, userAgentProperties.getAttribute(IO)));
-        appendNonEmptyField(builder, METADATA, uaPairOrNull(HTTP, userAgentProperties.getAttribute(HTTP)));
+        appendNonEmptyField(builder, METADATA, uaPairOrNull(IO, userAgentProperties.getProperty(IO)));
+        appendNonEmptyField(builder, METADATA, uaPairOrNull(HTTP, userAgentProperties.getProperty(HTTP)));
     }
 
     private static void appendAdditionalJvmMetadata(StringBuilder builder, SystemUserAgent systemProperties) {

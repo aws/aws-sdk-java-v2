@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.core.internal.useragent;
 
+import static software.amazon.awssdk.utils.StringUtils.trim;
+
+import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -47,6 +50,7 @@ public final class UserAgentConstant {
 
     /** Disallowed characters in the user agent token: @see <a href="https://tools.ietf.org/html/rfc7230#section-3.2.6">RFC 7230</a> */
     private static final String UA_DENYLIST_REGEX = "[() ,/:;<=>?@\\[\\]{}\\\\]";
+    private static final Pattern UA_DENYLIST_PATTERN = Pattern.compile(UA_DENYLIST_REGEX);
     private static final String UNKNOWN = "unknown";
 
     private UserAgentConstant() {
@@ -59,7 +63,7 @@ public final class UserAgentConstant {
      * with a '/' (SLASH). Contents can be a single token, a specified value or a uaPair.
      */
     public static String field(String name, String value) {
-        return concat(name, value, SLASH);
+        return concat(name, trim(value), SLASH);
     }
 
     /**
@@ -108,7 +112,7 @@ public final class UserAgentConstant {
      * Replace any spaces, parentheses in the input with underscores.
      */
     public static String sanitizeInput(String input) {
-        return input == null ? UNKNOWN : input.replaceAll(UA_DENYLIST_REGEX, "_");
+        return input == null ? UNKNOWN : UA_DENYLIST_PATTERN.matcher(input).replaceAll("_");
     }
 
     /**

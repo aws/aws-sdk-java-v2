@@ -151,9 +151,9 @@ public class ApplyUserAgentStageTest {
     private String clientUserAgent() {
         SdkClientUserAgentProperties clientProperties = new SdkClientUserAgentProperties();
 
-        clientProperties.putAttribute(RETRY_MODE, "standard");
-        clientProperties.putAttribute(IO, "async");
-        clientProperties.putAttribute(HTTP, "netty");
+        clientProperties.putProperty(RETRY_MODE, "standard");
+        clientProperties.putProperty(IO, "async");
+        clientProperties.putProperty(HTTP, "netty");
 
         return SdkUserAgentBuilder.buildClientUserAgentString(SystemUserAgent.getOrCreate(), clientProperties);
     }

@@ -27,17 +27,17 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 @SdkProtectedApi
 public final class SdkClientUserAgentProperties {
 
-    private final Map<String, String> attributes;
+    private final Map<String, String> properties;
 
     public SdkClientUserAgentProperties() {
-        this.attributes = new HashMap<>(32);
+        this.properties = new HashMap<>(32);
     }
 
-    public String getAttribute(String attribute) {
-        return attributes.get(attribute);
+    public String getProperty(String property) {
+        return properties.get(property);
     }
 
-    public void putAttribute(String attribute, String value) {
-        attributes.put(attribute, value);
+    public void putProperty(String property, String value) {
+        properties.put(property, value);
     }
 }

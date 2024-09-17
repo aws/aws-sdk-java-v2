@@ -99,19 +99,19 @@ class SdkUserAgentBuilderTest {
         SdkClientUserAgentProperties properties = new SdkClientUserAgentProperties();
 
         if (retryMode != null) {
-            properties.putAttribute(RETRY_MODE, retryMode);
+            properties.putProperty(RETRY_MODE, retryMode);
         }
 
         if (internalMarker != null) {
-            properties.putAttribute(INTERNAL_METADATA_MARKER, internalMarker);
+            properties.putProperty(INTERNAL_METADATA_MARKER, internalMarker);
         }
 
         if (io != null) {
-            properties.putAttribute(IO, io);
+            properties.putProperty(IO, io);
         }
 
         if (http != null) {
-            properties.putAttribute(HTTP, http);
+            properties.putProperty(HTTP, http);
         }
 
         return properties;

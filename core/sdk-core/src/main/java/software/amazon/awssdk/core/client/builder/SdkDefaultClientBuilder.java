@@ -18,6 +18,8 @@ package software.amazon.awssdk.core.client.builder;
 import static software.amazon.awssdk.core.ClientType.ASYNC;
 import static software.amazon.awssdk.core.ClientType.SYNC;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CLIENT_TYPE;
@@ -289,6 +291,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                                   .lazyOption(PROFILE_FILE, conf -> conf.get(PROFILE_FILE_SUPPLIER).get())
                                                   .option(PROFILE_NAME,
                                                           ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow())
+                                                  .option(USER_AGENT_PREFIX, "")
+                                                  .option(USER_AGENT_SUFFIX, "")
                                                   .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
                                                   .option(CONFIGURED_COMPRESSION_CONFIGURATION,
                                                           CompressionConfiguration.builder().build()));
@@ -411,13 +415,13 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         ClientType clientType = config.get(CLIENT_TYPE);
         ClientType resolvedClientType = clientType == null ? ClientType.UNKNOWN : config.get(CLIENT_TYPE);
 
-        clientProperties.putAttribute(RETRY_MODE, StringUtils.lowerCase(resolveRetryMode(config.get(RETRY_POLICY),
-                                                                                  config.get(RETRY_STRATEGY))));
-        clientProperties.putAttribute(INTERNAL_METADATA_MARKER, StringUtils.trimToEmpty(config.get(INTERNAL_USER_AGENT)));
-        clientProperties.putAttribute(IO, StringUtils.lowerCase(resolvedClientType.name()));
-        clientProperties.putAttribute(HTTP, SdkHttpUtils.urlEncode(clientName(resolvedClientType,
-                                                                       config.get(SYNC_HTTP_CLIENT),
-                                                                       config.get(ASYNC_HTTP_CLIENT))));
+        clientProperties.putProperty(RETRY_MODE, StringUtils.lowerCase(resolveRetryMode(config.get(RETRY_POLICY),
+                                                                                        config.get(RETRY_STRATEGY))));
+        clientProperties.putProperty(INTERNAL_METADATA_MARKER, StringUtils.trimToEmpty(config.get(INTERNAL_USER_AGENT)));
+        clientProperties.putProperty(IO, StringUtils.lowerCase(resolvedClientType.name()));
+        clientProperties.putProperty(HTTP, SdkHttpUtils.urlEncode(clientName(resolvedClientType,
+                                                                             config.get(SYNC_HTTP_CLIENT),
+                                                                             config.get(ASYNC_HTTP_CLIENT))));
 
         return SdkUserAgentBuilder.buildClientUserAgentString(SystemUserAgent.getOrCreate(), clientProperties);
     }
