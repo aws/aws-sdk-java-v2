@@ -1,0 +1,48 @@
+{
+    "version": "2.28.2",
+    "date": "2024-09-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "Removing the ON_PREMISE enum from the input settings field."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "This release adds additional enhancements to AWS IoT Device Management Software Package Catalog and Jobs. It also adds SBOM support in Software Package Version."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "contributor": "",
+            "description": "Doc only update for AWS Organizations that fixes several customer-reported issues"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock",
+            "contributor": "",
+            "description": "This feature adds cross account s3 bucket and VPC support to ModelInvocation jobs. To use a cross account bucket, pass in the accountId of the bucket to s3BucketOwner in the ModelInvocationJobInputDataConfig or ModelInvocationJobOutputDataConfig."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Launching Global Cluster tagging."
+        },
+        {
+            "type": "feature",
+            "category": "Private CA Connector for SCEP",
+            "contributor": "",
+            "description": "This is a general availability (GA) release of Connector for SCEP, a feature of AWS Private CA. Connector for SCEP links your SCEP-enabled and mobile device management systems to AWS Private CA for digital signature installation and certificate management."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
