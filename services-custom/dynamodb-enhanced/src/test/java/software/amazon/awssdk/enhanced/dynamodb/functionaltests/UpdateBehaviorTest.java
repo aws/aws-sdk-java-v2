@@ -191,7 +191,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
     }
 
     @Test
-    public void when_updatingNestedObjectWithSingleLevel_default_mode_update_existingInformationIsErased() {
+    public void when_updatingNestedObjectWithSingleLevel_default_mode_update_newMapCreated() {
 
         NestedRecordWithUpdateBehavior nestedRecord = createNestedWithDefaults("id456", 5L);
 
@@ -211,6 +211,33 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         update_record.setNestedRecord(updatedNestedRecord);
 
         mappedTable.updateItem(r -> r.item(update_record).ignoreNullsMode(IgnoreNullsMode.DEFAULT));
+
+        RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
+
+        verifySingleLevelNestingTargetedUpdateBehavior(persistedRecord.getNestedRecord(), updatedNestedCounter, null, null);
+    }
+
+    @Test
+    public void when_updatingNestedObjectWithSingleLevel_with_no_mode_update_newMapCreated() {
+
+        NestedRecordWithUpdateBehavior nestedRecord = createNestedWithDefaults("id456", 5L);
+
+        RecordWithUpdateBehaviors record = new RecordWithUpdateBehaviors();
+        record.setId("id123");
+        record.setNestedRecord(nestedRecord);
+
+        mappedTable.putItem(record);
+
+        NestedRecordWithUpdateBehavior updatedNestedRecord = new NestedRecordWithUpdateBehavior();
+        long updatedNestedCounter = 10L;
+        updatedNestedRecord.setNestedCounter(updatedNestedCounter);
+
+        RecordWithUpdateBehaviors update_record = new RecordWithUpdateBehaviors();
+        update_record.setId("id123");
+        update_record.setVersion(1L);
+        update_record.setNestedRecord(updatedNestedRecord);
+
+        mappedTable.updateItem(r -> r.item(update_record));
 
         RecordWithUpdateBehaviors persistedRecord = mappedTable.getItem(r -> r.key(k -> k.partitionValue("id123")));
 
