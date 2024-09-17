@@ -23,7 +23,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.in;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -33,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.ContentStreamProvider;
@@ -162,8 +162,8 @@ public class RestJsonEventStreamProtocolTest {
         return AwsJsonProtocolFactory.builder()
                                      .clientConfiguration(
                                          SdkClientConfiguration.builder()
-                                                               .option(SdkClientOption.ENDPOINT,
-                                                                       URI.create("https://test.aws.com"))
+                                                               .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                                                       ClientEndpointProvider.forEndpointOverride(URI.create("http://test.aws.com")))
                                                                .build())
                                      .defaultServiceExceptionSupplier(ProtocolRestJsonContentTypeException::builder)
                                      .protocol(AwsJsonProtocol.REST_JSON)

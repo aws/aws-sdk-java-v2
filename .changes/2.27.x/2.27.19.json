@@ -1,0 +1,60 @@
+{
+    "version": "2.27.19",
+    "date": "2024-09-04",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "anirudh9391",
+            "description": "Introduce a new method to transform input to be able to perform update operations on nested DynamoDB object attributes."
+        },
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "contributor": "",
+            "description": "Adds new logging levels (INFO and DEBUG) for additional log output control"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Fault Injection Simulator",
+            "contributor": "",
+            "description": "This release adds safety levers, a new mechanism to stop all running experiments and prevent new experiments from starting."
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Amazon Simple Storage Service /S3 Access Grants / Features : This release launches new Access Grants API - ListCallerAccessGrants."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "Add support for user metadata inside PromptVariant."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "Update to support new APIs for delivery of logs from AWS services."
+        },
+        {
+            "type": "feature",
+            "category": "DynamoDB Enhanced Client",
+            "contributor": "shetsa-amzn",
+            "description": "Adding support for Select in ScanEnhancedRequest"
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace User Environment Management service",
+            "contributor": "",
+            "description": "Updates Finspace documentation for smaller instances."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

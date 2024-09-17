@@ -4435,7 +4435,7 @@
       "type":"string",
       "max":2048,
       "min":1,
-      "pattern":"^arn:aws(-cn|-us-gov)?:sagemaker:[a-z0-9\\-]{9,16}:[0-9]{12}:algorithm/[\\S]{1,2048}$"
+      "pattern":"^arn:aws(-cn|-us-gov|-iso-f)?:sagemaker:[a-z0-9\\-]{9,16}:[0-9]{12}:algorithm/[\\S]{1,2048}$"
     },
     "AlgorithmImage":{
       "type":"string",
@@ -4895,6 +4895,16 @@
         "ml.r6id.24xlarge",
         "ml.r6id.32xlarge"
       ]
+    },
+    "AppLifecycleManagement":{
+      "type":"structure",
+      "members":{
+        "IdleSettings":{
+          "shape":"IdleSettings",
+          "documentation":"<p>Settings related to idle shutdown of Studio applications.</p>"
+        }
+      },
+      "documentation":"<p>Settings that are used to configure and manage the lifecycle of Amazon SageMaker Studio applications.</p>"
     },
     "AppList":{
       "type":"list",
@@ -6077,6 +6087,14 @@
         "Descending"
       ]
     },
+    "AutoMountHomeEFS":{
+      "type":"string",
+      "enum":[
+        "Enabled",
+        "Disabled",
+        "DefaultAsDomain"
+      ]
+    },
     "AutoParameter":{
       "type":"structure",
       "required":[
@@ -7248,6 +7266,10 @@
         "InstanceStorageConfigs":{
           "shape":"ClusterInstanceStorageConfigs",
           "documentation":"<p>The additional storage configurations for the instances in the SageMaker HyperPod cluster instance group.</p>"
+        },
+        "OnStartDeepHealthChecks":{
+          "shape":"OnStartDeepHealthChecks",
+          "documentation":"<p>A flag indicating whether deep health checks should be performed when the cluster instance group is created or updated.</p>"
         }
       },
       "documentation":"<p>Details of an instance group in a SageMaker HyperPod cluster.</p>"
@@ -7299,6 +7321,10 @@
         "InstanceStorageConfigs":{
           "shape":"ClusterInstanceStorageConfigs",
           "documentation":"<p>Specifies the additional storage configurations for the instances in the SageMaker HyperPod cluster instance group.</p>"
+        },
+        "OnStartDeepHealthChecks":{
+          "shape":"OnStartDeepHealthChecks",
+          "documentation":"<p>A flag indicating whether deep health checks should be performed when the cluster instance group is created or updated.</p>"
         }
       },
       "documentation":"<p>The specifications of an instance group that you need to define.</p>"
@@ -7306,7 +7332,7 @@
     "ClusterInstanceGroupSpecifications":{
       "type":"list",
       "member":{"shape":"ClusterInstanceGroupSpecification"},
-      "max":20,
+      "max":100,
       "min":1
     },
     "ClusterInstancePlacement":{
@@ -7330,7 +7356,8 @@
         "Failure",
         "Pending",
         "ShuttingDown",
-        "SystemUpdating"
+        "SystemUpdating",
+        "DeepHealthCheckInProgress"
       ]
     },
     "ClusterInstanceStatusDetails":{
@@ -7498,6 +7525,13 @@
       "min":1,
       "pattern":"^i-[a-f0-9]{8}(?:[a-f0-9]{9})?$"
     },
+    "ClusterNodeRecovery":{
+      "type":"string",
+      "enum":[
+        "Automatic",
+        "None"
+      ]
+    },
     "ClusterNodeSummaries":{
       "type":"list",
       "member":{"shape":"ClusterNodeSummary"}
@@ -7538,6 +7572,28 @@
     "ClusterNonNegativeInstanceCount":{
       "type":"integer",
       "min":0
+    },
+    "ClusterOrchestrator":{
+      "type":"structure",
+      "required":["Eks"],
+      "members":{
+        "Eks":{
+          "shape":"ClusterOrchestratorEksConfig",
+          "documentation":"<p>The Amazon EKS cluster used as the orchestrator for the SageMaker HyperPod cluster.</p>"
+        }
+      },
+      "documentation":"<p>The type of orchestrator used for the SageMaker HyperPod cluster.</p>"
+    },
+    "ClusterOrchestratorEksConfig":{
+      "type":"structure",
+      "required":["ClusterArn"],
+      "members":{
+        "ClusterArn":{
+          "shape":"EksClusterArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon EKS cluster associated with the SageMaker HyperPod cluster.</p>"
+        }
+      },
+      "documentation":"<p>The configuration settings for the Amazon EKS cluster used as the orchestrator for the SageMaker HyperPod cluster.</p>"
     },
     "ClusterPrivateDnsHostname":{
       "type":"string",
@@ -7622,6 +7678,10 @@
         "LifecycleConfigArns":{
           "shape":"LifecycleConfigArns",
           "documentation":"<p>The Amazon Resource Name (ARN) of the Code Editor application lifecycle configuration.</p>"
+        },
+        "AppLifecycleManagement":{
+          "shape":"AppLifecycleManagement",
+          "documentation":"<p>Settings that are used to configure and manage the lifecycle of CodeEditor applications.</p>"
         }
       },
       "documentation":"<p>The Code Editor application settings.</p> <p>For more information about Code Editor, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/code-editor.html\">Get started with Code Editor in Amazon SageMaker</a>.</p>"
@@ -7646,7 +7706,7 @@
       "type":"string",
       "max":2048,
       "min":1,
-      "pattern":"^arn:aws(-cn|-us-gov)?:sagemaker:[a-z0-9\\-]{9,16}:[0-9]{12}:code-repository/[\\S]{1,2048}$"
+      "pattern":"^arn:aws(-cn|-us-gov|-iso-f)?:sagemaker:[a-z0-9\\-]{9,16}:[0-9]{12}:code-repository/[\\S]{1,2048}$"
     },
     "CodeRepositoryContains":{
       "type":"string",
@@ -8018,7 +8078,7 @@
         },
         "Environment":{
           "shape":"EnvironmentMap",
-          "documentation":"<p>The environment variables to set in the Docker container.</p> <p>The maximum length of each key and value in the <code>Environment</code> map is 1024 bytes. The maximum length of all keys and values in the map, combined, is 32 KB. If you pass multiple containers to a <code>CreateModel</code> request, then the maximum length of all of their maps, combined, is also 32 KB.</p>"
+          "documentation":"<p>The environment variables to set in the Docker container. Don't include any sensitive data in your environment variables.</p> <p>The maximum length of each key and value in the <code>Environment</code> map is 1024 bytes. The maximum length of all keys and values in the map, combined, is 32 KB. If you pass multiple containers to a <code>CreateModel</code> request, then the maximum length of all of their maps, combined, is also 32 KB.</p>"
         },
         "ModelPackageName":{
           "shape":"VersionedArnOrName",
@@ -8598,6 +8658,14 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>Custom tags for managing the SageMaker HyperPod cluster as an Amazon Web Services resource. You can add tags to your cluster in the same way you add them in other Amazon Web Services services that support tagging. To learn more about tagging Amazon Web Services resources in general, see <a href=\"https://docs.aws.amazon.com/tag-editor/latest/userguide/tagging.html\">Tagging Amazon Web Services Resources User Guide</a>.</p>"
+        },
+        "Orchestrator":{
+          "shape":"ClusterOrchestrator",
+          "documentation":"<p>The type of orchestrator to use for the SageMaker HyperPod cluster. Currently, the only supported value is <code>\"eks\"</code>, which is to use an Amazon Elastic Kubernetes Service (EKS) cluster as the orchestrator.</p>"
+        },
+        "NodeRecovery":{
+          "shape":"ClusterNodeRecovery",
+          "documentation":"<p>The node recovery mode for the SageMaker HyperPod cluster. When set to <code>Automatic</code>, SageMaker HyperPod will automatically reboot or replace faulty nodes when issues are detected. When set to <code>None</code>, cluster administrators will need to manually manage any faulty cluster instances.</p>"
         }
       }
     },
@@ -10871,7 +10939,7 @@
         },
         "Environment":{
           "shape":"TransformEnvironmentMap",
-          "documentation":"<p>The environment variables to set in the Docker container. We support up to 16 key and values entries in the map.</p>"
+          "documentation":"<p>The environment variables to set in the Docker container. Don't include any sensitive data in your environment variables. We support up to 16 key and values entries in the map.</p>"
         },
         "TransformInput":{
           "shape":"TransformInput",
@@ -11603,6 +11671,13 @@
       "member":{"shape":"DebugRuleEvaluationStatus"},
       "max":20,
       "min":0
+    },
+    "DeepHealthCheckType":{
+      "type":"string",
+      "enum":[
+        "InstanceStress",
+        "InstanceConnectivity"
+      ]
     },
     "DefaultEbsStorageSettings":{
       "type":"structure",
@@ -13186,7 +13261,15 @@
           "shape":"ClusterInstanceGroupDetailsList",
           "documentation":"<p>The instance groups of the SageMaker HyperPod cluster.</p>"
         },
-        "VpcConfig":{"shape":"VpcConfig"}
+        "VpcConfig":{"shape":"VpcConfig"},
+        "Orchestrator":{
+          "shape":"ClusterOrchestrator",
+          "documentation":"<p>The type of orchestrator used for the SageMaker HyperPod cluster. </p>"
+        },
+        "NodeRecovery":{
+          "shape":"ClusterNodeRecovery",
+          "documentation":"<p>The node recovery mode configured for the SageMaker HyperPod cluster.</p>"
+        }
       }
     },
     "DescribeCodeRepositoryInput":{
@@ -18033,6 +18116,12 @@
       "max":10,
       "pattern":"\\d+"
     },
+    "EksClusterArn":{
+      "type":"string",
+      "max":2048,
+      "min":20,
+      "pattern":"^arn:aws[a-z\\-]*:eks:[a-z0-9\\-]*:[0-9]{12}:cluster\\/[0-9A-Za-z][A-Za-z0-9\\-_]{0,99}$"
+    },
     "EmrServerlessComputeConfig":{
       "type":"structure",
       "required":["ExecutionRoleARN"],
@@ -20870,6 +20959,33 @@
       "member":{"shape":"IdentityProviderOAuthSetting"},
       "max":20
     },
+    "IdleSettings":{
+      "type":"structure",
+      "members":{
+        "LifecycleManagement":{
+          "shape":"LifecycleManagement",
+          "documentation":"<p>Indicates whether idle shutdown is activated for the application type.</p>"
+        },
+        "IdleTimeoutInMinutes":{
+          "shape":"IdleTimeoutInMinutes",
+          "documentation":"<p>The time that SageMaker waits after the application becomes idle before shutting it down.</p>"
+        },
+        "MinIdleTimeoutInMinutes":{
+          "shape":"IdleTimeoutInMinutes",
+          "documentation":"<p>The minimum value in minutes that custom idle shutdown can be set to by the user.</p>"
+        },
+        "MaxIdleTimeoutInMinutes":{
+          "shape":"IdleTimeoutInMinutes",
+          "documentation":"<p>The maximum value in minutes that custom idle shutdown can be set to by the user.</p>"
+        }
+      },
+      "documentation":"<p>Settings related to idle shutdown of Studio applications.</p>"
+    },
+    "IdleTimeoutInMinutes":{
+      "type":"integer",
+      "max":525600,
+      "min":60
+    },
     "Image":{
       "type":"structure",
       "required":[
@@ -20918,7 +21034,7 @@
     "ImageArn":{
       "type":"string",
       "max":256,
-      "pattern":"^arn:aws(-[\\w]+)*:sagemaker:.+:[0-9]{12}:image/[a-z0-9]([-.]?[a-z0-9])*$"
+      "pattern":"^arn:aws(-[\\w]+)*:sagemaker:.+:[0-9]{12}:image/[a-zA-Z0-9]([-.]?[a-zA-Z0-9])*$"
     },
     "ImageBaseImage":{
       "type":"string",
@@ -22214,6 +22330,10 @@
           "shape":"CodeRepositories",
           "documentation":"<p>A list of Git repositories that SageMaker automatically displays to users for cloning in the JupyterLab application.</p>"
         },
+        "AppLifecycleManagement":{
+          "shape":"AppLifecycleManagement",
+          "documentation":"<p>Indicates whether idle shutdown is activated for JupyterLab applications.</p>"
+        },
         "EmrSettings":{
           "shape":"EmrSettings",
           "documentation":"<p>The configuration parameters that specify the IAM roles assumed by the execution role of SageMaker (assumable roles) and the cluster instances or job execution environments (execution roles or runtime roles) to manage and access resources required for running Amazon EMR clusters or Amazon EMR Serverless applications.</p>"
@@ -22705,6 +22825,13 @@
     "LifecycleConfigArns":{
       "type":"list",
       "member":{"shape":"StudioLifecycleConfigArn"}
+    },
+    "LifecycleManagement":{
+      "type":"string",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ]
     },
     "LineageEntityParameters":{
       "type":"map",
@@ -28158,7 +28285,7 @@
       "type":"string",
       "max":2048,
       "min":1,
-      "pattern":"^arn:aws(-cn|-us-gov)?:sagemaker:[a-z0-9\\-]{9,16}:[0-9]{12}:model-package/[\\S]{1,2048}$"
+      "pattern":"^arn:aws(-cn|-us-gov|-iso-f)?:sagemaker:[a-z0-9\\-]{9,16}:[0-9]{12}:model-package/[\\S]{1,2048}$"
     },
     "ModelPackageArnList":{
       "type":"list",
@@ -28268,7 +28395,7 @@
       "type":"string",
       "max":2048,
       "min":1,
-      "pattern":"^arn:aws(-cn|-us-gov)?:sagemaker:[a-z0-9\\-]{9,16}:[0-9]{12}:model-package-group/[\\S]{1,2048}$"
+      "pattern":"^arn:aws(-cn|-us-gov|-iso-f)?:sagemaker:[a-z0-9\\-]{9,16}:[0-9]{12}:model-package-group/[\\S]{1,2048}$"
     },
     "ModelPackageGroupSortBy":{
       "type":"string",
@@ -30024,6 +30151,12 @@
         }
       },
       "documentation":"<p>A list of user groups that exist in your OIDC Identity Provider (IdP). One to ten groups can be used to create a single private work team. When you add a user group to the list of <code>Groups</code>, you can add that user group to one or more private work teams. If you add a user group to a private work team, all workers in that user group are added to the work team.</p>"
+    },
+    "OnStartDeepHealthChecks":{
+      "type":"list",
+      "member":{"shape":"DeepHealthCheckType"},
+      "max":2,
+      "min":1
     },
     "OnlineStoreConfig":{
       "type":"structure",
@@ -32283,7 +32416,7 @@
       "type":"string",
       "max":2048,
       "min":1,
-      "pattern":"^arn:aws(-cn|-us-gov)?:sagemaker:[a-z0-9\\-]{9,16}:[0-9]{12}:project/[\\S]{1,2048}$"
+      "pattern":"^arn:aws(-cn|-us-gov|-iso-f)?:sagemaker:[a-z0-9\\-]{9,16}:[0-9]{12}:project/[\\S]{1,2048}$"
     },
     "ProjectEntityName":{
       "type":"string",
@@ -34626,6 +34759,16 @@
       "min":1,
       "pattern":".*"
     },
+    "SpaceAppLifecycleManagement":{
+      "type":"structure",
+      "members":{
+        "IdleSettings":{
+          "shape":"SpaceIdleSettings",
+          "documentation":"<p>Settings related to idle shutdown of Studio applications.</p>"
+        }
+      },
+      "documentation":"<p>Settings that are used to configure and manage the lifecycle of Amazon SageMaker Studio applications in a space.</p>"
+    },
     "SpaceArn":{
       "type":"string",
       "max":256,
@@ -34634,7 +34777,11 @@
     "SpaceCodeEditorAppSettings":{
       "type":"structure",
       "members":{
-        "DefaultResourceSpec":{"shape":"ResourceSpec"}
+        "DefaultResourceSpec":{"shape":"ResourceSpec"},
+        "AppLifecycleManagement":{
+          "shape":"SpaceAppLifecycleManagement",
+          "documentation":"<p>Settings that are used to configure and manage the lifecycle of CodeEditor applications in a space.</p>"
+        }
       },
       "documentation":"<p>The application settings for a Code Editor space.</p>"
     },
@@ -34685,6 +34832,16 @@
       "max":16384,
       "min":5
     },
+    "SpaceIdleSettings":{
+      "type":"structure",
+      "members":{
+        "IdleTimeoutInMinutes":{
+          "shape":"IdleTimeoutInMinutes",
+          "documentation":"<p>The time that SageMaker waits after the application becomes idle before shutting it down.</p>"
+        }
+      },
+      "documentation":"<p>Settings related to idle shutdown of Studio applications in a space.</p>"
+    },
     "SpaceJupyterLabAppSettings":{
       "type":"structure",
       "members":{
@@ -34692,6 +34849,10 @@
         "CodeRepositories":{
           "shape":"CodeRepositories",
           "documentation":"<p>A list of Git repositories that SageMaker automatically displays to users for cloning in the JupyterLab application.</p>"
+        },
+        "AppLifecycleManagement":{
+          "shape":"SpaceAppLifecycleManagement",
+          "documentation":"<p>Settings that are used to configure and manage the lifecycle of JupyterLab applications in a space.</p>"
         }
       },
       "documentation":"<p>The settings for the JupyterLab application within a space.</p>"
@@ -35307,7 +35468,7 @@
     "StudioLifecycleConfigArn":{
       "type":"string",
       "max":256,
-      "pattern":"arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:studio-lifecycle-config/.*"
+      "pattern":"^(arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:studio-lifecycle-config/.*|None)$"
     },
     "StudioLifecycleConfigContent":{
       "type":"string",
@@ -37750,6 +37911,10 @@
         "InstanceGroups":{
           "shape":"ClusterInstanceGroupSpecifications",
           "documentation":"<p>Specify the instance groups to update.</p>"
+        },
+        "NodeRecovery":{
+          "shape":"ClusterNodeRecovery",
+          "documentation":"<p>The node recovery mode to be applied to the SageMaker HyperPod cluster.</p>"
         }
       }
     },
@@ -39092,6 +39257,10 @@
         "StudioWebPortalSettings":{
           "shape":"StudioWebPortalSettings",
           "documentation":"<p>Studio settings. If these settings are applied on a user level, they take priority over the settings applied on a domain level.</p>"
+        },
+        "AutoMountHomeEFS":{
+          "shape":"AutoMountHomeEFS",
+          "documentation":"<p>Indicates whether auto-mounting of an EFS volume is supported for the user profile. The <code>DefaultAsDomain</code> value is only supported for user profiles. Do not use the <code>DefaultAsDomain</code> value when setting this parameter for a domain.</p>"
         }
       },
       "documentation":"<p>A collection of settings that apply to users in a domain. These settings are specified when the <code>CreateUserProfile</code> API is called, and as <code>DefaultUserSettings</code> when the <code>CreateDomain</code> API is called.</p> <p> <code>SecurityGroups</code> is aggregated when specified in both calls. For all other settings in <code>UserSettings</code>, the values specified in <code>CreateUserProfile</code> take precedence over those specified in <code>CreateDomain</code>.</p>"

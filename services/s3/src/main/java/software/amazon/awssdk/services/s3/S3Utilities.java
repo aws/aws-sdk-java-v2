@@ -35,10 +35,11 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
-import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
 import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -182,8 +183,9 @@ public final class S3Utilities {
                           .profileFile(clientConfiguration.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
                           .profileName(clientConfiguration.option(SdkClientOption.PROFILE_NAME));
 
-        if (Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
-            builder.endpoint(clientConfiguration.option(SdkClientOption.ENDPOINT));
+        ClientEndpointProvider clientEndpoint = clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER);
+        if (clientEndpoint.isEndpointOverridden()) {
+            builder.endpoint(clientEndpoint.clientEndpoint());
         }
 
         return builder.build();
@@ -231,9 +233,9 @@ public final class S3Utilities {
     public URL getUrl(GetUrlRequest getUrlRequest) {
         Region resolvedRegion = resolveRegionForGetUrl(getUrlRequest);
         URI endpointOverride = getEndpointOverride(getUrlRequest);
-        URI resolvedEndpoint = resolveEndpoint(endpointOverride, resolvedRegion);
+        ClientEndpointProvider clientEndpoint = clientEndpointProvider(endpointOverride, resolvedRegion);
 
-        SdkHttpFullRequest marshalledRequest = createMarshalledRequest(getUrlRequest, resolvedEndpoint);
+        SdkHttpFullRequest marshalledRequest = createMarshalledRequest(getUrlRequest, clientEndpoint);
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                                                             .bucket(getUrlRequest.bucket())
@@ -246,9 +248,7 @@ public final class S3Utilities {
                                                                   .request(getObjectRequest)
                                                                   .build();
 
-        ExecutionAttributes executionAttributes = createExecutionAttributes(resolvedEndpoint,
-                                                                            resolvedRegion,
-                                                                            endpointOverride != null);
+        ExecutionAttributes executionAttributes = createExecutionAttributes(clientEndpoint, resolvedRegion);
 
         SdkHttpRequest modifiedRequest = runInterceptors(interceptorContext, executionAttributes).httpRequest();
         try {
@@ -426,15 +426,20 @@ public final class S3Utilities {
     /**
      * If endpoint is not present, construct a default endpoint using the region information.
      */
-    private URI resolveEndpoint(URI overrideEndpoint, Region region) {
-        return overrideEndpoint != null
-               ? overrideEndpoint
-               : new DefaultServiceEndpointBuilder("s3", "https").withRegion(region)
-                                                                 .withProfileFile(profileFile)
-                                                                 .withProfileName(profileName)
-                                                                 .withDualstackEnabled(s3Configuration.dualstackEnabled())
-                                                                 .withFipsEnabled(fipsEnabled)
-                                                                 .getServiceEndpoint();
+    private ClientEndpointProvider clientEndpointProvider(URI overrideEndpoint, Region region) {
+        return AwsClientEndpointProvider.builder()
+                                        .clientEndpointOverride(overrideEndpoint)
+                                        .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_S3")
+                                        .serviceEndpointOverrideSystemProperty("aws.endpointUrlS3")
+                                        .serviceProfileProperty("s3")
+                                        .serviceEndpointPrefix(SERVICE_NAME)
+                                        .defaultProtocol("https")
+                                        .region(region)
+                                        .profileFile(profileFile)
+                                        .profileName(profileName)
+                                        .dualstackEnabled(s3Configuration.dualstackEnabled())
+                                        .fipsEnabled(fipsEnabled)
+                                        .build();
     }
 
     private URI getEndpointOverride(GetUrlRequest request) {
@@ -445,13 +450,15 @@ public final class S3Utilities {
     /**
      * Create a {@link SdkHttpFullRequest} object with the bucket and key values marshalled into the path params.
      */
-    private SdkHttpFullRequest createMarshalledRequest(GetUrlRequest getUrlRequest, URI endpoint) {
+    private SdkHttpFullRequest createMarshalledRequest(GetUrlRequest getUrlRequest,
+                                                       ClientEndpointProvider clientEndpoint) {
         OperationInfo operationInfo = OperationInfo.builder()
                                                    .requestUri("/{Key+}")
                                                    .httpMethod(SdkHttpMethod.HEAD)
                                                    .build();
 
-        SdkHttpFullRequest.Builder builder = ProtocolUtils.createSdkHttpRequest(operationInfo, endpoint);
+        SdkHttpFullRequest.Builder builder = ProtocolUtils.createSdkHttpRequest(operationInfo,
+                                                                                clientEndpoint.clientEndpoint());
 
         // encode bucket
         builder.encodedPath(PathMarshaller.NON_GREEDY.marshall(builder.encodedPath(),
@@ -472,8 +479,8 @@ public final class S3Utilities {
      * Create the execution attributes to provide to the endpoint interceptors.
      * @return
      */
-    private ExecutionAttributes createExecutionAttributes(URI clientEndpoint, Region region, boolean isEndpointOverridden) {
-        ExecutionAttributes executionAttributes = new ExecutionAttributes()
+    private ExecutionAttributes createExecutionAttributes(ClientEndpointProvider clientEndpointProvider, Region region) {
+        return new ExecutionAttributes()
             .putAttribute(AwsExecutionAttribute.AWS_REGION, region)
             .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, ClientType.SYNC)
             .putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME)
@@ -483,14 +490,8 @@ public final class S3Utilities {
             .putAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED, s3Configuration.dualstackEnabled())
             .putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER, S3EndpointProvider.defaultProvider())
             .putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS, createClientContextParams())
-            .putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, clientEndpoint)
+            .putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER, clientEndpointProvider)
             .putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT, useGlobalEndpointResolver.resolve(region));
-
-        if (isEndpointOverridden) {
-            executionAttributes.putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, true);
-        }
-
-        return executionAttributes;
     }
 
     private AttributeMap createClientContextParams() {
