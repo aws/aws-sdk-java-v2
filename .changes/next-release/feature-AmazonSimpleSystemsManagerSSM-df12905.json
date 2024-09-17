@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "contributor": "",
-    "description": "Support for additional levels of cross-account, cross-Region organizational units in Automation. Various documentation updates."
-}

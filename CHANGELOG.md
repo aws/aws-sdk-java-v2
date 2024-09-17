@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.3__ __2024-09-17__
+## __AWS CodeBuild__
+  - ### Features
+    - GitLab Enhancements - Add support for Self-Hosted GitLab runners in CodeBuild. Add group webhooks
+
+## __AWS Lambda__
+  - ### Features
+    - Support for JSON resource-based policies and block public access
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation only release to address various tickets.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - The `DescribeImageScanning` API now includes `fixAvailable`, `exploitAvailable`, and `fixedInVersion` fields to provide more detailed information about the availability of fixes, exploits, and fixed versions for identified image vulnerabilities.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation with configuration information about the BYOL model for RDS for Db2.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Support for additional levels of cross-account, cross-Region organizational units in Automation. Various documentation updates.
+
 # __2.28.2__ __2024-09-16__
 ## __AWS Elemental MediaLive__
   - ### Features
