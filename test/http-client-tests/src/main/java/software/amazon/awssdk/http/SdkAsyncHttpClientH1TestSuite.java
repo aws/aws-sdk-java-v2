@@ -88,13 +88,13 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
     }
 
     @Test
-    public void connectionReceiveServerErrorStatusShouldNotReuseConnection() {
+    public void connectionReceiveServerErrorStatusShouldReuseConnection() {
         server.return500OnFirstRequest = true;
         server.closeConnection = false;
 
         HttpTestUtils.sendGetRequest(server.port(), client).join();
         HttpTestUtils.sendGetRequest(server.port(), client).join();
-        assertThat(server.channels.size()).isEqualTo(2);
+        assertThat(server.channels.size()).isEqualTo(1);
     }
 
     @Test
