@@ -88,11 +88,14 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
     }
 
     @Test
-    public void connectionReceiveServerErrorStatusShouldReuseConnection() {
+    public void connectionReceiveServerErrorStatusShouldReuseConnection() throws InterruptedException {
         server.return500OnFirstRequest = true;
         server.closeConnection = false;
 
         HttpTestUtils.sendGetRequest(server.port(), client).join();
+        // The request-complete-future does not await the channel-release-future
+        // Wait a small amount to allow the channel release to complete
+        Thread.sleep(100);
         HttpTestUtils.sendGetRequest(server.port(), client).join();
         assertThat(server.channels.size()).isEqualTo(1);
     }
