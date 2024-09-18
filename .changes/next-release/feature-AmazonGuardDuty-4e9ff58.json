@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon GuardDuty",
+    "contributor": "",
+    "description": "Add `launchType` and `sourceIPs` fields to GuardDuty findings."
+}
