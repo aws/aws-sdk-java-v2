@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.4__ __2024-09-18__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release extends the GetReservationPurchaseRecommendation API to support recommendations for Amazon DynamoDB reservations.
+
+## __AWS Directory Service__
+  - ### Features
+    - Added new APIs for enabling, disabling, and describing access to the AWS Directory Service Data API
+
+## __AWS Directory Service Data__
+  - ### Features
+    - Added new AWS Directory Service Data API, enabling you to manage data stored in AWS Directory Service directories. This includes APIs for creating, reading, updating, and deleting directory users, groups, and group memberships.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add `launchType` and `sourceIPs` fields to GuardDuty findings.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation with information upgrading snapshots with unsupported engine versions for RDS for MySQL and RDS for PostgreSQL.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added SSE-KMS support for directory buckets.
+
+## __MailManager__
+  - ### Features
+    - Introduce a new RuleSet condition evaluation, where customers can set up a StringExpression with a MimeHeader condition. This condition will perform the necessary validation based on the X-header provided by customers.
+
 # __2.28.3__ __2024-09-17__
 ## __AWS CodeBuild__
   - ### Features
