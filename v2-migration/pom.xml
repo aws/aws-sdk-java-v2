@@ -37,7 +37,6 @@
         <openrewrite.version>2.17.0</openrewrite.version>
         <junit.version>5.10.3</junit.version>
         <awssdkjavav1.version>1.12.472</awssdkjavav1.version>
-        <jacksondatabind.version>2.17.2</jacksondatabind.version>
     </properties>
 
     <dependencyManagement>
@@ -229,6 +228,12 @@
             <artifactId>test-utils</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson</groupId>
+                    <artifactId>jackson-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
