@@ -1,4 +1,46 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.5__ __2024-09-19__
+## __AWS CodeConnections__
+  - ### Features
+    - This release adds the PullRequestComment field to CreateSyncConfiguration API input, UpdateSyncConfiguration API input, GetSyncConfiguration API output and ListSyncConfiguration API output
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release provides support for additional DRM configurations per SPEKE Version 2.0.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adds Bandwidth Reduction Filtering for HD AVC and HEVC encodes, multiplex container settings.
+
+## __AWS Glue__
+  - ### Features
+    - This change is for releasing TestConnection api SDK model
+
+## __AWS Lambda__
+  - ### Features
+    - Tagging support for Lambda event source mapping, and code signing configuration resources.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Introduce a new method to transform input to be able to perform update operations on nested DynamoDB object attributes.
+        - Contributed by: [@anirudh9391](https://github.com/anirudh9391)
+
+## __Amazon QuickSight__
+  - ### Features
+    - QuickSight: 1. Add new API - ListFoldersForResource. 2. Commit mode adds visibility configuration of Apply button on multi-select controls for authors.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introduced support for G6e instance types on SageMaker Studio for JupyterLab and CodeEditor applications.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - WorkSpaces Secure Browser now enables Administrators to view and manage end-user browsing sessions via Session Management APIs.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@anirudh9391](https://github.com/anirudh9391)
 # __2.28.4__ __2024-09-18__
 ## __AWS Cost Explorer Service__
   - ### Features

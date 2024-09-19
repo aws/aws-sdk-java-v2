@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaLive",
-    "contributor": "",
-    "description": "Adds Bandwidth Reduction Filtering for HD AVC and HEVC encodes, multiplex container settings."
-}

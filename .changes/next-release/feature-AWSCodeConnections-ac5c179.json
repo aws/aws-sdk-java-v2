@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeConnections",
-    "contributor": "",
-    "description": "This release adds the PullRequestComment field to CreateSyncConfiguration API input, UpdateSyncConfiguration API input, GetSyncConfiguration API output and ListSyncConfiguration API output"
-}

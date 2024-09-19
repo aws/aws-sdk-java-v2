@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaConvert",
-    "contributor": "",
-    "description": "This release provides support for additional DRM configurations per SPEKE Version 2.0."
-}
