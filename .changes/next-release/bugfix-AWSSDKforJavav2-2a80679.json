@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "anirudh9391",
+    "description": "Introduce a new method to transform input to be able to perform update operations on nested DynamoDB object attributes."
+}
