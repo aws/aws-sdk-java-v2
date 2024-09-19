@@ -23,7 +23,6 @@ import java.util.jar.JarInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.utils.IoUtils;
 
 @SdkInternalApi
