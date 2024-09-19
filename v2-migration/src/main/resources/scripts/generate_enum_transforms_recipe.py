@@ -36,9 +36,11 @@ def generate_enum_getters_transform_recipe():
 
 def write_getters_recipe_metadata(f):
     f.write('''---
+# This file is generated. See generate_enum_transforms_recipe.py    
 type: specs.openrewrite.org/v1beta/recipe
 name: software.amazon.awssdk.v2migration.EnumGettersToV2
 displayName: Change v1 enum getters to v2
+descriptions: Change v1 enum getters to v2.
 recipeList:''')
 
 
