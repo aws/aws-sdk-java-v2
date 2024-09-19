@@ -29,7 +29,7 @@ import software.amazon.awssdk.utils.IoUtils;
 @SdkInternalApi
 public final class UserAgentLangValues {
 
-    private static final Logger log = LoggerFactory.getLogger(SdkUserAgent.class);
+    private static final Logger log = LoggerFactory.getLogger(UserAgentLangValues.class);
 
     private UserAgentLangValues() {
     }
