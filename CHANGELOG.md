@@ -1,200 +1,147 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.27.8__ __2024-08-19__
-## __AWS CodeBuild__
+# __2.28.4__ __2024-09-18__
+## __AWS Cost Explorer Service__
   - ### Features
-    - AWS CodeBuild now supports creating fleets with macOS platform for running builds.
+    - This release extends the GetReservationPurchaseRecommendation API to support recommendations for Amazon DynamoDB reservations.
 
-## __AWS Lambda__
+## __AWS Directory Service__
   - ### Features
-    - Release Lambda FunctionRecursiveConfig, enabling customers to turn recursive loop detection on or off on individual functions. This release adds two new APIs, GetFunctionRecursionConfig and PutFunctionRecursionConfig.
+    - Added new APIs for enabling, disabling, and describing access to the AWS Directory Service Data API
 
-## __AWS SDK for Java v2__
+## __AWS Directory Service Data__
   - ### Features
-    - Update service exception messages to never include the string "null" in the message.
-    - Updated endpoint and partition metadata.
+    - Added new AWS Directory Service Data API, enabling you to manage data stored in AWS Directory Service directories. This includes APIs for creating, reading, updating, and deleting directory users, groups, and group memberships.
 
-## __AWS Systems Manager for SAP__
+## __Amazon GuardDuty__
   - ### Features
-    - Add new attributes to the outputs of GetApplication and GetDatabase APIs.
+    - Add `launchType` and `sourceIPs` fields to GuardDuty findings.
 
-## __AWSDeadlineCloud__
+## __Amazon Relational Database Service__
   - ### Features
-    - This release adds additional search fields and provides sorting by multiple fields.
-
-## __Amazon Bedrock__
-  - ### Features
-    - Amazon Bedrock Batch Inference/ Model Invocation is a feature which allows customers to asynchronously run inference on a large set of records/files stored in S3.
-
-## __Amazon S3__
-  - ### Features
-    - When S3 returns a HEAD response, use the HTTP status text as the errorMessage.
-
-## __DynamoDBEnhancedClient__
-  - ### Features
-    - This commit introduces ConsumedCapacity in the response of a BatchWrite response
-        - Contributed by: [@prateek-vats](https://github.com/prateek-vats)
-
-## __Contributors__
-Special thanks to the following contributors to this release: 
-
-[@prateek-vats](https://github.com/prateek-vats)
-# __2.27.7__ __2024-08-16__
-## __AWS Batch__
-  - ### Features
-    - Improvements of integration between AWS Batch and EC2.
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Add new spotbugs rule to detect blocking call in the async codepath
-    - Updated endpoint and partition metadata.
-
-## __Amazon QuickSight__
-  - ### Features
-    - Amazon QuickSight launches Customer Managed Key (CMK) encryption for Data Source metadata
-
-## __Amazon SageMaker Service__
-  - ### Features
-    - Introduce Endpoint and EndpointConfig Arns in sagemaker:ListPipelineExecutionSteps API response
-
-## __Amazon Simple Email Service__
-  - ### Features
-    - Marking use case description field of account details as deprecated.
-
-## __Inspector2__
-  - ### Features
-    - Update the correct format of key and values for resource tags
-
-# __2.27.6__ __2024-08-15__
-## __AWS Identity and Access Management__
-  - ### Features
-    - Make the LastUsedDate field in the GetAccessKeyLastUsed response optional. This may break customers who only call the API for access keys with a valid LastUsedDate. This fixes a deserialization issue for access keys without a LastUsedDate, because the field was marked as required but could be null.
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Updated endpoint and partition metadata.
-
-## __Amazon DocumentDB with MongoDB compatibility__
-  - ### Features
-    - This release adds Global Cluster Failover capability which enables you to change your global cluster's primary AWS region, the region that serves writes, during a regional outage. Performing a failover action preserves your Global Cluster setup.
-
-## __Amazon EC2 Container Service__
-  - ### Features
-    - This release introduces a new ContainerDefinition configuration to support the customer-managed keys for ECS container restart feature.
+    - Updates Amazon RDS documentation with information upgrading snapshots with unsupported engine versions for RDS for MySQL and RDS for PostgreSQL.
 
 ## __Amazon Simple Storage Service__
   - ### Features
-    - Amazon Simple Storage Service / Features : Adds support for pagination in the S3 ListBuckets API.
+    - Added SSE-KMS support for directory buckets.
 
-# __2.27.5__ __2024-08-14__
+## __MailManager__
+  - ### Features
+    - Introduce a new RuleSet condition evaluation, where customers can set up a StringExpression with a MimeHeader condition. This condition will perform the necessary validation based on the X-header provided by customers.
+
+# __2.28.3__ __2024-09-17__
 ## __AWS CodeBuild__
   - ### Features
-    - AWS CodeBuild now supports using Secrets Manager to store git credentials and using multiple source credentials in a single project.
+    - GitLab Enhancements - Add support for Self-Hosted GitLab runners in CodeBuild. Add group webhooks
 
-## __S3 Transfer Manager__
+## __AWS Lambda__
   - ### Features
-    - This change enables multipart download for S3 Transfer Manager with the java-based Multipart S3 Async Client.
+    - Support for JSON resource-based policies and block public access
 
-# __2.27.4__ __2024-08-13__
-## __AWS Amplify__
+## __Amazon EC2 Container Service__
   - ### Features
-    - Add a new field "cacheConfig" that enables users to configure the CDN cache settings for an App
+    - This is a documentation only release to address various tickets.
 
-## __AWS Fault Injection Simulator__
+## __Amazon Elastic Container Registry__
   - ### Features
-    - This release adds support for additional error information on experiment failure. It adds the error code, location, and account id on relevant failures to the GetExperiment and ListExperiment API responses.
+    - The `DescribeImageScanning` API now includes `fixAvailable`, `exploitAvailable`, and `fixedInVersion` fields to provide more detailed information about the availability of fixes, exploits, and fixed versions for identified image vulnerabilities.
 
-## __AWS Glue__
+## __Amazon Relational Database Service__
   - ### Features
-    - Add AttributesToGet parameter support for Glue GetTables
+    - Updates Amazon RDS documentation with configuration information about the BYOL model for RDS for Db2.
 
-## __Amazon AppStream__
+## __Amazon Simple Systems Manager (SSM)__
   - ### Features
-    - This release includes following new APIs: CreateThemeForStack, DescribeThemeForStack, UpdateThemeForStack, DeleteThemeForStack to support custom branding programmatically.
+    - Support for additional levels of cross-account, cross-Region organizational units in Automation. Various documentation updates.
 
-## __Amazon Neptune Graph__
-  - ### Features
-    - Amazon Neptune Analytics provides a new option for customers to load data into a graph using the RDF (Resource Description Framework) NTRIPLES format. When loading NTRIPLES files, use the value `convertToIri` for the `blankNodeHandling` parameter.
-
-# __2.27.3__ __2024-08-12__
-## __AWS Compute Optimizer__
-  - ### Features
-    - Doc only update for Compute Optimizer that fixes several customer-reported issues relating to ECS finding classifications
-
-## __AWS Config__
-  - ### Features
-    - Documentation update for the OrganizationConfigRuleName regex pattern.
-
+# __2.28.2__ __2024-09-16__
 ## __AWS Elemental MediaLive__
   - ### Features
-    - AWS Elemental MediaLive now supports now supports editing the PID values for a Multiplex.
+    - Removing the ON_PREMISE enum from the input settings field.
 
-## __AWS Ground Station__
+## __AWS IoT__
   - ### Features
-    - Updating documentation for OEMEphemeris to link to AWS Ground Station User Guide
+    - This release adds additional enhancements to AWS IoT Device Management Software Package Catalog and Jobs. It also adds SBOM support in Software Package Version.
 
-## __Amazon Elastic Compute Cloud__
+## __AWS Organizations__
   - ### Features
-    - This release adds new capabilities to manage On-Demand Capacity Reservations including the ability to split your reservation, move capacity between reservations, and modify the instance eligibility of your reservation.
+    - Doc only update for AWS Organizations that fixes several customer-reported issues
 
-## __Amazon Elastic Kubernetes Service__
-  - ### Features
-    - Added support for new AL2023 GPU AMIs to the supported AMITypes.
-
-## __Amazon SageMaker Service__
-  - ### Features
-    - Releasing large data support as part of CreateAutoMLJobV2 in SageMaker Autopilot and CreateDomain API for SageMaker Canvas.
-
-# __2.27.2__ __2024-08-09__
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
 
-  - ### Bugfixes
-    - Fixed an issue where invoking `abort` and then `close` on a `ResponseInputStream` would cause the `close` to fail.
-
-## __Amazon Cognito Identity Provider__
+## __Amazon Bedrock__
   - ### Features
-    - Fixed a description of AdvancedSecurityAdditionalFlows in Amazon Cognito user pool configuration.
+    - This feature adds cross account s3 bucket and VPC support to ModelInvocation jobs. To use a cross account bucket, pass in the accountId of the bucket to s3BucketOwner in the ModelInvocationJobInputDataConfig or ModelInvocationJobOutputDataConfig.
 
-## __Amazon Connect Service__
+## __Amazon Relational Database Service__
   - ### Features
-    - This release supports adding RoutingCriteria via UpdateContactRoutingData public API.
+    - Launching Global Cluster tagging.
 
-## __Amazon Simple Systems Manager (SSM)__
+## __Private CA Connector for SCEP__
   - ### Features
-    - Systems Manager doc-only updates for August 2024.
+    - This is a general availability (GA) release of Connector for SCEP, a feature of AWS Private CA. Connector for SCEP links your SCEP-enabled and mobile device management systems to AWS Private CA for digital signature installation and certificate management.
 
-# __2.27.1__ __2024-08-08__
-## __AWS Glue__
+# __2.28.1__ __2024-09-13__
+## __AWS Amplify__
   - ### Features
-    - This release adds support to retrieve the validation status when creating or updating Glue Data Catalog Views. Also added is support for BasicCatalogTarget partition keys.
+    - Doc only update to Amplify to explain platform setting for Next.js 14 SSG only applications
 
 ## __AWS SDK for Java v2__
-  - ### Bugfixes
-    - Update ResponseTransformer so download attempts to a directory that does not exist or does not have write permissions are not retried
-
-## __AWS SDK for Java v2 Migration Tool__
   - ### Features
-    - Introduce the preview release of the AWS SDK for Java v2 migration tool that automatically migrates applications from the AWS SDK for Java v1 to the AWS SDK for Java v2.
+    - Add support for specifying endpoint overrides using environment variables, system properties or profile files. More information about this feature is available here: https://docs.aws.amazon.com/sdkref/latest/guide/feature-ss-endpoints.html
+    - Updated endpoint and partition metadata.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Updates to all tags descriptions.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Updates to all tags descriptions.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix issue where the `AWS_USE_DUALSTACK_ENDPOINT` environment variable and `aws.useDualstackEndpoint` system property are not resolved during client creation time.
+
+## __Amazon S3 Control__
+  - ### Bugfixes
+    - Fix issue where the `AWS_USE_DUALSTACK_ENDPOINT` environment variable and `aws.useDualstackEndpoint` system property are not resolved during client creation time.
+
+# __2.28.0__ __2024-09-12__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes support for dynamic video overlay workflows, including picture-in-picture and squeezeback
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue is introducing two new optimizers for Apache Iceberg tables: snapshot retention and orphan file deletion. Customers can enable these optimizers and customize their configurations to perform daily maintenance tasks on their Iceberg tables based on their specific requirements.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - The S3 File Gateway now supports DSSE-KMS encryption. A new parameter EncryptionType is added to these APIs: CreateSmbFileShare, CreateNfsFileShare, UpdateSmbFileShare, UpdateNfsFileShare, DescribeSmbFileShares, DescribeNfsFileShares. Also, in favor of EncryptionType, KmsEncrypted is deprecated.
 
 ## __Amazon Cognito Identity Provider__
   - ### Features
-    - Added support for threat protection for custom authentication in Amazon Cognito user pools.
+    - Added email MFA option to user pools with advanced security features.
 
-## __Amazon Connect Service__
+## __Amazon EMR__
   - ### Features
-    - This release fixes a regression in number of access control tags that are allowed to be added to a security profile in Amazon Connect. You can now add up to four access control tags on a single security profile.
+    - Update APIs to allow modification of ODCR options, allocation strategy, and InstanceTypeConfigs on running InstanceFleet clusters.
 
-## __Amazon Elastic Compute Cloud__
+## __Amazon Relational Database Service__
   - ### Features
-    - Launch of private IPv6 addressing for VPCs and Subnets. VPC IPAM supports the planning and monitoring of private IPv6 usage.
+    - This release adds support for the os-upgrade pending maintenance action for Amazon Aurora DB clusters.
 
-# __2.27.0__ __2024-08-07__
-## __AWS Glue__
+## __Amazon Simple Queue Service__
   - ### Features
-    - Introducing AWS Glue Data Quality anomaly detection, a new functionality that uses ML-based solutions to detect data anomalies users have not explicitly defined rules for.
+    - The AWS SDK for Java now supports a new `BatchManager` for Amazon Simple Queue Service (SQS), allowing for client-side request batching with `SqsAsyncClient`. This feature improves cost efficiency by buffering up to 10 requests before sending them as a batch to SQS. The implementation also supports receive message polling, which further enhances throughput by minimizing the number of individual requests sent. The batched requests help to optimize performance and reduce the costs associated with using Amazon SQS.
 
-## __Amazon AppIntegrations Service__
+## __Elastic Load Balancing__
   - ### Features
-    - Updated CreateDataIntegration and CreateDataIntegrationAssociation API to support bulk data export from Amazon Connect Customer Profiles to the customer S3 bucket.
+    - Correct incorrectly mapped error in ELBv2 waiters
+
+## __Synthetics__
+  - ### Features
+    - This release introduces two features. The first is tag replication, which allows for the propagation of canary tags onto Synthetics related resources, such as Lambda functions. The second is a limit increase in canary name length, which has now been increased from 21 to 255 characters.
 

@@ -12,6 +12,7 @@ import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointModeResolver;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
@@ -55,13 +57,13 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c
-                .option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
-                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                .lazyOption(AwsClientOption.TOKEN_PROVIDER,
+            .option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+            .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+            .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+            .lazyOption(AwsClientOption.TOKEN_PROVIDER,
                         p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
-                .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
-                .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
+            .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
+            .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
     }
 
     @Override
@@ -71,7 +73,7 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         endpointInterceptors.add(new QueryRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-                .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
+            .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
@@ -92,6 +94,22 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
         builder.option(SdkClientOption.CLIENT_CONTEXT_PARAMS, clientContextParams.build());
         builder.option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE, resolveAccountIdEndpointMode(config));
+        builder.lazyOptionIfAbsent(
+            SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+            c -> AwsClientEndpointProvider
+                .builder()
+                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_QUERY_SERVICE")
+                .serviceEndpointOverrideSystemProperty("aws.endpointUrlQuery")
+                .serviceProfileProperty("query_service")
+                .serviceEndpointPrefix(serviceEndpointPrefix())
+                .defaultProtocol("https")
+                .region(c.get(AwsClientOption.AWS_REGION))
+                .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                .profileName(c.get(SdkClientOption.PROFILE_NAME))
+                .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                                   c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
+                .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+                .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
         return builder.build();
     }
 
@@ -179,19 +197,19 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         AccountIdEndpointMode configuredMode = config.option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE);
         if (configuredMode == null) {
             configuredMode = AccountIdEndpointModeResolver.create()
-                    .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                    .profileName(config.option(SdkClientOption.PROFILE_NAME)).defaultMode(AccountIdEndpointMode.PREFERRED)
-                    .resolve();
+                                                          .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                          .profileName(config.option(SdkClientOption.PROFILE_NAME)).defaultMode(AccountIdEndpointMode.PREFERRED)
+                                                          .resolve();
         }
         return configuredMode;
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
         Validate.notNull(c.option(SdkAdvancedClientOption.SIGNER),
-                "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
+                         "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
         Validate.notNull(c.option(SdkAdvancedClientOption.TOKEN_SIGNER),
-                "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' must be configured in the client builder.");
+                         "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' must be configured in the client builder.");
         Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
-                "The 'tokenProvider' must be configured in the client builder.");
+                         "The 'tokenProvider' must be configured in the client builder.");
     }
 }

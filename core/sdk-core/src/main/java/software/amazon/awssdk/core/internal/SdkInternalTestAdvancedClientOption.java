@@ -20,7 +20,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
 
 /**
  * Options of {@link SdkAdvancedClientOption} that <b>must not be used</b> outside of tests that are stored in this project.
@@ -33,7 +32,7 @@ public class SdkInternalTestAdvancedClientOption<T> extends SdkAdvancedClientOpt
      * endpoints generated from a specific region. For example, endpoint discovery is not supported in some cases when endpoint
      * overrides are used.
      *
-     * When this option is set, the {@link SdkClientOption#ENDPOINT_OVERRIDDEN} is forced to this value. Because of the way this
+     * When this option is set, the "endpoint overridden" flag is forced to this value. Because of the way this
      * is implemented, the client configuration must be configured *after* the {@code endpointOverride} is configured.
      */
     @SdkTestInternalApi

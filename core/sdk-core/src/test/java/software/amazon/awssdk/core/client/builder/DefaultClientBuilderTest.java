@@ -30,7 +30,6 @@ import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_ATTEMPT_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_TIMEOUT;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.ENDPOINT_OVERRIDDEN;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
@@ -65,6 +64,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -285,7 +285,6 @@ public class DefaultClientBuilderTest {
         assertThat(config.option(PROFILE_NAME)).isEqualTo(profileName);
         assertThat(config.option(METRIC_PUBLISHERS)).contains(metricPublisher);
         assertThat(config.option(EXECUTION_ATTRIBUTES).getAttribute(execAttribute)).isEqualTo("value");
-        assertThat(config.option(ENDPOINT_OVERRIDDEN)).isEqualTo(Boolean.TRUE);
 
         // Ensure that the SDK won't close the scheduled executor service we provided.
         config.close();
@@ -306,7 +305,8 @@ public class DefaultClientBuilderTest {
     public void buildWithEndpointShouldHaveCorrectEndpointAndSigningRegion() {
         TestClient client = testClientBuilder().endpointOverride(ENDPOINT).build();
 
-        assertThat(client.clientConfiguration.option(SdkClientOption.ENDPOINT)).isEqualTo(ENDPOINT);
+        assertThat(client.clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint())
+            .isEqualTo(ENDPOINT);
     }
 
     @Test
@@ -482,7 +482,8 @@ public class DefaultClientBuilderTest {
 
         @Override
         protected SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
-            return configuration.merge(c -> c.option(SdkClientOption.ENDPOINT, DEFAULT_ENDPOINT));
+            return configuration.merge(c -> c.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                                     ClientEndpointProvider.forEndpointOverride(DEFAULT_ENDPOINT)));
         }
 
         @Override
@@ -513,7 +514,8 @@ public class DefaultClientBuilderTest {
 
         @Override
         protected SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
-            return configuration.merge(c -> c.option(SdkClientOption.ENDPOINT, DEFAULT_ENDPOINT));
+            return configuration.merge(c -> c.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                                     ClientEndpointProvider.forEndpointOverride(DEFAULT_ENDPOINT)));
         }
 
         @Override

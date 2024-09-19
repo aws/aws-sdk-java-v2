@@ -7,6 +7,7 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -57,11 +58,9 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder implements JsonP
     @Override
     public JsonProtocolTestsServiceClientConfiguration.Builder endpointOverride(URI endpointOverride) {
         if (endpointOverride != null) {
-            config.option(SdkClientOption.ENDPOINT, endpointOverride);
-            config.option(SdkClientOption.ENDPOINT_OVERRIDDEN, true);
+            config.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, ClientEndpointProvider.forEndpointOverride(endpointOverride));
         } else {
-            config.option(SdkClientOption.ENDPOINT, null);
-            config.option(SdkClientOption.ENDPOINT_OVERRIDDEN, false);
+            config.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, null);
         }
         return this;
     }
@@ -71,8 +70,9 @@ public class JsonProtocolTestsServiceClientConfigurationBuilder implements JsonP
      */
     @Override
     public URI endpointOverride() {
-        if (Boolean.TRUE.equals(config.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
-            return config.option(SdkClientOption.ENDPOINT);
+        ClientEndpointProvider clientEndpoint = config.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER);
+        if (clientEndpoint != null && clientEndpoint.isEndpointOverridden()) {
+            return clientEndpoint.clientEndpoint();
         }
         return null;
     }

@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.poet.client;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsQueryCompatibleJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.batchManagerModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customContentTypeModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customPackageModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.endpointDiscoveryModels;
@@ -90,6 +91,12 @@ public class AsyncClientClassTest {
     public void asyncClientCustomPackageName() {
         ClassSpec syncClientCustomServiceMetaData = createAsyncClientClass(customPackageModels());
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-custompackage-async.java"));
+    }
+
+    @Test
+    public void asyncClientBatchManager() {
+        ClassSpec aSyncClientBatchManager = createAsyncClientClass(batchManagerModels());
+        assertThat(aSyncClientBatchManager, generatesTo("test-batchmanager-async.java"));
     }
 
     private AsyncClientClass createAsyncClientClass(IntermediateModel model) {
