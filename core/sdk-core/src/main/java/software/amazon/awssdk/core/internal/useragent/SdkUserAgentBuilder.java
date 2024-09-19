@@ -57,7 +57,8 @@ public final class SdkUserAgentBuilder {
         appendNonEmptyField(uaString, JAVA_SDK_METADATA, systemValues.sdkVersion());
         appendAdditionalSdkMetadata(uaString, userAgentProperties);
 
-        if (userAgentProperties.getProperty(INTERNAL_METADATA_MARKER) != null) {
+        String internalMarkerValue = userAgentProperties.getProperty(INTERNAL_METADATA_MARKER);
+        if (!StringUtils.isEmpty(internalMarkerValue)) {
             appendFieldAndSpace(uaString, METADATA, INTERNAL_METADATA_MARKER);
         }
 
