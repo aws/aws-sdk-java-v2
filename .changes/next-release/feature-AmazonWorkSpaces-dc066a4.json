@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkSpaces",
+    "contributor": "",
+    "description": "Releasing new ErrorCodes for SysPrep failures during ImageImport and CreateImage process"
+}
