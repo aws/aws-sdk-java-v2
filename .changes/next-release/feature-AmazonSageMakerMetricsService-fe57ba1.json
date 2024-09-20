@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Metrics Service",
-    "contributor": "",
-    "description": "This release introduces support for the SageMaker Metrics BatchGetMetrics API."
-}

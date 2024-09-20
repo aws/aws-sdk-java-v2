@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Neptune",
-    "contributor": "",
-    "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
-}
