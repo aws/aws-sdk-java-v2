@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB",
+    "contributor": "",
+    "description": "Generate account endpoint for DynamoDB requests when the account ID is available"
+}
