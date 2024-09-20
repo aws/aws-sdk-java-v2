@@ -16,37 +16,15 @@
 package software.amazon.awssdk.core.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.util.Arrays;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.utils.JavaSystemSetting;
 
-public class SdkUserAgentTest {
-
-    @Test
-    public void userAgent() {
-        String userAgent = SdkUserAgent.create().userAgent();
-        assertNotNull(userAgent);
-        Arrays.stream(userAgent.split(" ")).forEach(str -> assertThat(isValidInput(str)).isTrue());
-    }
+class SdkUserAgentTest {
 
     @Test
-    public void userAgent_HasVendor() {
-        System.setProperty(JavaSystemSetting.JAVA_VENDOR.property(), "finks");
-        String userAgent = SdkUserAgent.create().getUserAgent();
-        System.clearProperty(JavaSystemSetting.JAVA_VENDOR.property());
-        assertThat(userAgent).contains("vendor/finks");
-    }
-
-    @Test
-    public void userAgent_HasUnknownVendor() {
-        System.clearProperty(JavaSystemSetting.JAVA_VENDOR.property());
-        String userAgent = SdkUserAgent.create().getUserAgent();
-        assertThat(userAgent).contains("vendor/unknown");
-    }
-
-    private boolean isValidInput(String input) {
-        return input.startsWith("(") || input.contains("/") && input.split("/").length == 2;
+    void when_callingDeprecatedClass_valueIsCorrect() {
+        String userAgentStringThroughOldClass = SdkUserAgent.create().getUserAgent();
+        String systemUserAgentString = SystemUserAgent.getOrCreate().userAgentString();
+        assertThat(userAgentStringThroughOldClass).isEqualTo(systemUserAgentString);
     }
 }
