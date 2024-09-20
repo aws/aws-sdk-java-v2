@@ -57,11 +57,11 @@ public final class Utils {
     }
 
     public static boolean isListShape(Shape shape) {
-        return shape.getType().equals("list");
+        return shape != null && shape.getType() != null && shape.getType().equals("list");
     }
 
     public static boolean isMapShape(Shape shape) {
-        return shape.getType().equals("map");
+        return shape.getType() != null && shape.getType().equals("map");
     }
 
     public static boolean isEnumShape(Shape shape) {
