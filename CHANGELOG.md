@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.6__ __2024-09-20__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Refactoring the user agent string format to be more consistent across SDKs
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Generate account endpoint for DynamoDB requests when the account ID is available
+
+## __Amazon Neptune__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon SageMaker Metrics Service__
+  - ### Features
+    - This release introduces support for the SageMaker Metrics BatchGetMetrics API.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker now supports using manifest files to specify the location of uncompressed model artifacts within Model Packages
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Releasing new ErrorCodes for SysPrep failures during ImageImport and CreateImage process
+
 # __2.28.5__ __2024-09-19__
 ## __AWS CodeConnections__
   - ### Features
