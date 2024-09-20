@@ -147,8 +147,8 @@ public class S3WithUrlHttpClientIntegrationTest {
 
         @Override
         public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
-            assertThat(context.httpRequest().firstMatchingHeader("User-Agent").get()).containsIgnoringCase("io/sync");
-            assertThat(context.httpRequest().firstMatchingHeader("User-Agent").get()).containsIgnoringCase("http/UrlConnection");
+            assertThat(context.httpRequest().firstMatchingHeader("User-Agent").get()).containsIgnoringCase("io#sync");
+            assertThat(context.httpRequest().firstMatchingHeader("User-Agent").get()).containsIgnoringCase("http#UrlConnection");
         }
     }
 
