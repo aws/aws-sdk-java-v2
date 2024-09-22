@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB Enhanced",
+    "description": "This bugfix ensures that when using DynamoDbAsyncTable.createTable with no arguments any secondary indices defined in your TableSchema are also created. This behaviour was already present in the synchronous DynamoDbTable",
+    "contributor": "zakerf"
+}
