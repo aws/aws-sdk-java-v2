@@ -6,7 +6,7 @@
     "endpointPrefix":"xanadu",
     "protocol":"rest-json",
     "protocols":["rest-json"],
-    "serviceFullName":"A beautiful and amazing AxdbFrontend",
+    "serviceFullName":"Xanadu",
     "serviceId":"AxdbFrontend",
     "signatureVersion":"v4",
     "signingName":"xanadu",
@@ -87,7 +87,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Delete clusters in mutiple regions</p>",
+      "documentation":"<p>Delete clusters in multiple regions</p>",
       "idempotent":true
     },
     "GetCluster":{
@@ -108,42 +108,6 @@
       ],
       "documentation":"<p>Get a cluster</p>"
     },
-    "GetClusterGroup":{
-      "name":"GetClusterGroup",
-      "http":{
-        "method":"GET",
-        "requestUri":"/cluster-group/{identifier}",
-        "responseCode":200
-      },
-      "input":{"shape":"GetClusterGroupInput"},
-      "output":{"shape":"GetClusterGroupOutput"},
-      "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"},
-        {"shape":"ThrottlingException"}
-      ],
-      "documentation":"<p>Get a cluster group</p>"
-    },
-    "ListClusterGroups":{
-      "name":"ListClusterGroups",
-      "http":{
-        "method":"GET",
-        "requestUri":"/cluster-group",
-        "responseCode":200
-      },
-      "input":{"shape":"ListClusterGroupsInput"},
-      "output":{"shape":"ListClusterGroupsOutput"},
-      "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"},
-        {"shape":"ThrottlingException"}
-      ],
-      "documentation":"<p>List cluster groups</p>"
-    },
     "ListClusters":{
       "name":"ListClusters",
       "http":{
@@ -161,61 +125,6 @@
         {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>List clusters</p>"
-    },
-    "ListTagsForResource":{
-      "name":"ListTagsForResource",
-      "http":{
-        "method":"GET",
-        "requestUri":"/tags/{resourceArn}",
-        "responseCode":200
-      },
-      "input":{"shape":"ListTagsForResourceInput"},
-      "output":{"shape":"ListTagsForResourceOutput"},
-      "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"},
-        {"shape":"ThrottlingException"}
-      ],
-      "documentation":"<p>List all Tags on an ARN</p>"
-    },
-    "TagResource":{
-      "name":"TagResource",
-      "http":{
-        "method":"POST",
-        "requestUri":"/tags/{resourceArn}",
-        "responseCode":200
-      },
-      "input":{"shape":"TagResourceInput"},
-      "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"ServiceQuotaExceededException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"},
-        {"shape":"ThrottlingException"}
-      ],
-      "documentation":"<p>Add Tags to an ARN</p>",
-      "idempotent":true
-    },
-    "UntagResource":{
-      "name":"UntagResource",
-      "http":{
-        "method":"DELETE",
-        "requestUri":"/tags/{resourceArn}",
-        "responseCode":200
-      },
-      "input":{"shape":"UntagResourceInput"},
-      "errors":[
-        {"shape":"ValidationException"},
-        {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"},
-        {"shape":"ThrottlingException"}
-      ],
-      "documentation":"<p>Remove Tags from an ARN</p>",
-      "idempotent":true
     },
     "UpdateCluster":{
       "name":"UpdateCluster",
@@ -251,13 +160,6 @@
       },
       "exception":true
     },
-    "Arn":{
-      "type":"string",
-      "documentation":"<p>Amazon Resource Name</p>",
-      "max":1011,
-      "min":1,
-      "pattern":"arn:.+"
-    },
     "ClientToken":{
       "type":"string",
       "documentation":"<p>Idempotency Token</p>",
@@ -278,35 +180,6 @@
       "type":"timestamp",
       "documentation":"<p>Timestamp when the Cluster was created</p>"
     },
-    "ClusterEncryptionKey":{
-      "type":"string",
-      "documentation":"<p>The server-side encryption key used for this Cluster</p>"
-    },
-    "ClusterGroupArn":{
-      "type":"string",
-      "documentation":"<p>ClusterGroup ARN</p>"
-    },
-    "ClusterGroupCreationTime":{
-      "type":"timestamp",
-      "documentation":"<p>Timestamp when the Cluster Group was created</p>"
-    },
-    "ClusterGroupId":{
-      "type":"string",
-      "documentation":"<p>ClusterGroup ID</p>"
-    },
-    "ClusterGroupList":{
-      "type":"list",
-      "member":{"shape":"ClusterGroupSummary"},
-      "documentation":"<p>List of cluster groups</p>"
-    },
-    "ClusterGroupSummary":{
-      "type":"structure",
-      "members":{
-        "identifier":{"shape":"ClusterGroupId"},
-        "arn":{"shape":"ClusterGroupArn"}
-      },
-      "documentation":"<p>Cluster Group Summary</p>"
-    },
     "ClusterId":{
       "type":"string",
       "documentation":"<p>Cluster ID</p>"
@@ -315,18 +188,6 @@
       "type":"list",
       "member":{"shape":"ClusterSummary"},
       "documentation":"<p>List of clusters</p>"
-    },
-    "ClusterName":{
-      "type":"string",
-      "documentation":"<p>Cluster Name</p>",
-      "max":64,
-      "min":1,
-      "pattern":"[a-zA-Z](-?[a-zA-Z0-9]+)*"
-    },
-    "ClusterPassword":{
-      "type":"string",
-      "documentation":"<p>temporary cluster password for Pandora</p>",
-      "sensitive":true
     },
     "ClusterStatus":{
       "type":"string",
@@ -348,9 +209,7 @@
       ],
       "members":{
         "identifier":{"shape":"ClusterId"},
-        "name":{"shape":"ClusterName"},
-        "arn":{"shape":"ClusterArn"},
-        "groupArn":{"shape":"ClusterGroupArn"}
+        "arn":{"shape":"ClusterArn"}
       },
       "documentation":"<p>Cluster Summary</p>"
     },
@@ -381,12 +240,7 @@
     "CreateClusterInput":{
       "type":"structure",
       "members":{
-        "name":{"shape":"ClusterName"},
-        "groupArn":{"shape":"ClusterGroupArn"},
-        "groupWitnessRegion":{"shape":"Region"},
         "deletionProtectionEnabled":{"shape":"DeletionProtectionEnabled"},
-        "encryptionKey":{"shape":"ClusterEncryptionKey"},
-        "tags":{"shape":"TagMap"},
         "clientToken":{
           "shape":"ClientToken",
           "idempotencyToken":true
@@ -404,28 +258,22 @@
       ],
       "members":{
         "identifier":{"shape":"ClusterId"},
-        "name":{"shape":"ClusterName"},
         "arn":{"shape":"ClusterArn"},
-        "groupArn":{"shape":"ClusterGroupArn"},
         "status":{"shape":"ClusterStatus"},
         "creationTime":{"shape":"ClusterCreationTime"},
-        "deletionProtectionEnabled":{"shape":"DeletionProtectionEnabled"},
-        "encryptionKey":{"shape":"ClusterEncryptionKey"},
-        "quorumRegion":{"shape":"Region"},
-        "multiRegionClusterArns":{"shape":"ClusterArnList"},
-        "superuserPassword":{"shape":"ClusterPassword"}
+        "deletionProtectionEnabled":{"shape":"DeletionProtectionEnabled"}
       },
       "documentation":"<p>Output Mixin</p>"
     },
     "CreateMultiRegionClustersInput":{
       "type":"structure",
       "required":[
-        "clusterRegionList",
-        "quorumRegion"
+        "linkedRegionList",
+        "witnessRegion"
       ],
       "members":{
-        "clusterRegionList":{"shape":"RegionList"},
-        "quorumRegion":{"shape":"Region"},
+        "linkedRegionList":{"shape":"RegionList"},
+        "witnessRegion":{"shape":"Region"},
         "clientToken":{
           "shape":"ClientToken",
           "idempotencyToken":true
@@ -434,9 +282,9 @@
     },
     "CreateMultiRegionClustersOutput":{
       "type":"structure",
-      "required":["multiRegionClusterArns"],
+      "required":["linkedClusterArns"],
       "members":{
-        "multiRegionClusterArns":{"shape":"ClusterArnList"}
+        "linkedClusterArns":{"shape":"ClusterArnList"}
       }
     },
     "DeleteClusterInput":{
@@ -467,26 +315,21 @@
       ],
       "members":{
         "identifier":{"shape":"ClusterId"},
-        "name":{"shape":"ClusterName"},
         "arn":{"shape":"ClusterArn"},
-        "groupArn":{"shape":"ClusterGroupArn"},
         "status":{"shape":"ClusterStatus"},
         "creationTime":{"shape":"ClusterCreationTime"},
-        "deletionProtectionEnabled":{"shape":"DeletionProtectionEnabled"},
-        "encryptionKey":{"shape":"ClusterEncryptionKey"},
-        "quorumRegion":{"shape":"Region"},
-        "multiRegionClusterArns":{"shape":"ClusterArnList"}
+        "deletionProtectionEnabled":{"shape":"DeletionProtectionEnabled"}
       },
       "documentation":"<p>Output Mixin</p>"
     },
     "DeleteMultiRegionClustersInput":{
       "type":"structure",
-      "required":["multiRegionClusterArns"],
+      "required":["linkedClusterArns"],
       "members":{
-        "multiRegionClusterArns":{
+        "linkedClusterArns":{
           "shape":"ClusterArnList",
           "location":"querystring",
-          "locationName":"multi-region-cluster-arns"
+          "locationName":"linked-cluster-arns"
         },
         "clientToken":{
           "shape":"ClientToken",
@@ -500,29 +343,6 @@
       "type":"boolean",
       "documentation":"<p>Deletion Protection</p>",
       "box":true
-    },
-    "GetClusterGroupInput":{
-      "type":"structure",
-      "required":["identifier"],
-      "members":{
-        "identifier":{
-          "shape":"ClusterGroupId",
-          "location":"uri",
-          "locationName":"identifier"
-        }
-      }
-    },
-    "GetClusterGroupOutput":{
-      "type":"structure",
-      "required":["identifier"],
-      "members":{
-        "identifier":{"shape":"ClusterGroupId"},
-        "arn":{"shape":"ClusterGroupArn"},
-        "witnessRegion":{"shape":"Region"},
-        "clusters":{"shape":"ClusterArnList"},
-        "creationTime":{"shape":"ClusterGroupCreationTime"}
-      },
-      "documentation":"<p>Cluster Group Output Mixin</p>"
     },
     "GetClusterInput":{
       "type":"structure",
@@ -546,15 +366,12 @@
       ],
       "members":{
         "identifier":{"shape":"ClusterId"},
-        "name":{"shape":"ClusterName"},
         "arn":{"shape":"ClusterArn"},
-        "groupArn":{"shape":"ClusterGroupArn"},
         "status":{"shape":"ClusterStatus"},
         "creationTime":{"shape":"ClusterCreationTime"},
         "deletionProtectionEnabled":{"shape":"DeletionProtectionEnabled"},
-        "encryptionKey":{"shape":"ClusterEncryptionKey"},
-        "quorumRegion":{"shape":"Region"},
-        "multiRegionClusterArns":{"shape":"ClusterArnList"}
+        "witnessRegion":{"shape":"Region"},
+        "linkedClusterArns":{"shape":"ClusterArnList"}
       },
       "documentation":"<p>Output Mixin</p>"
     },
@@ -583,29 +400,6 @@
       "fault":true,
       "retryable":{"throttling":false}
     },
-    "ListClusterGroupsInput":{
-      "type":"structure",
-      "members":{
-        "maxResults":{
-          "shape":"MaxResults",
-          "location":"querystring",
-          "locationName":"max-results"
-        },
-        "nextToken":{
-          "shape":"NextToken",
-          "location":"querystring",
-          "locationName":"next-token"
-        }
-      }
-    },
-    "ListClusterGroupsOutput":{
-      "type":"structure",
-      "required":["clusterGroups"],
-      "members":{
-        "nextToken":{"shape":"NextToken"},
-        "clusterGroups":{"shape":"ClusterGroupList"}
-      }
-    },
     "ListClustersInput":{
       "type":"structure",
       "members":{
@@ -627,23 +421,6 @@
       "members":{
         "nextToken":{"shape":"NextToken"},
         "clusters":{"shape":"ClusterList"}
-      }
-    },
-    "ListTagsForResourceInput":{
-      "type":"structure",
-      "required":["resourceArn"],
-      "members":{
-        "resourceArn":{
-          "shape":"Arn",
-          "location":"uri",
-          "locationName":"resourceArn"
-        }
-      }
-    },
-    "ListTagsForResourceOutput":{
-      "type":"structure",
-      "members":{
-        "tags":{"shape":"TagMap"}
       }
     },
     "MaxResults":{
@@ -732,48 +509,6 @@
       "exception":true
     },
     "String":{"type":"string"},
-    "TagKey":{
-      "type":"string",
-      "documentation":"<p>Tag Key</p>",
-      "max":128,
-      "min":1
-    },
-    "TagKeyList":{
-      "type":"list",
-      "member":{"shape":"TagKey"},
-      "documentation":"<p>List of tag keys</p>",
-      "max":200,
-      "min":0
-    },
-    "TagMap":{
-      "type":"map",
-      "key":{"shape":"TagKey"},
-      "value":{"shape":"TagValue"},
-      "documentation":"<p>Map of tags</p>",
-      "max":200,
-      "min":0
-    },
-    "TagResourceInput":{
-      "type":"structure",
-      "required":[
-        "resourceArn",
-        "tags"
-      ],
-      "members":{
-        "resourceArn":{
-          "shape":"Arn",
-          "location":"uri",
-          "locationName":"resourceArn"
-        },
-        "tags":{"shape":"TagMap"}
-      }
-    },
-    "TagValue":{
-      "type":"string",
-      "documentation":"<p>Tag Value</p>",
-      "max":256,
-      "min":0
-    },
     "ThrottlingException":{
       "type":"structure",
       "required":["message"],
@@ -805,25 +540,6 @@
       "exception":true,
       "retryable":{"throttling":true}
     },
-    "UntagResourceInput":{
-      "type":"structure",
-      "required":[
-        "resourceArn",
-        "tagKeys"
-      ],
-      "members":{
-        "resourceArn":{
-          "shape":"Arn",
-          "location":"uri",
-          "locationName":"resourceArn"
-        },
-        "tagKeys":{
-          "shape":"TagKeyList",
-          "location":"querystring",
-          "locationName":"tagKeys"
-        }
-      }
-    },
     "UpdateClusterInput":{
       "type":"structure",
       "required":["identifier"],
@@ -834,7 +550,6 @@
           "locationName":"identifier"
         },
         "deletionProtectionEnabled":{"shape":"DeletionProtectionEnabled"},
-        "encryptionKey":{"shape":"ClusterEncryptionKey"},
         "clientToken":{
           "shape":"ClientToken",
           "idempotencyToken":true
@@ -852,15 +567,12 @@
       ],
       "members":{
         "identifier":{"shape":"ClusterId"},
-        "name":{"shape":"ClusterName"},
         "arn":{"shape":"ClusterArn"},
-        "groupArn":{"shape":"ClusterGroupArn"},
         "status":{"shape":"ClusterStatus"},
         "creationTime":{"shape":"ClusterCreationTime"},
         "deletionProtectionEnabled":{"shape":"DeletionProtectionEnabled"},
-        "encryptionKey":{"shape":"ClusterEncryptionKey"},
-        "quorumRegion":{"shape":"Region"},
-        "multiRegionClusterArns":{"shape":"ClusterArnList"}
+        "witnessRegion":{"shape":"Region"},
+        "linkedClusterArns":{"shape":"ClusterArnList"}
       },
       "documentation":"<p>Output Mixin</p>"
     },
@@ -917,5 +629,5 @@
       ]
     }
   },
-  "documentation":"<p>An example service, deployed with the Octane Service creator, which will echo the string</p>"
+  "documentation":"<p>Xanadu</p>"
 }
