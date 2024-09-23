@@ -1,0 +1,54 @@
+{
+    "version": "2.28.7",
+    "date": "2024-09-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Added AthenaProperties parameter to Glue Connections, allowing Athena to store service specific properties on Glue Connections."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Explorer",
+            "contributor": "",
+            "description": "AWS Resource Explorer released ListResources feature which allows customers to list all indexed AWS resources within a view."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "Amazon Bedrock Prompt Flows and Prompt Management now supports using inference profiles to increase throughput and improve resilience."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon API Gateway",
+            "contributor": "",
+            "description": "Documentation updates for Amazon API Gateway"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Athena",
+            "contributor": "",
+            "description": "List/Get/Update/Delete/CreateDataCatalog now integrate with AWS Glue connections. Users can create a Glue connection through Athena or use a Glue connection to define their Athena federated parameters."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Amazon EC2 G6e instances powered by NVIDIA L40S Tensor Core GPUs are the most cost-efficient GPU instances for deploying generative AI models and the highest performance GPU instances for spatial computing workloads."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Support ComputeRedundancy parameter in ModifyDBShardGroup API. Add DBShardGroupArn in DBShardGroup API response. Remove InvalidMaxAcuFault from CreateDBShardGroup and ModifyDBShardGroup API. Both API will throw InvalidParameterValueException for invalid ACU configuration."
+        },
+        {
+            "type": "feature",
+            "category": "EMR Serverless",
+            "contributor": "",
+            "description": "This release adds support for job concurrency and queuing configuration at Application level."
+        }
+    ]
+}
