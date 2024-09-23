@@ -83,7 +83,6 @@ public class InternalUserAgentTest {
         verifyUserAgent();
     }
 
-
     @Test
     public void asyncWithInternalUserAgent_shouldContainInternalUserAgent() {
         stubResponse();
@@ -95,7 +94,7 @@ public class InternalUserAgentTest {
     public void syncWithoutInternalUserAgent_shouldNotContainInternalUserAgent() {
         stubResponse();
         clientWithoutInternalConfig.allTypes(SdkBuilder::build);
-       verifyNotContainUserAgent();
+        verifyNotContainUserAgent();
     }
 
     @Test
@@ -106,11 +105,11 @@ public class InternalUserAgentTest {
     }
 
     private void verifyUserAgent() {
-        verify(postRequestedFor(anyUrl()).withHeader("user-agent", containing("md/foobar")));
+        verify(postRequestedFor(anyUrl()).withHeader("user-agent", containing("md/internal")));
     }
 
     private void verifyNotContainUserAgent() {
-        verify(postRequestedFor(anyUrl()).withHeader("user-agent", notMatching(".*md/foobar.*")));
+        verify(postRequestedFor(anyUrl()).withHeader("user-agent", notMatching(".*md/internal.*")));
     }
 
     private void stubResponse() {

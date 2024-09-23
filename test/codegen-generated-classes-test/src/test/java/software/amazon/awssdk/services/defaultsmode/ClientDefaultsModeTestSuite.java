@@ -50,7 +50,7 @@ public abstract class ClientDefaultsModeTestSuite<ClientT, BuilderT extends AwsC
         ClientT client = clientBuilder().overrideConfiguration(o -> o.retryPolicy(RetryMode.LEGACY)).build();
         callAllTypes(client);
 
-        WireMock.verify(postRequestedFor(anyUrl()).withHeader("User-Agent", containing("cfg/retry-mode/legacy")));
+        WireMock.verify(postRequestedFor(anyUrl()).withHeader("User-Agent", containing("cfg/retry-mode#legacy")));
     }
 
     @Test
@@ -59,7 +59,7 @@ public abstract class ClientDefaultsModeTestSuite<ClientT, BuilderT extends AwsC
         ClientT client = clientBuilder().defaultsMode(DefaultsMode.STANDARD).build();
         callAllTypes(client);
 
-        WireMock.verify(postRequestedFor(anyUrl()).withHeader("User-Agent", containing("cfg/retry-mode/standard")));
+        WireMock.verify(postRequestedFor(anyUrl()).withHeader("User-Agent", containing("cfg/retry-mode#standard")));
     }
 
     @Test
@@ -69,7 +69,7 @@ public abstract class ClientDefaultsModeTestSuite<ClientT, BuilderT extends AwsC
             clientBuilder().defaultsMode(DefaultsMode.STANDARD).overrideConfiguration(o -> o.retryPolicy(RetryMode.LEGACY)).build();
         callAllTypes(client);
 
-        WireMock.verify(postRequestedFor(anyUrl()).withHeader("User-Agent", containing("cfg/retry-mode/legacy")));
+        WireMock.verify(postRequestedFor(anyUrl()).withHeader("User-Agent", containing("cfg/retry-mode#legacy")));
     }
 
     private BuilderT clientBuilder() {

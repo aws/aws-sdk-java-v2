@@ -30,6 +30,8 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
+import software.amazon.awssdk.testutils.SdkVersionUtils;
 import software.amazon.awssdk.utils.Logger;
 
 public class MavenProjectTest {
@@ -66,6 +68,7 @@ public class MavenProjectTest {
     }
 
     @Test
+    @EnabledIf("versionAvailable")
     void mavenProject_shouldConvert() throws IOException {
         verifyTransformation();
         verifyCompilation();
@@ -86,5 +89,9 @@ public class MavenProjectTest {
         List<String> packageArgs = new ArrayList<>();
         addAll(packageArgs, "mvn", "package");
         run(mavenActual, packageArgs.toArray(new String[0]));
+    }
+
+    boolean versionAvailable() {
+        return TestUtils.versionAvailable(sdkVersion);
     }
 }

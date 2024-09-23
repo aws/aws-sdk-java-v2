@@ -4806,6 +4806,14 @@
         "ml.g6.16xlarge",
         "ml.g6.24xlarge",
         "ml.g6.48xlarge",
+        "ml.g6e.xlarge",
+        "ml.g6e.2xlarge",
+        "ml.g6e.4xlarge",
+        "ml.g6e.8xlarge",
+        "ml.g6e.12xlarge",
+        "ml.g6e.16xlarge",
+        "ml.g6e.24xlarge",
+        "ml.g6e.48xlarge",
         "ml.geospatial.interactive",
         "ml.p4d.24xlarge",
         "ml.p4de.24xlarge",
@@ -33944,6 +33952,10 @@
         "HubAccessConfig":{
           "shape":"InferenceHubAccessConfig",
           "documentation":"<p>Configuration information for hub access.</p>"
+        },
+        "ManifestS3Uri":{
+          "shape":"S3ModelUri",
+          "documentation":"<p>The Amazon S3 URI of the manifest file. The manifest file is a CSV file that stores the artifact locations.</p>"
         }
       },
       "documentation":"<p>Specifies the S3 location of ML model data to deploy.</p>"

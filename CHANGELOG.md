@@ -1,4 +1,133 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.7__ __2024-09-23__
+## __AWS Glue__
+  - ### Features
+    - Added AthenaProperties parameter to Glue Connections, allowing Athena to store service specific properties on Glue Connections.
+
+## __AWS Resource Explorer__
+  - ### Features
+    - AWS Resource Explorer released ListResources feature which allows customers to list all indexed AWS resources within a view.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Prompt Flows and Prompt Management now supports using inference profiles to increase throughput and improve resilience.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
+## __Amazon Athena__
+  - ### Features
+    - List/Get/Update/Delete/CreateDataCatalog now integrate with AWS Glue connections. Users can create a Glue connection through Athena or use a Glue connection to define their Athena federated parameters.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 G6e instances powered by NVIDIA L40S Tensor Core GPUs are the most cost-efficient GPU instances for deploying generative AI models and the highest performance GPU instances for spatial computing workloads.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Support ComputeRedundancy parameter in ModifyDBShardGroup API. Add DBShardGroupArn in DBShardGroup API response. Remove InvalidMaxAcuFault from CreateDBShardGroup and ModifyDBShardGroup API. Both API will throw InvalidParameterValueException for invalid ACU configuration.
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds support for job concurrency and queuing configuration at Application level.
+
+# __2.28.6__ __2024-09-20__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Refactoring the user agent string format to be more consistent across SDKs
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Generate account endpoint for DynamoDB requests when the account ID is available
+
+## __Amazon Neptune__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __Amazon SageMaker Metrics Service__
+  - ### Features
+    - This release introduces support for the SageMaker Metrics BatchGetMetrics API.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker now supports using manifest files to specify the location of uncompressed model artifacts within Model Packages
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Releasing new ErrorCodes for SysPrep failures during ImageImport and CreateImage process
+
+# __2.28.5__ __2024-09-19__
+## __AWS CodeConnections__
+  - ### Features
+    - This release adds the PullRequestComment field to CreateSyncConfiguration API input, UpdateSyncConfiguration API input, GetSyncConfiguration API output and ListSyncConfiguration API output
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release provides support for additional DRM configurations per SPEKE Version 2.0.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adds Bandwidth Reduction Filtering for HD AVC and HEVC encodes, multiplex container settings.
+
+## __AWS Glue__
+  - ### Features
+    - This change is for releasing TestConnection api SDK model
+
+## __AWS Lambda__
+  - ### Features
+    - Tagging support for Lambda event source mapping, and code signing configuration resources.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Introduce a new method to transform input to be able to perform update operations on nested DynamoDB object attributes.
+        - Contributed by: [@anirudh9391](https://github.com/anirudh9391)
+
+## __Amazon QuickSight__
+  - ### Features
+    - QuickSight: 1. Add new API - ListFoldersForResource. 2. Commit mode adds visibility configuration of Apply button on multi-select controls for authors.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introduced support for G6e instance types on SageMaker Studio for JupyterLab and CodeEditor applications.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - WorkSpaces Secure Browser now enables Administrators to view and manage end-user browsing sessions via Session Management APIs.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@anirudh9391](https://github.com/anirudh9391)
+# __2.28.4__ __2024-09-18__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release extends the GetReservationPurchaseRecommendation API to support recommendations for Amazon DynamoDB reservations.
+
+## __AWS Directory Service__
+  - ### Features
+    - Added new APIs for enabling, disabling, and describing access to the AWS Directory Service Data API
+
+## __AWS Directory Service Data__
+  - ### Features
+    - Added new AWS Directory Service Data API, enabling you to manage data stored in AWS Directory Service directories. This includes APIs for creating, reading, updating, and deleting directory users, groups, and group memberships.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add `launchType` and `sourceIPs` fields to GuardDuty findings.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation with information upgrading snapshots with unsupported engine versions for RDS for MySQL and RDS for PostgreSQL.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added SSE-KMS support for directory buckets.
+
+## __MailManager__
+  - ### Features
+    - Introduce a new RuleSet condition evaluation, where customers can set up a StringExpression with a MimeHeader condition. This condition will perform the necessary validation based on the X-header provided by customers.
+
 # __2.28.3__ __2024-09-17__
 ## __AWS CodeBuild__
   - ### Features
