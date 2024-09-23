@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Agents for Amazon Bedrock",
-    "contributor": "",
-    "description": "Amazon Bedrock Prompt Flows and Prompt Management now supports using inference profiles to increase throughput and improve resilience."
-}

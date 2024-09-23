@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "EMR Serverless",
-    "contributor": "",
-    "description": "This release adds support for job concurrency and queuing configuration at Application level."
-}
