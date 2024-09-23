@@ -678,6 +678,10 @@
                             <exclude>software.amazon.awssdk.regions.*</exclude>
                             <!-- TODO revert - Temporarily disable because system setting USER_REGION was removed -->
                             <exclude>software.amazon.awssdk.utils.JavaSystemSetting</exclude>
+
+                            <!-- TODO revert - temporarily disable to release InvalidMaxAcuException removal -->
+                            <exclude>software.amazon.awssdk.services.rds.model.InvalidMaxAcuException</exclude>
+                            <exclude>software.amazon.awssdk.services.rds.model.InvalidMaxAcuException$Builder</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
