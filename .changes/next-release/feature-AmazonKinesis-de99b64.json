@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis",
-    "contributor": "",
-    "description": "This release includes support to add tags when creating a stream"
-}
