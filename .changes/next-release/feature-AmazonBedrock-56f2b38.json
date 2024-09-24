@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock",
+    "contributor": "",
+    "description": "Add support for Cross Region Inference in Bedrock Model Evaluations."
+}
