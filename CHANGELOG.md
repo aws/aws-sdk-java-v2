@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.8__ __2024-09-24__
+## __AWS Budgets__
+  - ### Features
+    - Releasing minor partitional endpoint updates
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Add support for Cross Region Inference in Bedrock Model Evaluations.
+
+## __Amazon Kinesis__
+  - ### Features
+    - This release includes support to add tags when creating a stream
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - AWS End User Messaging SMS-Voice V2 has added support for resource policies. Use the three new APIs to create, view, edit, and delete resource policies.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding `HiddenInstanceTypes` and `HiddenSageMakerImageVersionAliases` attribute to SageMaker API
+
 # __2.28.7__ __2024-09-23__
 ## __AWS Glue__
   - ### Features
