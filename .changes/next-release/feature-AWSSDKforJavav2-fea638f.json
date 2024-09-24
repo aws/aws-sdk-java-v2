@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "sugmanue", 
+    "type": "feature", 
+    "description": "Added support for the Smithy RPCv2 CBOR protocol, a new RPC protocol that with better performance characteristics than AWS Json."
+}
