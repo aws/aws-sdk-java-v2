@@ -57,6 +57,11 @@ public final class LocationTrait implements Trait {
         return unmarshallLocationName;
     }
 
+    @Override
+    public TraitType type() {
+        return TraitType.LOCATION_TRAIT;
+    }
+
     /**
      * @return Builder instance.
      */

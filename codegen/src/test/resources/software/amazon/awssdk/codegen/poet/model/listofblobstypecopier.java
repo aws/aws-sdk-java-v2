@@ -18,10 +18,7 @@ final class ListOfBlobsTypeCopier {
         if (listOfBlobsTypeParam == null || listOfBlobsTypeParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<SdkBytes> modifiableList = new ArrayList<>();
-            listOfBlobsTypeParam.forEach(entry -> {
-                modifiableList.add(entry);
-            });
+            List<SdkBytes> modifiableList = new ArrayList<>(listOfBlobsTypeParam);
             list = Collections.unmodifiableList(modifiableList);
         }
         return list;

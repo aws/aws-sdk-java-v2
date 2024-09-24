@@ -16,7 +16,7 @@ final class RecursiveMapTypeCopier {
         if (recursiveMapTypeParam == null || recursiveMapTypeParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, RecursiveStructType> modifiableMap = new LinkedHashMap<>();
+            Map<String, RecursiveStructType> modifiableMap = new LinkedHashMap<>(recursiveMapTypeParam.size());
             recursiveMapTypeParam.forEach((key, value) -> {
                 modifiableMap.put(key, value);
             });
@@ -26,12 +26,12 @@ final class RecursiveMapTypeCopier {
     }
 
     static Map<String, RecursiveStructType> copyFromBuilder(
-        Map<String, ? extends RecursiveStructType.Builder> recursiveMapTypeParam) {
+            Map<String, ? extends RecursiveStructType.Builder> recursiveMapTypeParam) {
         Map<String, RecursiveStructType> map;
         if (recursiveMapTypeParam == null || recursiveMapTypeParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, RecursiveStructType> modifiableMap = new LinkedHashMap<>();
+            Map<String, RecursiveStructType> modifiableMap = new LinkedHashMap<>(recursiveMapTypeParam.size());
             recursiveMapTypeParam.forEach((key, value) -> {
                 RecursiveStructType member = value == null ? null : value.build();
                 modifiableMap.put(key, member);
@@ -46,7 +46,7 @@ final class RecursiveMapTypeCopier {
         if (recursiveMapTypeParam == null || recursiveMapTypeParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, RecursiveStructType.Builder> modifiableMap = new LinkedHashMap<>();
+            Map<String, RecursiveStructType.Builder> modifiableMap = new LinkedHashMap<>(recursiveMapTypeParam.size());
             recursiveMapTypeParam.forEach((key, value) -> {
                 RecursiveStructType.Builder member = value == null ? null : value.toBuilder();
                 modifiableMap.put(key, member);

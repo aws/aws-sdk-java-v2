@@ -68,6 +68,11 @@ public final class MapTrait implements Trait {
         return new Builder();
     }
 
+    @Override
+    public TraitType type() {
+        return TraitType.MAP_TRAIT;
+    }
+
     public static final class Builder {
 
         private String keyLocationName;

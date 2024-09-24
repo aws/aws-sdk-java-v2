@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.core.traits.RequiredTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.core.traits.XmlAttributeTrait;
 import software.amazon.awssdk.core.traits.XmlAttributesTrait;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
@@ -83,7 +84,7 @@ public class XmlPayloadMarshaller {
         @Override
         public void marshall(List<?> list, XmlMarshallerContext context, String paramName,
                              SdkField<List<?>> sdkField, ValueToStringConverter.ValueToString<List<?>> converter) {
-            ListTrait listTrait = sdkField.getRequiredTrait(ListTrait.class);
+            ListTrait listTrait = sdkField.getRequiredTrait(ListTrait.class, TraitType.LIST_TRAIT);
 
             if (!listTrait.isFlattened()) {
                 context.xmlGenerator().startElement(paramName);
@@ -125,7 +126,7 @@ public class XmlPayloadMarshaller {
         public void marshall(Map<String, ?> map, XmlMarshallerContext context, String paramName,
                              SdkField<Map<String, ?>> sdkField, ValueToStringConverter.ValueToString<Map<String, ?>> converter) {
 
-            MapTrait mapTrait = sdkField.getRequiredTrait(MapTrait.class);
+            MapTrait mapTrait = sdkField.getRequiredTrait(MapTrait.class, TraitType.MAP_TRAIT);
 
             for (Map.Entry<String, ?> entry : map.entrySet()) {
                 context.xmlGenerator().startElement("entry");
@@ -144,7 +145,7 @@ public class XmlPayloadMarshaller {
     };
 
     public static final XmlMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
-        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class)) {
+        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class, TraitType.REQUIRED_TRAIT)) {
             throw new IllegalArgumentException(String.format("Parameter '%s' must not be null", paramName));
         }
     };
@@ -180,8 +181,11 @@ public class XmlPayloadMarshaller {
                 return;
             }
 
-            if (sdkField != null && sdkField.getOptionalTrait(XmlAttributesTrait.class).isPresent()) {
-                XmlAttributesTrait attributeTrait = sdkField.getTrait(XmlAttributesTrait.class);
+            boolean hasXmlAttributesTrait = sdkField != null &&
+                                            sdkField.getOptionalTrait(XmlAttributesTrait.class,
+                                                                      TraitType.XML_ATTRIBUTES_TRAIT).isPresent();
+            if (hasXmlAttributesTrait) {
+                XmlAttributesTrait attributeTrait = sdkField.getTrait(XmlAttributesTrait.class, TraitType.XML_ATTRIBUTES_TRAIT);
                 Map<String, String> attributes = attributeTrait.attributes()
                                                                .entrySet()
                                                                .stream()
@@ -209,7 +213,8 @@ public class XmlPayloadMarshaller {
         }
 
         private boolean isXmlAttribute(SdkField<T> sdkField) {
-            return sdkField != null && sdkField.getOptionalTrait(XmlAttributeTrait.class).isPresent();
+            return sdkField != null && sdkField.getOptionalTrait(XmlAttributeTrait.class,
+                                                                 TraitType.XML_ATTRIBUTE_TRAIT).isPresent();
         }
     }
 

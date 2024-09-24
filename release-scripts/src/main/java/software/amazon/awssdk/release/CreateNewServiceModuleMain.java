@@ -138,10 +138,11 @@ public class CreateNewServiceModuleMain extends Cli {
 
         private String transformSpecialProtocols(String protocol) {
             switch (protocol) {
-                case "ec2": return "query";
-                case "rest-xml": return "xml";
-                case "rest-json": return "json";
-                default: return protocol;
+                case "ec2": return "aws-query";
+                case "rest-xml": return "aws-xml";
+                case "rest-json": return "aws-json";
+                case "rpc-v2-cbor": return "smithy-rpcv2";
+                default: return "aws-" + protocol;
             }
         }
 

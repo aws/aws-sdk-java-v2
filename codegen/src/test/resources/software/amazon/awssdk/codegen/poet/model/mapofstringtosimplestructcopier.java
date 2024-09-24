@@ -16,7 +16,7 @@ final class MapOfStringToSimpleStructCopier {
         if (mapOfStringToSimpleStructParam == null || mapOfStringToSimpleStructParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, SimpleStruct> modifiableMap = new LinkedHashMap<>();
+            Map<String, SimpleStruct> modifiableMap = new LinkedHashMap<>(mapOfStringToSimpleStructParam.size());
             mapOfStringToSimpleStructParam.forEach((key, value) -> {
                 modifiableMap.put(key, value);
             });
@@ -30,7 +30,7 @@ final class MapOfStringToSimpleStructCopier {
         if (mapOfStringToSimpleStructParam == null || mapOfStringToSimpleStructParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, SimpleStruct> modifiableMap = new LinkedHashMap<>();
+            Map<String, SimpleStruct> modifiableMap = new LinkedHashMap<>(mapOfStringToSimpleStructParam.size());
             mapOfStringToSimpleStructParam.forEach((key, value) -> {
                 SimpleStruct member = value == null ? null : value.build();
                 modifiableMap.put(key, member);
@@ -45,7 +45,7 @@ final class MapOfStringToSimpleStructCopier {
         if (mapOfStringToSimpleStructParam == null || mapOfStringToSimpleStructParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, SimpleStruct.Builder> modifiableMap = new LinkedHashMap<>();
+            Map<String, SimpleStruct.Builder> modifiableMap = new LinkedHashMap<>(mapOfStringToSimpleStructParam.size());
             mapOfStringToSimpleStructParam.forEach((key, value) -> {
                 SimpleStruct.Builder member = value == null ? null : value.toBuilder();
                 modifiableMap.put(key, member);
