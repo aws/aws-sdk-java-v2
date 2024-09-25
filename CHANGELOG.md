@@ -1,4 +1,27 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.9__ __2024-09-25__
+## __AWS CloudTrail__
+  - ### Features
+    - Doc-only update for CloudTrail network activity events release (in preview)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added support for the Smithy RPCv2 CBOR protocol, a new RPC protocol with better performance characteristics than AWS Json.
+        - Contributed by: [@sugmanue](https://github.com/sugmanue)
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Updates to documentation for the transit gateway security group referencing feature.
+
+## __Amazon FSx__
+  - ### Features
+    - Doc-only update to address Lustre S3 hard-coded names.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sugmanue](https://github.com/sugmanue)
 # __2.28.8__ __2024-09-24__
 ## __AWS Budgets__
   - ### Features
