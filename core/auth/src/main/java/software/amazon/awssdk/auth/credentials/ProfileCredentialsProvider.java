@@ -122,8 +122,8 @@ public final class ProfileCredentialsProvider
         if (shouldUpdateCredentialsProvider(cachedOrRefreshedProfileFile)) {
             synchronized (credentialsProviderLock) {
                 if (shouldUpdateCredentialsProvider(cachedOrRefreshedProfileFile)) {
-                    currentProfileFile = cachedOrRefreshedProfileFile;
                     handleProfileFileReload(cachedOrRefreshedProfileFile);
+                    currentProfileFile = cachedOrRefreshedProfileFile;
                 }
             }
         }
