@@ -259,6 +259,7 @@
         "DoubleMember":{"shape":"Double"},
         "LongMember":{"shape":"Long"},
         "ShortMember":{"shape":"Short"},
+        "ByteMember":{"shape":"Byte"},
         "BigDecimalMember":{"shape":"NumericValue"},
         "SimpleList":{"shape":"ListOfStrings"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
@@ -494,6 +495,7 @@
     },
     "Long":{"type":"long"},
     "Short":{"type":"short"},
+    "Byte":{"type":"byte"},
     "MapOfEnumToEnum":{
       "type":"map",
       "key":{"shape":"EnumType"},

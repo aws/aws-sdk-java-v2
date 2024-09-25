@@ -22,6 +22,7 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.customPackage
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.endpointDiscoveryModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.rpcv2ServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.xmlServiceModels;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
@@ -80,6 +81,12 @@ public class SyncClientClassTest {
     public void syncClientCustomPackageName() {
         ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(customPackageModels());
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-custompackage-sync.java"));
+    }
+
+    @Test
+    public void syncClientClassRpcV2() {
+        ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(rpcv2ServiceModels(), true);
+        assertThat(syncClientCustomServiceMetaData, generatesTo("test-rpcv2-sync.java"));
     }
 
     private SyncClientClass createSyncClientClass(IntermediateModel model) {

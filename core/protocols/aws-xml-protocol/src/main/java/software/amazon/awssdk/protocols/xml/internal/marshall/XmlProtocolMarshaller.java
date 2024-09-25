@@ -33,6 +33,7 @@ import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.InstantToString;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -129,7 +130,7 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
     }
 
     private boolean isExplicitPayloadMember(SdkField<?> field) {
-        return field.containsTrait(PayloadTrait.class);
+        return field.containsTrait(PayloadTrait.class, TraitType.PAYLOAD_TRAIT);
     }
 
     private boolean hasPayloadMembers(SdkPojo sdkPojo) {

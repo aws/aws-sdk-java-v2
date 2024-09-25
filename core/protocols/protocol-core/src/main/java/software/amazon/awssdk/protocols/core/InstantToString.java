@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter.ValueToString;
 import software.amazon.awssdk.utils.DateUtils;
 
@@ -44,7 +45,7 @@ public final class InstantToString implements ValueToString<Instant> {
             return null;
         }
         TimestampFormatTrait.Format format =
-            sdkField.getOptionalTrait(TimestampFormatTrait.class)
+            sdkField.getOptionalTrait(TimestampFormatTrait.class, TraitType.TIMESTAMP_FORMAT_TRAIT)
                     .map(TimestampFormatTrait::format)
                     .orElseGet(() -> getDefaultTimestampFormat(sdkField.location(), defaultFormats));
         switch (format) {
