@@ -16,7 +16,7 @@ final class MapOfEnumToSimpleStructCopier {
         if (mapOfEnumToSimpleStructParam == null || mapOfEnumToSimpleStructParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, SimpleStruct> modifiableMap = new LinkedHashMap<>();
+            Map<String, SimpleStruct> modifiableMap = new LinkedHashMap<>(mapOfEnumToSimpleStructParam.size());
             mapOfEnumToSimpleStructParam.forEach((key, value) -> {
                 modifiableMap.put(key, value);
             });
@@ -30,7 +30,7 @@ final class MapOfEnumToSimpleStructCopier {
         if (mapOfEnumToSimpleStructParam == null || mapOfEnumToSimpleStructParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, SimpleStruct> modifiableMap = new LinkedHashMap<>();
+            Map<String, SimpleStruct> modifiableMap = new LinkedHashMap<>(mapOfEnumToSimpleStructParam.size());
             mapOfEnumToSimpleStructParam.forEach((key, value) -> {
                 SimpleStruct member = value == null ? null : value.build();
                 modifiableMap.put(key, member);
@@ -45,7 +45,7 @@ final class MapOfEnumToSimpleStructCopier {
         if (mapOfEnumToSimpleStructParam == null || mapOfEnumToSimpleStructParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, SimpleStruct.Builder> modifiableMap = new LinkedHashMap<>();
+            Map<String, SimpleStruct.Builder> modifiableMap = new LinkedHashMap<>(mapOfEnumToSimpleStructParam.size());
             mapOfEnumToSimpleStructParam.forEach((key, value) -> {
                 SimpleStruct.Builder member = value == null ? null : value.toBuilder();
                 modifiableMap.put(key, member);
@@ -60,7 +60,7 @@ final class MapOfEnumToSimpleStructCopier {
         if (mapOfEnumToSimpleStructParam == null || mapOfEnumToSimpleStructParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, SimpleStruct> modifiableMap = new LinkedHashMap<>();
+            Map<String, SimpleStruct> modifiableMap = new LinkedHashMap<>(mapOfEnumToSimpleStructParam.size());
             mapOfEnumToSimpleStructParam.forEach((key, value) -> {
                 String result = key.toString();
                 modifiableMap.put(result, value);
@@ -75,7 +75,7 @@ final class MapOfEnumToSimpleStructCopier {
         if (mapOfEnumToSimpleStructParam == null || mapOfEnumToSimpleStructParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<EnumType, SimpleStruct> modifiableMap = new LinkedHashMap<>();
+            Map<EnumType, SimpleStruct> modifiableMap = new LinkedHashMap<>(mapOfEnumToSimpleStructParam.size());
             mapOfEnumToSimpleStructParam.forEach((key, value) -> {
                 EnumType result = EnumType.fromValue(key);
                 if (result != EnumType.UNKNOWN_TO_SDK_VERSION) {

@@ -17,7 +17,7 @@ final class ListOfSimpleStructsCopier {
         if (listOfSimpleStructsParam == null || listOfSimpleStructsParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<SimpleStruct> modifiableList = new ArrayList<>();
+            List<SimpleStruct> modifiableList = new ArrayList<>(listOfSimpleStructsParam.size());
             listOfSimpleStructsParam.forEach(entry -> {
                 modifiableList.add(entry);
             });
@@ -31,7 +31,7 @@ final class ListOfSimpleStructsCopier {
         if (listOfSimpleStructsParam == null || listOfSimpleStructsParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<SimpleStruct> modifiableList = new ArrayList<>();
+            List<SimpleStruct> modifiableList = new ArrayList<>(listOfSimpleStructsParam.size());
             listOfSimpleStructsParam.forEach(entry -> {
                 SimpleStruct member = entry == null ? null : entry.build();
                 modifiableList.add(member);
@@ -46,7 +46,7 @@ final class ListOfSimpleStructsCopier {
         if (listOfSimpleStructsParam == null || listOfSimpleStructsParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<SimpleStruct.Builder> modifiableList = new ArrayList<>();
+            List<SimpleStruct.Builder> modifiableList = new ArrayList<>(listOfSimpleStructsParam.size());
             listOfSimpleStructsParam.forEach(entry -> {
                 SimpleStruct.Builder member = entry == null ? null : entry.toBuilder();
                 modifiableList.add(member);

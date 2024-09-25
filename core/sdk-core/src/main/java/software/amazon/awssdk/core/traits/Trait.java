@@ -23,4 +23,12 @@ import software.amazon.awssdk.core.SdkField;
  */
 @SdkProtectedApi
 public interface Trait {
+
+    /**
+     * The known trait type. This is correctly implemented and uniquely mapped to the enum values which allow us to create enum
+     * maps for trait known trait types.
+     */
+    default TraitType type() {
+        return null;
+    }
 }

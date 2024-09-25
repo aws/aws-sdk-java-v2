@@ -20,13 +20,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.traits.MapTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 
 @SdkInternalApi
 public class MapQueryMarshaller implements QueryMarshaller<Map<String, ?>> {
 
     @Override
     public void marshall(QueryMarshallerContext context, String path, Map<String, ?> val, SdkField<Map<String, ?>> sdkField) {
-        MapTrait mapTrait = sdkField.getTrait(MapTrait.class);
+        MapTrait mapTrait = sdkField.getTrait(MapTrait.class, TraitType.MAP_TRAIT);
         AtomicInteger entryNum = new AtomicInteger(1);
         val.forEach((key, value) -> {
 

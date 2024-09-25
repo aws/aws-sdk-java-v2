@@ -407,6 +407,7 @@ public class SyncClientClass extends SyncClientInterface {
             case AWS_JSON:
             case REST_JSON:
             case CBOR:
+            case SMITHY_RPC_V2_CBOR:
                 return new JsonProtocolSpec(poetExtensions, model);
             default:
                 throw new RuntimeException("Unknown protocol: " + protocol.name());

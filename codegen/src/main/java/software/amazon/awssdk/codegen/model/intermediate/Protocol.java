@@ -24,7 +24,8 @@ public enum Protocol {
     REST_JSON("rest-json"),
     CBOR("cbor"),
     QUERY("query"),
-    REST_XML("rest-xml");
+    REST_XML("rest-xml"),
+    SMITHY_RPC_V2_CBOR("smithy-rpc-v2-cbor");
 
     private String protocol;
 

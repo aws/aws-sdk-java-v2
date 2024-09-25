@@ -135,6 +135,10 @@ public interface StructuredJsonGenerator {
 
     StructuredJsonGenerator writeStartArray();
 
+    default StructuredJsonGenerator writeStartArray(int size) {
+        return writeStartArray();
+    }
+
     StructuredJsonGenerator writeEndArray();
 
     StructuredJsonGenerator writeNull();
@@ -156,6 +160,10 @@ public interface StructuredJsonGenerator {
     StructuredJsonGenerator writeValue(float val);
 
     StructuredJsonGenerator writeValue(short val);
+
+    default StructuredJsonGenerator writeValue(byte val) {
+        return writeValue((short) val);
+    }
 
     StructuredJsonGenerator writeValue(int val);
 

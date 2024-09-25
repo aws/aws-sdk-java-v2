@@ -23,6 +23,7 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.traits.MapTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 
 @SdkInternalApi
@@ -31,7 +32,7 @@ public final class MapQueryUnmarshaller implements QueryUnmarshaller<Map<String,
     @Override
     public Map<String, ?> unmarshall(QueryUnmarshallerContext context, List<XmlElement> content, SdkField<Map<String, ?>> field) {
         Map<String, Object> map = new HashMap<>();
-        MapTrait mapTrait = field.getTrait(MapTrait.class);
+        MapTrait mapTrait = field.getTrait(MapTrait.class, TraitType.MAP_TRAIT);
         SdkField mapValueSdkField = mapTrait.valueFieldInfo();
 
         getEntries(content, mapTrait).forEach(entry -> {

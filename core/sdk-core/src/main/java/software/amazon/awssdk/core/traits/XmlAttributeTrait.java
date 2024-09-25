@@ -30,4 +30,9 @@ public final class XmlAttributeTrait implements Trait {
         return new XmlAttributeTrait();
 
     }
+
+    @Override
+    public TraitType type() {
+        return TraitType.XML_ATTRIBUTE_TRAIT;
+    }
 }

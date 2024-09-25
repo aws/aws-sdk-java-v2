@@ -17,7 +17,7 @@ final class RecursiveListTypeCopier {
         if (recursiveListTypeParam == null || recursiveListTypeParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<RecursiveStructType> modifiableList = new ArrayList<>();
+            List<RecursiveStructType> modifiableList = new ArrayList<>(recursiveListTypeParam.size());
             recursiveListTypeParam.forEach(entry -> {
                 modifiableList.add(entry);
             });
@@ -31,7 +31,7 @@ final class RecursiveListTypeCopier {
         if (recursiveListTypeParam == null || recursiveListTypeParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<RecursiveStructType> modifiableList = new ArrayList<>();
+            List<RecursiveStructType> modifiableList = new ArrayList<>(recursiveListTypeParam.size());
             recursiveListTypeParam.forEach(entry -> {
                 RecursiveStructType member = entry == null ? null : entry.build();
                 modifiableList.add(member);
@@ -46,7 +46,7 @@ final class RecursiveListTypeCopier {
         if (recursiveListTypeParam == null || recursiveListTypeParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<RecursiveStructType.Builder> modifiableList = new ArrayList<>();
+            List<RecursiveStructType.Builder> modifiableList = new ArrayList<>(recursiveListTypeParam.size());
             recursiveListTypeParam.forEach(entry -> {
                 RecursiveStructType.Builder member = entry == null ? null : entry.toBuilder();
                 modifiableList.add(member);

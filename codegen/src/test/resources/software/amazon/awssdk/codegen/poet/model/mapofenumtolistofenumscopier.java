@@ -21,13 +21,13 @@ final class MapOfEnumToListOfEnumsCopier {
         if (mapOfEnumToListOfEnumsParam == null || mapOfEnumToListOfEnumsParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, List<String>> modifiableMap = new LinkedHashMap<>();
+            Map<String, List<String>> modifiableMap = new LinkedHashMap<>(mapOfEnumToListOfEnumsParam.size());
             mapOfEnumToListOfEnumsParam.forEach((key, value) -> {
                 List<String> list;
                 if (value == null || value instanceof SdkAutoConstructList) {
                     list = DefaultSdkAutoConstructList.getInstance();
                 } else {
-                    List<String> modifiableList = new ArrayList<>();
+                    List<String> modifiableList = new ArrayList<>(value.size());
                     value.forEach(entry -> {
                         modifiableList.add(entry);
                     });
@@ -45,14 +45,14 @@ final class MapOfEnumToListOfEnumsCopier {
         if (mapOfEnumToListOfEnumsParam == null || mapOfEnumToListOfEnumsParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, List<String>> modifiableMap = new LinkedHashMap<>();
+            Map<String, List<String>> modifiableMap = new LinkedHashMap<>(mapOfEnumToListOfEnumsParam.size());
             mapOfEnumToListOfEnumsParam.forEach((key, value) -> {
                 String result = key.toString();
                 List<String> list;
                 if (value == null || value instanceof SdkAutoConstructList) {
                     list = DefaultSdkAutoConstructList.getInstance();
                 } else {
-                    List<String> modifiableList = new ArrayList<>();
+                    List<String> modifiableList = new ArrayList<>(value.size());
                     value.forEach(entry -> {
                         String result1 = entry.toString();
                         modifiableList.add(result1);
@@ -71,14 +71,14 @@ final class MapOfEnumToListOfEnumsCopier {
         if (mapOfEnumToListOfEnumsParam == null || mapOfEnumToListOfEnumsParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<EnumType, List<EnumType>> modifiableMap = new LinkedHashMap<>();
+            Map<EnumType, List<EnumType>> modifiableMap = new LinkedHashMap<>(mapOfEnumToListOfEnumsParam.size());
             mapOfEnumToListOfEnumsParam.forEach((key, value) -> {
                 EnumType result = EnumType.fromValue(key);
                 List<EnumType> list;
                 if (value == null || value instanceof SdkAutoConstructList) {
                     list = DefaultSdkAutoConstructList.getInstance();
                 } else {
-                    List<EnumType> modifiableList = new ArrayList<>();
+                    List<EnumType> modifiableList = new ArrayList<>(value.size());
                     value.forEach(entry -> {
                         EnumType result1 = EnumType.fromValue(entry);
                         modifiableList.add(result1);

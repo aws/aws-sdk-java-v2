@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import java.util.Base64;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -108,6 +109,8 @@ class UnmarshallingTestRunner {
         }
         if (givenResponse.getBody() != null) {
             responseBuilder.withBody(givenResponse.getBody());
+        } else if (givenResponse.getBinaryBody() != null) {
+            responseBuilder.withBody(Base64.getDecoder().decode(givenResponse.getBinaryBody()));
         } else if (metadata.isXmlProtocol()) {
             // XML Unmarshallers expect at least one level in the XML document. If no body is explicitly
             // set by the test add a fake one here.

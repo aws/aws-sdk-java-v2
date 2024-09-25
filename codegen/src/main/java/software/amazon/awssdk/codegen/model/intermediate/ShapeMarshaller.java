@@ -29,6 +29,10 @@ public class ShapeMarshaller {
 
     private String xmlNameSpaceUri;
 
+    private Boolean isSynthetic = Boolean.FALSE;
+
+    private String protocol;
+
     public String getAction() {
         return action;
     }
@@ -104,6 +108,32 @@ public class ShapeMarshaller {
 
     public ShapeMarshaller withXmlNameSpaceUri(String xmlNameSpaceUri) {
         setXmlNameSpaceUri(xmlNameSpaceUri);
+        return this;
+    }
+
+    public Boolean getIsSynthetic() {
+        return isSynthetic;
+    }
+
+    public void setIsSynthetic(Boolean isSynthetic) {
+        this.isSynthetic = isSynthetic;
+    }
+
+    public ShapeMarshaller withIsSynthetic(Boolean isSynthetic) {
+        setIsSynthetic(isSynthetic);
+        return this;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
+
+    public ShapeMarshaller withProtocol(String protocol) {
+        setProtocol(protocol);
         return this;
     }
 }

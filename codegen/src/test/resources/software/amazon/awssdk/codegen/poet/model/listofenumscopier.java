@@ -17,7 +17,7 @@ final class ListOfEnumsCopier {
         if (listOfEnumsParam == null || listOfEnumsParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<String> modifiableList = new ArrayList<>();
+            List<String> modifiableList = new ArrayList<>(listOfEnumsParam.size());
             listOfEnumsParam.forEach(entry -> {
                 modifiableList.add(entry);
             });
@@ -31,7 +31,7 @@ final class ListOfEnumsCopier {
         if (listOfEnumsParam == null || listOfEnumsParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<String> modifiableList = new ArrayList<>();
+            List<String> modifiableList = new ArrayList<>(listOfEnumsParam.size());
             listOfEnumsParam.forEach(entry -> {
                 String result = entry.toString();
                 modifiableList.add(result);
@@ -46,7 +46,7 @@ final class ListOfEnumsCopier {
         if (listOfEnumsParam == null || listOfEnumsParam instanceof SdkAutoConstructList) {
             list = DefaultSdkAutoConstructList.getInstance();
         } else {
-            List<EnumType> modifiableList = new ArrayList<>();
+            List<EnumType> modifiableList = new ArrayList<>(listOfEnumsParam.size());
             listOfEnumsParam.forEach(entry -> {
                 EnumType result = EnumType.fromValue(entry);
                 modifiableList.add(result);

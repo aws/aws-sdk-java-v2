@@ -41,18 +41,30 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.core.OperationMetadataAttribute;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.internal.AwsStructuredPlainJsonFactory;
+import software.amazon.awssdk.protocols.json.internal.ProtocolFact;
 import software.amazon.awssdk.protocols.json.internal.marshall.JsonProtocolMarshallerBuilder;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonErrorMessageParser;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonProtocolErrorUnmarshaller;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonResponseHandler;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonResponseHandler;
-import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.ProtocolUnmarshallDependencies;
 
 @SdkProtectedApi
 public abstract class BaseAwsJsonProtocolFactory {
+    /**
+     * Used by operations that do not serialize the input, e.g., when the input is not defined in the model. RPCv2 uses it.
+     */
+    public static final OperationMetadataAttribute<Boolean> GENERATES_BODY = new OperationMetadataAttribute<>(Boolean.class);
+
+    /**
+     * Attribute for a protocol to configure extra headers for the operation.
+     */
+    public static final OperationMetadataAttribute<Map<String, String>> HTTP_EXTRA_HEADERS =
+        OperationMetadataAttribute.forUnsafe(Map.class);
 
     /**
      * Content type resolver implementation for plain text AWS_JSON services.
@@ -74,13 +86,11 @@ public abstract class BaseAwsJsonProtocolFactory {
         this.customErrorCodeFieldName = builder.customErrorCodeFieldName;
         this.hasAwsQueryCompatible = builder.hasAwsQueryCompatible;
         this.clientConfiguration = builder.clientConfiguration;
-        this.protocolUnmarshaller = JsonProtocolUnmarshaller
-            .builder()
-            .parser(JsonNodeParser.builder()
-                                  .jsonFactory(getSdkFactory().getJsonFactory())
-                                  .build())
-            .defaultTimestampFormats(getDefaultTimestampFormats())
-            .build();
+        this.protocolUnmarshaller = JsonProtocolUnmarshaller.builder()
+                                                            .protocolUnmarshallDependencies(
+                                                                builder.protocolUnmarshallDependencies.get())
+                                                            .build();
+
     }
 
     /**
@@ -140,11 +150,15 @@ public abstract class BaseAwsJsonProtocolFactory {
     }
 
     private StructuredJsonGenerator createGenerator(OperationInfo operationInfo) {
-        if (operationInfo.hasPayloadMembers() || protocolMetadata.protocol() == AwsJsonProtocol.AWS_JSON) {
-            return createGenerator();
-        } else {
+        Boolean generatesBody = operationInfo.addtionalMetadata(GENERATES_BODY);
+        if (generatesBody == null) {
+            AwsJsonProtocol protocol = protocolMetadata.protocol();
+            generatesBody = ProtocolFact.from(protocol).generatesBody(operationInfo);
+        }
+        if (!generatesBody) {
             return StructuredJsonGenerator.NO_OP;
         }
+        return createGenerator();
     }
 
     @SdkTestInternalApi
@@ -208,7 +222,8 @@ public abstract class BaseAwsJsonProtocolFactory {
      * Builder for {@link AwsJsonProtocolFactory}.
      */
     public abstract static class Builder<SubclassT extends Builder> {
-
+        protected Supplier<ProtocolUnmarshallDependencies> protocolUnmarshallDependencies =
+            JsonProtocolUnmarshaller::defaultProtocolUnmarshallDependencies;
         private final AwsJsonProtocolMetadata.Builder protocolMetadata = AwsJsonProtocolMetadata.builder();
         private final List<ExceptionMetadata> modeledExceptions = new ArrayList<>();
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
@@ -309,10 +324,23 @@ public abstract class BaseAwsJsonProtocolFactory {
             return getSubclass();
         }
 
+        /**
+         * Provides the unmarshalling dependencies instance.
+         *
+         * @param protocolUnmarshallDependencies the set of dependencies used to create an unmarshaller
+         * @return This builder for method chaining.
+         */
+        protected final SubclassT protocolUnmarshallDependencies(
+            Supplier<ProtocolUnmarshallDependencies> protocolUnmarshallDependencies
+        ) {
+            this.protocolUnmarshallDependencies = protocolUnmarshallDependencies;
+            return getSubclass();
+        }
+
         @SuppressWarnings("unchecked")
         private SubclassT getSubclass() {
             return (SubclassT) this;
         }
-
     }
+
 }

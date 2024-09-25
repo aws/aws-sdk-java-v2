@@ -73,6 +73,7 @@
         "BigDecimalMember":{"shape":"NumericValue"},
         "LongMember":{"shape":"Long"},
         "ShortMember":{"shape":"Short"},
+        "ByteMember":{"shape":"Byte"},
         "SimpleList":{"shape":"ListOfStrings"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
         "ListOfStructs":{"shape":"ListOfSimpleStructs"},
@@ -127,6 +128,7 @@
     },
     "Float":{"type":"float"},
     "Short":{"type":"short"},
+    "Byte":{"type":"byte"},
     "FurtherNestedContainersStructure":{
       "type":"structure",
       "members":{

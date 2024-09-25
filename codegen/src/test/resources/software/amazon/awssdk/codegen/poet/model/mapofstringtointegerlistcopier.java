@@ -21,16 +21,13 @@ final class MapOfStringToIntegerListCopier {
         if (mapOfStringToIntegerListParam == null || mapOfStringToIntegerListParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, List<Integer>> modifiableMap = new LinkedHashMap<>();
+            Map<String, List<Integer>> modifiableMap = new LinkedHashMap<>(mapOfStringToIntegerListParam.size());
             mapOfStringToIntegerListParam.forEach((key, value) -> {
                 List<Integer> list;
                 if (value == null || value instanceof SdkAutoConstructList) {
                     list = DefaultSdkAutoConstructList.getInstance();
                 } else {
-                    List<Integer> modifiableList = new ArrayList<>();
-                    value.forEach(entry -> {
-                        modifiableList.add(entry);
-                    });
+                    List<Integer> modifiableList = new ArrayList<>(value);
                     list = Collections.unmodifiableList(modifiableList);
                 }
                 modifiableMap.put(key, list);

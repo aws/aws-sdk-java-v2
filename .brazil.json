@@ -14,6 +14,7 @@
         "aws-json-protocol": { "packageName": "AwsJavaSdk-Core-AwsJsonProtocol" },
         "aws-query-protocol": { "packageName": "AwsJavaSdk-Core-AwsQueryProtocol" },
         "aws-xml-protocol": { "packageName": "AwsJavaSdk-Core-AwsXmlProtocol" },
+        "smithy-rpcv2-protocol": { "packageName": "AwsJavaSdk-Core-SmithyRpcV2Protocol" },
         "cloudwatch-metric-publisher": { "packageName": "AwsJavaSdk-MetricPublisher-CloudWatch" },
         "codegen": { "packageName": "AwsJavaSdk-Codegen" },
         "dynamodb-enhanced": { "packageName": "AwsJavaSdk-DynamoDb-Enhanced" },
