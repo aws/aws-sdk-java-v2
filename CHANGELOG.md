@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.10__ __2024-09-26__
+## __AWS Chatbot__
+  - ### Features
+    - Return State and StateReason fields for Chatbot Channel Configurations.
+
+## __AWS Lambda__
+  - ### Features
+    - Reverting Lambda resource-based policy and block public access APIs.
+
+## __AWS Organizations__
+  - ### Features
+    - Add support for policy operations on the CHATBOT_POLICY policy type.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - AWS PCS API documentation - Edited the description of the iamInstanceProfileArn parameter of the CreateComputeNodeGroup and UpdateComputeNodeGroup actions; edited the description of the SlurmCustomSetting data type to list the supported parameters for clusters and compute node groups.
+
+## __AWS RDS DataService__
+  - ### Features
+    - Documentation update for RDS Data API to reflect support for Aurora MySQL Serverless v2 and Provisioned DB clusters.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding `TagPropagation` attribute to Sagemaker API
+
 # __2.28.9__ __2024-09-25__
 ## __AWS CloudTrail__
   - ### Features
@@ -159,6 +188,10 @@ Special thanks to the following contributors to this release:
 ## __AWS Directory Service Data__
   - ### Features
     - Added new AWS Directory Service Data API, enabling you to manage data stored in AWS Directory Service directories. This includes APIs for creating, reading, updating, and deleting directory users, groups, and group memberships.
+
+## __AWS SDK for Java V2__
+  - ### Features
+    - Generate and use AWS-account-based endpoints for DynamoDB requests when the account ID is available. The new endpoint URL pattern will be `https://<account-id>.ddb.<region>.amazonaws.com`. See the documentation for details: https://docs.aws.amazon.com/sdkref/latest/guide/feature-account-endpoints.html
 
 ## __Amazon GuardDuty__
   - ### Features
