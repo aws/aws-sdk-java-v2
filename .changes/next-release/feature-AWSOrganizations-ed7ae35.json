@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Organizations",
-    "contributor": "",
-    "description": "Add support for policy operations on the CHATBOT_POLICY policy type."
-}
