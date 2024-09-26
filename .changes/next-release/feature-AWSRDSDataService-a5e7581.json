@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS RDS DataService",
+    "contributor": "",
+    "description": "Documentation update for RDS Data API to reflect support for Aurora MySQL Serverless v2 and Provisioned DB clusters."
+}
