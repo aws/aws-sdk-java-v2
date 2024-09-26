@@ -459,7 +459,7 @@
         "requestUri":"/"
       },
       "input":{"shape":"CancelConversionRequest"},
-      "documentation":"<p>Cancels an active conversion task. The task can be the import of an instance or volume. The action removes all artifacts of the conversion, including a partially uploaded volume or instance. If the conversion is complete or is in the process of transferring the final disk image, the command fails and returns an exception.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/ec2-cli-vmimport-export.html\">Importing a Virtual Machine Using the Amazon EC2 CLI</a>.</p>"
+      "documentation":"<p>Cancels an active conversion task. The task can be the import of an instance or volume. The action removes all artifacts of the conversion, including a partially uploaded volume or instance. If the conversion is complete or is in the process of transferring the final disk image, the command fails and returns an exception.</p>"
     },
     "CancelExportTask":{
       "name":"CancelExportTask",
@@ -4827,7 +4827,7 @@
       },
       "input":{"shape":"ImportInstanceRequest"},
       "output":{"shape":"ImportInstanceResult"},
-      "documentation":"<note> <p>We recommend that you use the <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ImportImage.html\"> <code>ImportImage</code> </a> API. For more information, see <a href=\"https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-image-import.html\">Importing a VM as an image using VM Import/Export</a> in the <i>VM Import/Export User Guide</i>.</p> </note> <p>Creates an import instance task using metadata from the specified disk image.</p> <p>This API action is not supported by the Command Line Interface (CLI). For information about using the Amazon EC2 CLI, which is deprecated, see <a href=\"https://awsdocs.s3.amazonaws.com/EC2/ec2-clt.pdf#UsingVirtualMachinesinAmazonEC2\">Importing a VM to Amazon EC2</a> in the <i>Amazon EC2 CLI Reference</i> PDF file.</p> <p>This API action supports only single-volume VMs. To import multi-volume VMs, use <a>ImportImage</a> instead.</p> <p>For information about the import manifest referenced by this API action, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/manifest.html\">VM Import Manifest</a>.</p>"
+      "documentation":"<note> <p>We recommend that you use the <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ImportImage.html\"> <code>ImportImage</code> </a> API instead. For more information, see <a href=\"https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-image-import.html\">Importing a VM as an image using VM Import/Export</a> in the <i>VM Import/Export User Guide</i>.</p> </note> <p>Creates an import instance task using metadata from the specified disk image.</p> <p>This API action supports only single-volume VMs. To import multi-volume VMs, use <a>ImportImage</a> instead.</p> <p>For information about the import manifest referenced by this API action, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/manifest.html\">VM Import Manifest</a>.</p> <p>This API action is not supported by the Command Line Interface (CLI).</p>"
     },
     "ImportKeyPair":{
       "name":"ImportKeyPair",
@@ -4857,7 +4857,7 @@
       },
       "input":{"shape":"ImportVolumeRequest"},
       "output":{"shape":"ImportVolumeResult"},
-      "documentation":"<p>Creates an import volume task using metadata from the specified disk image.</p> <p>This API action supports only single-volume VMs. To import multi-volume VMs, use <a>ImportImage</a> instead. To import a disk to a snapshot, use <a>ImportSnapshot</a> instead.</p> <p>This API action is not supported by the Command Line Interface (CLI). For information about using the Amazon EC2 CLI, which is deprecated, see <a href=\"https://awsdocs.s3.amazonaws.com/EC2/ec2-clt.pdf#importing-your-volumes-into-amazon-ebs\">Importing Disks to Amazon EBS</a> in the <i>Amazon EC2 CLI Reference</i> PDF file.</p> <p>For information about the import manifest referenced by this API action, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/manifest.html\">VM Import Manifest</a>.</p>"
+      "documentation":"<note> <p>This API action supports only single-volume VMs. To import multi-volume VMs, use <a>ImportImage</a> instead. To import a disk to a snapshot, use <a>ImportSnapshot</a> instead.</p> </note> <p>Creates an import volume task using metadata from the specified disk image.</p> <p>For information about the import manifest referenced by this API action, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/manifest.html\">VM Import Manifest</a>.</p> <p>This API action is not supported by the Command Line Interface (CLI).</p>"
     },
     "ListImagesInRecycleBin":{
       "name":"ListImagesInRecycleBin",
@@ -15661,7 +15661,7 @@
         },
         "SecurityGroupReferencingSupport":{
           "shape":"SecurityGroupReferencingSupportValue",
-          "documentation":"<note> <p>This parameter is in preview and may not be available for your account.</p> </note> <p>Enables you to reference a security group across VPCs attached to a transit gateway. Use this option to simplify security group management and control of instance-to-instance traffic across VPCs that are connected by transit gateway. You can also use this option to migrate from VPC peering (which was the only option that supported security group referencing) to transit gateways (which now also support security group referencing). This option is disabled by default and there are no additional costs to use this feature.</p> <p>If you don't enable or disable SecurityGroupReferencingSupport in the request, the attachment will inherit the security group referencing support setting on the transit gateway.</p>"
+          "documentation":"<p>Enables you to reference a security group across VPCs attached to a transit gateway to simplify security group management. </p> <p>This option is disabled by default.</p> <p>If you don't enable or disable SecurityGroupReferencingSupport in the request, the attachment will inherit the security group referencing support setting on the transit gateway.</p> <p>For more information about security group referencing, see <a href=\"https://docs.aws.amazon.com/vpc/latest/tgw/tgw-vpc-attachments.html#vpc-attachment-security\">Security group referencing </a> in the <i>Amazon Web Services Transit Gateways Guide</i>.</p>"
         },
         "Ipv6Support":{
           "shape":"Ipv6SupportValue",
@@ -17321,7 +17321,7 @@
       "type":"structure",
       "members":{
         "KeyName":{
-          "shape":"KeyPairName",
+          "shape":"KeyPairNameWithResolver",
           "documentation":"<p>The name of the key pair.</p>"
         },
         "KeyPairId":{
@@ -19306,11 +19306,7 @@
     },
     "DescribeCapacityBlockOfferingsRequest":{
       "type":"structure",
-      "required":[
-        "InstanceType",
-        "InstanceCount",
-        "CapacityDurationHours"
-      ],
+      "required":["CapacityDurationHours"],
       "members":{
         "DryRun":{
           "shape":"Boolean",
@@ -29887,7 +29883,11 @@
     },
     "FleetCapacityReservationUsageStrategy":{
       "type":"string",
-      "enum":["use-capacity-reservations-first"]
+      "enum":[
+        "use-capacity-reservations-first",
+        "use-capacity-reservations-only",
+        "none"
+      ]
     },
     "FleetData":{
       "type":"structure",
@@ -37483,7 +37483,15 @@
         "r8g.48xlarge",
         "r8g.metal-24xl",
         "r8g.metal-48xl",
-        "mac2-m1ultra.metal"
+        "mac2-m1ultra.metal",
+        "g6e.xlarge",
+        "g6e.2xlarge",
+        "g6e.4xlarge",
+        "g6e.8xlarge",
+        "g6e.12xlarge",
+        "g6e.16xlarge",
+        "g6e.24xlarge",
+        "g6e.48xlarge"
       ]
     },
     "InstanceTypeHypervisor":{
@@ -39755,6 +39763,7 @@
       }
     },
     "KeyPairName":{"type":"string"},
+    "KeyPairNameWithResolver":{"type":"string"},
     "KeyType":{
       "type":"string",
       "enum":[
@@ -44126,7 +44135,7 @@
         },
         "SecurityGroupReferencingSupport":{
           "shape":"SecurityGroupReferencingSupportValue",
-          "documentation":"<note> <p>This parameter is in preview and may not be available for your account.</p> </note> <p>Enables you to reference a security group across VPCs attached to a transit gateway. Use this option to simplify security group management and control of instance-to-instance traffic across VPCs that are connected by transit gateway. You can also use this option to migrate from VPC peering (which was the only option that supported security group referencing) to transit gateways (which now also support security group referencing). This option is disabled by default and there are no additional costs to use this feature.</p>"
+          "documentation":"<p>Enables you to reference a security group across VPCs attached to a transit gateway to simplify security group management. </p> <p>This option is disabled by default.</p> <p>For more information about security group referencing, see <a href=\"https://docs.aws.amazon.com/vpc/latest/tgw/tgw-vpc-attachments.html#vpc-attachment-security\">Security group referencing</a> in the <i>Amazon Web Services Transit Gateways Guide</i>.</p>"
         },
         "AutoAcceptSharedAttachments":{
           "shape":"AutoAcceptSharedAttachmentsValue",
@@ -44261,7 +44270,7 @@
         },
         "SecurityGroupReferencingSupport":{
           "shape":"SecurityGroupReferencingSupportValue",
-          "documentation":"<note> <p>This parameter is in preview and may not be available for your account.</p> </note> <p>Enables you to reference a security group across VPCs attached to a transit gateway. Use this option to simplify security group management and control of instance-to-instance traffic across VPCs that are connected by transit gateway. You can also use this option to migrate from VPC peering (which was the only option that supported security group referencing) to transit gateways (which now also support security group referencing). This option is disabled by default and there are no additional costs to use this feature.</p>"
+          "documentation":"<p>Enables you to reference a security group across VPCs attached to a transit gateway to simplify security group management. </p> <p>This option is disabled by default.</p> <p>For more information about security group referencing, see <a href=\"https://docs.aws.amazon.com/vpc/latest/tgw/tgw-vpc-attachments.html#vpc-attachment-security\">Security group referencing</a> in the <i>Amazon Web Services Transit Gateways Guide</i>.</p>"
         },
         "Ipv6Support":{
           "shape":"Ipv6SupportValue",
@@ -54262,7 +54271,7 @@
       "members":{
         "Description":{
           "shape":"String",
-          "documentation":"<p>The description of the snapshot.</p>",
+          "documentation":"<p>The description of the disk image being imported.</p>",
           "locationName":"description"
         },
         "DiskImageSize":{
@@ -57694,7 +57703,7 @@
         },
         "SecurityGroupReferencingSupport":{
           "shape":"SecurityGroupReferencingSupportValue",
-          "documentation":"<note> <p>This parameter is in preview and may not be available for your account.</p> </note> <p>Enables you to reference a security group across VPCs attached to a transit gateway. Use this option to simplify security group management and control of instance-to-instance traffic across VPCs that are connected by transit gateway. You can also use this option to migrate from VPC peering (which was the only option that supported security group referencing) to transit gateways (which now also support security group referencing). This option is disabled by default and there are no additional costs to use this feature.</p>",
+          "documentation":"<p>Enables you to reference a security group across VPCs attached to a transit gateway to simplify security group management.</p> <p>This option is enabled by default.</p> <p>For more information about security group referencing, see <a href=\"https://docs.aws.amazon.com/vpc/latest/tgw/tgw-vpc-attachments.html#vpc-attachment-security\">Security group referencing</a> in the <i>Amazon Web Services Transit Gateways Guide</i>.</p>",
           "locationName":"securityGroupReferencingSupport"
         },
         "MulticastSupport":{
@@ -58094,7 +58103,7 @@
         },
         "SecurityGroupReferencingSupport":{
           "shape":"SecurityGroupReferencingSupportValue",
-          "documentation":"<note> <p>This parameter is in preview and may not be available for your account.</p> </note> <p>Enables you to reference a security group across VPCs attached to a transit gateway. Use this option to simplify security group management and control of instance-to-instance traffic across VPCs that are connected by transit gateway. You can also use this option to migrate from VPC peering (which was the only option that supported security group referencing) to transit gateways (which now also support security group referencing). This option is disabled by default and there are no additional costs to use this feature.</p>"
+          "documentation":"<p>Enables you to reference a security group across VPCs attached to a transit gateway to simplify security group management. </p> <p>This option is disabled by default.</p> <p>For more information about security group referencing, see <a href=\"https://docs.aws.amazon.com/vpc/latest/tgw/tgw-vpc-attachments.html#vpc-attachment-security\">Security group referencing</a> in the <i>Amazon Web Services Transit Gateways Guide</i>.</p>"
         },
         "MulticastSupport":{
           "shape":"MulticastSupportValue",
@@ -58551,7 +58560,7 @@
         },
         "SecurityGroupReferencingSupport":{
           "shape":"SecurityGroupReferencingSupportValue",
-          "documentation":"<note> <p>This parameter is in preview and may not be available for your account.</p> </note> <p>Enables you to reference a security group across VPCs attached to a transit gateway. Use this option to simplify security group management and control of instance-to-instance traffic across VPCs that are connected by transit gateway. You can also use this option to migrate from VPC peering (which was the only option that supported security group referencing) to transit gateways (which now also support security group referencing). This option is disabled by default and there are no additional costs to use this feature.</p>",
+          "documentation":"<p>Enables you to reference a security group across VPCs attached to a transit gateway to simplify security group management. </p> <p>This option is disabled by default.</p> <p>For more information about security group referencing, see <a href=\"https://docs.aws.amazon.com/vpc/latest/tgw/tgw-vpc-attachments.html#vpc-attachment-security\">Security group referencing</a> in the <i>Amazon Web Services Transit Gateways Guide</i>.</p>",
           "locationName":"securityGroupReferencingSupport"
         },
         "Ipv6Support":{

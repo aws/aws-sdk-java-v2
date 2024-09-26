@@ -1,0 +1,592 @@
+[
+    {
+        "description": "Serializes null values in lists",
+        "given": {
+            "input": {
+                "sparseStringList": [
+                    null
+                ]
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "SparseNullsOperation"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v3BzcGFyc2VTdHJpbmdMaXN0gfb/"
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "Serializes recursive structures",
+        "given": {
+            "input": {
+                "nested": {
+                    "foo": "Foo1",
+                    "nested": {
+                        "bar": "Bar1",
+                        "recursiveMember": {
+                            "foo": "Foo2",
+                            "nested": {
+                                "bar": "Bar2"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "RecursiveShapes"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v2ZuZXN0ZWS/Y2Zvb2RGb28xZm5lc3RlZL9jYmFyZEJhcjFvcmVjdXJzaXZlTWVtYmVyv2Nmb29kRm9vMmZuZXN0ZWS/Y2JhcmRCYXIy//////8="
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "Serializes sparse maps",
+        "given": {
+            "input": {
+                "sparseStructMap": {
+                    "foo": {
+                        "hi": "there"
+                    },
+                    "baz": {
+                        "hi": "bye"
+                    }
+                }
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "RpcV2CborSparseMaps"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v29zcGFyc2VTdHJ1Y3RNYXC/Y2Zvb79iaGlldGhlcmX/Y2Jher9iaGljYnll////"
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "A request that contains a sparse map of sets",
+        "given": {
+            "input": {
+                "sparseSetMap": {
+                    "x": [],
+                    "y": [
+                        "a",
+                        "b"
+                    ]
+                }
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "RpcV2CborSparseMaps"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v2xzcGFyc2VTZXRNYXC/YXiAYXmCYWFhYv//"
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "Ensure that 0 and false are sent over the wire in all maps and lists",
+        "given": {
+            "input": {
+                "sparseNumberMap": {
+                    "x": 0
+                },
+                "sparseBooleanMap": {
+                    "x": false
+                }
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "RpcV2CborSparseMaps"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v29zcGFyc2VOdW1iZXJNYXC/YXgA/3BzcGFyc2VCb29sZWFuTWFwv2F49P//"
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "Serializes maps",
+        "given": {
+            "input": {
+                "denseStructMap": {
+                    "foo": {
+                        "hi": "there"
+                    },
+                    "baz": {
+                        "hi": "bye"
+                    }
+                }
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "RpcV2CborDenseMaps"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v25kZW5zZVN0cnVjdE1hcL9jZm9vv2JoaWV0aGVyZf9jYmF6v2JoaWNieWX///8="
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "Ensure that 0 and false are sent over the wire in all maps and lists",
+        "given": {
+            "input": {
+                "denseNumberMap": {
+                    "x": 0
+                },
+                "denseBooleanMap": {
+                    "x": false
+                }
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "RpcV2CborDenseMaps"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v25kZW5zZU51bWJlck1hcL9heAD/b2RlbnNlQm9vbGVhbk1hcL9hePT//w=="
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "A request that contains a dense map of sets.",
+        "given": {
+            "input": {
+                "denseSetMap": {
+                    "x": [],
+                    "y": [
+                        "a",
+                        "b"
+                    ]
+                }
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "RpcV2CborDenseMaps"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v2tkZW5zZVNldE1hcL9heIBheYJhYWFi//8="
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "Serializes RpcV2 Cbor lists",
+        "given": {
+            "input": {
+                "stringList": [
+                    "foo",
+                    "bar"
+                ],
+                "stringSet": [
+                    "foo",
+                    "bar"
+                ],
+                "integerList": [
+                    1,
+                    2
+                ],
+                "booleanList": [
+                    true,
+                    false
+                ],
+                "timestampList": [
+                    1398796238000,
+                    1398796238000
+                ],
+                "enumList": [
+                    "Foo",
+                    "0"
+                ],
+                "intEnumList": [
+                    1,
+                    2
+                ],
+                "nestedStringList": [
+                    [
+                        "foo",
+                        "bar"
+                    ],
+                    [
+                        "baz",
+                        "qux"
+                    ]
+                ],
+                "structureList": [
+                    {
+                        "a": "1",
+                        "b": "2"
+                    },
+                    {
+                        "a": "3",
+                        "b": "4"
+                    }
+                ],
+                "blobList": [
+                    "foo",
+                    "bar"
+                ]
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "RpcV2CborLists"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v2pzdHJpbmdMaXN0gmNmb29jYmFyaXN0cmluZ1NldIJjZm9vY2JhcmtpbnRlZ2VyTGlzdIIBAmtib29sZWFuTGlzdIL19G10aW1lc3RhbXBMaXN0gsH7QdTX+/OAAADB+0HU1/vzgAAAaGVudW1MaXN0gmNGb29hMGtpbnRFbnVtTGlzdIIBAnBuZXN0ZWRTdHJpbmdMaXN0goJjZm9vY2JhcoJjYmF6Y3F1eG1zdHJ1Y3R1cmVMaXN0gr9hYWExYWJhMv+/YWFhM2FiYTT/aGJsb2JMaXN0gkNmb29DYmFy/w=="
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "Serializes empty JSON lists",
+        "given": {
+            "input": {
+                "stringList": []
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "RpcV2CborLists"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v2pzdHJpbmdMaXN0gP8="
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "Serializes empty JSON definite length lists",
+        "given": {
+            "input": {
+                "stringList": []
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "RpcV2CborLists"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v2pzdHJpbmdMaXN0gP8="
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "Serializes simple scalar properties",
+        "given": {
+            "input": {
+                "trueBooleanValue": true,
+                "falseBooleanValue": false,
+                "byteValue": 5,
+                "doubleValue": 1.889,
+                "floatValue": 7.625,
+                "integerValue": 256,
+                "longValue": 9873,
+                "shortValue": 9898,
+                "stringValue": "simple",
+                "blobValue": "foo"
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "SimpleScalarProperties"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v3B0cnVlQm9vbGVhblZhbHVl9XFmYWxzZUJvb2xlYW5WYWx1ZfRpYnl0ZVZhbHVlBWtkb3VibGVWYWx1Zfs//jlYEGJN02pmbG9hdFZhbHVl+kD0AABsaW50ZWdlclZhbHVlGQEAaWxvbmdWYWx1ZRkmkWpzaG9ydFZhbHVlGSaqa3N0cmluZ1ZhbHVlZnNpbXBsZWlibG9iVmFsdWVDZm9v/w=="
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "RpcV2 Cbor should not serialize null structure values",
+        "given": {
+            "input": {
+                "stringValue": null
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "SimpleScalarProperties"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v/8="
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "Supports handling NaN float values.",
+        "given": {
+            "input": {
+                "doubleValue": "NaN",
+                "floatValue": "NaN"
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "SimpleScalarProperties"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v2tkb3VibGVWYWx1Zft/+AAAAAAAAGpmbG9hdFZhbHVl+n/AAAD/"
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "Supports handling Infinity float values.",
+        "given": {
+            "input": {
+                "doubleValue": "Infinity",
+                "floatValue": "Infinity"
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "SimpleScalarProperties"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v2tkb3VibGVWYWx1Zfp/gAAAamZsb2F0VmFsdWX6f4AAAP8="
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "Supports handling Infinity float values.",
+        "given": {
+            "input": {
+                "doubleValue": "-Infinity",
+                "floatValue": "-Infinity"
+            }
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "SimpleScalarProperties"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v2tkb3VibGVWYWx1Zfr/gAAAamZsb2F0VmFsdWX6/4AAAP8="
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "description": "When input is empty we write CBOR equivalent of {}",
+        "given": {
+            "input": {}
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "OptionalInputOutput"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v/8="
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    },
+                    "doesNotContain": [
+                        "X-Amz-Target"
+                    ]
+                }
+            }
+        }
+    },
+    {
+        "description": "When Input structure is empty we write CBOR equivalent of {}",
+        "given": {
+            "input": {}
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "EmptyInputOutput"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": "v/8="
+                },
+                "headers": {
+                    "contains": {
+                        "Content-Type": "application/cbor",
+                        "smithy-protocol": "rpc-v2-cbor"
+                    },
+                    "doesNotContain": [
+                        "X-Amz-Target"
+                    ]
+                }
+            }
+        }
+    },
+    {
+        "description": "Body is empty and no Content-Type header if no input",
+        "given": {
+            "input": {}
+        },
+        "when": {
+            "action": "marshall",
+            "operation": "NoInputOutput"
+        },
+        "then": {
+            "serializedAs": {
+                "body": {
+                    "encodedEquals": ""
+                },
+                "headers": {
+                    "contains": {
+                        "smithy-protocol": "rpc-v2-cbor"
+                    },
+                    "doesNotContain": [
+                        "Content-Type",
+                        "X-Amz-Target"
+                    ]
+                }
+            }
+        }
+    }
+]

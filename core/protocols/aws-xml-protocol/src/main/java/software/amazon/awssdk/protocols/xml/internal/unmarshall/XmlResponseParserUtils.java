@@ -24,6 +24,7 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.PayloadTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlDomParser;
@@ -84,7 +85,7 @@ public final class XmlResponseParserUtils {
     }
 
     private static boolean isExplicitPayloadMember(SdkField<?> f) {
-        return f.containsTrait(PayloadTrait.class);
+        return f.containsTrait(PayloadTrait.class, TraitType.PAYLOAD_TRAIT);
     }
 
     private static boolean hasPayloadMembers(SdkPojo sdkPojo) {

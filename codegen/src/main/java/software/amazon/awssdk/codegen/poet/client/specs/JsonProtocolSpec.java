@@ -59,6 +59,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
+import software.amazon.awssdk.protocols.rpcv2.SmithyRpcV2CborProtocolFactory;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class JsonProtocolSpec implements ProtocolSpec {
@@ -96,10 +97,11 @@ public class JsonProtocolSpec implements ProtocolSpec {
                       .addCode("return builder\n")
                       .addCode(".clientConfiguration(clientConfiguration)\n")
                       .addCode(".defaultServiceExceptionSupplier($T::builder)\n", baseException)
-                      .addCode(".protocol($T.$L)\n", AwsJsonProtocol.class, protocolEnumName(metadata.getProtocol()))
-                      .addCode(".protocolVersion($S)\n", metadata.getJsonVersion())
-                      .addCode("$L", customErrorCodeFieldName());
-
+                      .addCode(".protocol($T.$L)\n", AwsJsonProtocol.class, protocolEnumName(metadata.getProtocol()));
+        if (metadata.getJsonVersion() != null) {
+            methodSpec.addCode(".protocolVersion($S)\n", metadata.getJsonVersion());
+        }
+        methodSpec.addCode("$L", customErrorCodeFieldName());
         String contentType = Optional.ofNullable(model.getCustomizationConfig().getCustomServiceMetadata())
                 .map(MetadataConfig::getContentType)
                 .orElse(metadata.getContentType());
@@ -131,6 +133,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
     private Class<?> protocolFactoryClass() {
         if (model.getMetadata().isCborProtocol()) {
             return AwsCborProtocolFactory.class;
+        } else if (model.getMetadata().isRpcV2CborProtocol()) {
+            return SmithyRpcV2CborProtocolFactory.class;
         } else {
             return AwsJsonProtocolFactory.class;
         }

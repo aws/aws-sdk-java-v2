@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
+import static software.amazon.awssdk.enhanced.dynamodb.JsonTestUtils.toJsonNode;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
@@ -181,8 +182,8 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         Page<EnhancedDocument> page = results.next();
         assertThat(results.hasNext(), is(false));
 
-        assertThat(page.items().stream().map(doc -> doc.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.stream().map(i -> i.toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(page.items()),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS)));
 
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
@@ -209,8 +210,8 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     public void scanAllRecordsDefaultSettings_viaItems() {
         insertDocuments();
         SdkIterable<EnhancedDocument> items = docMappedtable.scan(ScanEnhancedRequest.builder().limit(2).build()).items();
-        assertThat(items.stream().map(i->i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.stream().map(i -> i.toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(items.stream().collect(Collectors.toList())),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS)));
     }
 
     @Test
@@ -231,10 +232,11 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         Page<EnhancedDocument> page = results.next();
         assertThat(results.hasNext(), is(false));
 
-        assertThat(page.items().stream().map(i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.stream().filter(r -> r.getNumber("sort").intValue() >= 3 && r.getNumber("sort").intValue() <= 5)
-                          .map( j -> j.toJson())
-                                              .collect(Collectors.toList())));
+        assertThat(toJsonNode(page.items()),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS
+                                     .stream()
+                                     .filter(r -> r.getNumber("sort").intValue() >= 3 && r.getNumber("sort").intValue() <= 5)
+                                     .collect(Collectors.toList()))));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
@@ -282,11 +284,11 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         Page<EnhancedDocument> page3 = results.next();
         assertThat(results.hasNext(), is(false));
 
-        assertThat(page1.items().stream().map( i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.subList(0, 5).stream().map( i -> i.toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(page1.items()),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS.subList(0, 5))));
         assertThat(page1.lastEvaluatedKey(), is(getKeyMap(4)));
-        assertThat(page2.items().stream().map( i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.subList(5, 10).stream().map( i -> i.toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(page2.items()),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS.subList(5, 10))));
 
         assertThat(page2.lastEvaluatedKey(), is(getKeyMap(9)));
         assertThat(page3.items(), is(empty()));
@@ -297,9 +299,8 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
     public void scanLimit_viaItems() {
         insertDocuments();
         SdkIterable<EnhancedDocument> results = docMappedtable.scan(r -> r.limit(5)).items();
-        assertThat(results.stream().map(i -> i.toJson())
-                          .collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.stream().map(i ->i.toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(results.stream().collect(Collectors.toList())),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS)));
     }
 
     @Test
@@ -327,8 +328,8 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(results.hasNext(), is(true));
         Page<EnhancedDocument> page = results.next();
         assertThat(results.hasNext(), is(false));
-        assertThat(page.items().stream().map(i -> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.subList(8, 10).stream().map( i -> i.toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(page.items()),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS.subList(8, 10))));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
@@ -337,8 +338,8 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         insertDocuments();
         SdkIterable<EnhancedDocument> results =
             docMappedtable.scan(r -> r.exclusiveStartKey(getKeyMap(7))).items();
-        assertThat(results.stream().map( i-> i.toJson()).collect(Collectors.toList()),
-                   is(DOCUMENTS_WITH_PROVIDERS.subList(8, 10).stream().map( i-> i.toJson()).collect(Collectors.toList())));
+        assertThat(toJsonNode(results.stream().collect(Collectors.toList())),
+                   is(toJsonNode(DOCUMENTS_WITH_PROVIDERS.subList(8, 10))));
     }
 
     private Map<String, AttributeValue> getKeyMap(int sort) {

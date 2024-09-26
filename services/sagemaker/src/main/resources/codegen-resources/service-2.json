@@ -4806,6 +4806,14 @@
         "ml.g6.16xlarge",
         "ml.g6.24xlarge",
         "ml.g6.48xlarge",
+        "ml.g6e.xlarge",
+        "ml.g6e.2xlarge",
+        "ml.g6e.4xlarge",
+        "ml.g6e.8xlarge",
+        "ml.g6e.12xlarge",
+        "ml.g6e.16xlarge",
+        "ml.g6e.24xlarge",
+        "ml.g6e.48xlarge",
         "ml.geospatial.interactive",
         "ml.p4d.24xlarge",
         "ml.p4de.24xlarge",
@@ -7230,7 +7238,7 @@
     },
     "ClusterInstanceCount":{
       "type":"integer",
-      "min":1
+      "min":0
     },
     "ClusterInstanceGroupDetails":{
       "type":"structure",
@@ -19766,9 +19774,32 @@
       "type":"list",
       "member":{"shape":"AppType"}
     },
+    "HiddenInstanceTypesList":{
+      "type":"list",
+      "member":{"shape":"AppInstanceType"}
+    },
     "HiddenMlToolsList":{
       "type":"list",
       "member":{"shape":"MlTools"}
+    },
+    "HiddenSageMakerImage":{
+      "type":"structure",
+      "members":{
+        "SageMakerImageName":{
+          "shape":"SageMakerImageName",
+          "documentation":"<p> The SageMaker image name that you are hiding from the Studio user interface. </p>"
+        },
+        "VersionAliases":{
+          "shape":"VersionAliasesList",
+          "documentation":"<p> The version aliases you are hiding from the Studio user interface. </p>"
+        }
+      },
+      "documentation":"<p>The SageMaker images that are hidden from the Studio user interface. You must specify the SageMaker image name and version aliases.</p>"
+    },
+    "HiddenSageMakerImageVersionAliasesList":{
+      "type":"list",
+      "member":{"shape":"HiddenSageMakerImage"},
+      "max":5
     },
     "HolidayConfig":{
       "type":"list",
@@ -20160,12 +20191,10 @@
       "required":[
         "WorkteamArn",
         "UiConfig",
-        "PreHumanTaskLambdaArn",
         "TaskTitle",
         "TaskDescription",
         "NumberOfHumanWorkersPerDataObject",
-        "TaskTimeLimitInSeconds",
-        "AnnotationConsolidationConfig"
+        "TaskTimeLimitInSeconds"
       ],
       "members":{
         "WorkteamArn":{
@@ -21190,6 +21219,12 @@
       "max":128,
       "min":1,
       "pattern":"(^\\d+$)|(^\\d+.\\d+$)|(^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$)"
+    },
+    "ImageVersionAliasPattern":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
     },
     "ImageVersionArn":{
       "type":"string",
@@ -22716,8 +22751,7 @@
         "LastModifiedTime",
         "LabelingJobStatus",
         "LabelCounters",
-        "WorkteamArn",
-        "PreHumanTaskLambdaArn"
+        "WorkteamArn"
       ],
       "members":{
         "LabelingJobName":{
@@ -27232,7 +27266,8 @@
         "InferenceRecommender",
         "Endpoints",
         "Projects",
-        "InferenceOptimization"
+        "InferenceOptimization",
+        "PerformanceEvaluation"
       ]
     },
     "MlflowVersion":{
@@ -33944,6 +33979,10 @@
         "HubAccessConfig":{
           "shape":"InferenceHubAccessConfig",
           "documentation":"<p>Configuration information for hub access.</p>"
+        },
+        "ManifestS3Uri":{
+          "shape":"S3ModelUri",
+          "documentation":"<p>The Amazon S3 URI of the manifest file. The manifest file is a CSV file that stores the artifact locations.</p>"
         }
       },
       "documentation":"<p>Specifies the S3 location of ML model data to deploy.</p>"
@@ -33998,6 +34037,10 @@
       "type":"string",
       "max":1024,
       "pattern":"^(https|s3)://([^/]+)/?(.*)$"
+    },
+    "SageMakerImageName":{
+      "type":"string",
+      "enum":["sagemaker_distribution"]
     },
     "SageMakerImageVersionAlias":{
       "type":"string",
@@ -35536,6 +35579,14 @@
         "HiddenAppTypes":{
           "shape":"HiddenAppTypesList",
           "documentation":"<p>The <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/studio-updated-apps.html\">Applications supported in Studio</a> that are hidden from the Studio left navigation pane.</p>"
+        },
+        "HiddenInstanceTypes":{
+          "shape":"HiddenInstanceTypesList",
+          "documentation":"<p> The instance types you are hiding from the Studio user interface. </p>"
+        },
+        "HiddenSageMakerImageVersionAliases":{
+          "shape":"HiddenSageMakerImageVersionAliasesList",
+          "documentation":"<p> The version aliases you are hiding from the Studio user interface. </p>"
         }
       },
       "documentation":"<p>Studio settings. If these settings are applied on a user level, they take priority over the settings applied on a domain level.</p>"
@@ -39351,6 +39402,11 @@
         "TO_BE_ARCHIVED",
         "ARCHIVED"
       ]
+    },
+    "VersionAliasesList":{
+      "type":"list",
+      "member":{"shape":"ImageVersionAliasPattern"},
+      "max":20
     },
     "VersionId":{
       "type":"string",

@@ -1,0 +1,42 @@
+{
+    "version": "2.28.6",
+    "date": "2024-09-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Refactoring the user agent string format to be more consistent across SDKs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Generate account endpoint for DynamoDB requests when the account ID is available"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Neptune",
+            "contributor": "",
+            "description": "Add v2 smoke tests and smithy smokeTests trait for SDK testing."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Metrics Service",
+            "contributor": "",
+            "description": "This release introduces support for the SageMaker Metrics BatchGetMetrics API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon SageMaker now supports using manifest files to specify the location of uncompressed model artifacts within Model Packages"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Releasing new ErrorCodes for SysPrep failures during ImageImport and CreateImage process"
+        }
+    ]
+}
