@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Chatbot",
+    "contributor": "",
+    "description": "Return State and StateReason fields for Chatbot Channel Configurations."
+}
