@@ -186,7 +186,6 @@
         <module>apigatewayv2</module>
         <module>docdb</module>
         <module>backup</module>
-        <module>worklink</module>
         <module>textract</module>
         <module>managedblockchain</module>
         <module>mediapackagevod</module>
