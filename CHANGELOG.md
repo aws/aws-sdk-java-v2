@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.11__ __2024-09-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Introduces optional RoleArn parameter for PutIntegration request and includes RoleArn in the response of PutIntegration, GetIntegration and ListIntegrations
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adding personalization in QuickSight data stories. Admins can enable or disable personalization through QuickSight settings.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release adds support for engagement tracking over Https using custom domains.
+
 # __2.28.10__ __2024-09-26__
 ## __AWS Chatbot__
   - ### Features
