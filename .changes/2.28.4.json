@@ -43,6 +43,12 @@
             "category": "MailManager",
             "contributor": "",
             "description": "Introduce a new RuleSet condition evaluation, where customers can set up a StringExpression with a MimeHeader condition. This condition will perform the necessary validation based on the X-header provided by customers."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java V2",
+            "contributor": "",
+            "description": "Generate and use AWS-account-based endpoints for DynamoDB requests when the account ID is available. The new endpoint URL pattern will be `https://<account-id>.ddb.<region>.amazonaws.com`. See the documentation for details: https://docs.aws.amazon.com/sdkref/latest/guide/feature-account-endpoints.html"
         }
     ]
 }

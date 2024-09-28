@@ -1,4 +1,77 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.11__ __2024-09-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Introduces optional RoleArn parameter for PutIntegration request and includes RoleArn in the response of PutIntegration, GetIntegration and ListIntegrations
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adding personalization in QuickSight data stories. Admins can enable or disable personalization through QuickSight settings.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release adds support for engagement tracking over Https using custom domains.
+
+# __2.28.10__ __2024-09-26__
+## __AWS Chatbot__
+  - ### Features
+    - Return State and StateReason fields for Chatbot Channel Configurations.
+
+## __AWS Lambda__
+  - ### Features
+    - Reverting Lambda resource-based policy and block public access APIs.
+
+## __AWS Organizations__
+  - ### Features
+    - Add support for policy operations on the CHATBOT_POLICY policy type.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - AWS PCS API documentation - Edited the description of the iamInstanceProfileArn parameter of the CreateComputeNodeGroup and UpdateComputeNodeGroup actions; edited the description of the SlurmCustomSetting data type to list the supported parameters for clusters and compute node groups.
+
+## __AWS RDS DataService__
+  - ### Features
+    - Documentation update for RDS Data API to reflect support for Aurora MySQL Serverless v2 and Provisioned DB clusters.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding `TagPropagation` attribute to Sagemaker API
+
+# __2.28.9__ __2024-09-25__
+## __AWS CloudTrail__
+  - ### Features
+    - Doc-only update for CloudTrail network activity events release (in preview)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added support for the Smithy RPCv2 CBOR protocol, a new RPC protocol with better performance characteristics than AWS Json.
+        - Contributed by: [@sugmanue](https://github.com/sugmanue)
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Updates to documentation for the transit gateway security group referencing feature.
+
+## __Amazon FSx__
+  - ### Features
+    - Doc-only update to address Lustre S3 hard-coded names.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sugmanue](https://github.com/sugmanue)
 # __2.28.8__ __2024-09-24__
 ## __AWS Budgets__
   - ### Features
@@ -136,6 +209,10 @@ Special thanks to the following contributors to this release:
 ## __AWS Directory Service Data__
   - ### Features
     - Added new AWS Directory Service Data API, enabling you to manage data stored in AWS Directory Service directories. This includes APIs for creating, reading, updating, and deleting directory users, groups, and group memberships.
+
+## __AWS SDK for Java V2__
+  - ### Features
+    - Generate and use AWS-account-based endpoints for DynamoDB requests when the account ID is available. The new endpoint URL pattern will be `https://<account-id>.ddb.<region>.amazonaws.com`. See the documentation for details: https://docs.aws.amazon.com/sdkref/latest/guide/feature-account-endpoints.html
 
 ## __Amazon GuardDuty__
   - ### Features
