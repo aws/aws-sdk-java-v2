@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "Amazon Connect introduces StartOutboundChatContact API allowing customers to initiate outbound chat contacts"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Supply Chain",
-    "contributor": "",
-    "description": "Release DataLakeDataset, DataIntegrationFlow and ResourceTagging APIs for AWS Supply Chain"
-}
