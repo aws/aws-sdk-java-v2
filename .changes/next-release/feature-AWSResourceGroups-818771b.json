@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Resource Groups",
+    "contributor": "",
+    "description": "This update includes new APIs to support application groups and to allow users to manage resource tag-sync tasks in applications."
+}
