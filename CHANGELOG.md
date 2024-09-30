@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.12__ __2024-09-30__
+## __AWS Price List Service__
+  - ### Features
+    - Add examples for API operations in model.
+
+## __AWS Resource Groups__
+  - ### Features
+    - This update includes new APIs to support application groups and to allow users to manage resource tag-sync tasks in applications.
+
+## __AWS Supply Chain__
+  - ### Features
+    - Release DataLakeDataset, DataIntegrationFlow and ResourceTagging APIs for AWS Supply Chain
+
+## __Amazon Bedrock__
+  - ### Features
+    - Add support for custom models via provisioned throughput for Bedrock Model Evaluation
+
+## __Amazon CloudDirectory__
+  - ### Features
+    - Add examples for API operations in model.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect introduces StartOutboundChatContact API allowing customers to initiate outbound chat contacts
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Add examples for API operations in model.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - Timestream for InfluxDB now supports port configuration and additional customer-modifiable InfluxDB v2 parameters. This release adds Port to the CreateDbInstance and UpdateDbInstance API, and additional InfluxDB v2 parameters to the CreateDbParameterGroup API.
+
 # __2.28.11__ __2024-09-27__
 ## __AWS SDK for Java v2__
   - ### Features
