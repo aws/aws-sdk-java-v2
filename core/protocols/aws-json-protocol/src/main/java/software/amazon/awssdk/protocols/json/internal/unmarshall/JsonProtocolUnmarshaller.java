@@ -18,6 +18,7 @@ package software.amazon.awssdk.protocols.json.internal.unmarshall;
 import static software.amazon.awssdk.protocols.core.StringToValueConverter.TO_SDK_BYTES;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +48,6 @@ import software.amazon.awssdk.protocols.json.internal.AwsStructuredPlainJsonFact
 import software.amazon.awssdk.protocols.json.internal.MarshallerUtil;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.document.DocumentUnmarshaller;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
-import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.builder.Buildable;
@@ -63,23 +63,16 @@ public class JsonProtocolUnmarshaller {
         new Lazy<>(JsonProtocolUnmarshaller::newProtocolUnmarshallDependencies);
 
     private final JsonUnmarshallerRegistry registry;
-    private final JsonNodeParser parser;
+    private final JsonUnmarshallingParser unmarshallingParser;
 
     private JsonProtocolUnmarshaller(Builder builder) {
         ProtocolUnmarshallDependencies dependencies = builder.protocolUnmarshallDependencies;
-        this.parser = createParser(builder, dependencies);
         this.registry = dependencies.jsonUnmarshallerRegistry();
-    }
-
-    private JsonNodeParser createParser(Builder builder, ProtocolUnmarshallDependencies dependencies) {
-        if (builder.parser != null) {
-            return builder.parser;
-        }
-        return JsonNodeParser
-            .builder()
-            .jsonFactory(dependencies.jsonFactory())
-            .jsonValueNodeFactory(dependencies.nodeValueFactory())
-            .build();
+        this.unmarshallingParser = JsonUnmarshallingParser.builder()
+                                                          .jsonValueNodeFactory(dependencies.nodeValueFactory())
+                                                          .jsonFactory(dependencies.jsonFactory())
+                                                          .unmarshallerRegistry(dependencies.jsonUnmarshallerRegistry())
+                                                          .build();
     }
 
     public static DefaultProtocolUnmarshallDependencies defaultProtocolUnmarshallDependencies() {
@@ -224,8 +217,58 @@ public class JsonProtocolUnmarshaller {
 
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
                                                     SdkHttpFullResponse response) throws IOException {
-        JsonNode jsonNode = hasJsonPayload(sdkPojo, response) ? parser.parse(response.content().get()) : null;
-        return unmarshall(sdkPojo, response, jsonNode);
+        if (!hasJsonPayload(sdkPojo, response)) {
+            return unmarshallResponse(sdkPojo, response);
+        }
+        if (hasExplicitJsonPayloadMember(sdkPojo)) {
+            return unmarshallResponse(sdkPojo, response);
+        }
+        if (hasMixedLocations(sdkPojo)) {
+            unmarshallFromJson(sdkPojo, response.content().get());
+            return unmarshallResponse(sdkPojo, response);
+        }
+        return unmarshallFromJson(sdkPojo, response.content().get());
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends SdkPojo> T unmarshallFromJson(SdkPojo sdkPojo, InputStream inputStream) {
+        return (T) unmarshallingParser.parse(sdkPojo, inputStream);
+    }
+
+    private <TypeT extends SdkPojo> TypeT unmarshallResponse(SdkPojo sdkPojo,
+                                                             SdkHttpFullResponse response) throws IOException {
+        JsonUnmarshallerContext context = JsonUnmarshallerContext.builder()
+                                                                 .unmarshallerRegistry(registry)
+                                                                 .response(response)
+                                                                 .build();
+        for (SdkField<?> field : sdkPojo.sdkFields()) {
+            if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_BYTES) {
+                Optional<AbortableInputStream> responseContent = context.response().content();
+                if (responseContent.isPresent()) {
+                    field.set(sdkPojo, SdkBytes.fromInputStream(responseContent.get()));
+                } else {
+                    field.set(sdkPojo, SdkBytes.fromByteArrayUnsafe(new byte[0]));
+                }
+            } else if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.STRING) {
+                Optional<AbortableInputStream> responseContent = context.response().content();
+                if (responseContent.isPresent()) {
+                    field.set(sdkPojo, SdkBytes.fromInputStream(responseContent.get()).asUtf8String());
+                } else {
+                    field.set(sdkPojo, "");
+                }
+            } else if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_POJO) {
+                Optional<AbortableInputStream> responseContent = context.response().content();
+                if (responseContent.isPresent()) {
+                    field.set(sdkPojo, unmarshallFromJson(field.constructor().get(), responseContent.get()));
+                } else {
+                    field.set(sdkPojo, null);
+                }
+            } else if (!isPayloadUnmarshalling(field.location())) {
+                JsonUnmarshaller<Object> unmarshaller = context.getUnmarshaller(field.location(), field.marshallingType());
+                field.set(sdkPojo, unmarshaller.unmarshall(context, null, (SdkField<Object>) field));
+            }
+        }
+        return (TypeT) ((Buildable) sdkPojo).build();
     }
 
     private boolean hasJsonPayload(SdkPojo sdkPojo, SdkHttpFullResponse response) {
@@ -233,12 +276,50 @@ public class JsonProtocolUnmarshaller {
             return false;
         }
         for (SdkField<?> field : sdkPojo.sdkFields()) {
-            if (isPayloadMemberOnUnmarshall(field) && !isExplicitBlobPayloadMember(field)
-                && !isExplicitStringPayloadMember(field)) {
+            if (isPayloadMemberOnUnmarshall(field)
+                && !(isExplicitBlobPayloadMember(field) || isExplicitStringPayloadMember(field))) {
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean hasExplicitJsonPayloadMember(SdkPojo sdkPojo) {
+        for (SdkField<?> field : sdkPojo.sdkFields()) {
+            if (isExplicitSdkPojoPayloadMember(field)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasMixedLocations(SdkPojo sdkPojo) {
+        int payload = 0;
+        int header = 0;
+        int statusCode = 0;
+        for (SdkField<?> field : sdkPojo.sdkFields()) {
+            MarshallLocation location = field.location();
+            if (isPayloadUnmarshalling(location)) {
+                payload = 1;
+            } else if (location == MarshallLocation.HEADER) {
+                header = 1;
+            } else if (location == MarshallLocation.STATUS_CODE) {
+                statusCode = 1;
+            }
+        }
+        return (payload + header + statusCode) > 1;
+    }
+
+    private boolean isPayloadUnmarshalling(MarshallLocation location) {
+        switch (location) {
+            case PAYLOAD:
+            case PATH:
+            case QUERY_PARAM:
+            case GREEDY_PATH:
+                return true;
+            default:
+                return false;
+        }
     }
 
     private boolean isExplicitBlobPayloadMember(SdkField<?> f) {
@@ -247,6 +328,10 @@ public class JsonProtocolUnmarshaller {
 
     private boolean isExplicitStringPayloadMember(SdkField<?> f) {
         return isExplicitPayloadMember(f) && f.marshallingType() == MarshallingType.STRING;
+    }
+
+    private boolean isExplicitSdkPojoPayloadMember(SdkField<?> f) {
+        return isExplicitPayloadMember(f) && f.marshallingType() == MarshallingType.SDK_POJO;
     }
 
     private static boolean isExplicitPayloadMember(SdkField<?> f) {
@@ -338,19 +423,9 @@ public class JsonProtocolUnmarshaller {
      */
     public static final class Builder {
 
-        private JsonNodeParser parser;
         private ProtocolUnmarshallDependencies protocolUnmarshallDependencies;
 
         private Builder() {
-        }
-
-        /**
-         * @param parser JSON parser to use.
-         * @return This builder for method chaining.
-         */
-        public Builder parser(JsonNodeParser parser) {
-            this.parser = parser;
-            return this;
         }
 
         /**

@@ -227,9 +227,13 @@ public final class SdkNumber extends Number implements Serializable {
      */
     @Override
     public int intValue() {
-        return numberValue instanceof Integer ? numberValue.intValue() :
-                stringValue != null ? new BigDecimal(stringValue).intValue()
-                        : valueOf(numberValue).intValue();
+        if (numberValue instanceof Integer) {
+            return numberValue.intValue();
+        }
+        if (stringValue != null) {
+            return new BigDecimal(stringValue).intValue();
+        }
+        return valueOf(numberValue).intValue();
     }
 
     /**
@@ -244,8 +248,13 @@ public final class SdkNumber extends Number implements Serializable {
      */
     @Override
     public long longValue() {
-        return numberValue instanceof Long ? numberValue.longValue() :
-                stringValue != null ? new BigDecimal(stringValue).longValue() : valueOf(numberValue).longValue();
+        if (numberValue instanceof Long) {
+            return numberValue.longValue();
+        }
+        if (stringValue != null) {
+            return new BigDecimal(stringValue).longValue();
+        }
+        return valueOf(numberValue).longValue();
     }
 
     /**
@@ -260,8 +269,13 @@ public final class SdkNumber extends Number implements Serializable {
      */
     @Override
     public float floatValue() {
-        return numberValue instanceof Float ? numberValue.floatValue() :
-                numberValue != null ? valueOf(numberValue).floatValue() : new BigDecimal(stringValue).floatValue();
+        if (numberValue instanceof Float) {
+            return numberValue.floatValue();
+        }
+        if (numberValue != null) {
+            return valueOf(numberValue).floatValue();
+        }
+        return new BigDecimal(stringValue).floatValue();
     }
 
     /**
@@ -275,9 +289,13 @@ public final class SdkNumber extends Number implements Serializable {
      */
     @Override
     public double doubleValue() {
-        return numberValue instanceof Double ? numberValue.doubleValue() :
-                numberValue != null ? valueOf(numberValue).doubleValue() :
-                        new BigDecimal(stringValue).doubleValue();
+        if (numberValue instanceof Double) {
+            return numberValue.doubleValue();
+        }
+        if (numberValue != null) {
+            return valueOf(numberValue).doubleValue();
+        }
+        return new BigDecimal(stringValue).doubleValue();
     }
 
     /**

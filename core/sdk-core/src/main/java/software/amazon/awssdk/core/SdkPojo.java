@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core;
 
 import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
@@ -44,6 +45,13 @@ public interface SdkPojo {
      * @return true if the other object equals to this object by sdk fields, false otherwise.
      */
     default boolean equalsBySdkFields(Object other) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @return The mapping between the field name and its corresponding field.
+     */
+    default Map<String, SdkField<?>> sdkFieldNameToField() {
         throw new UnsupportedOperationException();
     }
 }

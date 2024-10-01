@@ -1,8 +1,8 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.SdkField;
@@ -12,7 +12,9 @@ import software.amazon.awssdk.utils.ToString;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class EnumType {
-    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
+    private static final List<SdkField<?>> SDK_FIELDS = Collections.emptyList();
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections.emptyMap();
 
     private EnumType(EnumType.BuilderImpl builder) {
     }
@@ -72,5 +74,9 @@ public final class EnumType {
     public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
     }
-}
 
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
+    }
+}
