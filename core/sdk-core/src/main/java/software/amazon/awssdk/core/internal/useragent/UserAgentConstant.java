@@ -36,6 +36,7 @@ public final class UserAgentConstant {
     public static final String FRAMEWORK_METADATA = "lib";
     public static final String METADATA = "md";
     public static final String INTERNAL_METADATA_MARKER = "internal";
+    public static final String APP_ID = "app";
 
     //Separators used in SDK user agent
     public static final String SLASH = "/";

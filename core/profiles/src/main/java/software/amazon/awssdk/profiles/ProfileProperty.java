@@ -177,6 +177,12 @@ public final class ProfileProperty {
      */
     public static final String ENDPOINT_URL = "endpoint_url";
 
+    /**
+     * Configure an optional identification value to be appended to the user agent header.
+     * The value should be less than 50 characters in length and is null by default.
+     */
+    public static final String SDK_UA_APP_ID = "sdk_ua_app_id";
+
     private ProfileProperty() {
     }
 }
