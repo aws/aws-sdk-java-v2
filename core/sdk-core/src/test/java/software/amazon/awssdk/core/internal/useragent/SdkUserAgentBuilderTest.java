@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.useragent;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.APP_ID;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.HTTP;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.INTERNAL_METADATA_MARKER;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.IO;
@@ -50,8 +51,8 @@ class SdkUserAgentBuilderTest {
                            "OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS", "vendor#Amazon.com_Inc.", "en_US",
                            Arrays.asList("Kotlin", "Scala"));
 
-        SdkClientUserAgentProperties minimalProperties = sdkProperties(null, null, null, null);
-        SdkClientUserAgentProperties maximalProperties = sdkProperties("standard", "arbitrary", "async", "Netty");
+        SdkClientUserAgentProperties minimalProperties = sdkProperties(null, null, null, null, null);
+        SdkClientUserAgentProperties maximalProperties = sdkProperties("standard", "arbitrary", "async", "Netty", "someAppId");
 
         return Stream.of(
             Arguments.of("default sysagent, empty requestvalues",
@@ -62,40 +63,47 @@ class SdkUserAgentBuilderTest {
                          "aws-sdk-java/2.26.22-SNAPSHOT ua/2.0 os/Mac_OS_X#14.6.1 lang/java#21.0.2 "
                          + "md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala "
                          + "exec-env/lambda cfg/retry-mode#standard",
-                         sdkProperties("standard", null, null, null),
+                         sdkProperties("standard", null, null, null, null),
                          maximalSysAgent),
             Arguments.of("standard sysagent, request values - internalMarker",
                          "aws-sdk-java/2.26.22-SNAPSHOT md/internal ua/2.0 os/Mac_OS_X#14.6.1 lang/java#21.0.2 "
                          + "md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala exec-env/lambda",
-                         sdkProperties(null, "arbitrary", null, null),
+                         sdkProperties(null, "arbitrary", null, null, null),
                          maximalSysAgent),
             Arguments.of("standard sysagent, request values - io",
                          "aws-sdk-java/2.26.22-SNAPSHOT md/io#async ua/2.0 os/Mac_OS_X#14.6.1 lang/java#21.0.2 "
                          + "md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala exec-env/lambda",
-                         sdkProperties(null, null, "async", null),
+                         sdkProperties(null, null, "async", null, null),
                          maximalSysAgent),
             Arguments.of("standard sysagent, request values - http",
                          "aws-sdk-java/2.26.22-SNAPSHOT md/http#Apache ua/2.0 os/Mac_OS_X#14.6.1 lang/java#21.0.2 "
                          + "md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala exec-env/lambda",
-                         sdkProperties(null, null, null, "Apache"),
+                         sdkProperties(null, null, null, "Apache", null),
                          maximalSysAgent),
             Arguments.of("standard sysagent, request values - authSource",
                          "aws-sdk-java/2.26.22-SNAPSHOT ua/2.0 os/Mac_OS_X#14.6.1 lang/java#21.0.2 "
                          + "md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala "
                          + "exec-env/lambda",
-                         sdkProperties(null, null, null, null),
+                         sdkProperties(null, null, null, null, null),
+                         maximalSysAgent),
+            Arguments.of("standard sysagent, request values - appId",
+                         "aws-sdk-java/2.26.22-SNAPSHOT ua/2.0 os/Mac_OS_X#14.6.1 lang/java#21.0.2 "
+                         + "md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala "
+                         + "exec-env/lambda app/someAppId",
+                         sdkProperties(null, null, null, null, "someAppId"),
                          maximalSysAgent),
             Arguments.of("standard sysagent, request values - maximal",
                          "aws-sdk-java/2.26.22-SNAPSHOT md/io#async md/http#Netty md/internal ua/2.0 os/Mac_OS_X#14.6.1 "
                          + "lang/java#21.0.2 "
                          + "md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala "
-                         + "exec-env/lambda cfg/retry-mode#standard",
+                         + "exec-env/lambda cfg/retry-mode#standard app/someAppId",
                          maximalProperties,
                          maximalSysAgent)
             );
     }
 
-    private static SdkClientUserAgentProperties sdkProperties(String retryMode, String internalMarker, String io, String http) {
+    private static SdkClientUserAgentProperties sdkProperties(String retryMode, String internalMarker, String io,
+                                                              String http, String appId) {
         SdkClientUserAgentProperties properties = new SdkClientUserAgentProperties();
 
         if (retryMode != null) {
@@ -112,6 +120,10 @@ class SdkUserAgentBuilderTest {
 
         if (http != null) {
             properties.putProperty(HTTP, http);
+        }
+
+        if (appId != null) {
+            properties.putProperty(APP_ID, appId);
         }
 
         return properties;
