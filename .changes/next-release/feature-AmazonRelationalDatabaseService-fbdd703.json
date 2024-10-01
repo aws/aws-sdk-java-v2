@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "This release provides additional support for enabling Aurora Limitless Database DB clusters."
-}
