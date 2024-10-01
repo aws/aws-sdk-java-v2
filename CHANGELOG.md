@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.13__ __2024-10-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release adds support to stop an ongoing ingestion job using the StopIngestionJob API in Agents for Amazon Bedrock.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release provides additional support for enabling Aurora Limitless Database DB clusters.
+
+## __CodeArtifact__
+  - ### Features
+    - Add support for the dual stack endpoints.
+
 # __2.28.12__ __2024-09-30__
 ## __AWS Price List Service__
   - ### Features
