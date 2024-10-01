@@ -19,12 +19,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Defines all the Specifications that are required while adding HttpChecksum to a request and validating HttpChecksum of a
  * response.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public class ChecksumSpecs {
 
     private final Algorithm algorithm;

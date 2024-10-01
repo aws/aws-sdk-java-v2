@@ -28,6 +28,9 @@ import software.amazon.awssdk.utils.BinaryUtils;
 /**
  * Publisher to update the checksum as it reads the data and
  * finally compares the computed checksum with expected Checksum.
+ *
+ * Checksum validation logic is now in "http-auth-aws". DO NOT make changes
+ * TODO(post-sra-identity-auth): remove this
  */
 @SdkInternalApi
 public final class ChecksumValidatingPublisher implements SdkPublisher<ByteBuffer> {

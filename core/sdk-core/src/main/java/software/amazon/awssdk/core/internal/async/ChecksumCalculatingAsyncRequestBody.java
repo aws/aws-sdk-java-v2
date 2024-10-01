@@ -41,6 +41,10 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 /**
  * Wrapper class to wrap an AsyncRequestBody.
  * This will read the data in chunk format and append Checksum as trailer at the end.
+ *
+ * <p>
+ * Checksum validation logic is now in "http-auth-aws". DO NOT make changes
+ * TODO(post-sra-identity-auth): remove this
  */
 @SdkInternalApi
 public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {

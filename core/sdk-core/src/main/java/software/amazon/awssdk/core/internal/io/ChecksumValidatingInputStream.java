@@ -27,6 +27,9 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * Stream that will update the Checksum as the data is read.
  * When end of the stream is reached the computed Checksum is validated with Expected checksum.
+ * <p>
+ * Checksum validation logic is now in "http-auth-aws". DO NOT make changes
+ * TODO(post-sra-identity-auth): remove this
  */
 @SdkInternalApi
 public class ChecksumValidatingInputStream extends InputStream implements Abortable {

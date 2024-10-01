@@ -17,13 +17,13 @@ package software.amazon.awssdk.core.checksums;
 
 import java.nio.ByteBuffer;
 import java.util.zip.Checksum;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Extension of {@link Checksum} to support checksums and checksum validations used by the SDK that
  * are not provided by the JDK.
  */
-@SdkPublicApi
+@SdkProtectedApi
 public interface SdkChecksum extends Checksum {
 
     /**

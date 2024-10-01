@@ -20,7 +20,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Implementation of {@link SdkChecksum} to calculate an MD5 checksum.
+ *
+ * @deprecated this is an internal class and is subject to removal.
  */
+@Deprecated
 @SdkInternalApi
 public class Md5Checksum implements SdkChecksum {
 

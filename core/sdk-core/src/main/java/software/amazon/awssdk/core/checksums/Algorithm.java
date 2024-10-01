@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.checksums;
 
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.internal.EnumUtils;
@@ -23,7 +24,7 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
 /**
  * Enum that indicates all the checksums supported by Flexible checksums in a Service Request/Response Header.
  */
-@SdkPublicApi
+@SdkProtectedApi
 public enum Algorithm {
 
     CRC32C("crc32c", 8),

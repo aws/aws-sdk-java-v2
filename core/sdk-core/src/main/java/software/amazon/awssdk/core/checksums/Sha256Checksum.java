@@ -20,7 +20,9 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Implementation of {@link SdkChecksum} to calculate an Sha-256 Checksum.
+ * @deprecated this is an internal class and is subject to removal.
  */
+@Deprecated
 @SdkInternalApi
 public class Sha256Checksum implements SdkChecksum {
 

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.checksums;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -33,7 +34,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
  * {@link #CHECKSUM_RESPONSE_NOT_FOUND}
  *
  */
-@SdkPublicApi
+@SdkProtectedApi
 public enum ChecksumValidation {
     /**
      * Checksum validation was performed on the response.

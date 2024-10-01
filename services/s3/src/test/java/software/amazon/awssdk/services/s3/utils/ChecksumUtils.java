@@ -78,13 +78,6 @@ public final class ChecksumUtils {
         }
     }
 
-    public static String calculatedChecksum(String contentString, Algorithm algorithm) {
-        SdkChecksum sdkChecksum = SdkChecksum.forAlgorithm(algorithm);
-        for (byte character : contentString.getBytes(StandardCharsets.UTF_8)) {
-            sdkChecksum.update(character);
-        }
-        return BinaryUtils.toBase64(sdkChecksum.getChecksumBytes());
-    }
 
     public static String calculatedChecksum(Path path, Algorithm algorithm) {
         SdkChecksum sdkChecksum = SdkChecksum.forAlgorithm(algorithm);
