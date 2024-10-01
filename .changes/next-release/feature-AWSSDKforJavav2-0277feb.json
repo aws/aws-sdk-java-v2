@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Adds an option to set 'appId' metadata to the client builder or to system settings and config files. This metadata string value will be added to the user agent string as `app/somevalue`"
+}

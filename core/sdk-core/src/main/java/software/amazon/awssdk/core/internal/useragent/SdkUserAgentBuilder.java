@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.useragent;
 
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.APP_ID;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.CONFIG_METADATA;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.ENV_METADATA;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.HTTP;
@@ -75,6 +76,11 @@ public final class SdkUserAgentBuilder {
         String retryMode = userAgentProperties.getProperty(RETRY_MODE);
         if (!StringUtils.isEmpty(retryMode)) {
             appendFieldAndSpace(uaString, CONFIG_METADATA, uaPair(RETRY_MODE, retryMode));
+        }
+
+        String appId = userAgentProperties.getProperty(APP_ID);
+        if (!StringUtils.isEmpty(appId)) {
+            appendFieldAndSpace(uaString, APP_ID, appId);
         }
 
         removeFinalWhitespace(uaString);
