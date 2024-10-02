@@ -300,13 +300,22 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         }
         builder.addStatement("$T identity", namedIdentityFuture());
         builder.addStatement("$T metric = getIdentityMetric(identityProvider)", durationSdkMetric());
+        builder.addStatement("$T resolveIdentityRequest = identityRequestBuilder.build()" , ResolveIdentityRequest.class);
+
         builder.beginControlFlow("if (metric == null)")
-               .addStatement("identity = identityProvider.resolveIdentity(identityRequestBuilder.build())")
+               .addStatement("identity = identityProvider.resolveIdentity(resolveIdentityRequest)")
                .nextControlFlow("else")
                .addStatement("identity = $T.reportDuration("
-                             + "() -> identityProvider.resolveIdentity(identityRequestBuilder.build()), metricCollector, metric)",
+                             + "() -> identityProvider.resolveIdentity(resolveIdentityRequest), metricCollector, metric)",
                              MetricUtils.class)
                .endControlFlow();
+
+        if (endpointRulesSpecUtils.isS3()) {
+            builder.addStatement("executionAttributes.putAttribute($T.RESOLVE_IDENTITY_REQUEST, resolveIdentityRequest)",
+                                 SdkInternalExecutionAttribute.class);
+            builder.addStatement("executionAttributes.putAttribute($T.SELECTED_IDENTITY_PROVIDER, identityProvider)",
+                                 SdkInternalExecutionAttribute.class);
+        }
 
         builder.addStatement("return new $T<>(identity, signer, authOption)", SelectedAuthScheme.class);
         return builder.build();

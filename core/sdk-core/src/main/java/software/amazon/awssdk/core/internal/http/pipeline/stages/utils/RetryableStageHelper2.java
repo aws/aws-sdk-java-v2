@@ -24,13 +24,16 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkStandardLogger;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncRetryableStage;
@@ -41,6 +44,8 @@ import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
@@ -234,6 +239,40 @@ public final class RetryableStageHelper2 {
      */
     public void setLastResponse(SdkHttpResponse lastResponse) {
         this.lastResponse = lastResponse;
+    }
+
+    /**
+     * Re-resolve the credentials upon a retry, if S3Express request.
+     */
+    public void resolveCredentialsIfS3ExpressRetry(RequestExecutionContext requestExecutionContext) {
+        if (isInitialAttempt()) {
+            return;
+        }
+
+        IdentityProvider identityProvider =
+            requestExecutionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_IDENTITY_PROVIDER);
+
+        if (identityProvider == null || !isS3Express(identityProvider)) {
+            return;
+        }
+
+        ResolveIdentityRequest resolveIdentityRequest =
+            requestExecutionContext.executionAttributes()
+                                   .getAttribute(SdkInternalExecutionAttribute.RESOLVE_IDENTITY_REQUEST);
+
+        SelectedAuthScheme<?> authScheme =
+            requestExecutionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+
+        CompletableFuture newlyResolvedIdentity = identityProvider.resolveIdentity(resolveIdentityRequest);
+        SelectedAuthScheme<?> updatedAuthScheme = new SelectedAuthScheme(newlyResolvedIdentity, authScheme.signer(),
+                                                                         authScheme.authSchemeOption());
+        requestExecutionContext.executionAttributes().putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
+                                                                   updatedAuthScheme);
+    }
+
+    private boolean isS3Express(IdentityProvider identityProvider) {
+        String className = identityProvider.identityType().getSimpleName();
+        return "S3ExpressSessionCredentials".equals(className);
     }
 
     /**
