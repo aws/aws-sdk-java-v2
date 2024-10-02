@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.14__ __2024-10-02__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Added and updated APIs to support outbound EDI transformations
+
+## __AWS IoT Core Device Advisor__
+  - ### Features
+    - Add clientToken attribute and implement idempotency for CreateSuiteDefinition.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Added raw model response and usage metrics to PreProcessing and PostProcessing Trace
+
+## __Amazon AppStream__
+  - ### Features
+    - Added support for Automatic Time Zone Redirection on Amazon AppStream 2.0
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Added new fields to Amazon Bedrock Guardrails trace
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Adds new Stage Health EventErrorCodes applicable to RTMP(S) broadcasts. Bug Fix: Enforces that EncoderConfiguration Video height and width must be even-number values.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - releasing builtinlcc to public
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release introduces a header representing the minimum object size limit for Lifecycle transitions.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - WSP is being rebranded to become DCV.
+
 # __2.28.13__ __2024-10-01__
 ## __AWS SDK for Java v2__
   - ### Features
