@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS B2B Data Interchange",
+    "contributor": "",
+    "description": "Added and updated APIs to support outbound EDI transformations"
+}
