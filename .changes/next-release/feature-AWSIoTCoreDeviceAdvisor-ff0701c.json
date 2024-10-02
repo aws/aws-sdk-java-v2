@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT Core Device Advisor",
-    "contributor": "",
-    "description": "Add clientToken attribute and implement idempotency for CreateSuiteDefinition."
-}

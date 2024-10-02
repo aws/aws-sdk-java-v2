@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Storage Service",
-    "contributor": "",
-    "description": "This release introduces a header representing the minimum object size limit for Lifecycle transitions."
-}
