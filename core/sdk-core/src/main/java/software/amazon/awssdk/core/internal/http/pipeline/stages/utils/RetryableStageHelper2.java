@@ -249,7 +249,7 @@ public final class RetryableStageHelper2 {
             return;
         }
 
-        IdentityProvider identityProvider =
+        IdentityProvider<?> identityProvider =
             requestExecutionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_IDENTITY_PROVIDER);
 
         if (identityProvider == null || !isS3Express(identityProvider)) {
@@ -263,14 +263,14 @@ public final class RetryableStageHelper2 {
         SelectedAuthScheme<?> authScheme =
             requestExecutionContext.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
 
-        CompletableFuture newlyResolvedIdentity = identityProvider.resolveIdentity(resolveIdentityRequest);
+        CompletableFuture<?> newlyResolvedIdentity = identityProvider.resolveIdentity(resolveIdentityRequest);
         SelectedAuthScheme<?> updatedAuthScheme = new SelectedAuthScheme(newlyResolvedIdentity, authScheme.signer(),
                                                                          authScheme.authSchemeOption());
         requestExecutionContext.executionAttributes().putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
                                                                    updatedAuthScheme);
     }
 
-    private boolean isS3Express(IdentityProvider identityProvider) {
+    private boolean isS3Express(IdentityProvider<?> identityProvider) {
         String className = identityProvider.identityType().getSimpleName();
         return "S3ExpressSessionCredentials".equals(className);
     }
