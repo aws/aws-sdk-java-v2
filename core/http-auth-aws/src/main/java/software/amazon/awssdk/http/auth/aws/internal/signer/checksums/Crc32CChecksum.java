@@ -15,7 +15,8 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer.checksums;
 
-import java.nio.ByteBuffer;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.longToByte;
+
 import java.util.Arrays;
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -26,23 +27,24 @@ import software.amazon.awssdk.utils.ClassLoaderHelper;
  * Implementation of {@link SdkChecksum} to calculate an CRC32C checksum.
  */
 @SdkInternalApi
-public class Crc32CChecksum implements SdkChecksum {
+public class Crc32CChecksum extends BaseCrcChecksum {
 
     private static final String CRT_CLASSPATH_FOR_CRC32C = "software.amazon.awssdk.crt.checksums.CRC32C";
     private static final ThreadLocal<Boolean> IS_CRT_AVAILABLE = ThreadLocal.withInitial(Crc32CChecksum::isCrtAvailable);
-
-    private Checksum crc32c;
-    private Checksum lastMarkedCrc32C;
 
     /**
      * Creates CRT Based Crc32C checksum if Crt classpath for Crc32c is loaded, else create Sdk Implemented Crc32c
      */
     public Crc32CChecksum() {
+        super(createChecksum());
+    }
+
+    private static Checksum createChecksum() {
         if (IS_CRT_AVAILABLE.get()) {
-            crc32c = new CRC32C();
-        } else {
-            crc32c = SdkCrc32CChecksum.create();
+            return new CRC32C();
         }
+        // TODO: use Java implementation if it's Java 9+
+        return SdkCrc32CChecksum.create();
     }
 
     private static boolean isCrtAvailable() {
@@ -55,47 +57,13 @@ public class Crc32CChecksum implements SdkChecksum {
         return true;
     }
 
-    private static byte[] longToByte(Long input) {
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-        buffer.putLong(input);
-        return buffer.array();
-    }
-
     @Override
     public byte[] getChecksumBytes() {
-        return Arrays.copyOfRange(longToByte(crc32c.getValue()), 4, 8);
+        return Arrays.copyOfRange(longToByte(getChecksum().getValue()), 4, 8);
     }
 
     @Override
-    public void mark(int readLimit) {
-        this.lastMarkedCrc32C = cloneChecksum(crc32c);
-    }
-
-    @Override
-    public void update(int b) {
-        crc32c.update(b);
-    }
-
-    @Override
-    public void update(byte[] b, int off, int len) {
-        crc32c.update(b, off, len);
-    }
-
-    @Override
-    public long getValue() {
-        return crc32c.getValue();
-    }
-
-    @Override
-    public void reset() {
-        if (lastMarkedCrc32C == null) {
-            crc32c.reset();
-        } else {
-            crc32c = cloneChecksum(lastMarkedCrc32C);
-        }
-    }
-
-    private Checksum cloneChecksum(Checksum checksum) {
+    public Checksum cloneChecksum(Checksum checksum) {
         if (checksum instanceof CRC32C) {
             return (Checksum) ((CRC32C) checksum).clone();
         }

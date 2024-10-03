@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32C;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC64NVME;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.MD5;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA1;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc32CChecksum;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc32Checksum;
+import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc64NvmeChecksum;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Md5Checksum;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Sha1Checksum;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Sha256Checksum;
@@ -48,6 +50,7 @@ public class ChecksumUtilTest {
         assertEquals("x-amz-checksum-crc32", checksumHeaderName(CRC32));
         assertEquals("x-amz-checksum-crc32c", checksumHeaderName(CRC32C));
         assertEquals("x-amz-checksum-md5", checksumHeaderName(MD5));
+        assertEquals("x-amz-checksum-crc64nvme", checksumHeaderName(CRC64NVME));
     }
 
     @Test
@@ -57,6 +60,8 @@ public class ChecksumUtilTest {
         assertEquals(Crc32Checksum.class, fromChecksumAlgorithm(CRC32).getClass());
         assertEquals(Crc32CChecksum.class, fromChecksumAlgorithm(CRC32C).getClass());
         assertEquals(Md5Checksum.class, fromChecksumAlgorithm(MD5).getClass());
+        assertEquals(Md5Checksum.class, fromChecksumAlgorithm(MD5).getClass());
+        assertEquals(Crc64NvmeChecksum.class, fromChecksumAlgorithm(CRC64NVME).getClass());
     }
 
     @Test
