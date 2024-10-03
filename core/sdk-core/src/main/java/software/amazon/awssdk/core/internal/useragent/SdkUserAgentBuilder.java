@@ -34,7 +34,6 @@ import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.u
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
 import software.amazon.awssdk.core.util.SystemUserAgent;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;

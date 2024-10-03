@@ -382,7 +382,7 @@ public class DefaultClientBuilderTest {
     public void clientBuilderFieldsHaveBeanEquivalents() throws Exception {
         // Mutating properties might not have bean equivalents. This is probably fine, since very few customers require
         // bean-equivalent methods and it's not clear what they'd expect them to be named anyway. Ignore these methods for now.
-        Set<String> NON_BEAN_EQUIVALENT_METHODS = ImmutableSet.of("addPlugin", "plugins", "putAuthScheme");
+        Set<String> NON_BEAN_EQUIVALENT_METHODS = ImmutableSet.of("addPlugin", "plugins", "putAuthScheme", "appId");
         SdkClientBuilder<TestClientBuilder, TestClient> builder = testClientBuilder();
 
         BeanInfo beanInfo = Introspector.getBeanInfo(builder.getClass());
