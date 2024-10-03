@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "Public GetMetricDataV2 Grouping increase from 3 to 4"
-}

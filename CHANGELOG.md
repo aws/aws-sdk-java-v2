@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.15__ __2024-10-03__
+## __AWS CodePipeline__
+  - ### Features
+    - AWS CodePipeline introduces Commands action that enables you to easily run shell commands as part of your pipeline execution.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Added support for ClipStartTime on the FilterConfiguration object on OriginEndpoint manifest settings objects. Added support for EXT-X-START tags on produced HLS child playlists.
+
+## __AWS IoT__
+  - ### Features
+    - This release adds support for Custom Authentication with X.509 Client Certificates, support for Custom Client Certificate validation, and support for selecting application protocol and authentication type without requiring TLS ALPN for customer's AWS IoT Domain Configurations.
+
+## __AWS Marketplace Reporting Service__
+  - ### Features
+    - The AWS Marketplace Reporting service introduces the GetBuyerDashboard API. This API returns a dashboard that provides visibility into your organization's AWS Marketplace agreements and associated spend across the AWS accounts in your organization.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Public GetMetricDataV2 Grouping increase from 3 to 4
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release includes a new API for modifying instance cpu-options after launch.
+
+## __Amazon QuickSight__
+  - ### Features
+    - QuickSight: Add support for exporting and importing folders in AssetBundle APIs
+
 # __2.28.14__ __2024-10-02__
 ## __AWS B2B Data Interchange__
   - ### Features
