@@ -91,9 +91,9 @@ import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuil
 import software.amazon.awssdk.core.internal.http.pipeline.stages.CompressRequestStage;
 import software.amazon.awssdk.core.internal.interceptor.HttpChecksumValidationInterceptor;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
+import software.amazon.awssdk.core.internal.useragent.AppIdResolver;
 import software.amazon.awssdk.core.internal.useragent.SdkClientUserAgentProperties;
 import software.amazon.awssdk.core.internal.useragent.SdkUserAgentBuilder;
-import software.amazon.awssdk.core.internal.useragent.AppIdResolver;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.util.SystemUserAgent;
