@@ -15,44 +15,19 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer.util;
 
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32C;
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC64NVME;
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.MD5;
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA1;
-import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
-
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
-import java.util.Map;
-import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.ConstantChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc32CChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc32Checksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc64NvmeChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Md5Checksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Sha1Checksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Sha256Checksum;
 import software.amazon.awssdk.utils.FunctionalUtils;
-import software.amazon.awssdk.utils.ImmutableMap;
 
 @SdkInternalApi
 public final class ChecksumUtil {
 
     private static final String CONSTANT_CHECKSUM = "CONSTANT";
-
-    private static final Map<String, Supplier<SdkChecksum>> CHECKSUM_MAP =
-        ImmutableMap.<String, Supplier<SdkChecksum>>builder()
-                    .put(SHA256.algorithmId(), Sha256Checksum::new)
-                    .put(SHA1.algorithmId(), Sha1Checksum::new)
-                    .put(CRC32.algorithmId(), Crc32Checksum::new)
-                    .put(CRC32C.algorithmId(), Crc32CChecksum::new)
-                    .put(MD5.algorithmId(), Md5Checksum::new)
-                    .put(CRC64NVME.algorithmId(), Crc64NvmeChecksum::new).build();
 
     private ChecksumUtil() {
     }
@@ -73,13 +48,13 @@ public final class ChecksumUtil {
      */
     public static SdkChecksum fromChecksumAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
         String algorithmId = checksumAlgorithm.algorithmId();
-        Supplier<SdkChecksum> checksumSupplier = CHECKSUM_MAP.get(algorithmId);
-        if (checksumSupplier != null) {
-            return checksumSupplier.get();
-        }
-
         if (CONSTANT_CHECKSUM.equals(algorithmId)) {
             return new ConstantChecksum(((ConstantChecksumAlgorithm) checksumAlgorithm).value);
+        }
+
+        SdkChecksum checksum = SdkChecksum.forAlgorithm(checksumAlgorithm);
+        if (checksum != null) {
+            return checksum;
         }
 
         throw new UnsupportedOperationException("Checksum not supported for " + algorithmId);

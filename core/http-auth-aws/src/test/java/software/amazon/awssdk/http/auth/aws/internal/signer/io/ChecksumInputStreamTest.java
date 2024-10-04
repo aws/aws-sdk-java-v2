@@ -23,10 +23,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc32Checksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc64NvmeChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Sha256Checksum;
+import software.amazon.awssdk.checksums.internal.Crc32Checksum;
+import software.amazon.awssdk.checksums.internal.Crc64NvmeChecksum;
+import software.amazon.awssdk.checksums.SdkChecksum;
+import software.amazon.awssdk.checksums.internal.Sha256Checksum;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 public class ChecksumInputStreamTest {

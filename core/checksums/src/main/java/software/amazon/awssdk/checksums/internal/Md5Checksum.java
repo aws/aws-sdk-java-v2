@@ -13,23 +13,23 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.signer.checksums;
+package software.amazon.awssdk.checksums.internal;
 
 import java.security.MessageDigest;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.aws.internal.signer.util.DigestAlgorithm;
+import software.amazon.awssdk.checksums.SdkChecksum;
 
 /**
- * Implementation of {@link SdkChecksum} to calculate an Sha-256 Checksum.
+ * Implementation of {@link SdkChecksum} to calculate an MD5 checksum.
  */
 @SdkInternalApi
-public class Sha256Checksum implements SdkChecksum {
+public class Md5Checksum implements SdkChecksum {
 
     private MessageDigest digest;
 
     private MessageDigest digestLastMarked;
 
-    public Sha256Checksum() {
+    public Md5Checksum() {
         this.digest = getDigest();
     }
 
@@ -52,13 +52,13 @@ public class Sha256Checksum implements SdkChecksum {
     public void reset() {
         digest = (digestLastMarked == null)
                  // This is necessary so that should there be a reset without a
-                 // preceding mark, the Sha-256 would still be computed correctly.
+                 // preceding mark, the MD5 would still be computed correctly.
                  ? getDigest()
                  : cloneFrom(digestLastMarked);
     }
 
     private MessageDigest getDigest() {
-        return DigestAlgorithm.SHA256.getDigest();
+        return DigestAlgorithm.MD5.getDigest();
     }
 
     @Override

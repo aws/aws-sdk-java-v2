@@ -303,8 +303,8 @@
     <!-- Retrieves and updates crc value in update() -->
      <Match>
          <Or>
-             <Class name="software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkCrc32CChecksum"/>
-             <Class name="software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkCrc32Checksum"/>
+             <Class name="software.amazon.awssdk.checksums.internal.SdkCrc32CChecksum"/>
+             <Class name="software.amazon.awssdk.checksums.internal.SdkCrc32Checksum"/>
              <Class name="software.amazon.awssdk.core.internal.checksums.factory.SdkCrc32C"/>
              <Class name="software.amazon.awssdk.core.internal.checksums.factory.SdkCrc32"/>
          </Or>

@@ -13,10 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.signer.checksums;
+package software.amazon.awssdk.checksums.internal;
 
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.SdkChecksum;
 
 /**
  * Base class for CRC related checksums

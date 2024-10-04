@@ -13,13 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.signer.checksums;
+package software.amazon.awssdk.checksums.internal;
 
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.longToByte;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.OptionalDependencyLoaderUtil.getCrc64Nvme;
+import static software.amazon.awssdk.utils.DependencyValidate.requireClass;
+import static software.amazon.awssdk.utils.NumericUtils.longToByte;
 
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.crt.checksums.CRC64NVME;
 
 /**
@@ -27,9 +28,16 @@ import software.amazon.awssdk.crt.checksums.CRC64NVME;
  */
 @SdkInternalApi
 public final class Crc64NvmeChecksum extends BaseCrcChecksum {
+    private static final String CRT_CRC64NVME_PATH = "software.amazon.awssdk.crt.checksums.CRC64NVME";
+    private static final String CRT_MODULE = "software.amazon.awssdk.crt:aws-crt";
 
     public Crc64NvmeChecksum() {
         super(getCrc64Nvme());
+    }
+
+    private static CRC64NVME getCrc64Nvme() {
+        requireClass(CRT_CRC64NVME_PATH, CRT_MODULE, "CRC64NVME");
+        return new CRC64NVME();
     }
 
     @Override

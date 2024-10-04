@@ -34,12 +34,12 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc32CChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc32Checksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc64NvmeChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Md5Checksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Sha1Checksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Sha256Checksum;
+import software.amazon.awssdk.checksums.internal.Crc32CChecksum;
+import software.amazon.awssdk.checksums.internal.Crc32Checksum;
+import software.amazon.awssdk.checksums.internal.Crc64NvmeChecksum;
+import software.amazon.awssdk.checksums.internal.Md5Checksum;
+import software.amazon.awssdk.checksums.internal.Sha1Checksum;
+import software.amazon.awssdk.checksums.internal.Sha256Checksum;
 
 public class ChecksumUtilTest {
 
