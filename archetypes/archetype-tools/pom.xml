@@ -52,6 +52,7 @@
                         <configuration>
                             <executable>python</executable>
                             <commandlineArgs>${basedir}/src/main/resources/map-service-to-client-prefix</commandlineArgs>
+                            <useMavenLogger>true</useMavenLogger>
                         </configuration>
                     </execution>
                 </executions>
