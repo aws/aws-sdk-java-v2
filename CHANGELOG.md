@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.17__ __2024-10-07__
+## __AWS Marketplace Reporting Service__
+  - ### Features
+    - Documentation-only update for AWS Marketplace Reporting API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Add support for using the template from a previous job during job creation and listing parameter definitions for a job.
+
+## __Amazon Q Connect__
+  - ### Features
+    - This release adds support for the following capabilities: Configuration of the Gen AI system via AIAgent and AIPrompts. Integration support for Bedrock Knowledge Base.
+
+## __Amazon Redshift__
+  - ### Features
+    - Add validation pattern to S3KeyPrefix on the EnableLogging API
+
 # __2.28.16__ __2024-10-04__
 ## __AWS IoT Data Plane__
   - ### Features

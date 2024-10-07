@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Redshift",
-    "contributor": "",
-    "description": "Add validation pattern to S3KeyPrefix on the EnableLogging API"
-}
