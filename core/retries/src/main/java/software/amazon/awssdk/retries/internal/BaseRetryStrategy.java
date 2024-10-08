@@ -192,7 +192,7 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
      *
      * @return true if there are retry predicates configured for this retry strategy.
      */
-    public boolean hasRetryPredicates() {
+    public final boolean hasRetryPredicates() {
         return !retryPredicates.isEmpty();
     }
 
