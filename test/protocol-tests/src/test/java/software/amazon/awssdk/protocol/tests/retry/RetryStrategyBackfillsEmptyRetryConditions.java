@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.protocoljsonrpc.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocoljsonrpc.model.AllTypesResponse;
 import software.amazon.awssdk.services.protocoljsonrpc.model.ProtocolJsonRpcException;
 
-public class RetryStrategyBackfillsEmtpyRetryConditions {
+public class RetryStrategyBackfillsEmptyRetryConditions {
 
     private static final String PATH = "/";
     private static final String JSON_BODY = "{\"StringMember\":\"foo\"}";
