@@ -29,6 +29,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -62,7 +63,8 @@ class AppIdUserAgentTest {
         RestJsonEndpointProvidersClientBuilder clientBuilder = syncClientBuilder();
 
         if (!StringUtils.isEmpty(clientAppId)) {
-            clientBuilder.appId(clientAppId);
+            ClientOverrideConfiguration config = clientBuilder.overrideConfiguration().toBuilder().appId(clientAppId).build();
+            clientBuilder.overrideConfiguration(config);
         }
 
         assertThatThrownBy(() -> clientBuilder.build().allTypes(r -> {}))

@@ -22,7 +22,6 @@ import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -97,23 +96,4 @@ public interface SdkClientBuilder<B extends SdkClientBuilder<B, C>, C> extends S
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * Configure an optional identification value to be appended to the user agent header.
-     * The value should be less than 50 characters in length and is null by default.
-     * <p>
-     * Users can additionally supply the appId value through environment and JVM settings, and
-     * it will be resolved using the following order of precedence (highest first):
-     * <ol>
-     *  <li>This client builder configuration </li>
-     *  <li>The {@code AWS_SDK_UA_APP_ID} environment variable</li>
-     *  <li>The {@code sdk.ua.appId} JVM system property</li>
-     *  <li>The {@code sdk_ua_app_id} setting in the profile file for the active profile</li>
-     * </ol>
-     * <p>
-     * This configuration option supersedes {@link SdkAdvancedClientOption#USER_AGENT_PREFIX} and
-     * {@link SdkAdvancedClientOption#USER_AGENT_SUFFIX} and should be used instead of those options.
-     */
-    default B appId(String appId) {
-        throw new UnsupportedOperationException();
-    }
 }
