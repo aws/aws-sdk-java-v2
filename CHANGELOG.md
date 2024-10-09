@@ -1,4 +1,142 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.18__ __2024-10-08__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - AWS ElastiCache SDK now supports using APIs with newly launched Valkey engine. Please refer to updated AWS ElastiCache public documentation for detailed information on API usage.
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Amazon MemoryDB SDK now supports all APIs for newly launched Valkey engine. Please refer to the updated Amazon MemoryDB public documentation for detailed information on API usage.
+
+# __2.28.17__ __2024-10-07__
+## __AWS Marketplace Reporting Service__
+  - ### Features
+    - Documentation-only update for AWS Marketplace Reporting API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Add support for using the template from a previous job during job creation and listing parameter definitions for a job.
+
+## __Amazon Q Connect__
+  - ### Features
+    - This release adds support for the following capabilities: Configuration of the Gen AI system via AIAgent and AIPrompts. Integration support for Bedrock Knowledge Base.
+
+## __Amazon Redshift__
+  - ### Features
+    - Add validation pattern to S3KeyPrefix on the EnableLogging API
+
+# __2.28.16__ __2024-10-04__
+## __AWS IoT Data Plane__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Amazon EC2.
+
+# __2.28.15__ __2024-10-03__
+## __AWS CodePipeline__
+  - ### Features
+    - AWS CodePipeline introduces Commands action that enables you to easily run shell commands as part of your pipeline execution.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Added support for ClipStartTime on the FilterConfiguration object on OriginEndpoint manifest settings objects. Added support for EXT-X-START tags on produced HLS child playlists.
+
+## __AWS IoT__
+  - ### Features
+    - This release adds support for Custom Authentication with X.509 Client Certificates, support for Custom Client Certificate validation, and support for selecting application protocol and authentication type without requiring TLS ALPN for customer's AWS IoT Domain Configurations.
+
+## __AWS Marketplace Reporting Service__
+  - ### Features
+    - The AWS Marketplace Reporting service introduces the GetBuyerDashboard API. This API returns a dashboard that provides visibility into your organization's AWS Marketplace agreements and associated spend across the AWS accounts in your organization.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Public GetMetricDataV2 Grouping increase from 3 to 4
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release includes a new API for modifying instance cpu-options after launch.
+
+## __Amazon QuickSight__
+  - ### Features
+    - QuickSight: Add support for exporting and importing folders in AssetBundle APIs
+
+# __2.28.14__ __2024-10-02__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Added and updated APIs to support outbound EDI transformations
+
+## __AWS IoT Core Device Advisor__
+  - ### Features
+    - Add clientToken attribute and implement idempotency for CreateSuiteDefinition.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Added raw model response and usage metrics to PreProcessing and PostProcessing Trace
+
+## __Amazon AppStream__
+  - ### Features
+    - Added support for Automatic Time Zone Redirection on Amazon AppStream 2.0
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Added new fields to Amazon Bedrock Guardrails trace
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Adds new Stage Health EventErrorCodes applicable to RTMP(S) broadcasts. Bug Fix: Enforces that EncoderConfiguration Video height and width must be even-number values.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - releasing builtinlcc to public
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release introduces a header representing the minimum object size limit for Lifecycle transitions.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - WSP is being rebranded to become DCV.
+
+# __2.28.13__ __2024-10-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release adds support to stop an ongoing ingestion job using the StopIngestionJob API in Agents for Amazon Bedrock.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release provides additional support for enabling Aurora Limitless Database DB clusters.
+
+## __CodeArtifact__
+  - ### Features
+    - Add support for the dual stack endpoints.
+
 # __2.28.12__ __2024-09-30__
 ## __AWS Price List Service__
   - ### Features

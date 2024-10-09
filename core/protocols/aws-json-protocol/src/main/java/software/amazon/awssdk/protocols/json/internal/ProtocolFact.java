@@ -53,7 +53,9 @@ public interface ProtocolFact {
      */
     ProtocolFact SMITHY_RPC_V2_CBOR = new ProtocolFact() {
         private final Map<String, String> extraHeaders = Collections.unmodifiableMap(MapUtils.of("smithy-protocol",
-                                                                                                 "rpc-v2-cbor"));
+                                                                                                 "rpc-v2-cbor",
+                                                                                                 "Accept",
+                                                                                                 "application/cbor"));
         /**
          * Smithy RPCv2 only skips body generation for operation without input defined. These operations mark themselves using
          * the {@link BaseAwsJsonProtocolFactory#GENERATES_BODY} metadata attribute. Otherwise, the protocol default is to

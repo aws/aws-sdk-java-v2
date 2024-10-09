@@ -73,7 +73,7 @@ public class JsonProtocolUnmarshaller {
 
     private JsonNodeParser createParser(Builder builder, ProtocolUnmarshallDependencies dependencies) {
         if (builder.parser != null) {
-            return parser;
+            return builder.parser;
         }
         return JsonNodeParser
             .builder()
