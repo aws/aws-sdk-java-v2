@@ -424,11 +424,15 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     private void configureRetryStrategy(SdkClientConfiguration.Builder config) {
         RetryStrategy strategy = config.option(SdkClientOption.RETRY_STRATEGY);
         if (strategy != null) {
-            // Fix the retry strategy if no retry predicates were configured. Users using
-            // DefaultRetryStrategy do not have any conditions configured as that package
-            // does not know anything about the SDK or AWS retry conditions. This mimics the
-            // retry policies behavior that are configured behind the scenes and avoids the
-            // risk of customers inadvertently using a no-op retry strategy.
+            // TODO(10/09/24) This is a temporal workaround and not a long term solution. It will fail to add the SDK and AWS
+            //  defaults if the users add one or more if their own retry predicates. A long term fix is needed that can
+            //  "remember" which defaults have been already applied, e.g.,
+            //    if (strategy.shouldAddDefaults("aws")) {
+            //       strategy = strategy.toBuilder()
+            //                          .applyMutation(AwsRetryStrategy::applyDefaults)
+            //                          .markDefaultsAdded("aws")
+            //                          .build();
+            //    }
             if (strategy.maxAttempts() > 1
                 && (strategy instanceof BaseRetryStrategy)
                 && !((BaseRetryStrategy) strategy).hasRetryPredicates()
