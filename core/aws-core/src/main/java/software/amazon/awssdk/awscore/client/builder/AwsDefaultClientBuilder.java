@@ -51,6 +51,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -64,6 +65,7 @@ import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.retries.internal.BaseRetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.AttributeMap.LazyValueSource;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -422,6 +424,20 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     private void configureRetryStrategy(SdkClientConfiguration.Builder config) {
         RetryStrategy strategy = config.option(SdkClientOption.RETRY_STRATEGY);
         if (strategy != null) {
+            // Fix the retry strategy if no retry predicates were configured. Users using
+            // DefaultRetryStrategy do not have any conditions configured as that package
+            // does not know anything about the SDK or AWS retry conditions. This mimics the
+            // retry policies behavior that are configured behind the scenes and avoids the
+            // risk of customers inadvertently using a no-op retry strategy.
+            if (strategy.maxAttempts() > 1
+                && (strategy instanceof BaseRetryStrategy)
+                && !((BaseRetryStrategy) strategy).hasRetryPredicates()
+            ) {
+                RetryStrategy.Builder<?, ?> builder = strategy.toBuilder();
+                SdkDefaultRetryStrategy.configureStrategy(builder);
+                AwsRetryStrategy.configureStrategy(builder);
+                config.option(SdkClientOption.RETRY_STRATEGY, builder.build());
+            }
             return;
         }
         config.lazyOption(SdkClientOption.RETRY_STRATEGY, this::resolveAwsRetryStrategy);
