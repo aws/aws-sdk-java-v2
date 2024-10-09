@@ -116,7 +116,7 @@
         <unitils.version>3.4.6</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spotbugs.version>4.7.3.5</spotbugs.version>
+        <spotbugs.version>4.8.6.4</spotbugs.version>
         <javapoet.verion>1.13.0</javapoet.verion>
         <org.eclipse.jdt.version>3.10.0</org.eclipse.jdt.version>
         <org.eclipse.text.version>3.5.101</org.eclipse.text.version>
@@ -139,9 +139,9 @@
         <netty-open-ssl-version>2.0.65.Final</netty-open-ssl-version>
         <dynamodb-local.version>1.25.0</dynamodb-local.version>
         <sqllite.version>1.0.392</sqllite.version>
-        <blockhound.version>1.0.8.RELEASE</blockhound.version>
+        <blockhound.version>1.0.9.RELEASE</blockhound.version>
         <jetty.version>9.4.45.v20220203</jetty.version>
-        <bytebuddy.version>1.14.15</bytebuddy.version>
+        <bytebuddy.version>1.15.3</bytebuddy.version>
 
         <!-- build plugin dependencies-->
         <maven.surefire.version>3.1.2</maven.surefire.version>
@@ -803,6 +803,17 @@
             <properties>
                 <!-- Blockhound doesn't support Java 13+ without flags: https://github.com/reactor/BlockHound/issues/33 -->
                 <argLine>-XX:+AllowRedefinitionToAddDeleteMethods</argLine>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>jdk-23-plus</id>
+            <activation>
+                <jdk>[23,)</jdk>
+            </activation>
+            <properties>
+                <!-- Fixes this error "Java 23 (67) is not supported by the current version of Byte Buddy which officially supports Java 21 (65)"  -->
+                <argLine>-XX:+AllowRedefinitionToAddDeleteMethods -Dreactor.blockhound.shaded.net.bytebuddy.experimental=true</argLine>
             </properties>
         </profile>
 
