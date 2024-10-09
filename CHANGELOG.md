@@ -1,4 +1,16 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.19__ __2024-10-09__
+## __AWS CodePipeline__
+  - ### Features
+    - AWS CodePipeline introduces a Compute category
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - This change adds the default retry conditions in the client builder if none are configured to behave similarly to retry policies that are configured behind the scenes without the users having to do that themselves. This will prevent customers using directly the retry strategies builders from `DefaultRetryStrategy` to end up with a no-op strategy.
+
 # __2.28.18__ __2024-10-08__
 ## __AWS SDK for Java v2__
   - ### Features

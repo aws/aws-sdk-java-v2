@@ -187,6 +187,15 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
         return 0;
     }
 
+    /**
+     * Returns true if there are retry predicates configured for this retry strategy.
+     *
+     * @return true if there are retry predicates configured for this retry strategy.
+     */
+    public final boolean hasRetryPredicates() {
+        return !retryPredicates.isEmpty();
+    }
+
     private DefaultRetryToken refreshToken(RefreshRetryTokenRequest request, AcquireResponse acquireResponse) {
         DefaultRetryToken token = asDefaultRetryToken(request.token());
         return token.toBuilder()
