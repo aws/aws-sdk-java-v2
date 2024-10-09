@@ -48,6 +48,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_PO
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SYNC_HTTP_CLIENT;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.USER_AGENT_APP_ID;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.APP_ID;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.HTTP;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.INTERNAL_METADATA_MARKER;
@@ -151,7 +152,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private final SdkHttpClient.Builder defaultHttpClientBuilder;
     private final SdkAsyncHttpClient.Builder defaultAsyncHttpClientBuilder;
     private final List<SdkPlugin> plugins = new ArrayList<>();
-    private String appId;
 
 
     protected SdkDefaultClientBuilder() {
@@ -415,7 +415,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         SdkClientUserAgentProperties clientProperties = new SdkClientUserAgentProperties();
 
         ClientType clientType = config.get(CLIENT_TYPE);
-        ClientType resolvedClientType = clientType == null ? ClientType.UNKNOWN : config.get(CLIENT_TYPE);
+        ClientType resolvedClientType = clientType == null ? ClientType.UNKNOWN : clientType;
 
         clientProperties.putProperty(RETRY_MODE, StringUtils.lowerCase(resolveRetryMode(config.get(RETRY_POLICY),
                                                                                         config.get(RETRY_STRATEGY))));
@@ -424,7 +424,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         clientProperties.putProperty(HTTP, SdkHttpUtils.urlEncode(clientName(resolvedClientType,
                                                                              config.get(SYNC_HTTP_CLIENT),
                                                                              config.get(ASYNC_HTTP_CLIENT))));
-        clientProperties.putProperty(APP_ID, appId().orElseGet(() -> resolveAppId(config)));
+        String appId = config.get(USER_AGENT_APP_ID);
+        String resolvedAppId = appId == null ? resolveAppId(config) : appId;
+        clientProperties.putProperty(APP_ID, resolvedAppId);
         return SdkUserAgentBuilder.buildClientUserAgentString(SystemUserAgent.getOrCreate(), clientProperties);
     }
 
@@ -455,10 +457,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                        .defaultRetryMode(config.get(DEFAULT_RETRY_MODE))
                                        .resolve();
         return SdkDefaultRetryStrategy.forRetryMode(retryMode);
-    }
-
-    public Optional<String> appId() {
-        return Optional.ofNullable(appId);
     }
 
     /**
@@ -656,12 +654,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     @Override
     public final List<SdkPlugin> plugins() {
         return Collections.unmodifiableList(plugins);
-    }
-
-    @Override
-    public final B appId(String appId) {
-        this.appId = appId;
-        return thisBuilder();
     }
 
     /**
