@@ -30,9 +30,13 @@ public class StaticMarkerBinder {
     private static final String LOGGER_BINDER_NAME = "org.slf4j.impl.StaticMarkerBinder";
     private static final AtomicReference<MethodHandle> GET_SINGLETON = new AtomicReference<>();
     private static final AtomicReference<MethodHandle> GET_MARKER_FACTORY = new AtomicReference<>();
+    private static final StaticMarkerBinder INSTANCE = new StaticMarkerBinder();
     private static final Class<?> BINDER_CLASS;
     private static final Object IMPL;
     private static final State STATE;
+
+    private StaticMarkerBinder() {
+    }
 
     private enum State {
         INIT_FAILURE,
@@ -68,8 +72,6 @@ public class StaticMarkerBinder {
         IMPL = impl;
         STATE = state;
     }
-
-    private static final StaticMarkerBinder INSTANCE = new StaticMarkerBinder();
 
     // SLF4J API
     public static StaticMarkerBinder getSingleton() {
