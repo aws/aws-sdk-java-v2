@@ -126,6 +126,61 @@
       ],
       "documentation":"<p>List clusters</p>"
     },
+    "ListTagsForResource":{
+      "name":"ListTagsForResource",
+      "http":{
+        "method":"GET",
+        "requestUri":"/tags/{resourceArn}",
+        "responseCode":200
+      },
+      "input":{"shape":"ListTagsForResourceInput"},
+      "output":{"shape":"ListTagsForResourceOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>List all Tags on an ARN</p>"
+    },
+    "TagResource":{
+      "name":"TagResource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/tags/{resourceArn}",
+        "responseCode":200
+      },
+      "input":{"shape":"TagResourceInput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"InternalServerException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Add Tags to an ARN</p>",
+      "idempotent":true
+    },
+    "UntagResource":{
+      "name":"UntagResource",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/tags/{resourceArn}",
+        "responseCode":200
+      },
+      "input":{"shape":"UntagResourceInput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Remove Tags from an ARN</p>",
+      "idempotent":true
+    },
     "UpdateCluster":{
       "name":"UpdateCluster",
       "http":{
@@ -160,6 +215,13 @@
       },
       "exception":true
     },
+    "Arn":{
+      "type":"string",
+      "documentation":"<p>Amazon Resource Name</p>",
+      "max":1011,
+      "min":1,
+      "pattern":"arn:.+"
+    },
     "ClientToken":{
       "type":"string",
       "documentation":"<p>Idempotency Token</p>",
@@ -188,6 +250,12 @@
       "type":"list",
       "member":{"shape":"ClusterSummary"},
       "documentation":"<p>List of clusters</p>"
+    },
+    "ClusterPropertyMap":{
+      "type":"map",
+      "key":{"shape":"Region"},
+      "value":{"shape":"LinkedClusterProperties"},
+      "documentation":"<p>Properties for each linked cluster</p>"
     },
     "ClusterStatus":{
       "type":"string",
@@ -241,6 +309,7 @@
       "type":"structure",
       "members":{
         "deletionProtectionEnabled":{"shape":"DeletionProtectionEnabled"},
+        "tags":{"shape":"TagMap"},
         "clientToken":{
           "shape":"ClientToken",
           "idempotencyToken":true
@@ -273,6 +342,7 @@
       ],
       "members":{
         "linkedRegionList":{"shape":"RegionList"},
+        "clusterProperties":{"shape":"ClusterPropertyMap"},
         "witnessRegion":{"shape":"Region"},
         "clientToken":{
           "shape":"ClientToken",
@@ -400,6 +470,14 @@
       "fault":true,
       "retryable":{"throttling":false}
     },
+    "LinkedClusterProperties":{
+      "type":"structure",
+      "members":{
+        "deletionProtectionEnabled":{"shape":"DeletionProtectionEnabled"},
+        "tags":{"shape":"TagMap"}
+      },
+      "documentation":"<p>Linked Cluster Properties</p>"
+    },
     "ListClustersInput":{
       "type":"structure",
       "members":{
@@ -421,6 +499,23 @@
       "members":{
         "nextToken":{"shape":"NextToken"},
         "clusters":{"shape":"ClusterList"}
+      }
+    },
+    "ListTagsForResourceInput":{
+      "type":"structure",
+      "required":["resourceArn"],
+      "members":{
+        "resourceArn":{
+          "shape":"Arn",
+          "location":"uri",
+          "locationName":"resourceArn"
+        }
+      }
+    },
+    "ListTagsForResourceOutput":{
+      "type":"structure",
+      "members":{
+        "tags":{"shape":"TagMap"}
       }
     },
     "MaxResults":{
@@ -509,6 +604,50 @@
       "exception":true
     },
     "String":{"type":"string"},
+    "TagKey":{
+      "type":"string",
+      "documentation":"<p>Tag Key</p>",
+      "max":128,
+      "min":1,
+      "pattern":"[a-zA-Z0-9_.:/=+\\-@]*"
+    },
+    "TagKeyList":{
+      "type":"list",
+      "member":{"shape":"TagKey"},
+      "documentation":"<p>List of tag keys</p>",
+      "max":200,
+      "min":0
+    },
+    "TagMap":{
+      "type":"map",
+      "key":{"shape":"TagKey"},
+      "value":{"shape":"TagValue"},
+      "documentation":"<p>Map of tags</p>",
+      "max":200,
+      "min":0
+    },
+    "TagResourceInput":{
+      "type":"structure",
+      "required":[
+        "resourceArn",
+        "tags"
+      ],
+      "members":{
+        "resourceArn":{
+          "shape":"Arn",
+          "location":"uri",
+          "locationName":"resourceArn"
+        },
+        "tags":{"shape":"TagMap"}
+      }
+    },
+    "TagValue":{
+      "type":"string",
+      "documentation":"<p>Tag Value</p>",
+      "max":256,
+      "min":0,
+      "pattern":"[a-zA-Z0-9_.:/=+\\-@]*"
+    },
     "ThrottlingException":{
       "type":"structure",
       "required":["message"],
@@ -539,6 +678,25 @@
       },
       "exception":true,
       "retryable":{"throttling":true}
+    },
+    "UntagResourceInput":{
+      "type":"structure",
+      "required":[
+        "resourceArn",
+        "tagKeys"
+      ],
+      "members":{
+        "resourceArn":{
+          "shape":"Arn",
+          "location":"uri",
+          "locationName":"resourceArn"
+        },
+        "tagKeys":{
+          "shape":"TagKeyList",
+          "location":"querystring",
+          "locationName":"tagKeys"
+        }
+      }
     },
     "UpdateClusterInput":{
       "type":"structure",
