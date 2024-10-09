@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.checksums.factory;
 
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.Validate;
 
 /*
  * THIS FILE HAS BEEN MODIFIED FROM THE ORIGINAL VERSION.
@@ -554,6 +555,32 @@ public final class SdkCrc32 implements Checksum, Cloneable {
         0x2C8E0FFF, 0xE0240F61, 0x6EAB0882, 0xA201081C,
         0xA8C40105, 0x646E019B, 0xEAE10678, 0x264B06E6
     };
+
+    /**
+     * The matrices used by {@link #combine(long, long, long)}
+     */
+    private static final long[][] COMBINE_MATRICES;
+
+    static {
+        final int CRC_SIZE = 32;
+        COMBINE_MATRICES = new long[32][32];
+
+        // Initialize first matrix
+        COMBINE_MATRICES[0][0] = 0xEDB88320L; // CRC32 polynomial
+        long row = 1;
+        for (int i = 1; i < CRC_SIZE; i++) {
+            COMBINE_MATRICES[0][i] = row;
+            row <<= 1;
+        }
+
+        // Derive remaining matrices
+        for (int i = 0; i < CRC_SIZE - 1; i++) {
+            for (int j = 0; j < CRC_SIZE; j++) {
+                COMBINE_MATRICES[i + 1][j] = gf2MatrixTimes(COMBINE_MATRICES[i], COMBINE_MATRICES[i][j]);
+            }
+        }
+    }
+
     /**
      * the current CRC value, bit-flipped
      */
@@ -563,10 +590,8 @@ public final class SdkCrc32 implements Checksum, Cloneable {
         reset();
     }
 
-
-    private SdkCrc32(int crc) {
+    public SdkCrc32(int crc) {
         this.crc = crc;
-
     }
 
     public static SdkCrc32 create() {
@@ -575,12 +600,37 @@ public final class SdkCrc32 implements Checksum, Cloneable {
 
     @Override
     public long getValue() {
-        return (~crc) & 0xffffffffL;
+        int i = ~crc;
+        return i & 0xffffffffL;
     }
 
     @Override
     public void reset() {
         crc = 0xffffffff;
+    }
+
+    /**
+     * Derived from https://github.com/luvit/zlib/blob/8de57bce969eb9dafc1f1f5c256ac608d0a73ec4/crc32.c#L411
+     */
+    public static long combine(long crc1, long crc2, long originalLengthOfCrc32) {
+        Validate.isNotNegative(originalLengthOfCrc32, "Original length of the second CRC32 data must be positive.");
+
+        if (originalLengthOfCrc32 == 0) {
+            return crc1;
+        }
+
+        int matrixIndex = 2;
+        while (originalLengthOfCrc32 != 0) {
+            ++matrixIndex;
+            if ((originalLengthOfCrc32 & 1) != 0) {
+                crc1 = gf2MatrixTimes(COMBINE_MATRICES[matrixIndex], crc1);
+            }
+            originalLengthOfCrc32 >>= 1;
+        };
+
+        /* return combined crc */
+        crc1 ^= crc2;
+        return crc1;
     }
 
     @Override
@@ -618,5 +668,20 @@ public final class SdkCrc32 implements Checksum, Cloneable {
     @Override
     public Object clone() {
         return new SdkCrc32(crc);
+    }
+
+    private static long gf2MatrixTimes(long[] matrix, long vector) {
+        long sum = 0;
+        for (long l : matrix) {
+            if (vector == 0) {
+                break;
+            }
+
+            if ((vector & 1) != 0) {
+                sum ^= l;
+            }
+            vector >>= 1;
+        }
+        return sum;
     }
 }
