@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Database Migration Service",
-    "contributor": "",
-    "description": "Introduces DescribeDataMigrations, CreateDataMigration, ModifyDataMigration, DeleteDataMigration, StartDataMigration, StopDataMigration operations to SDK. Provides FailedDependencyFault error message."
-}
