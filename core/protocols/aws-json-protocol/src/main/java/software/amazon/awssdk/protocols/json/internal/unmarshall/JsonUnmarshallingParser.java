@@ -40,7 +40,6 @@ import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonParseException;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonParser;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonToken;
-import software.amazon.awssdk.thirdparty.jackson.core.json.JsonReadFeature;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.Buildable;
 
@@ -51,14 +50,6 @@ import software.amazon.awssdk.utils.builder.Buildable;
 @ThreadSafe
 @SuppressWarnings("unchecked")
 final class JsonUnmarshallingParser {
-    /**
-     * The default {@link JsonFactory} used for or if a factory is not configured via {@link Builder#jsonFactory(JsonFactory)}.
-     */
-    public static final JsonFactory DEFAULT_JSON_FACTORY =
-        JsonFactory.builder()
-                   .configure(JsonReadFeature.ALLOW_JAVA_COMMENTS, false)
-                   .build();
-
     private final JsonFactory jsonFactory;
     private final JsonValueNodeFactory jsonValueNodeFactory;
     private final JsonUnmarshallerRegistry unmarshallerRegistry;
@@ -93,7 +84,7 @@ final class JsonUnmarshallingParser {
                     return null;
                 }
                 if (token != JsonToken.START_OBJECT) {
-                    throw new JsonParseException("expecting start object");
+                    throw new JsonParseException("expecting start object, got instead: " + token);
                 }
                 return parseSdkPojo(c, pojo, parser);
             } catch (RuntimeException e) {
@@ -194,9 +185,6 @@ final class JsonUnmarshallingParser {
             JsonUnmarshaller<Object> unmarshaller = unmarshallerRegistry.getUnmarshaller(MarshallLocation.PAYLOAD,
                                                                                          valueMarshallingType);
             while (currentToken != JsonToken.END_OBJECT) {
-                if (currentToken != JsonToken.FIELD_NAME) {
-                    throw new JsonParseException("unexpected JSON token - " + currentToken);
-                }
                 String fieldName = parser.getText();
                 currentToken = parser.nextToken();
                 Object valueFor = unmarshaller.unmarshall(c, jsonValueNodeFactory.node(parser, currentToken),
@@ -299,7 +287,7 @@ final class JsonUnmarshallingParser {
                 } while (true);
                 return;
             default:
-                throw new JsonParseException("Unexpected JSON token - " + current);
+                throw new JsonParseException("unexpected JSON token - " + current);
         }
     }
 
@@ -342,8 +330,7 @@ final class JsonUnmarshallingParser {
             case START_OBJECT:
                 return parseDocumentMap(c, parser);
             default:
-                throw new RuntimeException("unknown token found: " + token);
-        }
+                throw new JsonParseException("unexpected JSON token - " + token);        }
     }
 
     /**
@@ -366,9 +353,6 @@ final class JsonUnmarshallingParser {
         Document.MapBuilder builder = Document.mapBuilder();
         JsonToken currentToken = parser.nextToken();
         while (currentToken != JsonToken.END_OBJECT) {
-            if (currentToken != JsonToken.FIELD_NAME) {
-                throw new JsonParseException("unexpected JSON token - " + currentToken);
-            }
             String key = parser.getText();
             Document value = parseDocumentValue(c, parser, null);
             builder.putDocument(key, value);
@@ -381,7 +365,7 @@ final class JsonUnmarshallingParser {
      * A builder for configuring and creating {@link JsonUnmarshallingParser}. Created via {@link #builder()}.
      */
     public static final class Builder {
-        private JsonFactory jsonFactory = DEFAULT_JSON_FACTORY;
+        private JsonFactory jsonFactory;
         private JsonValueNodeFactory jsonValueNodeFactory = JsonValueNodeFactory.DEFAULT;
         private JsonUnmarshallerRegistry unmarshallerRegistry;
 
@@ -394,8 +378,6 @@ final class JsonUnmarshallingParser {
          *
          * <p>It's highly recommended us use a shared {@code JsonFactory} where possible, so they should be stored statically:
          * http://wiki.fasterxml.com/JacksonBestPracticesPerformance
-         *
-         * <p>By default, this is {@link #DEFAULT_JSON_FACTORY}.
          */
         public Builder jsonFactory(JsonFactory jsonFactory) {
             this.jsonFactory = jsonFactory;
