@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.checksums;
 
 import static software.amazon.awssdk.core.internal.util.HttpChecksumUtils.longToByte;
 
+import java.util.Arrays;
 import java.util.zip.CRC32;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.checksums.factory.SdkCrc32;
@@ -37,7 +38,7 @@ public class Crc32Checksum2 implements SdkChecksum {
 
     @Override
     public byte[] getChecksumBytes() {
-        return longToByte(getValue());
+        return Arrays.copyOfRange(longToByte(getValue()), 4, 8);
     }
 
     @Override
