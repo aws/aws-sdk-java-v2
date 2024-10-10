@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Timestream InfluxDB",
+    "contributor": "",
+    "description": "This release updates our regex based validation rules in regards to valid DbInstance and DbParameterGroup name."
+}
