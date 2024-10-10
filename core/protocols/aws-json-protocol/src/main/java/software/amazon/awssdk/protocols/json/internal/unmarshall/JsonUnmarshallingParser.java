@@ -41,6 +41,7 @@ import software.amazon.awssdk.thirdparty.jackson.core.JsonParseException;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonParser;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonToken;
 import software.amazon.awssdk.thirdparty.jackson.core.json.JsonReadFeature;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.Buildable;
 
 /**
@@ -55,16 +56,14 @@ final class JsonUnmarshallingParser {
      */
     public static final JsonFactory DEFAULT_JSON_FACTORY =
         JsonFactory.builder()
-                   .configure(JsonReadFeature.ALLOW_JAVA_COMMENTS, true)
+                   .configure(JsonReadFeature.ALLOW_JAVA_COMMENTS, false)
                    .build();
 
-    private final boolean removeErrorLocations;
     private final JsonFactory jsonFactory;
     private final JsonValueNodeFactory jsonValueNodeFactory;
     private final JsonUnmarshallerRegistry unmarshallerRegistry;
 
     private JsonUnmarshallingParser(Builder builder) {
-        this.removeErrorLocations = builder.removeErrorLocations;
         this.jsonFactory = builder.jsonFactory;
         this.jsonValueNodeFactory = builder.jsonValueNodeFactory;
         this.unmarshallerRegistry = builder.unmarshallerRegistry;
@@ -98,18 +97,24 @@ final class JsonUnmarshallingParser {
                 }
                 return parseSdkPojo(c, pojo, parser);
             } catch (RuntimeException e) {
-                removeErrorLocationsIfRequired(e);
                 throw e;
             }
         });
     }
 
+    /**
+     * Parses an sdk pojo and fills its fields. The given SdkPojo instance is expected to be a {@link Buildable} instance. This
+     * method expects that the START_OBJECT token has been already consumed, so the next token should be either a field name or an
+     * END_OBJECT.
+     */
     private SdkPojo parseSdkPojo(JsonUnmarshallerContext c, SdkPojo pojo, JsonParser parser) throws IOException {
         Map<String, SdkField<?>> pojoFields = pojo.sdkFieldNameToField();
         JsonToken currentToken = parser.nextToken();
         while (currentToken != JsonToken.END_OBJECT) {
             String fieldName = parser.getText();
             SdkField<?> pojoField = pojoFields.get(fieldName);
+            // if the name of the field is unknown or the field is expected in a non-payload location (e.g., header), we ignore
+            // its value here.
             if (pojoField == null || !isPayloadUnmarshalling(pojoField.location())) {
                 skipValue(parser, null);
                 currentToken = parser.nextToken();
@@ -124,6 +129,15 @@ final class JsonUnmarshallingParser {
         return (SdkPojo) ((Buildable) pojo).build();
     }
 
+    /**
+     * Returns true if the given location is considered as in the payload for unmarshalling. Those include
+     * <ul>
+     *     <li>{@link MarshallLocation#PAYLOAD}</li>
+     *     <li>{@link MarshallLocation#PATH}</li>
+     *     <li>{@link MarshallLocation#QUERY_PARAM}</li>
+     *     <li>{@link MarshallLocation#GREEDY_PATH}</li>
+     * </ul>
+     */
     private boolean isPayloadUnmarshalling(MarshallLocation location) {
         switch (location) {
             case PAYLOAD:
@@ -136,13 +150,18 @@ final class JsonUnmarshallingParser {
         }
     }
 
+    /**
+     * Parses a list of the field member field info. This method expects that the BEGIN_ARRAY token has been already consumed.
+     */
     private List<Object> parseList(JsonUnmarshallerContext c, SdkField<?> field, JsonParser parser) throws IOException {
         SdkField<Object> memberInfo = (SdkField<Object>) field.getTrait(ListTrait.class).memberFieldInfo();
         MarshallingType<?> marshallingType = memberInfo.marshallingType();
         List<Object> result = new ArrayList<>();
         JsonToken currentToken = parser.nextToken();
 
-        if (!isAggregateType(marshallingType)) {
+        // For lists of scalar types we use directly the unmarshaller here to reduce the work done, instead of calling the
+        // valueFor method.
+        if (isScalarType(marshallingType)) {
             JsonUnmarshaller<Object> unmarshaller = unmarshallerRegistry.getUnmarshaller(MarshallLocation.PAYLOAD,
                                                                                          marshallingType);
             while (currentToken != JsonToken.END_ARRAY) {
@@ -159,16 +178,25 @@ final class JsonUnmarshallingParser {
         return result;
     }
 
+    /**
+     * Parses a map of the field member value field info. This method expects that the BEGIN_OBJECT token has been already
+     * consumed.
+     */
     private Map<String, Object> parseMap(JsonUnmarshallerContext c, SdkField<?> field, JsonParser parser) throws IOException {
-        JsonToken currentToken = parser.nextToken();
         Map<String, Object> result = new LinkedHashMap<>();
         SdkField<Object> valueInfo = field.getTrait(MapTrait.class, TraitType.MAP_TRAIT).valueFieldInfo();
-        MarshallingType<?> marshallingType = valueInfo.marshallingType();
+        MarshallingType<?> valueMarshallingType = valueInfo.marshallingType();
 
-        if (!isAggregateType(marshallingType)) {
+        // For maps of string to scalar types we use directly the unmarshaller here to reduce the work done, instead of
+        // calling the valueFor method.
+        JsonToken currentToken = parser.nextToken();
+        if (isScalarType(valueMarshallingType)) {
             JsonUnmarshaller<Object> unmarshaller = unmarshallerRegistry.getUnmarshaller(MarshallLocation.PAYLOAD,
-                                                                                         marshallingType);
+                                                                                         valueMarshallingType);
             while (currentToken != JsonToken.END_OBJECT) {
+                if (currentToken != JsonToken.FIELD_NAME) {
+                    throw new JsonParseException("unexpected JSON token - " + currentToken);
+                }
                 String fieldName = parser.getText();
                 currentToken = parser.nextToken();
                 Object valueFor = unmarshaller.unmarshall(c, jsonValueNodeFactory.node(parser, currentToken),
@@ -182,13 +210,17 @@ final class JsonUnmarshallingParser {
         while (currentToken != JsonToken.END_OBJECT) {
             String fieldName = parser.getText();
             currentToken = parser.nextToken();
-            Object valueFor = valueFor(valueInfo, c, marshallingType, parser, currentToken);
+            Object valueFor = valueFor(valueInfo, c, valueMarshallingType, parser, currentToken);
             result.put(fieldName, valueFor);
             currentToken = parser.nextToken();
         }
         return result;
     }
 
+    /**
+     * Parses and returns the value for the given field. This can be a scalar value (e.g., number, string, boolean), or a
+     * composite one (e.g., list, map, pojo). This method is expected to be called with a valid lookAhead token.
+     */
     @SuppressWarnings("unchecked")
     private Object valueFor(
         SdkField<?> field,
@@ -197,26 +229,32 @@ final class JsonUnmarshallingParser {
         JsonParser parser,
         JsonToken lookAhead
     ) throws IOException {
-        MarshallingKnownType knownType = type.getKnownType();
-        if (knownType == MarshallingKnownType.DOCUMENT) {
+        // Assert that the lookAhead is not null
+        Validate.paramNotNull(lookAhead, "lookAhead cannot be null");
+
+        MarshallingKnownType marshallingKnownType = type.getKnownType();
+        // We check first if we are unmarshalling a document, if so we
+        // delegate to a different method, this is needed since documents
+        // have their own class to represent null values: NullDocument.
+        if (marshallingKnownType == MarshallingKnownType.DOCUMENT) {
             return parseDocumentValue(context, parser, lookAhead);
         }
         if (lookAhead == JsonToken.VALUE_NULL) {
             return null;
         }
-        if (knownType == MarshallingKnownType.SDK_POJO) {
+        if (marshallingKnownType == MarshallingKnownType.SDK_POJO) {
             if (lookAhead != JsonToken.START_OBJECT) {
                 throw new JsonParseException("expecting start object, got instead: " + lookAhead);
             }
             return parseSdkPojo(context, field.constructor().get(), parser);
         }
-        if (knownType == MarshallingKnownType.LIST) {
+        if (marshallingKnownType == MarshallingKnownType.LIST) {
             if (lookAhead != JsonToken.START_ARRAY) {
                 throw new JsonParseException("expecting start array, got instead: " + lookAhead);
             }
             return parseList(context, field, parser);
         }
-        if (knownType == MarshallingKnownType.MAP) {
+        if (marshallingKnownType == MarshallingKnownType.MAP) {
             if (lookAhead != JsonToken.START_OBJECT) {
                 throw new JsonParseException("expecting start object, got instead: " + lookAhead);
             }
@@ -226,6 +264,10 @@ final class JsonUnmarshallingParser {
         return unmarshaller.unmarshall(context, jsonValueNodeFactory.node(parser, lookAhead), (SdkField<Object>) field);
     }
 
+    /**
+     * Consumes all the needed tokens that represent a single value, the value can be scalar or composite. If lookAhead is null a
+     * new token is consumed.
+     */
     private void skipValue(JsonParser parser, JsonToken lookAhead) throws IOException {
         JsonToken current = lookAhead != null ? lookAhead : parser.nextToken();
         switch (current) {
@@ -257,35 +299,30 @@ final class JsonUnmarshallingParser {
                 } while (true);
                 return;
             default:
-                throw new IllegalArgumentException("Unexpected JSON token - " + current);
+                throw new JsonParseException("Unexpected JSON token - " + current);
         }
     }
 
-    private boolean isAggregateType(MarshallingType<?> marshallingType) {
+    /**
+     * Returns true if the marshallingType is composite, i.e., non-scalar.
+     */
+    private boolean isCompositeType(MarshallingType<?> marshallingType) {
         return marshallingType == MarshallingType.LIST
                || marshallingType == MarshallingType.MAP
                || marshallingType == MarshallingType.SDK_POJO
                || marshallingType == MarshallingType.DOCUMENT;
     }
 
-    private void removeErrorLocationsIfRequired(Throwable exception) {
-        if (removeErrorLocations) {
-            removeErrorLocations(exception);
-        }
+    /**
+     * Returns true if the marshallingType is scalar, i.e., non-composite.
+     */
+    private boolean isScalarType(MarshallingType<?> marshallingType) {
+        return !isCompositeType(marshallingType);
     }
 
-    private void removeErrorLocations(Throwable exception) {
-        if (exception == null) {
-            return;
-        }
-
-        if (exception instanceof JsonParseException) {
-            ((JsonParseException) exception).clearLocation();
-        }
-
-        removeErrorLocations(exception.getCause());
-    }
-
+    /**
+     * Parses a {@link Document} value, either composite or scalar.
+     */
     private Document parseDocumentValue(JsonUnmarshallerContext c, JsonParser parser, JsonToken lookAhead) throws IOException {
         JsonToken token = lookAhead != null ? lookAhead : parser.nextToken();
         switch (token) {
@@ -301,37 +338,43 @@ final class JsonUnmarshallingParser {
             case VALUE_NULL:
                 return Document.fromNull();
             case START_ARRAY:
-                return parseDocumentArray(c, parser);
+                return parseDocumentList(c, parser);
             case START_OBJECT:
-                return parseDocumentObject(c, parser);
+                return parseDocumentMap(c, parser);
             default:
                 throw new RuntimeException("unknown token found: " + token);
         }
     }
 
-    private Document parseDocumentArray(JsonUnmarshallerContext c, JsonParser parser) throws IOException {
-        List<Document> result = new ArrayList<>();
-        JsonToken token = parser.nextToken();
-        while (token != JsonToken.END_ARRAY) {
-            result.add(parseDocumentValue(c, parser, token));
-            token = parser.nextToken();
+    /**
+     * Parses a document list. This method expects that the BEING_ARRAY token has been already consumed.
+     */
+    private Document parseDocumentList(JsonUnmarshallerContext c, JsonParser parser) throws IOException {
+        Document.ListBuilder builder = Document.listBuilder();
+        JsonToken currentToken = parser.nextToken();
+        while (currentToken != JsonToken.END_ARRAY) {
+            builder.addDocument(parseDocumentValue(c, parser, currentToken));
+            currentToken = parser.nextToken();
         }
-        return Document.fromList(result);
+        return builder.build();
     }
 
-    private Document parseDocumentObject(JsonUnmarshallerContext c, JsonParser parser) throws IOException {
-        Map<String, Document> result = new LinkedHashMap<>();
-        JsonToken token = parser.nextToken();
-        while (token != JsonToken.END_OBJECT) {
-            if (token != JsonToken.FIELD_NAME) {
-                throw new IllegalArgumentException("Unexpected JSON token - " + token);
+    /**
+     * Parses a document map. This method expects that the BEING_OBJECT token has been already consumed.
+     */
+    private Document parseDocumentMap(JsonUnmarshallerContext c, JsonParser parser) throws IOException {
+        Document.MapBuilder builder = Document.mapBuilder();
+        JsonToken currentToken = parser.nextToken();
+        while (currentToken != JsonToken.END_OBJECT) {
+            if (currentToken != JsonToken.FIELD_NAME) {
+                throw new JsonParseException("unexpected JSON token - " + currentToken);
             }
             String key = parser.getText();
             Document value = parseDocumentValue(c, parser, null);
-            result.put(key, value);
-            token = parser.nextToken();
+            builder.putDocument(key, value);
+            currentToken = parser.nextToken();
         }
-        return Document.fromMap(result);
+        return builder.build();
     }
 
     /**
@@ -340,21 +383,9 @@ final class JsonUnmarshallingParser {
     public static final class Builder {
         private JsonFactory jsonFactory = DEFAULT_JSON_FACTORY;
         private JsonValueNodeFactory jsonValueNodeFactory = JsonValueNodeFactory.DEFAULT;
-        private boolean removeErrorLocations = false;
         private JsonUnmarshallerRegistry unmarshallerRegistry;
 
         private Builder() {
-        }
-
-        /**
-         * Whether error locations should be removed if parsing fails. This prevents the content of the JSON from appearing in
-         * error messages. This is useful when the content of the JSON may be sensitive and not want to be logged.
-         *
-         * <p>By default, this is false.
-         */
-        public Builder removeErrorLocations(boolean removeErrorLocations) {
-            this.removeErrorLocations = removeErrorLocations;
-            return this;
         }
 
         /**
