@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonParseException;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -50,6 +51,18 @@ class JsonUnmarshallingParserTest {
     }
 
     @Test
+    public void parseOnJsonUnexpectedNonObjectStartThrows() {
+        // The input is a SdkPojo, it has to start with {, for any other
+        // valid JSON value the parser should throw.
+        JsonUnmarshallingParser parser = parser();
+        UncheckedIOException e = assertThrows(UncheckedIOException.class, () -> {
+            parser.parse(TestRequest.builder(), from("123.456"));
+        });
+        assertNotNull(e.getCause());
+        assertInstanceOf(JsonParseException.class, e.getCause());
+    }
+
+    @Test
     public void parseOnEmptyInputReturnsAValidPojo() {
         JsonUnmarshallingParser parser = parser();
         TestRequest req = (TestRequest) parser.parse(TestRequest.builder(), from(""));
@@ -62,6 +75,7 @@ class JsonUnmarshallingParserTest {
         TestRequest req = (TestRequest) parser.parse(TestRequest.builder(), from("null"));
         assertNull(req);
     }
+
 
     static JsonUnmarshallingParser parser() {
         ProtocolUnmarshallDependencies dependencies = JsonProtocolUnmarshaller.defaultProtocolUnmarshallDependencies();
