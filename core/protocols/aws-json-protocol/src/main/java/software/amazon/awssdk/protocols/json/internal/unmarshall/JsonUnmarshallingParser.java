@@ -87,8 +87,6 @@ final class JsonUnmarshallingParser {
                     throw new JsonParseException("expecting start object, got instead: " + token);
                 }
                 return parseSdkPojo(c, pojo, parser);
-            } catch (RuntimeException e) {
-                throw e;
             }
         });
     }

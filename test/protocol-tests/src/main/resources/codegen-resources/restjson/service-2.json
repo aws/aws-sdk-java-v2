@@ -188,6 +188,15 @@
       },
       "output":{"shape":"StatusCodeInOutputStructure"}
     },
+    "MixedLocationOperation":{
+      "name":"MixedLocationOperation",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2016-03-11/mixedLocationOperation"
+      },
+      "output":{"shape":"MixedLocationOperationOutput"},
+      "input":{"shape":"MixedLocationOperationInput"}
+    },
     "StreamingInputOperation":{
       "name":"StreamingInputOperation",
       "http":{
@@ -779,6 +788,37 @@
         "StatusCodeMember":{
           "shape":"Integer",
           "location":"statusCode"
+        }
+      }
+    },
+    "MixedLocationOperationInput":{
+      "type":"structure",
+      "members":{
+        "StringMember":{
+          "shape":"String"
+        },
+        "IntegerMember":{
+          "shape":"Integer"
+        }
+      }
+    },
+    "MixedLocationOperationOutput":{
+      "type":"structure",
+      "members":{
+        "StringMember":{
+          "shape":"String"
+        },
+        "IntegerMember":{
+          "shape":"Integer"
+        },
+        "StatusCodeMember":{
+          "shape":"Integer",
+          "location":"statusCode"
+        },
+        "StringHeaderMember":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"x-amz-string"
         }
       }
     },

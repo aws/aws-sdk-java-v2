@@ -20,15 +20,26 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonParseException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JsonUnmarshallingParserTest {
+
+    @Test
+    public void parsingPojoFieldThrowsOnNumberFoundInstead() {
+        JsonUnmarshallingParser parser = parser();
+        UncheckedIOException e = assertThrows(UncheckedIOException.class, () -> {
+            parser.parse(TestRequest.builder(), from("{\"complexStructMember\": 123}"));
+        });
+        assertNotNull(e.getCause());
+        assertInstanceOf(JsonParseException.class, e.getCause());
+    }
 
     @Test
     public void parsingAMapFieldThrowsOnNumberFoundInstead() {
@@ -76,6 +87,16 @@ class JsonUnmarshallingParserTest {
         assertNull(req);
     }
 
+    @Test
+    public void parsingDocumentFieldWithBooleanValue() {
+        JsonUnmarshallingParser parser = parser();
+        TestRequest req = (TestRequest) parser.parse(TestRequest.builder(), from("{\"documentMember\": true}"));
+        assertNotNull(req);
+        Document doc = req.documentField();
+        assertNotNull(doc);
+        assertTrue(doc.isBoolean());
+        assertTrue(doc.asBoolean());
+    }
 
     static JsonUnmarshallingParser parser() {
         ProtocolUnmarshallDependencies dependencies = JsonProtocolUnmarshaller.defaultProtocolUnmarshallDependencies();

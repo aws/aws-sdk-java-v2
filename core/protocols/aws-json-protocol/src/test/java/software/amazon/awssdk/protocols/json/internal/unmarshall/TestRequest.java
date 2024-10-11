@@ -31,6 +31,7 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.ListTrait;
@@ -119,10 +120,15 @@ public class TestRequest implements SdkPojo,
         .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("complexStructMember").build())
         .build();
 
+    private static final SdkField<Document> DOCUMENT_MEMBER_FIELD = SdkField
+        .<Document>builder(MarshallingType.DOCUMENT)
+        .memberName("documentMember").getter(getter(TestRequest::documentField)).setter(setter(Builder::documentField))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("documentMember").build()).build();
+
     private static List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(BOOLEAN_MEMBER_FIELD,
             STRING_MEMBER_FIELD, INTEGER_MEMBER_FIELD, LONG_MEMBER_FIELD, FLOAT_MEMBER_FIELD, DOUBLE_MEMBER_FIELD,
             TIMESTAMP_MEMBER_FIELD, BLOB_MEMBER_FIELD, LIST_OF_STRINGS_MEMBER_FIELD, MAP_OF_STRING_TO_STRING_MEMBER_FIELD,
-            COMPLEX_STRUCT_MEMBER_FIELD));
+            COMPLEX_STRUCT_MEMBER_FIELD, DOCUMENT_MEMBER_FIELD));
 
     private static Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections
             .unmodifiableMap(new HashMap<String, SdkField<?>>() {
@@ -138,30 +144,32 @@ public class TestRequest implements SdkPojo,
                     put("listOfStringsMember", LIST_OF_STRINGS_MEMBER_FIELD);
                     put("mapOfStringToStringMember", MAP_OF_STRING_TO_STRING_MEMBER_FIELD);
                     put("complexStructMember", COMPLEX_STRUCT_MEMBER_FIELD);
+                    put("documentMember", DOCUMENT_MEMBER_FIELD);
                 }
             });
 
-    private Boolean booleanMember;
+    private final Boolean booleanMember;
 
-    private String stringMember;
+    private final String stringMember;
 
-    private Integer integerMember;
+    private final Integer integerMember;
 
-    private Long longMember;
+    private final Long longMember;
 
-    private Float floatMember;
+    private final Float floatMember;
 
-    private Double doubleMember;
+    private final Double doubleMember;
 
-    private Instant timestampMember;
+    private final Instant timestampMember;
 
-    private SdkBytes blobMember;
+    private final SdkBytes blobMember;
 
-    private List<String> listOfStringsMember;
+    private final List<String> listOfStringsMember;
 
-    private Map<String, String> mapOfStringToStringMember;
+    private final Map<String, String> mapOfStringToStringMember;
 
-    private ComplexStructure complexStructMember;
+    private final ComplexStructure complexStructMember;
+    private final Document documentField;
 
     private TestRequest(BuilderImpl builder) {
         this.booleanMember = builder.booleanMember;
@@ -175,6 +183,7 @@ public class TestRequest implements SdkPojo,
         this.listOfStringsMember = builder.listOfStringsMember;
         this.mapOfStringToStringMember = builder.mapOfStringToStringMember;
         this.complexStructMember = builder.complexStructMember;
+        this.documentField = builder.documentField;
     }
 
     /**
@@ -312,6 +321,15 @@ public class TestRequest implements SdkPojo,
      */
     public ComplexStructure complexStructMember() {
         return complexStructMember;
+    }
+
+    /**
+     * Returns the value of the MyDocument property for this object.
+     *
+     * @return The value of the MyDocument property for this object.
+     */
+    public final Document documentField() {
+        return documentField;
     }
 
     @Override
@@ -543,6 +561,15 @@ public class TestRequest implements SdkPojo,
         Builder complexStructMember(ComplexStructure complexStructMember);
 
         /**
+         * Sets the value of the MyDocument property for this object.
+         *
+         * @param documentField
+         *        The new value for the MyDocument property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder documentField(Document documentField);
+
+        /**
          * Sets the value of the ComplexStructMember property for this object.
          *
          * This is a convenience method that creates an instance of the {@link ComplexStructure.Builder} avoiding the
@@ -584,6 +611,7 @@ public class TestRequest implements SdkPojo,
         private Map<String, String> mapOfStringToStringMember = DefaultSdkAutoConstructMap.getInstance();
 
         private ComplexStructure complexStructMember;
+        private Document documentField;
 
         private BuilderImpl() {
         }
@@ -600,6 +628,7 @@ public class TestRequest implements SdkPojo,
             listOfStringsMember(model.listOfStringsMember);
             mapOfStringToStringMember(model.mapOfStringToStringMember);
             complexStructMember(model.complexStructMember);
+            documentField(model.documentField);
         }
 
         public Boolean getBooleanMember() {
@@ -766,6 +795,12 @@ public class TestRequest implements SdkPojo,
         @Override
         public Builder complexStructMember(ComplexStructure complexStructMember) {
             this.complexStructMember = complexStructMember;
+            return this;
+        }
+
+        @Override
+        public Builder documentField(Document documentField) {
+            this.documentField = documentField;
             return this;
         }
 
