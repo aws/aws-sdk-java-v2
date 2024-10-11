@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.20__ __2024-10-10__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Documentation updates for AWS Private CA.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Introduces DescribeDataMigrations, CreateDataMigration, ModifyDataMigration, DeleteDataMigration, StartDataMigration, StopDataMigration operations to SDK. Provides FailedDependencyFault error message.
+
+## __AWS End User Messaging Social__
+  - ### Features
+    - This release for AWS End User Messaging includes a public SDK, providing a suite of APIs that enable sending WhatsApp messages to end users.
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - Refine campaign related API validations
+
+## __AWS Outposts__
+  - ### Features
+    - Adding new "DELIVERED" enum value for Outposts Order status
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation only release that updates to documentation to let customers know that Amazon Elastic Inference is no longer available.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for assigning the billing of shared Amazon EC2 On-Demand Capacity Reservations.
+
+## __Amazon Elastic Inference__
+  - ### Features
+    - Elastic Inference - Documentation update to add service shutdown notice.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Support for 16 m-NCU graphs available through account allowlisting
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Route 53 Resolver Forwarding Rules can now include a server name indication (SNI) in the target address for rules that use the DNS-over-HTTPS (DoH) protocol. When a DoH-enabled Outbound Resolver Endpoint forwards a request to a DoH server, it will provide the SNI in the TLS handshake.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - This release updates our regex based validation rules in regards to valid DbInstance and DbParameterGroup name.
+
 # __2.28.19__ __2024-10-09__
 ## __AWS CodePipeline__
   - ### Features
