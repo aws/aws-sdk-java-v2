@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.21__ __2024-10-11__
+## __AWS RoboMaker__
+  - ### Features
+    - Documentation update: added support notices to each API action.
+
+## __Amazon Appflow__
+  - ### Features
+    - Doc only updates for clarification around OAuth2GrantType for Salesforce.
+
+## __Amazon EMR__
+  - ### Features
+    - This release provides new parameter "Context" in instance fleet clusters.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added a new field for network connection details.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Add zonal_shift.config.enabled attribute. Add new AdministrativeOverride construct in the describe-target-health API response to include information about the override status applied to a target.
+
 # __2.28.20__ __2024-10-10__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features
