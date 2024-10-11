@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EMR",
+    "contributor": "",
+    "description": "This release provides new parameter \"Context\" in instance fleet clusters."
+}
