@@ -53,11 +53,6 @@ public final class UrlConnectionHttpClientWireMockTest extends SdkHttpClientTest
         return builder.buildWithDefaults(attributeMap.build());
     }
 
-    @Override
-    public void connectionsAreNotReusedOn5xxErrors() {
-        // We cannot support this because the URL connection client doesn't allow us to disable connection reuse
-    }
-
     // https://bugs.openjdk.org/browse/JDK-8163921
     @Test
     public void noAcceptHeader_shouldSet() throws IOException {
