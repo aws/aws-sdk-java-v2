@@ -31,7 +31,10 @@ import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
+import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
+import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -152,6 +155,18 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<SelectedAuthScheme<?>> SELECTED_AUTH_SCHEME =
         new ExecutionAttribute<>("SelectedAuthScheme");
+
+    /**
+     * The selected identity provider for a request.
+     */
+    public static final ExecutionAttribute<IdentityProvider<? extends Identity>> SELECTED_IDENTITY_PROVIDER =
+        new ExecutionAttribute<>("SelectedIdentityProvider");
+
+    /**
+     * The resolve identity request used by the identity provider.
+     */
+    public static final ExecutionAttribute<ResolveIdentityRequest> RESOLVE_IDENTITY_REQUEST =
+        new ExecutionAttribute<>("ResolveIdentityRequest");
 
     /**
      * The supported compression algorithms for an operation, and whether the operation is streaming or not.
