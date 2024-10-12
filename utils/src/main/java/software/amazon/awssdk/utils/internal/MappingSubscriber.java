@@ -69,7 +69,7 @@ public class MappingSubscriber<T, U> implements Subscriber<T> {
         if (!isCancelled) {
             try {
                 delegateSubscriber.onNext(mapFunction.apply(t));
-            } catch (RuntimeException e) {
+            } catch (Throwable e) {
                 // If the map function throws an exception, the subscription should be cancelled as the publisher will
                 // otherwise not be aware it has happened and should have the opportunity to clean up resources.
                 cancelSubscriptions();
