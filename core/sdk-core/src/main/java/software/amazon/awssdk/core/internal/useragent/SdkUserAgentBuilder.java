@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.useragent;
 
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.APP_ID;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.CONFIG_METADATA;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.ENV_METADATA;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.HTTP;
@@ -34,6 +35,7 @@ import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.u
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.util.SystemUserAgent;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -42,6 +44,8 @@ import software.amazon.awssdk.utils.StringUtils;
 @ThreadSafe
 @SdkProtectedApi
 public final class SdkUserAgentBuilder {
+
+    private static final Logger log = Logger.loggerFor(SdkUserAgentBuilder.class);
 
     private SdkUserAgentBuilder() {
     }
@@ -75,6 +79,12 @@ public final class SdkUserAgentBuilder {
         String retryMode = userAgentProperties.getProperty(RETRY_MODE);
         if (!StringUtils.isEmpty(retryMode)) {
             appendFieldAndSpace(uaString, CONFIG_METADATA, uaPair(RETRY_MODE, retryMode));
+        }
+
+        String appId = userAgentProperties.getProperty(APP_ID);
+        if (!StringUtils.isEmpty(appId)) {
+            checkLengthAndWarn(appId);
+            appendFieldAndSpace(uaString, APP_ID, appId);
         }
 
         removeFinalWhitespace(uaString);
@@ -122,6 +132,14 @@ public final class SdkUserAgentBuilder {
         systemProperties.languageTagMetadata().ifPresent(value -> appendFieldAndSpace(builder, METADATA, value));
         for (String lang : systemProperties.additionalJvmLanguages()) {
             appendNonEmptyField(builder, METADATA, lang);
+        }
+    }
+
+    private static void checkLengthAndWarn(String appId) {
+        if (appId.length() > 50) {
+            log.warn(() -> String.format("The configured appId '%s' is longer than the recommended maximum length of 50. "
+                                         + "This could result in not being able to transmit and log the whole user agent string, "
+                                         + "including the complete value of this string.", appId));
         }
     }
 }

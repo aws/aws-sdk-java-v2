@@ -95,4 +95,5 @@ public interface SdkClientBuilder<B extends SdkClientBuilder<B, C>, C> extends S
     default List<SdkPlugin> plugins() {
         throw new UnsupportedOperationException();
     }
+
 }
