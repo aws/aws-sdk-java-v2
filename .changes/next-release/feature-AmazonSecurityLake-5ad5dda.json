@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Security Lake",
+    "contributor": "",
+    "description": "This release updates request validation regex for resource ARNs."
+}
