@@ -1,4 +1,30 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.22__ __2024-10-14__
+## __AWS CodePipeline__
+  - ### Features
+    - AWS CodePipeline V2 type pipelines now support automatically retrying failed stages and skipping stage for failed entry conditions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds an option to set 'appId' metadata to the client builder or to system settings and config files. This metadata string value will be added to the user agent string as `app/somevalue`
+    - Updated endpoint and partition metadata.
+
+## __AWS Supply Chain__
+  - ### Features
+    - This release adds AWS Supply Chain instance management functionality. Specifically adding CreateInstance, DeleteInstance, GetInstance, ListInstances, and UpdateInstance APIs.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release enables customers using SFTP connectors to query the transfer status of their files to meet their monitoring needs as well as orchestrate post transfer actions.
+
+## __Amazon Security Lake__
+  - ### Features
+    - This release updates request validation regex for resource ARNs.
+
+## __MailManager__
+  - ### Features
+    - Mail Manager support for viewing and exporting metadata of archived messages.
+
 # __2.28.21__ __2024-10-11__
 ## __AWS RoboMaker__
   - ### Features
