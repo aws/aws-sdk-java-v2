@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Supply Chain",
-    "contributor": "",
-    "description": "This release adds AWS Supply Chain instance management functionality. Specifically adding CreateInstance, DeleteInstance, GetInstance, ListInstances, and UpdateInstance APIs."
-}
