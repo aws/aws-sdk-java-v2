@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans;
 
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
@@ -24,11 +25,17 @@ public class FlattenedBeanImmutable {
     private final String id;
     private final String attribute1;
     private final AbstractBean abstractBean;
+    private final AbstractBean explicitPrefixBean;
+    private final AbstractBean autoPrefixBean;
+    private final AbstractBean customPrefixBean;
 
     private FlattenedBeanImmutable(Builder b) {
         this.id = b.id;
         this.attribute1 = b.attribute1;
         this.abstractBean = b.abstractBean;
+        this.explicitPrefixBean = b.explicitPrefixBean;
+        this.autoPrefixBean = b.autoPrefixBean;
+        this.customPrefixBean = b.customPrefixBean;
     }
 
     @DynamoDbPartitionKey
@@ -45,10 +52,29 @@ public class FlattenedBeanImmutable {
         return abstractBean;
     }
 
+    @DynamoDbFlatten(prefix = "prefix-")
+    public AbstractBean getExplicitPrefixBean() {
+        return explicitPrefixBean;
+    }
+
+    @DynamoDbFlatten(prefix = DynamoDbFlatten.AUTO_PREFIX)
+    public AbstractBean getAutoPrefixBean() {
+        return autoPrefixBean;
+    }
+
+    @DynamoDbAttribute("custom")
+    @DynamoDbFlatten(prefix = DynamoDbFlatten.AUTO_PREFIX)
+    public AbstractBean getCustomPrefixBean() {
+        return customPrefixBean;
+    }
+
     public static final class Builder {
         private String id;
         private String attribute1;
         private AbstractBean abstractBean;
+        private AbstractBean explicitPrefixBean;
+        private AbstractBean autoPrefixBean;
+        private AbstractBean customPrefixBean;
 
         public Builder setId(String id) {
             this.id = id;
@@ -62,6 +88,21 @@ public class FlattenedBeanImmutable {
 
         public Builder setAbstractBean(AbstractBean abstractBean) {
             this.abstractBean = abstractBean;
+            return this;
+        }
+
+        public Builder setExplicitPrefixBean(AbstractBean explicitPrefixBean) {
+            this.explicitPrefixBean = explicitPrefixBean;
+            return this;
+        }
+
+        public Builder setAutoPrefixBean(AbstractBean autoPrefixBean) {
+            this.autoPrefixBean = autoPrefixBean;
+            return this;
+        }
+
+        public Builder setCustomPrefixBean(AbstractBean customPrefixBean) {
+            this.customPrefixBean = customPrefixBean;
             return this;
         }
 
