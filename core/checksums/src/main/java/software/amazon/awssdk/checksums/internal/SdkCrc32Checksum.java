@@ -554,6 +554,11 @@ public final class SdkCrc32Checksum implements Checksum, Cloneable {
         0x2C8E0FFF, 0xE0240F61, 0x6EAB0882, 0xA201081C,
         0xA8C40105, 0x646E019B, 0xEAE10678, 0x264B06E6
     };
+
+    private static final long POLYNOMIAL = 0xEDB88320L;
+
+    private static final long[][] COMBINE_MATRICES = CrcCombineChecksumUtil.generateCombineMatrices(POLYNOMIAL);
+
     /**
      * the current CRC value, bit-flipped
      */
@@ -571,6 +576,18 @@ public final class SdkCrc32Checksum implements Checksum, Cloneable {
 
     public static SdkCrc32Checksum create() {
         return new SdkCrc32Checksum();
+    }
+
+    /**
+     * Combines two CRC32 values into a single CRC using the specified combine matrices.
+     * Please refer {@link CrcCombineChecksumUtil#combine(long, long, long, long[][])}
+     *
+     * @param crcPair               A pair of CRC values to combine.
+     * @param originalLengthOfCrc32 The length of the original data.
+     * @return The combined CRC value.
+     */
+    public static long combine(Long crcPairOne, Long crcPair,  long originalLengthOfCrc32) {
+        return CrcCombineChecksumUtil.combine(crcPairOne, crcPair, originalLengthOfCrc32, COMBINE_MATRICES);
     }
 
     @Override

@@ -15,64 +15,50 @@
 
 package software.amazon.awssdk.checksums.internal;
 
-import static software.amazon.awssdk.utils.NumericUtils.longToByte;
 
-import java.util.Arrays;
-import java.util.zip.Checksum;
+import java.util.zip.CRC32;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.SdkChecksum;
-import software.amazon.awssdk.crt.checksums.CRC32;
-import software.amazon.awssdk.utils.ClassLoaderHelper;
 
-/**
- * Implementation of {@link SdkChecksum} to calculate an CRC32 checksum.
- */
 @SdkInternalApi
-public class Crc32Checksum extends BaseCrcChecksum {
-    private static final String CRT_CLASSPATH_FOR_CRC32 = "software.amazon.awssdk.crt.checksums.CRC32";
-    private static final ThreadLocal<Boolean> IS_CRT_AVAILABLE = ThreadLocal.withInitial(Crc32Checksum::isCrtAvailable);
+public final class Crc32Checksum implements SdkChecksum {
+    private final CrcCombineOnMarkChecksum crc32;
 
-    /**
-     * Creates CRT Based Crc32 checksum if Crt classpath for Crc32 is loaded, else create Sdk Implemented Crc32.
-     */
     public Crc32Checksum() {
-        super(createChecksum());
-    }
-
-    private static Checksum createChecksum() {
-        if (IS_CRT_AVAILABLE.get()) {
-            return new CRC32();
-        }
-
-        // TODO: use Java implementation
-        return SdkCrc32Checksum.create();
-    }
-
-    private static boolean isCrtAvailable() {
-        try {
-            ClassLoaderHelper.loadClass(CRT_CLASSPATH_FOR_CRC32, false);
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-
-        return true;
+        // Delegates to CrcCombineOnMarkChecksum with CRC32
+        this.crc32 = new CrcCombineOnMarkChecksum(
+            new CRC32(),
+            SdkCrc32Checksum::combine
+        );
     }
 
     @Override
     public byte[] getChecksumBytes() {
-        return Arrays.copyOfRange(longToByte(getChecksum().getValue()), 4, 8);
+        return crc32.getChecksumBytes();
     }
 
     @Override
-    public Checksum cloneChecksum(Checksum checksum) {
-        if (checksum instanceof CRC32) {
-            return (Checksum) ((CRC32) checksum).clone();
-        }
+    public void mark(int readLimit) {
+        crc32.mark(readLimit);
+    }
 
-        if (checksum instanceof SdkCrc32Checksum) {
-            return (Checksum) ((SdkCrc32Checksum) checksum).clone();
-        }
+    @Override
+    public void update(int b) {
+        crc32.update(b);
+    }
 
-        throw new IllegalStateException("Unsupported checksum");
+    @Override
+    public void update(byte[] b, int off, int len) {
+        crc32.update(b, off, len);
+    }
+
+    @Override
+    public long getValue() {
+        return crc32.getValue();
+    }
+
+    @Override
+    public void reset() {
+        crc32.reset();
     }
 }

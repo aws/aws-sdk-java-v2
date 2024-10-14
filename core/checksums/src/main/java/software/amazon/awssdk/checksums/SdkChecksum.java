@@ -18,8 +18,8 @@ package software.amazon.awssdk.checksums;
 import java.nio.ByteBuffer;
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.checksums.internal.Crc32CChecksum;
 import software.amazon.awssdk.checksums.internal.Crc32Checksum;
+import software.amazon.awssdk.checksums.internal.Crc32cProvider;
 import software.amazon.awssdk.checksums.internal.Crc64NvmeChecksum;
 import software.amazon.awssdk.checksums.internal.Md5Checksum;
 import software.amazon.awssdk.checksums.internal.Sha1Checksum;
@@ -39,7 +39,7 @@ public interface SdkChecksum extends Checksum {
     static SdkChecksum forAlgorithm(ChecksumAlgorithm algorithm) {
         switch (algorithm.algorithmId()) {
             case "CRC32C":
-                return new Crc32CChecksum();
+                return Crc32cProvider.create();
             case "CRC32":
                 return new Crc32Checksum();
             case "SHA1":

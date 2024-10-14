@@ -13,17 +13,19 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.checksums;
+package software.amazon.awssdk.checksums.internal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 
 public class DefaultChecksumAlgorithmTest {
 
     @Test
     public void hasCRC32C() {
-        assertEquals("CRC32C", DefaultChecksumAlgorithm.CRC32C.algorithmId());
+        Assertions.assertEquals("CRC32C", DefaultChecksumAlgorithm.CRC32C.algorithmId());
     }
 
     @Test
