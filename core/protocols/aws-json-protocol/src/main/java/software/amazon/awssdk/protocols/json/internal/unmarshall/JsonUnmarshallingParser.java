@@ -19,12 +19,14 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.document.Document;
@@ -33,6 +35,7 @@ import software.amazon.awssdk.core.protocol.MarshallingKnownType;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
+import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
@@ -40,7 +43,7 @@ import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonParseException;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonParser;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonToken;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.builder.Buildable;
 
 /**
@@ -53,11 +56,13 @@ final class JsonUnmarshallingParser {
     private final JsonFactory jsonFactory;
     private final JsonValueNodeFactory jsonValueNodeFactory;
     private final JsonUnmarshallerRegistry unmarshallerRegistry;
+    private final TimestampFormatTrait.Format defaultFormat;
 
     private JsonUnmarshallingParser(Builder builder) {
         this.jsonFactory = builder.jsonFactory;
         this.jsonValueNodeFactory = builder.jsonValueNodeFactory;
         this.unmarshallerRegistry = builder.unmarshallerRegistry;
+        this.defaultFormat = builder.defaultFormat;
     }
 
     /**
@@ -150,15 +155,16 @@ final class JsonUnmarshallingParser {
 
         // For lists of scalar types we use directly the unmarshaller here to reduce the work done, instead of calling the
         // valueFor method.
+
         if (isScalarType(marshallingType)) {
-            JsonUnmarshaller<Object> unmarshaller = unmarshallerRegistry.getUnmarshaller(MarshallLocation.PAYLOAD,
-                                                                                         marshallingType);
+            MarshallingKnownType marshallingKnownType = marshallingType.getKnownType();
             while (currentToken != JsonToken.END_ARRAY) {
-                result.add(unmarshaller.unmarshall(c, jsonValueNodeFactory.node(parser, currentToken), (SdkField<Object>) field));
+                result.add(simpleValueFor(field, marshallingKnownType, c, parser, currentToken));
                 currentToken = parser.nextToken();
             }
             return result;
         }
+
 
         while (currentToken != JsonToken.END_ARRAY) {
             result.add(valueFor(memberInfo, c, marshallingType, parser, currentToken));
@@ -180,13 +186,11 @@ final class JsonUnmarshallingParser {
         // calling the valueFor method.
         JsonToken currentToken = parser.nextToken();
         if (isScalarType(valueMarshallingType)) {
-            JsonUnmarshaller<Object> unmarshaller = unmarshallerRegistry.getUnmarshaller(MarshallLocation.PAYLOAD,
-                                                                                         valueMarshallingType);
+            MarshallingKnownType valueMarshallingKnownType = valueMarshallingType.getKnownType();
             while (currentToken != JsonToken.END_OBJECT) {
                 String fieldName = parser.getText();
                 currentToken = parser.nextToken();
-                Object valueFor = unmarshaller.unmarshall(c, jsonValueNodeFactory.node(parser, currentToken),
-                                                          (SdkField<Object>) field);
+                Object valueFor = simpleValueFor(field, valueMarshallingKnownType, c, parser, currentToken);
                 result.put(fieldName, valueFor);
                 currentToken = parser.nextToken();
             }
@@ -215,9 +219,6 @@ final class JsonUnmarshallingParser {
         JsonParser parser,
         JsonToken lookAhead
     ) throws IOException {
-        // Assert that the lookAhead is not null
-        Validate.paramNotNull(lookAhead, "lookAhead cannot be null");
-
         MarshallingKnownType marshallingKnownType = type.getKnownType();
         // We check first if we are unmarshalling a document, if so we
         // delegate to a different method, this is needed since documents
@@ -226,28 +227,92 @@ final class JsonUnmarshallingParser {
             return parseDocumentValue(context, parser, lookAhead);
         }
         if (lookAhead == JsonToken.VALUE_NULL) {
+            if (marshallingKnownType == MarshallingKnownType.DOCUMENT) {
+                return Document.fromNull();
+            }
             return null;
         }
-        if (marshallingKnownType == MarshallingKnownType.SDK_POJO) {
-            if (lookAhead != JsonToken.START_OBJECT) {
-                throw new JsonParseException("expecting start object, got instead: " + lookAhead);
-            }
-            return parseSdkPojo(context, field.constructor().get(), parser);
+        switch (marshallingKnownType) {
+            case DOCUMENT:
+                return parseDocumentValue(context, parser, lookAhead);
+            case SDK_POJO:
+                expect(lookAhead, JsonToken.START_OBJECT);
+                return parseSdkPojo(context, field.constructor().get(), parser);
+            case LIST:
+                expect(lookAhead, JsonToken.START_ARRAY);
+                return parseList(context, field, parser);
+            case MAP:
+                expect(lookAhead, JsonToken.START_OBJECT);
+                return parseMap(context, field, parser);
+            case INSTANT:
+                return instantValueFor(field, parser, context, lookAhead);
+            default:
+                if (lookAhead == JsonToken.VALUE_STRING
+                    && marshallingKnownType != MarshallingKnownType.STRING
+                    && marshallingKnownType != MarshallingKnownType.SDK_BYTES
+                ) {
+                    JsonUnmarshaller<Object> unmarshaller = unmarshallerRegistry.getUnmarshaller(MarshallLocation.PAYLOAD, type);
+                    return unmarshaller.unmarshall(context, jsonValueNodeFactory.node(parser, lookAhead),
+                                                   (SdkField<Object>) field);
+                }
+                return simpleValueFor(field, marshallingKnownType, context, parser, lookAhead);
         }
-        if (marshallingKnownType == MarshallingKnownType.LIST) {
-            if (lookAhead != JsonToken.START_ARRAY) {
-                throw new JsonParseException("expecting start array, got instead: " + lookAhead);
-            }
-            return parseList(context, field, parser);
+    }
+
+    /**
+     * Returns a parsed simple value for the given SdkField.
+     */
+    private Object simpleValueFor(
+        SdkField<?> field,
+        MarshallingKnownType knownType,
+        JsonUnmarshallerContext context,
+        JsonParser parser,
+        JsonToken lookAhead
+    ) throws IOException {
+        if (lookAhead == JsonToken.VALUE_NULL) {
+            return null;
         }
-        if (marshallingKnownType == MarshallingKnownType.MAP) {
-            if (lookAhead != JsonToken.START_OBJECT) {
-                throw new JsonParseException("expecting start object, got instead: " + lookAhead);
-            }
-            return parseMap(context, field, parser);
+        switch (knownType) {
+            case INTEGER:
+                expect(lookAhead, JsonToken.VALUE_NUMBER_INT);
+                return parser.getIntValue();
+            case LONG:
+                expect(lookAhead, JsonToken.VALUE_NUMBER_INT);
+                return parser.getLongValue();
+            case SHORT:
+                expect(lookAhead, JsonToken.VALUE_NUMBER_INT);
+                return parser.getShortValue();
+            case BYTE:
+                expect(lookAhead, JsonToken.VALUE_NUMBER_INT);
+                return parser.getByteValue();
+            case FLOAT:
+                expect(lookAhead, JsonToken.VALUE_NUMBER_INT, JsonToken.VALUE_NUMBER_FLOAT);
+                return parser.getFloatValue();
+            case DOUBLE:
+                expect(lookAhead, JsonToken.VALUE_NUMBER_INT, JsonToken.VALUE_NUMBER_FLOAT);
+                return parser.getDoubleValue();
+            case BIG_DECIMAL:
+                expect(lookAhead, JsonToken.VALUE_NUMBER_INT, JsonToken.VALUE_NUMBER_FLOAT);
+                return parser.getDecimalValue();
+            case BOOLEAN:
+                expect(lookAhead, JsonToken.VALUE_FALSE, JsonToken.VALUE_TRUE);
+                return parser.getBooleanValue();
+            case INSTANT:
+                return instantValueFor(field, parser, context, lookAhead);
+            case STRING:
+                // At least one protocol tests expects a floating number
+                // to be parsed as string, so we can't assert that:
+                // expect(lookAhead, JsonToken.VALUE_STRING);
+                return parser.getText();
+            case SDK_BYTES:
+                if (lookAhead == JsonToken.VALUE_EMBEDDED_OBJECT) {
+                    return SdkBytes.fromByteArray((byte[]) parser.getEmbeddedObject());
+                }
+                expect(lookAhead, JsonToken.VALUE_STRING);
+                return SdkBytes.fromByteArray(BinaryUtils.fromBase64(parser.getText()));
+            default:
+                throw new JsonParseException("unexpected token, expecting token for: " + knownType + ", got: " + lookAhead);
         }
-        JsonUnmarshaller<Object> unmarshaller = unmarshallerRegistry.getUnmarshaller(MarshallLocation.PAYLOAD, type);
-        return unmarshaller.unmarshall(context, jsonValueNodeFactory.node(parser, lookAhead), (SdkField<Object>) field);
     }
 
     /**
@@ -290,6 +355,60 @@ final class JsonUnmarshallingParser {
     }
 
     /**
+     * Validates that the lookAhead token is of the given type, throws a JsonParseException otherwise.
+     */
+    private void expect(JsonToken lookAhead, JsonToken expected) throws IOException {
+        if (lookAhead != expected) {
+            throw new JsonParseException("unexpected token, expecting token: " + expected + ", got: " + lookAhead);
+        }
+    }
+
+    /**
+     * Validates that the lookAhead token is of either of the given type, throws a JsonParseException otherwise.
+     */
+    private void expect(JsonToken lookAhead, JsonToken expected0, JsonToken expected1) throws IOException {
+        if (lookAhead != expected0 && lookAhead != expected1) {
+            throw new JsonParseException("unexpected token, expecting token: "
+                                         + expected0 + ", or " + expected1 + ", got: " + lookAhead);
+        }
+    }
+
+    /**
+     * Parses and returns an {@link Instant} value for a timestamp field.
+     */
+    private Instant instantValueFor(
+        SdkField<?> field,
+        JsonParser parser,
+        JsonUnmarshallerContext context,
+        JsonToken lookAhead
+    ) throws IOException {
+        TimestampFormatTrait.Format format = resolveTimestampFormat(field);
+        switch (format) {
+            case UNIX_TIMESTAMP:
+                return Instant.ofEpochMilli((long) (parser.getDoubleValue() * 1_000d));
+            case UNIX_TIMESTAMP_MILLIS:
+                return Instant.ofEpochMilli(parser.getLongValue());
+            default:
+                JsonUnmarshaller<Object> unmarshaller = unmarshallerRegistry.getUnmarshaller(MarshallLocation.PAYLOAD,
+                                                                                             field.marshallingType());
+                return (Instant) unmarshaller.unmarshall(context, jsonValueNodeFactory.node(parser, lookAhead),
+                                                         (SdkField<Object>) field);
+        }
+    }
+
+    /**
+     * Returns the timestamp format for the give field.
+     */
+    private TimestampFormatTrait.Format resolveTimestampFormat(SdkField<?> field) {
+        TimestampFormatTrait trait = field.getTrait(TimestampFormatTrait.class, TraitType.TIMESTAMP_FORMAT_TRAIT);
+        if (trait == null) {
+            return defaultFormat;
+        } else {
+            return trait.format();
+        }
+    }
+
+    /**
      * Returns true if the marshallingType is composite, i.e., non-scalar.
      */
     private boolean isCompositeType(MarshallingType<?> marshallingType) {
@@ -328,7 +447,8 @@ final class JsonUnmarshallingParser {
             case START_OBJECT:
                 return parseDocumentMap(c, parser);
             default:
-                throw new JsonParseException("unexpected JSON token - " + token);        }
+                throw new JsonParseException("unexpected JSON token - " + token);
+        }
     }
 
     /**
@@ -366,6 +486,7 @@ final class JsonUnmarshallingParser {
         private JsonFactory jsonFactory;
         private JsonValueNodeFactory jsonValueNodeFactory = JsonValueNodeFactory.DEFAULT;
         private JsonUnmarshallerRegistry unmarshallerRegistry;
+        private TimestampFormatTrait.Format defaultFormat;
 
         private Builder() {
         }
@@ -398,6 +519,14 @@ final class JsonUnmarshallingParser {
          */
         public Builder unmarshallerRegistry(JsonUnmarshallerRegistry unmarshallerRegistry) {
             this.unmarshallerRegistry = unmarshallerRegistry;
+            return this;
+        }
+
+        /**
+         * Default timestamp format for payload location.
+         */
+        public Builder defaultTimestampFormat(TimestampFormatTrait.Format defaultFormat) {
+            this.defaultFormat = defaultFormat;
             return this;
         }
 

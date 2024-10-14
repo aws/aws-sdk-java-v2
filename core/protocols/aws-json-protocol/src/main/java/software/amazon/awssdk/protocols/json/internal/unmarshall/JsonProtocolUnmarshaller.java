@@ -72,6 +72,9 @@ public class JsonProtocolUnmarshaller {
                                                           .jsonValueNodeFactory(dependencies.nodeValueFactory())
                                                           .jsonFactory(dependencies.jsonFactory())
                                                           .unmarshallerRegistry(dependencies.jsonUnmarshallerRegistry())
+                                                          .defaultTimestampFormat(dependencies.timestampFormats()
+                                                                                              .get(MarshallLocation.PAYLOAD))
+
                                                           .build();
     }
 

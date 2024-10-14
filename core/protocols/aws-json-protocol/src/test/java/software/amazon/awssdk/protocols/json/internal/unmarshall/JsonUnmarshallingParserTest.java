@@ -21,6 +21,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.document.Document;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonParseException;
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -104,6 +105,8 @@ class JsonUnmarshallingParserTest {
             .builder()
             .jsonFactory(dependencies.jsonFactory())
             .unmarshallerRegistry(dependencies.jsonUnmarshallerRegistry())
+            .defaultTimestampFormat(dependencies.timestampFormats()
+                                                .get(MarshallLocation.PAYLOAD))
             .build();
         return parser;
     }
