@@ -473,7 +473,6 @@
     "LinkedClusterProperties":{
       "type":"structure",
       "members":{
-        "deletionProtectionEnabled":{"shape":"DeletionProtectionEnabled"},
         "tags":{"shape":"TagMap"}
       },
       "documentation":"<p>Linked Cluster Properties</p>"
