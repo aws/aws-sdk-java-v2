@@ -5,11 +5,13 @@
     "endpointPrefix":"transcribestreaming",
     "protocol":"rest-json",
     "protocolSettings":{"h2":"eventstream"},
+    "protocols":["rest-json"],
     "serviceFullName":"Amazon Transcribe Streaming Service",
     "serviceId":"Transcribe Streaming",
     "signatureVersion":"v4",
     "signingName":"transcribe",
-    "uid":"transcribe-streaming-2017-10-26"
+    "uid":"transcribe-streaming-2017-10-26",
+    "auth":["aws.auth#sigv4"]
   },
   "operations":{
     "StartCallAnalyticsStreamTranscription":{
@@ -120,7 +122,7 @@
       "members":{
         "Message":{"shape":"String"}
       },
-      "documentation":"<p>One or more arguments to the <code>StartStreamTranscription</code>, <code>StartMedicalStreamTranscription</code>, or <code>StartCallAnalyticsStreamTranscription</code> operation was not valid. For example, <code>MediaEncoding</code> or <code>LanguageCode</code> used not valid values. Check the specified parameters and try your request again.</p>",
+      "documentation":"<p>One or more arguments to the <code>StartStreamTranscription</code>, <code>StartMedicalStreamTranscription</code>, or <code>StartCallAnalyticsStreamTranscription</code> operation was not valid. For example, <code>MediaEncoding</code> or <code>LanguageCode</code> used unsupported values. Check the specified parameters and try your request again.</p>",
       "error":{"httpStatusCode":400},
       "exception":true
     },
@@ -228,7 +230,7 @@
         "ConflictException":{"shape":"ConflictException"},
         "ServiceUnavailableException":{"shape":"ServiceUnavailableException"}
       },
-      "documentation":"<p>Contains detailed information about your Call Analytics streaming session. These details are provided in the <code>UtteranceEvent</code> and <code>CategoryEvent</code> objects.</p>",
+      "documentation":"<p>Contains detailed information about your real-time Call Analytics session. These details are provided in the <code>UtteranceEvent</code> and <code>CategoryEvent</code> objects.</p>",
       "eventstream":true
     },
     "CategoryEvent":{
@@ -299,7 +301,7 @@
         },
         "PostCallAnalyticsSettings":{
           "shape":"PostCallAnalyticsSettings",
-          "documentation":"<p>Provides additional optional settings for your Call Analytics post-call request, including encryption and output locations for your redacted and unredacted transcript.</p>"
+          "documentation":"<p>Provides additional optional settings for your Call Analytics post-call request, including encryption and output locations for your redacted transcript.</p> <p> <code>PostCallAnalyticsSettings</code> provides you with the same insights as a Call Analytics post-call transcription. Refer to <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/tca-post-call.html\">Post-call analytics</a> for more information on this feature.</p>"
         }
       },
       "documentation":"<p>Allows you to set audio channel definitions and post-call analytics settings.</p>",
@@ -453,8 +455,48 @@
         "ja-JP",
         "ko-KR",
         "zh-CN",
+        "th-TH",
+        "es-ES",
+        "ar-SA",
+        "pt-PT",
+        "ca-ES",
+        "ar-AE",
         "hi-IN",
-        "th-TH"
+        "zh-HK",
+        "nl-NL",
+        "no-NO",
+        "sv-SE",
+        "pl-PL",
+        "fi-FI",
+        "zh-TW",
+        "en-IN",
+        "en-IE",
+        "en-NZ",
+        "en-AB",
+        "en-ZA",
+        "en-WL",
+        "de-CH",
+        "af-ZA",
+        "eu-ES",
+        "hr-HR",
+        "cs-CZ",
+        "da-DK",
+        "fa-IR",
+        "gl-ES",
+        "el-GR",
+        "he-IL",
+        "id-ID",
+        "lv-LV",
+        "ms-MY",
+        "ro-RO",
+        "ru-RU",
+        "sr-RS",
+        "sk-SK",
+        "so-SO",
+        "tl-PH",
+        "uk-UA",
+        "vi-VN",
+        "zu-ZA"
       ]
     },
     "LanguageIdentification":{
@@ -732,10 +774,10 @@
         },
         "OutputEncryptionKMSKeyId":{
           "shape":"String",
-          "documentation":"<p>The KMS key you want to use to encrypt your Call Analytics post-call output.</p> <p>If using a key located in the <b>current</b> Amazon Web Services account, you can specify your KMS key in one of four ways:</p> <ol> <li> <p>Use the KMS key ID itself. For example, <code>1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use an alias for the KMS key ID. For example, <code>alias/ExampleAlias</code>.</p> </li> <li> <p>Use the Amazon Resource Name (ARN) for the KMS key ID. For example, <code>arn:aws:kms:region:account-ID:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use the ARN for the KMS key alias. For example, <code>arn:aws:kms:region:account-ID:alias/ExampleAlias</code>.</p> </li> </ol> <p>If using a key located in a <b>different</b> Amazon Web Services account than the current Amazon Web Services account, you can specify your KMS key in one of two ways:</p> <ol> <li> <p>Use the ARN for the KMS key ID. For example, <code>arn:aws:kms:region:account-ID:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use the ARN for the KMS key alias. For example, <code>arn:aws:kms:region:account-ID:alias/ExampleAlias</code>.</p> </li> </ol> <p>Note that the user making the request must have permission to use the specified KMS key.</p>"
+          "documentation":"<p>The KMS key you want to use to encrypt your Call Analytics post-call output.</p> <p>If using a key located in the <b>current</b> Amazon Web Services account, you can specify your KMS key in one of four ways:</p> <ol> <li> <p>Use the KMS key ID itself. For example, <code>1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use an alias for the KMS key ID. For example, <code>alias/ExampleAlias</code>.</p> </li> <li> <p>Use the Amazon Resource Name (ARN) for the KMS key ID. For example, <code>arn:aws:kms:region:account-ID:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use the ARN for the KMS key alias. For example, <code>arn:aws:kms:region:account-ID:alias/ExampleAlias</code>.</p> </li> </ol> <p>If using a key located in a <b>different</b> Amazon Web Services account than the current Amazon Web Services account, you can specify your KMS key in one of two ways:</p> <ol> <li> <p>Use the ARN for the KMS key ID. For example, <code>arn:aws:kms:region:account-ID:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use the ARN for the KMS key alias. For example, <code>arn:aws:kms:region:account-ID:alias/ExampleAlias</code>.</p> </li> </ol> <p>Note that the role making the request must have permission to use the specified KMS key.</p>"
         }
       },
-      "documentation":"<p>Allows you to specify additional settings for your streaming Call Analytics post-call request, including output locations for your redacted and unredacted transcript, which IAM role to use, and, optionally, which encryption key to use.</p> <p> <code>ContentRedactionOutput</code>, <code>DataAccessRoleArn</code>, and <code>OutputLocation</code> are required fields.</p>"
+      "documentation":"<p>Allows you to specify additional settings for your Call Analytics post-call request, including output locations for your redacted transcript, which IAM role to use, and which encryption key to use.</p> <p> <code>DataAccessRoleArn</code> and <code>OutputLocation</code> are required fields.</p> <p> <code>PostCallAnalyticsSettings</code> provides you with the same insights as a Call Analytics post-call transcription. Refer to <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/tca-post-call.html\">Post-call analytics</a> for more information on this feature.</p>"
     },
     "RequestId":{"type":"string"},
     "Result":{
@@ -827,7 +869,7 @@
       "members":{
         "LanguageCode":{
           "shape":"CallAnalyticsLanguageCode",
-          "documentation":"<p>Specify the language code that represents the language spoken in your audio.</p> <p>If you're unsure of the language spoken in your audio, consider using <code>IdentifyLanguage</code> to enable automatic language identification.</p> <p>For a list of languages supported with streaming Call Analytics, refer to the <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/supported-languages.html\">Supported languages</a> table.</p>",
+          "documentation":"<p>Specify the language code that represents the language spoken in your audio.</p> <p>For a list of languages supported with real-time Call Analytics, refer to the <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/supported-languages.html\">Supported languages</a> table.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-language-code"
         },
@@ -851,11 +893,14 @@
         },
         "SessionId":{
           "shape":"SessionId",
-          "documentation":"<p>Specify a name for your Call Analytics transcription session. If you don't include this parameter in your request, Amazon Transcribe generates an ID and returns it in the response.</p> <p>You can use a session ID to retry a streaming session.</p>",
+          "documentation":"<p>Specify a name for your Call Analytics transcription session. If you don't include this parameter in your request, Amazon Transcribe generates an ID and returns it in the response.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-session-id"
         },
-        "AudioStream":{"shape":"AudioStream"},
+        "AudioStream":{
+          "shape":"AudioStream",
+          "documentation":"<p>An encoded stream of audio blobs. Audio streams are encoded as either HTTP/2 or WebSocket data frames.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html\">Transcribing streaming audio</a>.</p>"
+        },
         "VocabularyFilterName":{
           "shape":"VocabularyFilterName",
           "documentation":"<p>Specify the name of the custom vocabulary filter that you want to use when processing your transcription. Note that vocabulary filter names are case sensitive.</p> <p>If the language of the specified custom vocabulary filter doesn't match the language identified in your media, the vocabulary filter is not applied to your transcription.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/vocabulary-filtering.html\">Using vocabulary filtering with unwanted words</a>.</p>",
@@ -888,19 +933,19 @@
         },
         "ContentIdentificationType":{
           "shape":"ContentIdentificationType",
-          "documentation":"<p>Labels all personally identifiable information (PII) identified in your transcript.</p> <p>Content identification is performed at the segment level; PII specified in <code>PiiEntityTypes</code> is flagged upon complete transcription of an audio segment.</p> <p>You can’t set <code>ContentIdentificationType</code> and <code>ContentRedactionType</code> in the same request. If you set both, your request returns a <code>BadRequestException</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/pii-redaction.html\">Redacting or identifying personally identifiable information</a>.</p>",
+          "documentation":"<p>Labels all personally identifiable information (PII) identified in your transcript.</p> <p>Content identification is performed at the segment level; PII specified in <code>PiiEntityTypes</code> is flagged upon complete transcription of an audio segment. If you don't include <code>PiiEntityTypes</code> in your request, all PII is identified.</p> <p>You can’t set <code>ContentIdentificationType</code> and <code>ContentRedactionType</code> in the same request. If you set both, your request returns a <code>BadRequestException</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/pii-redaction.html\">Redacting or identifying personally identifiable information</a>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-content-identification-type"
         },
         "ContentRedactionType":{
           "shape":"ContentRedactionType",
-          "documentation":"<p>Redacts all personally identifiable information (PII) identified in your transcript.</p> <p>Content redaction is performed at the segment level; PII specified in <code>PiiEntityTypes</code> is redacted upon complete transcription of an audio segment.</p> <p>You can’t set <code>ContentRedactionType</code> and <code>ContentIdentificationType</code> in the same request. If you set both, your request returns a <code>BadRequestException</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/pii-redaction.html\">Redacting or identifying personally identifiable information</a>.</p>",
+          "documentation":"<p>Redacts all personally identifiable information (PII) identified in your transcript.</p> <p>Content redaction is performed at the segment level; PII specified in <code>PiiEntityTypes</code> is redacted upon complete transcription of an audio segment. If you don't include <code>PiiEntityTypes</code> in your request, all PII is redacted.</p> <p>You can’t set <code>ContentRedactionType</code> and <code>ContentIdentificationType</code> in the same request. If you set both, your request returns a <code>BadRequestException</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/pii-redaction.html\">Redacting or identifying personally identifiable information</a>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-content-redaction-type"
         },
         "PiiEntityTypes":{
           "shape":"PiiEntityTypes",
-          "documentation":"<p>Specify which types of personally identifiable information (PII) you want to redact in your transcript. You can include as many types as you'd like, or you can select <code>ALL</code>.</p> <p>To include <code>PiiEntityTypes</code> in your Call Analytics request, you must also include either <code>ContentIdentificationType</code> or <code>ContentRedactionType</code>.</p> <p>Values must be comma-separated and can include: <code>BANK_ACCOUNT_NUMBER</code>, <code>BANK_ROUTING</code>, <code>CREDIT_DEBIT_NUMBER</code>, <code>CREDIT_DEBIT_CVV</code>, <code>CREDIT_DEBIT_EXPIRY</code>, <code>PIN</code>, <code>EMAIL</code>, <code>ADDRESS</code>, <code>NAME</code>, <code>PHONE</code>, <code>SSN</code>, or <code>ALL</code>.</p>",
+          "documentation":"<p>Specify which types of personally identifiable information (PII) you want to redact in your transcript. You can include as many types as you'd like, or you can select <code>ALL</code>.</p> <p>Values must be comma-separated and can include: <code>ADDRESS</code>, <code>BANK_ACCOUNT_NUMBER</code>, <code>BANK_ROUTING</code>, <code>CREDIT_DEBIT_CVV</code>, <code>CREDIT_DEBIT_EXPIRY</code>, <code>CREDIT_DEBIT_NUMBER</code>, <code>EMAIL</code>, <code>NAME</code>, <code>PHONE</code>, <code>PIN</code>, <code>SSN</code>, or <code>ALL</code>.</p> <p>Note that if you include <code>PiiEntityTypes</code> in your request, you must also include <code>ContentIdentificationType</code> or <code>ContentRedactionType</code>.</p> <p>If you include <code>ContentRedactionType</code> or <code>ContentIdentificationType</code> in your request, but do not include <code>PiiEntityTypes</code>, all PII is redacted or identified.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-pii-entity-types"
         }
@@ -912,7 +957,7 @@
       "members":{
         "RequestId":{
           "shape":"RequestId",
-          "documentation":"<p>Provides the identifier for your Call Analytics streaming request.</p>",
+          "documentation":"<p>Provides the identifier for your real-time Call Analytics request.</p>",
           "location":"header",
           "locationName":"x-amzn-request-id"
         },
@@ -948,7 +993,7 @@
         },
         "CallAnalyticsTranscriptResultStream":{
           "shape":"CallAnalyticsTranscriptResultStream",
-          "documentation":"<p>Provides detailed information about your Call Analytics streaming session.</p>"
+          "documentation":"<p>Provides detailed information about your real-time Call Analytics session.</p>"
         },
         "VocabularyFilterName":{
           "shape":"VocabularyFilterName",
@@ -1056,20 +1101,20 @@
         },
         "SessionId":{
           "shape":"SessionId",
-          "documentation":"<p>Specify a name for your transcription session. If you don't include this parameter in your request, Amazon Transcribe Medical generates an ID and returns it in the response.</p> <p>You can use a session ID to retry a streaming session.</p>",
+          "documentation":"<p>Specify a name for your transcription session. If you don't include this parameter in your request, Amazon Transcribe Medical generates an ID and returns it in the response.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-session-id"
         },
         "AudioStream":{"shape":"AudioStream"},
         "EnableChannelIdentification":{
           "shape":"Boolean",
-          "documentation":"<p>Enables channel identification in multi-channel audio.</p> <p>Channel identification transcribes the audio on each channel independently, then appends the output for each channel into one transcript.</p> <p>If you have multi-channel audio and do not enable channel identification, your audio is transcribed in a continuous manner and your transcript is not separated by channel.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/channel-id.html\">Transcribing multi-channel audio</a>.</p>",
+          "documentation":"<p>Enables channel identification in multi-channel audio.</p> <p>Channel identification transcribes the audio on each channel independently, then appends the output for each channel into one transcript.</p> <p>If you have multi-channel audio and do not enable channel identification, your audio is transcribed in a continuous manner and your transcript is not separated by channel.</p> <p>If you include <code>EnableChannelIdentification</code> in your request, you must also include <code>NumberOfChannels</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/channel-id.html\">Transcribing multi-channel audio</a>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-enable-channel-identification"
         },
         "NumberOfChannels":{
           "shape":"NumberOfChannels",
-          "documentation":"<p>Specify the number of channels in your audio stream. Up to two channels are supported.</p>",
+          "documentation":"<p>Specify the number of channels in your audio stream. This value must be <code>2</code>, as only two channels are supported. If your audio doesn't contain multiple channels, do not include this parameter in your request.</p> <p>If you include <code>NumberOfChannels</code> in your request, you must also include <code>EnableChannelIdentification</code>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-number-of-channels"
         },
@@ -1198,7 +1243,7 @@
         },
         "SessionId":{
           "shape":"SessionId",
-          "documentation":"<p>Specify a name for your transcription session. If you don't include this parameter in your request, Amazon Transcribe generates an ID and returns it in the response.</p> <p>You can use a session ID to retry a streaming session.</p>",
+          "documentation":"<p>Specify a name for your transcription session. If you don't include this parameter in your request, Amazon Transcribe generates an ID and returns it in the response.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-session-id"
         },
@@ -1226,13 +1271,13 @@
         },
         "EnableChannelIdentification":{
           "shape":"Boolean",
-          "documentation":"<p>Enables channel identification in multi-channel audio.</p> <p>Channel identification transcribes the audio on each channel independently, then appends the output for each channel into one transcript.</p> <p>If you have multi-channel audio and do not enable channel identification, your audio is transcribed in a continuous manner and your transcript is not separated by channel.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/channel-id.html\">Transcribing multi-channel audio</a>.</p>",
+          "documentation":"<p>Enables channel identification in multi-channel audio.</p> <p>Channel identification transcribes the audio on each channel independently, then appends the output for each channel into one transcript.</p> <p>If you have multi-channel audio and do not enable channel identification, your audio is transcribed in a continuous manner and your transcript is not separated by channel.</p> <p>If you include <code>EnableChannelIdentification</code> in your request, you must also include <code>NumberOfChannels</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/channel-id.html\">Transcribing multi-channel audio</a>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-enable-channel-identification"
         },
         "NumberOfChannels":{
           "shape":"NumberOfChannels",
-          "documentation":"<p>Specify the number of channels in your audio stream. Up to two channels are supported.</p>",
+          "documentation":"<p>Specify the number of channels in your audio stream. This value must be <code>2</code>, as only two channels are supported. If your audio doesn't contain multiple channels, do not include this parameter in your request.</p> <p>If you include <code>NumberOfChannels</code> in your request, you must also include <code>EnableChannelIdentification</code>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-number-of-channels"
         },
@@ -1250,19 +1295,19 @@
         },
         "ContentIdentificationType":{
           "shape":"ContentIdentificationType",
-          "documentation":"<p>Labels all personally identifiable information (PII) identified in your transcript.</p> <p>Content identification is performed at the segment level; PII specified in <code>PiiEntityTypes</code> is flagged upon complete transcription of an audio segment.</p> <p>You can’t set <code>ContentIdentificationType</code> and <code>ContentRedactionType</code> in the same request. If you set both, your request returns a <code>BadRequestException</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/pii-redaction.html\">Redacting or identifying personally identifiable information</a>.</p>",
+          "documentation":"<p>Labels all personally identifiable information (PII) identified in your transcript.</p> <p>Content identification is performed at the segment level; PII specified in <code>PiiEntityTypes</code> is flagged upon complete transcription of an audio segment. If you don't include <code>PiiEntityTypes</code> in your request, all PII is identified.</p> <p>You can’t set <code>ContentIdentificationType</code> and <code>ContentRedactionType</code> in the same request. If you set both, your request returns a <code>BadRequestException</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/pii-redaction.html\">Redacting or identifying personally identifiable information</a>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-content-identification-type"
         },
         "ContentRedactionType":{
           "shape":"ContentRedactionType",
-          "documentation":"<p>Redacts all personally identifiable information (PII) identified in your transcript.</p> <p>Content redaction is performed at the segment level; PII specified in <code>PiiEntityTypes</code> is redacted upon complete transcription of an audio segment.</p> <p>You can’t set <code>ContentRedactionType</code> and <code>ContentIdentificationType</code> in the same request. If you set both, your request returns a <code>BadRequestException</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/pii-redaction.html\">Redacting or identifying personally identifiable information</a>.</p>",
+          "documentation":"<p>Redacts all personally identifiable information (PII) identified in your transcript.</p> <p>Content redaction is performed at the segment level; PII specified in <code>PiiEntityTypes</code> is redacted upon complete transcription of an audio segment. If you don't include <code>PiiEntityTypes</code> in your request, all PII is redacted.</p> <p>You can’t set <code>ContentRedactionType</code> and <code>ContentIdentificationType</code> in the same request. If you set both, your request returns a <code>BadRequestException</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/pii-redaction.html\">Redacting or identifying personally identifiable information</a>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-content-redaction-type"
         },
         "PiiEntityTypes":{
           "shape":"PiiEntityTypes",
-          "documentation":"<p>Specify which types of personally identifiable information (PII) you want to redact in your transcript. You can include as many types as you'd like, or you can select <code>ALL</code>.</p> <p>To include <code>PiiEntityTypes</code> in your request, you must also include either <code>ContentIdentificationType</code> or <code>ContentRedactionType</code>.</p> <p>Values must be comma-separated and can include: <code>BANK_ACCOUNT_NUMBER</code>, <code>BANK_ROUTING</code>, <code>CREDIT_DEBIT_NUMBER</code>, <code>CREDIT_DEBIT_CVV</code>, <code>CREDIT_DEBIT_EXPIRY</code>, <code>PIN</code>, <code>EMAIL</code>, <code>ADDRESS</code>, <code>NAME</code>, <code>PHONE</code>, <code>SSN</code>, or <code>ALL</code>.</p>",
+          "documentation":"<p>Specify which types of personally identifiable information (PII) you want to redact in your transcript. You can include as many types as you'd like, or you can select <code>ALL</code>.</p> <p>Values must be comma-separated and can include: <code>ADDRESS</code>, <code>BANK_ACCOUNT_NUMBER</code>, <code>BANK_ROUTING</code>, <code>CREDIT_DEBIT_CVV</code>, <code>CREDIT_DEBIT_EXPIRY</code>, <code>CREDIT_DEBIT_NUMBER</code>, <code>EMAIL</code>, <code>NAME</code>, <code>PHONE</code>, <code>PIN</code>, <code>SSN</code>, or <code>ALL</code>.</p> <p>Note that if you include <code>PiiEntityTypes</code> in your request, you must also include <code>ContentIdentificationType</code> or <code>ContentRedactionType</code>.</p> <p>If you include <code>ContentRedactionType</code> or <code>ContentIdentificationType</code> in your request, but do not include <code>PiiEntityTypes</code>, all PII is redacted or identified.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-pii-entity-types"
         },
@@ -1274,13 +1319,13 @@
         },
         "IdentifyLanguage":{
           "shape":"Boolean",
-          "documentation":"<p>Enables automatic language identification for your transcription.</p> <p>If you include <code>IdentifyLanguage</code>, you can optionally include a list of language codes, using <code>LanguageOptions</code>, that you think may be present in your audio stream. Including language options can improve transcription accuracy.</p> <p>You can also include a preferred language using <code>PreferredLanguage</code>. Adding a preferred language can help Amazon Transcribe identify the language faster than if you omit this parameter.</p> <p>If you have multi-channel audio that contains different languages on each channel, and you've enabled channel identification, automatic language identification identifies the dominant language on each audio channel.</p> <p>Note that you must include either <code>LanguageCode</code> or <code>IdentifyLanguage</code> or <code>IdentifyMultipleLanguages</code> in your request. If you include more than one of these parameters, your transcription job fails.</p> <p>Streaming language identification can't be combined with custom language models or redaction.</p>",
+          "documentation":"<p>Enables automatic language identification for your transcription.</p> <p>If you include <code>IdentifyLanguage</code>, you must include a list of language codes, using <code>LanguageOptions</code>, that you think may be present in your audio stream. </p> <p>You can also include a preferred language using <code>PreferredLanguage</code>. Adding a preferred language can help Amazon Transcribe identify the language faster than if you omit this parameter.</p> <p>If you have multi-channel audio that contains different languages on each channel, and you've enabled channel identification, automatic language identification identifies the dominant language on each audio channel.</p> <p>Note that you must include either <code>LanguageCode</code> or <code>IdentifyLanguage</code> or <code>IdentifyMultipleLanguages</code> in your request. If you include more than one of these parameters, your transcription job fails.</p> <p>Streaming language identification can't be combined with custom language models or redaction.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-identify-language"
         },
         "LanguageOptions":{
           "shape":"LanguageOptions",
-          "documentation":"<p>Specify two or more language codes that represent the languages you think may be present in your media; including more than five is not recommended. If you're unsure what languages are present, do not include this parameter.</p> <p>Including language options can improve the accuracy of language identification.</p> <p>If you include <code>LanguageOptions</code> in your request, you must also include <code>IdentifyLanguage</code>.</p> <p>For a list of languages supported with Amazon Transcribe streaming, refer to the <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/supported-languages.html\">Supported languages</a> table.</p> <important> <p>You can only include one language dialect per language per stream. For example, you cannot include <code>en-US</code> and <code>en-AU</code> in the same request.</p> </important>",
+          "documentation":"<p>Specify two or more language codes that represent the languages you think may be present in your media; including more than five is not recommended.</p> <p>Including language options can improve the accuracy of language identification.</p> <p>If you include <code>LanguageOptions</code> in your request, you must also include <code>IdentifyLanguage</code> or <code>IdentifyMultipleLanguages</code>.</p> <p>For a list of languages supported with Amazon Transcribe streaming, refer to the <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/supported-languages.html\">Supported languages</a> table.</p> <important> <p>You can only include one language dialect per language per stream. For example, you cannot include <code>en-US</code> and <code>en-AU</code> in the same request.</p> </important>",
           "location":"header",
           "locationName":"x-amzn-transcribe-language-options"
         },
@@ -1292,7 +1337,7 @@
         },
         "IdentifyMultipleLanguages":{
           "shape":"Boolean",
-          "documentation":"<p>Enables automatic multi-language identification in your transcription job request. Use this parameter if your stream contains more than one language. If your stream contains only one language, use IdentifyLanguage instead.</p> <p>If you include <code>IdentifyMultipleLanguages</code>, you can optionally include a list of language codes, using <code>LanguageOptions</code>, that you think may be present in your stream. Including <code>LanguageOptions</code> restricts <code>IdentifyMultipleLanguages</code> to only the language options that you specify, which can improve transcription accuracy.</p> <p>If you want to apply a custom vocabulary or a custom vocabulary filter to your automatic multiple language identification request, include <code>VocabularyNames</code> or <code>VocabularyFilterNames</code>.</p> <p>Note that you must include one of <code>LanguageCode</code>, <code>IdentifyLanguage</code>, or <code>IdentifyMultipleLanguages</code> in your request. If you include more than one of these parameters, your transcription job fails.</p>",
+          "documentation":"<p>Enables automatic multi-language identification in your transcription job request. Use this parameter if your stream contains more than one language. If your stream contains only one language, use IdentifyLanguage instead.</p> <p>If you include <code>IdentifyMultipleLanguages</code>, you must include a list of language codes, using <code>LanguageOptions</code>, that you think may be present in your stream.</p> <p>If you want to apply a custom vocabulary or a custom vocabulary filter to your automatic multiple language identification request, include <code>VocabularyNames</code> or <code>VocabularyFilterNames</code>.</p> <p>Note that you must include one of <code>LanguageCode</code>, <code>IdentifyLanguage</code>, or <code>IdentifyMultipleLanguages</code> in your request. If you include more than one of these parameters, your transcription job fails.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-identify-multiple-languages"
         },

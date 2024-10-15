@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.23__ __2024-10-15__
+## __AWS Amplify__
+  - ### Features
+    - Added sourceUrlType field to StartDeployment request
+
+## __AWS CloudFormation__
+  - ### Features
+    - Documentation update for AWS CloudFormation API Reference.
+
+## __AWS CodeBuild__
+  - ### Features
+    - Enable proxy for reserved capacity fleet.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - AWS Resilience Hub now integrates with the myApplications platform, enabling customers to easily assess the resilience of applications defined in myApplications. The new Resiliency widget provides visibility into application resilience and actionable recommendations for improvement.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - On a channel that you own, you can now replace an ongoing stream with a new stream by streaming up with the priority parameter appended to the stream key.
+
+## __Amazon Redshift__
+  - ### Features
+    - This release launches the CreateIntegration, DeleteIntegration, DescribeIntegrations and ModifyIntegration APIs to create and manage Amazon Redshift Zero-ETL Integrations.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release adds support for email maximum delivery seconds that allows senders to control the time within which their emails are attempted for delivery.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - We are expanding support for 40 new locales in AWS Transcribe Streaming.
+
+## __QBusiness__
+  - ### Features
+    - Amazon Q Business now supports embedding the Amazon Q Business web experience on third-party websites.
+
 # __2.28.22__ __2024-10-14__
 ## __AWS CodePipeline__
   - ### Features
