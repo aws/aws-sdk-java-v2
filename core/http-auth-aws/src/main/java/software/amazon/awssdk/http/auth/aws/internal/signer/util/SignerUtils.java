@@ -170,6 +170,13 @@ public final class SignerUtils {
         // AWS4 requires that we sign the Host header, so we
         // have to have it in the request by the time we sign.
 
+        // If the SdkHttpRequest has an associated Host header
+        // already set, prefer to use that.
+
+        if (requestBuilder.headers().get(SignerConstant.HOST) != null) {
+            return;
+        }
+
         String host = requestBuilder.host();
         if (!SdkHttpUtils.isUsingStandardPort(requestBuilder.protocol(), requestBuilder.port())) {
             StringBuilder hostHeaderBuilder = new StringBuilder(host);
