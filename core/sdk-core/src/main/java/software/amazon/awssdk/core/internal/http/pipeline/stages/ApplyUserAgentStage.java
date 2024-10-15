@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.AUTH_SOURCE;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.BUSINESS_METADATA;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.CONFIG_METADATA;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.SLASH;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.SPACE;
@@ -23,6 +24,8 @@ import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.a
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.uaPair;
 import static software.amazon.awssdk.utils.StringUtils.trim;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -38,10 +41,13 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.useragent.IdentityProviderNameMapping;
+import software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetrics;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -52,6 +58,7 @@ import software.amazon.awssdk.utils.StringUtils;
 public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
 
     public static final String HEADER_USER_AGENT = "User-Agent";
+    public static final String SDK_METRICS = "sdk-metrics";
 
     private static final Logger log = Logger.loggerFor(ApplyUserAgentStage.class);
 
@@ -90,6 +97,10 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
             clientUserAgent = "";
         }
 
+        //separate apiNames into opaque customer added values and known values added internally as metrics
+        Pair<List<ApiName>, Collection<String>> groupedApiNames = groupApiNames(context.requestConfig().apiNames());
+
+        //create builder for the user agent string
         StringBuilder javaUserAgent = new StringBuilder();
 
         String userPrefix = trim(clientConfig.option(SdkAdvancedClientOption.USER_AGENT_PREFIX));
@@ -103,8 +114,13 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         identityProviderName(context.executionAttributes()).ifPresent(
             authSource -> appendSpaceAndField(javaUserAgent, CONFIG_METADATA, uaPair(AUTH_SOURCE, authSource)));
 
-        //treat ApiNames as an opaque set of values because it may contain user values
-        Optional<String> apiNames = requestApiNames(context.requestConfig().apiNames());
+        Optional<String> businessMetrics = getBusinessMetricsString(context.executionAttributes(), groupedApiNames.right());
+        businessMetrics.ifPresent(
+            metrics -> appendSpaceAndField(javaUserAgent, BUSINESS_METADATA, metrics)
+        );
+
+        //Any ApiName value that isn't known is added to the end of the user agent
+        Optional<String> apiNames = requestApiNames(groupedApiNames.left());
         apiNames.ifPresent(javaUserAgent::append);
 
         String userSuffix = trim(clientConfig.option(SdkAdvancedClientOption.USER_AGENT_SUFFIX));
@@ -113,6 +129,32 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         }
 
         return javaUserAgent.toString();
+    }
+
+    private static Pair<List<ApiName>, Collection<String>> groupApiNames(List<ApiName> input) {
+        List<ApiName> customApiNames = new ArrayList<>();
+        Collection<String> metricsFromApiNames = new ArrayList<>();
+        for (ApiName requestApiName : input) {
+            if (requestApiName.name().equals(SDK_METRICS)) {
+                metricsFromApiNames.add(requestApiName.version());
+            } else {
+                customApiNames.add(requestApiName);
+            }
+        }
+        return Pair.of(customApiNames, metricsFromApiNames);
+    }
+
+    private static Optional<String> getBusinessMetricsString(ExecutionAttributes executionAttributes,
+                                                             Collection<String> metricsFromApiNames) {
+        BusinessMetrics businessMetrics = executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        if (businessMetrics == null && CollectionUtils.isNullOrEmpty(metricsFromApiNames)) {
+            return Optional.empty();
+        }
+        if (businessMetrics == null) {
+            businessMetrics = new BusinessMetrics();
+        }
+        businessMetrics.merge(metricsFromApiNames);
+        return Optional.of(businessMetrics.asBoundedString());
     }
 
     private static Optional<String> identityProviderName(ExecutionAttributes executionAttributes) {
