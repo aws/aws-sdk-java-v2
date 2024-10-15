@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Interactive Video Service",
+    "contributor": "",
+    "description": "On a channel that you own, you can now replace an ongoing stream with a new stream by streaming up with the priority parameter appended to the stream key."
+}
