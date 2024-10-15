@@ -1,0 +1,72 @@
+{
+    "version": "2.28.20",
+    "date": "2024-10-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager Private Certificate Authority",
+            "contributor": "",
+            "description": "Documentation updates for AWS Private CA."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "Introduces DescribeDataMigrations, CreateDataMigration, ModifyDataMigration, DeleteDataMigration, StartDataMigration, StopDataMigration operations to SDK. Provides FailedDependencyFault error message."
+        },
+        {
+            "type": "feature",
+            "category": "AWS End User Messaging Social",
+            "contributor": "",
+            "description": "This release for AWS End User Messaging includes a public SDK, providing a suite of APIs that enable sending WhatsApp messages to end users."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT FleetWise",
+            "contributor": "",
+            "description": "Refine campaign related API validations"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Outposts",
+            "contributor": "",
+            "description": "Adding new \"DELIVERED\" enum value for Outposts Order status"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This is a documentation only release that updates to documentation to let customers know that Amazon Elastic Inference is no longer available."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds support for assigning the billing of shared Amazon EC2 On-Demand Capacity Reservations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Inference",
+            "contributor": "",
+            "description": "Elastic Inference - Documentation update to add service shutdown notice."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Neptune Graph",
+            "contributor": "",
+            "description": "Support for 16 m-NCU graphs available through account allowlisting"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Resolver",
+            "contributor": "",
+            "description": "Route 53 Resolver Forwarding Rules can now include a server name indication (SNI) in the target address for rules that use the DNS-over-HTTPS (DoH) protocol. When a DoH-enabled Outbound Resolver Endpoint forwards a request to a DoH server, it will provide the SNI in the TLS handshake."
+        },
+        {
+            "type": "feature",
+            "category": "Timestream InfluxDB",
+            "contributor": "",
+            "description": "This release updates our regex based validation rules in regards to valid DbInstance and DbParameterGroup name."
+        }
+    ]
+}

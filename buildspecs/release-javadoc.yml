@@ -1,11 +1,11 @@
 version: 0.2
 env:
   variables:
-    JAVA_HOME: "/usr/lib/jvm/java-21-amazon-corretto/"
+    JAVA_HOME: "/usr/lib/jvm/java-23-amazon-corretto/"
 phases:
   install:
     commands:
-    - apt-get update; apt-get install -y java-21-amazon-corretto-jdk
+    - apt-get update; apt-get install -y java-23-amazon-corretto-jdk
     - update-alternatives --auto javac
     - update-alternatives --auto java
     - pip install awscli==1.19.34 --upgrade --user

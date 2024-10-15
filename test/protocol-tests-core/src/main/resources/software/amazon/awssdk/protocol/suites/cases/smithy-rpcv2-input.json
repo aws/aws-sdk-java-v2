@@ -20,6 +20,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -56,6 +57,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -88,6 +90,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -119,6 +122,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -149,6 +153,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -181,6 +186,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -211,6 +217,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -242,6 +249,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -318,6 +326,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -343,6 +352,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -368,6 +378,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -402,6 +413,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -427,6 +439,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -453,6 +466,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -479,6 +493,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -505,6 +520,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     }
                 }
@@ -528,6 +544,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     },
                     "doesNotContain": [
@@ -554,6 +571,7 @@
                 "headers": {
                     "contains": {
                         "Content-Type": "application/cbor",
+                        "Accept": "application/cbor",
                         "smithy-protocol": "rpc-v2-cbor"
                     },
                     "doesNotContain": [

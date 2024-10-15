@@ -794,7 +794,8 @@
         "Deploy",
         "Test",
         "Invoke",
-        "Approval"
+        "Approval",
+        "Compute"
       ]
     },
     "ActionConfiguration":{
@@ -918,6 +919,10 @@
           "shape":"ActionConfigurationMap",
           "documentation":"<p>The action's configuration. These are key-value pairs that specify input values for an action. For more information, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/reference-pipeline-structure.html#action-requirements\">Action Structure Requirements in CodePipeline</a>. For the list of configuration properties for the CloudFormation action type in CodePipeline, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/continuous-delivery-codepipeline-action-reference.html\">Configuration Properties Reference</a> in the <i>CloudFormation User Guide</i>. For template snippets with examples, see <a href=\"https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/continuous-delivery-codepipeline-parameter-override-functions.html\">Using Parameter Override Functions with CodePipeline Pipelines</a> in the <i>CloudFormation User Guide</i>.</p> <p>The values can be represented in either JSON or YAML format. For example, the JSON configuration item format is as follows: </p> <p> <i>JSON:</i> </p> <p> <code>\"Configuration\" : { Key : Value },</code> </p>"
         },
+        "commands":{
+          "shape":"CommandList",
+          "documentation":"<p>The shell commands to run with your compute action in CodePipeline. All commands are supported except multi-line formats. While CodeBuild logs and permissions are used, you do not need to create any resources in CodeBuild.</p> <note> <p>Using compute time for this action will incur separate charges in CodeBuild.</p> </note>"
+        },
         "outputArtifacts":{
           "shape":"OutputArtifactList",
           "documentation":"<p>The name or ID of the result of the action declaration, such as a test or build artifact.</p>"
@@ -925,6 +930,10 @@
         "inputArtifacts":{
           "shape":"InputArtifactList",
           "documentation":"<p>The name or ID of the artifact consumed by the action, such as a test or build artifact.</p>"
+        },
+        "outputVariables":{
+          "shape":"OutputVariableList",
+          "documentation":"<p>The list of variables that are to be exported from the compute action. This is specifically CodeBuild environment variables as used for that action.</p>"
         },
         "roleArn":{
           "shape":"RoleArn",
@@ -1792,6 +1801,17 @@
       "min":1
     },
     "Code":{"type":"string"},
+    "Command":{
+      "type":"string",
+      "max":1000,
+      "min":1
+    },
+    "CommandList":{
+      "type":"list",
+      "member":{"shape":"Command"},
+      "max":50,
+      "min":1
+    },
     "ConcurrentModificationException":{
       "type":"structure",
       "members":{
@@ -2281,6 +2301,10 @@
           "shape":"Result",
           "documentation":"<p>The specified result for when the failure conditions are met, such as rolling back the stage.</p>"
         },
+        "retryConfiguration":{
+          "shape":"RetryConfiguration",
+          "documentation":"<p>The retry configuration specifies automatic retry for a failed stage, along with the configured retry mode.</p>"
+        },
         "conditions":{
           "shape":"ConditionList",
           "documentation":"<p>The conditions that are configured as failure conditions.</p>"
@@ -2320,6 +2344,17 @@
         "RevisionUnavailable",
         "SystemUnavailable"
       ]
+    },
+    "FilePath":{
+      "type":"string",
+      "max":128,
+      "min":1
+    },
+    "FilePathList":{
+      "type":"list",
+      "member":{"shape":"FilePath"},
+      "max":10,
+      "min":1
     },
     "GetActionTypeInput":{
       "type":"structure",
@@ -3301,6 +3336,10 @@
         "name":{
           "shape":"ArtifactName",
           "documentation":"<p>The name of the output of an artifact, such as \"My App\".</p> <p>The input artifact of an action must exactly match the output artifact declared in a preceding action, but the input artifact does not have to be the next action in strict sequence from the action that provided the output artifact. Actions in parallel can declare different output artifacts, which are in turn consumed by different following actions.</p> <p>Output artifact names must be unique within a pipeline.</p>"
+        },
+        "files":{
+          "shape":"FilePathList",
+          "documentation":"<p>The files that you want to associate with the output artifact that will be exported from the compute action.</p>"
         }
       },
       "documentation":"<p>Represents information about the output of an action.</p>"
@@ -3308,6 +3347,17 @@
     "OutputArtifactList":{
       "type":"list",
       "member":{"shape":"OutputArtifact"}
+    },
+    "OutputVariable":{
+      "type":"string",
+      "max":128,
+      "min":1
+    },
+    "OutputVariableList":{
+      "type":"list",
+      "member":{"shape":"OutputVariable"},
+      "max":15,
+      "min":1
     },
     "OutputVariablesKey":{
       "type":"string",
@@ -4146,8 +4196,24 @@
       "type":"string",
       "enum":[
         "ROLLBACK",
-        "FAIL"
+        "FAIL",
+        "RETRY",
+        "SKIP"
       ]
+    },
+    "RetryAttempt":{
+      "type":"integer",
+      "min":1
+    },
+    "RetryConfiguration":{
+      "type":"structure",
+      "members":{
+        "retryMode":{
+          "shape":"StageRetryMode",
+          "documentation":"<p>The method that you want to configure for automatic stage retry on stage failure. You can specify to retry only failed action in the stage or all actions in the stage.</p>"
+        }
+      },
+      "documentation":"<p>The retry configuration specifies automatic retry for a failed stage, along with the configured retry mode.</p>"
     },
     "RetryStageExecutionInput":{
       "type":"structure",
@@ -4186,6 +4252,31 @@
         }
       },
       "documentation":"<p>Represents the output of a <code>RetryStageExecution</code> action.</p>"
+    },
+    "RetryStageMetadata":{
+      "type":"structure",
+      "members":{
+        "autoStageRetryAttempt":{
+          "shape":"RetryAttempt",
+          "documentation":"<p>The number of attempts for a specific stage with automatic retry on stage failure. One attempt is allowed for automatic stage retry on failure.</p>"
+        },
+        "manualStageRetryAttempt":{
+          "shape":"RetryAttempt",
+          "documentation":"<p>The number of attempts for a specific stage where manual retries have been made upon stage failure.</p>"
+        },
+        "latestRetryTrigger":{
+          "shape":"RetryTrigger",
+          "documentation":"<p>The latest trigger for a specific stage where manual or automatic retries have been made upon stage failure.</p>"
+        }
+      },
+      "documentation":"<p>The details of a specific automatic retry on stage failure, including the attempt number and trigger.</p>"
+    },
+    "RetryTrigger":{
+      "type":"string",
+      "enum":[
+        "AutomatedStageRetry",
+        "ManualStageRetry"
+      ]
     },
     "Revision":{
       "type":"string",
@@ -4926,7 +5017,8 @@
         "Failed",
         "Stopped",
         "Stopping",
-        "Succeeded"
+        "Succeeded",
+        "Skipped"
       ]
     },
     "StageName":{
@@ -4991,6 +5083,10 @@
         "onFailureConditionState":{
           "shape":"StageConditionState",
           "documentation":"<p>The state of the failure conditions for a stage.</p>"
+        },
+        "retryStageMetadata":{
+          "shape":"RetryStageMetadata",
+          "documentation":"<p>he details of a specific automatic retry on stage failure, including the attempt number and trigger.</p>"
         }
       },
       "documentation":"<p>Represents information about the state of the stage.</p>"
@@ -5506,5 +5602,5 @@
       "min":1
     }
   },
-  "documentation":"<fullname>CodePipeline</fullname> <p> <b>Overview</b> </p> <p>This is the CodePipeline API Reference. This guide provides descriptions of the actions and data types for CodePipeline. Some functionality for your pipeline can only be configured through the API. For more information, see the <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/welcome.html\">CodePipeline User Guide</a>.</p> <p>You can use the CodePipeline API to work with pipelines, stages, actions, and transitions.</p> <p> <i>Pipelines</i> are models of automated release processes. Each pipeline is uniquely named, and consists of stages, actions, and transitions. </p> <p>You can work with pipelines by calling:</p> <ul> <li> <p> <a>CreatePipeline</a>, which creates a uniquely named pipeline.</p> </li> <li> <p> <a>DeletePipeline</a>, which deletes the specified pipeline.</p> </li> <li> <p> <a>GetPipeline</a>, which returns information about the pipeline structure and pipeline metadata, including the pipeline Amazon Resource Name (ARN).</p> </li> <li> <p> <a>GetPipelineExecution</a>, which returns information about a specific execution of a pipeline.</p> </li> <li> <p> <a>GetPipelineState</a>, which returns information about the current state of the stages and actions of a pipeline.</p> </li> <li> <p> <a>ListActionExecutions</a>, which returns action-level details for past executions. The details include full stage and action-level details, including individual action duration, status, any errors that occurred during the execution, and input and output artifact location details.</p> </li> <li> <p> <a>ListPipelines</a>, which gets a summary of all of the pipelines associated with your account.</p> </li> <li> <p> <a>ListPipelineExecutions</a>, which gets a summary of the most recent executions for a pipeline.</p> </li> <li> <p> <a>StartPipelineExecution</a>, which runs the most recent revision of an artifact through the pipeline.</p> </li> <li> <p> <a>StopPipelineExecution</a>, which stops the specified pipeline execution from continuing through the pipeline.</p> </li> <li> <p> <a>UpdatePipeline</a>, which updates a pipeline with edits or changes to the structure of the pipeline.</p> </li> </ul> <p>Pipelines include <i>stages</i>. Each stage contains one or more actions that must complete before the next stage begins. A stage results in success or failure. If a stage fails, the pipeline stops at that stage and remains stopped until either a new version of an artifact appears in the source location, or a user takes action to rerun the most recent artifact through the pipeline. You can call <a>GetPipelineState</a>, which displays the status of a pipeline, including the status of stages in the pipeline, or <a>GetPipeline</a>, which returns the entire structure of the pipeline, including the stages of that pipeline. For more information about the structure of stages and actions, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/pipeline-structure.html\">CodePipeline Pipeline Structure Reference</a>.</p> <p>Pipeline stages include <i>actions</i> that are categorized into categories such as source or build actions performed in a stage of a pipeline. For example, you can use a source action to import artifacts into a pipeline from a source such as Amazon S3. Like stages, you do not work with actions directly in most cases, but you do define and interact with actions when working with pipeline operations such as <a>CreatePipeline</a> and <a>GetPipelineState</a>. Valid action categories are:</p> <ul> <li> <p>Source</p> </li> <li> <p>Build</p> </li> <li> <p>Test</p> </li> <li> <p>Deploy</p> </li> <li> <p>Approval</p> </li> <li> <p>Invoke</p> </li> </ul> <p>Pipelines also include <i>transitions</i>, which allow the transition of artifacts from one stage to the next in a pipeline after the actions in one stage complete.</p> <p>You can work with transitions by calling:</p> <ul> <li> <p> <a>DisableStageTransition</a>, which prevents artifacts from transitioning to the next stage in a pipeline.</p> </li> <li> <p> <a>EnableStageTransition</a>, which enables transition of artifacts between stages in a pipeline. </p> </li> </ul> <p> <b>Using the API to integrate with CodePipeline</b> </p> <p>For third-party integrators or developers who want to create their own integrations with CodePipeline, the expected sequence varies from the standard API user. To integrate with CodePipeline, developers need to work with the following items:</p> <p> <b>Jobs</b>, which are instances of an action. For example, a job for a source action might import a revision of an artifact from a source. </p> <p>You can work with jobs by calling:</p> <ul> <li> <p> <a>AcknowledgeJob</a>, which confirms whether a job worker has received the specified job.</p> </li> <li> <p> <a>GetJobDetails</a>, which returns the details of a job.</p> </li> <li> <p> <a>PollForJobs</a>, which determines whether there are any jobs to act on.</p> </li> <li> <p> <a>PutJobFailureResult</a>, which provides details of a job failure. </p> </li> <li> <p> <a>PutJobSuccessResult</a>, which provides details of a job success.</p> </li> </ul> <p> <b>Third party jobs</b>, which are instances of an action created by a partner action and integrated into CodePipeline. Partner actions are created by members of the Amazon Web Services Partner Network.</p> <p>You can work with third party jobs by calling:</p> <ul> <li> <p> <a>AcknowledgeThirdPartyJob</a>, which confirms whether a job worker has received the specified job.</p> </li> <li> <p> <a>GetThirdPartyJobDetails</a>, which requests the details of a job for a partner action.</p> </li> <li> <p> <a>PollForThirdPartyJobs</a>, which determines whether there are any jobs to act on. </p> </li> <li> <p> <a>PutThirdPartyJobFailureResult</a>, which provides details of a job failure.</p> </li> <li> <p> <a>PutThirdPartyJobSuccessResult</a>, which provides details of a job success.</p> </li> </ul>"
+  "documentation":"<fullname>CodePipeline</fullname> <p> <b>Overview</b> </p> <p>This is the CodePipeline API Reference. This guide provides descriptions of the actions and data types for CodePipeline. Some functionality for your pipeline can only be configured through the API. For more information, see the <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/welcome.html\">CodePipeline User Guide</a>.</p> <p>You can use the CodePipeline API to work with pipelines, stages, actions, and transitions.</p> <p> <i>Pipelines</i> are models of automated release processes. Each pipeline is uniquely named, and consists of stages, actions, and transitions. </p> <p>You can work with pipelines by calling:</p> <ul> <li> <p> <a>CreatePipeline</a>, which creates a uniquely named pipeline.</p> </li> <li> <p> <a>DeletePipeline</a>, which deletes the specified pipeline.</p> </li> <li> <p> <a>GetPipeline</a>, which returns information about the pipeline structure and pipeline metadata, including the pipeline Amazon Resource Name (ARN).</p> </li> <li> <p> <a>GetPipelineExecution</a>, which returns information about a specific execution of a pipeline.</p> </li> <li> <p> <a>GetPipelineState</a>, which returns information about the current state of the stages and actions of a pipeline.</p> </li> <li> <p> <a>ListActionExecutions</a>, which returns action-level details for past executions. The details include full stage and action-level details, including individual action duration, status, any errors that occurred during the execution, and input and output artifact location details.</p> </li> <li> <p> <a>ListPipelines</a>, which gets a summary of all of the pipelines associated with your account.</p> </li> <li> <p> <a>ListPipelineExecutions</a>, which gets a summary of the most recent executions for a pipeline.</p> </li> <li> <p> <a>StartPipelineExecution</a>, which runs the most recent revision of an artifact through the pipeline.</p> </li> <li> <p> <a>StopPipelineExecution</a>, which stops the specified pipeline execution from continuing through the pipeline.</p> </li> <li> <p> <a>UpdatePipeline</a>, which updates a pipeline with edits or changes to the structure of the pipeline.</p> </li> </ul> <p>Pipelines include <i>stages</i>. Each stage contains one or more actions that must complete before the next stage begins. A stage results in success or failure. If a stage fails, the pipeline stops at that stage and remains stopped until either a new version of an artifact appears in the source location, or a user takes action to rerun the most recent artifact through the pipeline. You can call <a>GetPipelineState</a>, which displays the status of a pipeline, including the status of stages in the pipeline, or <a>GetPipeline</a>, which returns the entire structure of the pipeline, including the stages of that pipeline. For more information about the structure of stages and actions, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/pipeline-structure.html\">CodePipeline Pipeline Structure Reference</a>.</p> <p>Pipeline stages include <i>actions</i> that are categorized into categories such as source or build actions performed in a stage of a pipeline. For example, you can use a source action to import artifacts into a pipeline from a source such as Amazon S3. Like stages, you do not work with actions directly in most cases, but you do define and interact with actions when working with pipeline operations such as <a>CreatePipeline</a> and <a>GetPipelineState</a>. Valid action categories are:</p> <ul> <li> <p>Source</p> </li> <li> <p>Build</p> </li> <li> <p>Test</p> </li> <li> <p>Deploy</p> </li> <li> <p>Approval</p> </li> <li> <p>Invoke</p> </li> <li> <p>Compute</p> </li> </ul> <p>Pipelines also include <i>transitions</i>, which allow the transition of artifacts from one stage to the next in a pipeline after the actions in one stage complete.</p> <p>You can work with transitions by calling:</p> <ul> <li> <p> <a>DisableStageTransition</a>, which prevents artifacts from transitioning to the next stage in a pipeline.</p> </li> <li> <p> <a>EnableStageTransition</a>, which enables transition of artifacts between stages in a pipeline. </p> </li> </ul> <p> <b>Using the API to integrate with CodePipeline</b> </p> <p>For third-party integrators or developers who want to create their own integrations with CodePipeline, the expected sequence varies from the standard API user. To integrate with CodePipeline, developers need to work with the following items:</p> <p> <b>Jobs</b>, which are instances of an action. For example, a job for a source action might import a revision of an artifact from a source. </p> <p>You can work with jobs by calling:</p> <ul> <li> <p> <a>AcknowledgeJob</a>, which confirms whether a job worker has received the specified job.</p> </li> <li> <p> <a>GetJobDetails</a>, which returns the details of a job.</p> </li> <li> <p> <a>PollForJobs</a>, which determines whether there are any jobs to act on.</p> </li> <li> <p> <a>PutJobFailureResult</a>, which provides details of a job failure. </p> </li> <li> <p> <a>PutJobSuccessResult</a>, which provides details of a job success.</p> </li> </ul> <p> <b>Third party jobs</b>, which are instances of an action created by a partner action and integrated into CodePipeline. Partner actions are created by members of the Amazon Web Services Partner Network.</p> <p>You can work with third party jobs by calling:</p> <ul> <li> <p> <a>AcknowledgeThirdPartyJob</a>, which confirms whether a job worker has received the specified job.</p> </li> <li> <p> <a>GetThirdPartyJobDetails</a>, which requests the details of a job for a partner action.</p> </li> <li> <p> <a>PollForThirdPartyJobs</a>, which determines whether there are any jobs to act on. </p> </li> <li> <p> <a>PutThirdPartyJobFailureResult</a>, which provides details of a job failure.</p> </li> <li> <p> <a>PutThirdPartyJobSuccessResult</a>, which provides details of a job success.</p> </li> </ul>"
 }

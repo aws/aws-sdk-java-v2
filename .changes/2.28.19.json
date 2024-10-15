@@ -1,0 +1,24 @@
+{
+    "version": "2.28.19",
+    "date": "2024-10-09",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "This change adds the default retry conditions in the client builder if none are configured to behave similarly to retry policies that are configured behind the scenes without the users having to do that themselves. This will prevent customers using directly the retry strategies builders from `DefaultRetryStrategy` to end up with a no-op strategy."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodePipeline",
+            "contributor": "",
+            "description": "AWS CodePipeline introduces a Compute category"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

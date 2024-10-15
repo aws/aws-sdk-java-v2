@@ -1,4 +1,279 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.22__ __2024-10-14__
+## __AWS CodePipeline__
+  - ### Features
+    - AWS CodePipeline V2 type pipelines now support automatically retrying failed stages and skipping stage for failed entry conditions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds an option to set 'appId' metadata to the client builder or to system settings and config files. This metadata string value will be added to the user agent string as `app/somevalue`
+    - Updated endpoint and partition metadata.
+
+## __AWS Supply Chain__
+  - ### Features
+    - This release adds AWS Supply Chain instance management functionality. Specifically adding CreateInstance, DeleteInstance, GetInstance, ListInstances, and UpdateInstance APIs.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release enables customers using SFTP connectors to query the transfer status of their files to meet their monitoring needs as well as orchestrate post transfer actions.
+
+## __Amazon Security Lake__
+  - ### Features
+    - This release updates request validation regex for resource ARNs.
+
+## __MailManager__
+  - ### Features
+    - Mail Manager support for viewing and exporting metadata of archived messages.
+
+# __2.28.21__ __2024-10-11__
+## __AWS RoboMaker__
+  - ### Features
+    - Documentation update: added support notices to each API action.
+
+## __Amazon Appflow__
+  - ### Features
+    - Doc only updates for clarification around OAuth2GrantType for Salesforce.
+
+## __Amazon EMR__
+  - ### Features
+    - This release provides new parameter "Context" in instance fleet clusters.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added a new field for network connection details.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Add zonal_shift.config.enabled attribute. Add new AdministrativeOverride construct in the describe-target-health API response to include information about the override status applied to a target.
+
+# __2.28.20__ __2024-10-10__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Documentation updates for AWS Private CA.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Introduces DescribeDataMigrations, CreateDataMigration, ModifyDataMigration, DeleteDataMigration, StartDataMigration, StopDataMigration operations to SDK. Provides FailedDependencyFault error message.
+
+## __AWS End User Messaging Social__
+  - ### Features
+    - This release for AWS End User Messaging includes a public SDK, providing a suite of APIs that enable sending WhatsApp messages to end users.
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - Refine campaign related API validations
+
+## __AWS Outposts__
+  - ### Features
+    - Adding new "DELIVERED" enum value for Outposts Order status
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation only release that updates to documentation to let customers know that Amazon Elastic Inference is no longer available.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for assigning the billing of shared Amazon EC2 On-Demand Capacity Reservations.
+
+## __Amazon Elastic Inference__
+  - ### Features
+    - Elastic Inference - Documentation update to add service shutdown notice.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Support for 16 m-NCU graphs available through account allowlisting
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Route 53 Resolver Forwarding Rules can now include a server name indication (SNI) in the target address for rules that use the DNS-over-HTTPS (DoH) protocol. When a DoH-enabled Outbound Resolver Endpoint forwards a request to a DoH server, it will provide the SNI in the TLS handshake.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - This release updates our regex based validation rules in regards to valid DbInstance and DbParameterGroup name.
+
+# __2.28.19__ __2024-10-09__
+## __AWS CodePipeline__
+  - ### Features
+    - AWS CodePipeline introduces a Compute category
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - This change adds the default retry conditions in the client builder if none are configured to behave similarly to retry policies that are configured behind the scenes without the users having to do that themselves. This will prevent customers using directly the retry strategies builders from `DefaultRetryStrategy` to end up with a no-op strategy.
+
+# __2.28.18__ __2024-10-08__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - AWS ElastiCache SDK now supports using APIs with newly launched Valkey engine. Please refer to updated AWS ElastiCache public documentation for detailed information on API usage.
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Amazon MemoryDB SDK now supports all APIs for newly launched Valkey engine. Please refer to the updated Amazon MemoryDB public documentation for detailed information on API usage.
+
+# __2.28.17__ __2024-10-07__
+## __AWS Marketplace Reporting Service__
+  - ### Features
+    - Documentation-only update for AWS Marketplace Reporting API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Add support for using the template from a previous job during job creation and listing parameter definitions for a job.
+
+## __Amazon Q Connect__
+  - ### Features
+    - This release adds support for the following capabilities: Configuration of the Gen AI system via AIAgent and AIPrompts. Integration support for Bedrock Knowledge Base.
+
+## __Amazon Redshift__
+  - ### Features
+    - Add validation pattern to S3KeyPrefix on the EnableLogging API
+
+# __2.28.16__ __2024-10-04__
+## __AWS IoT Data Plane__
+  - ### Features
+    - Add v2 smoke tests and smithy smokeTests trait for SDK testing.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Amazon EC2.
+
+# __2.28.15__ __2024-10-03__
+## __AWS CodePipeline__
+  - ### Features
+    - AWS CodePipeline introduces Commands action that enables you to easily run shell commands as part of your pipeline execution.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Added support for ClipStartTime on the FilterConfiguration object on OriginEndpoint manifest settings objects. Added support for EXT-X-START tags on produced HLS child playlists.
+
+## __AWS IoT__
+  - ### Features
+    - This release adds support for Custom Authentication with X.509 Client Certificates, support for Custom Client Certificate validation, and support for selecting application protocol and authentication type without requiring TLS ALPN for customer's AWS IoT Domain Configurations.
+
+## __AWS Marketplace Reporting Service__
+  - ### Features
+    - The AWS Marketplace Reporting service introduces the GetBuyerDashboard API. This API returns a dashboard that provides visibility into your organization's AWS Marketplace agreements and associated spend across the AWS accounts in your organization.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Public GetMetricDataV2 Grouping increase from 3 to 4
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release includes a new API for modifying instance cpu-options after launch.
+
+## __Amazon QuickSight__
+  - ### Features
+    - QuickSight: Add support for exporting and importing folders in AssetBundle APIs
+
+# __2.28.14__ __2024-10-02__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Added and updated APIs to support outbound EDI transformations
+
+## __AWS IoT Core Device Advisor__
+  - ### Features
+    - Add clientToken attribute and implement idempotency for CreateSuiteDefinition.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Added raw model response and usage metrics to PreProcessing and PostProcessing Trace
+
+## __Amazon AppStream__
+  - ### Features
+    - Added support for Automatic Time Zone Redirection on Amazon AppStream 2.0
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Added new fields to Amazon Bedrock Guardrails trace
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Adds new Stage Health EventErrorCodes applicable to RTMP(S) broadcasts. Bug Fix: Enforces that EncoderConfiguration Video height and width must be even-number values.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - releasing builtinlcc to public
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release introduces a header representing the minimum object size limit for Lifecycle transitions.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - WSP is being rebranded to become DCV.
+
+# __2.28.13__ __2024-10-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release adds support to stop an ongoing ingestion job using the StopIngestionJob API in Agents for Amazon Bedrock.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release provides additional support for enabling Aurora Limitless Database DB clusters.
+
+## __CodeArtifact__
+  - ### Features
+    - Add support for the dual stack endpoints.
+
+# __2.28.12__ __2024-09-30__
+## __AWS Price List Service__
+  - ### Features
+    - Add examples for API operations in model.
+
+## __AWS Resource Groups__
+  - ### Features
+    - This update includes new APIs to support application groups and to allow users to manage resource tag-sync tasks in applications.
+
+## __AWS Supply Chain__
+  - ### Features
+    - Release DataLakeDataset, DataIntegrationFlow and ResourceTagging APIs for AWS Supply Chain
+
+## __Amazon Bedrock__
+  - ### Features
+    - Add support for custom models via provisioned throughput for Bedrock Model Evaluation
+
+## __Amazon CloudDirectory__
+  - ### Features
+    - Add examples for API operations in model.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect introduces StartOutboundChatContact API allowing customers to initiate outbound chat contacts
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Add examples for API operations in model.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - Timestream for InfluxDB now supports port configuration and additional customer-modifiable InfluxDB v2 parameters. This release adds Port to the CreateDbInstance and UpdateDbInstance API, and additional InfluxDB v2 parameters to the CreateDbParameterGroup API.
+
 # __2.28.11__ __2024-09-27__
 ## __AWS SDK for Java v2__
   - ### Features

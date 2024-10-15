@@ -34,6 +34,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.USER_AGENT_APP_ID;
 import static software.amazon.awssdk.utils.ScheduledExecutorUtils.unmanagedScheduledExecutor;
 import static software.amazon.awssdk.utils.ScheduledExecutorUtils.unwrapUnmanagedScheduledExecutor;
 
@@ -120,6 +121,7 @@ public final class ClientOverrideConfiguration
         options.add(CONFIGURED_RETRY_STRATEGY);
         options.add(CONFIGURED_RETRY_CONFIGURATOR);
         options.add(CONFIGURED_RETRY_MODE);
+        options.add(USER_AGENT_APP_ID);
         CLIENT_OVERRIDE_OPTIONS = Collections.unmodifiableSet(options);
 
         Set<ClientOption<?>> resolvedOptions = new HashSet<>();
@@ -381,6 +383,14 @@ public final class ClientOverrideConfiguration
         return Optional.ofNullable(compressionConfig);
     }
 
+    /**
+     * An optional user specified identification value to be appended to the user agent header.
+     * For more information, see {@link SdkClientOption#USER_AGENT_APP_ID}.
+     */
+    public Optional<String> appId() {
+        return Optional.ofNullable(config.option(USER_AGENT_APP_ID));
+    }
+
     @Override
     public String toString() {
         return ToString.builder("ClientOverrideConfiguration")
@@ -395,6 +405,7 @@ public final class ClientOverrideConfiguration
                        .add("profileName", defaultProfileName().orElse(null))
                        .add("scheduledExecutorService", scheduledExecutorService().orElse(null))
                        .add("compressionConfiguration", compressionConfiguration().orElse(null))
+                       .add("appId", appId().orElse(null))
                        .build();
     }
 
@@ -757,6 +768,16 @@ public final class ClientOverrideConfiguration
         }
 
         CompressionConfiguration compressionConfiguration();
+
+        /**
+         * Sets the appId for this client. See {@link SdkClientOption#USER_AGENT_APP_ID}.
+         */
+        Builder appId(String appId);
+
+        /**
+         * The appId for this client. See {@link SdkClientOption#USER_AGENT_APP_ID}.
+         */
+        String appId();
     }
 
     /**
@@ -1087,6 +1108,17 @@ public final class ClientOverrideConfiguration
                 return resolvedCompressionConfig;
             }
             return config.option(CONFIGURED_COMPRESSION_CONFIGURATION);
+        }
+
+        @Override
+        public String appId() {
+            return config.option(USER_AGENT_APP_ID);
+        }
+
+        @Override
+        public Builder appId(String appId) {
+            config.option(USER_AGENT_APP_ID, appId);
+            return this;
         }
 
         @Override
