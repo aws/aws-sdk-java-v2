@@ -1,4 +1,9 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.24__ __2024-10-16__
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Add support for the new optional bucket-region and prefix query parameters in the ListBuckets API. For ListBuckets requests that express pagination, Amazon S3 will now return both the bucket names and associated AWS regions in the response.
+
 # __2.28.23__ __2024-10-15__
 ## __AWS Amplify__
   - ### Features
