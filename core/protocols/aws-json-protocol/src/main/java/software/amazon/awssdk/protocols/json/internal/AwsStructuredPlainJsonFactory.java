@@ -19,8 +19,9 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.json.BaseAwsStructuredJsonFactory;
 import software.amazon.awssdk.protocols.json.SdkJsonGenerator;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
-import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
+import software.amazon.awssdk.thirdparty.jackson.core.StreamReadFeature;
+import software.amazon.awssdk.thirdparty.jackson.core.StreamWriteFeature;
 
 /**
  * Creates generators and protocol handlers for plain text JSON wire format.
@@ -29,10 +30,13 @@ import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 public final class AwsStructuredPlainJsonFactory {
 
     /**
-     * Recommended to share JsonFactory instances per http://wiki.fasterxml
-     * .com/JacksonBestPracticesPerformance
+     * Recommended to share JsonFactory instances per http://wiki.fasterxml.com/JacksonBestPracticesPerformance
      */
-    private static final JsonFactory JSON_FACTORY = new JsonFactory();
+    private static final JsonFactory JSON_FACTORY = JsonFactory.builder()
+                                                               .enable(StreamReadFeature.USE_FAST_BIG_NUMBER_PARSER)
+                                                               .enable(StreamReadFeature.USE_FAST_DOUBLE_PARSER)
+                                                               .enable(StreamWriteFeature.USE_FAST_DOUBLE_WRITER)
+                                                               .build();
 
     public static final BaseAwsStructuredJsonFactory SDK_JSON_FACTORY = new BaseAwsStructuredJsonFactory(JSON_FACTORY) {
         @Override
@@ -43,7 +47,7 @@ public final class AwsStructuredPlainJsonFactory {
 
         @Override
         public JsonFactory getJsonFactory() {
-            return JsonNodeParser.DEFAULT_JSON_FACTORY;
+            return JSON_FACTORY;
         }
     };
 

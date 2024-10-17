@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -98,7 +99,6 @@ public class AwsServiceModel implements ClassSpec {
         if (shapeModel.isEventStream()) {
             return eventStreamInterfaceSpec();
         }
-
         List<FieldSpec> fields = shapeModelSpec.fields();
 
         TypeSpec.Builder specBuilder = TypeSpec.classBuilder(className())
@@ -110,8 +110,8 @@ public class AwsServiceModel implements ClassSpec {
                                                .addFields(fields)
                                                .addFields(shapeModelSpec.staticFields())
                                                .addMethod(addModifier(sdkFieldsMethod(), FINAL))
+                                               .addMethod(addModifier(sdkFieldNameToFieldMethod(), FINAL))
                                                .addTypes(nestedModelClassTypes());
-
 
         if (shapeModel.isUnion()) {
             specBuilder.addField(unionTypeField());
@@ -313,6 +313,17 @@ public class AwsServiceModel implements ClassSpec {
                          .addAnnotation(Override.class)
                          .returns(ParameterizedTypeName.get(ClassName.get(List.class), sdkFieldType))
                          .addCode("return SDK_FIELDS;")
+                         .build();
+    }
+
+    private MethodSpec sdkFieldNameToFieldMethod() {
+        ParameterizedTypeName sdkFieldType = ParameterizedTypeName.get(ClassName.get(SdkField.class),
+                                                                       WildcardTypeName.subtypeOf(ClassName.get(Object.class)));
+        return MethodSpec.methodBuilder("sdkFieldNameToField")
+                         .addModifiers(PUBLIC)
+                         .addAnnotation(Override.class)
+                         .returns(ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class), sdkFieldType))
+                         .addCode("return SDK_NAME_TO_FIELD;")
                          .build();
     }
 
