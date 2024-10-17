@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.25__ __2024-10-17__
+## __AWS Data Exchange__
+  - ### Features
+    - This release adds Data Grant support, through which customers can programmatically create data grants to share with other AWS accounts and accept data grants from other AWS accounts.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Removing support for topK property in PromptModelInferenceConfiguration object, Making PromptTemplateConfiguration property as required, Limiting the maximum PromptVariant to 1
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is an Amazon ECS documentation only update to address tickets.
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - This release adds validation to require specifying a SecurityGroup and Subnets in the Vpc object under PipesSourceSelfManagedKafkaParameters. It also adds support for iso-e, iso-f, and other non-commercial partitions in ARN parameters.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - Added the registrations status of REQUIRES_AUTHENTICATION
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add StartDashboardSnapshotJobSchedule API. RestoreAnalysis now supports restoring analysis to folders.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for TAZ IAM support
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Updated the DomainName pattern for Active Directory
+
 # __2.28.24__ __2024-10-16__
 ## __Amazon Simple Storage Service__
   - ### Features
