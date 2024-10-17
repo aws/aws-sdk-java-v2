@@ -35,13 +35,20 @@ public final class UserAgentConstant {
     public static final String CONFIG_METADATA = "cfg";
     public static final String FRAMEWORK_METADATA = "lib";
     public static final String METADATA = "md";
+    public static final String BUSINESS_METADATA = "m";
     public static final String INTERNAL_METADATA_MARKER = "internal";
     public static final String APP_ID = "app";
+
+    public static final String UA_VERSION = "2.1";
+
+    public static final String METRICS_TAG = "sdk-metrics";
+
 
     //Separators used in SDK user agent
     public static final String SLASH = "/";
     public static final String HASH = "#";
     public static final String SPACE = " ";
+    public static final String COMMA = ",";
 
     //Java user agent tags/names
     public static final String IO = "io";

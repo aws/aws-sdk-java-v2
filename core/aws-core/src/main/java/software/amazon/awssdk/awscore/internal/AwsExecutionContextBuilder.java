@@ -16,9 +16,13 @@
 package software.amazon.awssdk.awscore.internal;
 
 import static software.amazon.awssdk.auth.signer.internal.util.SignerMethodResolver.resolveSigningMethodUsed;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
+import static software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetricsUtils.resolveRetryMode;
 
 import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
@@ -43,6 +47,7 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
+import software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetrics;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.EndpointProvider;
@@ -116,7 +121,8 @@ public final class AwsExecutionContextBuilder {
                           clientConfig.option(AwsClientOption.USE_GLOBAL_ENDPOINT))
             .putAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE,
                           clientConfig.option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE))
-            .putAttribute(RESOLVED_CHECKSUM_SPECS, HttpChecksumResolver.resolveChecksumSpecs(executionAttributes));
+            .putAttribute(RESOLVED_CHECKSUM_SPECS, HttpChecksumResolver.resolveChecksumSpecs(executionAttributes))
+            .putAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS, resolveUserAgentBusinessMetrics(clientConfig));
 
         // Auth Scheme resolution related attributes
         putAuthSchemeResolutionAttributes(executionAttributes, clientConfig, originalRequest);
@@ -264,7 +270,6 @@ public final class AwsExecutionContextBuilder {
         return metricCollector;
     }
 
-
     /**
      * Resolves the endpoint provider, with the request override configuration taking precedence over the
      * provided default client clientConfig.
@@ -277,5 +282,11 @@ public final class AwsExecutionContextBuilder {
                       .orElse(clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER));
     }
 
-
+    private static BusinessMetrics resolveUserAgentBusinessMetrics(SdkClientConfiguration clientConfig) {
+        BusinessMetrics businessMetrics = new BusinessMetrics();
+        Optional<String> retryModeMetric = resolveRetryMode(clientConfig.option(RETRY_POLICY),
+                                                            clientConfig.option(RETRY_STRATEGY));
+        retryModeMetric.ifPresent(businessMetrics::addMetric);
+        return businessMetrics;
+    }
 }
