@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon WorkSpaces",
-    "contributor": "",
-    "description": "Updated the DomainName pattern for Active Directory"
-}

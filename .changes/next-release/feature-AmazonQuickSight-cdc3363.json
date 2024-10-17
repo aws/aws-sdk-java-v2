@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon QuickSight",
-    "contributor": "",
-    "description": "Add StartDashboardSnapshotJobSchedule API. RestoreAnalysis now supports restoring analysis to folders."
-}
