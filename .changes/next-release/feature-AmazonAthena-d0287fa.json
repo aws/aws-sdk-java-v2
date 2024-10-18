@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Athena",
-    "contributor": "",
-    "description": "Removing FEDERATED from Create/List/Delete/GetDataCatalog API"
-}
