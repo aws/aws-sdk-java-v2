@@ -37,8 +37,8 @@ import software.amazon.awssdk.utils.Validate;
  * instead. This will close the underlying connection and require establishing a new HTTP connection on subsequent requests which
  * may outweigh the cost of reading the additional data.
  * <p>
- * Other http clients are not subject to this behaviour so {@link ResponseInputStream#close() close} and
- * {@link ResponseInputStream#abort()} will behave similarly with them.
+ * The Url Connection and Crt http clients are not subject to this behaviour so the {@link ResponseInputStream#close() close} and
+ * {@link ResponseInputStream#abort() abort} methods will behave similarly with them.
  */
 @SdkPublicApi
 public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream implements Abortable {
