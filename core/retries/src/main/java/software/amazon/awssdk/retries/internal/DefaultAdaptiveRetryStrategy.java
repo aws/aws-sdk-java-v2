@@ -22,6 +22,7 @@ import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterTokenBucket;
 import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterTokenBucketStore;
@@ -136,6 +137,12 @@ public final class DefaultAdaptiveRetryStrategy
 
         public Builder tokenBucketStore(TokenBucketStore tokenBucketStore) {
             setTokenBucketStore(tokenBucketStore);
+            return this;
+        }
+
+        @Override
+        public Builder useClientDefaults(boolean useClientDefaults) {
+            setUseClientDefaults(useClientDefaults);
             return this;
         }
 

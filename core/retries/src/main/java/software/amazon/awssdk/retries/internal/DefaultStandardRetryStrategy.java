@@ -96,6 +96,12 @@ public final class DefaultStandardRetryStrategy
         }
 
         @Override
+        public Builder useClientDefaults(boolean useClientDefaults) {
+            setUseClientDefaults(useClientDefaults);
+            return this;
+        }
+
+        @Override
         public StandardRetryStrategy build() {
             return new DefaultStandardRetryStrategy(this);
         }

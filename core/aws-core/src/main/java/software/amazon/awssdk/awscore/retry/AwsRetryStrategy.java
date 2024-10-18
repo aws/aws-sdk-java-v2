@@ -26,12 +26,15 @@ import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.retries.LegacyRetryStrategy;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.retries.internal.BaseRetryStrategy;
 
 /**
  * Retry strategies used by clients when communicating with AWS services.
  */
 @SdkPublicApi
 public final class AwsRetryStrategy {
+
+    public static final String DEFAULTS_NAME = "aws";
 
     private AwsRetryStrategy() {
     }
@@ -127,7 +130,9 @@ public final class AwsRetryStrategy {
      * @return The given builder
      */
     public static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder) {
-        return builder.retryOnException(AwsRetryStrategy::retryOnAwsRetryableErrors);
+        builder.retryOnException(AwsRetryStrategy::retryOnAwsRetryableErrors);
+        markDefaultsAdded(builder);
+        return builder;
     }
 
     /**
@@ -160,6 +165,18 @@ public final class AwsRetryStrategy {
         return RetryPolicyAdapter.builder()
                                  .retryPolicy(AwsRetryPolicy.forRetryMode(RetryMode.ADAPTIVE))
                                  .build();
+    }
+
+    public static void applyDefault(RetryStrategy.Builder<?, ?> builder) {
+        configureStrategy(builder);
+        markDefaultsAdded(builder);
+    }
+
+    private static void markDefaultsAdded(RetryStrategy.Builder<?, ?> builder) {
+        if (builder instanceof BaseRetryStrategy.Builder) {
+            BaseRetryStrategy.Builder b = (BaseRetryStrategy.Builder) builder;
+            b.markDefaultAdded(DEFAULTS_NAME);
+        }
     }
 
 }
