@@ -55,6 +55,7 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
     protected final Predicate<Throwable> treatAsThrottling;
     protected final int exceptionCost;
     protected final TokenBucketStore tokenBucketStore;
+    protected final List<String> defaultsAdded;
 
     BaseRetryStrategy(Logger log, Builder builder) {
         this.log = log;
@@ -66,6 +67,7 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
         this.treatAsThrottling = Validate.paramNotNull(builder.treatAsThrottling, "treatAsThrottling");
         this.exceptionCost = Validate.paramNotNull(builder.exceptionCost, "exceptionCost");
         this.tokenBucketStore = Validate.paramNotNull(builder.tokenBucketStore, "tokenBucketStore");
+        this.defaultsAdded = Validate.paramNotNull(builder.defaulsAdded, "defaulsAdded");
     }
 
     /**
@@ -352,6 +354,21 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
                                      token.getClass().getName());
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("BaseRetryStrategy{");
+        sb.append("retryPredicates=").append(retryPredicates);
+        sb.append(", maxAttempts=").append(maxAttempts);
+        sb.append(", circuitBreakerEnabled=").append(circuitBreakerEnabled);
+        sb.append(", backoffStrategy=").append(backoffStrategy);
+        sb.append(", throttlingBackoffStrategy=").append(throttlingBackoffStrategy);
+        sb.append(", treatAsThrottling=").append(treatAsThrottling);
+        sb.append(", exceptionCost=").append(exceptionCost);
+        sb.append(", tokenBucketStore=").append(tokenBucketStore);
+        sb.append('}');
+        return sb.toString();
+    }
+
     static class Builder {
         private List<Predicate<Throwable>> retryPredicates;
         private int maxAttempts;
@@ -361,9 +378,11 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
         private BackoffStrategy throttlingBackoffStrategy;
         private Predicate<Throwable> treatAsThrottling = throwable -> false;
         private TokenBucketStore tokenBucketStore;
+        protected List<String> defaulsAdded;
 
         Builder() {
             retryPredicates = new ArrayList<>();
+            defaulsAdded = new ArrayList<>();
         }
 
         Builder(BaseRetryStrategy strategy) {
@@ -375,6 +394,7 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
             this.throttlingBackoffStrategy = strategy.throttlingBackoffStrategy;
             this.treatAsThrottling = strategy.treatAsThrottling;
             this.tokenBucketStore = strategy.tokenBucketStore;
+            this.defaulsAdded = strategy.defaultsAdded;
         }
 
         void setRetryOnException(Predicate<Throwable> shouldRetry) {
@@ -407,6 +427,9 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
 
         void setTokenBucketExceptionCost(int exceptionCost) {
             this.exceptionCost = exceptionCost;
+        }
+        void markDefaultAdded(String d) {
+            defaulsAdded.add(d);
         }
     }
 }

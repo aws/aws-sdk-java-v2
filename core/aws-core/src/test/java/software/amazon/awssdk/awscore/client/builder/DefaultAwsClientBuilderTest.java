@@ -44,6 +44,7 @@ import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDiscovery;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -249,6 +250,18 @@ public class DefaultAwsClientBuilderTest {
                 assertThat(property.getWriteMethod()).as(propertyName + " setter").isNotNull();
             });
         });
+    }
+
+    @Test
+    public void testRetry() {
+        TestClientBuilder builder = new TestClientBuilder();
+        builder.region(Region.US_WEST_2)
+               .overrideConfiguration(c -> c.retryStrategy(AwsRetryStrategy.standardRetryStrategy()
+                                                                           .toBuilder()
+                                                                           .maxAttempts(10)
+                                                                           .build()));
+        TestClient client = builder.build();
+        System.out.println(client.clientConfiguration.asOverrideConfiguration().retryStrategy());
     }
 
     private AwsClientBuilder<TestClientBuilder, TestClient> testClientBuilder() {

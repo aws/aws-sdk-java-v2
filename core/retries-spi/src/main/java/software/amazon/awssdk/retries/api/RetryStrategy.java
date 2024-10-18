@@ -18,6 +18,8 @@ package software.amazon.awssdk.retries.api;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * A strategy used by an SDK to determine when something should be retried.
@@ -97,7 +99,7 @@ public interface RetryStrategy {
      */
     interface Builder<
         B extends Builder<B, T>,
-        T extends RetryStrategy> {
+        T extends RetryStrategy> extends SdkBuilder<B, T> {
         /**
          * Configure the strategy to retry when the provided predicate returns true, given a failure exception.
          */
