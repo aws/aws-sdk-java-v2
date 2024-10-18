@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.26__ __2024-10-18__
+## __Amazon Athena__
+  - ### Features
+    - Removing FEDERATED from Create/List/Delete/GetDataCatalog API
+
+## __Amazon Bedrock__
+  - ### Features
+    - Adding converse support to CMI API's
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Added converse support for custom imported models
+
+## __Amazon DataZone__
+  - ### Features
+    - Adding the following project member designations: PROJECT_CATALOG_VIEWER, PROJECT_CATALOG_CONSUMER and PROJECT_CATALOG_STEWARD in the CreateProjectMembership API and PROJECT_CATALOG_STEWARD designation in the AddPolicyGrant API.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - RequestSpotInstances and RequestSpotFleet feature release.
+
 # __2.28.25__ __2024-10-17__
 ## __AWS Data Exchange__
   - ### Features
