@@ -30,11 +30,14 @@ import software.amazon.awssdk.thirdparty.org.slf4j.impl.internal.ILoggerFactoryA
 @SdkInternalApi
 public class StaticLoggerBinder {
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
-
+    private static final StaticLoggerBinder INSTANCE = new StaticLoggerBinder();
     private static final String LOGGER_BINDER_NAME = "org.slf4j.impl.StaticLoggerBinder";
     private static final Class<?> BINDER_CLASS;
     private static final Object IMPL;
     private static final State STATE;
+
+    private StaticLoggerBinder() {
+    }
 
     private enum State {
         INIT_FAILURE,
@@ -63,8 +66,6 @@ public class StaticLoggerBinder {
         IMPL = impl;
         STATE = initState;
     }
-
-    private static final StaticLoggerBinder INSTANCE = new StaticLoggerBinder();
 
     // SLF4J API
     public static final StaticLoggerBinder getSingleton() {
