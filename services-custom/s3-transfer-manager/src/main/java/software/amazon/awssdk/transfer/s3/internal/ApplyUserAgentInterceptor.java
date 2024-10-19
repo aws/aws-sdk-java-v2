@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import static software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage.SDK_METRICS;
+
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -23,6 +25,7 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.s3.model.S3Request;
 
 /**
@@ -30,8 +33,10 @@ import software.amazon.awssdk.services.s3.model.S3Request;
  */
 @SdkInternalApi
 public final class ApplyUserAgentInterceptor implements ExecutionInterceptor {
-    private static final ApiName API_NAME =
-        ApiName.builder().name("ft").version("s3-transfer").build();
+    private static final ApiName API_NAME = ApiName.builder()
+                                                   .name(SDK_METRICS)
+                                                   .version(BusinessMetricFeatureId.S3_TRANSFER.value())
+                                                   .build();
     private static final Consumer<AwsRequestOverrideConfiguration.Builder> USER_AGENT_APPLIER =
         b -> b.addApiName(API_NAME);
 

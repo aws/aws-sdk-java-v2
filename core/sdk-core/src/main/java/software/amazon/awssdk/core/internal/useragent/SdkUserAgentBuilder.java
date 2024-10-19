@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.internal.useragent;
 
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.APP_ID;
-import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.CONFIG_METADATA;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.ENV_METADATA;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.HTTP;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.INTERNAL_METADATA_MARKER;
@@ -25,11 +24,10 @@ import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.J
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.LANG_METADATA;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.METADATA;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.OS_METADATA;
-import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.RETRY_MODE;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.UA_METADATA;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.UA_VERSION;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.appendFieldAndSpace;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.appendNonEmptyField;
-import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.uaPair;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.uaPairOrNull;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -66,7 +64,7 @@ public final class SdkUserAgentBuilder {
             appendFieldAndSpace(uaString, METADATA, INTERNAL_METADATA_MARKER);
         }
 
-        appendNonEmptyField(uaString, UA_METADATA, "2.0");
+        appendNonEmptyField(uaString, UA_METADATA, UA_VERSION);
         appendNonEmptyField(uaString, OS_METADATA, systemValues.osMetadata());
         appendNonEmptyField(uaString, LANG_METADATA, systemValues.langMetadata());
         appendAdditionalJvmMetadata(uaString, systemValues);
@@ -74,11 +72,6 @@ public final class SdkUserAgentBuilder {
         String envMetadata = systemValues.envMetadata();
         if (!isEmptyOrUnknown(envMetadata)) {
             appendFieldAndSpace(uaString, ENV_METADATA, envMetadata);
-        }
-
-        String retryMode = userAgentProperties.getProperty(RETRY_MODE);
-        if (!StringUtils.isEmpty(retryMode)) {
-            appendFieldAndSpace(uaString, CONFIG_METADATA, uaPair(RETRY_MODE, retryMode));
         }
 
         String appId = userAgentProperties.getProperty(APP_ID);
