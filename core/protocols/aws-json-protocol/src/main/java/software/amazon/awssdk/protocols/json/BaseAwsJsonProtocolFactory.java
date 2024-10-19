@@ -87,10 +87,13 @@ public abstract class BaseAwsJsonProtocolFactory {
         this.customErrorCodeFieldName = builder.customErrorCodeFieldName;
         this.hasAwsQueryCompatible = builder.hasAwsQueryCompatible;
         this.clientConfiguration = builder.clientConfiguration;
-        Boolean enableFastUnmarshalling =
-            clientConfiguration.option(SdkClientJsonProtocolAdvancedOption.ENABLE_FAST_UNMARSHALLER);
-        if (enableFastUnmarshalling == null) {
-            enableFastUnmarshalling = false;
+        Boolean enableFastUnmarshalling = false;
+        if (clientConfiguration != null) {
+            enableFastUnmarshalling =
+                clientConfiguration.option(SdkClientJsonProtocolAdvancedOption.ENABLE_FAST_UNMARSHALLER);
+            if (enableFastUnmarshalling == null) {
+                enableFastUnmarshalling = false;
+            }
         }
         this.protocolUnmarshaller = JsonProtocolUnmarshaller.builder()
                                                             .enableFastUnmarshalling(enableFastUnmarshalling)
