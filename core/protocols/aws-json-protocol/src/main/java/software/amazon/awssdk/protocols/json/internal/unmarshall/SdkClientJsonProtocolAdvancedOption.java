@@ -20,13 +20,13 @@ import software.amazon.awssdk.core.client.config.ClientOption;
 
 @SdkInternalApi
 public class SdkClientJsonProtocolAdvancedOption<T> extends ClientOption<T> {
-    protected SdkClientJsonProtocolAdvancedOption(Class<T> valueClass) {
-        super(valueClass);
-    }
-
     /**
      * Enables the fast unmarshall code path. This option is internal and subject to removal in future releases of the SDK.
      */
     public static final SdkClientJsonProtocolAdvancedOption<Boolean> ENABLE_FAST_UNMARSHALLER =
         new SdkClientJsonProtocolAdvancedOption<>(Boolean.class);
+
+    protected SdkClientJsonProtocolAdvancedOption(Class<T> valueClass) {
+        super(valueClass);
+    }
 }
