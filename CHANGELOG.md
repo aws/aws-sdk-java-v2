@@ -1,4 +1,151 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.26__ __2024-10-18__
+## __Amazon Athena__
+  - ### Features
+    - Removing FEDERATED from Create/List/Delete/GetDataCatalog API
+
+## __Amazon Bedrock__
+  - ### Features
+    - Adding converse support to CMI API's
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Added converse support for custom imported models
+
+## __Amazon DataZone__
+  - ### Features
+    - Adding the following project member designations: PROJECT_CATALOG_VIEWER, PROJECT_CATALOG_CONSUMER and PROJECT_CATALOG_STEWARD in the CreateProjectMembership API and PROJECT_CATALOG_STEWARD designation in the AddPolicyGrant API.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - RequestSpotInstances and RequestSpotFleet feature release.
+
+# __2.28.25__ __2024-10-17__
+## __AWS Data Exchange__
+  - ### Features
+    - This release adds Data Grant support, through which customers can programmatically create data grants to share with other AWS accounts and accept data grants from other AWS accounts.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Removing support for topK property in PromptModelInferenceConfiguration object, Making PromptTemplateConfiguration property as required, Limiting the maximum PromptVariant to 1
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is an Amazon ECS documentation only update to address tickets.
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - This release adds validation to require specifying a SecurityGroup and Subnets in the Vpc object under PipesSourceSelfManagedKafkaParameters. It also adds support for iso-e, iso-f, and other non-commercial partitions in ARN parameters.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - Added the registrations status of REQUIRES_AUTHENTICATION
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add StartDashboardSnapshotJobSchedule API. RestoreAnalysis now supports restoring analysis to folders.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for TAZ IAM support
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Updated the DomainName pattern for Active Directory
+
+# __2.28.24__ __2024-10-16__
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Add support for the new optional bucket-region and prefix query parameters in the ListBuckets API. For ListBuckets requests that express pagination, Amazon S3 will now return both the bucket names and associated AWS regions in the response.
+
+# __2.28.23__ __2024-10-15__
+## __AWS Amplify__
+  - ### Features
+    - Added sourceUrlType field to StartDeployment request
+
+## __AWS CloudFormation__
+  - ### Features
+    - Documentation update for AWS CloudFormation API Reference.
+
+## __AWS CodeBuild__
+  - ### Features
+    - Enable proxy for reserved capacity fleet.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - AWS Resilience Hub now integrates with the myApplications platform, enabling customers to easily assess the resilience of applications defined in myApplications. The new Resiliency widget provides visibility into application resilience and actionable recommendations for improvement.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - On a channel that you own, you can now replace an ongoing stream with a new stream by streaming up with the priority parameter appended to the stream key.
+
+## __Amazon Redshift__
+  - ### Features
+    - This release launches the CreateIntegration, DeleteIntegration, DescribeIntegrations and ModifyIntegration APIs to create and manage Amazon Redshift Zero-ETL Integrations.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release adds support for email maximum delivery seconds that allows senders to control the time within which their emails are attempted for delivery.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - We are expanding support for 40 new locales in AWS Transcribe Streaming.
+
+## __QBusiness__
+  - ### Features
+    - Amazon Q Business now supports embedding the Amazon Q Business web experience on third-party websites.
+
+# __2.28.22__ __2024-10-14__
+## __AWS CodePipeline__
+  - ### Features
+    - AWS CodePipeline V2 type pipelines now support automatically retrying failed stages and skipping stage for failed entry conditions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds an option to set 'appId' metadata to the client builder or to system settings and config files. This metadata string value will be added to the user agent string as `app/somevalue`
+    - Updated endpoint and partition metadata.
+
+## __AWS Supply Chain__
+  - ### Features
+    - This release adds AWS Supply Chain instance management functionality. Specifically adding CreateInstance, DeleteInstance, GetInstance, ListInstances, and UpdateInstance APIs.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release enables customers using SFTP connectors to query the transfer status of their files to meet their monitoring needs as well as orchestrate post transfer actions.
+
+## __Amazon Security Lake__
+  - ### Features
+    - This release updates request validation regex for resource ARNs.
+
+## __MailManager__
+  - ### Features
+    - Mail Manager support for viewing and exporting metadata of archived messages.
+
+# __2.28.21__ __2024-10-11__
+## __AWS RoboMaker__
+  - ### Features
+    - Documentation update: added support notices to each API action.
+
+## __Amazon Appflow__
+  - ### Features
+    - Doc only updates for clarification around OAuth2GrantType for Salesforce.
+
+## __Amazon EMR__
+  - ### Features
+    - This release provides new parameter "Context" in instance fleet clusters.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added a new field for network connection details.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Add zonal_shift.config.enabled attribute. Add new AdministrativeOverride construct in the describe-target-health API response to include information about the override status applied to a target.
+
 # __2.28.20__ __2024-10-10__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features

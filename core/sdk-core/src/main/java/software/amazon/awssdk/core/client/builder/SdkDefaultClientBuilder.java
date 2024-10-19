@@ -48,6 +48,8 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_PO
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SYNC_HTTP_CLIENT;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.USER_AGENT_APP_ID;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.APP_ID;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.HTTP;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.INTERNAL_METADATA_MARKER;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.IO;
@@ -90,6 +92,7 @@ import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuil
 import software.amazon.awssdk.core.internal.http.pipeline.stages.CompressRequestStage;
 import software.amazon.awssdk.core.internal.interceptor.HttpChecksumValidationInterceptor;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
+import software.amazon.awssdk.core.internal.useragent.AppIdResolver;
 import software.amazon.awssdk.core.internal.useragent.SdkClientUserAgentProperties;
 import software.amazon.awssdk.core.internal.useragent.SdkUserAgentBuilder;
 import software.amazon.awssdk.core.retry.RetryMode;
@@ -149,7 +152,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private final SdkHttpClient.Builder defaultHttpClientBuilder;
     private final SdkAsyncHttpClient.Builder defaultAsyncHttpClientBuilder;
     private final List<SdkPlugin> plugins = new ArrayList<>();
-
 
 
     protected SdkDefaultClientBuilder() {
@@ -413,7 +415,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         SdkClientUserAgentProperties clientProperties = new SdkClientUserAgentProperties();
 
         ClientType clientType = config.get(CLIENT_TYPE);
-        ClientType resolvedClientType = clientType == null ? ClientType.UNKNOWN : config.get(CLIENT_TYPE);
+        ClientType resolvedClientType = clientType == null ? ClientType.UNKNOWN : clientType;
 
         clientProperties.putProperty(RETRY_MODE, StringUtils.lowerCase(resolveRetryMode(config.get(RETRY_POLICY),
                                                                                         config.get(RETRY_STRATEGY))));
@@ -422,8 +424,18 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         clientProperties.putProperty(HTTP, SdkHttpUtils.urlEncode(clientName(resolvedClientType,
                                                                              config.get(SYNC_HTTP_CLIENT),
                                                                              config.get(ASYNC_HTTP_CLIENT))));
-
+        String appId = config.get(USER_AGENT_APP_ID);
+        String resolvedAppId = appId == null ? resolveAppId(config) : appId;
+        clientProperties.putProperty(APP_ID, resolvedAppId);
         return SdkUserAgentBuilder.buildClientUserAgentString(SystemUserAgent.getOrCreate(), clientProperties);
+    }
+
+    private String resolveAppId(LazyValueSource config) {
+        Optional<String> appIdFromConfig = AppIdResolver.create()
+                                                        .profileFile(config.get(PROFILE_FILE_SUPPLIER))
+                                                        .profileName(config.get(PROFILE_NAME))
+                                                        .resolve();
+        return appIdFromConfig.orElse(null);
     }
 
     private static String clientName(ClientType clientType, SdkHttpClient syncHttpClient, SdkAsyncHttpClient asyncHttpClient) {
@@ -446,7 +458,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                        .resolve();
         return SdkDefaultRetryStrategy.forRetryMode(retryMode);
     }
-    
+
     /**
      * Finalize which sync HTTP client will be used for the created client.
      */
