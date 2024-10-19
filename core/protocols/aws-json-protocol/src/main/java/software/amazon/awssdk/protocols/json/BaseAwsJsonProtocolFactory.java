@@ -52,6 +52,7 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonResponse
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonResponseHandler;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.ProtocolUnmarshallDependencies;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonProtocolAdvancedOption;
 
 @SdkProtectedApi
 public abstract class BaseAwsJsonProtocolFactory {
@@ -86,7 +87,16 @@ public abstract class BaseAwsJsonProtocolFactory {
         this.customErrorCodeFieldName = builder.customErrorCodeFieldName;
         this.hasAwsQueryCompatible = builder.hasAwsQueryCompatible;
         this.clientConfiguration = builder.clientConfiguration;
+        Boolean enableFastUnmarshalling = false;
+        if (clientConfiguration != null) {
+            enableFastUnmarshalling =
+                clientConfiguration.option(SdkClientJsonProtocolAdvancedOption.ENABLE_FAST_UNMARSHALLER);
+            if (enableFastUnmarshalling == null) {
+                enableFastUnmarshalling = false;
+            }
+        }
         this.protocolUnmarshaller = JsonProtocolUnmarshaller.builder()
+                                                            .enableFastUnmarshalling(enableFastUnmarshalling)
                                                             .protocolUnmarshallDependencies(
                                                                 builder.protocolUnmarshallDependencies.get())
                                                             .build();
