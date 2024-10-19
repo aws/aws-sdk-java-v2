@@ -482,9 +482,8 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         if (model.getMetadata().isJsonProtocol()) {
             if (model.getCustomizationConfig().getEnableFastUnmarshaller()) {
-                builder.addStatement("builder.option($1T.ENABLE_FAST_UNMARSHALLER, true)", SdkClientJsonProtocolAdvancedOption.class);
-            } else {
-                builder.addStatement("builder.option($1T.ENABLE_FAST_UNMARSHALLER, false)", SdkClientJsonProtocolAdvancedOption.class);
+                builder.addStatement("builder.option($1T.ENABLE_FAST_UNMARSHALLER, true)",
+                                     SdkClientJsonProtocolAdvancedOption.class);
             }
         }
 
