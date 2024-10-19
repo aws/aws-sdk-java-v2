@@ -49,6 +49,11 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-cbor-protocol</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-query-protocol</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>

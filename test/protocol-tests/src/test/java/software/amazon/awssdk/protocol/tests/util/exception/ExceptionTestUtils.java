@@ -32,4 +32,8 @@ public class ExceptionTestUtils {
     public static void stub404Response(String path, String body) {
         stubFor(post(urlEqualTo(path)).willReturn(aResponse().withStatus(404).withBody(body)));
     }
+
+    public static void stub404Response(String path, byte[] body) {
+        stubFor(post(urlEqualTo(path)).willReturn(aResponse().withStatus(404).withBody(body)));
+    }
 }
