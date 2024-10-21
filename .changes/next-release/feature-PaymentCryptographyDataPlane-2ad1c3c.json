@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Payment Cryptography Data Plane",
-    "contributor": "",
-    "description": "Adding new API to generate authenticated scripts for EMV pin change use cases."
-}

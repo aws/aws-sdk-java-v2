@@ -1,4 +1,50 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.27__ __2024-10-21__
+## __AWS Database Migration Service__
+  - ### Features
+    - Added support for tagging in StartReplicationTaskAssessmentRun API and introduced IsLatestTaskAssessmentRun and ResultStatistic fields for enhanced tracking and assessment result statistics.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - upgrade netty version to 4.1.114.Final
+        - Contributed by: [@sullis](https://github.com/sullis)
+
+## __AWS WAFV2__
+  - ### Features
+    - Add a property to WebACL to indicate whether it's been retrofitted by Firewall Manager.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Knowledge Bases for Amazon Bedrock now supports custom prompts and model parameters in the orchestrationConfiguration of the RetrieveAndGenerate API. The modelArn field accepts Custom Models and Imported Models ARNs.
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - This feature enables customers to specify SNS Topic ARN. CloudWatch Application Insights (CWAI) will utilize this ARN to send problem notifications.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 now allows you to create network interfaces with just the EFA driver and no ENA driver by specifying the network interface type as efa-only.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - This release adds support for Amazon Application Recovery Controller (ARC) zonal shift and zonal autoshift with EKS that enhances the resiliency of multi-AZ cluster environments
+
+## __Auto Scaling__
+  - ### Features
+    - Adds support for removing the PlacementGroup setting on an Auto Scaling Group through the UpdateAutoScalingGroup API.
+
+## __Firewall Management Service__
+  - ### Features
+    - Update AWS WAF policy - add the option to retrofit existing web ACLs instead of creating all new web ACLs.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Adding new API to generate authenticated scripts for EMV pin change use cases.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sullis](https://github.com/sullis)
 # __2.28.26__ __2024-10-18__
 ## __Amazon Athena__
   - ### Features
