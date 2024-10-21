@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Firewall Management Service",
+    "contributor": "",
+    "description": "Update AWS WAF policy - add the option to retrofit existing web ACLs instead of creating all new web ACLs."
+}
