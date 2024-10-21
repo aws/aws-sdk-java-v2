@@ -44,6 +44,11 @@
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>third-party-jackson-dataformat-cbor</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-json-protocol</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
