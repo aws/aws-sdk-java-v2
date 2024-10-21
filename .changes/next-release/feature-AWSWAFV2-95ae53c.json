@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "contributor": "",
+    "description": "Add a property to WebACL to indicate whether it's been retrofitted by Firewall Manager."
+}
