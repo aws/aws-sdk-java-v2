@@ -3,7 +3,9 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -23,10 +25,17 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<BaseType.Builder, BaseType> {
     private static final SdkField<String> BASE_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-                                                                      .memberName("BaseMember").getter(getter(BaseType::baseMember)).setter(setter(Builder::baseMember))
-                                                                      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BaseMember").build()).build();
+            .memberName("BaseMember").getter(getter(BaseType::baseMember)).setter(setter(Builder::baseMember))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BaseMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(BASE_MEMBER_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections
+            .unmodifiableMap(new HashMap<String, SdkField<?>>() {
+                {
+                    put("BaseMember", BASE_MEMBER_FIELD);
+                }
+            });
 
     private static final long serialVersionUID = 1L;
 
@@ -44,7 +53,7 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
 
     /**
      * Returns the value of the BaseMember property for this object.
-     *
+     * 
      * @return The value of the BaseMember property for this object.
      */
     public final String baseMember() {
@@ -53,7 +62,7 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
 
     /**
      * Custom shape of type string
-     *
+     * 
      * @return Custom shape of type string
      */
     public final String customShape1() {
@@ -62,7 +71,7 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
 
     /**
      * Custom shape of type integer
-     *
+     * 
      * @return Custom shape of type integer
      */
     public final Integer customShape2() {
@@ -109,7 +118,7 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
         }
         BaseType other = (BaseType) obj;
         return Objects.equals(baseMember(), other.baseMember()) && Objects.equals(customShape1(), other.customShape1())
-               && Objects.equals(customShape2(), other.customShape2());
+                && Objects.equals(customShape2(), other.customShape2());
     }
 
     /**
@@ -119,25 +128,30 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
     @Override
     public final String toString() {
         return ToString.builder("BaseType").add("BaseMember", baseMember()).add("CustomShape1", customShape1())
-                       .add("CustomShape2", customShape2()).build();
+                .add("CustomShape2", customShape2()).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "BaseMember":
-                return Optional.ofNullable(clazz.cast(baseMember()));
-            case "CustomShape1":
-                return Optional.ofNullable(clazz.cast(customShape1()));
-            case "CustomShape2":
-                return Optional.ofNullable(clazz.cast(customShape2()));
-            default:
-                return Optional.empty();
+        case "BaseMember":
+            return Optional.ofNullable(clazz.cast(baseMember()));
+        case "CustomShape1":
+            return Optional.ofNullable(clazz.cast(customShape1()));
+        case "CustomShape2":
+            return Optional.ofNullable(clazz.cast(customShape2()));
+        default:
+            return Optional.empty();
         }
     }
 
     @Override
     public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
+    }
+
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
     }
 
     private static <T> Function<Object, T> getter(Function<BaseType, T> g) {
@@ -160,7 +174,7 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
 
         /**
          * Custom shape of type string
-         *
+         * 
          * @param customShape1
          *        Custom shape of type string
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -169,7 +183,7 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
 
         /**
          * Custom shape of type integer
-         *
+         * 
          * @param customShape2
          *        Custom shape of type integer
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -243,6 +257,11 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }
