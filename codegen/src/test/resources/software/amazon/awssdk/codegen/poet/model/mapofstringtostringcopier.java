@@ -16,7 +16,7 @@ final class MapOfStringToStringCopier {
         if (mapOfStringToStringParam == null || mapOfStringToStringParam instanceof SdkAutoConstructMap) {
             map = DefaultSdkAutoConstructMap.getInstance();
         } else {
-            Map<String, String> modifiableMap = new LinkedHashMap<>();
+            Map<String, String> modifiableMap = new LinkedHashMap<>(mapOfStringToStringParam.size());
             mapOfStringToStringParam.forEach((key, value) -> {
                 modifiableMap.put(key, value);
             });

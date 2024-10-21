@@ -1492,6 +1492,24 @@
       ],
       "documentation":"<p>Describes the current namespace.</p>"
     },
+    "DescribeQPersonalizationConfiguration":{
+      "name":"DescribeQPersonalizationConfiguration",
+      "http":{
+        "method":"GET",
+        "requestUri":"/accounts/{AwsAccountId}/q-personalization-configuration"
+      },
+      "input":{"shape":"DescribeQPersonalizationConfigurationRequest"},
+      "output":{"shape":"DescribeQPersonalizationConfigurationResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Describes a personalization configuration.</p>"
+    },
     "DescribeRefreshSchedule":{
       "name":"DescribeRefreshSchedule",
       "http":{
@@ -2008,6 +2026,25 @@
       ],
       "documentation":"<p>Lists all folders in an account.</p>"
     },
+    "ListFoldersForResource":{
+      "name":"ListFoldersForResource",
+      "http":{
+        "method":"GET",
+        "requestUri":"/accounts/{AwsAccountId}/resource/{ResourceArn}/folders"
+      },
+      "input":{"shape":"ListFoldersForResourceRequest"},
+      "output":{"shape":"ListFoldersForResourceResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InvalidNextTokenException"},
+        {"shape":"UnsupportedUserEditionException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>List all folders that a resource is a member of.</p>"
+    },
     "ListGroupMemberships":{
       "name":"ListGroupMemberships",
       "http":{
@@ -2473,6 +2510,8 @@
         {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"UnsupportedUserEditionException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"PreconditionNotMetException"},
         {"shape":"InternalFailureException"}
       ],
       "documentation":"<p>Restores an analysis.</p>"
@@ -2647,6 +2686,25 @@
         {"shape":"InternalFailureException"}
       ],
       "documentation":"<p>Starts an asynchronous job that generates a snapshot of a dashboard's output. You can request one or several of the following format configurations in each API call.</p> <ul> <li> <p>1 Paginated PDF</p> </li> <li> <p>1 Excel workbook that includes up to 5 table or pivot table visuals</p> </li> <li> <p>5 CSVs from table or pivot table visuals</p> </li> </ul> <p>The status of a submitted job can be polled with the <code>DescribeDashboardSnapshotJob</code> API. When you call the <code>DescribeDashboardSnapshotJob</code> API, check the <code>JobStatus</code> field in the response. Once the job reaches a <code>COMPLETED</code> or <code>FAILED</code> status, use the <code>DescribeDashboardSnapshotJobResult</code> API to obtain the URLs for the generated files. If the job fails, the <code>DescribeDashboardSnapshotJobResult</code> API returns detailed information about the error that occurred.</p> <p> <b>StartDashboardSnapshotJob API throttling</b> </p> <p>Amazon QuickSight utilizes API throttling to create a more consistent user experience within a time span for customers when they call the <code>StartDashboardSnapshotJob</code>. By default, 12 jobs can run simlutaneously in one Amazon Web Services account and users can submit up 10 API requests per second before an account is throttled. If an overwhelming number of API requests are made by the same user in a short period of time, Amazon QuickSight throttles the API calls to maintin an optimal experience and reliability for all Amazon QuickSight users.</p> <p> <b>Common throttling scenarios</b> </p> <p>The following list provides information about the most commin throttling scenarios that can occur.</p> <ul> <li> <p> <b>A large number of <code>SnapshotExport</code> API jobs are running simultaneously on an Amazon Web Services account.</b> When a new <code>StartDashboardSnapshotJob</code> is created and there are already 12 jobs with the <code>RUNNING</code> status, the new job request fails and returns a <code>LimitExceededException</code> error. Wait for a current job to comlpete before you resubmit the new job.</p> </li> <li> <p> <b>A large number of API requests are submitted on an Amazon Web Services account.</b> When a user makes more than 10 API calls to the Amazon QuickSight API in one second, a <code>ThrottlingException</code> is returned.</p> </li> </ul> <p>If your use case requires a higher throttling limit, contact your account admin or <a href=\"http://aws.amazon.com/contact-us/\">Amazon Web ServicesSupport</a> to explore options to tailor a more optimal expereince for your account.</p> <p> <b>Best practices to handle throttling</b> </p> <p>If your use case projects high levels of API traffic, try to reduce the degree of frequency and parallelism of API calls as much as you can to avoid throttling. You can also perform a timing test to calculate an estimate for the total processing time of your projected load that stays within the throttling limits of the Amazon QuickSight APIs. For example, if your projected traffic is 100 snapshot jobs before 12:00 PM per day, start 12 jobs in parallel and measure the amount of time it takes to proccess all 12 jobs. Once you obtain the result, multiply the duration by 9, for example <code>(12 minutes * 9 = 108 minutes)</code>. Use the new result to determine the latest time at which the jobs need to be started to meet your target deadline.</p> <p>The time that it takes to process a job can be impacted by the following factors:</p> <ul> <li> <p>The dataset type (Direct Query or SPICE).</p> </li> <li> <p>The size of the dataset.</p> </li> <li> <p>The complexity of the calculated fields that are used in the dashboard.</p> </li> <li> <p>The number of visuals that are on a sheet.</p> </li> <li> <p>The types of visuals that are on the sheet.</p> </li> <li> <p>The number of formats and snapshots that are requested in the job configuration.</p> </li> <li> <p>The size of the generated snapshots.</p> </li> </ul>"
+    },
+    "StartDashboardSnapshotJobSchedule":{
+      "name":"StartDashboardSnapshotJobSchedule",
+      "http":{
+        "method":"POST",
+        "requestUri":"/accounts/{AwsAccountId}/dashboards/{DashboardId}/schedules/{ScheduleId}"
+      },
+      "input":{"shape":"StartDashboardSnapshotJobScheduleRequest"},
+      "output":{"shape":"StartDashboardSnapshotJobScheduleResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"UnsupportedUserEditionException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Starts an asynchronous job that runs an existing dashboard schedule and sends the dashboard snapshot through email. </p> <p>Only one job can run simultaneously in a given schedule. Repeated requests are skipped with a <code>202</code> HTTP status code.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/sending-reports.html\">Scheduling and sending Amazon QuickSight reports by email</a> and <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/email-reports-from-dashboard.html\">Configuring email report settings for a Amazon QuickSight dashboard</a> in the <i>Amazon QuickSight User Guide</i>.</p>"
     },
     "TagResource":{
       "name":"TagResource",
@@ -3053,6 +3111,25 @@
         {"shape":"InternalFailureException"}
       ],
       "documentation":"<p>Use the <code>UpdatePublicSharingSettings</code> operation to turn on or turn off the public sharing settings of an Amazon QuickSight dashboard.</p> <p>To use this operation, turn on session capacity pricing for your Amazon QuickSight account.</p> <p>Before you can turn on public sharing on your account, make sure to give public sharing permissions to an administrative user in the Identity and Access Management (IAM) console. For more information on using IAM with Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/security_iam_service-with-iam.html\">Using Amazon QuickSight with IAM</a> in the <i>Amazon QuickSight User Guide</i>.</p>"
+    },
+    "UpdateQPersonalizationConfiguration":{
+      "name":"UpdateQPersonalizationConfiguration",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/accounts/{AwsAccountId}/q-personalization-configuration"
+      },
+      "input":{"shape":"UpdateQPersonalizationConfigurationRequest"},
+      "output":{"shape":"UpdateQPersonalizationConfigurationResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalFailureException"},
+        {"shape":"ResourceUnavailableException"}
+      ],
+      "documentation":"<p>Updates a personalization configuration.</p>"
     },
     "UpdateRefreshSchedule":{
       "name":"UpdateRefreshSchedule",
@@ -4140,6 +4217,10 @@
         "Dashboards":{
           "shape":"AssetBundleExportJobDashboardOverridePropertiesList",
           "documentation":"<p>An optional list of structures that control how <code>Dashboard</code> resources are parameterized in the returned CloudFormation template.</p>"
+        },
+        "Folders":{
+          "shape":"AssetBundleExportJobFolderOverridePropertiesList",
+          "documentation":"<p>An optional list of structures that controls how <code>Folder</code> resources are parameterized in the returned CloudFormation template.</p>"
         }
       },
       "documentation":"<p>An optional collection of CloudFormation property configurations that control how the export job is generated.</p>"
@@ -4327,6 +4408,43 @@
     "AssetBundleExportJobErrorList":{
       "type":"list",
       "member":{"shape":"AssetBundleExportJobError"}
+    },
+    "AssetBundleExportJobFolderOverrideProperties":{
+      "type":"structure",
+      "required":[
+        "Arn",
+        "Properties"
+      ],
+      "members":{
+        "Arn":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the specific <code>Folder</code> resource whose override properties are configured in this structure.</p>"
+        },
+        "Properties":{
+          "shape":"AssetBundleExportJobFolderPropertyToOverrideList",
+          "documentation":"<p>A list of <code>Folder</code> resource properties to generate variables for in the returned CloudFormation template.</p>"
+        }
+      },
+      "documentation":"<p>Controls how a specific <code>Folder</code> resource is parameterized in the returned CloudFormation template.</p>"
+    },
+    "AssetBundleExportJobFolderOverridePropertiesList":{
+      "type":"list",
+      "member":{"shape":"AssetBundleExportJobFolderOverrideProperties"},
+      "max":50,
+      "min":1
+    },
+    "AssetBundleExportJobFolderPropertyToOverride":{
+      "type":"string",
+      "enum":[
+        "Name",
+        "ParentFolderArn"
+      ]
+    },
+    "AssetBundleExportJobFolderPropertyToOverrideList":{
+      "type":"list",
+      "member":{"shape":"AssetBundleExportJobFolderPropertyToOverride"},
+      "max":10,
+      "min":1
     },
     "AssetBundleExportJobRefreshScheduleOverrideProperties":{
       "type":"structure",
@@ -4875,6 +4993,73 @@
       "type":"list",
       "member":{"shape":"AssetBundleImportJobError"}
     },
+    "AssetBundleImportJobFolderOverrideParameters":{
+      "type":"structure",
+      "required":["FolderId"],
+      "members":{
+        "FolderId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The ID of the folder that you want to apply overrides to.</p>"
+        },
+        "Name":{
+          "shape":"ResourceName",
+          "documentation":"<p>A new name for the folder.</p>"
+        },
+        "ParentFolderArn":{
+          "shape":"Arn",
+          "documentation":"<p>A new parent folder arn. This change can only be applied if the import creates a brand new folder. Existing folders cannot be moved.</p>"
+        }
+      },
+      "documentation":"<p>The override parameters for a single folder that is being imported.</p>"
+    },
+    "AssetBundleImportJobFolderOverrideParametersList":{
+      "type":"list",
+      "member":{"shape":"AssetBundleImportJobFolderOverrideParameters"},
+      "max":50,
+      "min":1
+    },
+    "AssetBundleImportJobFolderOverridePermissions":{
+      "type":"structure",
+      "required":["FolderIds"],
+      "members":{
+        "FolderIds":{
+          "shape":"AssetBundleRestrictiveResourceIdList",
+          "documentation":"<p>A list of folder IDs that you want to apply overrides to. You can use <code>*</code> to override all folders in this asset bundle.</p>"
+        },
+        "Permissions":{"shape":"AssetBundleResourcePermissions"}
+      },
+      "documentation":"<p>An object that contains a list of permissions to be applied to a list of folder IDs.</p>"
+    },
+    "AssetBundleImportJobFolderOverridePermissionsList":{
+      "type":"list",
+      "member":{"shape":"AssetBundleImportJobFolderOverridePermissions"},
+      "max":2,
+      "min":1
+    },
+    "AssetBundleImportJobFolderOverrideTags":{
+      "type":"structure",
+      "required":[
+        "FolderIds",
+        "Tags"
+      ],
+      "members":{
+        "FolderIds":{
+          "shape":"AssetBundleRestrictiveResourceIdList",
+          "documentation":"<p>A list of folder IDs that you want to apply overrides to. You can use <code>*</code> to override all folders in this asset bundle.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>A list of tags for the folders that you want to apply overrides to.</p>"
+        }
+      },
+      "documentation":"<p>An object that contains a list of tags to be assigned to a list of folder IDs.</p>"
+    },
+    "AssetBundleImportJobFolderOverrideTagsList":{
+      "type":"list",
+      "member":{"shape":"AssetBundleImportJobFolderOverrideTags"},
+      "max":5,
+      "min":1
+    },
     "AssetBundleImportJobOverrideParameters":{
       "type":"structure",
       "members":{
@@ -4909,6 +5094,10 @@
         "Dashboards":{
           "shape":"AssetBundleImportJobDashboardOverrideParametersList",
           "documentation":"<p>A list of overrides for any <code>Dashboard</code> resources that are present in the asset bundle that is imported.</p>"
+        },
+        "Folders":{
+          "shape":"AssetBundleImportJobFolderOverrideParametersList",
+          "documentation":"<p>A list of overrides for any <code>Folder</code> resources that are present in the asset bundle that is imported.</p>"
         }
       },
       "documentation":"<p>A list of overrides that modify the asset bundle resource configuration before the resource is imported.</p>"
@@ -4935,6 +5124,10 @@
         "Dashboards":{
           "shape":"AssetBundleImportJobDashboardOverridePermissionsList",
           "documentation":"<p>A list of permissions overrides for any <code>Dashboard</code> resources that are present in the asset bundle that is imported.</p>"
+        },
+        "Folders":{
+          "shape":"AssetBundleImportJobFolderOverridePermissionsList",
+          "documentation":"<p>A list of permissions for the folders that you want to apply overrides to.</p>"
         }
       },
       "documentation":"<p>A structure that contains the override permission configurations that modify the permissions for specified resources before the resource is imported.</p>"
@@ -4965,6 +5158,10 @@
         "Dashboards":{
           "shape":"AssetBundleImportJobDashboardOverrideTagsList",
           "documentation":"<p>A list of tag overrides for any <code>Dashboard</code> resources that are present in the asset bundle that is imported.</p>"
+        },
+        "Folders":{
+          "shape":"AssetBundleImportJobFolderOverrideTagsList",
+          "documentation":"<p>A list of tag overrides for any <code>Folder</code> resources that are present in the asset bundle that is imported.</p>"
         }
       },
       "documentation":"<p>A structure that contains the override tag configuration that modify the tags that are assigned to specified resources before the resource is imported.</p>"
@@ -7304,6 +7501,13 @@
         }
       },
       "documentation":"<p>A combo chart.</p> <p>The <code>ComboChartVisual</code> includes stacked bar combo charts and clustered bar combo charts</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/combo-charts.html\">Using combo charts</a> in the <i>Amazon QuickSight User Guide</i>.</p>"
+    },
+    "CommitMode":{
+      "type":"string",
+      "enum":[
+        "AUTO",
+        "MANUAL"
+      ]
     },
     "ComparativeOrder":{
       "type":"structure",
@@ -11600,6 +11804,10 @@
         "DisplayOptions":{
           "shape":"DateTimePickerControlDisplayOptions",
           "documentation":"<p>The display options of a control.</p>"
+        },
+        "CommitMode":{
+          "shape":"CommitMode",
+          "documentation":"<p>The visibility configuration of the Apply button on a <code>DateTimePickerControl</code>.</p>"
         }
       },
       "documentation":"<p>The default options that correspond to the filter control type of a <code>DateTimePicker</code>.</p>"
@@ -11670,6 +11878,10 @@
         "SelectableValues":{
           "shape":"FilterSelectableValues",
           "documentation":"<p>A list of selectable values that are used in a control.</p>"
+        },
+        "CommitMode":{
+          "shape":"CommitMode",
+          "documentation":"<p>The visibility configuration of the Apply button on a <code>FilterDropDownControl</code>.</p>"
         }
       },
       "documentation":"<p>The default options that correspond to the <code>Dropdown</code> filter control type.</p>"
@@ -11776,6 +11988,10 @@
         "DisplayOptions":{
           "shape":"RelativeDateTimeControlDisplayOptions",
           "documentation":"<p>The display options of a control.</p>"
+        },
+        "CommitMode":{
+          "shape":"CommitMode",
+          "documentation":"<p>The visibility configuration of the Apply button on a <code>RelativeDateTimeControl</code>.</p>"
         }
       },
       "documentation":"<p>The default options that correspond to the <code>RelativeDateTime</code> filter control type.</p>"
@@ -13221,7 +13437,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the analysis whose permissions you're describing.</p>"
         },
         "Permissions":{
-          "shape":"ResourcePermissionList",
+          "shape":"UpdateResourcePermissionList",
           "documentation":"<p>A structure that describes the principals and the resource-level permissions on an analysis.</p>"
         },
         "Status":{
@@ -13366,6 +13582,14 @@
         "Warnings":{
           "shape":"AssetBundleExportJobWarningList",
           "documentation":"<p>An array of warning records that describe the analysis or dashboard that is exported. This array includes UI errors that can be skipped during the validation process.</p> <p>This property only appears if <code>StrictModeForAllResources</code> in <code>ValidationStrategy</code> is set to <code>FALSE</code>.</p>"
+        },
+        "IncludeFolderMemberships":{
+          "shape":"Boolean",
+          "documentation":"<p>The include folder memberships flag.</p>"
+        },
+        "IncludeFolderMembers":{
+          "shape":"IncludeFolderMembers",
+          "documentation":"<p>A setting that determines whether folder members are included.</p>"
         }
       }
     },
@@ -13568,7 +13792,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the dashboard.</p>"
         },
         "Permissions":{
-          "shape":"ResourcePermissionList",
+          "shape":"UpdateResourcePermissionList",
           "documentation":"<p>A structure that contains the permissions for the dashboard.</p>"
         },
         "Status":{
@@ -14482,6 +14706,36 @@
         }
       }
     },
+    "DescribeQPersonalizationConfigurationRequest":{
+      "type":"structure",
+      "required":["AwsAccountId"],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that contains the personalization configuration that the user wants described.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        }
+      }
+    },
+    "DescribeQPersonalizationConfigurationResponse":{
+      "type":"structure",
+      "members":{
+        "PersonalizationMode":{
+          "shape":"PersonalizationMode",
+          "documentation":"<p>A value that indicates whether personalization is enabled or not.</p>"
+        },
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        }
+      }
+    },
     "DescribeRefreshScheduleRequest":{
       "type":"structure",
       "required":[
@@ -14727,7 +14981,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the template.</p>"
         },
         "Permissions":{
-          "shape":"ResourcePermissionList",
+          "shape":"UpdateResourcePermissionList",
           "documentation":"<p>A list of resource permissions to be set on the template. </p>"
         },
         "RequestId":{
@@ -14871,7 +15125,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the theme.</p>"
         },
         "Permissions":{
-          "shape":"ResourcePermissionList",
+          "shape":"UpdateResourcePermissionList",
           "documentation":"<p>A list of resource permissions set on the theme. </p>"
         },
         "RequestId":{
@@ -16152,6 +16406,10 @@
         "Type":{
           "shape":"SheetControlDateTimePickerType",
           "documentation":"<p>The type of the <code>FilterDropDownControl</code>. Choose one of the following options:</p> <ul> <li> <p> <code>MULTI_SELECT</code>: The user can select multiple entries from a dropdown menu.</p> </li> <li> <p> <code>SINGLE_SELECT</code>: The user can select a single entry from a dropdown menu.</p> </li> </ul>"
+        },
+        "CommitMode":{
+          "shape":"CommitMode",
+          "documentation":"<p>The visibility configurationof the Apply button on a <code>DateTimePickerControl</code>.</p>"
         }
       },
       "documentation":"<p>A control from a date filter that is used to specify date and time.</p>"
@@ -16191,6 +16449,10 @@
         "CascadingControlConfiguration":{
           "shape":"CascadingControlConfiguration",
           "documentation":"<p>The values that are displayed in a control can be configured to only show values that are valid based on what's selected in other controls.</p>"
+        },
+        "CommitMode":{
+          "shape":"CommitMode",
+          "documentation":"<p>The visibility configuration of the Apply button on a <code>FilterDropDownControl</code>.</p>"
         }
       },
       "documentation":"<p>A control to display a dropdown list with buttons that are used to select a single value.</p>"
@@ -16376,6 +16638,10 @@
         "DisplayOptions":{
           "shape":"RelativeDateTimeControlDisplayOptions",
           "documentation":"<p>The display options of a control.</p>"
+        },
+        "CommitMode":{
+          "shape":"CommitMode",
+          "documentation":"<p>The visibility configuration of the Apply button on a <code>FilterRelativeDateTimeControl</code>.</p>"
         }
       },
       "documentation":"<p>A control from a date filter that is used to specify the relative date.</p>"
@@ -16672,6 +16938,11 @@
         "SHARED",
         "RESTRICTED"
       ]
+    },
+    "FoldersForResourceArnList":{
+      "type":"list",
+      "member":{"shape":"Arn"},
+      "max":20
     },
     "Font":{
       "type":"structure",
@@ -18606,6 +18877,14 @@
       "error":{"httpStatusCode":403},
       "exception":true
     },
+    "IncludeFolderMembers":{
+      "type":"string",
+      "enum":[
+        "RECURSE",
+        "ONE_LEVEL",
+        "NONE"
+      ]
+    },
     "IncrementalRefresh":{
       "type":"structure",
       "required":["LookbackWindow"],
@@ -20322,6 +20601,62 @@
         "FolderMemberList":{
           "shape":"FolderMemberList",
           "documentation":"<p>A structure that contains all of the folder members (dashboards, analyses, and datasets) in the folder.</p>"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token for the next set of results, or null if there are no more results.</p>"
+        },
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        }
+      }
+    },
+    "ListFoldersForResourceRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "ResourceArn"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID for the Amazon Web Services account that contains the resource.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "ResourceArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) the resource whose folders you need to list.</p>",
+          "location":"uri",
+          "locationName":"ResourceArn"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token for the next set of results, or null if there are no more results.</p>",
+          "location":"querystring",
+          "locationName":"next-token"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to be returned per request.</p>",
+          "box":true,
+          "location":"querystring",
+          "locationName":"max-results"
+        }
+      }
+    },
+    "ListFoldersForResourceResponse":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        },
+        "Folders":{
+          "shape":"FoldersForResourceArnList",
+          "documentation":"<p>A list that contains the Amazon Resource Names (ARNs) of all folders that the resource is a member of.</p>"
         },
         "NextToken":{
           "shape":"String",
@@ -22941,6 +23276,10 @@
         "CascadingControlConfiguration":{
           "shape":"CascadingControlConfiguration",
           "documentation":"<p>The values that are displayed in a control can be configured to only show values that are valid based on what's selected in other controls.</p>"
+        },
+        "CommitMode":{
+          "shape":"CommitMode",
+          "documentation":"<p>The visibility configuration of the Apply button on a <code>ParameterDropDownControl</code>.</p>"
         }
       },
       "documentation":"<p>A control to display a dropdown list with buttons that are used to select a single value.</p>"
@@ -23274,6 +23613,13 @@
       "type":"integer",
       "max":1000,
       "min":1
+    },
+    "PersonalizationMode":{
+      "type":"string",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ]
     },
     "PhysicalTable":{
       "type":"structure",
@@ -25324,6 +25670,12 @@
           "documentation":"<p>The ID of the analysis that you're restoring.</p>",
           "location":"uri",
           "locationName":"AnalysisId"
+        },
+        "RestoreToFolders":{
+          "shape":"Boolean",
+          "documentation":"<p>A boolean value that determines if the analysis will be restored to folders that it previously resided in. A <code>True</code> value restores analysis back to all folders that it previously resided in. A <code>False</code> value restores the analysis but does not restore the analysis back to all previously resided folders. Restoring a restricted analysis requires this parameter to be set to <code>True</code>.</p>",
+          "location":"querystring",
+          "locationName":"restore-to-folders"
         }
       }
     },
@@ -25346,6 +25698,10 @@
         "RequestId":{
           "shape":"String",
           "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "RestorationFailedFolderArns":{
+          "shape":"FolderArnList",
+          "documentation":"<p>A list of folder arns thatthe analysis failed to be restored to.</p>"
         }
       }
     },
@@ -27629,6 +27985,14 @@
         "ValidationStrategy":{
           "shape":"AssetBundleExportJobValidationStrategy",
           "documentation":"<p>An optional parameter that determines which validation strategy to use for the export job. If <code>StrictModeForAllResources</code> is set to <code>TRUE</code>, strict validation for every error is enforced. If it is set to <code>FALSE</code>, validation is skipped for specific UI errors that are shown as warnings. The default value for <code>StrictModeForAllResources</code> is <code>FALSE</code>.</p>"
+        },
+        "IncludeFolderMemberships":{
+          "shape":"Boolean",
+          "documentation":"<p>A Boolean that determines if the exported asset carries over information about the folders that the asset is a member of. </p>"
+        },
+        "IncludeFolderMembers":{
+          "shape":"IncludeFolderMembers",
+          "documentation":"<p>A setting that indicates whether you want to include folder assets. You can also use this setting to recusrsively include all subfolders of an exported folder.</p>"
         }
       }
     },
@@ -27767,6 +28131,48 @@
           "shape":"ShortRestrictiveResourceId",
           "documentation":"<p>The ID of the job. The job ID is set when you start a new job with a <code>StartDashboardSnapshotJob</code> API call.</p>"
         },
+        "RequestId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The Amazon Web Services request ID for this operation. </p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request</p>",
+          "location":"statusCode"
+        }
+      }
+    },
+    "StartDashboardSnapshotJobScheduleRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "DashboardId",
+        "ScheduleId"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account that the dashboard snapshot job is executed in.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "DashboardId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>The ID of the dashboard that you want to start a snapshot job schedule for. </p>",
+          "location":"uri",
+          "locationName":"DashboardId"
+        },
+        "ScheduleId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>The ID of the schedule that you want to start a snapshot job schedule for. The schedule ID can be found in the Amazon QuickSight console in the <b>Schedules</b> pane of the dashboard that the schedule is configured for.</p>",
+          "location":"uri",
+          "locationName":"ScheduleId"
+        }
+      }
+    },
+    "StartDashboardSnapshotJobScheduleResponse":{
+      "type":"structure",
+      "members":{
         "RequestId":{
           "shape":"NonEmptyString",
           "documentation":"<p> The Amazon Web Services request ID for this operation. </p>"
@@ -29923,6 +30329,16 @@
       "type":"list",
       "member":{"shape":"TopicColumn"}
     },
+    "TopicConfigOptions":{
+      "type":"structure",
+      "members":{
+        "QBusinessInsightsEnabled":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Enables Amazon Q Business Insights for a <code>Topic</code>.</p>"
+        }
+      },
+      "documentation":"<p>Configuration options for a <code>Topic</code>.</p>"
+    },
     "TopicConstantValue":{
       "type":"structure",
       "members":{
@@ -29981,6 +30397,10 @@
         "DataSets":{
           "shape":"Datasets",
           "documentation":"<p>The data sets that the topic is associated with.</p>"
+        },
+        "ConfigOptions":{
+          "shape":"TopicConfigOptions",
+          "documentation":"<p>Configuration options for a <code>Topic</code>.</p>"
         }
       },
       "documentation":"<p>A structure that describes the details of a topic, such as its name, description, and associated data sets.</p>"
@@ -31365,7 +31785,7 @@
           "documentation":"<p>The ID of the analysis that you updated permissions for.</p>"
         },
         "Permissions":{
-          "shape":"ResourcePermissionList",
+          "shape":"UpdateResourcePermissionList",
           "documentation":"<p>A structure that describes the principals and the resource-level permissions on an analysis.</p>"
         },
         "RequestId":{
@@ -31548,7 +31968,7 @@
           "documentation":"<p>The ID for the dashboard.</p>"
         },
         "Permissions":{
-          "shape":"ResourcePermissionList",
+          "shape":"UpdateResourcePermissionList",
           "documentation":"<p>Information about the permissions on the dashboard.</p>"
         },
         "RequestId":{
@@ -32346,6 +32766,43 @@
         }
       }
     },
+    "UpdateQPersonalizationConfigurationRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "PersonalizationMode"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The ID of the Amazon Web Services account account that contains the personalization configuration that the user wants to update.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "PersonalizationMode":{
+          "shape":"PersonalizationMode",
+          "documentation":"<p>An option to allow Amazon QuickSight to customize data stories with user specific metadata, specifically location and job information, in your IAM Identity Center instance.</p>"
+        }
+      }
+    },
+    "UpdateQPersonalizationConfigurationResponse":{
+      "type":"structure",
+      "members":{
+        "PersonalizationMode":{
+          "shape":"PersonalizationMode",
+          "documentation":"<p>The personalization mode that is used for the personalization configuration.</p>"
+        },
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        }
+      }
+    },
     "UpdateRefreshScheduleRequest":{
       "type":"structure",
       "required":[
@@ -32570,7 +33027,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the template.</p>"
         },
         "Permissions":{
-          "shape":"ResourcePermissionList",
+          "shape":"UpdateResourcePermissionList",
           "documentation":"<p>A list of resource permissions to be set on the template.</p>"
         },
         "RequestId":{
@@ -32747,7 +33204,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the theme.</p>"
         },
         "Permissions":{
-          "shape":"ResourcePermissionList",
+          "shape":"UpdateResourcePermissionList",
           "documentation":"<p>The resulting list of resource permissions for the theme.</p>"
         },
         "RequestId":{

@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.28.5-SNAPSHOT</version>
+        <version>2.28.27-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -186,7 +186,6 @@
         <module>apigatewayv2</module>
         <module>docdb</module>
         <module>backup</module>
-        <module>worklink</module>
         <module>textract</module>
         <module>managedblockchain</module>
         <module>mediapackagevod</module>
@@ -407,6 +406,8 @@
         <module>ssmquicksetup</module>
         <module>pcs</module>
         <module>directoryservicedata</module>
+        <module>marketplacereporting</module>
+        <module>socialmessaging</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

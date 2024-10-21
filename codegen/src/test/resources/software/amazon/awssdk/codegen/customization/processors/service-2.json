@@ -1,0 +1,65 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"restjson",
+    "jsonVersion":"1.1",
+    "protocol":"rest-json",
+    "serviceAbbreviation":"JsonProtocolTests",
+    "serviceFullName":"AWS DR Tools JSON Protocol Tests",
+    "serviceId":"Json Protocol Tests",
+    "signatureVersion":"v4",
+    "targetPrefix":"ProtocolTestsJsonRpcService",
+    "timestampFormat":"unixTimestamp",
+    "uid":"restjson-2016-03-11"
+  },
+  "operations":{
+    "AllTypes":{
+      "name":"AllTypes",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"AllTypesStructure"}
+    }
+  },
+  "shapes": {
+    "AllTypesStructure": {
+      "type": "structure",
+      "members": {
+        "TimeStampMember": {
+          "shape": "Timestamp"
+        },
+        "ListOfTimestamps": {
+          "shape": "ListOfTimestamps"
+        },
+        "Timestamp": {
+          "shape": "Timestamp"
+        },
+        "StructWithTimestamp": {
+          "shape": "StructWithTimestamp"
+        }
+      }
+    },
+    "ListOfTimestamps": {
+      "type": "list",
+      "member": {
+        "shape": "Timestamp"
+      }
+    },
+    "StructWithTimestamp": {
+      "type": "structure",
+      "members": {
+        "Timestamp": {
+          "shape": "Timestamp"
+        }
+      }
+    },
+    "Timestamp": {
+      "type": "string"
+    },
+    "String" : {
+      "type" : "string"
+    }
+  }
+}

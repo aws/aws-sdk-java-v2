@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.useragent.SdkClientUserAgentProperties;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.endpoints.EndpointProvider;
@@ -266,6 +267,8 @@ public final class SdkClientOption<T> extends ClientOption<T> {
 
     /**
      * A user agent prefix that is specific to the client (agnostic of the request).
+     *
+     * Not currently in use, since the introduction of {@link SdkClientUserAgentProperties}
      */
     public static final SdkClientOption<String> CLIENT_USER_AGENT = new SdkClientOption<>(String.class);
 
@@ -315,6 +318,24 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      */
     public static final SdkClientOption<CompressionConfiguration> COMPRESSION_CONFIGURATION =
         new SdkClientOption<>(CompressionConfiguration.class);
+
+    /**
+     * An optional identification value to be appended to the user agent header.
+     * The value should be less than 50 characters in length and is null by default.
+     * <p>
+     * Users can additionally supply the appId value through environment and JVM settings, and
+     * it will be resolved using the following order of precedence (highest first):
+     * <ol>
+     *  <li>This client option configuration </li>
+     *  <li>The {@code AWS_SDK_UA_APP_ID} environment variable</li>
+     *  <li>The {@code sdk.ua.appId} JVM system property</li>
+     *  <li>The {@code sdk_ua_app_id} setting in the profile file for the active profile</li>
+     * </ol>
+     * <p>
+     * This configuration option supersedes {@link SdkAdvancedClientOption#USER_AGENT_PREFIX} and
+     * {@link SdkAdvancedClientOption#USER_AGENT_SUFFIX} and should be used instead of those options.
+     */
+    public static final SdkClientOption<String> USER_AGENT_APP_ID = new SdkClientOption<>(String.class);
 
     /**
      * Option to specify a reference to the SDK client in use.

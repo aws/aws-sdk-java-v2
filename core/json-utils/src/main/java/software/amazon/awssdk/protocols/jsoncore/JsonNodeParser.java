@@ -25,12 +25,8 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.protocols.jsoncore.internal.ArrayJsonNode;
-import software.amazon.awssdk.protocols.jsoncore.internal.BooleanJsonNode;
 import software.amazon.awssdk.protocols.jsoncore.internal.EmbeddedObjectJsonNode;
-import software.amazon.awssdk.protocols.jsoncore.internal.NullJsonNode;
-import software.amazon.awssdk.protocols.jsoncore.internal.NumberJsonNode;
 import software.amazon.awssdk.protocols.jsoncore.internal.ObjectJsonNode;
-import software.amazon.awssdk.protocols.jsoncore.internal.StringJsonNode;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonParseException;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonParser;
@@ -55,10 +51,12 @@ public final class JsonNodeParser {
 
     private final boolean removeErrorLocations;
     private final JsonFactory jsonFactory;
+    private final JsonValueNodeFactory jsonValueNodeFactory;
 
     private JsonNodeParser(Builder builder) {
         this.removeErrorLocations = builder.removeErrorLocations;
         this.jsonFactory = builder.jsonFactory;
+        this.jsonValueNodeFactory = builder.jsonValueNodeFactory;
     }
 
     /**
@@ -144,16 +142,12 @@ public final class JsonNodeParser {
         }
         switch (token) {
             case VALUE_STRING:
-                return new StringJsonNode(parser.getText());
             case VALUE_FALSE:
-                return new BooleanJsonNode(false);
             case VALUE_TRUE:
-                return new BooleanJsonNode(true);
             case VALUE_NULL:
-                return NullJsonNode.instance();
             case VALUE_NUMBER_FLOAT:
             case VALUE_NUMBER_INT:
-                return new NumberJsonNode(parser.getText());
+                return jsonValueNodeFactory.node(parser, token);
             case START_OBJECT:
                 return parseObject(parser);
             case START_ARRAY:
@@ -191,6 +185,7 @@ public final class JsonNodeParser {
      */
     public static final class Builder {
         private JsonFactory jsonFactory = DEFAULT_JSON_FACTORY;
+        private JsonValueNodeFactory jsonValueNodeFactory = JsonValueNodeFactory.DEFAULT;
         private boolean removeErrorLocations = false;
 
         private Builder() {
@@ -218,6 +213,17 @@ public final class JsonNodeParser {
          */
         public Builder jsonFactory(JsonFactory jsonFactory) {
             this.jsonFactory = jsonFactory;
+            return this;
+        }
+
+        /**
+         * Factory to create JsonNode out of JSON tokens. This allows JSON variants, such as CBOR, to produce actual values
+         * instead of having to parse them out of strings.
+         *
+         * <p>By default, this is {@link JsonValueNodeFactory#DEFAULT}.
+         */
+        public Builder jsonValueNodeFactory(JsonValueNodeFactory jsonValueNodeFactory) {
+            this.jsonValueNodeFactory = jsonValueNodeFactory;
             return this;
         }
 

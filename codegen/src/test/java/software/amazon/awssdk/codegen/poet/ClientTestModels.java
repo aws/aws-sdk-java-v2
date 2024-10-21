@@ -398,6 +398,17 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
+    public static IntermediateModel rpcv2ServiceModels() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/rpcv2/service-2.json").getFile());
+        File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/rpcv2/customization.config").getFile());
+        C2jModels models = C2jModels.builder()
+                                    .serviceModel(getServiceModel(serviceModel))
+                                    .customizationConfig(getCustomizationConfig(customizationModel))
+                                    .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
     public static IntermediateModel batchManagerModels() {
         File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/batchmanager/service-2.json").getFile());
         File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/batchmanager/customization.config").getFile());

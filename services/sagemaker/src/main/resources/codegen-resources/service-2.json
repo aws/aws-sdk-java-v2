@@ -4806,6 +4806,14 @@
         "ml.g6.16xlarge",
         "ml.g6.24xlarge",
         "ml.g6.48xlarge",
+        "ml.g6e.xlarge",
+        "ml.g6e.2xlarge",
+        "ml.g6e.4xlarge",
+        "ml.g6e.8xlarge",
+        "ml.g6e.12xlarge",
+        "ml.g6e.16xlarge",
+        "ml.g6e.24xlarge",
+        "ml.g6e.48xlarge",
         "ml.geospatial.interactive",
         "ml.p4d.24xlarge",
         "ml.p4de.24xlarge",
@@ -7230,7 +7238,7 @@
     },
     "ClusterInstanceCount":{
       "type":"integer",
-      "min":1
+      "min":0
     },
     "ClusterInstanceGroupDetails":{
       "type":"structure",
@@ -7682,6 +7690,10 @@
         "AppLifecycleManagement":{
           "shape":"AppLifecycleManagement",
           "documentation":"<p>Settings that are used to configure and manage the lifecycle of CodeEditor applications.</p>"
+        },
+        "BuiltInLifecycleConfigArn":{
+          "shape":"StudioLifecycleConfigArn",
+          "documentation":"<p>The lifecycle configuration that runs before the default lifecycle configuration. It can override changes made in the default lifecycle configuration.</p>"
         }
       },
       "documentation":"<p>The Code Editor application settings.</p> <p>For more information about Code Editor, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/code-editor.html\">Get started with Code Editor in Amazon SageMaker</a>.</p>"
@@ -8948,6 +8960,10 @@
         "AppSecurityGroupManagement":{
           "shape":"AppSecurityGroupManagement",
           "documentation":"<p>The entity that creates and manages the required security groups for inter-app communication in <code>VPCOnly</code> mode. Required when <code>CreateDomain.AppNetworkAccessType</code> is <code>VPCOnly</code> and <code>DomainSettings.RStudioServerProDomainSettings.DomainExecutionRoleArn</code> is provided. If setting up the domain for use with RStudio, this value must be set to <code>Service</code>.</p>"
+        },
+        "TagPropagation":{
+          "shape":"TagPropagation",
+          "documentation":"<p>Indicates whether custom tag propagation is supported for the domain. Defaults to <code>DISABLED</code>.</p>"
         },
         "DefaultSpaceSettings":{
           "shape":"DefaultSpaceSettings",
@@ -12914,6 +12930,10 @@
         "ResourceSpec":{
           "shape":"ResourceSpec",
           "documentation":"<p>The instance type and the Amazon Resource Name (ARN) of the SageMaker image created on the instance.</p>"
+        },
+        "BuiltInLifecycleConfigArn":{
+          "shape":"StudioLifecycleConfigArn",
+          "documentation":"<p>The lifecycle configuration that runs before the default lifecycle configuration</p>"
         }
       }
     },
@@ -13753,6 +13773,10 @@
         "AppSecurityGroupManagement":{
           "shape":"AppSecurityGroupManagement",
           "documentation":"<p>The entity that creates and manages the required security groups for inter-app communication in <code>VPCOnly</code> mode. Required when <code>CreateDomain.AppNetworkAccessType</code> is <code>VPCOnly</code> and <code>DomainSettings.RStudioServerProDomainSettings.DomainExecutionRoleArn</code> is provided.</p>"
+        },
+        "TagPropagation":{
+          "shape":"TagPropagation",
+          "documentation":"<p>Indicates whether custom tag propagation is supported for the domain.</p>"
         },
         "DefaultSpaceSettings":{
           "shape":"DefaultSpaceSettings",
@@ -19766,9 +19790,32 @@
       "type":"list",
       "member":{"shape":"AppType"}
     },
+    "HiddenInstanceTypesList":{
+      "type":"list",
+      "member":{"shape":"AppInstanceType"}
+    },
     "HiddenMlToolsList":{
       "type":"list",
       "member":{"shape":"MlTools"}
+    },
+    "HiddenSageMakerImage":{
+      "type":"structure",
+      "members":{
+        "SageMakerImageName":{
+          "shape":"SageMakerImageName",
+          "documentation":"<p> The SageMaker image name that you are hiding from the Studio user interface. </p>"
+        },
+        "VersionAliases":{
+          "shape":"VersionAliasesList",
+          "documentation":"<p> The version aliases you are hiding from the Studio user interface. </p>"
+        }
+      },
+      "documentation":"<p>The SageMaker images that are hidden from the Studio user interface. You must specify the SageMaker image name and version aliases.</p>"
+    },
+    "HiddenSageMakerImageVersionAliasesList":{
+      "type":"list",
+      "member":{"shape":"HiddenSageMakerImage"},
+      "max":5
     },
     "HolidayConfig":{
       "type":"list",
@@ -20160,12 +20207,10 @@
       "required":[
         "WorkteamArn",
         "UiConfig",
-        "PreHumanTaskLambdaArn",
         "TaskTitle",
         "TaskDescription",
         "NumberOfHumanWorkersPerDataObject",
-        "TaskTimeLimitInSeconds",
-        "AnnotationConsolidationConfig"
+        "TaskTimeLimitInSeconds"
       ],
       "members":{
         "WorkteamArn":{
@@ -21190,6 +21235,12 @@
       "max":128,
       "min":1,
       "pattern":"(^\\d+$)|(^\\d+.\\d+$)|(^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$)"
+    },
+    "ImageVersionAliasPattern":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
     },
     "ImageVersionArn":{
       "type":"string",
@@ -22337,6 +22388,10 @@
         "EmrSettings":{
           "shape":"EmrSettings",
           "documentation":"<p>The configuration parameters that specify the IAM roles assumed by the execution role of SageMaker (assumable roles) and the cluster instances or job execution environments (execution roles or runtime roles) to manage and access resources required for running Amazon EMR clusters or Amazon EMR Serverless applications.</p>"
+        },
+        "BuiltInLifecycleConfigArn":{
+          "shape":"StudioLifecycleConfigArn",
+          "documentation":"<p>The lifecycle configuration that runs before the default lifecycle configuration. It can override changes made in the default lifecycle configuration.</p>"
         }
       },
       "documentation":"<p>The settings for the JupyterLab application.</p>"
@@ -22716,8 +22771,7 @@
         "LastModifiedTime",
         "LabelingJobStatus",
         "LabelCounters",
-        "WorkteamArn",
-        "PreHumanTaskLambdaArn"
+        "WorkteamArn"
       ],
       "members":{
         "LabelingJobName":{
@@ -27232,7 +27286,8 @@
         "InferenceRecommender",
         "Endpoints",
         "Projects",
-        "InferenceOptimization"
+        "InferenceOptimization",
+        "PerformanceEvaluation"
       ]
     },
     "MlflowVersion":{
@@ -33944,6 +33999,10 @@
         "HubAccessConfig":{
           "shape":"InferenceHubAccessConfig",
           "documentation":"<p>Configuration information for hub access.</p>"
+        },
+        "ManifestS3Uri":{
+          "shape":"S3ModelUri",
+          "documentation":"<p>The Amazon S3 URI of the manifest file. The manifest file is a CSV file that stores the artifact locations.</p>"
         }
       },
       "documentation":"<p>Specifies the S3 location of ML model data to deploy.</p>"
@@ -33998,6 +34057,10 @@
       "type":"string",
       "max":1024,
       "pattern":"^(https|s3)://([^/]+)/?(.*)$"
+    },
+    "SageMakerImageName":{
+      "type":"string",
+      "enum":["sagemaker_distribution"]
     },
     "SageMakerImageVersionAlias":{
       "type":"string",
@@ -35536,6 +35599,14 @@
         "HiddenAppTypes":{
           "shape":"HiddenAppTypesList",
           "documentation":"<p>The <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/studio-updated-apps.html\">Applications supported in Studio</a> that are hidden from the Studio left navigation pane.</p>"
+        },
+        "HiddenInstanceTypes":{
+          "shape":"HiddenInstanceTypesList",
+          "documentation":"<p> The instance types you are hiding from the Studio user interface. </p>"
+        },
+        "HiddenSageMakerImageVersionAliases":{
+          "shape":"HiddenSageMakerImageVersionAliasesList",
+          "documentation":"<p> The version aliases you are hiding from the Studio user interface. </p>"
         }
       },
       "documentation":"<p>Studio settings. If these settings are applied on a user level, they take priority over the settings applied on a domain level.</p>"
@@ -35688,6 +35759,13 @@
       "member":{"shape":"Tag"},
       "max":50,
       "min":0
+    },
+    "TagPropagation":{
+      "type":"string",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ]
     },
     "TagValue":{
       "type":"string",
@@ -38080,6 +38158,10 @@
         "AppNetworkAccessType":{
           "shape":"AppNetworkAccessType",
           "documentation":"<p>Specifies the VPC used for non-EFS traffic.</p> <ul> <li> <p> <code>PublicInternetOnly</code> - Non-EFS traffic is through a VPC managed by Amazon SageMaker, which allows direct internet access.</p> </li> <li> <p> <code>VpcOnly</code> - All Studio traffic is through the specified VPC and subnets.</p> </li> </ul> <p>This configuration can only be modified if there are no apps in the <code>InService</code>, <code>Pending</code>, or <code>Deleting</code> state. The configuration cannot be updated if <code>DomainSettings.RStudioServerProDomainSettings.DomainExecutionRoleArn</code> is already set or <code>DomainSettings.RStudioServerProDomainSettings.DomainExecutionRoleArn</code> is provided as part of the same request.</p>"
+        },
+        "TagPropagation":{
+          "shape":"TagPropagation",
+          "documentation":"<p>Indicates whether custom tag propagation is supported for the domain. Defaults to <code>DISABLED</code>.</p>"
         }
       }
     },
@@ -39351,6 +39433,11 @@
         "TO_BE_ARCHIVED",
         "ARCHIVED"
       ]
+    },
+    "VersionAliasesList":{
+      "type":"list",
+      "member":{"shape":"ImageVersionAliasPattern"},
+      "max":20
     },
     "VersionId":{
       "type":"string",

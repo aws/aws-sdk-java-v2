@@ -21,6 +21,7 @@ import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.traits.JsonValueTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -59,7 +60,7 @@ final class HeaderUnmarshaller {
      */
     private static String unmarshallStringHeader(String value,
                                                  SdkField<String> field) {
-        return field.containsTrait(JsonValueTrait.class) ?
+        return field.containsTrait(JsonValueTrait.class, TraitType.JSON_VALUE_TRAIT) ?
                new String(BinaryUtils.fromBase64(value), StandardCharsets.UTF_8) : value;
     }
 

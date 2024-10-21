@@ -280,6 +280,7 @@
             <Class name="software.amazon.awssdk.codegen.model.service.Waiters"/>
             <Class name="software.amazon.awssdk.regions.EndpointTag"/>
             <Class name="software.amazon.awssdk.regions.Region"/>
+            <Class name="software.amazon.awssdk.core.internal.useragent.DefaultSystemUserAgent"/>
             <Class name="software.amazon.awssdk.core.util.DefaultSdkAutoConstructList"/>
             <Class name="software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap"/>
             <Class name="software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler"/>

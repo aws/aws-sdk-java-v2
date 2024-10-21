@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.28.5-SNAPSHOT</version>
+    <version>2.28.27-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -99,7 +99,7 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.28.4</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.28.26</awsjavasdk.previous.version>
         <jackson.version>2.15.2</jackson.version>
         <jackson.databind.version>2.15.2</jackson.databind.version>
         <jacksonjr.version>2.13.2</jacksonjr.version>
@@ -112,7 +112,7 @@
         <equalsverifier.version>3.15.1</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml search "tcnative.version" -->
-        <netty.version>4.1.112.Final</netty.version>
+        <netty.version>4.1.114.Final</netty.version>
         <unitils.version>3.4.6</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -123,7 +123,7 @@
         <rxjava.version>2.2.21</rxjava.version>
         <commons-codec.verion>1.17.1</commons-codec.verion>
         <jmh.version>1.37</jmh.version>
-        <awscrt.version>0.30.9</awscrt.version>
+        <awscrt.version>0.31.1</awscrt.version>
 
         <!--Test dependencies -->
         <junit5.version>5.10.0</junit5.version>
@@ -136,7 +136,7 @@
         <jimfs.version>1.1</jimfs.version>
         <testng.version>7.1.0</testng.version> <!-- TCK Tests -->
         <commons-lang.verson>2.6</commons-lang.verson>
-        <netty-open-ssl-version>2.0.65.Final</netty-open-ssl-version>
+        <netty-open-ssl-version>2.0.66.Final</netty-open-ssl-version>
         <dynamodb-local.version>1.25.0</dynamodb-local.version>
         <sqllite.version>1.0.392</sqllite.version>
         <blockhound.version>1.0.8.RELEASE</blockhound.version>
@@ -161,7 +161,7 @@
         <build-helper-maven-plugin.version>3.3.0</build-helper-maven-plugin.version>
         <japicmp-maven-plugin.version>0.15.6</japicmp-maven-plugin.version>
         <versions-maven-plugin.version>2.13.0</versions-maven-plugin.version>
-        <maven-archetype-plugin.version>3.2.1</maven-archetype-plugin.version>
+        <maven-archetype-plugin.version>3.3.0</maven-archetype-plugin.version>
         <!-- Whenever we update maven-wrapper-plugin version, we need to run mvn wrapper:wrapper to update the Maven Wrapper files(mvnw, .maven and mvnw.cmd) -->
         <maven-wrapper-plugin.version>3.2.0</maven-wrapper-plugin.version>
         <ant.version>1.10.14</ant.version>
@@ -676,6 +676,8 @@
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
+                            <!-- TODO revert - Temporarily disable because system setting USER_REGION was removed -->
+                            <exclude>software.amazon.awssdk.utils.JavaSystemSetting</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
