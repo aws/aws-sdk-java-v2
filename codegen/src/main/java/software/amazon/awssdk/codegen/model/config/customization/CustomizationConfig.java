@@ -350,7 +350,7 @@ public class CustomizationConfig {
     /**
      * A boolean flag to indicate if the fast unmarshaller code path is enabled.
      */
-    private boolean enableFastUnmarshaller;
+    private boolean enableFastUnmarshaller = true;
 
     private CustomizationConfig() {
     }
