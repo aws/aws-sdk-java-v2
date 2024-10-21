@@ -22,7 +22,6 @@ import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV1ModelClass;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -30,6 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.ConcurrentHashMap;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -88,7 +88,7 @@ public class ChangeSdkType extends Recipe {
         private final Set<String> topLevelClassnames = new HashSet<>();
         private final List<String> wildcardImports = new ArrayList<>();
 
-        private Map<String, Pair<JavaType.Class, JavaType>> oldTypeToNewType = new HashMap<>();
+        private Map<String, Pair<JavaType.Class, JavaType>> oldTypeToNewType = new ConcurrentHashMap<>();
 
         @Override
         public J visitClassDeclaration(J.ClassDeclaration classDecl, ExecutionContext ctx) {
