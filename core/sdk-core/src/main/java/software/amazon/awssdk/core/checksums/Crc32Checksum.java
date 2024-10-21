@@ -33,16 +33,28 @@ public class Crc32Checksum implements SdkChecksum {
     private Checksum crc32;
     private Checksum lastMarkedCrc32;
     private final boolean isCrtBasedChecksum;
+    private final Method crtCloneMethod;
 
     /**
      * Creates CRT Based Crc32 checksum if Crt classpath for Crc32 is loaded, else create Sdk Implemented Crc32.
      */
-    public Crc32Checksum() {
-        crc32 = CrtBasedChecksumProvider.createCrc32();
-        isCrtBasedChecksum = crc32 != null;
-        if (!isCrtBasedChecksum) {
+    public Crc32Checksum(boolean useCrt) {
+        if (useCrt) {
+            crc32 = CrtBasedChecksumProvider.createCrc32();
+            try {
+                crtCloneMethod = crc32.getClass().getDeclaredMethod("clone");
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+            isCrtBasedChecksum = true;
+        } else {
             crc32 = SdkCrc32.create();
+            isCrtBasedChecksum = false;
+            crtCloneMethod = null;
         }
+    }
+    public Crc32Checksum() {
+        this(false);
     }
 
     @Override
@@ -82,8 +94,7 @@ public class Crc32Checksum implements SdkChecksum {
     private Checksum cloneChecksum(Checksum checksum) {
         if (isCrtBasedChecksum) {
             try {
-                Method method = checksum.getClass().getDeclaredMethod("clone");
-                return (Checksum) method.invoke(checksum);
+                return (Checksum) crtCloneMethod.invoke(checksum);
             } catch (ReflectiveOperationException e) {
                 throw new IllegalStateException("Could not clone checksum class " + checksum.getClass(), e);
             }

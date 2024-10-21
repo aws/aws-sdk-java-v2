@@ -37,12 +37,18 @@ public class Crc32CChecksum implements SdkChecksum {
     /**
      * Creates CRT Based Crc32C checksum if Crt classpath for Crc32c is loaded, else create Sdk Implemented Crc32c
      */
-    public Crc32CChecksum() {
-        crc32c = CrtBasedChecksumProvider.createCrc32C();
-        isCrtBasedChecksum = crc32c != null;
-        if (!isCrtBasedChecksum) {
+    public Crc32CChecksum(boolean useCrt) {
+        if (useCrt) {
+            crc32c = CrtBasedChecksumProvider.createCrc32C();
+            isCrtBasedChecksum = true;
+        } else {
             crc32c = SdkCrc32C.create();
+            isCrtBasedChecksum = false;
         }
+    }
+
+    public Crc32CChecksum() {
+        this(false);
     }
 
     @Override

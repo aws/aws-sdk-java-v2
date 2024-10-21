@@ -19,23 +19,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
-import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 
-public class Crc32Checksum2Test {
+public class Crc32CChecksum2Test {
     @Test
     public void test() {
-        String data = RandomStringUtils.random(100000);
-        compareTwoChecksums(Crc32Checksum::new, data.getBytes(StandardCharsets.UTF_8));
-        compareTwoChecksums(Crc32Checksum2::new, data.getBytes(StandardCharsets.UTF_8));
-
-        compareTwoChecksums(Crc32Checksum::new, data.getBytes(StandardCharsets.UTF_8));
-        compareTwoChecksums(Crc32Checksum2::new, data.getBytes(StandardCharsets.UTF_8));
+        byte[] data = RandomStringUtils.random(10000).getBytes(StandardCharsets.UTF_8);
+        compareTwoChecksums(Crc32CChecksum2::new, data);
     }
 
     public void compareTwoChecksums(Supplier<SdkChecksum> subjectSupplier, byte[] input) {
-        CRC32 reference = new CRC32();
+        Checksum reference = Crc32CChecksum2.createCrc32c();
         reference.update(input, 0, input.length);
         long referenceValue = reference.getValue();
 
@@ -47,11 +43,15 @@ public class Crc32Checksum2Test {
         // Test with resetting at every point in the stream
         for (int i = 0; i <= input.length; i++) {
             SdkChecksum subject2 = subjectSupplier.get();
+
             subject2.update(input, 0, i);
+
             subject2.mark(0);
             subject2.update(input, 0, 1); // Write some stuff to reset before
             subject2.reset();
+
             subject2.update(input, i, input.length - i);
+
             assertThat(subject2.getValue()).isEqualTo(referenceValue);
         }
     }

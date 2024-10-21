@@ -17,22 +17,41 @@ package software.amazon.awssdk.core.checksums;
 
 import static software.amazon.awssdk.core.internal.util.HttpChecksumUtils.longToByte;
 
-import java.util.zip.CRC32;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.internal.checksums.factory.SdkCrc32;
+import software.amazon.awssdk.core.internal.checksums.factory.SdkCrc32C;
 
 /**
  * Implementation of {@link SdkChecksum} to calculate an CRC32 checksum.
  */
 @SdkInternalApi
-public class Crc32Checksum2 implements SdkChecksum {
-    private CRC32 crc32;
+public class Crc32CChecksum2 implements SdkChecksum {
+    private static Constructor<?> CRC32C_CLASS_CONSTRUCTOR;
+
+    private Checksum crc32c;
     private long dataLengthForChecksum = 0;
 
     private Long crcAtMark;
 
-    public Crc32Checksum2() {
-        crc32 = new CRC32();
+    public Crc32CChecksum2() {
+        crc32c = createCrc32c();
+    }
+
+    static {
+        try {
+            CRC32C_CLASS_CONSTRUCTOR = Class.forName("java.util.zip.CRC32C").getConstructor();
+        } catch (Exception e) {
+        }
+    }
+
+    public static Checksum createCrc32c() {
+        try {
+            return (Checksum) CRC32C_CLASS_CONSTRUCTOR.newInstance();
+        } catch (NullPointerException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("Unable to load CRC32C. Are we on Java 9+?", e);
+        }
     }
 
     @Override
@@ -43,36 +62,36 @@ public class Crc32Checksum2 implements SdkChecksum {
     @Override
     public void mark(int readLimit) {
         if (dataLengthForChecksum > 0) {
-            crcAtMark = crc32.getValue();
-            crc32.reset();
+            crcAtMark = crc32c.getValue();
+            crc32c.reset();
             dataLengthForChecksum = 0;
         }
     }
 
     @Override
     public void update(int b) {
-        crc32.update(b);
+        crc32c.update(b);
         dataLengthForChecksum += 1;
     }
 
     @Override
     public void update(byte[] b, int off, int len) {
-        crc32.update(b, off, len);
+        crc32c.update(b, off, len);
         dataLengthForChecksum += len;
     }
 
     @Override
     public long getValue() {
         if (crcAtMark == null) {
-            return crc32.getValue();
+            return crc32c.getValue();
         }
 
-        return SdkCrc32.combine(crcAtMark, crc32.getValue(), dataLengthForChecksum);
+        return SdkCrc32C.combine(crcAtMark, crc32c.getValue(), dataLengthForChecksum);
     }
 
     @Override
     public void reset() {
-        crc32.reset();
+        crc32c.reset();
         dataLengthForChecksum = 0;
     }
 }
