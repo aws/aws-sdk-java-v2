@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Auto Scaling",
+    "contributor": "",
+    "description": "Adds support for removing the PlacementGroup setting on an Auto Scaling Group through the UpdateAutoScalingGroup API."
+}
