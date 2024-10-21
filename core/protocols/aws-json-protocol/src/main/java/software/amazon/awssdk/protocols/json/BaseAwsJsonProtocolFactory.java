@@ -130,6 +130,7 @@ public abstract class BaseAwsJsonProtocolFactory {
             .errorMessageParser(AwsJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER)
             .jsonFactory(getSdkFactory().getJsonFactory())
             .defaultExceptionSupplier(defaultServiceExceptionSupplier)
+            .streamingErrorCodes(errorResponseMetadata.exceptionSupplier())
             .build());
     }
 

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocols.json;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionExceptionSupplier;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonResponseHandler;
 
 /**
@@ -28,9 +29,12 @@ public final class JsonOperationMetadata {
     private final boolean hasStreamingSuccessResponse;
     private final boolean isPayloadJson;
 
+    private final EventStreamTaggedUnionExceptionSupplier exceptionSupplier;
+
     private JsonOperationMetadata(Builder builder) {
         this.hasStreamingSuccessResponse = builder.hasStreamingSuccessResponse;
         this.isPayloadJson = builder.isPayloadJson;
+        this.exceptionSupplier = builder.exceptionSupplier;
     }
 
     public boolean hasStreamingSuccessResponse() {
@@ -39,6 +43,10 @@ public final class JsonOperationMetadata {
 
     public boolean isPayloadJson() {
         return isPayloadJson;
+    }
+
+    public EventStreamTaggedUnionExceptionSupplier exceptionSupplier() {
+        return exceptionSupplier;
     }
 
     public static Builder builder() {
@@ -52,6 +60,8 @@ public final class JsonOperationMetadata {
 
         private boolean hasStreamingSuccessResponse;
         private boolean isPayloadJson;
+
+        private EventStreamTaggedUnionExceptionSupplier exceptionSupplier;
 
         private Builder() {
         }
@@ -74,6 +84,11 @@ public final class JsonOperationMetadata {
          */
         public Builder hasStreamingSuccessResponse(boolean hasStreamingSuccessResponse) {
             this.hasStreamingSuccessResponse = hasStreamingSuccessResponse;
+            return this;
+        }
+
+        public Builder streamingErrorCodes(EventStreamTaggedUnionExceptionSupplier exceptionSupplier) {
+            this.exceptionSupplier = exceptionSupplier;
             return this;
         }
 

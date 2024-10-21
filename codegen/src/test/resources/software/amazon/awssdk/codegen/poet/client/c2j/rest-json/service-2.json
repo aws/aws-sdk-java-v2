@@ -471,6 +471,9 @@
         // Legacy generation uses shape name == event name
         "eventThree": {
           "shape": "LegacyEventThree"
+        },
+        "invalidInputException": {
+          "shape": "InvalidInputException"
         }
       },
       "eventstream": true

@@ -25,6 +25,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 
 /**
  * Utils for event streaming code generation.
@@ -124,6 +125,20 @@ public class EventStreamUtils {
         return eventStreamShape.getMembers()
                                .stream()
                                .filter(m -> m.getShape() != null && m.getShape().isEvent());
+    }
+
+    /**
+     * Returns the stream of event members ('event: true') excluding exceptions
+     * from the input event stream shape ('eventstream: true').
+     */
+    public static Stream<MemberModel> getExceptionMembers(ShapeModel eventStreamShape) {
+        if (eventStreamShape == null || eventStreamShape.getMembers() == null) {
+            return Stream.empty();
+        }
+
+        return eventStreamShape.getMembers()
+                               .stream()
+                               .filter(m -> m.getShape() != null && ShapeType.Exception == m.getShape().getShapeType());
     }
 
     /**

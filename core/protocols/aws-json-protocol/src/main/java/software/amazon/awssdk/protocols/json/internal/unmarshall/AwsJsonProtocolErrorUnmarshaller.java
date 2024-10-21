@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionExceptionSupplier;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkBytes;
@@ -50,6 +51,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
     private final Supplier<SdkPojo> defaultExceptionSupplier;
     private final ErrorCodeParser errorCodeParser;
     private final boolean hasAwsQueryCompatible;
+    private final EventStreamTaggedUnionExceptionSupplier eventStreamExceptionSupplier;
 
     private AwsJsonProtocolErrorUnmarshaller(Builder builder) {
         this.jsonProtocolUnmarshaller = builder.jsonProtocolUnmarshaller;
@@ -59,6 +61,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         this.defaultExceptionSupplier = builder.defaultExceptionSupplier;
         this.exceptions = builder.exceptions;
         this.hasAwsQueryCompatible = builder.hasAwsQueryCompatible;
+        this.eventStreamExceptionSupplier = builder.exceptionSupplier;
     }
 
     @Override
@@ -66,10 +69,17 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         return unmarshall(response, executionAttributes);
     }
 
+    public AwsServiceException handle2(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) {
+        return unmarshall(response, executionAttributes);
+    }
+
     private AwsServiceException unmarshall(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) {
         JsonContent jsonContent = JsonContent.createJsonContent(response, jsonFactory);
-        String errorCode = errorCodeParser.parseErrorCode(response, jsonContent);
 
+        Optional<String> eventErrorCode =
+            eventStreamExceptionSupplier != null ? eventStreamExceptionSupplier.apply(response) : Optional.empty();
+        System.out.println(eventErrorCode);
+        String errorCode = errorCodeParser.parseErrorCode(response, jsonContent);
         Optional<ExceptionMetadata> modeledExceptionMetadata = exceptions.stream()
                                                                          .filter(e -> e.errorCode().equals(errorCode))
                                                                          .findAny();
@@ -188,6 +198,8 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         private ErrorCodeParser errorCodeParser;
         private boolean hasAwsQueryCompatible;
 
+        private EventStreamTaggedUnionExceptionSupplier exceptionSupplier;
+
         private Builder() {
         }
 
@@ -253,6 +265,11 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
          */
         public Builder errorCodeParser(ErrorCodeParser errorCodeParser) {
             this.errorCodeParser = errorCodeParser;
+            return this;
+        }
+
+        public Builder streamingErrorCodes(EventStreamTaggedUnionExceptionSupplier exceptionSupplier) {
+            this.exceptionSupplier = exceptionSupplier;
             return this;
         }
 

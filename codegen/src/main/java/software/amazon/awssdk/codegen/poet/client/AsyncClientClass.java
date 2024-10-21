@@ -69,6 +69,7 @@ import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
+import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
@@ -174,6 +175,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
         }
         type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName()));
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
+        protocolSpec.createOperationMetadata().ifPresent(type::addMethod);
     }
 
     @Override
@@ -383,6 +385,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
         }
 
         builder.addCode(protocolSpec.responseHandler(model, opModel));
+
         protocolSpec.errorResponseHandler(opModel).ifPresent(builder::addCode);
         builder.addCode(eventToByteBufferPublisher(opModel));
 
