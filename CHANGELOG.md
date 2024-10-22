@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.28__ __2024-10-22__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS re:Post Private__
+  - ### Features
+    - Adds the BatchAddRole and BatchRemoveRole APIs.
+
+## __AWSMainframeModernization__
+  - ### Features
+    - Add AuthSecretsManagerArn optional parameter to batch job APIs, expand batch parameter limits, and introduce clientToken constraints.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Updating invoke regex to support imported models for converse API
+
+## __Amazon Kinesis__
+  - ### Bugfixes
+    - Fix an issue where errors that should be `400` are incorrectly classified as `500`.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Global clusters now expose the Endpoint attribute as one of its fields. It is a Read/Write endpoint for the global cluster which resolves to the Global Cluster writer instance.
+
+## __Amazon Timestream Query__
+  - ### Features
+    - This release adds support for Query Insights, a feature that provides details of query execution, enabling users to identify areas for improvement to optimize their queries, resulting in improved query performance and lower query costs.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Add macOS platform and instance placement options
+
 # __2.28.27__ __2024-10-21__
 ## __AWS Database Migration Service__
   - ### Features
