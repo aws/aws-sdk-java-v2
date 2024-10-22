@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon Kinesis",
-    "contributor": "",
-    "description": "Fix an issue where errors that should be `400` are incorrectly classified as `500`."
-}

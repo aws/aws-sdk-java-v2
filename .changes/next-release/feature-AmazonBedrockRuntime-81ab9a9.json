@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock Runtime",
-    "contributor": "",
-    "description": "Updating invoke regex to support imported models for converse API"
-}

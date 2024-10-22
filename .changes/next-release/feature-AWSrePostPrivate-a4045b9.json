@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS re:Post Private",
-    "contributor": "",
-    "description": "Adds the BatchAddRole and BatchRemoveRole APIs."
-}
