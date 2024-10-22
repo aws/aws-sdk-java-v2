@@ -73,6 +73,7 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonProtocolAdvancedOption;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -478,6 +479,13 @@ public class BaseClientBuilderClass implements ClassSpec {
                .addCode("    .dualstackEnabled(c.get($T.DUALSTACK_ENDPOINT_ENABLED))", AwsClientOption.class)
                .addCode("    .fipsEnabled(c.get($T.FIPS_ENDPOINT_ENABLED))", AwsClientOption.class)
                .addCode("    .build());");
+
+        if (model.getMetadata().isJsonProtocol()) {
+            if (model.getCustomizationConfig().getEnableFastUnmarshaller()) {
+                builder.addStatement("builder.option($1T.ENABLE_FAST_UNMARSHALLER, true)",
+                                     SdkClientJsonProtocolAdvancedOption.class);
+            }
+        }
 
         builder.addStatement("return builder.build()");
         return builder.build();
