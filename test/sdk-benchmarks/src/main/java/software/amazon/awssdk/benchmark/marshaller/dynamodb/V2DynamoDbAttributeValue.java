@@ -43,6 +43,7 @@ import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonProtocolAdvancedOption;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BackupInUseException;
 import software.amazon.awssdk.services.dynamodb.model.BackupNotFoundException;
@@ -79,6 +80,7 @@ public class V2DynamoDbAttributeValue {
         .clientConfiguration(SdkClientConfiguration
                                  .builder()
                                  .option(SdkClientOption.ENDPOINT, URI.create("https://localhost"))
+                                 .option(SdkClientJsonProtocolAdvancedOption.ENABLE_FAST_UNMARSHALLER, true)
                                  .build())
         .defaultServiceExceptionSupplier(DynamoDbException::builder)
         .protocol(AwsJsonProtocol.AWS_JSON)

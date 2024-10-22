@@ -1,8 +1,8 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
@@ -18,7 +18,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public final class EventStreamOperationWithOnlyInputRequest extends JsonProtocolTestsRequest implements
         ToCopyableBuilder<EventStreamOperationWithOnlyInputRequest.Builder, EventStreamOperationWithOnlyInputRequest> {
-    private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
+    private static final List<SdkField<?>> SDK_FIELDS = Collections.emptyList();
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections.emptyMap();
 
     private EventStreamOperationWithOnlyInputRequest(BuilderImpl builder) {
         super(builder);
@@ -81,6 +83,11 @@ public final class EventStreamOperationWithOnlyInputRequest extends JsonProtocol
         return SDK_FIELDS;
     }
 
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
+    }
+
     public interface Builder extends JsonProtocolTestsRequest.Builder, SdkPojo,
             CopyableBuilder<Builder, EventStreamOperationWithOnlyInputRequest> {
         @Override
@@ -118,6 +125,11 @@ public final class EventStreamOperationWithOnlyInputRequest extends JsonProtocol
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }
