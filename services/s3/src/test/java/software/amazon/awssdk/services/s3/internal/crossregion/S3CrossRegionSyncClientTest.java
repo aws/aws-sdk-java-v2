@@ -18,8 +18,10 @@ package software.amazon.awssdk.services.s3.internal.crossregion;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.customHttpResponse;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.customHttpResponseWithUnknownErrorCode;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.successHttpResponse;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionRedirectTestBase.CHANGED_CROSS_REGION;
@@ -86,6 +88,11 @@ class S3CrossRegionSyncClientTest {
         Consumer<MockSyncHttpClient> redirectStubConsumer = mockSyncHttpClient ->
             mockSyncHttpClient.stubResponses(customHttpResponseWithUnknownErrorCode(301, CROSS_REGION.id()), successHttpResponse());
 
+        Consumer<MockSyncHttpClient> redirectOn400IllegalLocationConstraintConsumer = mockSyncHttpClient ->
+            mockSyncHttpClient.stubResponses(
+                customHttpResponse(400, "IllegalLocationConstraintException", CROSS_REGION.id()),
+                successHttpResponse());
+
         Consumer<MockSyncHttpClient> successStubConsumer = mockSyncHttpClient ->
             mockSyncHttpClient.stubResponses(successHttpResponse(), successHttpResponse());
 
@@ -93,6 +100,9 @@ class S3CrossRegionSyncClientTest {
             Arguments.of(redirectStubConsumer,
                          BucketEndpointProvider.class,
                          "Redirect Error with region in x-amz-bucket-header"),
+            Arguments.of(redirectOn400IllegalLocationConstraintConsumer,
+                         BucketEndpointProvider.class,
+                         "Redirect 400 IllegalLocationConstraintException Error with x-amz-bucket-header"),
             Arguments.of(successStubConsumer,
                          BucketEndpointProvider.class,
                          "Success response" ));
