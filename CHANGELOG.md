@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.28.29__ __2024-10-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Doc updates for supporting converse
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Service Feature: Add support to start screen sharing for a web calling contact.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 X8g, C8g and M8g instances are powered by AWS Graviton4 processors. X8g provide the lowest cost per GiB of memory among Graviton4 instances. C8g provide the best price performance for compute-intensive workloads. M8g provide the best price performance in for general purpose workloads.
+
+## __AmazonMWAA__
+  - ### Features
+    - Introducing InvokeRestApi which allows users to invoke the Apache Airflow REST API on the webserver with the specified inputs.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Add support for ECC P-256 and P-384 Keys.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Add ECDH support on PIN operations.
+
 # __2.28.28__ __2024-10-22__
 ## __AWS SDK for Java v2__
   - ### Features
