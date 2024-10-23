@@ -80,6 +80,7 @@ import software.amazon.awssdk.utils.StringUtils;
 
 class S3CrossRegionAsyncClientTest {
 
+    private static final String ILLEGAL_LOCATION_CONSTRAINT_EXCEPTION_ERROR_CODE = "IllegalLocationConstraintException";
     private static final String ERROR_RESPONSE_FORMAT = "<Error>\\n\\t<Code>%s</Code>\\n</Error>";
     private static final String BUCKET = "bucket";
     private static final String KEY = "key";
@@ -105,10 +106,19 @@ class S3CrossRegionAsyncClientTest {
         Consumer<MockAsyncHttpClient> tempRedirectStubConsumer = mockAsyncHttpClient ->
             mockAsyncHttpClient.stubResponses(customHttpResponseWithUnknownErrorCode(307, CROSS_REGION.id()), successHttpResponse());
 
+        Consumer<MockAsyncHttpClient> locationConstraintExceptionConsumer = mockAsyncHttpClient ->
+            mockAsyncHttpClient.stubResponses(customHttpResponse(400,
+                                                                 ILLEGAL_LOCATION_CONSTRAINT_EXCEPTION_ERROR_CODE,
+                                                                 CROSS_REGION.id()), successHttpResponse());
+
+
         return Stream.of(
             Arguments.of(redirectStubConsumer, BucketEndpointProvider.class, "Redirect Error with region in x-amz-bucket-header"),
             Arguments.of(successStubConsumer, BucketEndpointProvider.class, "Success response" ),
-            Arguments.of(tempRedirectStubConsumer, BucketEndpointProvider.class, "Permanent redirect Error with region in x-amz-bucket-header" )
+            Arguments.of(tempRedirectStubConsumer, BucketEndpointProvider.class,
+                         "Permanent redirect Error with region in x-amz-bucket-header" ),
+            Arguments.of(locationConstraintExceptionConsumer, BucketEndpointProvider.class,
+                         "Redirect error: 400 IllegalLocationConstraintException with region in x-amz-bucket-header" )
         );
     }
 
