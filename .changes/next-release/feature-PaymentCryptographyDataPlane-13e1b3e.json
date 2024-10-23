@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Payment Cryptography Data Plane",
+    "contributor": "",
+    "description": "Add ECDH support on PIN operations."
+}
