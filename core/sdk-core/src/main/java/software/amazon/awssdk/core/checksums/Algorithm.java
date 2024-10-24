@@ -22,7 +22,10 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Enum that indicates all the checksums supported by Flexible checksums in a Service Request/Response Header.
+ *
+ * @deprecated this class is deprecated and will not be updated.
  */
+@Deprecated
 @SdkPublicApi
 public enum Algorithm {
 

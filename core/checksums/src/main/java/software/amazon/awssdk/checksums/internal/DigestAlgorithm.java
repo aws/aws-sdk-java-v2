@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.signer.util;
+package software.amazon.awssdk.checksums.internal;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

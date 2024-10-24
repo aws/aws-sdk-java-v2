@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.utils;
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
@@ -50,4 +51,13 @@ public final class NumericUtils {
         return (a.compareTo(b) > 0) ? a : b;
     }
 
+    /**
+     * Converts a long to a byte array
+     */
+    public static byte[] longToByte(Long input) {
+        Validate.paramNotNull(input, "input");
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.putLong(input);
+        return buffer.array();
+    }
 }
