@@ -15,6 +15,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetrics.METRIC_SEARCH_PATTERN;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetricFeatureId;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -133,9 +135,9 @@ class LocalDynamoDb {
 
         @Override
         public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
-            Optional<String> headers = context.httpRequest().firstMatchingHeader("User-agent");
-            assertThat(headers).isPresent();
-            assertThat(headers.get()).contains("hll/ddb-enh");
+            Optional<String> userAgentHeader = context.httpRequest().firstMatchingHeader("User-Agent");
+            assertThat(userAgentHeader).isPresent();
+            assertThat(userAgentHeader.get()).matches(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.DDB_MAPPER.value()));
         }
     }
 
