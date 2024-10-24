@@ -1,0 +1,42 @@
+{
+    "version": "2.29.0",
+    "date": "2024-10-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Parallel Computing Service",
+            "contributor": "",
+            "description": "Documentation update: added the default value of the Slurm configuration parameter scaleDownIdleTimeInSeconds to its description."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppConfig",
+            "contributor": "",
+            "description": "This release improves deployment safety by granting customers the ability to REVERT completed deployments, to the last known good state.In the StopDeployment API revert case the status of a COMPLETE deployment will be REVERTED. AppConfig only allows a revert within 72 hours of deployment completion."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This release adds support for EBS volumes attached to Amazon ECS Windows tasks running on EC2 instances."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release includes a new API to describe some details of the Amazon Machine Images (AMIs) that were used to launch EC2 instances, even if those AMIs are no longer available for use."
+        },
+        {
+            "type": "feature",
+            "category": "QBusiness",
+            "contributor": "",
+            "description": "Add a new field in chat response. This field can be used to support nested schemas in array fields"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
