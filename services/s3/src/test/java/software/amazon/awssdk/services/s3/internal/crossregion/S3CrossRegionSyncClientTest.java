@@ -466,6 +466,19 @@ class S3CrossRegionSyncClientTest {
                                      SdkHttpMethod.HEAD));
     }
 
+    @Test
+    void given_CrossRegionClient_when400Error_WithoutIllegalLocationConstraint_DoesNotRedirect() {
+        mockSyncHttpClient.stubResponses(customHttpResponse(400, "UnknownError", null));
+        S3Client crossRegionClient =
+            clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION).crossRegionAccessEnabled(true).build();
+
+        assertThatExceptionOfType(S3Exception.class)
+            .isThrownBy(() -> crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY)))
+            .withMessageContaining("Status Code: 400");
+
+        List<SdkHttpRequest> requests = mockSyncHttpClient.getRequests();
+        assertThat(requests).hasSize(1);
+    }
 
     @Test
     void given_CrossRegionClient_when_StandardOperation_then_ContainsUserAgent() {
