@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Update the cross-region client to correctly handle redirect cases for opt-in regions."
+}
