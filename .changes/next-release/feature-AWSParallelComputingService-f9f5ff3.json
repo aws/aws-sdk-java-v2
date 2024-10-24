@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Parallel Computing Service",
+    "contributor": "",
+    "description": "Documentation update: added the default value of the Slurm configuration parameter scaleDownIdleTimeInSeconds to its description."
+}
