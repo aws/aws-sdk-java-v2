@@ -19,6 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsQueryCompatibleJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.batchManagerModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.cborServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customContentTypeModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customPackageModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.endpointDiscoveryModels;
@@ -59,6 +60,15 @@ public class AsyncClientClassTest {
 
         AsyncClientClass sraAsyncClientClass = createAsyncClientClass(awsJsonServiceModels(), true);
         assertThat(sraAsyncClientClass, generatesTo("sra/test-aws-json-async-client-class.java"));
+    }
+
+    @Test
+    public void asyncClientClassCbor() {
+        AsyncClientClass asyncClientClass = createAsyncClientClass(cborServiceModels(), false);
+        assertThat(asyncClientClass, generatesTo("test-cbor-async-client-class.java"));
+
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(cborServiceModels(), true);
+        assertThat(sraAsyncClientClass, generatesTo("sra/test-cbor-async-client-class.java"));
     }
 
     @Test
