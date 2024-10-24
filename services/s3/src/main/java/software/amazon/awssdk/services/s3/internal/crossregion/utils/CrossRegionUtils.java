@@ -61,7 +61,9 @@ public final class CrossRegionUtils {
     }
 
     private static boolean isRedirectError(S3Exception exceptionToBeChecked) {
-        boolean matchRedirectStatusCode = REDIRECT_STATUS_CODES.stream().anyMatch(status -> status.equals(exceptionToBeChecked.statusCode()));
+        boolean matchRedirectStatusCode =
+            REDIRECT_STATUS_CODES.stream()
+                                 .anyMatch(status -> status.equals(exceptionToBeChecked.statusCode()));
         if (matchRedirectStatusCode) {
             return true;
         }
