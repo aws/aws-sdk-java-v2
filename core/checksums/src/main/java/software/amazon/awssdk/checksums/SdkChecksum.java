@@ -13,17 +13,47 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.signer.checksums;
+package software.amazon.awssdk.checksums;
 
 import java.nio.ByteBuffer;
 import java.util.zip.Checksum;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.checksums.internal.Crc32Checksum;
+import software.amazon.awssdk.checksums.internal.Crc32cProvider;
+import software.amazon.awssdk.checksums.internal.Crc64NvmeChecksum;
+import software.amazon.awssdk.checksums.internal.Md5Checksum;
+import software.amazon.awssdk.checksums.internal.Sha1Checksum;
+import software.amazon.awssdk.checksums.internal.Sha256Checksum;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 
 /**
  * Extension of {@link Checksum} to support checksums and checksum validations used by the SDK that are not provided by the JDK.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public interface SdkChecksum extends Checksum {
+
+    /**
+     * Returns an {@link SdkChecksum} based on the {@link ChecksumAlgorithm} provided.
+     * UnsupportedOperationException will be thrown for unsupported algorithm.
+     */
+    static SdkChecksum forAlgorithm(ChecksumAlgorithm algorithm) {
+        switch (algorithm.algorithmId()) {
+            case "CRC32C":
+                return Crc32cProvider.create();
+            case "CRC32":
+                return new Crc32Checksum();
+            case "SHA1":
+                return new Sha1Checksum();
+            case "SHA256":
+                return new Sha256Checksum();
+            case "MD5":
+                return new Md5Checksum();
+            case "CRC64NVME":
+                return new Crc64NvmeChecksum();
+            default:
+                throw new UnsupportedOperationException("Unsupported checksum algorithm: " + algorithm);
+        }
+    }
 
     /**
      * Returns the computed checksum in a byte array rather than the long provided by {@link #getValue()}.
@@ -48,7 +78,6 @@ public interface SdkChecksum extends Checksum {
     default void update(byte[] b) {
         update(b, 0, b.length);
     }
-
 
     /**
      * Updates the current checksum with the bytes from the specified buffer.

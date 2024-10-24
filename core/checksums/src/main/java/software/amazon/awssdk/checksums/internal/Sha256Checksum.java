@@ -13,23 +13,23 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.signer.checksums;
+package software.amazon.awssdk.checksums.internal;
 
 import java.security.MessageDigest;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.aws.internal.signer.util.DigestAlgorithm;
+import software.amazon.awssdk.checksums.SdkChecksum;
 
 /**
- * Implementation of {@link SdkChecksum} to calculate an Sha-1 checksum.
+ * Implementation of {@link SdkChecksum} to calculate an Sha-256 Checksum.
  */
 @SdkInternalApi
-public class Sha1Checksum implements SdkChecksum {
+public class Sha256Checksum implements SdkChecksum {
 
     private MessageDigest digest;
 
     private MessageDigest digestLastMarked;
 
-    public Sha1Checksum() {
+    public Sha256Checksum() {
         this.digest = getDigest();
     }
 
@@ -52,13 +52,13 @@ public class Sha1Checksum implements SdkChecksum {
     public void reset() {
         digest = (digestLastMarked == null)
                  // This is necessary so that should there be a reset without a
-                 // preceding mark, the Sha-1 would still be computed correctly.
+                 // preceding mark, the Sha-256 would still be computed correctly.
                  ? getDigest()
                  : cloneFrom(digestLastMarked);
     }
 
     private MessageDigest getDigest() {
-        return DigestAlgorithm.SHA1.getDigest();
+        return DigestAlgorithm.SHA256.getDigest();
     }
 
     @Override

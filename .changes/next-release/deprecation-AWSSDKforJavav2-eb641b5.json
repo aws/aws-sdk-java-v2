@@ -1,0 +1,6 @@
+{
+    "type": "deprecation",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Deprecate internal checksum algorithm classes."
+}

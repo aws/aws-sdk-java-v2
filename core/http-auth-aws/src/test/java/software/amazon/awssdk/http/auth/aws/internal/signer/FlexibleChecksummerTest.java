@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC64NVME;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.FlexibleChecksummer.option;
 
@@ -91,14 +92,16 @@ public class FlexibleChecksummerTest {
     }
 
     @Test
-    public void checksummer_withTwoChecksums_shouldAddTwoChecksums() {
+    public void checksummer_withMultipleChecksums_shouldAddAllChecksums() {
         FlexibleChecksummer checksummer = new FlexibleChecksummer(
             option().headerName("sha256").algorithm(SHA256).formatter(BinaryUtils::toHex).build(),
-            option().headerName("crc32").algorithm(CRC32).formatter(BinaryUtils::toBase64).build()
+            option().headerName("crc32").algorithm(CRC32).formatter(BinaryUtils::toBase64).build(),
+            option().headerName("crc64nvme").algorithm(CRC64NVME).formatter(BinaryUtils::toBase64).build()
         );
         SdkHttpRequest expectedRequest = request
             .putHeader("sha256", "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae")
             .putHeader("crc32", "jHNlIQ==")
+            .putHeader("crc64nvme", "5O33DmauDQI=")
             .build();
 
         checksummer.checksum(payload, request);
@@ -107,14 +110,16 @@ public class FlexibleChecksummerTest {
     }
 
     @Test
-    public void checksummerAsync_withTwoChecksums_shouldAddTwoChecksums() {
+    public void checksummerAsync_withMultipleChecksums_shouldAddAllChecksums() {
         FlexibleChecksummer checksummer = new FlexibleChecksummer(
             option().headerName("sha256").algorithm(SHA256).formatter(BinaryUtils::toBase64).build(),
-            option().headerName("crc32").algorithm(CRC32).formatter(BinaryUtils::toHex).build()
+            option().headerName("crc32").algorithm(CRC32).formatter(BinaryUtils::toHex).build(),
+            option().headerName("crc64nvme").algorithm(CRC64NVME).formatter(BinaryUtils::toBase64).build()
         );
         SdkHttpRequest expectedRequest = request
             .putHeader("sha256", "LCa0a2j/xo/5m0U8HTBBNBNCLXBkg7+g+YpeiGJm564=")
             .putHeader("crc32", "8c736521")
+            .putHeader("crc64nvme", "5O33DmauDQI=")
             .build();
 
         checksummer.checksum(payloadAsync, request);

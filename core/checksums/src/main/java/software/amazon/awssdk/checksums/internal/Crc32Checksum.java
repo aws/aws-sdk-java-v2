@@ -13,47 +13,52 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.signer.checksums;
+package software.amazon.awssdk.checksums.internal;
 
-import java.nio.charset.StandardCharsets;
+
+import java.util.zip.CRC32;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.SdkChecksum;
 
-/**
- * Implementation of {@link SdkChecksum} to provide a constant checksum.
- */
 @SdkInternalApi
-public class ConstantChecksum implements SdkChecksum {
+public final class Crc32Checksum implements SdkChecksum {
+    private final CrcCombineOnMarkChecksum crc32;
 
-    private final String value;
-
-    public ConstantChecksum(String value) {
-        this.value = value;
-    }
-
-    @Override
-    public void update(int b) {
-    }
-
-    @Override
-    public void update(byte[] b, int off, int len) {
-    }
-
-    @Override
-    public long getValue() {
-        throw new UnsupportedOperationException("Use getChecksumBytes() instead.");
-    }
-
-    @Override
-    public void reset() {
+    public Crc32Checksum() {
+        // Delegates to CrcCombineOnMarkChecksum with CRC32
+        this.crc32 = new CrcCombineOnMarkChecksum(
+            new CRC32(),
+            SdkCrc32Checksum::combine
+        );
     }
 
     @Override
     public byte[] getChecksumBytes() {
-        return value.getBytes(StandardCharsets.UTF_8);
+        return crc32.getChecksumBytes();
     }
 
     @Override
     public void mark(int readLimit) {
+        crc32.mark(readLimit);
+    }
+
+    @Override
+    public void update(int b) {
+        crc32.update(b);
+    }
+
+    @Override
+    public void update(byte[] b, int off, int len) {
+        crc32.update(b, off, len);
+    }
+
+    @Override
+    public long getValue() {
+        return crc32.getValue();
+    }
+
+    @Override
+    public void reset() {
+        crc32.reset();
     }
 }
