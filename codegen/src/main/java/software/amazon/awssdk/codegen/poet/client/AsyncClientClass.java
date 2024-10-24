@@ -182,6 +182,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
         type.addMethod(ClientClassUtils.updateRetryStrategyClientConfigurationMethod());
         type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName()));
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
+        protocolSpec.createEventstreamErrorResponseHandler().ifPresent(type::addMethod);
     }
 
     @Override

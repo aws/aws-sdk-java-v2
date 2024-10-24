@@ -126,6 +126,16 @@ public class EventStreamUtils {
                                .filter(m -> m.getShape() != null && m.getShape().isEvent());
     }
 
+    public static Stream<MemberModel> getErrorMembers(ShapeModel eventStreamShape) {
+        if (eventStreamShape == null || eventStreamShape.getMembers() == null) {
+            return Stream.empty();
+        }
+
+        return eventStreamShape.getMembers()
+                               .stream()
+                               .filter(m -> m.getShape() != null && !m.getShape().isEvent()); // TODO: is this right?
+    }
+
     /**
      * Returns the all operations that contain the given event stream shape. The event stream can be in operation
      * request or response shape.

@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -131,6 +132,7 @@ public abstract class BaseAwsJsonProtocolFactory {
     /**
      * Creates a response handler for handling a error response (non 2xx response).
      */
+    @Deprecated
     public final HttpResponseHandler<AwsServiceException> createErrorResponseHandler(
         JsonOperationMetadata errorResponseMetadata) {
         return timeUnmarshalling(AwsJsonProtocolErrorUnmarshaller
@@ -143,6 +145,21 @@ public abstract class BaseAwsJsonProtocolFactory {
             .jsonFactory(getSdkFactory().getJsonFactory())
             .defaultExceptionSupplier(defaultServiceExceptionSupplier)
             .build());
+    }
+
+    public final HttpResponseHandler<AwsServiceException> createErrorResponseHandler(
+        JsonOperationMetadata errorResponseMetadata,
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataSupplier) {
+        return timeUnmarshalling(
+            AwsJsonProtocolErrorUnmarshaller.builder()
+                                            .jsonProtocolUnmarshaller(protocolUnmarshaller)
+                                            .exceptionMetadataSupplier(exceptionMetadataSupplier)
+                                            .errorCodeParser(getSdkFactory().getErrorCodeParser(customErrorCodeFieldName))
+                                            .hasAwsQueryCompatible(hasAwsQueryCompatible)
+                                            .errorMessageParser(AwsJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER)
+                                            .jsonFactory(getSdkFactory().getJsonFactory())
+                                            .defaultExceptionSupplier(defaultServiceExceptionSupplier)
+                                            .build());
     }
 
     private <T> MetricCollectingHttpResponseHandler<T> timeUnmarshalling(HttpResponseHandler<T> delegate) {
@@ -252,6 +269,7 @@ public abstract class BaseAwsJsonProtocolFactory {
          * @param exceptionBuilderSupplier Suppplier of the base service exceptions Builder.
          * @return This builder for method chaining.
          */
+        @Deprecated
         public final SubclassT defaultServiceExceptionSupplier(Supplier<SdkPojo> exceptionBuilderSupplier) {
             this.defaultServiceExceptionSupplier = exceptionBuilderSupplier;
             return getSubclass();
