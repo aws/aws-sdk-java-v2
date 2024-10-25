@@ -25,7 +25,7 @@ import java.util.function.UnaryOperator;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.CollectionUtils;
 
-// CHECKSTYLE:OFF
+// CHECKSTYLE:OFF - Class naming rules prohibit plurals, overriding
 @SdkProtectedApi
 public class BusinessMetrics {
     // CHECKSTYLE:ON

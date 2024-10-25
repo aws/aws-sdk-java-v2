@@ -41,9 +41,6 @@ public final class UserAgentConstant {
 
     public static final String UA_VERSION = "2.1";
 
-    public static final String METRICS_TAG = "sdk-metrics";
-
-
     //Separators used in SDK user agent
     public static final String SLASH = "/";
     public static final String HASH = "#";

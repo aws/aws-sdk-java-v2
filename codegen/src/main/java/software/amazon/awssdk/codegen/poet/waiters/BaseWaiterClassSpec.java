@@ -19,7 +19,6 @@ import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
-import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.METRICS_TAG;
 import static software.amazon.awssdk.utils.internal.CodegenNamingUtils.lowercaseFirstChar;
 
 import com.fasterxml.jackson.jr.stree.JrsBoolean;
@@ -408,7 +407,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                                        .addStatement("$T userAgentApplier = b -> b.addApiName($T.builder().name"
                                                      + "($S).version($S).build())",
                                                      parameterizedTypeName, ApiName.class,
-                                                     METRICS_TAG,
+                                                     "sdk-metrics",
                                                      BusinessMetricFeatureId.WAITER)
                                        .addStatement("$T overrideConfiguration =\n"
                                                      + "            request.overrideConfiguration().map(c -> c.toBuilder()"

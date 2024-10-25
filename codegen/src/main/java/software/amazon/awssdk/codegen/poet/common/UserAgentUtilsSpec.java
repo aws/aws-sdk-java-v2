@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.poet.common;
 
-import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.METRICS_TAG;
-
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
@@ -110,7 +108,7 @@ public class UserAgentUtilsSpec implements ClassSpec {
                                        + ".version($S)"
                                        + ".build()))",
                                        ApiName.class,
-                                       METRICS_TAG,
+                                       "sdk-metrics",
                                        BusinessMetricFeatureId.PAGINATOR)
                          .returns(typeVariableName)
                          .build();

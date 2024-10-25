@@ -49,7 +49,7 @@ import software.amazon.awssdk.utils.IoUtils;
 public class CompressRequestStage implements MutableRequestToRequestPipeline {
 
     public static final int DEFAULT_MIN_COMPRESSION_SIZE = 10_240;
-    public static final String COMPRESSION_HEADER = "Content-encoding";
+    private static final String COMPRESSION_HEADER = "Content-encoding";
     private static final int MIN_COMPRESSION_SIZE_LIMIT = 10_485_760;
     private final CompressionConfiguration compressionConfig;
 
