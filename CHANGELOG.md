@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.1__ __2024-10-25__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports automatically retrying failed builds
+
+## __AWS Lambda__
+  - ### Features
+    - Add TagsError field in Lambda GetFunctionResponse. The TagsError field contains details related to errors retrieving tags.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Supply Chain__
+  - ### Features
+    - API doc updates, and also support showing error message on a failed instance
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Add support of new model types for Bedrock Agents, Adding inference profile support for Flows and Prompt Management, Adding new field to configure additional inference configurations for Flows and Prompt Management
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Adding inferred token name for dynamic tokens in Anomalies.
+
 # __2.29.0__ __2024-10-24__
 ## __AWS Parallel Computing Service__
   - ### Features
@@ -6,7 +31,11 @@
 
 ## __AWS SDK for Java v2__
   - ### Features
+    - The SDK now defaults to Java built-in CRC32 and CRC32C(if it's Java 9+) implementations, resulting in improved performance.
     - Updated endpoint and partition metadata.
+
+  - ### Deprecations
+    - Deprecate internal checksum algorithm classes.
 
 ## __Amazon AppConfig__
   - ### Features
