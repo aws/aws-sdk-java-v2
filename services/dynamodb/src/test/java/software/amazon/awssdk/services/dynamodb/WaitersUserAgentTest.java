@@ -23,7 +23,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertTrue;
-import static software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetrics.METRIC_SEARCH_PATTERN;
+import static software.amazon.awssdk.core.useragent.BusinessMetrics.METRIC_SEARCH_PATTERN;
 
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -41,7 +41,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetricFeatureId;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;

@@ -27,7 +27,7 @@ import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetricFeatureId;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
 class ApplyUserAgentInterceptorTest {

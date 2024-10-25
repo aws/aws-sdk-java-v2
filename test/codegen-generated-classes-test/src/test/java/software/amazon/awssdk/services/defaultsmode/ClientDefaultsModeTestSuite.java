@@ -22,7 +22,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetrics.METRIC_SEARCH_PATTERN;
+import static software.amazon.awssdk.core.useragent.BusinessMetrics.METRIC_SEARCH_PATTERN;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -33,7 +33,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
-import software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetricFeatureId;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;

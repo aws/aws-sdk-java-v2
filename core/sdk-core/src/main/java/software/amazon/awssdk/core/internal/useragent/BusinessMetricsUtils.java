@@ -13,12 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.useragent.businessmetrics;
+package software.amazon.awssdk.core.internal.useragent;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
 import software.amazon.awssdk.retries.LegacyRetryStrategy;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
@@ -37,7 +38,7 @@ public final class BusinessMetricsUtils {
             }
             if (retryMode == RetryMode.LEGACY) {
                 return Optional.of(BusinessMetricFeatureId.RETRY_MODE_LEGACY.value());
-            }
+            } //TODO(business-metrics) Separate logic when feature id for ADAPTIVE is available
             if (retryMode == RetryMode.ADAPTIVE || retryMode == RetryMode.ADAPTIVE_V2) {
                 return Optional.of(BusinessMetricFeatureId.RETRY_MODE_ADAPTIVE.value());
             }

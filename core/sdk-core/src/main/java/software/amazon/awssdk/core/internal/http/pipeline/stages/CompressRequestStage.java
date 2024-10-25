@@ -37,7 +37,7 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.sync.CompressionContentStreamProvider;
-import software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetricFeatureId;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.IoUtils;

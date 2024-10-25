@@ -41,7 +41,7 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.useragent.IdentityProviderNameMapping;
-import software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetrics;
+import software.amazon.awssdk.core.useragent.BusinessMetrics;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.CollectionUtils;

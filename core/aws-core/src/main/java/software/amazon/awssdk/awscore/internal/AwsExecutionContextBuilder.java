@@ -19,7 +19,7 @@ import static software.amazon.awssdk.auth.signer.internal.util.SignerMethodResol
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
-import static software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetricsUtils.resolveRetryMode;
+import static software.amazon.awssdk.core.internal.useragent.BusinessMetricsUtils.resolveRetryMode;
 
 import java.util.Map;
 import java.util.Optional;
@@ -47,9 +47,9 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
-import software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetrics;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.useragent.BusinessMetrics;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;

@@ -20,7 +20,6 @@ import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.A
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.HTTP;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.INTERNAL_METADATA_MARKER;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.IO;
-import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.RETRY_MODE;
 
 import java.util.Arrays;
 import java.util.Collections;

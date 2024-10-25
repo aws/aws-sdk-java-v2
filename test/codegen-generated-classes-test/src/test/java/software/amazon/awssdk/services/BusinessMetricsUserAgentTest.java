@@ -17,7 +17,7 @@ package software.amazon.awssdk.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetrics.METRIC_SEARCH_PATTERN;
+import static software.amazon.awssdk.core.useragent.BusinessMetrics.METRIC_SEARCH_PATTERN;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,8 +38,8 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetricFeatureId;
-import software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetrics;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
+import software.amazon.awssdk.core.useragent.BusinessMetrics;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;

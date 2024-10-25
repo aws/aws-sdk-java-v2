@@ -32,7 +32,7 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.internal.useragent.businessmetrics.BusinessMetricFeatureId;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 
 public class UserAgentUtilsSpec implements ClassSpec {
 

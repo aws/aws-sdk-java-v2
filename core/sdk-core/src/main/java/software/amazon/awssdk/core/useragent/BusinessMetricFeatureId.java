@@ -13,14 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.useragent.businessmetrics;
+package software.amazon.awssdk.core.useragent;
 
-import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Pattern;
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
@@ -29,7 +25,7 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
  * Unimplemented metrics: I,J,K,M-c,e-[latest]
  * Unsupported metrics (these will never be added): A,H
  */
-@SdkInternalApi
+@SdkProtectedApi
 public enum BusinessMetricFeatureId {
 
     WAITER("B"),
@@ -42,7 +38,6 @@ public enum BusinessMetricFeatureId {
     DDB_MAPPER("d"),
     UNKNOWN("Unknown");
 
-    private static final Pattern CLASS_NAME_CHARACTERS = Pattern.compile("[a-zA-Z_$\\d]{0,62}");
     private static final Map<String, BusinessMetricFeatureId> VALUE_MAP =
         EnumUtils.uniqueIndex(BusinessMetricFeatureId.class, BusinessMetricFeatureId::toString);
     private final String value;
@@ -58,35 +53,5 @@ public enum BusinessMetricFeatureId {
     @Override
     public String toString() {
         return String.valueOf(value);
-    }
-
-    /**
-     * Map the given provider name to a shorter form. If null or empty, return unknown.
-     * If not recognized, use the given string if it conforms to the accepted pattern.
-     */
-    public static Optional<String> mapFrom(String source) {
-        if (StringUtils.isBlank(source)) {
-            return Optional.of(UNKNOWN.name().toLowerCase(Locale.US));
-        }
-        return mappedName(source).map(mapping -> Optional.of(mapping.name().toLowerCase(Locale.US)))
-                                 .orElseGet(() -> sanitizedProviderOrNull(source));
-    }
-
-    private static Optional<BusinessMetricFeatureId> mappedName(String value) {
-        if (VALUE_MAP.containsKey(value)) {
-            return Optional.of(VALUE_MAP.get(value));
-        }
-        return Optional.empty();
-    }
-
-    private static Optional<String> sanitizedProviderOrNull(String value) {
-        if (hasAcceptedFormat(value)) {
-            return Optional.of(value);
-        }
-        return Optional.empty();
-    }
-
-    private static boolean hasAcceptedFormat(String input) {
-        return CLASS_NAME_CHARACTERS.matcher(input).matches();
     }
 }

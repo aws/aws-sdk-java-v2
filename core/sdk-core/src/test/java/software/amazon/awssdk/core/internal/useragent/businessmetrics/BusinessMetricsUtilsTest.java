@@ -23,8 +23,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
+import software.amazon.awssdk.core.internal.useragent.BusinessMetricsUtils;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 
 class BusinessMetricsUtilsTest {
