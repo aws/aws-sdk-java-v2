@@ -276,7 +276,6 @@
         <module>lookoutmetrics</module>
         <module>mgn</module>
         <module>lookoutequipment</module>
-        <module>nimble</module>
         <module>finspacedata</module>
         <module>finspace</module>
         <module>ssmincidents</module>
