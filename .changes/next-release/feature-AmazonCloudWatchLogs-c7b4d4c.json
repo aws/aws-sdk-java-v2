@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Logs",
-    "contributor": "",
-    "description": "Adding inferred token name for dynamic tokens in Anomalies."
-}
