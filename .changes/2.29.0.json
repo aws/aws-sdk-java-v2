@@ -3,6 +3,18 @@
     "date": "2024-10-24",
     "entries": [
         {
+            "type": "deprecation",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Deprecate internal checksum algorithm classes."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "The SDK now defaults to Java built-in CRC32 and CRC32C(if it's Java 9+) implementations, resulting in improved performance."
+        },
+        {
             "type": "feature",
             "category": "AWS Parallel Computing Service",
             "contributor": "",

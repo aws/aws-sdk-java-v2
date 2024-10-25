@@ -7,6 +7,9 @@
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
+    - The SDK now defaults to Java built-in CRC32 and CRC32C(if it's Java 9+) implementations, resulting in improved performance.
+- ### Deprecation
+    - Deprecate internal checksum algorithm classes.
 
 ## __Amazon AppConfig__
   - ### Features
@@ -23,4 +26,3 @@
 ## __QBusiness__
   - ### Features
     - Add a new field in chat response. This field can be used to support nested schemas in array fields
-
