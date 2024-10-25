@@ -30,9 +30,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Crc32Checksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkChecksum;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Sha256Checksum;
+import software.amazon.awssdk.checksums.internal.Crc32Checksum;
+import software.amazon.awssdk.checksums.internal.Crc64NvmeChecksum;
+import software.amazon.awssdk.checksums.SdkChecksum;
+import software.amazon.awssdk.checksums.internal.Sha256Checksum;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 public class ChecksumSubscriberTest {
@@ -58,19 +59,23 @@ public class ChecksumSubscriberTest {
         String testString = "AWS SDK for Java";
         String expectedSha256Digest = "004c6bbd87e7fe70109b3bc23c8b1ab8f18a8bede0ed38c9233f6cdfd4f7b5d6";
         String expectedCrc32Digest = "4ac37ece";
+        String expectedCrc64Digest = "7c05fe704e3e02bc";
 
         SdkChecksum sha256Checksum = new Sha256Checksum();
         SdkChecksum crc32Checksum = new Crc32Checksum();
-        ChecksumSubscriber subscriber = new ChecksumSubscriber(Arrays.asList(sha256Checksum, crc32Checksum));
+        SdkChecksum crc64NvmeChecksum = new Crc64NvmeChecksum();
+        ChecksumSubscriber subscriber = new ChecksumSubscriber(Arrays.asList(sha256Checksum, crc32Checksum, crc64NvmeChecksum));
         Flowable<ByteBuffer> publisher = Flowable.just(ByteBuffer.wrap(testString.getBytes(StandardCharsets.UTF_8)));
         publisher.subscribe(subscriber);
 
         joinLikeSync(subscriber.completeFuture());
         String computedSha256Digest = BinaryUtils.toHex(sha256Checksum.getChecksumBytes());
         String computedCrc32Digest = BinaryUtils.toHex(crc32Checksum.getChecksumBytes());
+        String computedCrc64NvmeDigest = BinaryUtils.toHex(crc64NvmeChecksum.getChecksumBytes());
 
         assertThat(computedSha256Digest).isEqualTo(expectedSha256Digest);
         assertThat(computedCrc32Digest).isEqualTo(expectedCrc32Digest);
+        assertThat(computedCrc64NvmeDigest).isEqualTo(expectedCrc64Digest);
     }
 
     @Test

@@ -13,11 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.signer.checksums;
+package software.amazon.awssdk.checksums.internal;
 
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-
 
 /*
  * THIS FILE HAS BEEN MODIFIED FROM THE ORIGINAL VERSION.
@@ -563,6 +562,9 @@ public final class SdkCrc32CChecksum implements Checksum, Cloneable {
         0xE54C35A1, 0xAC704886, 0x7734CFEF, 0x3E08B2C8,
         0xC451B7CC, 0x8D6DCAEB, 0x56294D82, 0x1F1530A5
     };
+    private static final long POLYNOMIAL = 0x82F63B78;
+
+    private static final long[][] COMBINE_MATRICES = CrcCombineChecksumUtil.generateCombineMatrices(POLYNOMIAL);
     /**
      * the current CRC value, bit-flipped
      */
@@ -578,6 +580,19 @@ public final class SdkCrc32CChecksum implements Checksum, Cloneable {
 
     public static SdkCrc32CChecksum create() {
         return new SdkCrc32CChecksum();
+    }
+
+    /**
+     * Combines the CRCs of two parts.Please refer {@link CrcCombineChecksumUtil#combine(long, long, long, long[][])}
+     *
+     *
+     * @param crc1 The CRC of the first part.
+     * @param crc2 The CRC of the second part.
+     * @param originalLengthOfCrc2 The length of the second part's CRC before combining.
+     * @return The combined CRC.
+     */
+    public static long combine(long crc1, long crc2 , long originalLengthOfCrc2) {
+        return CrcCombineChecksumUtil.combine(crc1, crc2, originalLengthOfCrc2, COMBINE_MATRICES);
     }
 
     @Override
