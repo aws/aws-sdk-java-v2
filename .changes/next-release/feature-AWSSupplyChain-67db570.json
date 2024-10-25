@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Supply Chain",
+    "contributor": "",
+    "description": "API doc updates, and also support showing error message on a failed instance"
+}
