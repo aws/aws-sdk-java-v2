@@ -24,16 +24,12 @@ import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.I
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.RETRY_MODE;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.SPACE;
 
-import com.sun.tools.javac.util.DefinedBy;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SelectedAuthScheme;
@@ -54,7 +50,6 @@ import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.utils.Pair;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ApplyUserAgentStageTest {
@@ -116,25 +111,8 @@ public class ApplyUserAgentStageTest {
     public void when_requestContainsApiName_apiNamesArePresent() throws Exception {
         ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
 
-        RequestExecutionContext ctx = requestExecutionContext(
-            executionAttributes(IDENTITY_WITH_SOURCE),
-            requestWithApiName(Collections.singletonList(ApiName.builder().name("myLib").version("1.0").build())));
-        SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
-
-        List<String> userAgentHeaders = request.headers().get(HEADER_USER_AGENT);
-        assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains("myLib/1.0");
-    }
-
-    @Test
-    public void when_requestContainsApiName_apiNamesArePresentAndTime() throws Exception {
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
-
-        
-
-        RequestExecutionContext ctx = requestExecutionContext(
-            executionAttributes(IDENTITY_WITH_SOURCE),
-            requestWithApiName();
+        RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITH_SOURCE),
+                                                              requestWithApiName("myLib", "1.0"));
         SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
 
         List<String> userAgentHeaders = request.headers().get(HEADER_USER_AGENT);
@@ -144,18 +122,6 @@ public class ApplyUserAgentStageTest {
 
     @Test
     public void when_identityContainsProvider_authSourceIsPresent() throws Exception {
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
-
-        RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITH_SOURCE), noOpRequest());
-        SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
-
-        List<String> userAgentHeaders = request.headers().get(HEADER_USER_AGENT);
-        assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains("auth-source#proc");
-    }
-
-    @Test
-    public void when_apiNamesAreSorted_IttakesNoTime() throws Exception {
         ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
 
         RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITH_SOURCE), noOpRequest());
@@ -196,10 +162,12 @@ public class ApplyUserAgentStageTest {
         return requestWithOverrideConfig(null);
     }
 
-    private static SdkRequest requestWithApiName(Iterable<ApiName> apiNames) {
-        SdkRequestOverrideConfiguration.Builder builder = SdkRequestOverrideConfiguration.builder();
-        apiNames.forEach(builder::addApiName);
-        return requestWithOverrideConfig(builder.build());
+    private static SdkRequest requestWithApiName(String apiName, String version) {
+        SdkRequestOverrideConfiguration requestOverrideConfiguration =
+            SdkRequestOverrideConfiguration.builder()
+                                           .addApiName(a -> a.name(apiName).version(version))
+                                           .build();
+        return requestWithOverrideConfig(requestOverrideConfiguration);
     }
 
     private static SdkRequest requestWithOverrideConfig(SdkRequestOverrideConfiguration overrideConfiguration) {
