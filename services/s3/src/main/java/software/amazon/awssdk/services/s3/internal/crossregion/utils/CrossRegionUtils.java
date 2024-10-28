@@ -36,6 +36,7 @@ import software.amazon.awssdk.services.s3.model.S3Request;
 public final class CrossRegionUtils {
     public static final int REDIRECT_STATUS_CODE = 301;
     public static final int TEMPORARY_REDIRECT_STATUS_CODE = 307;
+    public static final String ILLEGAL_LOCATION_CONSTRAINT_EXCEPTION_ERROR_CODE = "IllegalLocationConstraintException";
     public static final String AMZ_BUCKET_REGION_HEADER = "x-amz-bucket-region";
     private static final List<Integer> REDIRECT_STATUS_CODES =
         Arrays.asList(REDIRECT_STATUS_CODE, TEMPORARY_REDIRECT_STATUS_CODE);
@@ -59,7 +60,16 @@ public final class CrossRegionUtils {
     }
 
     private static boolean isRedirectError(S3Exception exceptionToBeChecked) {
-        if (REDIRECT_STATUS_CODES.stream().anyMatch(status -> status.equals(exceptionToBeChecked.statusCode()))) {
+        boolean matchRedirectStatusCode =
+            REDIRECT_STATUS_CODES.stream()
+                                 .anyMatch(status -> status.equals(exceptionToBeChecked.statusCode()));
+        if (matchRedirectStatusCode) {
+            return true;
+        }
+        boolean is400IllegalLocationConstraintException =
+            exceptionToBeChecked.statusCode() == 400
+            && ILLEGAL_LOCATION_CONSTRAINT_EXCEPTION_ERROR_CODE.equals(exceptionToBeChecked.awsErrorDetails().errorCode());
+        if (is400IllegalLocationConstraintException) {
             return true;
         }
         return getBucketRegionFromException(exceptionToBeChecked).isPresent();

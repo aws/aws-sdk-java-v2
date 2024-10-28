@@ -26,7 +26,9 @@ import software.amazon.awssdk.core.internal.checksums.factory.SdkCrc32;
 
 /**
  * Implementation of {@link SdkChecksum} to calculate an CRC32 checksum.
+ * @deprecated this class is deprecated and subject to removal.
  */
+@Deprecated
 @SdkInternalApi
 public class Crc32Checksum implements SdkChecksum {
 

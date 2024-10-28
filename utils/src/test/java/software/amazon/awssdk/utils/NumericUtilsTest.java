@@ -15,8 +15,7 @@
 
 package software.amazon.awssdk.utils;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.utils.NumericUtils.max;
 import static software.amazon.awssdk.utils.NumericUtils.min;
 
@@ -34,51 +33,58 @@ public class NumericUtilsTest {
 
     @Test
     public void minTestDifferentDurations() {
-        assertThat(min(SHORT_DURATION, LONG_DURATION), is(SHORT_DURATION));
+        assertThat(min(SHORT_DURATION, LONG_DURATION)).isEqualTo(SHORT_DURATION);
     }
 
     @Test
     public void minTestDifferentDurationsReverse() {
-        assertThat(min(LONG_DURATION, SHORT_DURATION), is(SHORT_DURATION));
+        assertThat(min(LONG_DURATION, SHORT_DURATION)).isEqualTo(SHORT_DURATION);
     }
 
     @Test
     public void minTestSameDurations() {
-        assertThat(min(SHORT_DURATION, SHORT_SAME_DURATION), is(SHORT_SAME_DURATION));
+        assertThat(min(SHORT_DURATION, SHORT_SAME_DURATION)).isEqualTo(SHORT_SAME_DURATION);
     }
 
     @Test
     public void minTestDifferentNegativeDurations() {
-        assertThat(min(NEGATIVE_SHORT_DURATION, NEGATIVE_LONG_DURATION), is(NEGATIVE_LONG_DURATION));
+        assertThat(min(NEGATIVE_SHORT_DURATION, NEGATIVE_LONG_DURATION)).isEqualTo(NEGATIVE_LONG_DURATION);
     }
 
     @Test
     public void minTestNegativeSameDurations() {
-        assertThat(min(NEGATIVE_SHORT_DURATION, NEGATIVE_SHORT_SAME_DURATION), is(NEGATIVE_SHORT_DURATION));
+        assertThat(min(NEGATIVE_SHORT_DURATION, NEGATIVE_SHORT_SAME_DURATION)).isEqualTo(NEGATIVE_SHORT_DURATION);
     }
 
     @Test
     public void maxTestDifferentDurations() {
-        assertThat(max(LONG_DURATION, SHORT_DURATION), is(LONG_DURATION));
+        assertThat(max(LONG_DURATION, SHORT_DURATION)).isEqualTo(LONG_DURATION);
     }
 
     @Test
     public void maxTestDifferentDurationsReverse() {
-        assertThat(max(SHORT_DURATION, LONG_DURATION), is(LONG_DURATION));
+        assertThat(max(SHORT_DURATION, LONG_DURATION)).isEqualTo(LONG_DURATION);
     }
 
     @Test
     public void maxTestSameDurations() {
-        assertThat(max(SHORT_DURATION, SHORT_SAME_DURATION), is(SHORT_SAME_DURATION));
+        assertThat(max(SHORT_DURATION, SHORT_SAME_DURATION)).isEqualTo(SHORT_SAME_DURATION);
     }
 
     @Test
     public void maxTestDifferentNegativeDurations() {
-        assertThat(max(NEGATIVE_SHORT_DURATION, NEGATIVE_LONG_DURATION), is(NEGATIVE_SHORT_DURATION));
+        assertThat(max(NEGATIVE_SHORT_DURATION, NEGATIVE_LONG_DURATION)).isEqualTo(NEGATIVE_SHORT_DURATION);
     }
 
     @Test
     public void maxTestNegativeSameDurations() {
-        assertThat(max(NEGATIVE_SHORT_DURATION, NEGATIVE_SHORT_SAME_DURATION), is(NEGATIVE_SHORT_DURATION));
+        assertThat(max(NEGATIVE_SHORT_DURATION, NEGATIVE_SHORT_SAME_DURATION)).isEqualTo(NEGATIVE_SHORT_DURATION);
+    }
+    
+    @Test
+    public void longToByte() {
+        long input = 12345678l;
+        byte[] bytes = NumericUtils.longToByte(input);
+        assertThat(bytes).encodedAsBase64().isEqualTo(BinaryUtils.toBase64(bytes));
     }
 }
