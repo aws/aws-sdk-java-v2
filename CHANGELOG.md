@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.2__ __2024-10-28__
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - MediaPackage V2 Live to VOD Harvester is a MediaPackage V2 feature, which is used to export content from an origin endpoint to a S3 bucket.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Documentation update: Amazon FSx File Gateway will no longer be available to new customers.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Adds support for provisioning dedicated coordinator nodes. Coordinator nodes can be specified using the new NodeOptions parameter in ClusterConfig.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for Enhanced Monitoring and Performance Insights when restoring Aurora Limitless Database DB clusters. It also adds support for the os-upgrade pending maintenance action.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Update the S3 client to correctly handle redirect cases for opt-in regions when crossRegionAccessEnabled is used.
+
 # __2.29.1__ __2024-10-25__
 ## __AWS CodeBuild__
   - ### Features
