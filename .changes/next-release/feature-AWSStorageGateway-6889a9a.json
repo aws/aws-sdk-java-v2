@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Storage Gateway",
+    "contributor": "",
+    "description": "Documentation update: Amazon FSx File Gateway will no longer be available to new customers."
+}
