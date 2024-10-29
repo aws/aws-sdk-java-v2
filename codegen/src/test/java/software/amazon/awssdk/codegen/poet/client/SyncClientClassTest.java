@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsQueryCompatibleJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.cborServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customContentTypeModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customPackageModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.endpointDiscoveryModels;
@@ -87,6 +88,12 @@ public class SyncClientClassTest {
     public void syncClientClassRpcV2() {
         ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(rpcv2ServiceModels(), true);
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-rpcv2-sync.java"));
+    }
+
+    @Test
+    public void syncClientClassCbor() {
+        ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(cborServiceModels(), true);
+        assertThat(syncClientCustomServiceMetaData, generatesTo("test-cbor-client-class.java"));
     }
 
     private SyncClientClass createSyncClientClass(IntermediateModel model) {
