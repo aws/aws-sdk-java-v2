@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.3__ __2024-10-29__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release adds the option for customers to configure analytics engine when creating a collaboration, and introduces the new SPARK analytics engine type in addition to maintaining the legacy CLEAN_ROOMS_SQL engine type.
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - Updated BatchCreateVehicle and BatchUpdateVehicle APIs: LimitExceededException has been added and the maximum number of vehicles in a batch has been set to 10 explicitly
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Update Application Inference Profile
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Update Application Inference Profile
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Added support for new optional baseline parameter in the UpdateAnomaly API. For UpdateAnomaly requests with baseline set to True, The anomaly behavior is then treated as baseline behavior. However, more severe occurrences of this behavior will still be reported as anomalies.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding `notebook-al2-v3` as allowed value to SageMaker NotebookInstance PlatformIdentifier attribute
+
+## __Redshift Data API Service__
+  - ### Features
+    - Adding a new API GetStatementResultV2 that supports CSV formatted results from ExecuteStatement and BatchExecuteStatement calls.
+
 # __2.29.2__ __2024-10-28__
 ## __AWS Elemental MediaPackage v2__
   - ### Features
