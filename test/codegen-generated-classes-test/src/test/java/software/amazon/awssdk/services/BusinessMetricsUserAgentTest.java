@@ -17,7 +17,7 @@ package software.amazon.awssdk.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static software.amazon.awssdk.core.useragent.BusinessMetrics.METRIC_SEARCH_PATTERN;
+import static software.amazon.awssdk.core.useragent.BusinessMetricCollection.METRIC_SEARCH_PATTERN;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,12 +34,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
-import software.amazon.awssdk.core.useragent.BusinessMetrics;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
@@ -86,20 +87,18 @@ class BusinessMetricsUserAgentTest {
     }
 
     @Test
-    void when_waiterIsUsed_correctMetricIsAdded() {
+    void when_waiterIsUsed_correctMetricIsAdded() throws ExecutionException, InterruptedException {
         RestJsonWithWaitersAsyncClient asyncClient =
             RestJsonWithWaitersAsyncClient.builder().region(Region.US_WEST_2).credentialsProvider(CREDENTIALS_PROVIDER)
                                           .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor)).build();
         RestJsonWithWaitersAsyncWaiter asyncWaiter = RestJsonWithWaitersAsyncWaiter.builder().client(asyncClient).build();
 
-        try {
-            CompletableFuture<WaiterResponse<AllTypesResponse>> responseFuture =
+        CompletableFuture<WaiterResponse<AllTypesResponse>> responseFuture =
                 asyncWaiter.waitUntilAllTypesSuccess(AllTypesRequest.builder().integerMember(1).build());
-            assertThat(responseFuture.get().attemptsExecuted()).isEqualTo(1);
-        } catch (Exception e) {
-            String userAgent = assertAndGetUserAgentString();
-            assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.WAITER.value()));
-        }
+        assertThatThrownBy(responseFuture::join).hasCauseInstanceOf(SdkClientException.class);
+
+        String userAgent = assertAndGetUserAgentString();
+        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.WAITER.value()));
     }
 
     @Test
@@ -127,7 +126,7 @@ class BusinessMetricsUserAgentTest {
             .hasMessageContaining("stop");
 
         String userAgent = assertAndGetUserAgentString();
-        BusinessMetrics attribute = interceptor.executionAttributes().getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        BusinessMetricCollection attribute = interceptor.executionAttributes().getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
         assertThat(attribute).isNotNull();
         assertThat(attribute.recordedMetrics()).contains(BusinessMetricFeatureId.GZIP_REQUEST_COMPRESSION.value());
         assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.GZIP_REQUEST_COMPRESSION.value()));

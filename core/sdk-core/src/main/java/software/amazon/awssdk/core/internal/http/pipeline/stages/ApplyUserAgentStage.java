@@ -41,7 +41,7 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.useragent.IdentityProviderNameMapping;
-import software.amazon.awssdk.core.useragent.BusinessMetrics;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -146,12 +146,13 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
 
     private static Optional<String> getBusinessMetricsString(ExecutionAttributes executionAttributes,
                                                              Collection<String> metricsFromApiNames) {
-        BusinessMetrics businessMetrics = executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        BusinessMetricCollection businessMetrics =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
         if (businessMetrics == null && CollectionUtils.isNullOrEmpty(metricsFromApiNames)) {
             return Optional.empty();
         }
         if (businessMetrics == null) {
-            businessMetrics = new BusinessMetrics();
+            businessMetrics = new BusinessMetricCollection();
         }
         businessMetrics.merge(metricsFromApiNames);
         return Optional.of(businessMetrics.asBoundedString());

@@ -25,10 +25,8 @@ import java.util.function.UnaryOperator;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.CollectionUtils;
 
-// CHECKSTYLE:OFF - Class naming rules prohibit plurals, overriding
 @SdkProtectedApi
-public class BusinessMetrics {
-    // CHECKSTYLE:ON
+public class BusinessMetricCollection {
     public static final int MAX_METRICS_STRING_IN_BYTES = 1024;
 
     public static final UnaryOperator<String> METRIC_SEARCH_PATTERN = metric -> ".*m/[a-zA-Z0-9+-,]*" + metric + ".*";
@@ -36,11 +34,11 @@ public class BusinessMetrics {
     private final List<String> recordedMetrics;
     private final int maxLengthInBytes;
 
-    public BusinessMetrics() {
+    public BusinessMetricCollection() {
         this(MAX_METRICS_STRING_IN_BYTES);
     }
 
-    public BusinessMetrics(int maxMetricsStringInBytes) {
+    public BusinessMetricCollection(int maxMetricsStringInBytes) {
         recordedMetrics = new ArrayList<>();
         this.maxLengthInBytes = maxMetricsStringInBytes;
     }

@@ -33,7 +33,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.useragent.SdkClientUserAgentProperties;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.useragent.BusinessMetrics;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -278,8 +278,8 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      *
      * Not currently in use, since the introduction of {@link SdkClientUserAgentProperties}
      */
-    public static final SdkClientOption<BusinessMetrics> BUSINESS_METRICS =
-        new SdkClientOption<>(BusinessMetrics.class);
+    public static final SdkClientOption<BusinessMetricCollection> BUSINESS_METRICS =
+        new SdkClientOption<>(BusinessMetricCollection.class);
 
     /**
      * Option to specify the default retry mode.

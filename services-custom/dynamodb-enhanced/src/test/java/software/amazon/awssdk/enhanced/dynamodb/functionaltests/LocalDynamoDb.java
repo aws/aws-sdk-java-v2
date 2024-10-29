@@ -15,7 +15,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.core.useragent.BusinessMetrics.METRIC_SEARCH_PATTERN;
+import static software.amazon.awssdk.core.useragent.BusinessMetricCollection.METRIC_SEARCH_PATTERN;
 
 import java.io.IOException;
 import java.net.ServerSocket;

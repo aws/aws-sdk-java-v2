@@ -25,13 +25,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.core.useragent.BusinessMetrics;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 
 class BusinessMetricsTest {
 
     @Test
     void elementsCanBeAdded_inTwoWays() {
-        BusinessMetrics metrics = new BusinessMetrics(10);
+        BusinessMetricCollection metrics = new BusinessMetricCollection(10);
         metrics.addMetric("A");
         metrics.addMetric("B");
         metrics.addMetric("C");
@@ -41,8 +41,8 @@ class BusinessMetricsTest {
 
     @Test
     void stringsAreEqual() {
-        BusinessMetrics metrics1 = new BusinessMetrics(10);
-        BusinessMetrics metrics2 = new BusinessMetrics(10);
+        BusinessMetricCollection metrics1 = new BusinessMetricCollection(10);
+        BusinessMetricCollection metrics2 = new BusinessMetricCollection(10);
         metrics1.addMetric("A");
         metrics1.addMetric("B");
         metrics2.addMetric("A");
@@ -53,7 +53,7 @@ class BusinessMetricsTest {
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource("inputValues")
     void businessMetrics_works_asExpected(String description, Collection<String> metricsList, int maxLen, String expected) {
-        BusinessMetrics metrics = new BusinessMetrics(maxLen);
+        BusinessMetricCollection metrics = new BusinessMetricCollection(maxLen);
         metrics.merge(metricsList);
         assertThat(metrics.asBoundedString()).isEqualTo(expected);
     }

@@ -49,7 +49,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.core.useragent.BusinessMetrics;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
@@ -282,8 +282,8 @@ public final class AwsExecutionContextBuilder {
                       .orElse(clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER));
     }
 
-    private static BusinessMetrics resolveUserAgentBusinessMetrics(SdkClientConfiguration clientConfig) {
-        BusinessMetrics businessMetrics = new BusinessMetrics();
+    private static BusinessMetricCollection resolveUserAgentBusinessMetrics(SdkClientConfiguration clientConfig) {
+        BusinessMetricCollection businessMetrics = new BusinessMetricCollection();
         Optional<String> retryModeMetric = resolveRetryMode(clientConfig.option(RETRY_POLICY),
                                                             clientConfig.option(RETRY_STRATEGY));
         retryModeMetric.ifPresent(businessMetrics::addMetric);
