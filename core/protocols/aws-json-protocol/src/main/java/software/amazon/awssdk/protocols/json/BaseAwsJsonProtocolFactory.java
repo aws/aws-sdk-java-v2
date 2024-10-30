@@ -131,6 +131,10 @@ public abstract class BaseAwsJsonProtocolFactory {
 
     /**
      * Creates a response handler for handling a error response (non 2xx response).
+     *
+     * @deprecated Users should favor using
+     * {@link BaseAwsJsonProtocolFactory#createErrorResponseHandler(JsonOperationMetadata, Function)}, which allows the creation
+     * of an error unmarshaller that uses a mapping function to map from error code to the associated {@link ExceptionMetadata}.
      */
     @Deprecated
     public final HttpResponseHandler<AwsServiceException> createErrorResponseHandler(
@@ -256,7 +260,13 @@ public abstract class BaseAwsJsonProtocolFactory {
          *
          * @param errorMetadata Metadata to unmarshall the modeled exception.
          * @return This builder for method chaining.
+         *
+         * @deprecated Users should favor using
+         * {@link BaseAwsJsonProtocolFactory#createErrorResponseHandler(JsonOperationMetadata, Function)}, which allows the
+         * creation of an error unmarshaller that uses a mapping function to map from error code to the associated
+         * {@link ExceptionMetadata}.
          */
+        @Deprecated
         public final SubclassT registerModeledException(ExceptionMetadata errorMetadata) {
             modeledExceptions.add(errorMetadata);
             return getSubclass();
@@ -269,7 +279,6 @@ public abstract class BaseAwsJsonProtocolFactory {
          * @param exceptionBuilderSupplier Suppplier of the base service exceptions Builder.
          * @return This builder for method chaining.
          */
-        @Deprecated
         public final SubclassT defaultServiceExceptionSupplier(Supplier<SdkPojo> exceptionBuilderSupplier) {
             this.defaultServiceExceptionSupplier = exceptionBuilderSupplier;
             return getSubclass();
