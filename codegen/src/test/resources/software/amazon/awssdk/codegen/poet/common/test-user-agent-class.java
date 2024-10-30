@@ -5,7 +5,6 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.services.json.model.JsonRequest;
 
 @Generated("software.amazon.awssdk:codegen")
@@ -23,7 +22,6 @@ public class UserAgentUtils {
     }
 
     public static <T extends JsonRequest> T applyPaginatorUserAgent(T request) {
-        return applyUserAgentInfo(request,
-                                  b -> b.addApiName(ApiName.builder().version(VersionInfo.SDK_VERSION).name("PAGINATED").build()));
+        return applyUserAgentInfo(request, b -> b.addApiName(ApiName.builder().name("sdk-metrics").version("C").build()));
     }
 }

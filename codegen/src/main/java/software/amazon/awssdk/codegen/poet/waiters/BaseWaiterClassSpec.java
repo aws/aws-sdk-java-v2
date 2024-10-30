@@ -57,6 +57,7 @@ import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterOverrideConfiguration;
 import software.amazon.awssdk.core.waiters.WaiterState;
@@ -75,7 +76,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
     public static final String FAILURE_MESSAGE_FORMAT_FOR_ERROR_MATCHER = "A waiter acceptor was matched on error "
                                                                           + "condition (%s) and transitioned the waiter to "
                                                                           + "failure state";
-    private static final String WAITERS_USER_AGENT = "waiter";
+    private static final String WAITERS_USER_AGENT = "B";
     private final IntermediateModel model;
     private final String modelPackage;
     private final Map<String, WaiterDefinition> waiters;
@@ -403,11 +404,11 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
             .get(ClassName.get(Consumer.class), ClassName.get(AwsRequestOverrideConfiguration.Builder.class));
 
         CodeBlock codeBlock = CodeBlock.builder()
-                                       .addStatement("$T userAgentApplier = b -> b.addApiName($T.builder().version"
-                                                     + "($S).name($S).build())",
+                                       .addStatement("$T userAgentApplier = b -> b.addApiName($T.builder().name"
+                                                     + "($S).version($S).build())",
                                                      parameterizedTypeName, ApiName.class,
-                                                     WAITERS_USER_AGENT,
-                                                     "hll")
+                                                     "sdk-metrics",
+                                                     BusinessMetricFeatureId.WAITER)
                                        .addStatement("$T overrideConfiguration =\n"
                                                      + "            request.overrideConfiguration().map(c -> c.toBuilder()"
                                                      + ".applyMutation"

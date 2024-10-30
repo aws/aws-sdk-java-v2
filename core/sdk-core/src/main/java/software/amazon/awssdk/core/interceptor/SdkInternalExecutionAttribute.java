@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
@@ -45,6 +46,12 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      * at the same time.
      */
     public static final ExecutionAttribute<Boolean> IS_FULL_DUPLEX = new ExecutionAttribute<>("IsFullDuplex");
+
+    /**
+     * A collection of business metrics feature ids.
+     */
+    public static final ExecutionAttribute<BusinessMetricCollection> BUSINESS_METRICS =
+        new ExecutionAttribute<>("BusinessMetricsCollection");
 
     /**
      * If true, indicates that this is an event streaming request being sent over RPC, and therefore the serialized
