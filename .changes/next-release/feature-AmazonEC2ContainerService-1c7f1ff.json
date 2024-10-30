@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EC2 Container Service",
-    "contributor": "",
-    "description": "This release supports service deployments and service revisions which provide a comprehensive view of your Amazon ECS service history."
-}
