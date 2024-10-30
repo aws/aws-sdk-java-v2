@@ -17,11 +17,12 @@ package software.amazon.awssdk.services.dynamodb;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static software.amazon.awssdk.core.useragent.BusinessMetricCollection.METRIC_SEARCH_PATTERN;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
@@ -31,7 +32,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.util.VersionInfo;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.paginators.QueryPublisher;
 
@@ -73,7 +74,8 @@ public class PaginatorInUserAgentTest {
             //expected
         }
 
-        verify(postRequestedFor(urlEqualTo("/")).withHeader("User-Agent", containing("PAGINATED/" + VersionInfo.SDK_VERSION)));
+        verify(postRequestedFor(urlEqualTo("/")).withHeader("User-Agent",
+                                                            matching(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.PAGINATOR.value()))));
     }
 
     @Test
@@ -88,7 +90,8 @@ public class PaginatorInUserAgentTest {
             //expected
         }
 
-        verify(postRequestedFor(urlEqualTo("/")).withHeader("User-Agent", containing("PAGINATED/" + VersionInfo.SDK_VERSION)));
+        verify(postRequestedFor(urlEqualTo("/")).withHeader("User-Agent",
+                                                            matching(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.PAGINATOR.value()))));
     }
 
 }

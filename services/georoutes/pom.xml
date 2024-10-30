@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
   ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
@@ -12,21 +12,17 @@
   ~ on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
   ~ express or implied. See the License for the specific language governing
   ~ permissions and limitations under the License.
-  -->
-
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.29.1-SNAPSHOT</version>
+        <version>2.29.5-SNAPSHOT</version>
     </parent>
-    <artifactId>nimble</artifactId>
-    <name>AWS Java SDK :: Services :: Nimble</name>
-    <description>The AWS Java SDK for Nimble module holds the client classes that are used for
-        communicating with Nimble.
+    <artifactId>georoutes</artifactId>
+    <name>AWS Java SDK :: Services :: Geo Routes</name>
+    <description>The AWS Java SDK for Geo Routes module holds the client classes that are used for
+        communicating with Geo Routes.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
     <build>
@@ -37,14 +33,13 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>software.amazon.awssdk.services.nimble</Automatic-Module-Name>
+                            <Automatic-Module-Name>software.amazon.awssdk.services.georoutes</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

@@ -1,88 +1,43 @@
 {
     "testCases": [
         {
-            "documentation": "For region ap-northeast-1 with FIPS disabled and DualStack disabled",
+            "documentation": "For custom endpoint with region not set and fips disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://nimble.ap-northeast-1.amazonaws.com"
+                    "url": "https://example.com"
                 }
             },
             "params": {
-                "Region": "ap-northeast-1",
-                "UseFIPS": false,
-                "UseDualStack": false
+                "Endpoint": "https://example.com",
+                "UseFIPS": false
             }
         },
         {
-            "documentation": "For region ap-southeast-2 with FIPS disabled and DualStack disabled",
+            "documentation": "For custom endpoint with fips enabled",
             "expect": {
-                "endpoint": {
-                    "url": "https://nimble.ap-southeast-2.amazonaws.com"
-                }
+                "error": "Invalid Configuration: FIPS and custom endpoint are not supported"
             },
             "params": {
-                "Region": "ap-southeast-2",
-                "UseFIPS": false,
-                "UseDualStack": false
+                "Endpoint": "https://example.com",
+                "UseFIPS": true
             }
         },
         {
-            "documentation": "For region ca-central-1 with FIPS disabled and DualStack disabled",
+            "documentation": "For custom endpoint with fips disabled and dualstack enabled",
             "expect": {
-                "endpoint": {
-                    "url": "https://nimble.ca-central-1.amazonaws.com"
-                }
+                "error": "Invalid Configuration: Dualstack and custom endpoint are not supported"
             },
             "params": {
-                "Region": "ca-central-1",
+                "Endpoint": "https://example.com",
                 "UseFIPS": false,
-                "UseDualStack": false
-            }
-        },
-        {
-            "documentation": "For region eu-west-2 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://nimble.eu-west-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "eu-west-2",
-                "UseFIPS": false,
-                "UseDualStack": false
-            }
-        },
-        {
-            "documentation": "For region us-east-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://nimble.us-east-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "us-east-1",
-                "UseFIPS": false,
-                "UseDualStack": false
-            }
-        },
-        {
-            "documentation": "For region us-west-2 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://nimble.us-west-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "us-west-2",
-                "UseFIPS": false,
-                "UseDualStack": false
+                "UseDualStack": true
             }
         },
         {
             "documentation": "For region us-east-1 with FIPS enabled and DualStack enabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://nimble-fips.us-east-1.api.aws"
+                    "url": "https://maps.geo-fips.us-east-1.api.aws/v2"
                 }
             },
             "params": {
@@ -95,7 +50,7 @@
             "documentation": "For region us-east-1 with FIPS enabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://nimble-fips.us-east-1.amazonaws.com"
+                    "url": "https://maps.geo-fips.us-east-1.amazonaws.com/v2"
                 }
             },
             "params": {
@@ -108,7 +63,7 @@
             "documentation": "For region us-east-1 with FIPS disabled and DualStack enabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://nimble.us-east-1.api.aws"
+                    "url": "https://maps.geo.us-east-1.api.aws/v2"
                 }
             },
             "params": {
@@ -118,105 +73,118 @@
             }
         },
         {
-            "documentation": "For region cn-north-1 with FIPS enabled and DualStack enabled",
+            "documentation": "For region us-east-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://nimble-fips.cn-north-1.api.amazonwebservices.com.cn"
+                    "url": "https://maps.geo.us-east-1.amazonaws.com/v2"
                 }
             },
             "params": {
-                "Region": "cn-north-1",
-                "UseFIPS": true,
-                "UseDualStack": true
-            }
-        },
-        {
-            "documentation": "For region cn-north-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://nimble-fips.cn-north-1.amazonaws.com.cn"
-                }
-            },
-            "params": {
-                "Region": "cn-north-1",
-                "UseFIPS": true,
-                "UseDualStack": false
-            }
-        },
-        {
-            "documentation": "For region cn-north-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://nimble.cn-north-1.api.amazonwebservices.com.cn"
-                }
-            },
-            "params": {
-                "Region": "cn-north-1",
-                "UseFIPS": false,
-                "UseDualStack": true
-            }
-        },
-        {
-            "documentation": "For region cn-north-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://nimble.cn-north-1.amazonaws.com.cn"
-                }
-            },
-            "params": {
-                "Region": "cn-north-1",
+                "Region": "us-east-1",
                 "UseFIPS": false,
                 "UseDualStack": false
             }
         },
         {
-            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack enabled",
+            "documentation": "For region cn-northwest-1 with FIPS enabled and DualStack enabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://nimble-fips.us-gov-east-1.api.aws"
+                    "url": "https://geo-maps-fips.cn-northwest-1.api.amazonwebservices.com.cn"
                 }
             },
             "params": {
-                "Region": "us-gov-east-1",
+                "Region": "cn-northwest-1",
                 "UseFIPS": true,
                 "UseDualStack": true
             }
         },
         {
-            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack disabled",
+            "documentation": "For region cn-northwest-1 with FIPS enabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://nimble-fips.us-gov-east-1.amazonaws.com"
+                    "url": "https://geo-maps-fips.cn-northwest-1.amazonaws.com.cn"
                 }
             },
             "params": {
-                "Region": "us-gov-east-1",
+                "Region": "cn-northwest-1",
                 "UseFIPS": true,
                 "UseDualStack": false
             }
         },
         {
-            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack enabled",
+            "documentation": "For region cn-northwest-1 with FIPS disabled and DualStack enabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://nimble.us-gov-east-1.api.aws"
+                    "url": "https://geo-maps.cn-northwest-1.api.amazonwebservices.com.cn"
                 }
             },
             "params": {
-                "Region": "us-gov-east-1",
+                "Region": "cn-northwest-1",
                 "UseFIPS": false,
                 "UseDualStack": true
             }
         },
         {
-            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack disabled",
+            "documentation": "For region cn-northwest-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://nimble.us-gov-east-1.amazonaws.com"
+                    "url": "https://geo-maps.cn-northwest-1.amazonaws.com.cn"
                 }
             },
             "params": {
-                "Region": "us-gov-east-1",
+                "Region": "cn-northwest-1",
+                "UseFIPS": false,
+                "UseDualStack": false
+            }
+        },
+        {
+            "documentation": "For region us-gov-west-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://maps.geo-fips.us-gov-west-1.us-gov.api.aws/v2"
+                }
+            },
+            "params": {
+                "Region": "us-gov-west-1",
+                "UseFIPS": true,
+                "UseDualStack": true
+            }
+        },
+        {
+            "documentation": "For region us-gov-west-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://maps.geo-fips.us-gov-west-1.us-gov.amazonaws.com/v2"
+                }
+            },
+            "params": {
+                "Region": "us-gov-west-1",
+                "UseFIPS": true,
+                "UseDualStack": false
+            }
+        },
+        {
+            "documentation": "For region us-gov-west-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://maps.geo.us-gov-west-1.us-gov.api.aws/v2"
+                }
+            },
+            "params": {
+                "Region": "us-gov-west-1",
+                "UseFIPS": false,
+                "UseDualStack": true
+            }
+        },
+        {
+            "documentation": "For region us-gov-west-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://maps.geo.us-gov-west-1.us-gov.amazonaws.com/v2"
+                }
+            },
+            "params": {
+                "Region": "us-gov-west-1",
                 "UseFIPS": false,
                 "UseDualStack": false
             }
@@ -236,7 +204,7 @@
             "documentation": "For region us-iso-east-1 with FIPS enabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://nimble-fips.us-iso-east-1.c2s.ic.gov"
+                    "url": "https://geo-maps-fips.us-iso-east-1.c2s.ic.gov"
                 }
             },
             "params": {
@@ -260,7 +228,7 @@
             "documentation": "For region us-iso-east-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://nimble.us-iso-east-1.c2s.ic.gov"
+                    "url": "https://geo-maps.us-iso-east-1.c2s.ic.gov"
                 }
             },
             "params": {
@@ -284,7 +252,7 @@
             "documentation": "For region us-isob-east-1 with FIPS enabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://nimble-fips.us-isob-east-1.sc2s.sgov.gov"
+                    "url": "https://geo-maps-fips.us-isob-east-1.sc2s.sgov.gov"
                 }
             },
             "params": {
@@ -308,7 +276,7 @@
             "documentation": "For region us-isob-east-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://nimble.us-isob-east-1.sc2s.sgov.gov"
+                    "url": "https://geo-maps.us-isob-east-1.sc2s.sgov.gov"
                 }
             },
             "params": {
@@ -318,54 +286,99 @@
             }
         },
         {
-            "documentation": "For custom endpoint with region set and fips disabled and dualstack disabled",
+            "documentation": "For region eu-isoe-west-1 with FIPS enabled and DualStack enabled",
             "expect": {
-                "endpoint": {
-                    "url": "https://example.com"
-                }
+                "error": "FIPS and DualStack are enabled, but this partition does not support one or both"
             },
             "params": {
-                "Region": "us-east-1",
-                "UseFIPS": false,
-                "UseDualStack": false,
-                "Endpoint": "https://example.com"
-            }
-        },
-        {
-            "documentation": "For custom endpoint with region not set and fips disabled and dualstack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://example.com"
-                }
-            },
-            "params": {
-                "UseFIPS": false,
-                "UseDualStack": false,
-                "Endpoint": "https://example.com"
-            }
-        },
-        {
-            "documentation": "For custom endpoint with fips enabled and dualstack disabled",
-            "expect": {
-                "error": "Invalid Configuration: FIPS and custom endpoint are not supported"
-            },
-            "params": {
-                "Region": "us-east-1",
+                "Region": "eu-isoe-west-1",
                 "UseFIPS": true,
-                "UseDualStack": false,
-                "Endpoint": "https://example.com"
+                "UseDualStack": true
             }
         },
         {
-            "documentation": "For custom endpoint with fips disabled and dualstack enabled",
+            "documentation": "For region eu-isoe-west-1 with FIPS enabled and DualStack disabled",
             "expect": {
-                "error": "Invalid Configuration: Dualstack and custom endpoint are not supported"
+                "endpoint": {
+                    "url": "https://geo-maps-fips.eu-isoe-west-1.cloud.adc-e.uk"
+                }
             },
             "params": {
-                "Region": "us-east-1",
+                "Region": "eu-isoe-west-1",
+                "UseFIPS": true,
+                "UseDualStack": false
+            }
+        },
+        {
+            "documentation": "For region eu-isoe-west-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "error": "DualStack is enabled but this partition does not support DualStack"
+            },
+            "params": {
+                "Region": "eu-isoe-west-1",
                 "UseFIPS": false,
-                "UseDualStack": true,
-                "Endpoint": "https://example.com"
+                "UseDualStack": true
+            }
+        },
+        {
+            "documentation": "For region eu-isoe-west-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://geo-maps.eu-isoe-west-1.cloud.adc-e.uk"
+                }
+            },
+            "params": {
+                "Region": "eu-isoe-west-1",
+                "UseFIPS": false,
+                "UseDualStack": false
+            }
+        },
+        {
+            "documentation": "For region us-isof-south-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "error": "FIPS and DualStack are enabled, but this partition does not support one or both"
+            },
+            "params": {
+                "Region": "us-isof-south-1",
+                "UseFIPS": true,
+                "UseDualStack": true
+            }
+        },
+        {
+            "documentation": "For region us-isof-south-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://geo-maps-fips.us-isof-south-1.csp.hci.ic.gov"
+                }
+            },
+            "params": {
+                "Region": "us-isof-south-1",
+                "UseFIPS": true,
+                "UseDualStack": false
+            }
+        },
+        {
+            "documentation": "For region us-isof-south-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "error": "DualStack is enabled but this partition does not support DualStack"
+            },
+            "params": {
+                "Region": "us-isof-south-1",
+                "UseFIPS": false,
+                "UseDualStack": true
+            }
+        },
+        {
+            "documentation": "For region us-isof-south-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://geo-maps.us-isof-south-1.csp.hci.ic.gov"
+                }
+            },
+            "params": {
+                "Region": "us-isof-south-1",
+                "UseFIPS": false,
+                "UseDualStack": false
             }
         },
         {
