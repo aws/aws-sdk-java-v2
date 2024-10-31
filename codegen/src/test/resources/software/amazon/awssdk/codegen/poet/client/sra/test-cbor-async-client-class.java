@@ -5,9 +5,11 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -330,6 +332,16 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                                                   .putSdkPojoSupplier("eventThree", EventStream::eventThreeBuilder)
                                                   .defaultSdkPojoSupplier(() -> new SdkPojoBuilder(EventStream.UNKNOWN)).build());
 
+            Function<String, Optional<ExceptionMetadata>> eventstreamExceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorEventResponseHandler = createErrorResponseHandler(protocolFactory,
+                                                                                                            operationMetadata, eventstreamExceptionMetadataMapper);
+
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata);
             EventStreamTaggedUnionJsonMarshaller eventMarshaller = EventStreamTaggedUnionJsonMarshaller.builder()
@@ -341,8 +353,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             EventStreamAsyncResponseTransformer<EventStreamOperationResponse, EventStream> asyncResponseTransformer = EventStreamAsyncResponseTransformer
                 .<EventStreamOperationResponse, EventStream> builder().eventStreamResponseHandler(asyncResponseHandler)
                 .eventResponseHandler(eventResponseHandler).initialResponseHandler(responseHandler)
-                .exceptionResponseHandler(errorResponseHandler).future(future).executor(executor).serviceName(serviceName())
-                .build();
+                .exceptionResponseHandler(errorEventResponseHandler).future(future).executor(executor)
+                .serviceName(serviceName()).build();
 
             CompletableFuture<Void> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<EventStreamOperationRequest, SdkResponse>()
@@ -492,13 +504,23 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                                                   .putSdkPojoSupplier("eventThree", EventStream::eventThreeBuilder)
                                                   .defaultSdkPojoSupplier(() -> new SdkPojoBuilder(EventStream.UNKNOWN)).build());
 
+            Function<String, Optional<ExceptionMetadata>> eventstreamExceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorEventResponseHandler = createErrorResponseHandler(protocolFactory,
+                                                                                                            operationMetadata, eventstreamExceptionMetadataMapper);
+
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata);
             CompletableFuture<Void> future = new CompletableFuture<>();
             EventStreamAsyncResponseTransformer<EventStreamOperationWithOnlyOutputResponse, EventStream> asyncResponseTransformer = EventStreamAsyncResponseTransformer
                 .<EventStreamOperationWithOnlyOutputResponse, EventStream> builder()
                 .eventStreamResponseHandler(asyncResponseHandler).eventResponseHandler(eventResponseHandler)
-                .initialResponseHandler(responseHandler).exceptionResponseHandler(errorResponseHandler).future(future)
+                .initialResponseHandler(responseHandler).exceptionResponseHandler(errorEventResponseHandler).future(future)
                 .executor(executor).serviceName(serviceName()).build();
 
             CompletableFuture<Void> executeFuture = clientHandler.execute(
@@ -1216,6 +1238,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
                                                                                 JsonOperationMetadata operationMetadata) {
         return protocolFactory.createErrorResponseHandler(operationMetadata);
+    }
+
+    private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
+                                                                                JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+        return protocolFactory.createErrorResponseHandler(operationMetadata, exceptionMetadataMapper);
     }
 
     @Override

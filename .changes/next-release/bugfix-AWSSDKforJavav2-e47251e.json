@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fix an issue where the SDK does not properly unmarshall an evenstream exception to the expected exception type."
+}
