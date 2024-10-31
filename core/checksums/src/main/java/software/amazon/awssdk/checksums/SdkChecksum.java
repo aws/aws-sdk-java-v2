@@ -39,7 +39,7 @@ public interface SdkChecksum extends Checksum {
     static SdkChecksum forAlgorithm(ChecksumAlgorithm algorithm) {
         switch (algorithm.algorithmId()) {
             case "CRC32C":
-                return CrcChecksumProvider.create();
+                return CrcChecksumProvider.crc32cImplementation();
             case "CRC32":
                 return new Crc32Checksum();
             case "SHA1":
