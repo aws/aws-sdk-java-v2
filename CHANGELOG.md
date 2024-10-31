@@ -1,4 +1,40 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.5__ __2024-10-31__
+## __AWS Batch__
+  - ### Features
+    - Add `podNamespace` to `EksAttemptDetail` and `containerID` to `EksAttemptContainerDetail`.
+
+## __AWS Glue__
+  - ### Features
+    - Add schedule support for AWS Glue column statistics
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix an issue where the SDK does not properly unmarshall an evenstream exception to the expected exception type.
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Added support for UpdateScraper API, to enable updating collector configuration in-place
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker HyperPod adds scale-down at instance level via BatchDeleteClusterNodes API and group level via UpdateCluster API. SageMaker Training exposes secondary job status in TrainingJobSummary from ListTrainingJobs API. SageMaker now supports G6, G6e, P5e instances for HyperPod and Training.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release enables customers to provide the email template content in the SESv2 SendEmail and SendBulkEmail APIs instead of the name or the ARN of a stored email template.
+
+## __Auto Scaling__
+  - ### Features
+    - Adds bake time for Auto Scaling group Instance Refresh
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Add UDP support for AWS PrivateLink and dual-stack Network Load Balancers
+
 # __2.29.4__ __2024-10-30__
 ## __AWS AppSync__
   - ### Features

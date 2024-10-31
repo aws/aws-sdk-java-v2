@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Batch",
-    "contributor": "",
-    "description": "Add `podNamespace` to `EksAttemptDetail` and `containerID` to `EksAttemptContainerDetail`."
-}
