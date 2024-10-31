@@ -66,6 +66,10 @@ public interface ProtocolSpec {
 
     Optional<MethodSpec> createErrorResponseHandler();
 
+    default Optional<MethodSpec> createEventstreamErrorResponseHandler() {
+        return Optional.empty();
+    }
+
     default List<MethodSpec> additionalMethods() {
         return new ArrayList<>();
     }

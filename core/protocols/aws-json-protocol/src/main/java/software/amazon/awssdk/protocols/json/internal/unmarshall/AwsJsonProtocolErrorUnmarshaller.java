@@ -18,6 +18,7 @@ package software.amazon.awssdk.protocols.json.internal.unmarshall;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
@@ -49,6 +50,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
     private final JsonFactory jsonFactory;
     private final Supplier<SdkPojo> defaultExceptionSupplier;
     private final ErrorCodeParser errorCodeParser;
+    private final Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper;
     private final boolean hasAwsQueryCompatible;
 
     private AwsJsonProtocolErrorUnmarshaller(Builder builder) {
@@ -58,6 +60,9 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         this.jsonFactory = builder.jsonFactory;
         this.defaultExceptionSupplier = builder.defaultExceptionSupplier;
         this.exceptions = builder.exceptions;
+        this.exceptionMetadataMapper = builder.exceptionMetadataMapper != null
+                                       ? builder.exceptionMetadataMapper
+                                       : this::defaultMapToExceptionMetadata;
         this.hasAwsQueryCompatible = builder.hasAwsQueryCompatible;
     }
 
@@ -70,9 +75,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         JsonContent jsonContent = JsonContent.createJsonContent(response, jsonFactory);
         String errorCode = errorCodeParser.parseErrorCode(response, jsonContent);
 
-        Optional<ExceptionMetadata> modeledExceptionMetadata = exceptions.stream()
-                                                                         .filter(e -> e.errorCode().equals(errorCode))
-                                                                         .findAny();
+        Optional<ExceptionMetadata> modeledExceptionMetadata = exceptionMetadataMapper.apply(errorCode);
 
         SdkPojo sdkPojo = modeledExceptionMetadata.map(ExceptionMetadata::exceptionBuilderSupplier)
                                                   .orElse(defaultExceptionSupplier)
@@ -114,7 +117,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         }
         return null;
     }
-  
+
     private String errorMessageForException(String errorMessage, String errorCode, int statusCode) {
         if (StringUtils.isNotBlank(errorMessage)) {
             return errorMessage;
@@ -171,6 +174,12 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         return errorDetails.build();
     }
 
+    private Optional<ExceptionMetadata> defaultMapToExceptionMetadata(String errorCode) {
+        return exceptions.stream()
+                         .filter(e -> e.errorCode().equals(errorCode))
+                         .findAny();
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -186,6 +195,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         private JsonFactory jsonFactory;
         private Supplier<SdkPojo> defaultExceptionSupplier;
         private ErrorCodeParser errorCodeParser;
+        private Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper;
         private boolean hasAwsQueryCompatible;
 
         private Builder() {
@@ -208,8 +218,14 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
          *
          * @return This builder for method chaining.
          */
+        @Deprecated
         public Builder exceptions(List<ExceptionMetadata> exceptions) {
             this.exceptions = exceptions;
+            return this;
+        }
+
+        public Builder exceptionMetadataSupplier(Function<String, Optional<ExceptionMetadata>> exceptionMetadataSupplier) {
+            this.exceptionMetadataMapper = exceptionMetadataSupplier;
             return this;
         }
 
