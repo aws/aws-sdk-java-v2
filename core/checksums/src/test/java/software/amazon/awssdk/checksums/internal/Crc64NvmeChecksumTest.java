@@ -17,72 +17,69 @@ package software.amazon.awssdk.checksums.internal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.utils.BinaryUtils;
 
-abstract class CrcChecksumBase {
+class Crc64NvmeChecksumTest {
 
-    protected SdkChecksum sdkChecksum;
+    private SdkChecksum sdkChecksum;
+    private static final String TEST_STRING = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-    static final String TEST_STRING = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-    @ParameterizedTest
-    @MethodSource("provideParametersForCrcCheckSumValues")
-    void crcCheckSumValues(String expectedChecksum) throws UnsupportedEncodingException {
-        byte[] bytes = TEST_STRING.getBytes("UTF-8");
-        sdkChecksum.update(bytes, 0, bytes.length);
-        assertEquals(expectedChecksum, getAsString(sdkChecksum.getChecksumBytes()));
+    @BeforeEach
+    public void setUp() {
+        sdkChecksum = new Crc64NvmeChecksum();
     }
 
-    @ParameterizedTest
-    @MethodSource("provideValidateEncodedBase64ForCrc")
-    void validateEncodedBase64ForCrc(String expectedChecksum) {
+    @Test
+    void validateCrcChecksumValues() {
+        byte[] bytes = TEST_STRING.getBytes(StandardCharsets.UTF_8);
+        sdkChecksum.update(bytes, 0, bytes.length);
+        assertEquals("0000000000000000000000008b8f30cfc6f16409", getAsString(sdkChecksum.getChecksumBytes()));
+    }
+
+    @Test
+    void validateEncodedBase64ForCrc() {
         sdkChecksum.update("abc".getBytes(StandardCharsets.UTF_8));
         String toBase64 = BinaryUtils.toBase64(sdkChecksum.getChecksumBytes());
-        assertEquals(expectedChecksum, toBase64);
+        assertEquals("BeXKuz/B+us=", toBase64);
     }
 
-    @ParameterizedTest
-    @MethodSource("provideValidateMarkAndResetForCrc")
-    void validateMarkAndResetForCrc(String expectedChecksum) {
+    @Test
+    void validateMarkAndResetForCrc() {
         sdkChecksum.update("ab".getBytes(StandardCharsets.UTF_8));
         sdkChecksum.mark(3);
         sdkChecksum.update("xyz".getBytes(StandardCharsets.UTF_8));
         sdkChecksum.reset();
         sdkChecksum.update("c".getBytes(StandardCharsets.UTF_8));
         String toBase64 = BinaryUtils.toBase64(sdkChecksum.getChecksumBytes());
-        assertEquals(expectedChecksum, toBase64);
+        assertEquals("BeXKuz/B+us=", toBase64);
     }
 
-    @ParameterizedTest
-    @MethodSource("provideValidateMarkForCrc")
-    void validateMarkForCrc(String expectedChecksum) {
+    @Test
+    void validateMarkForCrc() {
         sdkChecksum.update("Hello ".getBytes(StandardCharsets.UTF_8));
         sdkChecksum.mark(4);
         sdkChecksum.update("world".getBytes(StandardCharsets.UTF_8));
         String toBase64 = BinaryUtils.toBase64(sdkChecksum.getChecksumBytes());
-        assertEquals(expectedChecksum, toBase64);
+        assertEquals("OOJZ0D8xKts=", toBase64);
     }
 
-    @ParameterizedTest
-    @MethodSource("provideValidateSingleMarksForCrc")
-    void validateSingleMarksForCrc(String expectedChecksum) {
+    @Test
+    void validateSingleMarksForCrc() {
         sdkChecksum.update("alpha".getBytes(StandardCharsets.UTF_8));
         sdkChecksum.mark(3);
         sdkChecksum.update("beta".getBytes(StandardCharsets.UTF_8));
         sdkChecksum.reset();
         String toBase64 = BinaryUtils.toBase64(sdkChecksum.getChecksumBytes());
-        assertEquals(expectedChecksum, toBase64);
+        assertEquals("Ehnh98TMQlQ=", toBase64);
     }
 
-    @ParameterizedTest
-    @MethodSource("provideValidateMultipleMarksForCrc")
-    void validateMultipleMarksForCrc(String expectedChecksum) {
+    @Test
+    void validateMultipleMarksForCrc() {
         sdkChecksum.update("alpha".getBytes(StandardCharsets.UTF_8));
         sdkChecksum.mark(3);
         sdkChecksum.update("beta".getBytes(StandardCharsets.UTF_8));
@@ -91,24 +88,21 @@ abstract class CrcChecksumBase {
         sdkChecksum.reset();
         sdkChecksum.update("delta".getBytes(StandardCharsets.UTF_8));
         String toBase64 = BinaryUtils.toBase64(sdkChecksum.getChecksumBytes());
-        //final checksum of "alphabetadelta"
-        assertEquals(expectedChecksum, toBase64);
+        // Final checksum of "alphabetadelta"
+        assertEquals("ugWp+3k2NgA=", toBase64);
     }
 
-    @ParameterizedTest
-    @MethodSource("provideValidateResetWithoutMarkForCrc")
-    void validateResetWithoutMarkForCrc(String expectedChecksum) {
+    @Test
+    void validateResetWithoutMarkForCrc() {
         sdkChecksum.update("beta".getBytes(StandardCharsets.UTF_8));
         sdkChecksum.reset();
         sdkChecksum.update("alpha".getBytes(StandardCharsets.UTF_8));
         String toBase64 = BinaryUtils.toBase64(sdkChecksum.getChecksumBytes());
-        //checksum of alpha
-        assertEquals(expectedChecksum, toBase64);
+        // Checksum of "alpha"
+        assertEquals("Ehnh98TMQlQ=", toBase64);
     }
 
     private String getAsString(byte[] checksumBytes) {
         return String.format("%040x", new BigInteger(1, checksumBytes));
     }
 }
-
-

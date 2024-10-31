@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Load Checksum classes of CRT from Classloader instead of direct references of CRT classes."
+}
