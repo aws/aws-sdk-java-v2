@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Prometheus Service",
+    "contributor": "",
+    "description": "Added support for UpdateScraper API, to enable updating collector configuration in-place"
+}
