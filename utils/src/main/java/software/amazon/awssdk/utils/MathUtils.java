@@ -15,10 +15,18 @@
 
 package software.amazon.awssdk.utils;
 
+/**
+ * Utility class for performing various math operations.
+ */
 public final class MathUtils {
     private MathUtils() {
     }
 
+    /**
+     * Add 1 to the integer.
+     * @param a Input integer.
+     * @return a + 1.
+     */
     public static int plus1(int a) {
         return a + 1;
     }
