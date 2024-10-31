@@ -18,23 +18,24 @@ package software.amazon.awssdk.checksums.internal;
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.SdkChecksum;
-import software.amazon.awssdk.crt.checksums.CRC32C;
 
 /**
  * Utility class to provide different implementations of CRC32C checksum. This class supports the use of: 1. Java-based CRC32C
  * (Java 9+ when available) 2. CRT-based CRC32C (when available) 3. SDK-based CRC32C (as fallback)
  */
 @SdkInternalApi
-public final class Crc32cProvider {
+public final class CrcChecksumProvider {
 
 
     // Class paths for different CRC32C implementations
     private static final String CRT_CRC32C_CLASS_PATH = "software.amazon.awssdk.crt.checksums.CRC32C";
     private static final String JAVA_CRC32C_CLASS_PATH = "java.util.zip.CRC32C";
     private static final ConstructorCache CONSTRUCTOR_CACHE = new ConstructorCache();
+    private static final String CRT_CRC64NVME_PATH = "software.amazon.awssdk.crt.checksums.CRC64NVME";
+    private static final String CRT_MODULE = "software.amazon.awssdk.crt:aws-crt";
 
     // Private constructor to prevent instantiation
-    private Crc32cProvider() {
+    private CrcChecksumProvider() {
     }
 
     /**
@@ -44,7 +45,7 @@ public final class Crc32cProvider {
      */
     static SdkChecksum createSdkBasedCrc32C() {
         SdkCrc32CChecksum sdkChecksum = SdkCrc32CChecksum.create();
-        return new CrcCloneOnMarkChecksum(sdkChecksum, checksumToClone -> ((SdkCrc32CChecksum) checksumToClone).clone());
+        return new CrcCloneOnMarkChecksum(sdkChecksum);
     }
 
     /**
@@ -65,12 +66,36 @@ public final class Crc32cProvider {
     static SdkChecksum createCrtCrc32C() {
         return CONSTRUCTOR_CACHE.getConstructor(CRT_CRC32C_CLASS_PATH).map(constructor -> {
             try {
-                return new CrcCloneOnMarkChecksum((Checksum) constructor.newInstance(), checksumToClone ->
-                    (Checksum) ((CRC32C) checksumToClone).clone());
-            } catch (ClassCastException | ReflectiveOperationException e) {
-                throw new IllegalStateException("Failed to instantiate " + JAVA_CRC32C_CLASS_PATH, e);
+                Checksum checksumInstance = (Checksum) constructor.newInstance();
+                return new CrcCloneOnMarkChecksum(checksumInstance);
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException("Failed to instantiate " + CRT_CRC32C_CLASS_PATH, e);
             }
         }).orElse(null);
+    }
+
+    /**
+     * Creates an instance of the CRT-based CRC64NVME checksum using AWS's CRT library.
+     * <p>
+     * Attempts to load the `CRC64NVME` implementation specified by `CRT_CRC64NVME_PATH` and, if successful,
+     * wraps it in {@link CrcCloneOnMarkChecksum}. Throws a {@link RuntimeException} if `CRC64NVME` is unavailable.
+     * </p>
+     *
+     * @return An {@link SdkChecksum} instance for CRC64NVME.
+     * @throws IllegalStateException if instantiation fails.
+     * @throws RuntimeException if the `CRC64NVME` implementation is not available.
+     */
+    static SdkChecksum createCrtCrc64Nvme() {
+        return CONSTRUCTOR_CACHE.getConstructor(CRT_CRC64NVME_PATH).map(constructor -> {
+            try {
+                Checksum checksumInstance = (Checksum) constructor.newInstance();
+                return new CrcCloneOnMarkChecksum(checksumInstance);
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException("Failed to instantiate " + CRT_CRC32C_CLASS_PATH, e);
+            }
+        }).orElseThrow(() -> new RuntimeException(
+            "Could not load " + CRT_CRC64NVME_PATH + ". Add dependency on '" + CRT_MODULE
+            + "' module to enable CRC64NVME feature."));
     }
 
     static SdkChecksum createJavaCrc32C() {

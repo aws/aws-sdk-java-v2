@@ -17,7 +17,7 @@ package software.amazon.awssdk.checksums.internal;
 
 import static software.amazon.awssdk.utils.NumericUtils.longToByte;
 
-import java.util.function.Function;
+import java.lang.reflect.Method;
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
@@ -32,22 +32,31 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public final class CrcCloneOnMarkChecksum extends BaseCrcChecksum {
 
-    private final Function<Checksum, Checksum> cloneFunction;
-
-    public CrcCloneOnMarkChecksum(Checksum checksum, Function<Checksum, Checksum> cloneFunction) {
+    public CrcCloneOnMarkChecksum(Checksum checksum) {
         super(checksum);
-        this.cloneFunction = cloneFunction;
     }
 
     @Override
     Checksum cloneChecksum(Checksum checksum) {
-        // Use the function to clone the checksum
-        return cloneFunction.apply(checksum);
+        return cloneIfCloneable(checksum);
     }
 
     @Override
     public byte[] getChecksumBytes() {
         byte[] valueBytes = longToByte(getValue());
         return new byte[] { valueBytes[4], valueBytes[5], valueBytes[6], valueBytes[7] };
+    }
+
+    // Function to clone any Checksum that implements Cloneable
+    public static Checksum cloneIfCloneable(Checksum checksum) {
+        if (checksum instanceof Cloneable) {
+            try {
+                Method cloneMethod = checksum.getClass().getMethod("clone");
+                return (Checksum) cloneMethod.invoke(checksum);
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to clone the checksum", e);
+            }
+        }
+        throw new UnsupportedOperationException("Checksum does not support cloning");
     }
 }

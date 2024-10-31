@@ -55,7 +55,7 @@
             <groupId>software.amazon.awssdk.crt</groupId>
             <artifactId>aws-crt</artifactId>
             <version>${awscrt.version}</version>
-            <optional>true</optional>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
