@@ -48,7 +48,7 @@ public final class CrcCloneOnMarkChecksum extends BaseCrcChecksum {
     }
 
     // Function to clone any Checksum that implements Cloneable
-    private static Checksum cloneIfCloneable(Checksum checksum) {
+    private Checksum cloneIfCloneable(Checksum checksum) {
         if (checksum instanceof Cloneable) {
             try {
                 Method cloneMethod = checksum.getClass().getMethod("clone");
