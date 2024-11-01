@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Logs",
-    "contributor": "",
-    "description": "This release introduces an improvement in PutLogEvents"
-}
