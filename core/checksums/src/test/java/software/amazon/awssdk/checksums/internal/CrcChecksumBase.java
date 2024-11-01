@@ -91,6 +91,7 @@ abstract class CrcChecksumBase {
         sdkChecksum.reset();
         sdkChecksum.update("delta".getBytes(StandardCharsets.UTF_8));
         String toBase64 = BinaryUtils.toBase64(sdkChecksum.getChecksumBytes());
+        //final checksum of "alphabetadelta"
         assertEquals(expectedChecksum, toBase64);
     }
 
@@ -101,6 +102,7 @@ abstract class CrcChecksumBase {
         sdkChecksum.reset();
         sdkChecksum.update("alpha".getBytes(StandardCharsets.UTF_8));
         String toBase64 = BinaryUtils.toBase64(sdkChecksum.getChecksumBytes());
+        //checksum of alpha
         assertEquals(expectedChecksum, toBase64);
     }
 

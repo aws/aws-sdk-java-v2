@@ -15,42 +15,50 @@
 
 package software.amazon.awssdk.checksums.internal;
 
-import static software.amazon.awssdk.utils.DependencyValidate.requireClass;
 import static software.amazon.awssdk.utils.NumericUtils.longToByte;
 
-import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.SdkChecksum;
-import software.amazon.awssdk.crt.checksums.CRC64NVME;
 
 /**
  * Implementation of {@link SdkChecksum} to calculate an CRC64NVME checksum.
  */
 @SdkInternalApi
-public final class Crc64NvmeChecksum extends BaseCrcChecksum {
-    private static final String CRT_CRC64NVME_PATH = "software.amazon.awssdk.crt.checksums.CRC64NVME";
-    private static final String CRT_MODULE = "software.amazon.awssdk.crt:aws-crt";
+public final class Crc64NvmeChecksum implements SdkChecksum {
+
+    private final SdkChecksum sdkChecksum;
 
     public Crc64NvmeChecksum() {
-        super(getCrc64Nvme());
-    }
-
-    private static CRC64NVME getCrc64Nvme() {
-        requireClass(CRT_CRC64NVME_PATH, CRT_MODULE, "CRC64NVME");
-        return new CRC64NVME();
-    }
-
-    @Override
-    public Checksum cloneChecksum(Checksum checksum) {
-        if (checksum instanceof CRC64NVME) {
-            return (Checksum) ((CRC64NVME) checksum).clone();
-        }
-
-        throw new IllegalStateException("Unsupported checksum");
+        this.sdkChecksum = CrcChecksumProvider.crc64NvmeCrtImplementation();
     }
 
     @Override
     public byte[] getChecksumBytes() {
-        return longToByte(getChecksum().getValue());
+        return longToByte(sdkChecksum.getValue());
+    }
+
+    @Override
+    public void mark(int readLimit) {
+        this.sdkChecksum.mark(readLimit);
+    }
+
+    @Override
+    public void update(int b) {
+        this.sdkChecksum.update(b);
+    }
+
+    @Override
+    public void update(byte[] b, int off, int len) {
+        this.sdkChecksum.update(b, off, len);
+    }
+
+    @Override
+    public long getValue() {
+        return sdkChecksum.getValue();
+    }
+
+    @Override
+    public void reset() {
+        sdkChecksum.reset();
     }
 }

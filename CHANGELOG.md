@@ -1,4 +1,28 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.6__ __2024-11-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Load Checksum classes of CRT from Classloader instead of direct references of CRT classes.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Knowledge Bases now supports using application inference profiles to increase throughput and improve resilience.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release introduces an improvement in PutLogEvents
+
+## __Amazon DocumentDB Elastic Clusters__
+  - ### Features
+    - Amazon DocumentDB Elastic Clusters adds support for pending maintenance actions feature with APIs GetPendingMaintenanceAction, ListPendingMaintenanceActions and ApplyPendingMaintenanceAction
+
+## __Tax Settings__
+  - ### Features
+    - Add support for supplemental tax registrations via these new APIs: PutSupplementalTaxRegistration, ListSupplementalTaxRegistrations, and DeleteSupplementalTaxRegistration.
+
 # __2.29.5__ __2024-10-31__
 ## __AWS Batch__
   - ### Features
