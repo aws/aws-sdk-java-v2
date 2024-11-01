@@ -558,10 +558,10 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.addStatement("$1T input = new $1T(request)", poetExtension.jmesPathRuntimeClass().nestedClass("Value"));
 
         opModel.getOperationContextParams().forEach((key, value) -> {
-            if (Objects.requireNonNull(value.getValue().asToken()) == JsonToken.VALUE_STRING) {
+            if (Objects.requireNonNull(value.getPath().asToken()) == JsonToken.VALUE_STRING) {
                 String setterName = endpointRulesSpecUtils.paramMethodName(key);
 
-                String jmesPathString = ((JrsString) value.getValue()).getValue();
+                String jmesPathString = ((JrsString) value.getPath()).getValue();
                 CodeBlock addParam = CodeBlock.builder()
                                               .add("params.$N(", setterName)
                                               .add(jmesPathGenerator.interpret(jmesPathString, "input"))
@@ -572,7 +572,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                 b.addStatement(addParam);
             } else {
                 throw new RuntimeException("Invalid operation context parameter path for " + opModel.getOperationName() +
-                                           ". Expected VALUE_STRING, but got " + value.getValue().asToken());
+                                           ". Expected VALUE_STRING, but got " + value.getPath().asToken());
             }
 
         });

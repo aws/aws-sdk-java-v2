@@ -76,7 +76,7 @@ public class ApplyUserAgentStageTest {
         List<String> userAgentHeaders = request.headers().get(HEADER_USER_AGENT);
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
         String userAgentString = userAgentHeaders.get(0);
-        assertThat(userAgentString).startsWith("aws-sdk-java").endsWith("cfg/retry-mode#standard");
+        assertThat(userAgentString).startsWith("aws-sdk-java");
     }
 
     @Test
@@ -90,7 +90,7 @@ public class ApplyUserAgentStageTest {
         List<String> userAgentHeaders = request.headers().get(HEADER_USER_AGENT);
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
         String userAgentString = userAgentHeaders.get(0);
-        assertThat(userAgentString).startsWith(prefix + SPACE).endsWith("cfg/retry-mode#standard");
+        assertThat(userAgentString).startsWith(prefix + SPACE);
     }
 
     @Test

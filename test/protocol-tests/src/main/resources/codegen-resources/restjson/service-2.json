@@ -965,6 +965,9 @@
         },
         "EventTwo": {
           "shape": "EventTwo"
+        },
+        "errorOne": {
+          "shape": "EmptyModeledException"
         }
       },
       "eventstream": true
