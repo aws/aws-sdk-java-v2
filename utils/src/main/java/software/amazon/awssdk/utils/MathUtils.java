@@ -17,6 +17,9 @@ package software.amazon.awssdk.utils;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
+/**
+ * Utility class for performing various math operations.
+ */
 @SdkProtectedApi
 public final class MathUtils {
     private MathUtils() {}
