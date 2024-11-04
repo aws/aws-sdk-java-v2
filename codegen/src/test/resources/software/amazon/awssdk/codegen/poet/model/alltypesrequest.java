@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -449,6 +450,48 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             BLOB_MAP_FIELD, LIST_OF_BLOBS_FIELD, RECURSIVE_STRUCT_FIELD, POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD,
             POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD, ENUM_TYPE_FIELD, UNDERSCORE_NAME_TYPE_FIELD, MY_DOCUMENT_FIELD,
             ALL_TYPES_UNION_STRUCTURE_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections
+            .unmodifiableMap(new HashMap<String, SdkField<?>>() {
+                {
+                    put("StringMember", STRING_MEMBER_FIELD);
+                    put("IntegerMember", INTEGER_MEMBER_FIELD);
+                    put("BooleanMember", BOOLEAN_MEMBER_FIELD);
+                    put("FloatMember", FLOAT_MEMBER_FIELD);
+                    put("DoubleMember", DOUBLE_MEMBER_FIELD);
+                    put("LongMember", LONG_MEMBER_FIELD);
+                    put("ShortMember", SHORT_MEMBER_FIELD);
+                    put("ByteMember", BYTE_MEMBER_FIELD);
+                    put("SimpleList", SIMPLE_LIST_FIELD);
+                    put("ListOfEnums", LIST_OF_ENUMS_FIELD);
+                    put("ListOfMaps", LIST_OF_MAPS_FIELD);
+                    put("ListOfStructs", LIST_OF_STRUCTS_FIELD);
+                    put("ListOfMapOfEnumToString", LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD);
+                    put("ListOfMapOfStringToStruct", LIST_OF_MAP_OF_STRING_TO_STRUCT_FIELD);
+                    put("MapOfStringToIntegerList", MAP_OF_STRING_TO_INTEGER_LIST_FIELD);
+                    put("MapOfStringToString", MAP_OF_STRING_TO_STRING_FIELD);
+                    put("MapOfStringToSimpleStruct", MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD);
+                    put("MapOfEnumToEnum", MAP_OF_ENUM_TO_ENUM_FIELD);
+                    put("MapOfEnumToString", MAP_OF_ENUM_TO_STRING_FIELD);
+                    put("MapOfStringToEnum", MAP_OF_STRING_TO_ENUM_FIELD);
+                    put("MapOfEnumToSimpleStruct", MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD);
+                    put("MapOfEnumToListOfEnums", MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD);
+                    put("MapOfEnumToMapOfStringToEnum", MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD);
+                    put("TimestampMember", TIMESTAMP_MEMBER_FIELD);
+                    put("StructWithNestedTimestampMember", STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD);
+                    put("BlobArg", BLOB_ARG_FIELD);
+                    put("StructWithNestedBlob", STRUCT_WITH_NESTED_BLOB_FIELD);
+                    put("BlobMap", BLOB_MAP_FIELD);
+                    put("ListOfBlobs", LIST_OF_BLOBS_FIELD);
+                    put("RecursiveStruct", RECURSIVE_STRUCT_FIELD);
+                    put("PolymorphicTypeWithSubTypes", POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD);
+                    put("PolymorphicTypeWithoutSubTypes", POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD);
+                    put("EnumType", ENUM_TYPE_FIELD);
+                    put("Underscore_Name_Type", UNDERSCORE_NAME_TYPE_FIELD);
+                    put("MyDocument", MY_DOCUMENT_FIELD);
+                    put("AllTypesUnionStructure", ALL_TYPES_UNION_STRUCTURE_FIELD);
+                }
+            });
 
     private final String stringMember;
 
@@ -1602,6 +1645,11 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     @Override
     public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
+    }
+
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
     }
 
     private static <T> Function<Object, T> getter(Function<AllTypesRequest, T> g) {
@@ -3064,6 +3112,11 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }
