@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Moves setting the default backoff strategies for all retry strategies to the builder as per the javadocs instead of only doing it in the `DefaultRetryStrategy` builder methods."
+}
