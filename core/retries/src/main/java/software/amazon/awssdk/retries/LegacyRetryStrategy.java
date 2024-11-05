@@ -68,7 +68,12 @@ public interface LegacyRetryStrategy extends RetryStrategy {
                                   .tokenBucketMaxCapacity(DefaultRetryStrategy.Legacy.TOKEN_BUCKET_SIZE)
                                   .build())
             .tokenBucketExceptionCost(DefaultRetryStrategy.Legacy.DEFAULT_EXCEPTION_TOKEN_COST)
-            .tokenBucketThrottlingExceptionCost(DefaultRetryStrategy.Legacy.THROTTLE_EXCEPTION_TOKEN_COST);
+            .tokenBucketThrottlingExceptionCost(DefaultRetryStrategy.Legacy.THROTTLE_EXCEPTION_TOKEN_COST)
+            .backoffStrategy(BackoffStrategy.exponentialDelay(DefaultRetryStrategy.Legacy.BASE_DELAY,
+                                                              DefaultRetryStrategy.Legacy.MAX_BACKOFF))
+            .throttlingBackoffStrategy(BackoffStrategy.exponentialDelayHalfJitter(
+                DefaultRetryStrategy.Legacy.THROTTLED_BASE_DELAY,
+                DefaultRetryStrategy.Legacy.MAX_BACKOFF));
     }
 
     @Override
