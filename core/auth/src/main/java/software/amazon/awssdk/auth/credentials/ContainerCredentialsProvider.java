@@ -40,6 +40,8 @@ import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader.Lo
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.SdkUserAgent;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.regions.util.ResourcesEndpointRetryPolicy;
 import software.amazon.awssdk.utils.ComparableUtils;
@@ -53,20 +55,49 @@ import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
- * {@link AwsCredentialsProvider} implementation that loads credentials from a local metadata service.
- *
- * Currently supported containers:
+ * {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} implementation that loads credentials from a
+ * link-local metadata service.
+ * <p>
+ * This is commonly used to load credentials in these services:
  * <ul>
- *     <li>Amazon Elastic Container Service (ECS)</li>
- *     <li>AWS Greengrass</li>
+ *     <li><a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html">Amazon Elastic Container
+ *     Service (ECS)</a></li>
+ *     <li><a href="https://docs.aws.amazon.com/eks/latest/userguide/pod-id-agent-setup.html">Amazon Elastic Kubernetes
+ *     Service (EKS)</a></li>
  * </ul>
+ * <p>
+ * The URI path is retrieved from the environment variable {@code AWS_CONTAINER_CREDENTIALS_RELATIVE_URI} or
+ * {@code AWS_CONTAINER_CREDENTIALS_FULL_URI} in the container's environment. If the environment variable is not set, this
+ * credentials provider will throw an exception. These environment variables are set automatically by the service when the
+ * appropriate credential configuration is applied to the container. See the relevant service documentation linked above for
+ * more information.
+ * <p>
+ * This credential provider caches the credential result, and will only invoke the metadata service periodically
+ * to keep the credential "fresh". As a result, it is recommended that you create a single credentials provider of this type
+ * and reuse it throughout your application. You may notice small latency increases on requests that refresh the cached
+ * credentials. To avoid this latency increase, you can enable async refreshing with
+ * {@link Builder#asyncCredentialUpdateEnabled(Boolean)}. If you enable this setting, you must {@link #close()} the credential
+ * provider if you are done using it, to disable the background refreshing task. If you fail to do this, your application could
+ * run out of resources.
+ * <p>
+ * This credentials provider is included in the {@link DefaultCredentialsProvider}.
+ * <p>
+ * Create using {@link #create()} or {@link #builder()}:
+ * {@snippet :
+ * ContainerCredentialsProvider credentialsProvider =
+ *     ContainerCredentialsProvider.create();
  *
- * <p>The URI path is retrieved from the environment variable "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" or
- * "AWS_CONTAINER_CREDENTIALS_FULL_URI" in the container's environment. If the environment variable is not set, this credentials
- * provider will throw an exception.</p>
+ * // or
  *
- * @see <a href="http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html">Amazon Elastic Container
- * Service (ECS)</a>
+ * ContainerCredentialsProvider credentialsProvider =
+ *     ContainerCredentialsProvider.builder()
+ *                                 .asyncCredentialUpdateEnabled(false)
+ *                                 .build();
+ *
+ * S3Client s3 = S3Client.builder()
+ *                       .credentialsProvider(credentialsProvider)
+ *                       .build();
+ * }
  */
 @SdkPublicApi
 public final class ContainerCredentialsProvider

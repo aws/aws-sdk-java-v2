@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -28,9 +29,13 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * A special type of {@link AwsCredentials} that provides a session token to be used in service authentication. Session
- * tokens are typically provided by a token broker service, like AWS Security Token Service, and provide temporary access to an
- * AWS service.
+ * Temporary AWS credentials, used for accessing AWS services. This interface has been superseded by
+ * {@link AwsSessionCredentialsIdentity}.
+ *
+ * <p>
+ * To avoid unnecessary churn this class has not been marked as deprecated, but it's recommended to use
+ * {@link AwsSessionCredentialsIdentity} when defining generic credential providers because it provides the same functionality
+ * with considerably fewer dependencies.
  */
 @Immutable
 @SdkPublicApi
@@ -73,7 +78,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     }
 
     /**
-     * Retrieve the AWS access key, used to identify the user interacting with AWS.
+     * The AWS access key, used to identify the user interacting with services.
      */
     @Override
     public String accessKeyId() {
@@ -81,7 +86,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     }
 
     /**
-     * Retrieve the AWS secret access key, used to authenticate the user interacting with AWS.
+     * The AWS secret access key, used to authenticate the user interacting with services.
      */
     @Override
     public String secretAccessKey() {
@@ -89,7 +94,8 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     }
 
     /**
-     * Retrieve the expiration time of these credentials, if it exists.
+     * (Optional) The time after which this identity is no longer valid. When not specified, the identity may
+     * still expire at some unknown time in the future.
      */
     @Override
     public Optional<Instant> expirationTime() {
@@ -97,8 +103,8 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     }
 
     /**
-     * Retrieve the AWS session token. This token is retrieved from an AWS token service, and is used for authenticating that this
-     * user has received temporary permission to access some resource.
+     * The AWS session token, used to authenticate that this user has received temporary permission to access some
+     * resource.
      */
     @Override
     public String sessionToken() {
@@ -106,13 +112,19 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     }
 
     /**
-     * The name of the identity provider that created this credential identity.
+     * (Optional) The name of the identity provider that created this credential identity. This value should only be
+     * specified by standard providers. If you're creating your own identity or provider, you should not configure this
+     * value.
      */
     @Override
     public Optional<String> providerName() {
         return Optional.ofNullable(providerName);
     }
 
+    /**
+     * (Optional) The AWS account id associated with this credential identity. Specifying this value may improve performance
+     * or availability for some services.
+     */
     @Override
     public Optional<String> accountId() {
         return Optional.ofNullable(accountId);
@@ -122,8 +134,8 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     public String toString() {
         return ToString.builder("AwsSessionCredentials")
                        .add("accessKeyId", accessKeyId())
-                       .add("providerName", providerName)
                        .add("accountId", accountId)
+                       .add("providerName", providerName)
                        .build();
     }
 
@@ -183,7 +195,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         private String providerName;
 
         /**
-         * The AWS access key, used to identify the user interacting with services. Required.
+         * The AWS access key, used to identify the user interacting with services.
          */
         public Builder accessKeyId(String accessKeyId) {
             this.accessKeyId = accessKeyId;
@@ -191,7 +203,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         }
 
         /**
-         * The AWS secret access key, used to authenticate the user interacting with services. Required
+         * The AWS secret access key, used to authenticate the user interacting with services.
          */
         public Builder secretAccessKey(String secretAccessKey) {
             this.secretAccessKey = secretAccessKey;
@@ -199,8 +211,8 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         }
 
         /**
-         * The AWS session token, retrieved from an AWS token service, used for authenticating that this user has
-         * received temporary permission to access some resource. Required
+         * The AWS session token, used to authenticate that this user has received temporary permission to access some
+         * resource.
          */
         public Builder sessionToken(String sessionToken) {
             this.sessionToken = sessionToken;
@@ -208,9 +220,8 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         }
 
         /**
-         * The AWS accountId
-         * @param accountId
-         * @return
+         * (Optional) The AWS account id associated with this credential identity. Specifying this value may improve performance
+         * or availability for some services.
          */
         public Builder accountId(String accountId) {
             this.accountId = accountId;
@@ -218,9 +229,8 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         }
 
         /**
-         * The time after which this identity will no longer be valid. If this is empty,
-         * an expiration time is not known (but the identity may still expire at some
-         * time in the future).
+         * (Optional) The time after which this identity is no longer valid. When not specified, the identity may
+         * still expire at some unknown time in the future.
          */
         public Builder expirationTime(Instant expirationTime) {
             this.expirationTime = expirationTime;
@@ -228,7 +238,9 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         }
 
         /**
-         * The name of the identity provider that created this credential identity.
+         * (Optional) The name of the identity provider that created this credential identity. This value should only be
+         * specified by standard providers. If you're creating your own identity or provider, you should not configure this
+         * value.
          */
         public Builder providerName(String providerName) {
             this.providerName = providerName;

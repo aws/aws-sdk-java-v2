@@ -18,51 +18,29 @@ package software.amazon.awssdk.auth.credentials;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 
 /**
- * Interface for loading {@link AwsCredentials} that are used for authentication.
+ * Interface for loading an {@link AwsCredentialsIdentity} that can be used for authentication. This interface has been
+ * superseded by {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >}.
+ *
  * <p>
- * See our <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials.html">credentials
- * documentation</a> for more information.
- * <p>
- * The most common implementations of this interface include:
- * <ul>
- *     <li>{@link DefaultCredentialsProvider}: Discovers credentials from the host environment.</li>
- *     <li>{@link StaticCredentialsProvider}: Uses a hard-coded set of AWS credentials for an
- *         <a href="https://docs.aws.amazon.com/iam/">IAM</a> user or role.</li>
- *     <li>{@link ProcessCredentialsProvider}: Allows loading credentials from an external process.</li>
- *     <li>{@code software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider}: Use
- *         <a href="https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html">AWS's STS AssumeRole</a>
- *         API to assume an <a href="https://docs.aws.amazon.com/iam/">IAM</a> role. (Requires a dependency on 'sts')</li>
- *     <li>{@code software.amazon.awssdk.services.sso.auth.SsoCredentialsProvider}: Use
- *         <a href="https://docs.aws.amazon.com/singlesignon/latest/PortalAPIReference/API_GetRoleCredentials.html">
- *         AWS's Identity Center GetRoleCredentials</a> to assume an <a href="https://docs.aws.amazon.com/iam/">IAM</a>
- *         role. (Requires a dependency on 'sso')</li>
- * </ul>
- * <p>
- * Implementations of this interface that are included in the {@link DefaultCredentialsProvider}, but can also be used
- * directly include:
- * <ul>
- *     <li>{@link EnvironmentVariableCredentialsProvider}: Uses credentials specified in environment credentials.</li>
- *     <li>{@link SystemPropertyCredentialsProvider}: Uses credentials specified using JVM system properties.</li>
- *     <li>{@link ProfileCredentialsProvider} : Uses credentials from the ~/.aws/config and ~/.aws/credentials files.</li>
- *     <li>{@link InstanceProfileCredentialsProvider}: Uses credentials from your EC2 instance profile configuration.
- *     Requires your application to be running in EC2.</li>
- *     <li>{@link ContainerCredentialsProvider}: Uses credentials from your ECS, EKS or GreenGrass configuration.
- *     Requires your application to be running in one of these environments.</li>
- * </ul>
- * <p>
- * Some special use-case implementation of this interface include:
- * <ul>
- *     <li>{@link AnonymousCredentialsProvider}: Allows anonymous access to some AWS resources.</li>
- *     <li></li>
- * </ul>
+ * To avoid unnecessary churn this class has not been marked as deprecated, but it's recommended to use
+ * {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} when defining generic credential providers because it
+ * provides the same functionality with considerably fewer dependencies.
  */
 @FunctionalInterface
 @SdkPublicApi
 public interface AwsCredentialsProvider extends IdentityProvider<AwsCredentialsIdentity> {
+    /**
+     * Retrieve an instance of the {@link DefaultCredentialsProvider}.
+     */
+    static DefaultCredentialsProvider defaultProvider() {
+        return DefaultCredentialsProvider.create();
+    }
+
     /**
      * Returns {@link AwsCredentials} that can be used to authorize an AWS request. Each implementation of AWSCredentialsProvider
      * can choose its own strategy for loading credentials. For example, an implementation might load credentials from an existing

@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 class StaticCredentialsProviderTest {
     @Test
     void getAwsCredentials_ReturnsSameCredentials() {
-        AwsCredentials credentials = new AwsBasicCredentials("akid", "skid");
+        AwsCredentials credentials = AwsBasicCredentials.create("akid", "skid");
         AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
         assertThat(credentials).isEqualTo(actualCredentials);
         assertThat(credentials.providerName()).isNotPresent();

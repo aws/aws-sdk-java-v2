@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.utils.DateUtils;
@@ -40,24 +42,34 @@ import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
- * A credentials provider that can load credentials from an external process. This is used to support the credential_process
- * setting in the profile credentials file. See
- * <a href="https://docs.aws.amazon.com/cli/latest/topic/config-vars.html#sourcing-credentials-from-external-processes">sourcing credentials
- * from external processes</a> for more information.
+ * {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that
+ * <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-process.html">loads credentials from an
+ * external process</a>.
  *
  * <p>
- * This class can be initialized using {@link #builder()}.
- *
+ * This credential provider caches the credential result, and will only invoke the process periodically to keep the credential
+ * "fresh". As a result, it is recommended that you create a single credentials provider of this type and reuse it throughout
+ * your application. You may notice small latency increases on requests that refresh the cached credentials. To avoid this
+ * latency increase, you can enable async refreshing with {@link Builder#asyncCredentialUpdateEnabled(Boolean)}. If you enable
+ * this setting, you must {@link #close()} the credential provider if you are done using it, to disable the background
+ * refreshing task. If you fail to do this, your application could run out of resources.
  * <p>
- * Available settings:
- * <ul>
- *     <li>Command - The command that should be executed to retrieve credentials.</li>
- *     <li>CredentialRefreshThreshold - The amount of time between when the credentials expire and when the credentials should
- *     start to be refreshed. This allows the credentials to be refreshed *before* they are reported to expire. Default: 15
- *     seconds.</li>
- *     <li>ProcessOutputLimit - The maximum amount of data that can be returned by the external process before an exception is
- *     raised. Default: 64000 bytes (64KB).</li>
- * </ul>
+ * This credentials provider is used by the {@link ProfileCredentialsProvider} if the {@code credential_process} profile
+ * property is configured. Because the {@code ProfileCredentialsProvider} is included in the {@link DefaultCredentialsProvider},
+ * this credentials provider is considered included as well. When configured with {@code credential_process}, the process is
+ * executed using a shell ({@code cmd.exe /C [Command]} in Windows, {@code sh -c [Command]} elsewhere).
+ * <p>
+ * This can be created using {@link ProcessCredentialsProvider#builder()}:
+ * {@snippet :
+ * ProcessCredentialsProvider credentialsProvider =
+ *     ProcessCredentialsProvider.builder()
+ *                               .command(Arrays.asList("/opt/example-path/example-script", "param1", "param2"))
+ *                               .build();
+ *
+ * S3Client s3 = S3Client.builder()
+ *                       .credentialsProvider(credentialsProvider)
+ *                       .build();
+ *}
  */
 @SdkPublicApi
 public final class ProcessCredentialsProvider

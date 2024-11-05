@@ -21,28 +21,27 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
- * Interface to represent <b>who</b> is using the SDK, i.e., the identity of the caller, used for authentication.
+ * Interface to represent <b>who</b> is using the SDK. This is the identity of the caller, used for authentication. See
+ * {@link IdentityProvider} for more information.
  *
- * <p>Examples include {@link AwsCredentialsIdentity} and {@link TokenIdentity}.</p>
- *
- * @see IdentityProvider
+ * <p>
+ * Examples include {@link AwsCredentialsIdentity} and {@link TokenIdentity}.
  */
 @SdkPublicApi
 @ThreadSafe
 public interface Identity {
     /**
-     * The time after which this identity will no longer be valid. If this is empty,
-     * an expiration time is not known (but the identity may still expire at some
-     * time in the future).
+     * (Optional) The time after which this identity is no longer valid. When not specified, the identity may
+     * still expire at some unknown time in the future.
      */
     default Optional<Instant> expirationTime() {
         return Optional.empty();
     }
 
     /**
-     * The source that resolved this identity, normally an identity provider. Note that
-     * this string value would be set by an identity provider implementation and is
-     * intended to be used for for tracking purposes. Avoid building logic on its value.
+     * (Optional) The name of the identity provider that created this credential identity. This value should only be
+     * specified by standard providers. If you're creating your own identity or provider, you should not configure this
+     * value.
      */
     default Optional<String> providerName() {
         return Optional.empty();

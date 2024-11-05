@@ -23,7 +23,11 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileLocation;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.IoUtils;
@@ -42,6 +46,72 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * it is no longer being used.</p>
  *
  * @see ProfileFile
+ */
+/**
+ * {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that loads credentials from a {@link ProfileFile} in
+ * {@code ~/.aws/config} and {@link ~/.aws/credentials}.
+ *
+ * <p>
+ * This class process the profile files and delegate their configuration to other credential providers, based on the profile
+ * files' contents. For a full guide on how to configure SDK credentials using a profile file, see
+ * <a href="https://docs.aws.amazon.com/sdkref/latest/guide/file-format.html">the configuration file guide</a>.
+ * The SDK determines which credential provider to delegate to based on the following ordered logic:
+ * <ol>
+ *     <li><b>{@link WebIdentityTokenFileCredentialsProvider}</b>: Used if the file contains {@code role_arn} and {@code
+ *     web_identity_token_file}.</li>
+ *     <li><b>{@link software.amazon.awssdk.services.sso.auth.SsoCredentialsProvider}</b>: Used if the file contains
+ *     {@code sso_*} properties.</li>
+ *     <li><b>{@link software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider}</b>: Used if the file contains the
+ *     {@code role_arn} property.</li>
+ *     <li><b>{@link ProcessCredentialsProvider}</b>: Used if the file contains the {@code credential_process} property.</li>
+ *     <li><b>{@link StaticCredentialsProvider}</b> with <b><{@link AwsSessionCredentialsIdentity}</b>: Used if the file contains
+ *     the {@code aws_session_token} property. </li>
+ *     <li><b>{@link StaticCredentialsProvider}</b> with <b><{@link AwsCredentialsIdentity}</b>: Used if the file contains the
+ *     {@code aws_access_key_id} property.</li>
+ * </ol>
+ *
+ * <p>
+ * There are system properties and environment variables that can control the behavior of this credential provider:
+ * <ul>
+ *     <li>The {@code aws.configFile} system property or {@code AWS_CONFIG_FILE} environment
+ *     variable can be set to override the default location of the config file ({@code ~/.aws/config}).</li>
+ *     <li>The {@code aws.sharedCredentialsFile} system property or {@code AWS_SHARED_CREDENTIALS_FILE} environment
+ *     variable can be set to override the default location of the credentials file ({@code ~/.aws/credentials}).</li>
+ *     <li>The {@code aws.profile} system property or {@code AWS_PROFILE} environment
+ *     variable can be set to override the default profile used (literally, {@code default}).</li>
+ *     <li>The {@code HOME} environment variable can be set to override the way the SDK interprets {@code ~/} in the
+ *     configuration file or credentials file location. If {@code HOME} is not set, on Windows the SDK will also check
+ *     {@code USERPROFILE}, and {@code HOMEDRIVE} + {@code HOMEPATH}. If none of these are set, on all platforms the SDK will
+ *     then use the {@code user.home} system property.</li>
+ * </ul>
+ * <p>
+ * This credential provider reads the profile once will not be updated if the file is changed. To monitor the file
+ * for updates, you can provide a {@link ProfileFileSupplier} with {@link Builder#profileFile(Supplier)}.
+ * <p>
+ * This credentials provider is included in the {@link DefaultCredentialsProvider}.
+ * <p>
+ * This can be created using {@link #create()} or {@link #builder()}:
+ * {@snippet :
+ * ProfileCredentialsProvider credentialsProvider =
+ *    ProfileCredentialsProvider.create();
+ *
+ * // or
+ *
+ * ProfileCredentialsProvider credentialsProvider =
+ *     ProfileCredentialsProvider.create("custom-profile-name");
+ *
+ * // or
+ *
+ * ProfileCredentialsProvider credentialsProvider =
+ *     ProfileCredentialsProvider.builder()
+ *                               .profileFile(ProfileFile.defaultProfileFile())
+ *                               .profileName("custom-profile-name")
+ *                               .build();
+ *
+ * S3Client s3 = S3Client.builder()
+ *                       .credentialsProvider(credentialsProvider)
+ *                       .build();
+ * }
  */
 @SdkPublicApi
 public final class ProfileCredentialsProvider

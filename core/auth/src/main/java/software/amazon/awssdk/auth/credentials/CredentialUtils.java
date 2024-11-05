@@ -79,7 +79,7 @@ public final class CredentialUtils {
                                         .build();
         }
         if (isAnonymous(awsCredentialsIdentity)) {
-            return AwsBasicCredentials.ANONYMOUS_CREDENTIALS;
+            return AnonymousCredentialsProvider.create().resolveCredentials();
         }
         return AwsBasicCredentials.builder()
                                   .accessKeyId(awsCredentialsIdentity.accessKeyId())

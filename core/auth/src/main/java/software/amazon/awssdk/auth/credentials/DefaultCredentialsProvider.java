@@ -19,6 +19,8 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.LazyAwsCredentialsProvider;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -27,26 +29,55 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * AWS credentials provider chain that looks for credentials in this order:
- * <ol>
- *   <li>Java System Properties - {@code aws.accessKeyId} and {@code aws.secretAccessKey}</li>
- *   <li>Environment Variables - {@code AWS_ACCESS_KEY_ID} and {@code AWS_SECRET_ACCESS_KEY}</li>
- *   <li>Web Identity Token credentials from system properties or environment variables</li>
- *   <li>Credential profiles file at the default location (~/.aws/credentials) shared by all AWS SDKs and the AWS CLI</li>
- *   <li>Credentials delivered through the Amazon EC2 container service if AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" environment
- *   variable is set and security manager has permission to access the variable,</li>
- *   <li>Instance profile credentials delivered through the Amazon EC2 metadata service</li>
- * </ol>
+ * {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that is used by default by AWS SDK for Java
+ * clients. If a client is not configured with a credential provider, this one is used.
  * <p>
+ * This provider looks for credentials in this order:
+ * <ol>
+ *   <li>Java System Properties: Uses AWS credentials configured using Java system properties.
+ *       See {@link SystemPropertyCredentialsProvider} for more information.</li>
+ *   <li>Environment Variables: Uses AWS credentials configured using environment variables.
+ *       See {@link EnvironmentVariableCredentialsProvider} for more information.</li>
+ *   <li>Web Identity Token File: Uses AWS credentials retrieved from
+ *       <a href="https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRoleWithWebIdentity.html">AWS STS's
+ *       {@code AssumeRoleWithWebIdentity} operation</a>.
+ *       See {@link WebIdentityTokenFileCredentialsProvider} for more information.</li>
+ *   <li>Profile File Credentials: Uses credentials from the {@code ~/.aws/config} and {@code ~/.aws/credentials}.
+ *       See {@link ProfileCredentialsProvider} for more information.</li>
+ *   <li>Container Credentials: Uses credentials from your Amazon ECS or EKS configuration.
+ *       See {@link ContainerCredentialsProvider} for more information.</li>
+ *   <li>Instance Profile Credentials: Uses credentials from your Amazon EC2 configuration.
+ *       See {@link InstanceProfileCredentialsProvider} for more information.</li>
+ * </ol>
  * See our <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html">default
  * credentials provider chain documentation</a> for more information.
  *
- * @see SystemPropertyCredentialsProvider
- * @see EnvironmentVariableCredentialsProvider
- * @see ProfileCredentialsProvider
- * @see WebIdentityTokenFileCredentialsProvider
- * @see ContainerCredentialsProvider
- * @see InstanceProfileCredentialsProvider
+ * <p>
+ * Some credential providers in this chain will make service calls to retrieve credentials. These providers will cache the
+ * credential result, and will only invoke the metadata service periodically to keep the credential "fresh". As a result, it is
+ * recommended that you create a single credentials provider of this type and reuse it throughout your application. You may
+ * notice small latency increases on requests that refresh the cached credentials. To avoid this latency increase, you can
+ * enable async refreshing with {@link Builder#asyncCredentialUpdateEnabled(Boolean)}. If you enable this setting, you must
+ * {@link #close()} this credential provider if you are done using it, to disable the background refreshing task. If you fail
+ * to do this, your application could run out of resources.
+ *
+ * <p>
+ * This can be created using {@link DefaultCredentialsProvider#create()} or {@link DefaultCredentialsProvider#builder()}:
+ * {@snippet :
+ * DefaultCredentialsProvider credentialsProvider =
+ *     DefaultCredentialsProvider.create();
+ *
+ * // or
+ *
+ * DefaultCredentialsProvider credentialsProvider =
+ *     DefaultCredentialsProvider.builder()
+ *                               .profileName("non-default-profile")
+ *                               .build();
+ *
+ * S3Client s3 = S3Client.builder()
+ *                       .credentialsProvider(credentialsProvider)
+ *                       .build();
+ * }
  */
 @SdkPublicApi
 public final class DefaultCredentialsProvider
@@ -93,7 +124,7 @@ public final class DefaultCredentialsProvider
         boolean reuseLastProviderEnabled = builder.reuseLastProviderEnabled;
 
         return LazyAwsCredentialsProvider.create(() -> {
-            AwsCredentialsProvider[] credentialsProviders = new AwsCredentialsProvider[] {
+            AwsCredentialsProvider[] credentialsProviders = {
                 SystemPropertyCredentialsProvider.create(),
                 EnvironmentVariableCredentialsProvider.create(),
                 WebIdentityTokenFileCredentialsProvider.builder()

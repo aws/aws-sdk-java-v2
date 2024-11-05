@@ -17,16 +17,15 @@ package software.amazon.awssdk.auth.credentials;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 
 /**
- * Provides access to the AWS credentials used for accessing services: AWS access key ID and secret access key. These
- * credentials are used to securely sign requests to services (e.g., AWS services) that use them for authentication.
+ * AWS credentials, used for accessing AWS services. This interface has been superseded by {@link AwsCredentialsIdentity}.
  *
- * <p>For more details on AWS access keys, see:
- * <a href="https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys">
- * https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys</a></p>
- *
- * @see AwsCredentialsProvider
+ * <p>
+ * To avoid unnecessary churn this class has not been marked as deprecated, but it's recommended to use
+ * {@link AwsCredentialsIdentity} when defining generic credential providers because it provides the same functionality with
+ * considerably fewer dependencies.
  */
 @SdkPublicApi
 public interface AwsCredentials extends AwsCredentialsIdentity {

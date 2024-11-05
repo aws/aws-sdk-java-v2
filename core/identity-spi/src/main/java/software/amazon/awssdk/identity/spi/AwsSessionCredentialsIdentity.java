@@ -15,36 +15,49 @@
 
 package software.amazon.awssdk.identity.spi;
 
+import java.time.Instant;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.identity.spi.internal.DefaultAwsSessionCredentialsIdentity;
 
 /**
- * A special type of {@link AwsCredentialsIdentity} that provides a session token to be used in service authentication. Session
- * tokens are typically provided by a token broker service, like AWS Security Token Service, and provide temporary access to an
- * AWS service.
+ * Temporary {@link AwsCredentialsIdentity}, with a session token.
+ * <p>
+ * AWS security best-practices recommended using
+ * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html">
+ * temporary AWS credentials</a> returned by a token broker service like AWS Security Token Service (STS), instead of
+ * a non-temporary {@link AwsCredentialsIdentity} like that of an AWS user.
+ * <p>
+ * This can be created using {@link AwsSessionCredentialsIdentity#create} or {@link AwsSessionCredentialsIdentity#builder()}. SDK
+ * methods usually accept a {@link AwsCredentialsProvider}, not {@code AwsSessionCredentials}. To use fixed/unchanging
+ * credentials with
+ * these APIs, see {@link StaticCredentialsProvider}.
  */
 @SdkPublicApi
 @ThreadSafe
 public interface AwsSessionCredentialsIdentity extends AwsCredentialsIdentity {
-
     /**
-     * Retrieve the AWS session token. This token is retrieved from an AWS token service, and is used for authenticating that this
-     * user has received temporary permission to access some resource.
+     * The AWS session token, used to authenticate that this user has received temporary permission to access some
+     * resource.
      */
     String sessionToken();
 
+    /**
+     * Create a builder for AWS session credentials.
+     */
     static AwsSessionCredentialsIdentity.Builder builder() {
         return DefaultAwsSessionCredentialsIdentity.builder();
     }
 
     /**
-     * Constructs a new session credentials object, with the specified AWS access key, AWS secret key and AWS session token.
+     * Constructs a new session credentials object, with the specified AWS access key, AWS secret key and AWS session token. To
+     * specify your AWS account ID, use {@link #builder()}.
      *
-     * @param accessKeyId The AWS access key, used to identify the user interacting with services.
-     * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with services.
-     * @param sessionToken The AWS session token, retrieved from an AWS token service, used for authenticating that this user has
-     * received temporary permission to access some resource.
+     * @param accessKeyId The AWS access key, used to identify the user interacting with the service.
+     * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with the service.
+     * @param sessionToken The AWS session token, used to authenticate that this user has received temporary permission to access some
+     * resource.
      */
     static AwsSessionCredentialsIdentity create(String accessKeyId, String secretAccessKey, String sessionToken) {
         return builder().accessKeyId(accessKeyId)
@@ -60,14 +73,22 @@ public interface AwsSessionCredentialsIdentity extends AwsCredentialsIdentity {
         @Override
         Builder secretAccessKey(String secretAccessKey);
 
+        /**
+         * The AWS session token, used to authenticate that this user has received temporary permission to access some
+         * resource.
+         */
+        Builder sessionToken(String sessionToken);
+
         @Override
         Builder accountId(String accountId);
 
         /**
-         * The AWS session token, retrieved from an AWS token service, used for authenticating that this user has
-         * received temporary permission to access some resource.
+         * (Optional) The time after which this identity is no longer valid. When not specified, the identity may
+         * still expire at some unknown time in the future.
          */
-        Builder sessionToken(String sessionToken);
+        default Builder expirationTime(Instant expirationTime) {
+            return this;
+        }
 
         @Override
         Builder providerName(String providerName);

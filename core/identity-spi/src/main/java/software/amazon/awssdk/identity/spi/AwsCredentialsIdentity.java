@@ -21,45 +21,79 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.identity.spi.internal.DefaultAwsCredentialsIdentity;
 
 /**
- * Provides access to the AWS credentials used for accessing services: AWS access key ID and secret access key. These
- * credentials are used to securely sign requests to services (e.g., AWS services) that use them for authentication.
+ * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/security-creds.html">AWS credentials</a>
+ * allow accessing resources protected by AWS SigV4, SigV4a or any other authentication mechanism that uses an
+ * AWS access key ID, AWS secret access key, and (optionally with {@link AwsSessionCredentialsIdentity}) an AWS session token.
  *
- * <p>For more details on AWS access keys, see:
- * <a href="https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys">
- * https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys</a></p>
+ * <p>
+ * {@code AwsCredentialsIdentity} is intended to be an immutable container for credentials. For more information on using
+ * credentials with the AWS SDK, see {@link IdentityProvider}.
  *
- * @see AwsSessionCredentialsIdentity
+ * <p>
+ * If your credentials contain a session token, you should use {@link AwsSessionCredentialsIdentity}. If you also configure your
+ * identity with an {@link Builder#accountId(String)}, the SDK may be able to route your requests to lower-latency,
+ * higher-availability endpoints.
+ *
+ * <p>
+ * {@snippet :
+ * // Create credentials without an account ID
+ * AwsCredentialsIdentity awsCredentials =
+ *     AwsCredentialsIdentity.create("accessKeyId", "secretAccessKey");
+ *
+ * AwsSessionCredentialsIdentity awsSesssionCredentials =
+ *     AwsSessionCredentialsIdentity.create("accessKeyId", "secretAccessKey", "sessionToken");
+ *
+ * // Create credentials with an account ID (may improve performance or availability for some services)
+ * AwsCredentialsIdentity awsCredentials =
+ *     AwsCredentialsIdentity.builder()
+ *                           .accessKeyId("accessKeyId")
+ *                           .secretAccessKey("secretAccessKey")
+ *                           .accountId("accountId")
+ *                           .build();
+ *
+ * AwsSessionCredentialsIdentity awsSesssionCredentials =
+ *     AwsSessionCredentialsIdentity.builder()
+ *                                  .accessKeyId("accessKeyId")
+ *                                  .secretAccessKey("secretAccessKey")
+ *                                  .sessionToken("sessionToken")
+ *                                  .accountId("accountId")
+ *                                  .build();
+ *}
  */
 @SdkPublicApi
 @ThreadSafe
 public interface AwsCredentialsIdentity extends Identity {
-
     /**
-     * Retrieve the AWS access key, used to identify the user interacting with services.
+     * The AWS access key, used to identify the user interacting with services.
      */
     String accessKeyId();
 
     /**
-     * Retrieve the AWS secret access key, used to authenticate the user interacting with services.
+     * The AWS secret access key, used to authenticate the user interacting with services.
      */
     String secretAccessKey();
 
     /**
-     * Retrieve the AWS account id associated with this credentials identity, if found.
+     * (Optional) The AWS account id associated with this credential identity. Specifying this value may improve performance
+     * or availability for some services.
      */
     default Optional<String> accountId() {
         return Optional.empty();
     }
 
+    /**
+     * Create a builder for AWS credentials.
+     */
     static Builder builder() {
         return DefaultAwsCredentialsIdentity.builder();
     }
 
     /**
-     * Constructs a new credentials object, with the specified AWS access key and AWS secret key.
+     * Constructs a new credentials object, with the specified AWS access key and AWS secret key. To specify your AWS account
+     * ID, use {@link #builder()}.
      *
-     * @param accessKeyId The AWS access key, used to identify the user interacting with services.
-     * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with services.
+     * @param accessKeyId The AWS access key, used to identify the user interacting with the service.
+     * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with the service.
      */
     static AwsCredentialsIdentity create(String accessKeyId, String secretAccessKey) {
         return builder().accessKeyId(accessKeyId)
@@ -79,12 +113,15 @@ public interface AwsCredentialsIdentity extends Identity {
         Builder secretAccessKey(String secretAccessKey);
 
         /**
-         * The AWS account id associated with this credentials identity.
+         * (Optional) The AWS account id associated with this credential identity. Specifying this value may improve performance
+         * or availability for some services.
          */
         Builder accountId(String accountId);
 
         /**
-         * The name of the identity provider that created this credential identity.
+         * (Optional) The name of the identity provider that created this credential identity. This value should only be
+         * specified by standard providers. If you're creating your own identity or provider, you should not configure this
+         * value.
          */
         default Builder providerName(String providerName) {
             return this;

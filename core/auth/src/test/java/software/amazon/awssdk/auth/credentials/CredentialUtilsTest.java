@@ -26,7 +26,7 @@ public class CredentialUtilsTest {
 
     @Test
     public void isAnonymous_AwsCredentials_true() {
-        assertThat(CredentialUtils.isAnonymous(AwsBasicCredentials.ANONYMOUS_CREDENTIALS)).isTrue();
+        assertThat(CredentialUtils.isAnonymous(AnonymousCredentialsProvider.create().resolveCredentials())).isTrue();
     }
 
     @Test
@@ -36,7 +36,7 @@ public class CredentialUtilsTest {
 
     @Test
     public void isAnonymous_AwsCredentialsIdentity_true() {
-        assertThat(CredentialUtils.isAnonymous((AwsCredentialsIdentity) AwsBasicCredentials.ANONYMOUS_CREDENTIALS)).isTrue();
+        assertThat(CredentialUtils.isAnonymous((AwsCredentialsIdentity) AnonymousCredentialsProvider.create().resolveCredentials())).isTrue();
     }
 
     @Test

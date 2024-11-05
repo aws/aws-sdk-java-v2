@@ -16,11 +16,38 @@
 package software.amazon.awssdk.auth.credentials;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.utils.ToString;
 
 /**
- * Credentials provider that always returns anonymous {@link AwsCredentials}. Anonymous AWS credentials result in un-authenticated
- * requests and will fail unless the resource or API's policy has been configured to specifically allow anonymous access.
+ * An {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that always returns an anonymous
+ * {@link AwsCredentialsIdentity}. Anonymous AWS credentials result in un-authenticated requests, which will fail unless the API
+ * or resource allows anonymous access.
+ * <p>
+ * This is useful to access:
+ * <ol>
+ *     <li>Public resources that you or another AWS customer owns, like objects in a public S3 bucket. This typically
+ *     requires the owner of that resource to allow anonymous access using an appropriate
+ *     <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_identity-vs-resource.html">
+ *     identity or resource policy</a>.</li>
+ *     <li>AWS APIs that do not require AWS credentials, like Amazon Cognito's
+ *     <a href="https://docs.aws.amazon.com/cognitoidentity/latest/APIReference/API_GetCredentialsForIdentity.html">
+ *     GetCredentialsForIdentity</a>.</li>
+ * </ol>
+ * <p>
+ * To learn more about authentication with AWS, see <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id.html">AWS's
+ * guide to identities</a>.
+ * <p>
+ * Create using {@link #create()}:
+ * {@snippet :
+ * AnonymousCredentialsProvider credentialsProvider =
+ *    AnonymousCredentialsProvider.create();
+ *
+ * S3Client s3 = S3Client.builder()
+ *                       .credentialsProvider(credentialsProvider)
+ *                       .build();
+ * }
  */
 @SdkPublicApi
 public final class AnonymousCredentialsProvider implements AwsCredentialsProvider {

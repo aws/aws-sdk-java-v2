@@ -34,19 +34,40 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * {@link AwsCredentialsProvider} implementation that chains together multiple credentials providers.
- *
- * <p>When a caller first requests credentials from this provider, it calls all the providers in the chain, in the original order
- * specified, until one can provide credentials, and then returns those credentials. If all of the credential providers in the
- * chain have been called, and none of them can provide credentials, then this class will throw an exception indicated that no
- * credentials are available.</p>
- *
- * <p>By default, this class will remember the first credentials provider in the chain that was able to provide credentials, and
+ * An {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that chains together multiple other
+ * identity providers. This is useful when the same application can be configured using different credential sources,
+ * depending on the environment the application is deployed to.
+ * <p>
+ * When a caller first requests credentials from this provider, it calls each provider in the chain, in the original order
+ * specified, until one can provide credentials, and then returns those credentials. If every credential provider in the
+ * chain has been called, and none of them can provide credentials, then this class will throw an exception indicating that no
+ * credentials are available.
+ * <p>
+ * By default, this class will remember the first credentials provider in the chain that was able to provide credentials, and
  * will continue to use that provider when credentials are requested in the future, instead of traversing the chain each time.
- * This behavior can be controlled through the {@link Builder#reuseLastProviderEnabled(Boolean)} method.</p>
+ * This behavior can be controlled through the {@link Builder#reuseLastProviderEnabled(Boolean)} method.
+ * <p>
+ * This chain implements {@link AutoCloseable}. When closed, it will call the {@link AutoCloseable#close()} on any credential
+ * providers in the chain that need to be closed.
+ * <p>
+ * Create using {@link AwsCredentialsProviderChain#builder()} or {@link AwsCredentialsProviderChain#of}:
+ * {@snippet :
+ * AwsCredentialsProviderChain credentialsProvider =
+ *     AwsCredentialsProviderChain.builder()
+ *                                .addCredentialsProvider(SystemPropertyCredentialsProvider.create())
+ *                                .addCredentialsProvider(EnvironmentVariableCredentialsProvider.create())
+ *                                .build();
  *
- * <p>This chain implements {@link AutoCloseable}. When closed, it will call the {@link AutoCloseable#close()} on any credential
- * providers in the chain that need to be closed.</p>
+ * // or
+ *
+ * AwsCredentialsProviderChain credentialsProvider =
+ *     AwsCredentialsProviderChain.of(SystemPropertyCredentialsProvider.create(),
+ *                                    EnvironmentVariableCredentialsProvider.create());
+ *
+ * S3Client s3 = S3Client.builder()
+ *                       .credentialsProvider(credentialsProvider)
+ *                       .build();
+ * }
  */
 @SdkPublicApi
 public final class AwsCredentialsProviderChain

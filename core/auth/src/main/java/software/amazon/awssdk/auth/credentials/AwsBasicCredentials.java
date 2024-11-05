@@ -23,34 +23,24 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Provides access to the AWS credentials used for accessing services: AWS access key ID and secret access key. These
- * credentials are used to securely sign requests to services (e.g., AWS services) that use them for authentication.
+ * Long-term AWS credentials, without a session token. This class has been superseded by {@link AwsCredentialsIdentity}.
  *
- * <p>For more details on AWS access keys, see:
- * <a href="https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys">
- * https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys</a></p>
- *
- * @see AwsCredentialsProvider
+ * <p>
+ * To avoid unnecessary churn this class has not been marked as deprecated, but it's recommended to use
+ * {@link AwsCredentialsIdentity} when defining generic credential providers because it provides the same functionality with
+ * considerably fewer dependencies.
  */
 @Immutable
 @SdkPublicApi
 public final class AwsBasicCredentials implements AwsCredentials,
                                                   ToCopyableBuilder<AwsBasicCredentials.Builder, AwsBasicCredentials> {
-    /**
-     * A set of AWS credentials without an access key or secret access key, indicating that anonymous access should be used.
-     * <p>
-     * This should be accessed via {@link AnonymousCredentialsProvider#resolveCredentials()}.
-     */
-    // TODO(sra-identity-and-auth): Check if this static member can be removed after cleanup
-    @SdkInternalApi
-    static final AwsBasicCredentials ANONYMOUS_CREDENTIALS = builder().validateCredentials(false).build();
-
     private final String accessKeyId;
     private final String secretAccessKey;
     private final boolean validateCredentials;
@@ -71,28 +61,18 @@ public final class AwsBasicCredentials implements AwsCredentials,
     }
 
     /**
-     * Constructs a new credentials object, with the specified AWS access key and AWS secret key.
-     *
-     * @param accessKeyId The AWS access key, used to identify the user interacting with AWS.
-     * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with AWS.
+     * Create a builder for AWS credentials.
      */
-    protected AwsBasicCredentials(String accessKeyId, String secretAccessKey) {
-        this.accessKeyId = trimToNull(accessKeyId);
-        this.secretAccessKey = trimToNull(secretAccessKey);
-        this.validateCredentials = false;
-        this.providerName = null;
-        this.accountId = null;
-    }
-
     public static Builder builder() {
         return new Builder();
     }
 
     /**
-     * Constructs a new credentials object, with the specified AWS access key and AWS secret key.
+     * Constructs a new credentials object, with the specified AWS access key and AWS secret key. To specify your AWS account
+     * ID, use {@link #builder()}.
      *
-     * @param accessKeyId The AWS access key, used to identify the user interacting with AWS.
-     * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with AWS.
+     * @param accessKeyId The AWS access key, used to identify the user interacting with the service.
+     * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with the service.
      */
     public static AwsBasicCredentials create(String accessKeyId, String secretAccessKey) {
         return builder().accessKeyId(accessKeyId)
@@ -101,7 +81,7 @@ public final class AwsBasicCredentials implements AwsCredentials,
     }
 
     /**
-     * Retrieve the AWS access key, used to identify the user interacting with AWS.
+     * The AWS access key, used to identify the user interacting with services.
      */
     @Override
     public String accessKeyId() {
@@ -109,7 +89,7 @@ public final class AwsBasicCredentials implements AwsCredentials,
     }
 
     /**
-     * Retrieve the AWS secret access key, used to authenticate the user interacting with AWS.
+     * The AWS secret access key, used to authenticate the user interacting with services.
      */
     @Override
     public String secretAccessKey() {
@@ -117,7 +97,9 @@ public final class AwsBasicCredentials implements AwsCredentials,
     }
 
     /**
-     * The name of the identity provider that created this credential identity.
+     * (Optional) The name of the identity provider that created this credential identity. This value should only be
+     * specified by standard providers. If you're creating your own identity or provider, you should not configure this
+     * value.
      */
     @Override
     public Optional<String> providerName() {
@@ -125,7 +107,8 @@ public final class AwsBasicCredentials implements AwsCredentials,
     }
 
     /**
-     * Retrieve the AWS account id associated with this credentials identity, if found.
+     * (Optional) The AWS account id associated with this credential identity. Specifying this value may improve performance
+     * or availability for some services.
      */
     @Override
     public Optional<String> accountId() {
@@ -209,7 +192,8 @@ public final class AwsBasicCredentials implements AwsCredentials,
         }
 
         /**
-         * The AWS account id associated with this credentials identity.
+         * (Optional) The AWS account id associated with this credential identity. Specifying this value may improve performance
+         * or availability for some services.
          */
         public Builder accountId(String accountId) {
             this.accountId = accountId;
@@ -217,7 +201,9 @@ public final class AwsBasicCredentials implements AwsCredentials,
         }
 
         /**
-         * The name of the identity provider that created this credential identity.
+         * (Optional) The name of the identity provider that created this credential identity. This value should only be
+         * specified by standard providers. If you're creating your own identity or provider, you should not configure this
+         * value.
          */
         public Builder providerName(String providerName) {
             this.providerName = providerName;
@@ -226,10 +212,10 @@ public final class AwsBasicCredentials implements AwsCredentials,
 
         /**
          * Whether this class should verify that accessKeyId and secretAccessKey are not null.
-         * Used internally by the SDK for legacy reasons.
+         * Used internally by the SDK to create "anonymous" AWS credentials.
          */
         @SdkInternalApi
-        public Builder validateCredentials(Boolean validateCredentials) {
+        Builder validateCredentials(Boolean validateCredentials) {
             this.validateCredentials = validateCredentials;
             return this;
         }

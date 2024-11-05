@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.identity.spi.internal;
 
+import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -28,14 +29,16 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
     private final String accessKeyId;
     private final String secretAccessKey;
     private final String sessionToken;
-    private final String providerName;
     private final String accountId;
+    private final Instant expirationTime;
+    private final String providerName;
 
 
     private DefaultAwsSessionCredentialsIdentity(Builder builder) {
         this.accessKeyId = builder.accessKeyId;
         this.secretAccessKey = builder.secretAccessKey;
         this.sessionToken = builder.sessionToken;
+        this.expirationTime = builder.expirationTime;
         this.providerName = builder.providerName;
         this.accountId = builder.accountId;
 
@@ -59,13 +62,18 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
     }
 
     @Override
-    public Optional<String> accountId() {
-        return Optional.ofNullable(accountId);
+    public String sessionToken() {
+        return sessionToken;
     }
 
     @Override
-    public String sessionToken() {
-        return sessionToken;
+    public Optional<Instant> expirationTime() {
+        return Optional.ofNullable(expirationTime);
+    }
+
+    @Override
+    public Optional<String> accountId() {
+        return Optional.ofNullable(accountId);
     }
 
     @Override
@@ -77,8 +85,8 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
     public String toString() {
         return ToString.builder("AwsSessionCredentialsIdentity")
                        .add("accessKeyId", accessKeyId)
-                       .add("providerName", providerName)
                        .add("accountId", accountId)
+                       .add("providerName", providerName)
                        .build();
     }
 
@@ -111,6 +119,7 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
         private String accessKeyId;
         private String secretAccessKey;
         private String sessionToken;
+        private Instant expirationTime;
         private String providerName;
         private String accountId;
 
@@ -136,11 +145,16 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
         }
 
         @Override
+        public Builder expirationTime(Instant expirationTime) {
+            this.expirationTime = expirationTime;
+            return this;
+        }
+
+        @Override
         public Builder providerName(String providerName) {
             this.providerName = providerName;
             return this;
         }
-
 
         @Override
         public Builder accountId(String accountId) {

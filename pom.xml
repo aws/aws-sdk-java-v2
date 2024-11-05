@@ -676,6 +676,8 @@
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
+                            <!-- TODO revert - Temporary disable to remove protected method that should not be used -->
+                            <exclude>software.amazon.awssdk.auth.credentials.AwsBasicCredentials</exclude>
                             <!-- TODO revert - Temporarily disable because system setting USER_REGION was removed -->
                             <exclude>software.amazon.awssdk.utils.JavaSystemSetting</exclude>
                         </excludes>

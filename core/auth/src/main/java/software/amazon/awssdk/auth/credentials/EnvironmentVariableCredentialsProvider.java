@@ -18,12 +18,34 @@ package software.amazon.awssdk.auth.credentials;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.SystemSettingsCredentialsProvider;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.utils.SystemSetting;
 import software.amazon.awssdk.utils.ToString;
 
 /**
- * {@link AwsCredentialsProvider} implementation that loads credentials from the AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and
- * AWS_SESSION_TOKEN environment variables.
+ * {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that loads credentials from the
+ * {@code AWS_ACCESS_KEY_ID}, {@code AWS_SECRET_ACCESS_KEY} and {@code AWS_SESSION_TOKEN} (optional)
+ * <a href="https://en.wikipedia.org/wiki/Environment_variable">environment variables</a>.
+ * <p>
+ * These environment variables may be populated automatically in some AWS service environments, like AWS Lambda:
+ * <ul>
+ *     <li>{@code AWS_ACCESS_KEY_ID} is the access key associated with your user or role.</li>
+ *     <li>{@code AWS_SECRET_ACCESS_KEY} is the secret access key associated with your user or role.</li>
+ *     <li>{@code AWS_SESSION_TOKEN} (optional) is the session token associated with your role.</li>
+ * </ul>
+ * <p>
+ * This credentials provider is included in the {@link DefaultCredentialsProvider}.
+ * <p>
+ * This can be created using {@link EnvironmentVariableCredentialsProvider#create()}:
+ * {@snippet :
+ * EnvironmentVariableCredentialsProvider credentialsProvider =
+ *    EnvironmentVariableCredentialsProvider.create();
+ *
+ * S3Client s3 = S3Client.builder()
+ *                       .credentialsProvider(credentialsProvider)
+ *                       .build();
+ * }
  */
 @SdkPublicApi
 public final class EnvironmentVariableCredentialsProvider extends SystemSettingsCredentialsProvider {

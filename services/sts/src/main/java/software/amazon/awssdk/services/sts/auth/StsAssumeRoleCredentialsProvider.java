@@ -43,6 +43,20 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * Users of this provider must {@link #close()} it when they are finished using it.
  *
  * This is created using {@link StsAssumeRoleCredentialsProvider#builder()}.
+ *
+ * {@snippet :
+ * import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+ *
+ * IdentityProvider<AwsCredentialsIdentity>
+ *
+ * StsClient stsClient = StsClient.builder()
+ *                                .credentialsProvider()
+ *                                .build();
+ *
+ * IdentityProvider<AwsCredentialsIdentity> roleCredentials =
+ *     StsAssumeRoleCredentialsProvider.builder()
+ *                                     .stsClient(StsClient.builder().)
+ *}
  */
 @SdkPublicApi
 @ThreadSafe

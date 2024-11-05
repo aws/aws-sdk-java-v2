@@ -38,6 +38,8 @@ import software.amazon.awssdk.auth.credentials.internal.StaticResourcesEndpointP
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -54,14 +56,64 @@ import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
- * Credentials provider implementation that loads credentials from the Amazon EC2 Instance Metadata Service.
+ * {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that loads credentials from the current Amazon EC2
+ * Instance's
+ * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html">instance
+ * profile</a>.
+ *
  * <p>
- * If {@link SdkSystemSetting#AWS_EC2_METADATA_DISABLED} is set to true, it will not try to load
- * credentials from EC2 metadata service and will return null.
+ * This is commonly used to load credentials in Amazon EC2.
  * <p>
- * If {@link SdkSystemSetting#AWS_EC2_METADATA_V1_DISABLED} or {@link ProfileProperty#EC2_METADATA_V1_DISABLED}
- * is set to true, credentials will only be loaded from EC2 metadata service if a token is successfully retrieved -
- * fallback to load credentials without a token will be disabled.
+ * There are system properties, environment variables and profile properties that can control the behavior of this credential
+ * provider:
+ * <ul>
+ *     <li>The {@code aws.disableEc2Metadata} system property or {@code AWS_EC2_METADATA_DISABLED} environment
+ *     variable can be set to {@code true} to disable this credential provider.</li>
+ *     <li>The {@code aws.disableEc2MetadataV1} system property, {@code AWS_EC2_METADATA_V1_DISABLED} environment
+ *     variable or {@code ec2_metadata_v1_disabled} profile property can be set to {@code true} to prevent this
+ *     credential provider from "falling back" to
+ *     <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html">IMDSv1</a>
+ *     when IMDSv2 fails to load credentials.</li>
+ *     <li>The {@code aws.ec2MetadataServiceEndpoint} system property, {@code AWS_EC2_METADATA_SERVICE_ENDPOINT} environment
+ *     variable or {@code ec2_metadata_service_endpoint} profile property can be set to an endpoint (including protocol) to
+ *     override the default endpoint used to query the instance metadata service.</li>
+ *     <li>The {@code aws.ec2MetadataServiceEndpointMode} system property, {@code AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE}
+ *     environment variable or {@code ec2_metadata_service_endpoint_mode} profile property can be set to {@code IPv6} to
+ *     override the default {@code IPv4} instance metadata service endpoint with the default {@code IPv6} endpoint. (This
+ *     option is not used if the endpoint is overridden using another setting.)</li>
+ * </ul>
+ * <p>
+ * This uses
+ * <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html">IMDSv2</a>
+ * by default, but will "fall back" to IMDSv1 if IMDSv2 is not supported and IMDSv1 is not disabled using the parameters
+ * described above.
+ * <p>
+ * This credential provider caches the credential result, and will only invoke the instance metadata service
+ * periodically to keep the credential "fresh". As a result, it is recommended that you create a single credentials provider of
+ * this type and reuse it throughout your application. You may notice small latency increases on requests that refresh the cached
+ * credentials. To avoid this latency increase, you can enable async refreshing with
+ * {@link Builder#asyncCredentialUpdateEnabled(Boolean)}. If you enable this setting, you must {@link #close()} the credential
+ * provider if you are done using it, to disable the background refreshing task. If you fail to do this, your application could
+ * run out of resources.
+ * <p>
+ * This credentials provider is included in the {@link DefaultCredentialsProvider}.
+ * <p>
+ * This can be created using {@link #create()} or {@link #builder()}:
+ * {@snippet :
+ * InstanceProfileCredentialsProvider credentialsProvider =
+ *    InstanceProfileCredentialsProvider.create();
+ *
+ * // or
+ *
+ * InstanceProfileCredentialsProvider credentialsProvider =
+ *     InstanceProfileCredentialsProvider.builder()
+ *                                       .asyncCredentialUpdateEnabled(false)
+ *                                       .build();
+ *
+ * S3Client s3 = S3Client.builder()
+ *                       .credentialsProvider(credentialsProvider)
+ *                       .build();
+ * }
  */
 @SdkPublicApi
 public final class InstanceProfileCredentialsProvider
