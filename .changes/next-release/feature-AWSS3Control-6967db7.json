@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS S3 Control",
+    "contributor": "",
+    "description": "Fix ListStorageLensConfigurations and ListStorageLensGroups deserialization for Smithy SDKs."
+}
