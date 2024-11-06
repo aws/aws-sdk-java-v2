@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Verified Permissions",
-    "contributor": "",
-    "description": "Adding BatchGetPolicy API which supports the retrieval of multiple policies across multiple policy stores within a single request."
-}

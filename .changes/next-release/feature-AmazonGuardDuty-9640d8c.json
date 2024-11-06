@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GuardDuty",
-    "contributor": "",
-    "description": "GuardDuty RDS Protection expands support for Amazon Aurora PostgreSQL Limitless Databases."
-}
