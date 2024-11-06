@@ -38,7 +38,7 @@
         "requestUri": "/"
       },
       "operationContextParams":{
-        "customEndpointArray":{"value":"ListMember.StringList[*].LeafString"}
+        "customEndpointArray":{"path":"ListMember.StringList[*].LeafString"}
       },
       "input":{"shape":"WithOperationContextParam"}
     },

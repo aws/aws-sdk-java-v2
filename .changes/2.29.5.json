@@ -1,0 +1,60 @@
+{
+    "version": "2.29.5",
+    "date": "2024-10-31",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix an issue where the SDK does not properly unmarshall an evenstream exception to the expected exception type."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "Add `podNamespace` to `EksAttemptDetail` and `containerID` to `EksAttemptContainerDetail`."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Add schedule support for AWS Glue column statistics"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Prometheus Service",
+            "contributor": "",
+            "description": "Added support for UpdateScraper API, to enable updating collector configuration in-place"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "SageMaker HyperPod adds scale-down at instance level via BatchDeleteClusterNodes API and group level via UpdateCluster API. SageMaker Training exposes secondary job status in TrainingJobSummary from ListTrainingJobs API. SageMaker now supports G6, G6e, P5e instances for HyperPod and Training."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "This release enables customers to provide the email template content in the SESv2 SendEmail and SendBulkEmail APIs instead of the name or the ARN of a stored email template."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "Adds bake time for Auto Scaling group Instance Refresh"
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "contributor": "",
+            "description": "Add UDP support for AWS PrivateLink and dual-stack Network Load Balancers"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

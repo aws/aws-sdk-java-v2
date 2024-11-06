@@ -18,13 +18,13 @@ package software.amazon.awssdk.codegen.model.service;
 import com.fasterxml.jackson.core.TreeNode;
 
 public class OperationContextParam {
-    private TreeNode value;
+    private TreeNode path;
 
-    public TreeNode getValue() {
-        return value;
+    public TreeNode getPath() {
+        return path;
     }
 
-    public void setValue(TreeNode value) {
-        this.value = value;
+    public void setPath(TreeNode path) {
+        this.path = path;
     }
 }

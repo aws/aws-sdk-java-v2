@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Improve unmarshalling performance of all JSON protocols by unifying parsing with unmarshalling instead of doing one after the other."
+}

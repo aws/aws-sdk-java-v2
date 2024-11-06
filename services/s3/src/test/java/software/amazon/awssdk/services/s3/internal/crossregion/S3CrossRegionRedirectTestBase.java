@@ -41,6 +41,8 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 
 public abstract class S3CrossRegionRedirectTestBase {
 
+    protected static final String ILLEGAL_LOCATION_CONSTRAINT_EXCEPTION_ERROR_CODE = "IllegalLocationConstraintException";
+
     public static final String X_AMZ_BUCKET_REGION = "x-amz-bucket-region";
     protected static final String CROSS_REGION_BUCKET = "anyBucket";
     protected static final Region CROSS_REGION = Region.EU_CENTRAL_1;
@@ -54,7 +56,7 @@ public abstract class S3CrossRegionRedirectTestBase {
         S3ServiceClientConfiguration.builder().endpointProvider(S3EndpointProvider.defaultProvider()).build();
 
     @ParameterizedTest
-    @ValueSource(ints = {301, 307})
+    @ValueSource(ints = {301, 307, 400})
     void decoratorAttemptsToRetryWithRegionNameInErrorResponse(Integer redirect) throws Throwable {
         stubServiceClientConfiguration();
         stubClientAPICallWithFirstRedirectThenSuccessWithRegionInErrorResponse(redirect);
@@ -73,7 +75,7 @@ public abstract class S3CrossRegionRedirectTestBase {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {301, 307})
+    @ValueSource(ints = {301, 307, 400})
     void decoratorUsesCache_when_CrossRegionAlreadyPresent(Integer redirect) throws Throwable {
         stubServiceClientConfiguration();
         stubRedirectSuccessSuccess(redirect);
@@ -100,7 +102,7 @@ public abstract class S3CrossRegionRedirectTestBase {
      * This exception should be reported correctly
      */
     @ParameterizedTest
-    @ValueSource(ints = {301, 307})
+    @ValueSource(ints = {301, 307, 400})
     void apiCallFailure_when_CallFailsAfterRedirection(Integer redirectError) {
         stubServiceClientConfiguration();
         stubRedirectThenError(redirectError);
@@ -111,7 +113,7 @@ public abstract class S3CrossRegionRedirectTestBase {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {301, 307})
+    @ValueSource(ints = {301, 307, 400})
     void headBucketCalled_when_RedirectDoesNotHasRegionName(Integer redirect) throws Throwable {
         stubServiceClientConfiguration();
         stubRedirectWithNoRegionAndThenSuccess(redirect);
@@ -129,7 +131,7 @@ public abstract class S3CrossRegionRedirectTestBase {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {301, 307})
+    @ValueSource(ints = {301, 307, 400})
     void headBucketCalledAndCached__when_RedirectDoesNotHasRegionName(Integer redirect) throws Throwable {
         stubServiceClientConfiguration();
         stubRedirectWithNoRegionAndThenSuccess(redirect);
@@ -166,6 +168,7 @@ public abstract class S3CrossRegionRedirectTestBase {
         assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
         verifyHeadBucketServiceCall(0);
     }
+
 
     protected abstract void stubApiWithAuthorizationHeaderWithInternalSoftwareError();
 
@@ -225,4 +228,11 @@ public abstract class S3CrossRegionRedirectTestBase {
     protected abstract void stubServiceClientConfiguration();
 
     protected abstract void stubClientAPICallWithFirstRedirectThenSuccessWithRegionInErrorResponse(Integer redirect);
+
+    protected static String errorCodeFromRedirect(Integer redirect) {
+        if (redirect == 400) {
+            return ILLEGAL_LOCATION_CONSTRAINT_EXCEPTION_ERROR_CODE;
+        }
+        return null;
+    }
 }

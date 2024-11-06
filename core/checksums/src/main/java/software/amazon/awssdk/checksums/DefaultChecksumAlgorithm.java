@@ -29,6 +29,7 @@ public final class DefaultChecksumAlgorithm {
     public static final ChecksumAlgorithm MD5 = of("MD5");
     public static final ChecksumAlgorithm SHA256 = of("SHA256");
     public static final ChecksumAlgorithm SHA1 = of("SHA1");
+    public static final ChecksumAlgorithm CRC64NVME = of("CRC64NVME");
 
     private DefaultChecksumAlgorithm() {
     }

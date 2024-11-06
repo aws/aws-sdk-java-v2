@@ -19,7 +19,7 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.tck.TestEnvironment;
-import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.Sha256Checksum;
+import software.amazon.awssdk.checksums.internal.Sha256Checksum;
 
 /**
  * TCK verifiation test for {@link ChecksumSubscriber}.
