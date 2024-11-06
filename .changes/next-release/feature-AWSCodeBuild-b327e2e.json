@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeBuild",
+    "contributor": "",
+    "description": "AWS CodeBuild now adds additional compute types for reserved capacity fleet."
+}
