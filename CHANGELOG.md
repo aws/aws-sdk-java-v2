@@ -1,4 +1,36 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.7__ __2024-11-06__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now adds additional compute types for reserved capacity fleet.
+
+## __AWS Lake Formation__
+  - ### Features
+    - API changes for new named tag expressions feature.
+
+## __AWS S3 Control__
+  - ### Features
+    - Fix ListStorageLensConfigurations and ListStorageLensGroups deserialization for Smithy SDKs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Improve unmarshalling performance of all JSON protocols by unifying parsing with unmarshalling instead of doing one after the other.
+
+  - ### Bugfixes
+    - Moves setting the default backoff strategies for all retry strategies to the builder as per the javadocs instead of only doing it in the `DefaultRetryStrategy` builder methods.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - GuardDuty RDS Protection expands support for Amazon Aurora PostgreSQL Limitless Databases.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adding BatchGetPolicy API which supports the retrieval of multiple policies across multiple policy stores within a single request.
+
+## __QApps__
+  - ### Features
+    - Introduces category apis in AmazonQApps. Web experience users use Categories to tag and filter library items.
+
 # __2.29.6__ __2024-11-01__
 ## __AWS SDK for Java v2__
   - ### Features

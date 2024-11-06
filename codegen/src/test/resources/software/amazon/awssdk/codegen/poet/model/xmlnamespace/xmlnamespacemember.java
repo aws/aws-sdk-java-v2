@@ -3,7 +3,9 @@ package software.amazon.awssdk.services.protocolrestxml.model;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -23,25 +25,33 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class XmlNamespaceMember implements SdkPojo, Serializable,
-                                                 ToCopyableBuilder<XmlNamespaceMember.Builder, XmlNamespaceMember> {
+        ToCopyableBuilder<XmlNamespaceMember.Builder, XmlNamespaceMember> {
     private static final SdkField<String> TYPE_FIELD = SdkField
-        .<String> builder(MarshallingType.STRING)
-        .memberName("Type")
-        .getter(getter(XmlNamespaceMember::type))
-        .setter(setter(Builder::type))
-        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("foo:type")
-                             .unmarshallLocationName("foo:type").build(), XmlAttributeTrait.create()).build();
+            .<String> builder(MarshallingType.STRING)
+            .memberName("Type")
+            .getter(getter(XmlNamespaceMember::type))
+            .setter(setter(Builder::type))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("foo:type")
+                    .unmarshallLocationName("foo:type").build(), XmlAttributeTrait.create()).build();
 
     private static final SdkField<String> STRING_MEMBER_FIELD = SdkField
-        .<String> builder(MarshallingType.STRING)
-        .memberName("stringMember")
-        .getter(getter(XmlNamespaceMember::stringMember))
-        .setter(setter(Builder::stringMember))
-        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("stringMember")
-                             .unmarshallLocationName("stringMember").build()).build();
+            .<String> builder(MarshallingType.STRING)
+            .memberName("stringMember")
+            .getter(getter(XmlNamespaceMember::stringMember))
+            .setter(setter(Builder::stringMember))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("stringMember")
+                    .unmarshallLocationName("stringMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(TYPE_FIELD,
-                                                                                                   STRING_MEMBER_FIELD));
+            STRING_MEMBER_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections
+            .unmodifiableMap(new HashMap<String, SdkField<?>>() {
+                {
+                    put("foo:type", TYPE_FIELD);
+                    put("stringMember", STRING_MEMBER_FIELD);
+                }
+            });
 
     private static final long serialVersionUID = 1L;
 
@@ -56,7 +66,7 @@ public final class XmlNamespaceMember implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the Type property for this object.
-     *
+     * 
      * @return The value of the Type property for this object.
      */
     public final String type() {
@@ -65,7 +75,7 @@ public final class XmlNamespaceMember implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the StringMember property for this object.
-     *
+     * 
      * @return The value of the StringMember property for this object.
      */
     public final String stringMember() {
@@ -124,18 +134,23 @@ public final class XmlNamespaceMember implements SdkPojo, Serializable,
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "Type":
-                return Optional.ofNullable(clazz.cast(type()));
-            case "stringMember":
-                return Optional.ofNullable(clazz.cast(stringMember()));
-            default:
-                return Optional.empty();
+        case "Type":
+            return Optional.ofNullable(clazz.cast(type()));
+        case "stringMember":
+            return Optional.ofNullable(clazz.cast(stringMember()));
+        default:
+            return Optional.empty();
         }
     }
 
     @Override
     public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
+    }
+
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
     }
 
     private static <T> Function<Object, T> getter(Function<XmlNamespaceMember, T> g) {
@@ -215,6 +230,11 @@ public final class XmlNamespaceMember implements SdkPojo, Serializable,
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }

@@ -23,7 +23,10 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
@@ -95,6 +98,7 @@ class ShapeModelSpec {
 
     public Iterable<FieldSpec> staticFields(Modifier... modifiers) {
         List<FieldSpec> fields = new ArrayList<>();
+        Map<String, String> nameToField = new LinkedHashMap<>();
         shapeModel.getNonStreamingMembers().stream()
                   // Exceptions can be members of event stream shapes, need to filter those out of the models
                   .filter(m -> m.getShape() == null || m.getShape().getShapeType() != ShapeType.Exception)
@@ -107,6 +111,8 @@ class ShapeModelSpec {
                                                    Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                                           .initializer(sdkFieldInitializer(m))
                                           .build());
+                      String name = m.getHttp().getMarshallLocationName();
+                      nameToField.put(name, namingStrategy.getSdkFieldFieldName(m));
                   });
 
         ParameterizedTypeName sdkFieldType = ParameterizedTypeName.get(ClassName.get(SdkField.class),
@@ -115,13 +121,15 @@ class ShapeModelSpec {
         fields.add(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(List.class),
                                                                sdkFieldType), "SDK_FIELDS",
                                      Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                            .initializer("$T.unmodifiableList($T.asList($L))",
-                                         ClassName.get(Collections.class),
-                                         ClassName.get(Arrays.class),
-                                         fields.stream()
-                                               .map(f -> f.name)
-                                               .collect(Collectors.joining(",")))
+                            .initializer(sdkFieldsInitializer(fields))
                             .build());
+        fields.add(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(Map.class),
+                                                               ClassName.get(String.class),
+                                                               sdkFieldType),
+                                     "SDK_NAME_TO_FIELD",
+                                     Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                       .initializer(memberNameToFieldInitializer(nameToField))
+                       .build());
         return fields;
     }
 
@@ -367,6 +375,35 @@ class ShapeModelSpec {
         } else {
             return CodeBlock.builder().build();
         }
+    }
+
+    private CodeBlock sdkFieldsInitializer(List<FieldSpec> fields) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        if (fields.isEmpty()) {
+            builder.add("$T.emptyList()", Collections.class);
+            return builder.build();
+        }
+        builder.add("$T.unmodifiableList($T.asList($L))",
+                    ClassName.get(Collections.class),
+                    ClassName.get(Arrays.class),
+                    fields.stream()
+                          .map(f -> f.name)
+                          .collect(Collectors.joining(",")));
+        return builder.build();
+    }
+
+    private CodeBlock memberNameToFieldInitializer(Map<String, String> nameToField) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        if (nameToField.isEmpty()) {
+            builder.add("$T.emptyMap()", Collections.class);
+            return builder.build();
+        }
+        builder.add("$T.unmodifiableMap(", Collections.class);
+        builder.add("new $T<$T, $T<?>>() {{\n", HashMap.class, String.class, SdkField.class);
+        nameToField.forEach((name, field) -> builder.add("put($S, $L);\n", name, field));
+        builder.add("}}");
+        builder.add(")");
+        return builder.build();
     }
 
 }
