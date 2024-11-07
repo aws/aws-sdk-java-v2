@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Resource Explorer",
-    "contributor": "",
-    "description": "Add GetManagedView, ListManagedViews APIs."
-}

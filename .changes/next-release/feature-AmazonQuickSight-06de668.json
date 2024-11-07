@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon QuickSight",
-    "contributor": "",
-    "description": "Add Client Credentials based OAuth support for Snowflake and Starburst"
-}
