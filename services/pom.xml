@@ -407,6 +407,7 @@
         <module>qapps</module>
         <module>ssmquicksetup</module>
         <module>axdbfrontend</module>
+        <module>dsql</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
