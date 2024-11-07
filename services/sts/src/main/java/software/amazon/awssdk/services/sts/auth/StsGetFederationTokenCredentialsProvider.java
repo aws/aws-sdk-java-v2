@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.sts.auth;
 
 import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.fromStsCredentials;
 
+import java.time.Duration;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -132,6 +133,26 @@ public class StsGetFederationTokenCredentialsProvider
          */
         public Builder refreshRequest(Consumer<GetFederationTokenRequest.Builder> getFederationTokenRequest) {
             return refreshRequest(GetFederationTokenRequest.builder().applyMutation(getFederationTokenRequest).build());
+        }
+
+        @Override
+        public Builder stsClient(StsClient stsClient) {
+            return super.stsClient(stsClient);
+        }
+
+        @Override
+        public Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
+            return super.asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled);
+        }
+
+        @Override
+        public Builder staleTime(Duration staleTime) {
+            return super.staleTime(staleTime);
+        }
+
+        @Override
+        public Builder prefetchTime(Duration prefetchTime) {
+            return super.prefetchTime(prefetchTime);
         }
 
         @Override

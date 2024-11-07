@@ -16,16 +16,16 @@
 package software.amazon.awssdk.auth.token.credentials;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 /**
- * Provides token which is used to securely authorize requests to services that use token based auth, e.g., OAuth.
+ * Bearer token, used for accessing AWS services. This interface has been superseded by {@link TokenIdentity}.
  *
- * <p>For more details on OAuth tokens, see:
- * <a href="https://oauth.net/2/access-tokens">
- * https://oauth.net/2/access-tokens</a></p>
- *
- * @see SdkTokenProvider
+ * <p>
+ * To avoid unnecessary churn this class has not been marked as deprecated, but it's recommended to use
+ * {@link TokenIdentity} when defining generic token providers because it provides the same functionality with
+ * considerably fewer dependencies.
  */
 @SdkPublicApi
 public interface SdkToken extends TokenIdentity {

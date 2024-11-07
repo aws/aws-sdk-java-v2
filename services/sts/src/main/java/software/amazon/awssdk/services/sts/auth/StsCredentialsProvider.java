@@ -25,6 +25,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -39,13 +40,10 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
  * An implementation of {@link AwsCredentialsProvider} that is extended within this package to provide support for periodically-
- * updating session credentials.
+ * updated session credentials.
  *
- * When credentials get close to expiration, this class will attempt to update them automatically either with a single calling
- * thread (by default) or asynchronously (if {@link #asyncCredentialUpdateEnabled} is true). If the credentials expire, this
- * class will block all calls to {@link #resolveCredentials()} until the credentials are updated.
- *
- * Users of this provider must {@link #close()} it when they are finished using it.
+ * <p>
+ * See child classes for detailed usage documentation.
  */
 @ThreadSafe
 @SdkPublicApi
@@ -110,22 +108,25 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         return credentials;
     }
 
+    /**
+     * Release resources held by this credentials provider. This must be called when you're done using the credentials provider if
+     * {@link BaseBuilder#asyncCredentialUpdateEnabled(Boolean)} was set to {@code true}. This does not close the configured
+     * {@link BaseBuilder#stsClient(StsClient)}.
+     */
     @Override
     public void close() {
         sessionCache.close();
     }
 
     /**
-     * The amount of time, relative to STS token expiration, that the cached credentials are considered stale and
-     * should no longer be used. All threads will block until the value is updated.
+     * @see BaseBuilder#staleTime(Duration)
      */
     public Duration staleTime() {
         return staleTime;
     }
 
     /**
-     * The amount of time, relative to STS token expiration, that the cached credentials are considered close to stale
-     * and should be updated.
+     * @see BaseBuilder#prefetchTime(Duration)
      */
     public Duration prefetchTime() {
         return prefetchTime;
@@ -144,7 +145,7 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
     abstract String providerName();
 
     /**
-     * Extended by child class's builders to share configuration across credential providers.
+     * This is extended by child class's builders to share configuration across credential providers.
      */
     @NotThreadSafe
     @SdkPublicApi
@@ -170,11 +171,7 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         }
 
         /**
-         * Configure the {@link StsClient} to use when calling STS to update the session. This client should not be shut
-         * down as long as this credentials provider is in use.
-         *
-         * @param stsClient The STS client to use for communication with STS.
-         * @return This object for chained calls.
+         * See child class documentation.
          */
         @SuppressWarnings("unchecked")
         public B stsClient(StsClient stsClient) {
@@ -183,11 +180,7 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         }
 
         /**
-         * Configure whether the provider should fetch credentials asynchronously in the background. If this is true,
-         * threads are less likely to block when credentials are loaded, but additional resources are used to maintain
-         * the provider.
-         *
-         * <p>By default, this is disabled.</p>
+         * See child class documentation.
          */
         @SuppressWarnings("unchecked")
         public B asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
@@ -196,10 +189,7 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         }
 
         /**
-         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered
-         * stale and must be updated. All threads will block until the value is updated.
-         *
-         * <p>By default, this is 1 minute.</p>
+         * See child class documentation.
          */
         @SuppressWarnings("unchecked")
         public B staleTime(Duration staleTime) {
@@ -208,23 +198,16 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         }
 
         /**
-         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered
-         * close to stale and should be updated.
-         *
-         * Prefetch updates will occur between the specified time and the stale time of the provider. Prefetch updates may be
-         * asynchronous. See {@link #asyncCredentialUpdateEnabled}.
-         *
-         * <p>By default, this is 5 minutes.</p>
+         * See child class documentation.
          */
         @SuppressWarnings("unchecked")
         public B prefetchTime(Duration prefetchTime) {
             this.prefetchTime = prefetchTime;
             return (B) this;
         }
-
-
+        
         /**
-         * Build the credentials provider using the configuration applied to this builder.
+         * See child class documentation.
          */
         @SuppressWarnings("unchecked")
         public T build() {

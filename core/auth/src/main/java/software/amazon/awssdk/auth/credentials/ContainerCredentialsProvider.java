@@ -55,7 +55,7 @@ import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
- * {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} implementation that loads credentials from a
+ * An {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} implementation that loads credentials from a
  * link-local metadata service.
  * <p>
  * This is commonly used to load credentials in these services:
@@ -66,11 +66,11 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  *     Service (EKS)</a></li>
  * </ul>
  * <p>
- * The URI path is retrieved from the environment variable {@code AWS_CONTAINER_CREDENTIALS_RELATIVE_URI} or
- * {@code AWS_CONTAINER_CREDENTIALS_FULL_URI} in the container's environment. If the environment variable is not set, this
- * credentials provider will throw an exception. These environment variables are set automatically by the service when the
- * appropriate credential configuration is applied to the container. See the relevant service documentation linked above for
- * more information.
+ * The URI path is retrieved from the environment variable {@code AWS_CONTAINER_SERVICE_ENDPOINT}, {@code
+ * AWS_CONTAINER_CREDENTIALS_RELATIVE_URI} or {@code AWS_CONTAINER_CREDENTIALS_FULL_URI} in the container's environment. If the
+ * environment variable is not set, this credentials provider will throw an exception. These environment variables are set
+ * automatically by the service when the appropriate credential configuration is applied to the container. See the relevant
+ * service documentation linked above for more information.
  * <p>
  * This credential provider caches the credential result, and will only invoke the metadata service periodically
  * to keep the credential "fresh". As a result, it is recommended that you create a single credentials provider of this type
@@ -85,12 +85,12 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * Create using {@link #create()} or {@link #builder()}:
  * {@snippet :
  * ContainerCredentialsProvider credentialsProvider =
- *     ContainerCredentialsProvider.create();
+ *     ContainerCredentialsProvider.create(); // @link substring="create" target="#create()"
  *
  * // or
  *
  * ContainerCredentialsProvider credentialsProvider =
- *     ContainerCredentialsProvider.builder()
+ *     ContainerCredentialsProvider.builder() // @link substring="builder" target="#builder()"
  *                                 .asyncCredentialUpdateEnabled(false)
  *                                 .build();
  *
@@ -122,9 +122,6 @@ public final class ContainerCredentialsProvider
 
     private final String asyncThreadName;
 
-    /**
-     * @see #builder()
-     */
     private ContainerCredentialsProvider(BuilderImpl builder) {
         this.endpoint = builder.endpoint;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
@@ -144,12 +141,26 @@ public final class ContainerCredentialsProvider
         }
     }
 
+    /**
+     * Create a {@link ContainerCredentialsProvider} with default configuration.
+     * <p>
+     * {@snippet :
+     * ContainerCredentialsProvider credentialsProvider = ContainerCredentialsProvider.create();
+     * }
+     */
     public static ContainerCredentialsProvider create() {
         return builder().build();
     }
 
     /**
-     * Create a builder for creating a {@link ContainerCredentialsProvider}.
+     * Get a new builder for creating a {@link ContainerCredentialsProvider}.
+     * <p>
+     * {@snippet :
+     * ContainerCredentialsProvider credentialsProvider =
+     *     ContainerCredentialsProvider.builder()
+     *                                 .asyncCredentialUpdateEnabled(false)
+     *                                 .build();
+     * }
      */
     public static Builder builder() {
         return new BuilderImpl();
@@ -196,6 +207,10 @@ public final class ContainerCredentialsProvider
         return credentialsCache.get();
     }
 
+    /**
+     * Release resources held by this credentials provider. This must be called when you're done using the credentials provider if
+     * {@link Builder#asyncCredentialUpdateEnabled(Boolean)} was set to {@code true}.
+     */
     @Override
     public void close() {
         credentialsCache.close();
@@ -339,10 +354,66 @@ public final class ContainerCredentialsProvider
     }
 
     /**
-     * A builder for creating a custom a {@link ContainerCredentialsProvider}.
+     * See {@link ContainerCredentialsProvider} for detailed documentation.
      */
     public interface Builder extends HttpCredentialsProvider.Builder<ContainerCredentialsProvider, Builder>,
                                      CopyableBuilder<Builder, ContainerCredentialsProvider> {
+        /**
+         * Configure whether this provider should fetch credentials asynchronously in the background. If this is {@code true},
+         * threads are less likely to block when credentials are loaded, but additional resources are used to maintain
+         * the provider and the provider must be {@link #close()}d when it is done being used.
+         *
+         * <p>
+         * If not specified, this is {@code false}.
+         *
+         * <p>
+         * {@snippet :
+         * ContainerCredentialsProvider.builder()
+         *                             .asyncCredentialUpdateEnabled(false)
+         *                             .build();
+         * }
+         */
+        Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled);
+
+        /**
+         * When {@link #asyncCredentialUpdateEnabled(Boolean)} is {@code true}, this sets the thread name prefix for the thread
+         * that asynchronously refreshes the credentials.
+         *
+         * <p>
+         * If {@code asyncCredentialUpdateEnabled} is false, this value is not used. If not specified, this is {@code
+         * "container-credentials-provider"}.
+         *
+         * <p>
+         * {@snippet :
+         * ContainerCredentialsProvider.builder()
+         *                             .asyncThreadName("container-credentials-provider")
+         *                             .build();
+         * }
+         */
+        Builder asyncThreadName(String asyncThreadName);
+
+        /**
+         * Specify the hostname that is used for loading credentials.
+         *
+         * <p>
+         * If not specified, this determines the endpoint based on environment variables set automatically by the container.
+         * Because the containers typically set this endpoint themselves, users do not typically need to set this value
+         * themselves.
+         */
+        Builder endpoint(String endpoint);
+
+        /**
+         * Build the {@link ContainerCredentialsProvider}.
+         *
+         * <p>
+         * {@snippet :
+         * ContainerCredentialsProvider credentialsProvider =
+         *     ContainerCredentialsProvider.builder()
+         *                                 .asyncCredentialUpdateEnabled(false)
+         *                                 .build();
+         * }
+         */
+        ContainerCredentialsProvider build();
     }
 
     private static final class BuilderImpl implements Builder {

@@ -16,11 +16,20 @@
 package software.amazon.awssdk.auth.token.credentials;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An implementation of {@link SdkTokenProvider} that returns a set implementation of {@link SdkToken}.
+ * An {@link IdentityProvider}{@code <}{@link TokenIdentity}{@code >} implementation that returns a static token. This has been
+ * superseded by {@link IdentityProvider#staticToken(TokenIdentity)}.
+ *
+ * <p>
+ * To avoid unnecessary churn this class has not been marked as deprecated, but it's recommended to use
+ * {@link IdentityProvider#staticToken} when defining generic token providers because it provides the same
+ * functionality with considerably fewer dependencies.
  */
 @SdkPublicApi
 public final class StaticTokenProvider implements SdkTokenProvider {

@@ -57,9 +57,7 @@ import software.amazon.awssdk.identity.spi.internal.StaticIdentityProvider;
  *     <li><b>{@link software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider}</b>: Discovers credentials from the host
  *     environment. (Requires a dependency on 
  *     <a href="https://mvnrepository.com/artifact/software.amazon.awssdk/auth">{@code auth}</a>)</li>
- *     <li><b>{@link software.amazon.awssdk.auth.credentials.StaticCredentialsProvider}</b>: Uses a hard-coded set of AWS
- *     credentials. (Requires a dependency on <a href="https://mvnrepository.com/artifact/software.amazon.awssdk/auth">{@code
- *     auth}</a>). Alternatively, you can use {@link #staticAwsCredentials(AwsCredentialsIdentity)}.</li>
+ *     <li><b>{@link IdentityProvider#staticAwsCredentials}</b>: Uses a hard-coded set of AWS credentials.</li>
  *     <li><b>{@link software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain}</b>: Allows chaining together
  *     multiple credential providers, failing over to the next one when one fails. (Requires a dependency on
  *     <a href="https://mvnrepository.com/artifact/software.amazon.awssdk/auth">{@code auth}</a>)</li>
@@ -129,9 +127,7 @@ import software.amazon.awssdk.identity.spi.internal.StaticIdentityProvider;
  *     <li><b>{@link software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider}</b>: Discovers bearer token
  *     from the host environment. (Requires a dependency on
  *     <a href="https://mvnrepository.com/artifact/software.amazon.awssdk/auth">{@code auth}</a>)</li>
- *     <li><b>{@link software.amazon.awssdk.auth.token.credentials.StaticTokenProvider}</b>: Uses a hard-coded bearer token.
- *     (Requires a dependency on <a href="https://mvnrepository.com/artifact/software.amazon.awssdk/auth">{@code auth}</a>).
- *     Alternatively, you can use {@link #staticToken(TokenIdentity)}.</li>
+ *     <li><b>{@link IdentityProvider#staticToken(TokenIdentity)}</b>: Uses a hard-coded bearer token.</li>
  *     <li><b>{@link software.amazon.awssdk.auth.token.credentials.SdkTokenProviderChain}</b>: Allows chaining together
  *     multiple token providers, failing over to the next one when one fails. (Requires a dependency on
  *     <a href="https://mvnrepository.com/artifact/software.amazon.awssdk/auth">{@code auth}</a>)</li>
@@ -157,10 +153,37 @@ public interface IdentityProvider<IdentityT extends Identity> {
     }
 
     /**
+     * Create an {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that always returns the provided
+     * access key ID and secret access key.
+     */
+    static IdentityProvider<AwsCredentialsIdentity> staticAwsCredentials(String accessKeyId, String secretAccessKey) {
+        return new StaticIdentityProvider<>(AwsCredentialsIdentity.class,
+                                            AwsCredentialsIdentity.create(accessKeyId, secretAccessKey));
+    }
+
+    /**
+     * Create an {@link IdentityProvider}{@code <}{@link AwsSessionCredentialsIdentity}{@code >} that always returns the provided
+     * access key ID, secret access key and session token.
+     */
+    static IdentityProvider<AwsSessionCredentialsIdentity> staticAwsCredentials(String accessKeyId,
+                                                                                String secretAccessKey,
+                                                                                String sessionToken) {
+        return new StaticIdentityProvider<>(AwsSessionCredentialsIdentity.class,
+                                            AwsSessionCredentialsIdentity.create(accessKeyId, secretAccessKey, sessionToken));
+    }
+
+    /**
      * Create an {@link IdentityProvider}{@code <}{@link TokenIdentity}{@code >} that always returns the provided identity.
      */
     static IdentityProvider<TokenIdentity> staticToken(TokenIdentity identity) {
         return new StaticIdentityProvider<>(TokenIdentity.class, identity);
+    }
+
+    /**
+     * Create an {@link IdentityProvider}{@code <}{@link TokenIdentity}{@code >} that always returns the provided token.
+     */
+    static IdentityProvider<TokenIdentity> staticToken(String token) {
+        return new StaticIdentityProvider<>(TokenIdentity.class, TokenIdentity.create(token));
     }
 
     /**

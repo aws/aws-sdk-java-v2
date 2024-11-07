@@ -37,38 +37,44 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Credentials provider based on AWS configuration profiles. This loads credentials from a {@link ProfileFile}, allowing you to
- * share multiple sets of AWS security credentials between different tools like the AWS SDK for Java and the AWS CLI.
- *
- * <p>See http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html</p>
- *
- * <p>If this credentials provider is loading assume-role credentials from STS, it should be cleaned up with {@link #close()} if
- * it is no longer being used.</p>
- *
- * @see ProfileFile
- */
-/**
- * {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that loads credentials from a {@link ProfileFile} in
- * {@code ~/.aws/config} and {@link ~/.aws/credentials}.
+ * An {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that loads credentials from a
+ * {@link ProfileFile} in {@code ~/.aws/config} and {@code ~/.aws/credentials}.
  *
  * <p>
- * This class process the profile files and delegate their configuration to other credential providers, based on the profile
- * files' contents. For a full guide on how to configure SDK credentials using a profile file, see
+ * This credential provider reads the profile once, and will not be updated if the file is changed. To monitor the file
+ * for updates, you can provide a {@link ProfileFileSupplier} with {@link Builder#profileFile(Supplier)}.
+ *
+ * <p>
+ * This provider processes the profile files and delegate its configuration to other credential providers. For a full guide on
+ * how to configure SDK credentials using a profile file, see
  * <a href="https://docs.aws.amazon.com/sdkref/latest/guide/file-format.html">the configuration file guide</a>.
  * The SDK determines which credential provider to delegate to based on the following ordered logic:
  * <ol>
  *     <li><b>{@link WebIdentityTokenFileCredentialsProvider}</b>: Used if the file contains {@code role_arn} and {@code
- *     web_identity_token_file}.</li>
+ *     web_identity_token_file}. (Requires a dependency on
+ *     <a href="https://mvnrepository.com/artifact/software.amazon.awssdk/sts">{@code sts}</a>)</li>
  *     <li><b>{@link software.amazon.awssdk.services.sso.auth.SsoCredentialsProvider}</b>: Used if the file contains
- *     {@code sso_*} properties.</li>
+ *     {@code sso_*} properties. (Requires a dependency on
+ *     <a href="https://mvnrepository.com/artifact/software.amazon.awssdk/sso">{@code sso}</a>)</li>
  *     <li><b>{@link software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider}</b>: Used if the file contains the
- *     {@code role_arn} property.</li>
+ *     {@code role_arn} property. (Requires a dependency on
+ *     <a href="https://mvnrepository.com/artifact/software.amazon.awssdk/sts">{@code sts}</a>)</li>
  *     <li><b>{@link ProcessCredentialsProvider}</b>: Used if the file contains the {@code credential_process} property.</li>
- *     <li><b>{@link StaticCredentialsProvider}</b> with <b><{@link AwsSessionCredentialsIdentity}</b>: Used if the file contains
+ *     <li><b>{@link StaticCredentialsProvider}</b> with <b>{@link AwsSessionCredentialsIdentity}</b>: Used if the file contains
  *     the {@code aws_session_token} property. </li>
- *     <li><b>{@link StaticCredentialsProvider}</b> with <b><{@link AwsCredentialsIdentity}</b>: Used if the file contains the
+ *     <li><b>{@link StaticCredentialsProvider}</b> with <b>{@link AwsCredentialsIdentity}</b>: Used if the file contains the
  *     {@code aws_access_key_id} property.</li>
  * </ol>
+ *
+ * <p>
+ * Many credential providers in this chain will make service calls to retrieve credentials. These providers will cache the
+ * credential result, and will only invoke the service periodically to keep the credential "fresh". As a result, it is
+ * recommended that you create a single credentials provider of this type and reuse it throughout your application. You may
+ * notice small latency increases on requests that refresh the cached credentials.
+ *
+ * <p>
+ * You should {@link #close()} this credential provider if you are done using it, because some configurations can cause the
+ * creation of resources that cannot be garbage collected.
  *
  * <p>
  * There are system properties and environment variables that can control the behavior of this credential provider:
@@ -85,25 +91,22 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *     then use the {@code user.home} system property.</li>
  * </ul>
  * <p>
- * This credential provider reads the profile once will not be updated if the file is changed. To monitor the file
- * for updates, you can provide a {@link ProfileFileSupplier} with {@link Builder#profileFile(Supplier)}.
- * <p>
  * This credentials provider is included in the {@link DefaultCredentialsProvider}.
  * <p>
  * This can be created using {@link #create()} or {@link #builder()}:
  * {@snippet :
  * ProfileCredentialsProvider credentialsProvider =
- *    ProfileCredentialsProvider.create();
+ *    ProfileCredentialsProvider.create(); // @link substring="create" target="#create()"
  *
  * // or
  *
  * ProfileCredentialsProvider credentialsProvider =
- *     ProfileCredentialsProvider.create("custom-profile-name");
+ *     ProfileCredentialsProvider.create("custom-profile-name");  // @link substring="create" target="#create(String)"
  *
  * // or
  *
  * ProfileCredentialsProvider credentialsProvider =
- *     ProfileCredentialsProvider.builder()
+ *     ProfileCredentialsProvider.builder() // @link substring="builder" target="#builder()"
  *                               .profileFile(ProfileFile.defaultProfileFile())
  *                               .profileName("custom-profile-name")
  *                               .build();
@@ -128,9 +131,6 @@ public final class ProfileCredentialsProvider
 
     private final Object credentialsProviderLock = new Object();
 
-    /**
-     * @see #builder()
-     */
     private ProfileCredentialsProvider(BuilderImpl builder) {
         this.defaultProfileFileLoader = builder.defaultProfileFileLoader;
 
@@ -158,25 +158,36 @@ public final class ProfileCredentialsProvider
     }
 
     /**
-     * Create a {@link ProfileCredentialsProvider} using the {@link ProfileFile#defaultProfileFile()} and default profile name.
-     * Use {@link #builder()} for defining a custom {@link ProfileCredentialsProvider}.
+     * Create a {@link ProfileCredentialsProvider} with default configuration.
+     * <p>
+     * {@snippet :
+     * ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
+     * }
      */
     public static ProfileCredentialsProvider create() {
         return builder().build();
     }
 
     /**
-     * Create a {@link ProfileCredentialsProvider} using the given profile name and {@link ProfileFile#defaultProfileFile()}. Use
-     * {@link #builder()} for defining a custom {@link ProfileCredentialsProvider}.
-     *
-     * @param profileName the name of the profile to use from the {@link ProfileFile#defaultProfileFile()}
+     * Create a {@link ProfileCredentialsProvider} with default configuration and the provided profile name.
+     * <p>
+     * {@snippet :
+     * ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create("custom-profile-name");
+     * }
      */
     public static ProfileCredentialsProvider create(String profileName) {
         return builder().profileName(profileName).build();
     }
 
     /**
-     * Get a builder for creating a custom {@link ProfileCredentialsProvider}.
+     * Get a new builder for creating a {@link ProfileCredentialsProvider}.
+     * <p>
+     * {@snippet :
+     * ProfileCredentialsProvider credentialsProvider =
+     *     ProfileCredentialsProvider.builder()
+     *                               .profileName("custom-profile-name")
+     *                               .build();
+     * }
      */
     public static Builder builder() {
         return new BuilderImpl();
@@ -221,10 +232,12 @@ public final class ProfileCredentialsProvider
                        .build();
     }
 
+    /**
+     * Release resources held by this credentials provider. This should be called when you're done using the credentials
+     * provider, because some delegate providers hold resources (e.g. clients) that must be released.
+     */
     @Override
     public void close() {
-        // The delegate credentials provider may be closeable (eg. if it's an STS credentials provider). In this case, we should
-        // clean it up when this credentials provider is closed.
         IoUtils.closeIfCloseable(credentialsProvider, null);
     }
 
@@ -245,39 +258,111 @@ public final class ProfileCredentialsProvider
     }
 
     /**
-     * A builder for creating a custom {@link ProfileCredentialsProvider}.
+     * See {@link ProfileCredentialsProvider} for detailed documentation.
      */
     public interface Builder extends CopyableBuilder<Builder, ProfileCredentialsProvider> {
-
         /**
-         * Define the profile file that should be used by this credentials provider. By default, the
-         * {@link ProfileFile#defaultProfileFile()} is used.
-         * @see #profileFile(Supplier)
+         * Define the {@link ProfileFile} that should be used by this credentials provider.
+         *
+         * <p>
+         * The profile file is only read when the {@link ProfileFile} object is created, so the credentials provider will not
+         * reflect any changes made in the provided file. To automatically adjust to changes in the file, see
+         * {@link #profileFile(Supplier)}.
+         *
+         * <p>
+         * If not specified, the {@link ProfileFile#defaultProfileFile()} will be used.
+         *
+         * <p>
+         * {@snippet :
+         * ProfileCredentialsProvider.builder()
+         *                           .profileFile(ProfileFile.builder()
+         *                                                   .type(ProfileFile.Type.CONFIGURATION)
+         *                                                   .content(Paths.get("~/.aws/config"))
+         *                                                   .build())
+         *                           .build()
+         *}
+         *
+         * @see ProfileFile
          */
         Builder profileFile(ProfileFile profileFile);
 
         /**
-         * Similar to {@link #profileFile(ProfileFile)}, but takes a lambda to configure a new {@link ProfileFile.Builder}. This
-         * removes the need to called {@link ProfileFile#builder()} and {@link ProfileFile.Builder#build()}.
+         * Define the {@link ProfileFile} that should be used by this credentials provider.
+         *
+         * <p>
+         * Similar to {@link #profileFile(ProfileFile)}, but takes a lambda to configure a new {@link ProfileFile.Builder}.
+         * This removes the need to called {@link ProfileFile#builder()} and {@link ProfileFile.Builder#build()}.
+         *
+         * <p>
+         * The profile file is only read when the {@link ProfileFile} object is created, so the credentials provider will not
+         * reflect any changes made in the provided file. To automatically adjust to changes in the file, see
+         * {@link #profileFile(Supplier)}.
+         *
+         * <p>
+         * If not specified, the {@link ProfileFile#defaultProfileFile()} will be used.
+         *
+         * <p>
+         * {@snippet :
+         * ProfileCredentialsProvider.builder()
+         *                           .profileFile(file -> file.type(ProfileFile.Type.CONFIGURATION)
+         *                                                    .content(Paths.get("~/.aws/config")))
+         *                           .build()
+         *}
+         *
+         * @see ProfileFile
          */
         Builder profileFile(Consumer<ProfileFile.Builder> profileFile);
 
         /**
-         * Define the mechanism for loading profile files.
+         * Define a {@link ProfileFileSupplier} that should be used by this credentials provider.
          *
-         * @param profileFileSupplier Supplier interface for generating a ProfileFile instance.
-         * @see #profileFile(ProfileFile) 
+         * <p>
+         * The profile file supplier is called each time the {@link ProfileFile} is read, so the credentials provider can
+         * "pick up" changes made in the provided file.
+         *
+         * <p>
+         * If not specified, the (fixed) {@link ProfileFile#defaultProfileFile()} will be used.
+         *
+         * <p>
+         * {@snippet :
+         * ProfileCredentialsProvider.builder()
+         *                           .profileFile(ProfileFileSupplier.defaultSupplier())
+         *                           .build()
+         *}
+         *
+         * @see ProfileFileSupplier
          */
         Builder profileFile(Supplier<ProfileFile> profileFileSupplier);
 
         /**
-         * Define the name of the profile that should be used by this credentials provider. By default, the value in
-         * {@link ProfileFileSystemSetting#AWS_PROFILE} is used.
+         * Define the name of the profile that should be used by this credentials provider.
+         *
+         * <p>
+         * If this profile does not exist in the {@link ProfileFile}, credential resolution will fail.
+         *
+         * <p>
+         * If not specified, the {@code aws.profile} system property or {@code AWS_PROFILE} environment variable's value will
+         * be used. If these are not set, then {@code default} will be used.
+         *
+         * <p>
+         * {@snippet :
+         * ProfileCredentialsProvider.builder()
+         *                           .profileName("custom-profile-name")
+         *                           .build()
+         *}
          */
         Builder profileName(String profileName);
 
         /**
-         * Create a {@link ProfileCredentialsProvider} using the configuration applied to this builder.
+         * Build the {@link ProfileCredentialsProvider}.
+         *
+         * <p>
+         * {@snippet :
+         * ProfileCredentialsProvider credentialsProvider =
+         *     ProfileCredentialsProvider.builder()
+         *                               .profileName("custom-profile-name")
+         *                               .build();
+         * }
          */
         @Override
         ProfileCredentialsProvider build();

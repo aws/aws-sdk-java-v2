@@ -35,21 +35,11 @@ import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 @SdkPublicApi
 public interface AwsCredentialsProvider extends IdentityProvider<AwsCredentialsIdentity> {
     /**
-     * Retrieve an instance of the {@link DefaultCredentialsProvider}.
-     */
-    static DefaultCredentialsProvider defaultProvider() {
-        return DefaultCredentialsProvider.create();
-    }
-
-    /**
-     * Returns {@link AwsCredentials} that can be used to authorize an AWS request. Each implementation of AWSCredentialsProvider
-     * can choose its own strategy for loading credentials. For example, an implementation might load credentials from an existing
-     * key management system, or load new credentials when credentials are rotated.
+     * Returns {@link AwsCredentials} that can be used to authorize an AWS request.
      *
-     * <p>If an error occurs during the loading of credentials or credentials could not be found, a runtime exception will be
-     * raised.</p>
-     *
-     * @return AwsCredentials which the caller can use to authorize an AWS request.
+     * <p>
+     * If an error occurs during the loading of credentials or credentials could not be found, a runtime exception will be
+     * raised.
      */
     AwsCredentials resolveCredentials();
 

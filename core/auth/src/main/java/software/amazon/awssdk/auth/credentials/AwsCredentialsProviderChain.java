@@ -53,7 +53,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * Create using {@link AwsCredentialsProviderChain#builder()} or {@link AwsCredentialsProviderChain#of}:
  * {@snippet :
  * AwsCredentialsProviderChain credentialsProvider =
- *     AwsCredentialsProviderChain.builder()
+ *     AwsCredentialsProviderChain.builder() // @link substring="builder" target="#builder()"
  *                                .addCredentialsProvider(SystemPropertyCredentialsProvider.create())
  *                                .addCredentialsProvider(EnvironmentVariableCredentialsProvider.create())
  *                                .build();
@@ -61,7 +61,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * // or
  *
  * AwsCredentialsProviderChain credentialsProvider =
- *     AwsCredentialsProviderChain.of(SystemPropertyCredentialsProvider.create(),
+ *     AwsCredentialsProviderChain.of(SystemPropertyCredentialsProvider.create(), // @link regex="\bof\b" target="#of"
  *                                    EnvironmentVariableCredentialsProvider.create());
  *
  * S3Client s3 = S3Client.builder()
@@ -82,9 +82,6 @@ public final class AwsCredentialsProviderChain
 
     private volatile IdentityProvider<? extends AwsCredentialsIdentity> lastUsedProvider;
 
-    /**
-     * @see #builder()
-     */
     private AwsCredentialsProviderChain(BuilderImpl builder) {
         Validate.notEmpty(builder.credentialsProviders, "No credential providers were specified.");
         this.reuseLastProviderEnabled = builder.reuseLastProviderEnabled;
@@ -93,26 +90,40 @@ public final class AwsCredentialsProviderChain
 
     /**
      * Get a new builder for creating a {@link AwsCredentialsProviderChain}.
+     * <p>
+     * {@snippet :
+     * AwsCredentialsProviderChain credentialsProvider =
+     *     AwsCredentialsProviderChain.builder()
+     *                                .addCredentialsProvider(SystemPropertyCredentialsProvider.create())
+     *                                .addCredentialsProvider(EnvironmentVariableCredentialsProvider.create())
+     *                                .build();
+     * }
      */
     public static Builder builder() {
         return new BuilderImpl();
     }
 
     /**
-     * Create an AWS credentials provider chain with default configuration that checks the given credential providers.
-     * @param awsCredentialsProviders The credentials providers that should be checked for credentials, in the order they should
-     *                                be checked.
-     * @return A credential provider chain that checks the provided credential providers in order.
+     * Create an AWS credentials provider chain that checks the given credential providers.
+     * <p>
+     * {@snippet :
+     * AwsCredentialsProviderChain credentialsProvider =
+     *     AwsCredentialsProviderChain.of(SystemPropertyCredentialsProvider.create(),
+     *                                    EnvironmentVariableCredentialsProvider.create());
+     * }
      */
     public static AwsCredentialsProviderChain of(AwsCredentialsProvider... awsCredentialsProviders) {
         return builder().credentialsProviders(awsCredentialsProviders).build();
     }
 
     /**
-     * Create an AWS credentials provider chain with default configuration that checks the given credential providers.
-     * @param awsCredentialsProviders The credentials providers that should be checked for credentials, in the order they should
-     *                                be checked.
-     * @return A credential provider chain that checks the provided credential providers in order.
+     * Create an AWS credentials provider chain that checks the given identity providers.
+     * <p>
+     * {@snippet :
+     * AwsCredentialsProviderChain credentialsProvider =
+     *     AwsCredentialsProviderChain.of(SystemPropertyCredentialsProvider.create(),
+     *                                    EnvironmentVariableCredentialsProvider.create());
+     * }
      */
     public static AwsCredentialsProviderChain of(IdentityProvider<? extends AwsCredentialsIdentity>... awsCredentialsProviders) {
         return builder().credentialsProviders(awsCredentialsProviders).build();
@@ -151,6 +162,9 @@ public final class AwsCredentialsProviderChain
                                 .build();
     }
 
+    /**
+     * Close every credential provider in this chain that implements {@link AutoCloseable}.
+     */
     @Override
     public void close() {
         credentialsProviders.forEach(c -> IoUtils.closeIfCloseable(c, null));
@@ -169,58 +183,150 @@ public final class AwsCredentialsProviderChain
     }
 
     /**
-     * A builder for a {@link AwsCredentialsProviderChain} that allows controlling its behavior.
+     * See {@link AwsCredentialsProviderChain} for detailed documentation.
      */
     public interface Builder extends CopyableBuilder<Builder, AwsCredentialsProviderChain> {
-
         /**
          * Controls whether the chain should reuse the last successful credentials provider in the chain. Reusing the last
          * successful credentials provider will typically return credentials faster than searching through the chain.
          *
          * <p>
-         * By default, this is enabled
+         * If not specified, this is {@code true}.
+         *
+         * <p>
+         * {@snippet :
+         * AwsCredentialsProviderChain.builder()
+         *                            .addCredentialsProvider(SystemPropertyCredentialsProvider.create())
+         *                            .addCredentialsProvider(EnvironmentVariableCredentialsProvider.create())
+         *                            .reuseLastProviderEnabled(true)
+         *                            .build()
+         * }
          */
         Builder reuseLastProviderEnabled(Boolean reuseLastProviderEnabled);
 
         /**
-         * Configure the credentials providers that should be checked for credentials, in the order they should be checked.
+         * Configure which credentials providers should be checked by this chain, in the order they should be checked.
+         *
+         * <p>
+         * This will replace any credential or identity providers already added to this chain. At least one provider
+         * must be added in this chain before it is built.
+         *
+         * <p>
+         * {@snippet :
+         * AwsCredentialsProviderChain.builder()
+         *                            .credentialsProviders(Arrays.asList(SystemPropertyCredentialsProvider.create(),
+         *                                                                EnvironmentVariableCredentialsProvider.create()))
+         *                            .build()
+         * }
          */
         Builder credentialsProviders(Collection<? extends AwsCredentialsProvider> credentialsProviders);
 
         /**
-         * Configure the credentials providers that should be checked for credentials, in the order they should be checked.
+         * Configure which identity providers should be checked by this chain, in the order they should be checked.
+         *
+         * <p>
+         * This will replace any credential or identity providers already added to this chain. At least one provider
+         * must be added in this chain before it is built.
+         *
+         * <p>
+         * {@snippet :
+         * AwsCredentialsProviderChain.builder()
+         *                            .credentialsIdentityProviders(Arrays.asList(SystemPropertyCredentialsProvider.create(),
+         *                                                                        EnvironmentVariableCredentialsProvider.create()))
+         *                            .build()
+         * }
          */
         Builder credentialsIdentityProviders(
             Collection<? extends IdentityProvider<? extends AwsCredentialsIdentity>> credentialsProviders);
 
         /**
-         * Configure the credentials providers that should be checked for credentials, in the order they should be checked.
+         * Configure which credential providers should be checked by this chain, in the order they should be checked.
+         *
+         * <p>
+         * This will replace any credential or identity providers already added to this chain. At least one provider
+         * must be added in this chain before it is built.
+         *
+         * <p>
+         * {@snippet :
+         * AwsCredentialsProviderChain.builder()
+         *                            .credentialsProviders(SystemPropertyCredentialsProvider.create(),
+         *                                                  EnvironmentVariableCredentialsProvider.create())
+         *                            .build()
+         * }
          */
         default Builder credentialsProviders(AwsCredentialsProvider... credentialsProviders) {
             return credentialsProviders((IdentityProvider<? extends AwsCredentialsIdentity>[]) credentialsProviders);
         }
 
         /**
-         * Configure the credentials providers that should be checked for credentials, in the order they should be checked.
+         * Configure which identity providers should be checked by this chain, in the order they should be checked.
+         *
+         * <p>
+         * This will replace any credential or identity providers already added to this chain. At least one provider
+         * must be added in this chain before it is built.
+         *
+         * <p>
+         * {@snippet :
+         * AwsCredentialsProviderChain.builder()
+         *                            .credentialsProviders(SystemPropertyCredentialsProvider.create(),
+         *                                                  EnvironmentVariableCredentialsProvider.create())
+         *                            .build()
+         * }
          */
         default Builder credentialsProviders(IdentityProvider<? extends AwsCredentialsIdentity>... credentialsProviders) {
             throw new UnsupportedOperationException();
         }
 
         /**
-         * Add a credential provider to the chain, after the credential providers that have already been configured.
+         * Add a credential provider that should be checked to this chain, added after any providers already configured in this
+         * chain.
+         *
+         * <p>
+         * At least one provider must be added in this chain before it is built.
+         *
+         * <p>
+         * {@snippet :
+         * AwsCredentialsProviderChain.builder()
+         *                            .addCredentialsProvider(SystemPropertyCredentialsProvider.create())
+         *                            .addCredentialsProvider(EnvironmentVariableCredentialsProvider.create())
+         *                            .build()
+         * }
          */
         default Builder addCredentialsProvider(AwsCredentialsProvider credentialsProvider) {
             return addCredentialsProvider((IdentityProvider<? extends AwsCredentialsIdentity>) credentialsProvider);
         }
 
         /**
-         * Add a credential provider to the chain, after the credential providers that have already been configured.
+         * Add an identity provider that should be checked to this chain, added after any providers already configured in this
+         * chain.
+         *
+         * <p>
+         * At least one provider must be added in this chain before it is built.
+         *
+         * <p>
+         * {@snippet :
+         * AwsCredentialsProviderChain.builder()
+         *                            .addCredentialsProvider(SystemPropertyCredentialsProvider.create())
+         *                            .addCredentialsProvider(EnvironmentVariableCredentialsProvider.create())
+         *                            .build()
+         * }
          */
         default Builder addCredentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * Build the {@link AwsCredentialsProviderChain}.
+         *
+         * <p>
+         * {@snippet :
+         * AwsCredentialsProviderChain credentialsProvider =
+         *     AwsCredentialsProviderChain.builder()
+         *                                .addCredentialsProvider(SystemPropertyCredentialsProvider.create())
+         *                                .addCredentialsProvider(EnvironmentVariableCredentialsProvider.create())
+         *                                .build();
+         * }
+         */
         AwsCredentialsProviderChain build();
     }
 

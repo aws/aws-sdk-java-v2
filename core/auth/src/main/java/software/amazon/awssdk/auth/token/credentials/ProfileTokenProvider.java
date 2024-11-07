@@ -19,21 +19,86 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.auth.token.internal.ProfileTokenProviderLoader;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
 
 /**
- * Token provider based on AWS configuration profiles. This loads token providers that require {@link ProfileFile} configuration,
- * allowing the user to share settings between different tools like the AWS SDK for Java and the AWS CLI.
+ * An {@link IdentityProvider}{@code <}{@link TokenIdentity}{@code >} that loads tokens from a
+ * {@link ProfileFile} in {@code ~/.aws/config} and {@code ~/.aws/credentials}.
  *
- * <p>See http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html</p>
+ * <p>
+ * This token provider reads the profile once, and will not be updated if the file is changed. To monitor the file
+ * for updates, you can provide a {@link ProfileFileSupplier} with {@link Builder#profileFile(Supplier)}.
  *
- * @see ProfileFile
+ * <p>
+ * This provider processes the profile files and delegate its configuration to other token providers. For a full guide on
+ * how to configure tokens using a profile file, see
+ * <a href="https://docs.aws.amazon.com/sdkref/latest/guide/file-format.html">the configuration file guide</a>.
+ * The SDK determines which token provider to delegate to based on the following ordered logic:
+ * <ol>
+ *     <li><b>{@link software.amazon.awssdk.services.ssooidc.SsoOidcTokenProvider}</b>: Used if the file contains {@code
+ *     sso_session} (Requires a dependency on
+ *     <a href="https://mvnrepository.com/artifact/software.amazon.awssdk/sso">{@code sso}</a>)</li>
+ * </ol>
+ *
+ * <p>
+ * Many token providers in this chain will make service calls to retrieve tokens. These providers will cache the
+ * token result, and will only invoke the service periodically to keep the token "fresh". As a result, it is
+ * recommended that you create a single tokens provider of this type and reuse it throughout your application. You may
+ * notice small latency increases on requests that refresh the cached tokens.
+ *
+ * <p>
+ * You should {@link #close()} this token provider if you are done using it, because some configurations can cause the
+ * creation of resources that cannot be garbage collected.
+ *
+ * <p>
+ * There are system properties and environment variables that can control the behavior of this token provider:
+ * <ul>
+ *     <li>The {@code aws.configFile} system property or {@code AWS_CONFIG_FILE} environment
+ *     variable can be set to override the default location of the config file ({@code ~/.aws/config}).</li>
+ *     <li>The {@code aws.sharedCredentialsFile} system property or {@code AWS_SHARED_CREDENTIALS_FILE} environment
+ *     variable can be set to override the default location of the credentials file ({@code ~/.aws/credentials}).</li>
+ *     <li>The {@code aws.profile} system property or {@code AWS_PROFILE} environment
+ *     variable can be set to override the default profile used (literally, {@code default}).</li>
+ *     <li>The {@code HOME} environment variable can be set to override the way the SDK interprets {@code ~/} in the
+ *     configuration file or credentials file location. If {@code HOME} is not set, on Windows the SDK will also check
+ *     {@code USERPROFILE}, and {@code HOMEDRIVE} + {@code HOMEPATH}. If none of these are set, on all platforms the SDK will
+ *     then use the {@code user.home} system property.</li>
+ * </ul>
+ * <p>
+ * This tokens provider is included in the {@link DefaultAwsTokenProvider}.
+ * <p>
+ * This can be created using {@link #create()} or {@link #builder()}:
+ * {@snippet :
+ * ProfileTokenProvider tokenProvider =
+ *    ProfileTokenProvider.create(); // @link substring="create" target="#create()"
+ *
+ * // or
+ *
+ * ProfileTokenProvider tokenProvider =
+ *     ProfileTokenProvider.create("custom-profile-name");  // @link substring="create" target="#create(String)"
+ *
+ * // or
+ *
+ * ProfileTokenProvider tokenProvider =
+ *     ProfileTokenProvider.builder() // @link substring="builder" target="#builder()"
+ *                         .profileFile(ProfileFile.defaultProfileFile())
+ *                         .profileName("custom-profile-name")
+ *                         .build();
+ *
+ * ServiceClient service = ServiceClient.builder()
+ *                                      .tokenProvider(tokenProvider)
+ *                                      .build();
+ * }
  */
 @SdkPublicApi
 public final class ProfileTokenProvider implements SdkTokenProvider, SdkAutoCloseable {
@@ -42,9 +107,6 @@ public final class ProfileTokenProvider implements SdkTokenProvider, SdkAutoClos
 
     private final String profileName;
 
-    /**
-     * @see #builder()
-     */
     private ProfileTokenProvider(BuilderImpl builder) {
         SdkTokenProvider sdkTokenProvider = null;
         RuntimeException thrownException = null;
@@ -79,25 +141,36 @@ public final class ProfileTokenProvider implements SdkTokenProvider, SdkAutoClos
     }
 
     /**
-     * Create a {@link ProfileTokenProvider} using the {@link ProfileFile#defaultProfileFile()} and default profile name.
-     * Use {@link #builder()} for defining a custom {@link ProfileTokenProvider}.
+     * Create a {@link ProfileTokenProvider} with default configuration.
+     * <p>
+     * {@snippet :
+     * ProfileTokenProvider tokenProvider = ProfileTokenProvider.create();
+     * }
      */
     public static ProfileTokenProvider create() {
         return builder().build();
     }
 
     /**
-     * Create a {@link ProfileTokenProvider} using the given profile name and {@link ProfileFile#defaultProfileFile()}. Use
-     * {@link #builder()} for defining a custom {@link ProfileTokenProvider}.
-     *
-     * @param profileName the name of the profile to use from the {@link ProfileFile#defaultProfileFile()}
+     * Create a {@link ProfileTokenProvider} with default configuration and the provided profile name.
+     * <p>
+     * {@snippet :
+     * ProfileTokenProvider tokenProvider = ProfileTokenProvider.create("custom-profile-name");
+     * }
      */
     public static ProfileTokenProvider create(String profileName) {
         return builder().profileName(profileName).build();
     }
 
     /**
-     * Get a builder for creating a custom {@link ProfileTokenProvider}.
+     * Get a new builder for creating a {@link ProfileTokenProvider}.
+     * <p>
+     * {@snippet :
+     * ProfileTokenProvider tokenProvider =
+     *     ProfileTokenProvider.builder()
+     *                         .profileName("custom-profile-name")
+     *                         .build();
+     * }
      */
     public static Builder builder() {
         return new BuilderImpl();
@@ -118,9 +191,12 @@ public final class ProfileTokenProvider implements SdkTokenProvider, SdkAutoClos
                        .build();
     }
 
+    /**
+     * Release resources held by this token provider. This should be called when you're done using the token
+     * provider, because some delegate providers hold resources (e.g. clients) that must be released.
+     */
     @Override
     public void close() {
-        // The delegate provider may be closeable. In this case, we should clean it up when this token provider is closed.
         IoUtils.closeIfCloseable(tokenProvider, null);
     }
 
@@ -135,24 +211,84 @@ public final class ProfileTokenProvider implements SdkTokenProvider, SdkAutoClos
     }
 
     /**
-     * A builder for creating a custom {@link ProfileTokenProvider}.
+     * See {@link ProfileTokenProvider} for detailed documentation.
      */
     public interface Builder {
+        /**
+         * Define the {@link ProfileFile} that should be used by this token provider.
+         *
+         * <p>
+         * The profile file is only read when the {@link ProfileFile} object is created, so the token provider will not
+         * reflect any changes made in the provided file. To automatically adjust to changes in the file, see
+         * {@link #profileFile(Supplier)}.
+         *
+         * <p>
+         * If not specified, the {@link ProfileFile#defaultProfileFile()} will be used.
+         *
+         * <p>
+         * {@snippet :
+         * ProfileTokenProvider.builder()
+         *                     .profileFile(ProfileFile.builder()
+         *                                             .type(ProfileFile.Type.CONFIGURATION)
+         *                                             .content(Paths.get("~/.aws/config"))
+         *                                             .build())
+         *                     .build()
+         *}
+         *
+         * @see ProfileFile
+         */
+        Builder profileFile(ProfileFile profileFile);
 
         /**
-         * Define the profile file that should be used by this token provider. By default, the
-         * {@link ProfileFile#defaultProfileFile()} is used.
+         * Define a {@link ProfileFileSupplier} that should be used by this token provider.
+         *
+         * <p>
+         * The profile file supplier is called each time the {@link ProfileFile} is read, so the token provider can
+         * "pick up" changes made in the provided file.
+         *
+         * <p>
+         * If not specified, the (fixed) {@link ProfileFile#defaultProfileFile()} will be used.
+         *
+         * <p>
+         * {@snippet :
+         * ProfileTokenProvider.builder()
+         *                     .profileFile(ProfileFileSupplier.defaultSupplier())
+         *                     .build()
+         *}
+         *
+         * @see ProfileFileSupplier
          */
         Builder profileFile(Supplier<ProfileFile> profileFile);
 
         /**
-         * Define the name of the profile that should be used by this token provider. By default, the value in
-         * {@link ProfileFileSystemSetting#AWS_PROFILE} is used.
+         * Define the name of the profile that should be used by this token provider.
+         *
+         * <p>
+         * If this profile does not exist in the {@link ProfileFile}, token resolution will fail.
+         *
+         * <p>
+         * If not specified, the {@code aws.profile} system property or {@code AWS_PROFILE} environment variable's value will
+         * be used. If these are not set, then {@code default} will be used.
+         *
+         * <p>
+         * {@snippet :
+         * ProfileTokenProvider.builder()
+         *                     .profileName("custom-profile-name")
+         *                     .build()
+         *}
          */
         Builder profileName(String profileName);
 
         /**
-         * Create a {@link ProfileTokenProvider} using the configuration applied to this builder.
+         * Build the {@link ProfileTokenProvider}.
+         *
+         * <p>
+         * {@snippet :
+         * ProfileTokenProvider tokenProvider =
+         *     ProfileTokenProvider.builder()
+         *                         .profileName("custom-profile-name")
+         *                         .build();
+         * }
          */
         ProfileTokenProvider build();
     }
@@ -164,6 +300,12 @@ public final class ProfileTokenProvider implements SdkTokenProvider, SdkAutoClos
         private Supplier<ProfileFile> defaultProfileFileLoader = ProfileFile::defaultProfileFile;
 
         BuilderImpl() {
+        }
+
+        @Override
+        public Builder profileFile(ProfileFile profileFile) {
+            this.profileFile = () -> profileFile;
+            return this;
         }
 
         @Override

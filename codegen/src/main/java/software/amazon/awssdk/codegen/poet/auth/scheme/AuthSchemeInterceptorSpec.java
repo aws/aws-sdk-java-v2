@@ -319,10 +319,13 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                                .addParameter(wildcardIdentityProvider(), "identityProvider");
 
         builder.addStatement("Class<?> identityType = identityProvider.identityType()")
-               .beginControlFlow("if (identityType == $T.class)", AwsCredentialsIdentity.class)
+               .beginControlFlow("if (identityType == null")
+               .addStatement("return null")
+               .endControlFlow()
+               .beginControlFlow("if ($T.class.isAssignableFrom(identityType))", AwsCredentialsIdentity.class)
                .addStatement("return $T.CREDENTIALS_FETCH_DURATION", CoreMetric.class)
                .endControlFlow()
-               .beginControlFlow("if (identityType == $T.class)", TokenIdentity.class)
+               .beginControlFlow("if ($T.class.isAssignableFrom(identityType))", TokenIdentity.class)
                .addStatement("return $T.TOKEN_FETCH_DURATION", CoreMetric.class)
                .endControlFlow()
                .addStatement("return null");

@@ -56,13 +56,14 @@ import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
- * {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that loads credentials from the current Amazon EC2
+ * An {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that loads credentials from the current Amazon EC2
  * Instance's
  * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html">instance
  * profile</a>.
  *
  * <p>
  * This is commonly used to load credentials in Amazon EC2.
+ *
  * <p>
  * There are system properties, environment variables and profile properties that can control the behavior of this credential
  * provider:
@@ -82,11 +83,13 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  *     override the default {@code IPv4} instance metadata service endpoint with the default {@code IPv6} endpoint. (This
  *     option is not used if the endpoint is overridden using another setting.)</li>
  * </ul>
+ *
  * <p>
  * This uses
  * <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html">IMDSv2</a>
  * by default, but will "fall back" to IMDSv1 if IMDSv2 is not supported and IMDSv1 is not disabled using the parameters
  * described above.
+ *
  * <p>
  * This credential provider caches the credential result, and will only invoke the instance metadata service
  * periodically to keep the credential "fresh". As a result, it is recommended that you create a single credentials provider of
@@ -95,18 +98,20 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * {@link Builder#asyncCredentialUpdateEnabled(Boolean)}. If you enable this setting, you must {@link #close()} the credential
  * provider if you are done using it, to disable the background refreshing task. If you fail to do this, your application could
  * run out of resources.
+ *
  * <p>
  * This credentials provider is included in the {@link DefaultCredentialsProvider}.
+ *
  * <p>
  * This can be created using {@link #create()} or {@link #builder()}:
  * {@snippet :
  * InstanceProfileCredentialsProvider credentialsProvider =
- *    InstanceProfileCredentialsProvider.create();
+ *    InstanceProfileCredentialsProvider.create(); // @link substring="create" target="#create()"
  *
  * // or
  *
  * InstanceProfileCredentialsProvider credentialsProvider =
- *     InstanceProfileCredentialsProvider.builder()
+ *     InstanceProfileCredentialsProvider.builder() // @link substring="builder" target="#builder()"
  *                                       .asyncCredentialUpdateEnabled(false)
  *                                       .build();
  *
@@ -142,9 +147,6 @@ public final class InstanceProfileCredentialsProvider
 
     private final String profileName;
 
-    /**
-     * @see #builder()
-     */
     private InstanceProfileCredentialsProvider(BuilderImpl builder) {
         this.clock = builder.clock;
         this.endpoint = builder.endpoint;
@@ -181,19 +183,28 @@ public final class InstanceProfileCredentialsProvider
     }
 
     /**
-     * Create a builder for creating a {@link InstanceProfileCredentialsProvider}.
-     */
-    public static Builder builder() {
-        return new BuilderImpl();
-    }
-
-    /**
-     * Create a {@link InstanceProfileCredentialsProvider} with default values.
-     *
-     * @return a {@link InstanceProfileCredentialsProvider}
+     * Create a {@link InstanceProfileCredentialsProvider} with default configuration.
+     * <p>
+     * {@snippet :
+     * InstanceProfileCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider.create();
+     * }
      */
     public static InstanceProfileCredentialsProvider create() {
         return builder().build();
+    }
+
+    /**
+     * Get a new builder for creating a {@link InstanceProfileCredentialsProvider}.
+     * <p>
+     * {@snippet :
+     * InstanceProfileCredentialsProvider credentialsProvider =
+     *     InstanceProfileCredentialsProvider.builder()
+     *                                       .asyncCredentialUpdateEnabled(false)
+     *                                       .build();
+     * }
+     */
+    public static Builder builder() {
+        return new BuilderImpl();
     }
 
     @Override
@@ -248,6 +259,10 @@ public final class InstanceProfileCredentialsProvider
         return now.plus(maximum(timeUntilExpiration.dividedBy(2), Duration.ofMinutes(5)));
     }
 
+    /**
+     * Release resources held by this credentials provider. This must be called when you're done using the credentials provider if
+     * {@link Builder#asyncCredentialUpdateEnabled(Boolean)} was set to {@code true}.
+     */
     @Override
     public void close() {
         credentialsCache.close();
@@ -355,36 +370,83 @@ public final class InstanceProfileCredentialsProvider
     }
 
     /**
-     * A builder for creating a custom a {@link InstanceProfileCredentialsProvider}.
+     * See {@link InstanceProfileCredentialsProvider} for detailed documentation.
      */
     public interface Builder extends HttpCredentialsProvider.Builder<InstanceProfileCredentialsProvider, Builder>,
                                      CopyableBuilder<Builder, InstanceProfileCredentialsProvider> {
         /**
          * Configure the profile file used for loading IMDS-related configuration, like the endpoint mode (IPv4 vs IPv6).
          *
-         * <p>By default, {@link ProfileFile#defaultProfileFile()} is used.
-         * 
-         * @see #profileFile(Supplier)
+         * <p>
+         * The profile file is only read when the {@link ProfileFile} object is created, so the credentials provider will not
+         * reflect any changes made in the provided file. To automatically adjust to changes in the file, see
+         * {@link #profileFile(Supplier)}.
+         *
+         * <p>
+         * If not specified, the {@link ProfileFile#defaultProfileFile()} will be used.
+         *
+         * <p>
+         * {@snippet :
+         * InstanceProfileCredentialsProvider.builder()
+         *                                   .profileFile(ProfileFile.builder()
+         *                                                           .type(ProfileFile.Type.CONFIGURATION)
+         *                                                           .content(Paths.get("~/.aws/config"))
+         *                                                           .build())
+         *                                   .build()
+         *}
+         *
+         * @see ProfileFile
          */
         Builder profileFile(ProfileFile profileFile);
 
         /**
-         * Define the mechanism for loading profile files.
+         * Configure the {@link ProfileFileSupplier} used for loading IMDS-related configuration, like the endpoint mode (IPv4 vs
+         * IPv6).
          *
-         * @param profileFileSupplier Supplier interface for generating a ProfileFile instance.
-         * @see #profileFile(ProfileFile)
+         * <p>
+         * The profile file supplier is called each time the {@link ProfileFile} is read, so the credentials provider can
+         * "pick up" changes made in the provided file.
+         *
+         * <p>
+         * If not specified, the (fixed) {@link ProfileFile#defaultProfileFile()} will be used.
+         *
+         * <p>
+         * {@snippet :
+         * InstanceProfileCredentialsProvider.builder()
+         *                                   .profileFile(ProfileFileSupplier.defaultSupplier())
+         *                                   .build()
+         *}
+         *
+         * @see ProfileFileSupplier
          */
         Builder profileFile(Supplier<ProfileFile> profileFileSupplier);
 
         /**
          * Configure the profile name used for loading IMDS-related configuration, like the endpoint mode (IPv4 vs IPv6).
          *
-         * <p>By default, {@link ProfileFileSystemSetting#AWS_PROFILE} is used.
+         * <p>
+         * If not specified, the {@code aws.profile} system property or {@code AWS_PROFILE} environment variable's value will
+         * be used. If these are not set, then {@code default} will be used.
+         *
+         * <p>
+         * {@snippet :
+         * InstanceProfileCredentialsProvider.builder()
+         *                                   .profileName("custom-profile-name")
+         *                                   .build()
+         *}
          */
         Builder profileName(String profileName);
 
         /**
-         * Build a {@link InstanceProfileCredentialsProvider} from the provided configuration.
+         * Build the {@link InstanceProfileCredentialsProvider}.
+         *
+         * <p>
+         * {@snippet :
+         * InstanceProfileCredentialsProvider credentialsProvider =
+         *     InstanceProfileCredentialsProvider.builder()
+         *                                       .asyncCredentialUpdateEnabled(false)
+         *                                       .build();
+         * }
          */
         @Override
         InstanceProfileCredentialsProvider build();

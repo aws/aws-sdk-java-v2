@@ -22,6 +22,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -42,7 +44,7 @@ import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
- * {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that
+ * An {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that
  * <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-process.html">loads credentials from an
  * external process</a>.
  *
@@ -53,16 +55,24 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * latency increase, you can enable async refreshing with {@link Builder#asyncCredentialUpdateEnabled(Boolean)}. If you enable
  * this setting, you must {@link #close()} the credential provider if you are done using it, to disable the background
  * refreshing task. If you fail to do this, your application could run out of resources.
+ *
  * <p>
  * This credentials provider is used by the {@link ProfileCredentialsProvider} if the {@code credential_process} profile
- * property is configured. Because the {@code ProfileCredentialsProvider} is included in the {@link DefaultCredentialsProvider},
- * this credentials provider is considered included as well. When configured with {@code credential_process}, the process is
- * executed using a shell ({@code cmd.exe /C [Command]} in Windows, {@code sh -c [Command]} elsewhere).
+ * property is configured. The {@code ProfileCredentialsProvider} is included in the {@link DefaultCredentialsProvider}. When
+ * configured with {@code credential_process}, the process is executed using a shell: {@code cmd.exe /C [Command]} in Windows and
+ * {@code sh -c [Command]} elsewhere.
+ *
  * <p>
- * This can be created using {@link ProcessCredentialsProvider#builder()}:
+ * This can be created using {@link ProcessCredentialsProvider#create(List)} or {@link ProcessCredentialsProvider#builder()}:
  * {@snippet :
  * ProcessCredentialsProvider credentialsProvider =
- *     ProcessCredentialsProvider.builder()
+ * // @link substring="create" target="#create(List)":
+ *     ProcessCredentialsProvider.create(Arrays.asList("/opt/example-path/example-script", "param1", "param2"));
+ *
+ * // or
+ *
+ * ProcessCredentialsProvider credentialsProvider =
+ *     ProcessCredentialsProvider.builder() // @link substring="builder" target="#builder()"
  *                               .command(Arrays.asList("/opt/example-path/example-script", "param1", "param2"))
  *                               .build();
  *
@@ -94,9 +104,6 @@ public final class ProcessCredentialsProvider
 
     private final Boolean asyncCredentialUpdateEnabled;
 
-    /**
-     * @see #builder()
-     */
     private ProcessCredentialsProvider(Builder builder) {
         this.executableCommand = executableCommand(builder);
         this.processOutputLimit = Validate.isPositive(builder.processOutputLimit, "processOutputLimit");
@@ -113,6 +120,32 @@ public final class ProcessCredentialsProvider
         }
 
         this.processCredentialCache = cacheBuilder.build();
+    }
+
+    /**
+     * Create a {@link ProcessCredentialsProvider} that invokes the specified command.
+     * <p>
+     * {@snippet :
+     * ProcessCredentialsProvider credentialsProvider =
+     *     ProcessCredentialsProvider.create(Arrays.asList("/opt/example-path/example-script", "param1", "param2"))
+     * }
+     */
+    public static ProcessCredentialsProvider create(List<String> command) {
+        return builder().command(command).build();
+    }
+
+    /**
+     * Get a new builder for creating a {@link ProcessCredentialsProvider}.
+     * <p>
+     * {@snippet :
+     * ProcessCredentialsProvider credentialsProvider =
+     *     ProcessCredentialsProvider.builder()
+     *                               .command(Arrays.asList("/opt/example-path/example-script", "param1", "param2"))
+     *                               .build();
+     * }
+     */
+    public static Builder builder() {
+        return new Builder();
     }
 
     private List<String> executableCommand(Builder builder) {
@@ -133,13 +166,6 @@ public final class ProcessCredentialsProvider
             cmd.add(builderCommand);
             return Collections.unmodifiableList(cmd);
         }
-    }
-
-    /**
-     * Retrieve a new builder that can be used to create and configure a {@link ProcessCredentialsProvider}.
-     */
-    public static Builder builder() {
-        return new Builder();
     }
 
     @Override
@@ -262,6 +288,10 @@ public final class ProcessCredentialsProvider
         }
     }
 
+    /**
+     * Release resources held by this credentials provider. This must be called when you're done using the credentials provider if
+     * {@link Builder#asyncCredentialUpdateEnabled(Boolean)} was set to {@code true}.
+     */
     @Override
     public void close() {
         processCredentialCache.close();
@@ -273,7 +303,7 @@ public final class ProcessCredentialsProvider
     }
 
     /**
-     * Used to configure and create a {@link ProcessCredentialsProvider}. See {@link #builder()} creation.
+     * See {@link ProcessCredentialsProvider} for detailed documentation.
      */
     public static class Builder implements CopyableBuilder<Builder, ProcessCredentialsProvider> {
         private Boolean asyncCredentialUpdateEnabled = false;
@@ -283,9 +313,6 @@ public final class ProcessCredentialsProvider
         private long processOutputLimit = 64000;
         private String staticAccountId;
 
-        /**
-         * @see #builder()
-         */
         private Builder() {
         }
 
@@ -299,13 +326,20 @@ public final class ProcessCredentialsProvider
         }
 
         /**
-         * Configure whether the provider should fetch credentials asynchronously in the background. If this is true,
+         * Configure whether this provider should fetch credentials asynchronously in the background. If this is {@code true},
          * threads are less likely to block when credentials are loaded, but additional resources are used to maintain
-         * the provider.
+         * the provider and the provider must be {@link #close()}d when it is done being used.
          *
-         * <p>By default, this is disabled.</p>
+         * <p>
+         * If not specified, this is {@code false}.
+         *
+         * <p>
+         * {@snippet :
+         * ProcessCredentialsProvider.builder()
+         *                           .asyncCredentialUpdateEnabled(false)
+         *                           .build();
+         * }
          */
-        @SuppressWarnings("unchecked")
         public Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
             this.asyncCredentialUpdateEnabled = asyncCredentialUpdateEnabled;
             return this;
@@ -313,11 +347,14 @@ public final class ProcessCredentialsProvider
 
         /**
          * Configure the command that should be executed to retrieve credentials.
-         * See {@link ProcessBuilder} for details on how this command is used.
          *
-         * @deprecated The recommended approach is to specify the command as a list of Strings, using {@link #command(List)}
-         * instead, which makes it easier to programmatically add parameters to commands without needing to escape those
-         * parameters to protect against command injection.
+         * <p>
+         * A command provided with this method is executed in a shell: {@code cmd.exe /C [Command]} in Windows and
+         * {@code sh -c [Command]} elsewhere.
+         *
+         * @deprecated Use {@link #command(List)}. This method is tricky to use carefully with user-provided components in the
+         * command, because you must escape those components yourself to avoid command injection. The list-provided version of
+         * the command does not require the same care.
          */
         @Deprecated
         public Builder command(String command) {
@@ -326,8 +363,18 @@ public final class ProcessCredentialsProvider
         }
 
         /**
-         * Configure the command that should be executed to retrieve credentials, as a list of strings.
-         * See {@link ProcessBuilder} for details on how this command is used.
+         * Configure the command that should be executed to retrieve credentials.
+         *
+         * <p>
+         * See <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-process.html">our credential
+         * process documentation</a> for the expected behavior of this process.
+         *
+         * <p>
+         * {@snippet :
+         * ProcessCredentialsProvider.builder()
+         *                           .command(Arrays.asList("/opt/example-path/example-script", "param1", "param2"))
+         *                           .build()
+         * }
          */
         public Builder command(List<String> commandAsListOfStrings) {
             this.commandAsListOfStrings = commandAsListOfStrings;
@@ -335,10 +382,19 @@ public final class ProcessCredentialsProvider
         }
 
         /**
-         * Configure the amount of time between when the credentials expire and when the credentials should start to be
-         * refreshed. This allows the credentials to be refreshed *before* they are reported to expire.
+         * Configure the amount of time between when the credentials expire and when the credential provider starts to refresh
+         * the credentials.
          *
-         * <p>Default: 15 seconds.</p>
+         * <p>
+         * If not specified, {@code Duration.ofSeconds(15)} is used.
+         *
+         * <p>
+         * {@snippet :
+         * ProcessCredentialsProvider.builder()
+         *                           .command(Arrays.asList("/opt/example-path/example-script", "param1", "param2"))
+         *                           .credentialRefreshThreshold(Duration.ofSeconds(15))
+         *                           .build()
+         * }
          */
         public Builder credentialRefreshThreshold(Duration credentialRefreshThreshold) {
             this.credentialRefreshThreshold = credentialRefreshThreshold;
@@ -349,26 +405,57 @@ public final class ProcessCredentialsProvider
          * Configure the maximum amount of data that can be returned by the external process before an exception is
          * raised.
          *
-         * <p>Default: 64000 bytes (64KB).</p>
+         * <p>
+         * If not specified, {@code 64000} bytes is used.
+         *
+         * <p>
+         * {@snippet :
+         * ProcessCredentialsProvider.builder()
+         *                           .command(Arrays.asList("/opt/example-path/example-script", "param1", "param2"))
+         *                           .processOutputLimit(64000L)
+         *                           .build()
+         * }
          */
         public Builder processOutputLimit(long outputByteLimit) {
             this.processOutputLimit = outputByteLimit;
             return this;
         }
 
+
         /**
-         * Configure a static account id for this credentials provider. Account id for ProcessCredentialsProvider is only
-         * relevant in a context where a service constructs endpoint URL containing an account id.
-         * This option should ONLY be used if the provider should return credentials with account id, and the process does not
-         * output account id. If a static account ID is configured, and the process also returns an account
-         * id, the process output value overrides the static value. If used, the static account id MUST match the credentials
-         * returned by the process.
+         * Configure the default AWS account id to use when the command does not return one. Specifying this value
+         * may improve performance or availability for some services, when the process does not return an account ID.
+         *
+         * <p>
+         * Note: If the process returns credentials without an account ID, and those credentials do not match the account ID
+         * configured here, service calls may fail. Only configure an account ID here if you cannot update the script to return
+         * the account ID, and you are sure that the account ID for the credentials returned by the process will match the
+         * value provided.
+         *
+         * <p>
+         * {@snippet :
+         * ProcessCredentialsProvider.builder()
+         *                           .command(Arrays.asList("/opt/example-path/example-script", "param1", "param2"))
+         *                           .staticAccountId("012345678901")
+         *                           .build()
+         * }
          */
         public Builder staticAccountId(String staticAccountId) {
             this.staticAccountId = staticAccountId;
             return this;
         }
 
+        /**
+         * Build the {@link ProcessCredentialsProvider}.
+         *
+         * <p>
+         * {@snippet :
+         * ProcessCredentialsProvider credentialsProvider =
+         *     ProcessCredentialsProvider.builder()
+         *                               .command(Arrays.asList("/opt/example-path/example-script", "param1", "param2"))
+         *                               .build();
+         * }
+         */
         public ProcessCredentialsProvider build() {
             return new ProcessCredentialsProvider(this);
         }

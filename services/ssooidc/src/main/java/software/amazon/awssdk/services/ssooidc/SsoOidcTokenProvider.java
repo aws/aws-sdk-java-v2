@@ -21,14 +21,18 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.auth.token.credentials.ProfileTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.token.CachedTokenRefresher;
 import software.amazon.awssdk.awscore.internal.token.TokenManager;
 import software.amazon.awssdk.awscore.internal.token.TokenRefresher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.services.ssooidc.internal.OnDiskTokenManager;
 import software.amazon.awssdk.services.ssooidc.internal.SsoOidcToken;
 import software.amazon.awssdk.services.ssooidc.internal.SsoOidcTokenTransformer;
@@ -38,9 +42,48 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Implementation of {@link SdkTokenProvider} that is capable of loading and
- * storing SSO tokens to {@code ~/.aws/sso/cache}. This is also capable of
- * refreshing the cached token via the SSO-OIDC service.
+ * An {@link IdentityProvider}{@code <}{@link TokenIdentity}{@code >} implementation that loads a token by
+ * assuming a role from SSO based on an OIDC token loaded from {@code ~/.aws/sso/cache}.
+ *
+ * <p>
+ * To log in with SSO, use <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html">{@code aws
+ * configure sso} and {@code aws sso login} with the AWS CLI</a> or
+ * <a href="https://docs.aws.amazon.com/powershell/latest/userguide/creds-idc-cli.html">{@code Initialize-AWSSSOConfiguration} and
+ * {@code Invoke-AWSSSOLogin} with AWS Tools for PowerShell</a>. This will initialize the {@code ~/.aws/sso/cache} token
+ * cache, which this token provider will use with {@link SsoOidcClient#createToken(CreateTokenRequest)} to get a
+ * {@link TokenIdentity} that can be used with AWS services.
+ *
+ * <p>
+ * This token provider caches the token, and will only invoke AWS SSO periodically
+ * to keep the token "fresh". As a result, it is recommended that you create a single token provider of this type
+ * and reuse it throughout your application. You may notice small latency increases on requests that refresh the cached
+ * token. To avoid this latency increase, you can enable async refreshing with
+ * {@link Builder#asyncTokenUpdateEnabled(Boolean)}. If you enable this setting, you must {@link #close()} the token
+ * provider if you are done using it, to disable the background refreshing task. If you fail to do this, your application could
+ * run out of resources.
+ *
+ * <p>
+ * This token provider is used by the {@link ProfileTokenProvider} if the {@code sso_session} profile
+ * property is configured. The {@code ProfileTokenProvider} is included in the {@link DefaultAwsTokenProvider}.
+ *
+ * <p>
+ * Create using {@link #builder()}:
+ * {@snippet :
+ * SsoOidcClient ssoClient =
+ *     SsoOidcClient.builder()
+ *                  .credentialsProvider(AnonymousCredentialsProvider.create())
+ *                  .build();
+ *
+ * SsoOidcTokenProvider tokenProvider =
+ *     SsoOidcTokenProvider.builder() // @link substring="builder" target="#builder()"
+ *                         .sessionName("my-sso-session-name")
+ *                         .ssoOidcClient(ssoClient)
+ *                         .build();
+ *
+ * ServiceClient service = ServiceClient.builder()
+ *                                      .tokenProvider(tokenProvider)
+ *                                      .build();
+ * }
  */
 @SdkPublicApi
 @ThreadSafe
@@ -78,6 +121,29 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
                                                   .build();
     }
 
+    /**
+     * Get a new builder for creating a {@link SsoOidcTokenProvider}.
+     * <p>
+     * {@snippet :
+     * SsoOidcClient ssoClient =
+     *     SsoOidcClient.builder()
+     *                  .credentialsProvider(AnonymousCredentialsProvider.create())
+     *                  .build();
+     *
+     * SsoOidcTokenProvider tokenProvider =
+     *     SsoOidcTokenProvider.builder() // @link substring="builder" target="#builder()"
+     *                         .sessionName("my-sso-session-name")
+     *                         .ssoOidcClient(ssoClient)
+     *                         .build();
+     *
+     * ServiceClient service = ServiceClient.builder()
+     *                                      .tokenProvider(tokenProvider)
+     *                                      .build();
+     * }
+     */
+    public static Builder builder() {
+        return new BuilderImpl();
+    }
 
     private Function<SdkException, SsoOidcToken> exceptionHandler() {
         return e -> {
@@ -100,10 +166,11 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
         return ssoOidcToken;
     }
 
-    public static Builder builder() {
-        return new BuilderImpl();
-    }
-
+    /**
+     * Release resources held by this token provider. This must be called when you're done using the token provider if
+     * {@link Builder#asyncTokenUpdateEnabled(Boolean)} was set to {@code true}. This does not close the configured
+     * {@link Builder#ssoOidcClient(SsoOidcClient)}.
+     */
     @Override
     public void close() {
         tokenRefresher.close();
@@ -111,40 +178,152 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
 
     public interface Builder {
         /**
-         * The sessionName used to retrieve the SSO token.
+         * Specify the SSO session name that was used to log in with the AWS CLI or AWS Tools for Powershell.
+         *
+         * <p>
+         * If not specified, token provider creation will fail.
+         *
+         * <p>
+         * {@snippet :
+         * SsoOidcTokenProvider.builder()
+         *                     .sessionName("my-sso-session-name")
+         *                     .ssoOidcClient(...)
+         *                     .build();
+         *}
          */
         Builder sessionName(String sessionName);
 
         /**
+         * Specify an {@link SsoOidcClient} to use when retrieving the SSO session token.
          *
-         * Client to fetch token from SSO OIDC service.
+         * <p>
+         * The provided client will not be closed if this token provider is {@link #close()}d.
+         *
+         * <p>
+         * If not specified, token provider creation will fail.
+         *
+         * <p>
+         * {@snippet :
+         * SsoOidcClient ssoClient =
+         *     SsoOidcClient.builder()
+         *                  .credentialsProvider(AnonymousCredentialsProvider.create())
+         *                  .build();
+         *
+         * SsoOidcTokenProvider tokenProvider =
+         *     SsoOidcTokenProvider.builder()
+         *                         .sessionName("my-sso-session-name")
+         *                         .ssoOidcClient(ssoClient)
+         *                         .build();
+         *}
          */
         Builder ssoOidcClient(SsoOidcClient ssoOidcClient);
 
         /**
-         * Configure the amount of time, relative to Sso-Oidc token , that the cached tokens in refresher are considered
-         * stale and should no longer be used.
+         * Configure the amount of time between when the token expires and when the token provider starts to pre-fetch
+         * updated token.
          *
-         * <p>By default, this is 5 minute.</p>
-         */
-        Builder staleTime(Duration onDiskStaleDuration);
-
-        /**
+         * <p>
+         * When the pre-fetch threshold is encountered, the SDK will block a single calling thread to refresh the token.
+         * Other threads will continue to use the existing token. This prevents all SDK caller's latency from increasing
+         * when the token gets close to expiration, but you may still see a single call with increased latency as that
+         * thread refreshes the token.
          *
-         * Configure the amount of time, relative to Sso-Oidc token , that the cached tokens in refresher are considered
-         * prefetched from service..
+         * <p>
+         * Greater than the {@link #staleTime(Duration)} ({@code prefetchTime > staleTime}).
+         *
+         * <p>
+         * If not specified, {@code Duration.ofMinutes(5)} is used. (4 minutes before the default stale time).
+         *
+         * <p>
+         * {@snippet :
+         * SsoOidcTokenProvider.builder()
+         *                     .sessionName("my-sso-session-name")
+         *                     .ssoOidcClient(...)
+         *                     .prefetchTime(Duration.ofMinutes(5))
+         *                     .build();
+         * }
          */
         Builder prefetchTime(Duration prefetchTime);
 
         /**
-         * Configure whether the provider should fetch tokens asynchronously in the background. If this is true,
-         * threads are less likely to block when token are loaded, but additional resources are used to maintain
+         * Configure the amount of time between when the token actually expires and when the token provider treats
+         * the token as expired.
+         *
+         * <p>
+         * If the SDK treated the token as expired exactly when the service reported they will expire (a stale time of 0
+         * seconds), SDK calls could fail close to that expiration time. As a result, the SDK treats a token as expired
+         * 1 minute before the service reported that that token will expire.
+         *
+         * <p>
+         * The failures that could occur without this threshold are caused by two primary factors:
+         * <ul>
+         *     <li>Request latency: There is latency between when the token is loaded and when the service processes
+         *     the request. The SDK has to sign the request, transmit to the service, and the service has to validate the
+         *     signature.</li>
+         *     <li>Clock skew: The client and service may not have the exact same measure of time, so an expiration time for
+         *     the service may be off from the expiration time for the client.</li>
+         * </ul>
+         *
+         * <p>
+         * When the stale threshold is encountered, the SDK will block all calling threads until a successful refresh is achieved.
+         * (Note: while all threads are blocked, only one thread will actually make the service call to refresh the
+         * token). Because this increase in latency for all threads is undesirable, you should ensure that the
+         * {@link #prefetchTime(Duration)} is greater than the {@code staleTime}. When configured correctly, the stale time is
+         * only encountered when the prefetch calls did not succeed (e.g. due to an outage).
+         *
+         * <p>
+         * This value should be less than the {@link #prefetchTime(Duration)} ({@code prefetchTime > staleTime}).
+         *
+         * <p>
+         * If not specified, {@code Duration.ofMinutes(1)} is used. (4 minutes after the default {@link #prefetchTime(Duration)}).
+         *
+         * <p>
+         * {@snippet :
+         * SsoOidcTokenProvider.builder()
+         *                     .sessionName("my-sso-session-name")
+         *                     .ssoOidcClient(...)
+         *                     .staleTime(Duration.ofMinutes(1))
+         *                     .build();
+         * }
+         */
+        Builder staleTime(Duration staleTime);
+
+        /**
+         * Configure whether this provider should fetch tokens asynchronously in the background. If this is {@code true},
+         * threads are less likely to block when tokens are loaded, but additional resources are used to maintain
          * the provider.
          *
-         * <p>By default, this is disabled.</p>
+         * <p>
+         * If not specified, this is {@code false}.
+         *
+         * <p>
+         * {@snippet :
+         * SsoOidcTokenProvider.builder()
+         *                     .sessionName("my-sso-session-name")
+         *                     .ssoOidcClient(...)
+         *                     .asyncTokenUpdateEnabled(false)
+         *                     .build();
+         * }
          */
         Builder asyncTokenUpdateEnabled(Boolean asyncTokenUpdateEnabled);
 
+        /**
+         * Build the {@link SsoOidcTokenProvider}.
+         *
+         * <p>
+         * {@snippet :
+         * SsoOidcClient ssoClient =
+         *     SsoOidcClient.builder()
+         *                  .credentialsProvider(AnonymousCredentialsProvider.create())
+         *                  .build();
+         *
+         * SsoOidcTokenProvider tokenProvider =
+         *     SsoOidcTokenProvider.builder()
+         *                         .sessionName("my-sso-session-name")
+         *                         .ssoOidcClient(ssoClient)
+         *                         .build();
+         * }
+         */
         SsoOidcTokenProvider build();
     }
 

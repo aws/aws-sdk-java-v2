@@ -22,6 +22,7 @@ import static software.amazon.awssdk.utils.Validate.notNull;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -175,6 +176,55 @@ public final class StsWebIdentityTokenFileCredentialsProvider
             this.stsClient = provider.stsClient;
         }
 
+
+        /**
+         * Configure the {@link AssumeRoleWithWebIdentityRequest} that should be periodically sent to the STS service to update
+         * the session token when it gets close to expiring.
+         *
+         * @param assumeRoleWithWebIdentityRequest The request to send to STS whenever the assumed session expires.
+         * @return This object for chained calls.
+         */
+        public Builder refreshRequest(AssumeRoleWithWebIdentityRequest assumeRoleWithWebIdentityRequest) {
+            return refreshRequest(() -> assumeRoleWithWebIdentityRequest);
+        }
+
+        /**
+         * Similar to {@link #refreshRequest(AssumeRoleWithWebIdentityRequest)}, but takes a {@link Supplier} to supply the
+         * request to STS.
+         *
+         * @param assumeRoleWithWebIdentityRequestSupplier A supplier
+         * @return This object for chained calls.
+         */
+        public Builder refreshRequest(Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequestSupplier) {
+            this.assumeRoleWithWebIdentityRequestSupplier = assumeRoleWithWebIdentityRequestSupplier;
+            return this;
+        }
+
+        /**
+         * Similar to {@link #refreshRequest(AssumeRoleWithWebIdentityRequest)}, but takes a lambda to configure a new {@link
+         * AssumeRoleWithWebIdentityRequest.Builder}. This removes the need to call {@link
+         * AssumeRoleWithWebIdentityRequest#builder()} and {@link AssumeRoleWithWebIdentityRequest.Builder#build()}.
+         */
+        public Builder refreshRequest(Consumer<AssumeRoleWithWebIdentityRequest.Builder> assumeRoleWithWebIdentityRequest) {
+            return refreshRequest(AssumeRoleWithWebIdentityRequest.builder().applyMutation(assumeRoleWithWebIdentityRequest)
+                                                                  .build());
+        }
+
+        @Override
+        public Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
+            return super.asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled);
+        }
+
+        @Override
+        public Builder staleTime(Duration staleTime) {
+            return super.staleTime(staleTime);
+        }
+
+        @Override
+        public Builder prefetchTime(Duration prefetchTime) {
+            return super.prefetchTime(prefetchTime);
+        }
+
         /**
          * The Custom {@link StsClient} that will be used to fetch AWS service credentials.
          * <ul>
@@ -261,40 +311,6 @@ public final class StsWebIdentityTokenFileCredentialsProvider
 
         public void setWebIdentityTokenFile(Path webIdentityTokenFile) {
             webIdentityTokenFile(webIdentityTokenFile);
-        }
-
-
-        /**
-         * Configure the {@link AssumeRoleWithWebIdentityRequest} that should be periodically sent to the STS service to update
-         * the session token when it gets close to expiring.
-         *
-         * @param assumeRoleWithWebIdentityRequest The request to send to STS whenever the assumed session expires.
-         * @return This object for chained calls.
-         */
-        public Builder refreshRequest(AssumeRoleWithWebIdentityRequest assumeRoleWithWebIdentityRequest) {
-            return refreshRequest(() -> assumeRoleWithWebIdentityRequest);
-        }
-
-        /**
-         * Similar to {@link #refreshRequest(AssumeRoleWithWebIdentityRequest)}, but takes a {@link Supplier} to supply the
-         * request to STS.
-         *
-         * @param assumeRoleWithWebIdentityRequestSupplier A supplier
-         * @return This object for chained calls.
-         */
-        public Builder refreshRequest(Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequestSupplier) {
-            this.assumeRoleWithWebIdentityRequestSupplier = assumeRoleWithWebIdentityRequestSupplier;
-            return this;
-        }
-
-        /**
-         * Similar to {@link #refreshRequest(AssumeRoleWithWebIdentityRequest)}, but takes a lambda to configure a new {@link
-         * AssumeRoleWithWebIdentityRequest.Builder}. This removes the need to call {@link
-         * AssumeRoleWithWebIdentityRequest#builder()} and {@link AssumeRoleWithWebIdentityRequest.Builder#build()}.
-         */
-        public Builder refreshRequest(Consumer<AssumeRoleWithWebIdentityRequest.Builder> assumeRoleWithWebIdentityRequest) {
-            return refreshRequest(AssumeRoleWithWebIdentityRequest.builder().applyMutation(assumeRoleWithWebIdentityRequest)
-                                                                  .build());
         }
 
         @Override

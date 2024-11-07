@@ -17,24 +17,31 @@ package software.amazon.awssdk.auth.token.credentials;
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 
+
 /**
- * Interface for loading {@link SdkToken} that are used for authentication.
+ * Interface for loading a {@link TokenIdentity} that can be used for authentication. This interface has been
+ * superseded by {@link IdentityProvider}{@code <}{@link TokenIdentity}{@code >}.
  *
+ * <p>
+ * To avoid unnecessary churn this class has not been marked as deprecated, but it's recommended to use
+ * {@link IdentityProvider}{@code <}{@link TokenIdentity}{@code >} when defining generic credential providers because it
+ * provides the same functionality with considerably fewer dependencies.
  */
 @FunctionalInterface
 @SdkPublicApi
 public interface SdkTokenProvider extends IdentityProvider<TokenIdentity> {
     /**
-     * Returns an {@link SdkToken} that can be used to authorize a request. Each implementation of SdkTokenProvider
-     * can choose its own strategy for loading token. For example, an implementation might load token from an existing
-     * key management system, or load new token when token is refreshed.
+     * Returns {@link AwsCredentials} that can be used to authorize a bearer token request.
      *
-     *
-     * @return AwsToken which the caller can use to authorize an AWS request using token authorization for a request.
+     * <p>
+     * If an error occurs during the loading of credentials or credentials could not be found, a runtime exception will be
+     * raised.
      */
     SdkToken resolveToken();
 

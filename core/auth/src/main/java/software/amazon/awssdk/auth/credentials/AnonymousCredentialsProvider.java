@@ -18,6 +18,7 @@ package software.amazon.awssdk.auth.credentials;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.ToString;
 
 /**
@@ -42,7 +43,7 @@ import software.amazon.awssdk.utils.ToString;
  * Create using {@link #create()}:
  * {@snippet :
  * AnonymousCredentialsProvider credentialsProvider =
- *    AnonymousCredentialsProvider.create();
+ *    AnonymousCredentialsProvider.create(); // @link substring="create" target="#create()"
  *
  * S3Client s3 = S3Client.builder()
  *                       .credentialsProvider(credentialsProvider)
@@ -51,12 +52,19 @@ import software.amazon.awssdk.utils.ToString;
  */
 @SdkPublicApi
 public final class AnonymousCredentialsProvider implements AwsCredentialsProvider {
-
     private static final String PROVIDER_NAME = "AnonymousCredentialsProvider";
 
     private AnonymousCredentialsProvider() {
     }
 
+    /**
+     * Create an {@link AnonymousCredentialsProvider}.
+     *
+     * <p>
+     * {@snippet :
+     * AnonymousCredentialsProvider credentialsProvider = AnonymousCredentialsProvider.create();
+     * }
+     */
     public static AnonymousCredentialsProvider create() {
         return new AnonymousCredentialsProvider();
     }

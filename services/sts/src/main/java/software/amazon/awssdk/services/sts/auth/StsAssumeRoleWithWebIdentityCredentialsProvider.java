@@ -19,6 +19,7 @@ import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.accountI
 import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.fromStsCredentials;
 import static software.amazon.awssdk.utils.Validate.notNull;
 
+import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -26,22 +27,49 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.AssumeRoleWithSamlRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityResponse;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * An implementation of {@link AwsCredentialsProvider} that periodically sends an {@link AssumeRoleWithWebIdentityRequest} to the
- * AWS Security Token Service to maintain short-lived sessions to use for authentication. These sessions are updated using a
- * single calling thread (by default) or asynchronously (if {@link Builder#asyncCredentialUpdateEnabled(Boolean)} is set).
+ * An {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} implementation that loads credentials by
+ * assuming a role from STS using {@link StsClient#assumeRoleWithWebIdentity(AssumeRoleWithWebIdentityRequest)}.
  *
- * If the credentials are not successfully updated before expiration, calls to {@link #resolveCredentials()} will block until
- * they are updated successfully.
+ * <p>
+ * This credential provider caches the credentials, and will only invoke STS periodically
+ * to keep the credentials "fresh". As a result, it is recommended that you create a single credentials provider of this type
+ * and reuse it throughout your application. You may notice small latency increases on requests that refresh the cached
+ * credentials. To avoid this latency increase, you can enable async refreshing with
+ * {@link Builder#asyncCredentialUpdateEnabled(Boolean)}. If you enable this setting, you must {@link #close()} the credentials
+ * provider if you are done using it, to disable the background refreshing task. If you fail to do this, your application could
+ * run out of resources.
  *
- * Users of this provider must {@link #close()} it when they are finished using it.
+ * <p>
+ * Create using {@link #builder()}:
+ * {@snippet :
+ * StsClient stsClient = StsClient.create();
  *
- * This is created using {@link #builder()}.
+ * AssumeRoleWithWebIdentityRequest assumeRoleWithWebIdentityRequest =
+ *     AssumeRoleWithWebIdentityRequest.builder()
+ *                                     .roleArn("arn:aws:iam::012345678901:role/custom-role-to-assume")
+ *                                     .roleSessionName("some-session-name")
+ *                                     .webIdentityToken("token-from-idp")
+ *                                     .build();
+ *
+ * StsAssumeRoleWithSamlCredentialsProvider credentialsProvider =
+ *     StsAssumeRoleWithSamlCredentialsProvider.builder() // @link substring="builder" target="#builder()"
+ *                                             .stsClient(stsClient)
+ *                                             .refreshRequest(assumeRoleWithWebIdentityRequest)
+ *                                             .build();
+ *
+ * S3Client s3 = S3Client.builder()
+ *                       .credentialsProvider(credentialsProvider)
+ *                       .build();
+ *}
  */
 @SdkPublicApi
 @ThreadSafe
@@ -137,6 +165,26 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
         public Builder refreshRequest(Consumer<AssumeRoleWithWebIdentityRequest.Builder> assumeRoleWithWebIdentityRequest) {
             return refreshRequest(AssumeRoleWithWebIdentityRequest.builder().applyMutation(assumeRoleWithWebIdentityRequest)
                                                                   .build());
+        }
+
+        @Override
+        public Builder stsClient(StsClient stsClient) {
+            return super.stsClient(stsClient);
+        }
+
+        @Override
+        public Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
+            return super.asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled);
+        }
+
+        @Override
+        public Builder staleTime(Duration staleTime) {
+            return super.staleTime(staleTime);
+        }
+
+        @Override
+        public Builder prefetchTime(Duration prefetchTime) {
+            return super.prefetchTime(prefetchTime);
         }
 
         @Override

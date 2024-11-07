@@ -18,21 +18,49 @@ package software.amazon.awssdk.auth.credentials;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.SystemSettingsCredentialsProvider;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.utils.SystemSetting;
 import software.amazon.awssdk.utils.ToString;
 
 /**
- * {@link AwsCredentialsProvider} implementation that loads credentials from the aws.accessKeyId, aws.secretAccessKey and
- * aws.sessionToken system properties.
+ * An {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that loads credentials from the
+ * {@code aws.accessKeyId}, {@code aws.secretAccessKey} and {@code aws.sessionToken} (optional) system properties.
+ *
+ * <ul>
+ *     <li>{@code aws.accessKeyId} is the access key associated with your user or role.</li>
+ *     <li>{@code aws.secretAccessKey} is the secret access key associated with your user or role.</li>
+ *     <li>{@code aws.sessionToken} (optional) is the session token associated with your role.</li>
+ * </ul>
+ *
+ * <p>
+ * This credentials provider is included in the {@link DefaultCredentialsProvider}.
+ *
+ * <p>
+ * This can be created using {@link #create()}:
+ * {@snippet :
+ * SystemPropertyCredentialsProvider credentialsProvider =
+ *    SystemPropertyCredentialsProvider.create(); // @link substring="create" target="#create()"
+ *
+ * S3Client s3 = S3Client.builder()
+ *                       .credentialsProvider(credentialsProvider)
+ *                       .build();
+ * }
  */
 @SdkPublicApi
 public final class SystemPropertyCredentialsProvider extends SystemSettingsCredentialsProvider {
-
     private static final String PROVIDER_NAME = "SystemPropertyCredentialsProvider";
 
     private SystemPropertyCredentialsProvider() {
     }
 
+    /**
+     * Create a {@link SystemPropertyCredentialsProvider}.
+     * <p>
+     * {@snippet :
+     * SystemPropertyCredentialsProvider credentialsProvider = SystemPropertyCredentialsProvider.create();
+     * }
+     */
     public static SystemPropertyCredentialsProvider create() {
         return new SystemPropertyCredentialsProvider();
     }

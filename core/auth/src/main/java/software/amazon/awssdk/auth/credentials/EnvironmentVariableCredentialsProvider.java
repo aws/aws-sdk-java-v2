@@ -24,9 +24,10 @@ import software.amazon.awssdk.utils.SystemSetting;
 import software.amazon.awssdk.utils.ToString;
 
 /**
- * {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that loads credentials from the
+ * An {@link IdentityProvider}{@code <}{@link AwsCredentialsIdentity}{@code >} that loads credentials from the
  * {@code AWS_ACCESS_KEY_ID}, {@code AWS_SECRET_ACCESS_KEY} and {@code AWS_SESSION_TOKEN} (optional)
  * <a href="https://en.wikipedia.org/wiki/Environment_variable">environment variables</a>.
+ *
  * <p>
  * These environment variables may be populated automatically in some AWS service environments, like AWS Lambda:
  * <ul>
@@ -34,13 +35,15 @@ import software.amazon.awssdk.utils.ToString;
  *     <li>{@code AWS_SECRET_ACCESS_KEY} is the secret access key associated with your user or role.</li>
  *     <li>{@code AWS_SESSION_TOKEN} (optional) is the session token associated with your role.</li>
  * </ul>
+ *
  * <p>
  * This credentials provider is included in the {@link DefaultCredentialsProvider}.
+ *
  * <p>
  * This can be created using {@link EnvironmentVariableCredentialsProvider#create()}:
  * {@snippet :
  * EnvironmentVariableCredentialsProvider credentialsProvider =
- *    EnvironmentVariableCredentialsProvider.create();
+ *    EnvironmentVariableCredentialsProvider.create(); // @link substring="create" target="#create()"
  *
  * S3Client s3 = S3Client.builder()
  *                       .credentialsProvider(credentialsProvider)
@@ -49,12 +52,18 @@ import software.amazon.awssdk.utils.ToString;
  */
 @SdkPublicApi
 public final class EnvironmentVariableCredentialsProvider extends SystemSettingsCredentialsProvider {
-
     private static final String PROVIDER_NAME = "EnvironmentVariableCredentialsProvider";
 
     private EnvironmentVariableCredentialsProvider() {
     }
 
+    /**
+     * Create a {@link EnvironmentVariableCredentialsProvider}.
+     * <p>
+     * {@snippet :
+     * EnvironmentVariableCredentialsProvider credentialsProvider = EnvironmentVariableCredentialsProvider.create();
+     * }
+     */
     public static EnvironmentVariableCredentialsProvider create() {
         return new EnvironmentVariableCredentialsProvider();
     }
