@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Clean Rooms Service",
+    "contributor": "",
+    "description": "This release introduces support for Custom Models in AWS Clean Rooms ML."
+}
