@@ -32,8 +32,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.endpoints.internal.AwsEndpointProviderUtils;
 import software.amazon.awssdk.services.dynamodb.paginators.QueryPublisher;
 
 public class PaginatorInUserAgentTest {
@@ -76,6 +81,19 @@ public class PaginatorInUserAgentTest {
 
         verify(postRequestedFor(urlEqualTo("/")).withHeader("User-Agent",
                                                             matching(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.PAGINATOR.value()))));
+    }
+
+    @Test
+    public void syncPaginator_shuldHavePaginatorUserAgent() throws IOException {
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        BusinessMetricCollection newmetrics = new BusinessMetricCollection();
+        newmetrics.addMetric("R");
+
+        ClientEndpointProvider wohoo = ClientEndpointProvider.forEndpointOverride(URI.create("http://wohoo"));
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS, newmetrics);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER, wohoo);
+        String s = AwsEndpointProviderUtils.endpointBuiltIn(executionAttributes);
+        System.out.println(s);
     }
 
     @Test
