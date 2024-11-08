@@ -6,8 +6,8 @@
     "endpointPrefix":"dsql",
     "protocol":"rest-json",
     "protocols":["rest-json"],
-    "serviceFullName":"Dsql",
-    "serviceId":"dsql",
+    "serviceFullName":"Amazon Aurora DSQL",
+    "serviceId":"DSQL",
     "signatureVersion":"v4",
     "signingName":"dsql",
     "uid":"dsql-2018-05-10"
@@ -787,5 +787,5 @@
       ]
     }
   },
-  "documentation":"<p>Dsql</p>"
+  "documentation":"<p>Amazon Aurora DSQL is a serverless, distributed SQL database suitable for workloads of any size. Aurora DSQL provides you with a familiar relational database experience based on PostgreSQL that lets you get started quickly. Aurora DSQL offers reliable multi-AZ database clusters in single and multi-Region configurations. Aurora DSQL supports active-active read and write to endpoints, so Aurora DSQL is always available even if an Availability Zone or if an AWS Region is unavailable. With Aurora DSQL, you don't have to manage, patch, or scale any servers to manage, patch, or scale. There are no maintenance windows or planned downtime.</p>"
 }
