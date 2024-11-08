@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Control Catalog",
+    "contributor": "",
+    "description": "AWS Control Catalog GetControl public API returns additional data in output, including Implementation and Parameters"
+}
