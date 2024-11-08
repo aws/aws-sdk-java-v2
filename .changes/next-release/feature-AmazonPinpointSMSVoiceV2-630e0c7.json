@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Pinpoint SMS Voice V2",
-    "contributor": "",
-    "description": "Added the RequiresAuthenticationTimestamp field to the RegistrationVersionStatusHistory data type."
-}
