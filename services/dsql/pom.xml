@@ -42,6 +42,11 @@
     </build>
     <dependencies>
         <dependency>
+            <groupId>nl.jqno.equalsverifier</groupId>
+            <artifactId>equalsverifier</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>protocol-core</artifactId>
             <version>${awsjavasdk.version}</version>
