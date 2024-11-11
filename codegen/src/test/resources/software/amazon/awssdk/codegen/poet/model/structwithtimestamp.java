@@ -4,7 +4,9 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -23,13 +25,20 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class StructWithTimestamp implements SdkPojo, Serializable,
-                                                  ToCopyableBuilder<StructWithTimestamp.Builder, StructWithTimestamp> {
+        ToCopyableBuilder<StructWithTimestamp.Builder, StructWithTimestamp> {
     private static final SdkField<Instant> NESTED_TIMESTAMP_FIELD = SdkField.<Instant> builder(MarshallingType.INSTANT)
-                                                                            .memberName("NestedTimestamp").getter(getter(StructWithTimestamp::nestedTimestamp))
-                                                                            .setter(setter(Builder::nestedTimestamp))
-                                                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("NestedTimestamp").build()).build();
+            .memberName("NestedTimestamp").getter(getter(StructWithTimestamp::nestedTimestamp))
+            .setter(setter(Builder::nestedTimestamp))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("NestedTimestamp").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NESTED_TIMESTAMP_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections
+            .unmodifiableMap(new HashMap<String, SdkField<?>>() {
+                {
+                    put("NestedTimestamp", NESTED_TIMESTAMP_FIELD);
+                }
+            });
 
     private static final long serialVersionUID = 1L;
 
@@ -41,7 +50,7 @@ public final class StructWithTimestamp implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the NestedTimestamp property for this object.
-     *
+     * 
      * @return The value of the NestedTimestamp property for this object.
      */
     public final Instant nestedTimestamp() {
@@ -99,16 +108,21 @@ public final class StructWithTimestamp implements SdkPojo, Serializable,
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "NestedTimestamp":
-                return Optional.ofNullable(clazz.cast(nestedTimestamp()));
-            default:
-                return Optional.empty();
+        case "NestedTimestamp":
+            return Optional.ofNullable(clazz.cast(nestedTimestamp()));
+        default:
+            return Optional.empty();
         }
     }
 
     @Override
     public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
+    }
+
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
     }
 
     private static <T> Function<Object, T> getter(Function<StructWithTimestamp, T> g) {
@@ -162,6 +176,11 @@ public final class StructWithTimestamp implements SdkPojo, Serializable,
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }

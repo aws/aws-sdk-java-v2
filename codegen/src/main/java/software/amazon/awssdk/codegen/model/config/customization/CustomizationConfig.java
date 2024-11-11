@@ -347,6 +347,11 @@ public class CustomizationConfig {
      */
     private boolean batchManagerSupported;
 
+    /**
+     * A boolean flag to indicate if the fast unmarshaller code path is enabled.
+     */
+    private boolean enableFastUnmarshaller;
+
     private CustomizationConfig() {
     }
 
@@ -914,4 +919,11 @@ public class CustomizationConfig {
         this.batchManagerSupported = batchManagerSupported;
     }
 
+    public boolean getEnableFastUnmarshaller() {
+        return enableFastUnmarshaller;
+    }
+
+    public void setEnableFastUnmarshaller(boolean enableFastUnmarshaller) {
+        this.enableFastUnmarshaller = enableFastUnmarshaller;
+    }
 }

@@ -54,6 +54,19 @@
       ],
       "documentation":"<p>Associates a trial component with a trial. A trial component can be associated with multiple trials. To disassociate a trial component from a trial, call the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DisassociateTrialComponent.html\">DisassociateTrialComponent</a> API.</p>"
     },
+    "BatchDeleteClusterNodes":{
+      "name":"BatchDeleteClusterNodes",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"BatchDeleteClusterNodesRequest"},
+      "output":{"shape":"BatchDeleteClusterNodesResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"}
+      ],
+      "documentation":"<p>Deletes specific nodes within a SageMaker HyperPod cluster. <code>BatchDeleteClusterNodes</code> accepts a cluster name and a list of node IDs.</p> <important> <ul> <li> <p>To safeguard your work, back up your data to Amazon S3 or an FSx for Lustre file system before invoking the API on a worker node group. This will help prevent any potential data loss from the instance root volume. For more information about backup, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod-operate-cli-command.html#sagemaker-hyperpod-operate-cli-command-update-cluster-software-backup\">Use the backup script provided by SageMaker HyperPod</a>. </p> </li> <li> <p>If you want to invoke this API on an existing cluster, you'll first need to patch the cluster by running the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_UpdateClusterSoftware.html\">UpdateClusterSoftware API</a>. For more information about patching a cluster, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod-operate-cli-command.html#sagemaker-hyperpod-operate-cli-command-update-cluster-software\">Update the SageMaker HyperPod platform software of a cluster</a>.</p> </li> </ul> </important>"
+    },
     "BatchDescribeModelPackage":{
       "name":"BatchDescribeModelPackage",
       "http":{
@@ -696,7 +709,7 @@
       "errors":[
         {"shape":"ResourceNotFound"}
       ],
-      "documentation":"<p>Creates a URL for a specified UserProfile in a Domain. When accessed in a web browser, the user will be automatically signed in to the domain, and granted access to all of the Apps and files associated with the Domain's Amazon Elastic File System volume. This operation can only be called when the authentication mode equals IAM. </p> <p>The IAM role or user passed to this API defines the permissions to access the app. Once the presigned URL is created, no additional permission is required to access this URL. IAM authorization policies for this API are also enforced for every HTTP request and WebSocket frame that attempts to connect to the app.</p> <p>You can restrict access to this API and to the URL that it returns to a list of IP addresses, Amazon VPCs or Amazon VPC Endpoints that you specify. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/studio-interface-endpoint.html\">Connect to Amazon SageMaker Studio Through an Interface VPC Endpoint</a> .</p> <note> <p>The URL that you get from a call to <code>CreatePresignedDomainUrl</code> has a default timeout of 5 minutes. You can configure this value using <code>ExpiresInSeconds</code>. If you try to use the URL after the timeout limit expires, you are directed to the Amazon Web Services console sign-in page.</p> </note>"
+      "documentation":"<p>Creates a URL for a specified UserProfile in a Domain. When accessed in a web browser, the user will be automatically signed in to the domain, and granted access to all of the Apps and files associated with the Domain's Amazon Elastic File System volume. This operation can only be called when the authentication mode equals IAM. </p> <p>The IAM role or user passed to this API defines the permissions to access the app. Once the presigned URL is created, no additional permission is required to access this URL. IAM authorization policies for this API are also enforced for every HTTP request and WebSocket frame that attempts to connect to the app.</p> <p>You can restrict access to this API and to the URL that it returns to a list of IP addresses, Amazon VPCs or Amazon VPC Endpoints that you specify. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/studio-interface-endpoint.html\">Connect to Amazon SageMaker Studio Through an Interface VPC Endpoint</a> .</p> <note> <ul> <li> <p>The URL that you get from a call to <code>CreatePresignedDomainUrl</code> has a default timeout of 5 minutes. You can configure this value using <code>ExpiresInSeconds</code>. If you try to use the URL after the timeout limit expires, you are directed to the Amazon Web Services console sign-in page.</p> </li> <li> <p>The JupyterLab session default expiration time is 12 hours. You can configure this value using SessionExpirationDurationInSeconds.</p> </li> </ul> </note>"
     },
     "CreatePresignedMlflowTrackingServerUrl":{
       "name":"CreatePresignedMlflowTrackingServerUrl",
@@ -3670,7 +3683,7 @@
         {"shape":"ResourceNotFound"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Updates the platform software of a SageMaker HyperPod cluster for security patching. To learn how to use this API, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod-operate.html#sagemaker-hyperpod-operate-cli-command-update-cluster-software\">Update the SageMaker HyperPod platform software of a cluster</a>.</p>"
+      "documentation":"<p>Updates the platform software of a SageMaker HyperPod cluster for security patching. To learn how to use this API, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod-operate.html#sagemaker-hyperpod-operate-cli-command-update-cluster-software\">Update the SageMaker HyperPod platform software of a cluster</a>.</p> <important> <p>The <code>UpgradeClusterSoftware</code> API call may impact your SageMaker HyperPod cluster uptime and availability. Plan accordingly to mitigate potential disruptions to your workloads.</p> </important>"
     },
     "UpdateCodeRepository":{
       "name":"UpdateCodeRepository",
@@ -6188,6 +6201,73 @@
       },
       "documentation":"<p>Configuration to control how SageMaker captures inference data for batch transform jobs.</p>"
     },
+    "BatchDeleteClusterNodesError":{
+      "type":"structure",
+      "required":[
+        "Code",
+        "Message",
+        "NodeId"
+      ],
+      "members":{
+        "Code":{
+          "shape":"BatchDeleteClusterNodesErrorCode",
+          "documentation":"<p>The error code associated with the error encountered when deleting a node.</p> <p>The code provides information about the specific issue encountered, such as the node not being found, the node's status being invalid for deletion, or the node ID being in use by another process.</p>"
+        },
+        "Message":{
+          "shape":"String",
+          "documentation":"<p>A message describing the error encountered when deleting a node.</p>"
+        },
+        "NodeId":{
+          "shape":"ClusterNodeId",
+          "documentation":"<p>The ID of the node that encountered an error during the deletion process.</p>"
+        }
+      },
+      "documentation":"<p>Represents an error encountered when deleting a node from a SageMaker HyperPod cluster.</p>"
+    },
+    "BatchDeleteClusterNodesErrorCode":{
+      "type":"string",
+      "enum":[
+        "NodeIdNotFound",
+        "InvalidNodeStatus",
+        "NodeIdInUse"
+      ]
+    },
+    "BatchDeleteClusterNodesErrorList":{
+      "type":"list",
+      "member":{"shape":"BatchDeleteClusterNodesError"},
+      "max":99,
+      "min":1
+    },
+    "BatchDeleteClusterNodesRequest":{
+      "type":"structure",
+      "required":[
+        "ClusterName",
+        "NodeIds"
+      ],
+      "members":{
+        "ClusterName":{
+          "shape":"ClusterNameOrArn",
+          "documentation":"<p>The name of the SageMaker HyperPod cluster from which to delete the specified nodes.</p>"
+        },
+        "NodeIds":{
+          "shape":"ClusterNodeIds",
+          "documentation":"<p>A list of node IDs to be deleted from the specified cluster.</p> <note> <p>For SageMaker HyperPod clusters using the Slurm workload manager, you cannot remove instances that are configured as Slurm controller nodes.</p> </note>"
+        }
+      }
+    },
+    "BatchDeleteClusterNodesResponse":{
+      "type":"structure",
+      "members":{
+        "Failed":{
+          "shape":"BatchDeleteClusterNodesErrorList",
+          "documentation":"<p>A list of errors encountered when deleting the specified nodes.</p>"
+        },
+        "Successful":{
+          "shape":"ClusterNodeIds",
+          "documentation":"<p>A list of node IDs that were successfully deleted from the specified cluster.</p>"
+        }
+      }
+    },
     "BatchDescribeModelPackageError":{
       "type":"structure",
       "required":[
@@ -7439,7 +7519,26 @@
         "ml.t3.medium",
         "ml.t3.large",
         "ml.t3.xlarge",
-        "ml.t3.2xlarge"
+        "ml.t3.2xlarge",
+        "ml.g6.xlarge",
+        "ml.g6.2xlarge",
+        "ml.g6.4xlarge",
+        "ml.g6.8xlarge",
+        "ml.g6.16xlarge",
+        "ml.g6.12xlarge",
+        "ml.g6.24xlarge",
+        "ml.g6.48xlarge",
+        "ml.gr6.4xlarge",
+        "ml.gr6.8xlarge",
+        "ml.g6e.xlarge",
+        "ml.g6e.2xlarge",
+        "ml.g6e.4xlarge",
+        "ml.g6e.8xlarge",
+        "ml.g6e.16xlarge",
+        "ml.g6e.12xlarge",
+        "ml.g6e.24xlarge",
+        "ml.g6e.48xlarge",
+        "ml.p5e.48xlarge"
       ]
     },
     "ClusterLifeCycleConfig":{
@@ -7532,6 +7631,12 @@
       "max":256,
       "min":1,
       "pattern":"^i-[a-f0-9]{8}(?:[a-f0-9]{9})?$"
+    },
+    "ClusterNodeIds":{
+      "type":"list",
+      "member":{"shape":"ClusterNodeId"},
+      "max":99,
+      "min":1
     },
     "ClusterNodeRecovery":{
       "type":"string",
@@ -10206,6 +10311,10 @@
         "ModelCard":{
           "shape":"ModelPackageModelCard",
           "documentation":"<p>The model card associated with the model package. Since <code>ModelPackageModelCard</code> is tied to a model package, it is a specific usage of a model card and its schema is simplified compared to the schema of <code>ModelCard</code>. The <code>ModelPackageModelCard</code> schema does not include <code>model_package_details</code>, and <code>model_overview</code> is composed of the <code>model_creator</code> and <code>model_artifact</code> properties. For more information about the model package model card schema, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html#model-card-schema\">Model package model card schema</a>. For more information about the model card associated with the model package, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html\">View the Details of a Model Version</a>.</p>"
+        },
+        "ModelLifeCycle":{
+          "shape":"ModelLifeCycle",
+          "documentation":"<p> A structure describing the current state of the model in its life cycle. </p>"
         }
       }
     },
@@ -15724,6 +15833,10 @@
         "ModelCard":{
           "shape":"ModelPackageModelCard",
           "documentation":"<p>The model card associated with the model package. Since <code>ModelPackageModelCard</code> is tied to a model package, it is a specific usage of a model card and its schema is simplified compared to the schema of <code>ModelCard</code>. The <code>ModelPackageModelCard</code> schema does not include <code>model_package_details</code>, and <code>model_overview</code> is composed of the <code>model_creator</code> and <code>model_artifact</code> properties. For more information about the model package model card schema, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html#model-card-schema\">Model package model card schema</a>. For more information about the model card associated with the model package, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html\">View the Details of a Model Version</a>.</p>"
+        },
+        "ModelLifeCycle":{
+          "shape":"ModelLifeCycle",
+          "documentation":"<p> A structure describing the current state of the model in its life cycle. </p>"
         }
       }
     },
@@ -28104,6 +28217,28 @@
       "max":1,
       "min":1
     },
+    "ModelLifeCycle":{
+      "type":"structure",
+      "required":[
+        "Stage",
+        "StageStatus"
+      ],
+      "members":{
+        "Stage":{
+          "shape":"EntityName",
+          "documentation":"<p> The current stage in the model life cycle. </p>"
+        },
+        "StageStatus":{
+          "shape":"EntityName",
+          "documentation":"<p> The current status of a stage in model life cycle. </p>"
+        },
+        "StageDescription":{
+          "shape":"StageDescription",
+          "documentation":"<p> Describes the stage related details. </p>"
+        }
+      },
+      "documentation":"<p> A structure describing the current state of the model in its life cycle. </p>"
+    },
     "ModelMetadataFilter":{
       "type":"structure",
       "required":[
@@ -28317,6 +28452,10 @@
         },
         "SecurityConfig":{"shape":"ModelPackageSecurityConfig"},
         "ModelCard":{"shape":"ModelPackageModelCard"},
+        "ModelLifeCycle":{
+          "shape":"ModelLifeCycle",
+          "documentation":"<p> A structure describing the current state of the model in its life cycle. </p>"
+        },
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>A list of the tags associated with the model package. For more information, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html\">Tagging Amazon Web Services resources</a> in the <i>Amazon Web Services General Reference Guide</i>.</p>"
@@ -35034,6 +35173,12 @@
         "TFRecord"
       ]
     },
+    "StageDescription":{
+      "type":"string",
+      "max":1024,
+      "min":0,
+      "pattern":"^.{0,1024}$"
+    },
     "StageStatus":{
       "type":"string",
       "enum":[
@@ -36467,7 +36612,6 @@
         "ml.p4de.24xlarge",
         "ml.p5.48xlarge",
         "ml.p5e.48xlarge",
-        "ml.p5en.48xlarge",
         "ml.c5.xlarge",
         "ml.c5.2xlarge",
         "ml.c5.4xlarge",
@@ -36486,10 +36630,25 @@
         "ml.g5.12xlarge",
         "ml.g5.24xlarge",
         "ml.g5.48xlarge",
+        "ml.g6.xlarge",
+        "ml.g6.2xlarge",
+        "ml.g6.4xlarge",
+        "ml.g6.8xlarge",
+        "ml.g6.16xlarge",
+        "ml.g6.12xlarge",
+        "ml.g6.24xlarge",
+        "ml.g6.48xlarge",
+        "ml.g6e.xlarge",
+        "ml.g6e.2xlarge",
+        "ml.g6e.4xlarge",
+        "ml.g6e.8xlarge",
+        "ml.g6e.16xlarge",
+        "ml.g6e.12xlarge",
+        "ml.g6e.24xlarge",
+        "ml.g6e.48xlarge",
         "ml.trn1.2xlarge",
         "ml.trn1.32xlarge",
         "ml.trn1n.32xlarge",
-        "ml.trn2.48xlarge",
         "ml.m6i.large",
         "ml.m6i.xlarge",
         "ml.m6i.2xlarge",
@@ -36823,6 +36982,10 @@
         "TrainingJobStatus":{
           "shape":"TrainingJobStatus",
           "documentation":"<p>The status of the training job.</p>"
+        },
+        "SecondaryStatus":{
+          "shape":"SecondaryStatus",
+          "documentation":"<p>The secondary status of the training job.</p>"
         },
         "WarmPoolStatus":{
           "shape":"WarmPoolStatus",
@@ -38659,6 +38822,14 @@
         "ModelCard":{
           "shape":"ModelPackageModelCard",
           "documentation":"<p>The model card associated with the model package. Since <code>ModelPackageModelCard</code> is tied to a model package, it is a specific usage of a model card and its schema is simplified compared to the schema of <code>ModelCard</code>. The <code>ModelPackageModelCard</code> schema does not include <code>model_package_details</code>, and <code>model_overview</code> is composed of the <code>model_creator</code> and <code>model_artifact</code> properties. For more information about the model package model card schema, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html#model-card-schema\">Model package model card schema</a>. For more information about the model card associated with the model package, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry-details.html\">View the Details of a Model Version</a>.</p>"
+        },
+        "ModelLifeCycle":{
+          "shape":"ModelLifeCycle",
+          "documentation":"<p> A structure describing the current state of the model in its life cycle. </p>"
+        },
+        "ClientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p> A unique token that guarantees that the call to this API is idempotent. </p>"
         }
       }
     },
@@ -39452,7 +39623,7 @@
       "type":"string",
       "max":176,
       "min":1,
-      "pattern":"(arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:[a-z\\-]*\\/)?([a-zA-Z0-9]([a-zA-Z0-9-]){0,62})(?<!-)(\\/[0-9]{1,5})?$"
+      "pattern":"(arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:[a-z\\-]*\\/)?([a-zA-Z0-9]([a-zA-Z0-9-]){0,62})(?<!-)(\\/[0-9]{1,9})?$"
     },
     "Vertex":{
       "type":"structure",
