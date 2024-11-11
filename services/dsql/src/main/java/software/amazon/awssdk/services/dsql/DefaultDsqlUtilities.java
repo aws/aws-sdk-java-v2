@@ -128,7 +128,7 @@ public final class DefaultDsqlUtilities implements DsqlUtilities {
             return CredentialUtils.toCredentials(CompletableFutureUtils.joinLikeSync(this.credentialsProvider.resolveIdentity()));
         }
 
-        throw new IllegalArgumentException("CredentialProvider must be provided in GenerateAuthTokenRequest or DsqlUtilities");
+        throw new IllegalArgumentException("CredentialsProvider must be provided in GenerateAuthTokenRequest or DsqlUtilities");
     }
 
     @SdkInternalApi
