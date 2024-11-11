@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.9__ __2024-11-08__
+## __AWS Batch__
+  - ### Features
+    - This feature allows override LaunchTemplates to be specified in an AWS Batch Compute Environment.
+
+## __AWS Control Catalog__
+  - ### Features
+    - AWS Control Catalog GetControl public API returns additional data in output, including Implementation and Parameters
+
+## __AWS Lambda__
+  - ### Features
+    - This release adds support for using AWS KMS customer managed keys to encrypt AWS Lambda .zip deployment packages.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds trace functionality to Bedrock Prompt Flows
+
+## __Amazon Chime SDK Media Pipelines__
+  - ### Features
+    - Added support for Media Capture Pipeline and Media Concatenation Pipeline for customer managed server side encryption. Now Media Capture Pipeline can use IAM sink role to get access to KMS key and encrypt/decrypt recorded artifacts. KMS key ID can also be supplied with encryption context.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds new error code `Ec2InstanceTypeDoesNotExist` for Amazon EKS managed node groups
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Amazon Data Firehose / Features : Adds support for a new DeliveryStreamType, DatabaseAsSource. DatabaseAsSource hoses allow customers to stream CDC events from their RDS and Amazon EC2 hosted databases, running MySQL and PostgreSQL database engines, to Iceberg Table destinations.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - Added the RequiresAuthenticationTimestamp field to the RegistrationVersionStatusHistory data type.
+
+## __QBusiness__
+  - ### Features
+    - Adds S3 path option to pass group member list for PutGroup API.
+
 # __2.29.8__ __2024-11-07__
 ## __AWS Clean Rooms ML__
   - ### Features
