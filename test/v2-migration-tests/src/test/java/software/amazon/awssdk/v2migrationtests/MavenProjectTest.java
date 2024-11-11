@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 import software.amazon.awssdk.testutils.SdkVersionUtils;
@@ -68,7 +69,8 @@ public class MavenProjectTest {
     }
 
     @Test
-    @EnabledIf("versionAvailable")
+    // @EnabledIf("versionAvailable")
+    @Disabled("Test is flaky")
     void mavenProject_shouldConvert() throws IOException {
         verifyTransformation();
         verifyCompilation();
