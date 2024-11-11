@@ -44,8 +44,8 @@ public final class AwsEndpointProviderUtils {
      */
     public static String endpointBuiltIn(ExecutionAttributes executionAttributes) {
         if (endpointIsOverridden(executionAttributes)) {
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS)
-                    .addMetric(BusinessMetricFeatureId.ENDPOINT_OVERRIDE.value());
+            executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).ifPresent(
+                metric -> metric.addMetric(BusinessMetricFeatureId.ENDPOINT_OVERRIDE.value()));
             return invokeSafely(() -> {
                 URI endpointOverride = executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER)
                                                           .clientEndpoint();
