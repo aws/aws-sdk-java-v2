@@ -24,14 +24,7 @@ import java.util.Optional;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpOptions;
-import org.apache.http.client.methods.HttpPatch;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -116,23 +109,18 @@ public class ApacheHttpRequestFactory {
 
 
     private HttpRequestBase createApacheRequest(HttpExecuteRequest request, URI uri) {
-        switch (request.httpRequest().method()) {
+        SdkHttpMethod method = request.httpRequest().method();
+        switch (method) {
             case HEAD:
-                return new HttpHead(uri);
             case GET:
-                return new HttpGet(uri);
             case DELETE:
-                return new HttpDelete(uri);
             case OPTIONS:
-                return new HttpOptions(uri);
             case PATCH:
-                return wrapEntity(request, new HttpPatch(uri));
             case POST:
-                return wrapEntity(request, new HttpPost(uri));
             case PUT:
-                return wrapEntity(request, new HttpPut(uri));
+                return wrapEntity(request, new HttpRequestImpl(method, uri));
             default:
-                throw new RuntimeException("Unknown HTTP method name: " + request.httpRequest().method());
+                throw new RuntimeException("Unknown HTTP method name: " + method);
         }
     }
 
@@ -191,5 +179,19 @@ public class ApacheHttpRequestFactory {
         return !SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
                 ? request.host() + ":" + request.port()
                 : request.host();
+    }
+
+    private static final class HttpRequestImpl extends HttpEntityEnclosingRequestBase {
+        private final SdkHttpMethod method;
+
+        private HttpRequestImpl(SdkHttpMethod method, URI uri) {
+            this.method = method;
+            setURI(uri);
+        }
+
+        @Override
+        public String getMethod() {
+            return this.method.toString();
+        }
     }
 }
