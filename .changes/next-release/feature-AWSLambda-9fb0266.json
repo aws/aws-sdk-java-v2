@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "contributor": "",
+    "description": "Add Python 3.13 (python3.13) support to AWS Lambda"
+}
