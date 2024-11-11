@@ -29,10 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
-import software.amazon.awssdk.testutils.SdkVersionUtils;
 import software.amazon.awssdk.utils.Logger;
 
 public class MavenProjectTest {
@@ -69,8 +67,7 @@ public class MavenProjectTest {
     }
 
     @Test
-    // @EnabledIf("versionAvailable")
-    @Disabled("Test is flaky")
+    @EnabledIf("versionAvailable")
     void mavenProject_shouldConvert() throws IOException {
         verifyTransformation();
         verifyCompilation();
@@ -78,7 +75,9 @@ public class MavenProjectTest {
 
     private static void verifyTransformation() throws IOException {
         List<String> rewriteArgs = new ArrayList<>();
-        addAll(rewriteArgs, "mvn", "org.openrewrite.maven:rewrite-maven-plugin:run",
+        // pin version since updates have broken tests
+        String rewriteMavenPluginVersion = "5.43.0";
+        addAll(rewriteArgs, "mvn", "org.openrewrite.maven:rewrite-maven-plugin:" + rewriteMavenPluginVersion + ":run",
                "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration:"+ getMigrationToolVersion() + "-PREVIEW",
                "-Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2");
 
