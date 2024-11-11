@@ -143,7 +143,14 @@ public abstract class SdkHttpClientDefaultTestSuite {
         testForResponseCode(returnCode, SdkHttpMethod.POST, true);
     }
 
-    private void testForResponseCode(int returnCode, SdkHttpMethod method, boolean includeBody) throws Exception {
+    protected void testForResponseCode(int returnCode, SdkHttpMethod method, boolean includeBody) throws Exception {
+        testForResponseCode(returnCode, method, method, includeBody);
+    }
+
+    protected void testForResponseCode(int returnCode,
+                                       SdkHttpMethod method,
+                                       SdkHttpMethod expectedMethod,
+                                       boolean includeBody) throws Exception {
         SdkHttpClient client = createSdkHttpClient();
 
         stubForMockRequest(returnCode);
@@ -156,7 +163,7 @@ public abstract class SdkHttpClientDefaultTestSuite {
                                                                           .build())
                                         .call();
 
-        validateResponse(rsp, returnCode, method, includeBody);
+        validateResponse(rsp, returnCode, expectedMethod, includeBody);
     }
 
     protected void testForResponseCodeUsingHttps(SdkHttpClient client, int returnCode) throws Exception {
