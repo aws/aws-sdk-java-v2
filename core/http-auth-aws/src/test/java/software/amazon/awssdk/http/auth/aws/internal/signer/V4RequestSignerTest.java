@@ -30,6 +30,7 @@ import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 
@@ -58,6 +59,7 @@ public class V4RequestSignerTest {
         assertEquals(expectedCanonicalRequestString, result.getCanonicalRequest().getCanonicalRequestString());
     }
 
+
     @Test
     public void sign_withHeader_addsAuthHeaders() {
         String expectedAuthorization = "AWS4-HMAC-SHA256 Credential=access/19700101/us-east-1/demo/aws4_request, " +
@@ -77,6 +79,21 @@ public class V4RequestSignerTest {
                                        "Signature=cda79272f6d258c2cb2f04ac84a5f9515440e0158bf39e212c3dcf88b3a477a9";
         V4RequestSigningResult result = header(getProperties(sessionCreds)).sign(getRequest());
 
+        assertThat(result.getSignedRequest().firstMatchingHeader("X-Amz-Date")).hasValue("19700101T000000Z");
+        assertThat(result.getSignedRequest().firstMatchingHeader("Authorization")).hasValue(expectedAuthorization);
+        assertThat(result.getSignedRequest().firstMatchingHeader("X-Amz-Security-Token")).hasValue("token");
+    }
+
+    @Test
+    public void sign_withHeaderAndSessionCredentials_correctSigningUsingProvidedHostHeader() {
+        String expectedAuthorization = "AWS4-HMAC-SHA256 Credential=access/19700101/us-east-1/demo/aws4_request, " +
+                                       "SignedHeaders=host;x-amz-archive-description;x-amz-content-sha256;x-amz-date;"
+                                       + "x-amz-security-token, " +
+                                       "Signature=c8228e7bef8a72a450df38e6e935ce61fdb8989670b41d97cfc20d04bb76b10a";
+        SdkHttpRequest.Builder request = getRequest().putHeader(SignerConstant.HOST, "virtual-host.localhost");
+        V4RequestSigningResult result = header(getProperties(sessionCreds)).sign(request);
+
+        assertThat(result.getSignedRequest().firstMatchingHeader("Host")).hasValue("virtual-host.localhost");
         assertThat(result.getSignedRequest().firstMatchingHeader("X-Amz-Date")).hasValue("19700101T000000Z");
         assertThat(result.getSignedRequest().firstMatchingHeader("Authorization")).hasValue(expectedAuthorization);
         assertThat(result.getSignedRequest().firstMatchingHeader("X-Amz-Security-Token")).hasValue("token");

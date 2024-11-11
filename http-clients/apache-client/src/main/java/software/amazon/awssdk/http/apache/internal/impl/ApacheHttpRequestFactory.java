@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.config.RequestConfig;
@@ -55,7 +56,6 @@ public class ApacheHttpRequestFactory {
         HttpRequestBase base = createApacheRequest(request, sanitizeUri(request.httpRequest()));
         addHeadersToRequest(base, request.httpRequest());
         addRequestConfig(base, request.httpRequest(), requestConfig);
-
         return base;
     }
 
@@ -172,7 +172,7 @@ public class ApacheHttpRequestFactory {
             // it's already present, so we skip it here. We also skip the Host
             // header to avoid sending it twice, which will interfere with some
             // signing schemes.
-            if (!IGNORE_HEADERS.contains(name)) {
+            if (IGNORE_HEADERS.stream().noneMatch(name::equalsIgnoreCase)) {
                 for (String headerValue : value) {
                     httpRequest.addHeader(name, headerValue);
                 }
@@ -181,6 +181,11 @@ public class ApacheHttpRequestFactory {
     }
 
     private String getHostHeaderValue(SdkHttpRequest request) {
+        // Respect any user-specified Host header when present
+        Optional<String> existingHostHeader = request.firstMatchingHeader(HttpHeaders.HOST);
+        if (existingHostHeader.isPresent()) {
+            return existingHostHeader.get();
+        }
         // Apache doesn't allow us to include the port in the host header if it's a standard port for that protocol. For that
         // reason, we don't include the port when we sign the message. See {@link SdkHttpRequest#port()}.
         return !SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())

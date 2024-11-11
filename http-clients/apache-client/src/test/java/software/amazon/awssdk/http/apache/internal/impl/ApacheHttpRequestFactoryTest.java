@@ -72,6 +72,46 @@ public class ApacheHttpRequestFactoryTest {
     }
 
     @Test
+    public void createRespectsUserHostHeader() {
+        String hostOverride = "virtual.host:123";
+        SdkHttpRequest sdkRequest = SdkHttpRequest.builder()
+            .uri(URI.create("http://localhost:12345/"))
+            .method(SdkHttpMethod.HEAD)
+            .putHeader("Host", hostOverride)
+            .build();
+        HttpExecuteRequest request = HttpExecuteRequest.builder()
+            .request(sdkRequest)
+            .build();
+
+        HttpRequestBase result = instance.create(request, requestConfig);
+
+        Header[] hostHeaders = result.getHeaders(HttpHeaders.HOST);
+        assertNotNull(hostHeaders);
+        assertEquals(1, hostHeaders.length);
+        assertEquals(hostOverride, hostHeaders[0].getValue());
+    }
+
+    @Test
+    public void createRespectsLowercaseUserHostHeader() {
+        String hostOverride = "virtual.host:123";
+        SdkHttpRequest sdkRequest = SdkHttpRequest.builder()
+            .uri(URI.create("http://localhost:12345/"))
+            .method(SdkHttpMethod.HEAD)
+            .putHeader("host", hostOverride)
+            .build();
+        HttpExecuteRequest request = HttpExecuteRequest.builder()
+            .request(sdkRequest)
+            .build();
+
+        HttpRequestBase result = instance.create(request, requestConfig);
+
+        Header[] hostHeaders = result.getHeaders(HttpHeaders.HOST);
+        assertNotNull(hostHeaders);
+        assertEquals(1, hostHeaders.length);
+        assertEquals(hostOverride, hostHeaders[0].getValue());
+    }
+
+    @Test
     public void putRequest_withTransferEncodingChunked_isChunkedAndDoesNotIncludeHeader() {
         SdkHttpRequest sdkRequest = SdkHttpRequest.builder()
                                                   .uri(URI.create("http://localhost:12345/"))
