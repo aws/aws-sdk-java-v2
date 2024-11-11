@@ -186,7 +186,10 @@ public abstract class SdkHttpClientDefaultTestSuite {
         mockServer.stubFor(any(urlPathEqualTo("/")).willReturn(responseBuilder));
     }
 
-    private void validateResponse(HttpExecuteResponse response, int returnCode, SdkHttpMethod method, boolean expectBody) throws IOException {
+    private void validateResponse(HttpExecuteResponse response,
+                                  int returnCode,
+                                  SdkHttpMethod method,
+                                  boolean expectBody) throws IOException {
         RequestMethod requestMethod = RequestMethod.fromString(method.name());
 
         RequestPatternBuilder patternBuilder = RequestPatternBuilder.newRequestPattern(requestMethod, urlMatching("/"))
