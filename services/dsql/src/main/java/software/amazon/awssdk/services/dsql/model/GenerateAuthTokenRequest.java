@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.axdbfrontend.model;
+package software.amazon.awssdk.services.dsql.model;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -24,8 +24,7 @@ import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.axdbfrontend.AxdbFrontendUtilities;
-import software.amazon.awssdk.services.axdbfrontend.model.Action;
+import software.amazon.awssdk.services.dsql.DsqlUtilities;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -33,25 +32,22 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 
 /**
- * Input parameters for generating an authentication token for IAM database authentication for AxdbFrontend.
+ * Input parameters for generating an authentication token for IAM database authentication for DSQL.
  */
 @SdkPublicApi
-public final class GenerateAuthenticationTokenRequest implements
-                                                      ToCopyableBuilder<GenerateAuthenticationTokenRequest.Builder,
-                                                          GenerateAuthenticationTokenRequest> {
+public final class GenerateAuthTokenRequest implements
+                                                      ToCopyableBuilder<GenerateAuthTokenRequest.Builder,
+                                                          GenerateAuthTokenRequest> {
     // The time the IAM token is good for based on RDS. https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html
     private static final Duration EXPIRATION_DURATION = Duration.ofSeconds(900L);
 
     private final String hostname;
     private final Region region;
-    private final Action action;
     private final Duration expiresIn;
     private final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
 
-    private GenerateAuthenticationTokenRequest(BuilderImpl builder) {
+    private GenerateAuthTokenRequest(BuilderImpl builder) {
         this.hostname = Validate.notEmpty(builder.hostname, "hostname");
-        this.action = Validate.notNull(builder.action, "action");
-        Validate.isTrue(this.action == Action.DB_CONNECT || this.action == Action.DB_CONNECT_SUPERUSER, "invalid action");
         this.region = builder.region;
         this.credentialsProvider = builder.credentialsProvider;
         this.expiresIn = (builder.expiresIn != null) ? builder.expiresIn :
@@ -60,10 +56,9 @@ public final class GenerateAuthenticationTokenRequest implements
 
     @Override
     public String toString() {
-        return ToString.builder("GenerateAuthenticationTokenRequest")
+        return ToString.builder("GenerateAuthTokenRequest")
                        .add("hostname", hostname)
                        .add("region", region)
-                       .add("action", action)
                        .add("expiresIn", expiresIn)
                        .add("credentialsProvider", credentialsProvider)
                        .build();
@@ -77,10 +72,9 @@ public final class GenerateAuthenticationTokenRequest implements
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        GenerateAuthenticationTokenRequest that = (GenerateAuthenticationTokenRequest) o;
+        GenerateAuthTokenRequest that = (GenerateAuthTokenRequest) o;
         return Objects.equals(hostname, that.hostname) &&
                Objects.equals(region, that.region) &&
-               Objects.equals(action, that.action) &&
                Objects.equals(expiresIn, that.expiresIn) &&
                Objects.equals(credentialsProvider, that.credentialsProvider);
     }
@@ -90,7 +84,6 @@ public final class GenerateAuthenticationTokenRequest implements
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(hostname);
         hashCode = 31 * hashCode + Objects.hashCode(region);
-        hashCode = 31 * hashCode + Objects.hashCode(action);
         hashCode = 31 * hashCode + Objects.hashCode(expiresIn);
         hashCode = 31 * hashCode + Objects.hashCode(credentialsProvider);
         return hashCode;
@@ -111,16 +104,8 @@ public final class GenerateAuthenticationTokenRequest implements
     }
 
     /**
-     * @return The action to perform on the database
-     * {@link Action.Action}
-     */
-    public Action action() {
-        return action;
-    }
-
-    /**
      * @return The region the database is hosted in. If specified, takes precedence over the value specified in
-     * {@link AxdbFrontendUtilities.Builder#region(Region)}
+     * {@link DsqlUtilities.Builder#region(Region)}
      */
     public Region region() {
         return region;
@@ -128,7 +113,7 @@ public final class GenerateAuthenticationTokenRequest implements
 
     /**
      * @return The credentials provider to sign the IAM auth request with. If specified, takes precedence over the value
-     * specified in {@link AxdbFrontendUtilities.Builder#credentialsProvider}}
+     * specified in {@link DsqlUtilities.Builder#credentialsProvider}}
      */
     public AwsCredentialsProvider credentialsProvider() {
         return CredentialUtils.toCredentialsProvider(credentialsProvider);
@@ -136,7 +121,7 @@ public final class GenerateAuthenticationTokenRequest implements
 
     /**
      * @return The credentials provider to sign the IAM auth request with. If specified, takes precedence over the value
-     * specified in {@link AxdbFrontendUtilities.Builder#credentialsProvider(AwsCredentialsProvider)}}
+     * specified in {@link DsqlUtilities.Builder#credentialsProvider(AwsCredentialsProvider)}}
      */
     public IdentityProvider<? extends AwsCredentialsIdentity> credentialsIdentityProvider() {
         return credentialsProvider;
@@ -148,18 +133,18 @@ public final class GenerateAuthenticationTokenRequest implements
     }
 
     /**
-     * Creates a builder for {@link AxdbFrontendUtilities}.
+     * Creates a builder for {@link DsqlUtilities}.
      */
     public static Builder builder() {
         return new BuilderImpl();
     }
 
     /**
-     * A builder for a {@link GenerateAuthenticationTokenRequest}, created with {@link #builder()}.
+     * A builder for a {@link GenerateAuthTokenRequest}, created with {@link #builder()}.
      */
     @SdkPublicApi
     @NotThreadSafe
-    public interface Builder extends CopyableBuilder<Builder, GenerateAuthenticationTokenRequest> {
+    public interface Builder extends CopyableBuilder<Builder, GenerateAuthTokenRequest> {
         /**
          * The hostname of the database to connect to
          *
@@ -168,15 +153,8 @@ public final class GenerateAuthenticationTokenRequest implements
         Builder hostname(String endpoint);
 
         /**
-         * The action to connect to the database as.
-         *
-         * @return This object for method chaining
-         */
-        Builder action(Action action);
-
-        /**
          * The region the database is hosted in. If specified, takes precedence over the value specified in
-         * {@link AxdbFrontendUtilities.Builder#region(Region)}
+         * {@link DsqlUtilities.Builder#region(Region)}
          *
          * @return This object for method chaining
          */
@@ -191,7 +169,7 @@ public final class GenerateAuthenticationTokenRequest implements
 
         /**
          * The credentials provider to sign the IAM auth request with. If specified, takes precedence over the value
-         * specified in {@link AxdbFrontendUtilities.Builder#credentialsProvider)}}
+         * specified in {@link DsqlUtilities.Builder#credentialsProvider)}}
          *
          * @return This object for method chaining
          */
@@ -201,7 +179,7 @@ public final class GenerateAuthenticationTokenRequest implements
 
         /**
          * The credentials provider to sign the IAM auth request with. If specified, takes precedence over the value
-         * specified in {@link AxdbFrontendUtilities.Builder#credentialsProvider}}
+         * specified in {@link DsqlUtilities.Builder#credentialsProvider}}
          *
          * @return This object for method chaining
          */
@@ -210,12 +188,11 @@ public final class GenerateAuthenticationTokenRequest implements
         }
 
         @Override
-        GenerateAuthenticationTokenRequest build();
+        GenerateAuthTokenRequest build();
     }
 
     private static final class BuilderImpl implements Builder {
         private String hostname;
-        private Action action;
         private Region region;
         private Duration expiresIn;
         private IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
@@ -223,9 +200,8 @@ public final class GenerateAuthenticationTokenRequest implements
         private BuilderImpl() {
         }
 
-        private BuilderImpl(GenerateAuthenticationTokenRequest request) {
+        private BuilderImpl(GenerateAuthTokenRequest request) {
             this.hostname = request.hostname;
-            this.action = request.action;
             this.region = request.region;
             this.expiresIn = request.expiresIn;
             this.credentialsProvider = request.credentialsProvider;
@@ -244,12 +220,6 @@ public final class GenerateAuthenticationTokenRequest implements
         }
 
         @Override
-        public Builder action(Action action) {
-            this.action = action;
-            return this;
-        }
-
-        @Override
         public Builder region(Region region) {
             this.region = region;
             return this;
@@ -262,8 +232,8 @@ public final class GenerateAuthenticationTokenRequest implements
         }
 
         @Override
-        public GenerateAuthenticationTokenRequest build() {
-            return new GenerateAuthenticationTokenRequest(this);
+        public GenerateAuthTokenRequest build() {
+            return new GenerateAuthTokenRequest(this);
         }
     }
 }

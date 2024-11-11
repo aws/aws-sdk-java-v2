@@ -406,7 +406,6 @@
         <module>apptest</module>
         <module>qapps</module>
         <module>ssmquicksetup</module>
-        <module>axdbfrontend</module>
         <module>dsql</module>
     </modules>
     <description>The AWS Java SDK services</description>

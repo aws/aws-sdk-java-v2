@@ -13,12 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.axdbfrontend;
+package software.amazon.awssdk.services.dsql;
 
 import java.time.Clock;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
@@ -30,49 +31,61 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.axdbfrontend.model.GenerateAuthenticationTokenRequest;
+import software.amazon.awssdk.services.dsql.model.GenerateAuthTokenRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 
 @Immutable
 @SdkInternalApi
-public final class DefaultAxdbFrontendUtilities implements AxdbFrontendUtilities {
-    private static final Logger log = Logger.loggerFor(AxdbFrontendUtilities.class);
+public final class DefaultDsqlUtilities implements DsqlUtilities {
+    private static final Logger log = Logger.loggerFor(DsqlUtilities.class);
     private final Aws4Signer signer = Aws4Signer.create();
     private final Region region;
     private final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
     private final Clock clock;
 
-    public DefaultAxdbFrontendUtilities(DefaultBuilder builder) {
+    public DefaultDsqlUtilities(DefaultBuilder builder) {
         this(builder, Clock.systemUTC());
     }
 
     /**
      * For testing purposes only
      */
-    public DefaultAxdbFrontendUtilities(DefaultBuilder builder, Clock clock) {
+    @SdkTestInternalApi
+    public DefaultDsqlUtilities(DefaultBuilder builder, Clock clock) {
         this.credentialsProvider = builder.credentialsProvider;
         this.region = builder.region;
         this.clock = clock;
     }
 
     /**
-     * Used by AxdbFrontend low-level client's utilities() method
+     * Used by DSQL low-level client's utilities() method
      */
     @SdkInternalApi
-    static AxdbFrontendUtilities create(SdkClientConfiguration clientConfiguration) {
+    static DsqlUtilities create(SdkClientConfiguration clientConfiguration) {
         return new DefaultBuilder().clientConfiguration(clientConfiguration).build();
     }
 
     @Override
-    public String generateAuthenticationToken(GenerateAuthenticationTokenRequest request) {
+    public String generateDbConnectAuthToken(GenerateAuthTokenRequest request) {
+        return generateAuthToken(request, false);
+    }
+
+    @Override
+    public String generateDbConnectAdminAuthToken(GenerateAuthTokenRequest request) {
+        return generateAuthToken(request, true);
+    }
+
+    private String generateAuthToken(GenerateAuthTokenRequest request, boolean isAdmin) {
+        String action = isAdmin ? "DbConnectAdmin" : "DbConnect";
+
         SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
                                                            .method(SdkHttpMethod.GET)
                                                            .protocol("https")
                                                            .host(request.hostname())
                                                            .encodedPath("/")
-                                                           .putRawQueryParameter("Action", request.action().getAction())
+                                                           .putRawQueryParameter("Action", action)
                                                            .build();
 
         Instant expirationTime = Instant.now(clock).plus(request.expiresIn());
@@ -81,18 +94,18 @@ public final class DefaultAxdbFrontendUtilities implements AxdbFrontendUtilities
                                                                 .signingClockOverride(clock)
                                                                 .expirationTime(expirationTime)
                                                                 .awsCredentials(resolveCredentials(request))
-                                                                .signingName("xanadu")
+                                                                .signingName("dsql")
                                                                 .signingRegion(resolveRegion(request))
                                                                 .build();
 
         SdkHttpFullRequest fullRequest = signer.presign(httpRequest, presignRequest);
         String signedUrl = fullRequest.getUri().toString();
 
-        String result = StringUtils.replacePrefixIgnoreCase(signedUrl, "https://", "");
-        return result;
+        log.debug(() -> "Generated DSQL authentication token with expiration of " + expirationTime);
+        return StringUtils.replacePrefixIgnoreCase(signedUrl, "https://", "");
     }
 
-    private Region resolveRegion(GenerateAuthenticationTokenRequest request) {
+    private Region resolveRegion(GenerateAuthTokenRequest request) {
         if (request.region() != null) {
             return request.region();
         }
@@ -101,12 +114,11 @@ public final class DefaultAxdbFrontendUtilities implements AxdbFrontendUtilities
             return this.region;
         }
 
-        throw new IllegalArgumentException("Region should be provided either in GenerateAuthenticationTokenRequest object " +
-                                           "or AxdbFrontendUtilities object");
+        throw new IllegalArgumentException("Region must be provided in GenerateAuthTokenRequest or DsqlUtilities");
     }
 
     // TODO: update this to use AwsCredentialsIdentity when we migrate Signers to accept the new type.
-    private AwsCredentials resolveCredentials(GenerateAuthenticationTokenRequest request) {
+    private AwsCredentials resolveCredentials(GenerateAuthTokenRequest request) {
         if (request.credentialsIdentityProvider() != null) {
             return CredentialUtils.toCredentials(
                 CompletableFutureUtils.joinLikeSync(request.credentialsIdentityProvider().resolveIdentity()));
@@ -116,17 +128,13 @@ public final class DefaultAxdbFrontendUtilities implements AxdbFrontendUtilities
             return CredentialUtils.toCredentials(CompletableFutureUtils.joinLikeSync(this.credentialsProvider.resolveIdentity()));
         }
 
-        throw new IllegalArgumentException("CredentialProvider should be provided either in GenerateAuthenticationTokenRequest " +
-                                           "object or AxdbFrontendUtilities object");
+        throw new IllegalArgumentException("CredentialsProvider must be provided in GenerateAuthTokenRequest or DsqlUtilities");
     }
 
     @SdkInternalApi
-    public static final class DefaultBuilder implements Builder {
+    public static final class DefaultBuilder implements DsqlUtilities.Builder {
         private Region region;
         private IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
-
-        public DefaultBuilder() {
-        }
 
         Builder clientConfiguration(SdkClientConfiguration clientConfiguration) {
             this.credentialsProvider = clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
@@ -148,11 +156,11 @@ public final class DefaultAxdbFrontendUtilities implements AxdbFrontendUtilities
         }
 
         /**
-         * Construct a {@link AxdbFrontendUtilities} object.
+         * Construct a {@link DsqlUtilities} object.
          */
         @Override
-        public AxdbFrontendUtilities build() {
-            return new DefaultAxdbFrontendUtilities(this);
+        public DsqlUtilities build() {
+            return new DefaultDsqlUtilities(this);
         }
     }
 }

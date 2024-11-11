@@ -1,6 +1,6 @@
 {
     "type": "feature",
-    "category": "AxdbFrontend",
+    "category": "DSQL",
     "contributor": "APandher",
-    "description": "Add IAM Token Generation Utility for AxdbFrontend"
+    "description": "Add IAM Token Generation Utility for DSQL"
 }

@@ -12,17 +12,18 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package software.amazon.awssdk.services.axdbfrontend;
+package software.amazon.awssdk.services.dsql;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.axdbfrontend.model.GenerateAuthenticationTokenRequest;
+import software.amazon.awssdk.services.dsql.model.GenerateAuthTokenRequest;
 
-public class GenerateAuthenticationTokenRequestTest {
+public class GenerateAuthTokenRequestTest {
+
     @Test
     void equalsHashcode() {
-        EqualsVerifier.forClass(GenerateAuthenticationTokenRequest.class)
-                      .withNonnullFields("hostname", "region", "action")
+        EqualsVerifier.forClass(GenerateAuthTokenRequest.class)
+                      .withNonnullFields("hostname", "region")
                       .verify();
     }
 }
