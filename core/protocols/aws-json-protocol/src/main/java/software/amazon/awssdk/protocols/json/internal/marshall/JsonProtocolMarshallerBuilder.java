@@ -35,6 +35,7 @@ public final class JsonProtocolMarshallerBuilder {
     private OperationInfo operationInfo;
     private boolean sendExplicitNullForPayload;
     private AwsJsonProtocolMetadata protocolMetadata;
+    private boolean hasAwsQueryCompatible = false;
 
     private JsonProtocolMarshallerBuilder() {
     }
@@ -103,6 +104,14 @@ public final class JsonProtocolMarshallerBuilder {
     }
 
     /**
+     * @param hasAwsQueryCompatible
+     */
+    public JsonProtocolMarshallerBuilder hasAwsQueryCompatible(boolean hasAwsQueryCompatible) {
+        this.hasAwsQueryCompatible = hasAwsQueryCompatible;
+        return this;
+    }
+
+    /**
      * @return New instance of {@link ProtocolMarshaller}. If {@link #sendExplicitNullForPayload} is true then the marshaller
      * will be wrapped with {@link NullAsEmptyBodyProtocolRequestMarshaller}.
      */
@@ -111,7 +120,8 @@ public final class JsonProtocolMarshallerBuilder {
                                                                                                jsonGenerator,
                                                                                                contentType,
                                                                                                operationInfo,
-                                                                                               protocolMetadata);
+                                                                                               protocolMetadata,
+                                                                                               hasAwsQueryCompatible);
         return sendExplicitNullForPayload ? protocolMarshaller
                                           : new NullAsEmptyBodyProtocolRequestMarshaller(protocolMarshaller);
     }
