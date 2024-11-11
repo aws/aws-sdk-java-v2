@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudFront",
-    "contributor": "",
-    "description": "No API changes from previous release. This release migrated the model to Smithy keeping all features unchanged."
-}
