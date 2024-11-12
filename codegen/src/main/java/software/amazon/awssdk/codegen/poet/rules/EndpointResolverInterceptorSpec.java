@@ -155,7 +155,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
             b.addMethod(signerProviderMethod());
         }
 
-        endpointParamsKnowledgeIndex.accountIdFromIdentityMethod().ifPresent(b::addMethod);
+        endpointParamsKnowledgeIndex.addAccountIdMethodsIfPresent(b);
         return b.build();
     }
 
@@ -303,13 +303,10 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                     b.addStatement(endpointProviderUtilsSetter("endpointBuiltIn", setter));
                     break;
                 case AWS_AUTH_ACCOUNT_ID:
-                    b.addStatement("builder.$N(accountIdFromIdentity(executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME)))",
-                                   setter, SdkInternalExecutionAttribute.class);
+                    b.addStatement("builder.$N(resolveAndRecordAccountIdFromIdentity(executionAttributes))", setter);
                     break;
                 case AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE:
-                    b.addStatement("builder.$N(executionAttributes.getAttribute($T.$N).name().toLowerCase())",
-                                   setter, AwsExecutionAttribute.class,
-                                   model.getNamingStrategy().getEnumValueName(m.getBuiltInEnum().name()));
+                    b.addStatement("builder.$N(recordAccountIdEndpointMode(executionAttributes))", setter);
                     break;
                 case AWS_S3_USE_GLOBAL_ENDPOINT:
                     b.addStatement("builder.$N(executionAttributes.getAttribute($T.$N))",

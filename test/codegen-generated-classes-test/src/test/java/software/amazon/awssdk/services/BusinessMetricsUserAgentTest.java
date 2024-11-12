@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.useragent.BusinessMetricCollection.METRIC_SEARCH_PATTERN;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -47,6 +49,8 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncCli
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClientBuilder;
 import software.amazon.awssdk.services.protocolrestjson.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.protocolrestjson.paginators.PaginatedOperationWithResultKeyPublisher;
+import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpointProvidersAsyncClient;
+import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpointProvidersAsyncClientBuilder;
 import software.amazon.awssdk.services.restjsonwithwaiters.RestJsonWithWaitersAsyncClient;
 import software.amazon.awssdk.services.restjsonwithwaiters.model.AllTypesRequest;
 import software.amazon.awssdk.services.restjsonwithwaiters.model.AllTypesResponse;
@@ -71,16 +75,26 @@ class BusinessMetricsUserAgentTest {
 
     private static Stream<Arguments> inputValues() {
         return Stream.of(
-            Arguments.of("Default values contain at least a retry metric", Arrays.asList("D"))
+            Arguments.of("Default values", null, Arrays.asList("D", "N", "P", "T")),
+            Arguments.of("Account ID preferred mode ", AccountIdEndpointMode.PREFERRED, Arrays.asList("P", "T")),
+            Arguments.of("Account ID disabled mode ", AccountIdEndpointMode.DISABLED, Arrays.asList("Q", "T")),
+            Arguments.of("Account ID required mode ", AccountIdEndpointMode.REQUIRED, Arrays.asList("R", "T"))
         );
     }
 
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource("inputValues")
-    void validate_metricsString_forDifferentConfigValues(String description, List<String> expectedMetrics) {
-        ProtocolRestJsonAsyncClientBuilder clientBuilder = asyncClientBuilder();
+    void validate_metricsString_forDifferentConfigValues(String description,
+                                                         AccountIdEndpointMode endpointMode,
+                                                         List<String> expectedMetrics) {
+        RestJsonEndpointProvidersAsyncClientBuilder clientBuilder = asyncClientBuilderForEndpointProvider();
 
-        assertThatThrownBy(() -> clientBuilder.build().allTypes().join()).hasMessageContaining("stop");
+        if (endpointMode != null) {
+            clientBuilder.accountIdEndpointMode(endpointMode);
+        }
+        clientBuilder.endpointOverride(URI.create("http://override"));
+
+        assertThatThrownBy(() -> clientBuilder.build().operationWithNoInputOrOutput(r -> {}).join()).hasMessageContaining("stop");
 
         String userAgent = assertAndGetUserAgentString();
         expectedMetrics.forEach(expectedMetric -> assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(expectedMetric)));
@@ -103,7 +117,7 @@ class BusinessMetricsUserAgentTest {
 
     @Test
     void when_paginatedOperationIsCalled_correctMetricIsAdded() throws Exception {
-        ProtocolRestJsonAsyncClientBuilder clientBuilder = asyncClientBuilder();
+        ProtocolRestJsonAsyncClientBuilder clientBuilder = asyncClientBuilderForProtocolRestJson();
 
         PaginatedOperationWithResultKeyPublisher publisher =
             clientBuilder.build().paginatedOperationWithResultKeyPaginator(r -> r.nextToken("token"));
@@ -119,7 +133,7 @@ class BusinessMetricsUserAgentTest {
 
     @Test
     void when_compressedOperationIsCalled_metricIsRecordedButNotAddedToUserAgentString() throws Exception {
-        ProtocolRestJsonAsyncClientBuilder clientBuilder = asyncClientBuilder();
+        ProtocolRestJsonAsyncClientBuilder clientBuilder = asyncClientBuilderForProtocolRestJson();
 
         assertThatThrownBy(() -> clientBuilder.build().putOperationWithRequestCompression(r -> r.body(SdkBytes.fromUtf8String(
             "whoo")).overrideConfiguration(o -> o.compressionConfiguration(c -> c.minimumCompressionThresholdInBytes(1)))).join())
@@ -138,7 +152,14 @@ class BusinessMetricsUserAgentTest {
         return headers.get(USER_AGENT_HEADER_NAME).get(0);
     }
 
-    private ProtocolRestJsonAsyncClientBuilder asyncClientBuilder() {
+    private RestJsonEndpointProvidersAsyncClientBuilder asyncClientBuilderForEndpointProvider() {
+        return RestJsonEndpointProvidersAsyncClient.builder()
+                                                   .region(Region.US_WEST_2)
+                                                   .credentialsProvider(CREDENTIALS_PROVIDER)
+                                                   .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor));
+    }
+
+    private ProtocolRestJsonAsyncClientBuilder asyncClientBuilderForProtocolRestJson() {
         return ProtocolRestJsonAsyncClient.builder()
                                           .region(Region.US_WEST_2)
                                           .credentialsProvider(CREDENTIALS_PROVIDER)
