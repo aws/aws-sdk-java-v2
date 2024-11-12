@@ -10,6 +10,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
@@ -43,6 +44,8 @@ public final class AwsEndpointProviderUtils {
      */
     public static String endpointBuiltIn(ExecutionAttributes executionAttributes) {
         if (endpointIsOverridden(executionAttributes)) {
+            executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).ifPresent(
+                metric -> metric.addMetric(BusinessMetricFeatureId.ENDPOINT_OVERRIDE.value()));
             return invokeSafely(() -> {
                 URI endpointOverride = executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER)
                                                           .clientEndpoint();

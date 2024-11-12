@@ -24,6 +24,7 @@ import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -112,6 +113,7 @@ public class AwsEndpointProviderUtilsTest {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
                            ClientEndpointProvider.forEndpointOverride(endpoint));
+        attrs.putAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS, new BusinessMetricCollection());
 
         assertThat(AwsEndpointProviderUtils.endpointBuiltIn(attrs).toString()).isEqualTo("https://example.com/path");
     }
