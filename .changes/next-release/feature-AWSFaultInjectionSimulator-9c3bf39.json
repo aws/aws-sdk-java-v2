@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Fault Injection Simulator",
+    "contributor": "",
+    "description": "This release adds support for generating experiment reports with the experiment report configuration"
+}
