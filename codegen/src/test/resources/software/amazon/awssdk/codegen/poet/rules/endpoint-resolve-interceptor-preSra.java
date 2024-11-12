@@ -10,10 +10,12 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.SignerLoader;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
+import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
+import software.amazon.awssdk.awscore.internal.useragent.BusinessMetricsUtils;
 import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
@@ -25,6 +27,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
@@ -118,10 +121,8 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         builder.region(AwsEndpointProviderUtils.regionBuiltIn(executionAttributes));
         builder.useDualStackEndpoint(AwsEndpointProviderUtils.dualStackEnabledBuiltIn(executionAttributes));
         builder.useFipsEndpoint(AwsEndpointProviderUtils.fipsEnabledBuiltIn(executionAttributes));
-        builder.accountId(accountIdFromIdentity(executionAttributes
-                                                    .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)));
-        builder.accountIdEndpointMode(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE)
-                                                         .name().toLowerCase());
+        builder.accountId(resolveAndRecordAccountIdFromIdentity(executionAttributes));
+        builder.accountIdEndpointMode(recordAccountIdEndpointMode(executionAttributes));
         setClientContextParams(builder, executionAttributes);
         setContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), request);
         setStaticContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME));
@@ -249,6 +250,14 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         throw SdkClientException.create("Don't know how to create signer for auth scheme: " + authScheme.name());
     }
 
+    private static String resolveAndRecordAccountIdFromIdentity(ExecutionAttributes executionAttributes) {
+        String accountId = accountIdFromIdentity(executionAttributes
+                                                     .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
+        executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(
+            BusinessMetricFeatureId.RESOLVED_ACCOUNT_ID.value());
+        return accountId;
+    }
+
     private static <T extends Identity> String accountIdFromIdentity(SelectedAuthScheme<T> selectedAuthScheme) {
         T identity = CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity());
         String accountId = null;
@@ -256,5 +265,12 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             accountId = ((AwsCredentialsIdentity) identity).accountId().orElse(null);
         }
         return accountId;
+    }
+
+    private static String recordAccountIdEndpointMode(ExecutionAttributes executionAttributes) {
+        AccountIdEndpointMode mode = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE);
+        BusinessMetricsUtils.resolveAccountIdEndpointModeMetric(mode).ifPresent(
+            m -> executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(m));
+        return mode.name().toLowerCase();
     }
 }

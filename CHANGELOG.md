@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.11__ __2024-11-12__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports non-containerized Linux and Windows builds on Reserved Capacity.
+
+## __AWS Control Tower__
+  - ### Features
+    - Added ResetEnabledControl API.
+
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - This release adds support for generating experiment reports with the experiment report configuration
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift releases container fleets support for general availability. Deploy Linux-based containerized game server software for hosting on Amazon GameLift.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for Amazon RDS Extended Support for Amazon Aurora MySQL.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Updated ListAliases API with KeyArn filter.
+
 # __2.29.10__ __2024-11-11__
 ## __AWS Lambda__
   - ### Features
