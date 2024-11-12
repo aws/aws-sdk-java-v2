@@ -104,7 +104,7 @@ public final class JsonProtocolMarshallerBuilder {
     }
 
     /**
-     * @param hasAwsQueryCompatible
+     * @param hasAwsQueryCompatible True if the service is AWS Query compatible, (has the @awsQueryCompatible trait)
      */
     public JsonProtocolMarshallerBuilder hasAwsQueryCompatible(boolean hasAwsQueryCompatible) {
         this.hasAwsQueryCompatible = hasAwsQueryCompatible;

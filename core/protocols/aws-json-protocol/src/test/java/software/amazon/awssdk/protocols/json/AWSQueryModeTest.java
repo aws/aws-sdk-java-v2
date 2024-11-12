@@ -23,50 +23,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
-import software.amazon.awssdk.protocols.json.internal.marshall.JsonProtocolMarshallerBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AWSQueryModeTest {
 
-    private static final SdkClientConfiguration EMPTY_CLIENT_CONFIGURATION = SdkClientConfiguration.builder()
-                                                                                                   .build();
     private static final OperationInfo EMPTY_OPERATION_INFO = OperationInfo.builder()
                                                                            .httpMethod(SdkHttpMethod.POST)
                                                                            .hasImplicitPayloadMembers(true)
                                                                            .build();
-
-    private final BaseAwsJsonProtocolFactory factory = AwsJsonProtocolFactory.builder()
-                                                               .protocol(AwsJsonProtocol.AWS_JSON)
-                                                               .clientConfiguration(EMPTY_CLIENT_CONFIGURATION)
-                                                               .build();
-
-    private final Supplier<StructuredJsonFactory> structuredJsonFactory = getStructuredJsonFactory(factory);
-
-    private final AwsJsonProtocolMetadata metadata = AwsJsonProtocolMetadata.builder()
-                                                              .protocol(AwsJsonProtocol.AWS_JSON)
-                                                              .contentType("application/json")
-                                                              .build();
-
-
-    static Supplier<StructuredJsonFactory> getStructuredJsonFactory(BaseAwsJsonProtocolFactory factory) {
-        return () -> {
-            try {
-                Method method = BaseAwsJsonProtocolFactory.class.getDeclaredMethod("getSdkFactory");
-                method.setAccessible(true);
-                return (StructuredJsonFactory) method.invoke(factory);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        };
-    }
-
 
     /*
      * A simple test POJO to marshall
@@ -97,52 +70,48 @@ public class AWSQueryModeTest {
 
     @Test
     public void testMarshallWithAwsQueryCompatibleTrue() {
-        try {
-            ProtocolMarshaller<SdkHttpFullRequest> marshaller =
-                JsonProtocolMarshallerBuilder.create()
-                                             .endpoint(new URI("http://localhost/"))
-                                             .jsonGenerator(structuredJsonFactory.get().createWriter("application/json"))
-                                             .contentType("application/json")
-                                             .operationInfo(EMPTY_OPERATION_INFO)
-                                             .sendExplicitNullForPayload(false)
-                                             .protocolMetadata(metadata)
-                                             .hasAwsQueryCompatible(true)
-                                             .build();
-            SdkPojo testPojo = new TestPojo();
+        SdkClientConfiguration clientConfig =
+            SdkClientConfiguration.builder()
+                                  .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                          ClientEndpointProvider.forEndpointOverride(URI.create("http://localhost")))
+                                  .build();
+        AwsJsonProtocolFactory factory =
+            AwsJsonProtocolFactory.builder()
+                                  .clientConfiguration(clientConfig)
+                                  .protocolVersion("1.1")
+                                  .protocol(AwsJsonProtocol.AWS_JSON)
+                                  .hasAwsQueryCompatible(true)
+                                  .build();
 
-            SdkHttpFullRequest result = marshaller.marshall(testPojo);
+        ProtocolMarshaller<SdkHttpFullRequest> marshaller = factory.createProtocolMarshaller(EMPTY_OPERATION_INFO);
+        SdkPojo testPojo = new TestPojo();
 
-            assertThat(result.headers()).containsKey("x-amzn-query-mode");
-            assertThat(result.headers().get("x-amzn-query-mode").get(0)).isEqualTo("true");
+        SdkHttpFullRequest result = marshaller.marshall(testPojo);
 
-        }catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-
+        assertThat(result.headers()).containsKey("x-amzn-query-mode");
+        assertThat(result.headers().get("x-amzn-query-mode").get(0)).isEqualTo("true");
     }
 
     @Test
     public void testMarshallWithNoAwsQueryCompatible() {
-        try {
-            ProtocolMarshaller<SdkHttpFullRequest> marshaller =
-                JsonProtocolMarshallerBuilder.create()
-                                             .endpoint(new URI("http://localhost/"))
-                                             .jsonGenerator(structuredJsonFactory.get().createWriter("application/json"))
-                                             .contentType("application/json")
-                                             .operationInfo(EMPTY_OPERATION_INFO)
-                                             .sendExplicitNullForPayload(false)
-                                             .protocolMetadata(metadata)
-                                             .build();
-            SdkPojo testPojo = new TestPojo();
+        SdkClientConfiguration clientConfig =
+            SdkClientConfiguration.builder()
+                                  .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                          ClientEndpointProvider.forEndpointOverride(URI.create("http://localhost")))
+                                  .build();
+        AwsJsonProtocolFactory factory =
+            AwsJsonProtocolFactory.builder()
+                                  .clientConfiguration(clientConfig)
+                                  .protocolVersion("1.1")
+                                  .protocol(AwsJsonProtocol.AWS_JSON)
+                                  .build();
 
-            SdkHttpFullRequest result = marshaller.marshall(testPojo);
+        ProtocolMarshaller<SdkHttpFullRequest> marshaller = factory.createProtocolMarshaller(EMPTY_OPERATION_INFO);
+        SdkPojo testPojo = new TestPojo();
 
-            assertThat(result.headers()).doesNotContainKey("x-amzn-query-mode");
+        SdkHttpFullRequest result = marshaller.marshall(testPojo);
 
-        }catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-
+        assertThat(result.headers()).doesNotContainKey("x-amzn-query-mode");
     }
 
 }
