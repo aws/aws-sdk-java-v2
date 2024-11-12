@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Payment Cryptography Control Plane",
-    "contributor": "",
-    "description": "Updated ListAliases API with KeyArn filter."
-}

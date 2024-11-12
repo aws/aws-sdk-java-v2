@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Control Tower",
-    "contributor": "",
-    "description": "Added ResetEnabledControl API."
-}
