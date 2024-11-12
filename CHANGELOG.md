@@ -1,4 +1,66 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.11__ __2024-11-12__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports non-containerized Linux and Windows builds on Reserved Capacity.
+
+## __AWS Control Tower__
+  - ### Features
+    - Added ResetEnabledControl API.
+
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - This release adds support for generating experiment reports with the experiment report configuration
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift releases container fleets support for general availability. Deploy Linux-based containerized game server software for hosting on Amazon GameLift.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for Amazon RDS Extended Support for Amazon Aurora MySQL.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Updated ListAliases API with KeyArn filter.
+
+# __2.29.10__ __2024-11-11__
+## __AWS Lambda__
+  - ### Features
+    - Add Python 3.13 (python3.13) support to AWS Lambda
+
+## __AWS Outposts__
+  - ### Features
+    - This release updates StartCapacityTask to allow an active Outpost to be modified. It also adds a new API to list all running EC2 instances on the Outpost.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - SigV4: Add host header only when not already provided
+        - Contributed by: [@vsudilov](https://github.com/vsudilov)
+
+## __Amazon CloudFront__
+  - ### Features
+    - No API changes from previous release. This release migrated the model to Smithy keeping all features unchanged.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Adds Support for new AssociatePackages and DissociatePackages API in Amazon OpenSearch Service that allows association and dissociation operations to be carried out on multiple packages at the same time.
+
+## __Inspector2__
+  - ### Features
+    - Adds support for filePath filter.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@vsudilov](https://github.com/vsudilov)
 # __2.29.9__ __2024-11-08__
 ## __AWS Batch__
   - ### Features
