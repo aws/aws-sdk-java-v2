@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS B2B Data Interchange",
+    "contributor": "",
+    "description": "This release adds a GenerateMapping API to allow generation of JSONata or XSLT transformer code based on input and output samples."
+}
