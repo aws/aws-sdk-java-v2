@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Internet Monitor",
+    "contributor": "",
+    "description": "Add new query type Routing_Suggestions regarding querying interface"
+}
