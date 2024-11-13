@@ -236,6 +236,7 @@ public abstract class BaseAwsJsonProtocolFactory {
                                             .operationInfo(operationInfo)
                                             .sendExplicitNullForPayload(false)
                                             .protocolMetadata(protocolMetadata)
+                                            .hasAwsQueryCompatible(hasAwsQueryCompatible)
                                             .build();
     }
 
