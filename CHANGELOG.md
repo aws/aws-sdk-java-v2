@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.12__ __2024-11-13__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - This release adds a GenerateMapping API to allow generation of JSONata or XSLT transformer code based on input and output samples.
+
+## __AWS Billing__
+  - ### Features
+    - Today, AWS announces the general availability of ListBillingViews API in the AWS SDKs, to enable AWS Billing Conductor (ABC) users to create proforma Cost and Usage Reports (CUR) programmatically.
+
+## __AWS CloudTrail__
+  - ### Features
+    - This release adds a new API GenerateQuery that generates a query from a natural language prompt about the event data in your event data store. This operation uses generative artificial intelligence (generative AI) to produce a ready-to-use SQL query from the prompt.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds support for ARN inputs in the Kantar credentials secrets name field and the MSPR field to the manifests for PlayReady DRM protected outputs.
+
+## __AWS Organizations__
+  - ### Features
+    - Add support for policy operations on the Resource Control Polices.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for policy validation and external access findings for resource control policies (RCP). IAM Access Analyzer helps you author functional and secure RCPs and awareness that a RCP may restrict external access. Updated service API, documentation, and paginators.
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - Amazon CloudWatch Application Signals now supports creating Service Level Objectives with burn rates. Users can now create or update SLOs with burn rate configurations to meet their specific business requirements.
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - Add new query type Routing_Suggestions regarding querying interface
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This release includes supports the new WarmThroughput feature for DynamoDB. You can now provide an optional WarmThroughput attribute for CreateTable or UpdateTable APIs to pre-warm your table or global secondary index. You can also use DescribeTable to see the latest WarmThroughput value.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds the source AMI details in DescribeImages API
+
 # __2.29.11__ __2024-11-12__
 ## __AWS CodeBuild__
   - ### Features
