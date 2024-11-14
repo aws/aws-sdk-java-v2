@@ -1,4 +1,65 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.13__ __2024-11-14__
+## __AWS Cloud Control API__
+  - ### Features
+    - Added support for CloudFormation Hooks with Cloud Control API. The GetResourceRequestStatus API response now includes an optional HooksProgressEvent and HooksRequestToken parameter for Hooks Invocation Progress as part of resource operation with Cloud Control.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - This release includes support for five new APIs and changes to existing APIs that give AWS Organizations customers the ability to use temporary root credentials, targeted to member accounts in the organization.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - New FuotaTask resource type to enable logging for your FUOTA tasks. A ParticipatingGatewaysforMulticast parameter to choose the list of gateways to receive the multicast downlink message and the transmission interval between them. Descriptor field which will be sent to devices during FUOTA transfer.
+
+## __AWS License Manager User Subscriptions__
+  - ### Features
+    - New and updated API operations to support License Included User-based Subscription of Microsoft Remote Desktop Services (RDS).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Security Token Service__
+  - ### Features
+    - This release introduces the new API 'AssumeRoot', which returns short-term credentials that you can use to perform privileged tasks.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Adds support for select GPU accelerated instance types when creating new service-managed fleets.
+
+## __Access Analyzer__
+  - ### Features
+    - Expand analyzer configuration capabilities for unused access analyzers. Unused access analyzer configurations now support the ability to exclude accounts and resource tags from analysis providing more granular control over the scope of analysis.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - IVS now offers customers the ability to stream multitrack video to Channels.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds APIs for Custom Permissions management in QuickSight, and APIs to support QuickSight Branding.
+
+## __Amazon Redshift__
+  - ### Features
+    - Adds support for Amazon Redshift S3AccessGrants
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add support for Neuron instance types [ trn1/trn1n/inf2 ] on SageMaker Notebook Instances Platform.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release updates the ListBuckets API Reference documentation in support of the new 10,000 general purpose bucket default quota on all AWS accounts. To increase your bucket quota from 10,000 to up to 1 million buckets, simply request a quota increase via Service Quotas.
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Update Netty version to `4.1.115.Final`.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Announcing AWS Partner Central API for Selling: This service launch Introduces new APIs for co-selling opportunity management and related functions. Key features include notifications, a dynamic sandbox for testing, and streamlined validations.
+
 # __2.29.12__ __2024-11-13__
 ## __AWS B2B Data Interchange__
   - ### Features
