@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS License Manager User Subscriptions",
+    "contributor": "",
+    "description": "New and updated API operations to support License Included User-based Subscription of Microsoft Remote Desktop Services (RDS)."
+}
