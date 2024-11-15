@@ -88,7 +88,7 @@ public interface DsqlUtilities {
      * @throws IllegalArgumentException if the required parameters are not valid
      */
     default String generateDbConnectAdminAuthToken(Consumer<GenerateAuthTokenRequest.Builder> request) {
-        return generateDbConnectAuthToken(GenerateAuthTokenRequest.builder().applyMutation(request).build());
+        return generateDbConnectAdminAuthToken(GenerateAuthTokenRequest.builder().applyMutation(request).build());
     }
 
     /**

@@ -39,9 +39,9 @@ public class DefaultDsqlUtilitiesTest {
     private static final String EXPECTED_TOKEN = "test.dsql.us-east-1.on.aws/?Action=DbConnect&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date"
                                                  + "=20241107T173933Z&X-Amz-SignedHeaders=host&X-Amz-Expires=900&X-Amz-Credential=access_key"
                                                  + "%2F20241107%2Fus-east-1%2Fdsql%2Faws4_request&X-Amz-Signature=e319d85380261f643d78a558f76257f05aacea758a6ccd42a2510e2ae0854a47";
-    private static final String EXPECTED_ADMIN_TOKEN = "test.dsql.us-east-1.on.aws/?Action=DbConnect&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date="
-                                                       + "20241107T173933Z&X-Amz-SignedHeaders=host&X-Amz-Expires=900&X-Amz-Credential=access_key"
-                                                       + "%2F20241107%2Fus-east-1%2Fdsql%2Faws4_request&X-Amz-Signature=e319d85380261f643d78a558f76257f05aacea758a6ccd42a2510e2ae0854a47";
+    private static final String EXPECTED_ADMIN_TOKEN = "test.dsql.us-east-1.on.aws/?Action=DbConnectAdmin&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date"
+                                                       + "=20241107T173933Z&X-Amz-SignedHeaders=host&X-Amz-Expires=900&X-Amz-Credential=access_key"
+                                                       + "%2F20241107%2Fus-east-1%2Fdsql%2Faws4_request&X-Amz-Signature=a08adc4c84a490014ce374b90c98ba9ed015b77b451c0d9f9fb3f8ca8c6f9c36";
 
     @Test
     public void tokenGenerationWithBuilderDefaultsUsingAwsCredentialsProvider_isSuccessful() {
@@ -110,7 +110,7 @@ public class DefaultDsqlUtilitiesTest {
         String authToken = dsqlUtilities.generateDbConnectAuthToken(b -> b.hostname(HOSTNAME).applyMutation(credsBuilder));
         assertThat(authToken).isEqualTo(EXPECTED_TOKEN);
 
-        String adminAuthToken = dsqlUtilities.generateDbConnectAuthToken(b -> b.hostname(HOSTNAME).applyMutation(credsBuilder));
+        String adminAuthToken = dsqlUtilities.generateDbConnectAdminAuthToken(b -> b.hostname(HOSTNAME).applyMutation(credsBuilder));
         assertThat(adminAuthToken).isEqualTo(EXPECTED_ADMIN_TOKEN);
     }
 
@@ -204,10 +204,10 @@ public class DefaultDsqlUtilitiesTest {
                                + "%2F20241107%2Fus-east-1%2Fdsql%2Faws4_request&X-Amz-Signature=63987ab6908fe81bfcaa5a5120444a8d012751992bcdfec351522db555232c51";
         assertThat(authToken).isEqualTo(expectedToken);
 
-        String adminAuthToken = utilities.generateDbConnectAuthToken(b -> b.hostname(HOSTNAME).expiresIn(expiry));
-        String expectedAdminToken = "test.dsql.us-east-1.on.aws/?Action=DbConnect&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date="
+        String adminAuthToken = utilities.generateDbConnectAdminAuthToken(b -> b.hostname(HOSTNAME).expiresIn(expiry));
+        String expectedAdminToken = "test.dsql.us-east-1.on.aws/?Action=DbConnectAdmin&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date="
                                     + "20241107T173933Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Credential=access_key"
-                                    + "%2F20241107%2Fus-east-1%2Fdsql%2Faws4_request&X-Amz-Signature=63987ab6908fe81bfcaa5a5120444a8d012751992bcdfec351522db555232c51";
+                                    + "%2F20241107%2Fus-east-1%2Fdsql%2Faws4_request&X-Amz-Signature=46e02dfc8d6d07289b9e5910ccd9a50f1c3b798e48ccd92153255df508bd0b82";
         assertThat(adminAuthToken).isEqualTo(expectedAdminToken);
     }
 }
