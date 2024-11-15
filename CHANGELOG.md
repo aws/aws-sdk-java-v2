@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.14__ __2024-11-14__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Announcing AWS Partner Central API for Selling: This service launch Introduces new APIs for co-selling opportunity management and related functions. Key features include notifications, a dynamic sandbox for testing, and streamlined validations.
+
 # __2.29.13__ __2024-11-14__
 ## __AWS Cloud Control API__
   - ### Features
