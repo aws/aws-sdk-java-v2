@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Polly",
+    "contributor": "",
+    "description": "Fixes PutLexicon usage example."
+}
