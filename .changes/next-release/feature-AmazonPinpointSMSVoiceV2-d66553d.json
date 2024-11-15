@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Pinpoint SMS Voice V2",
-    "contributor": "",
-    "description": "Use rule overrides to always allow or always block messages to specific phone numbers. Use message feedback to monitor if a customer interacts with your message."
-}
