@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS DataSync",
+    "contributor": "",
+    "description": "Doc-only updates and enhancements related to creating DataSync tasks and describing task executions."
+}
