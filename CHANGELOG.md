@@ -1,4 +1,222 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.15__ __2024-11-15__
+## __AWS DataSync__
+  - ### Features
+    - Doc-only updates and enhancements related to creating DataSync tasks and describing task executions.
+
+## __AWS IoT__
+  - ### Features
+    - This release allows AWS IoT Core users to enrich MQTT messages with propagating attributes, to associate a thing to a connection, and to enable Online Certificate Status Protocol (OCSP) stapling for TLS X.509 server certificates through private endpoints.
+
+## __AWS Outposts__
+  - ### Features
+    - You can now purchase AWS Outposts rack or server capacity for a 5-year term with one of the following payment options: All Upfront, Partial Upfront, and No Upfront.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Adds support for adding related Entity information to metrics ingested through PutMetricData.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Remove non-functional enum variants for FleetCapacityReservationUsageStrategy
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - Use rule overrides to always allow or always block messages to specific phone numbers. Use message feedback to monitor if a customer interacts with your message.
+
+## __Amazon Polly__
+  - ### Features
+    - Fixes PutLexicon usage example.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Route 53 Resolver DNS Firewall Advanced Rules allows you to monitor and block suspicious DNS traffic based on anomalies detected in the queries, such as DNS tunneling and Domain Generation Algorithms (DGAs).
+
+## __AmazonConnectCampaignServiceV2__
+  - ### Features
+    - Added Amazon Connect Outbound Campaigns V2 SDK.
+
+# __2.29.14__ __2024-11-14__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Announcing AWS Partner Central API for Selling: This service launch Introduces new APIs for co-selling opportunity management and related functions. Key features include notifications, a dynamic sandbox for testing, and streamlined validations.
+
+# __2.29.13__ __2024-11-14__
+## __AWS Cloud Control API__
+  - ### Features
+    - Added support for CloudFormation Hooks with Cloud Control API. The GetResourceRequestStatus API response now includes an optional HooksProgressEvent and HooksRequestToken parameter for Hooks Invocation Progress as part of resource operation with Cloud Control.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - This release includes support for five new APIs and changes to existing APIs that give AWS Organizations customers the ability to use temporary root credentials, targeted to member accounts in the organization.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - New FuotaTask resource type to enable logging for your FUOTA tasks. A ParticipatingGatewaysforMulticast parameter to choose the list of gateways to receive the multicast downlink message and the transmission interval between them. Descriptor field which will be sent to devices during FUOTA transfer.
+
+## __AWS License Manager User Subscriptions__
+  - ### Features
+    - New and updated API operations to support License Included User-based Subscription of Microsoft Remote Desktop Services (RDS).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Security Token Service__
+  - ### Features
+    - This release introduces the new API 'AssumeRoot', which returns short-term credentials that you can use to perform privileged tasks.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Adds support for select GPU accelerated instance types when creating new service-managed fleets.
+
+## __Access Analyzer__
+  - ### Features
+    - Expand analyzer configuration capabilities for unused access analyzers. Unused access analyzer configurations now support the ability to exclude accounts and resource tags from analysis providing more granular control over the scope of analysis.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - IVS now offers customers the ability to stream multitrack video to Channels.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds APIs for Custom Permissions management in QuickSight, and APIs to support QuickSight Branding.
+
+## __Amazon Redshift__
+  - ### Features
+    - Adds support for Amazon Redshift S3AccessGrants
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add support for Neuron instance types [ trn1/trn1n/inf2 ] on SageMaker Notebook Instances Platform.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release updates the ListBuckets API Reference documentation in support of the new 10,000 general purpose bucket default quota on all AWS accounts. To increase your bucket quota from 10,000 to up to 1 million buckets, simply request a quota increase via Service Quotas.
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Update Netty version to `4.1.115.Final`.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Announcing AWS Partner Central API for Selling: This service launch Introduces new APIs for co-selling opportunity management and related functions. Key features include notifications, a dynamic sandbox for testing, and streamlined validations.
+
+# __2.29.12__ __2024-11-13__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - This release adds a GenerateMapping API to allow generation of JSONata or XSLT transformer code based on input and output samples.
+
+## __AWS Billing__
+  - ### Features
+    - Today, AWS announces the general availability of ListBillingViews API in the AWS SDKs, to enable AWS Billing Conductor (ABC) users to create proforma Cost and Usage Reports (CUR) programmatically.
+
+## __AWS CloudTrail__
+  - ### Features
+    - This release adds a new API GenerateQuery that generates a query from a natural language prompt about the event data in your event data store. This operation uses generative artificial intelligence (generative AI) to produce a ready-to-use SQL query from the prompt.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds support for ARN inputs in the Kantar credentials secrets name field and the MSPR field to the manifests for PlayReady DRM protected outputs.
+
+## __AWS Organizations__
+  - ### Features
+    - Add support for policy operations on the Resource Control Polices.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for policy validation and external access findings for resource control policies (RCP). IAM Access Analyzer helps you author functional and secure RCPs and awareness that a RCP may restrict external access. Updated service API, documentation, and paginators.
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - Amazon CloudWatch Application Signals now supports creating Service Level Objectives with burn rates. Users can now create or update SLOs with burn rate configurations to meet their specific business requirements.
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - Add new query type Routing_Suggestions regarding querying interface
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This release includes supports the new WarmThroughput feature for DynamoDB. You can now provide an optional WarmThroughput attribute for CreateTable or UpdateTable APIs to pre-warm your table or global secondary index. You can also use DescribeTable to see the latest WarmThroughput value.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds the source AMI details in DescribeImages API
+
+# __2.29.11__ __2024-11-12__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports non-containerized Linux and Windows builds on Reserved Capacity.
+
+## __AWS Control Tower__
+  - ### Features
+    - Added ResetEnabledControl API.
+
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - This release adds support for generating experiment reports with the experiment report configuration
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift releases container fleets support for general availability. Deploy Linux-based containerized game server software for hosting on Amazon GameLift.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for Amazon RDS Extended Support for Amazon Aurora MySQL.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Updated ListAliases API with KeyArn filter.
+
+# __2.29.10__ __2024-11-11__
+## __AWS Lambda__
+  - ### Features
+    - Add Python 3.13 (python3.13) support to AWS Lambda
+
+## __AWS Outposts__
+  - ### Features
+    - This release updates StartCapacityTask to allow an active Outpost to be modified. It also adds a new API to list all running EC2 instances on the Outpost.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - SigV4: Add host header only when not already provided
+        - Contributed by: [@vsudilov](https://github.com/vsudilov)
+
+## __Amazon CloudFront__
+  - ### Features
+    - No API changes from previous release. This release migrated the model to Smithy keeping all features unchanged.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Adds Support for new AssociatePackages and DissociatePackages API in Amazon OpenSearch Service that allows association and dissociation operations to be carried out on multiple packages at the same time.
+
+## __Inspector2__
+  - ### Features
+    - Adds support for filePath filter.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@vsudilov](https://github.com/vsudilov)
 # __2.29.9__ __2024-11-08__
 ## __AWS Batch__
   - ### Features
