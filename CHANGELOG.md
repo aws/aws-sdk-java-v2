@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.16__ __2024-11-18__
+## __AWS CloudFormation__
+  - ### Features
+    - This release adds a new API, ListHookResults, that allows retrieving CloudFormation Hooks invocation results for hooks invoked during a create change set operation or Cloud Control API operation
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - The release introduces a generative AI Assistant in AWS IoT SiteWise. It includes: 1) InvokeAssistant API - Invoke the Assistant to get alarm summaries and ask questions. 2) Dataset APIs - Manage knowledge base configuration for the Assistant. 3) Portal APIs enhancement - Manage AI-aware dashboards.
+
+## __AWS RDS DataService__
+  - ### Features
+    - Add support for the automatic pause/resume feature of Aurora Serverless v2.
+
+## __Amazon AppConfig__
+  - ### Features
+    - AWS AppConfig has added a new extension action point, AT_DEPLOYMENT_TICK, to support third-party monitors to trigger an automatic rollback during a deployment.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces Segmentation APIs and new Calculated Attribute Event Filters as part of Amazon Connect Customer Profiles service.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds CreateContactFlowVersion and ListContactFlowVersions APIs to create and view the versions of a contact flow.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for adding VPC Lattice configurations in ECS CreateService/UpdateService APIs. The configuration allows for associating VPC Lattice target groups with ECS Services.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding request and response elements for managed resources.
+
+## __Amazon Q Connect__
+  - ### Features
+    - This release introduces MessageTemplate as a resource in Amazon Q in Connect, along with APIs to create, read, search, update, and delete MessageTemplate resources.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Add support for the automatic pause/resume feature of Aurora Serverless v2.
+
+## __Auto Scaling__
+  - ### Features
+    - Amazon EC2 Auto Scaling now supports Amazon Application Recovery Controller (ARC) zonal shift and zonal autoshift to help you quickly recover an impaired application from failures in an Availability Zone (AZ).
+
 # __2.29.15__ __2024-11-15__
 ## __AWS DataSync__
   - ### Features

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS RDS DataService",
-    "contributor": "",
-    "description": "Add support for the automatic pause/resume feature of Aurora Serverless v2."
-}
