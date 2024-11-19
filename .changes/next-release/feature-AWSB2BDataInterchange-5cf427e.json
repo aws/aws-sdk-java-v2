@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS B2B Data Interchange",
+    "contributor": "",
+    "description": "Add new X12 transactions sets and versions"
+}
