@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.17__ __2024-11-19__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Add new X12 transactions sets and versions
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue Data Catalog now enhances managed table optimizations of Apache Iceberg tables that can be accessed only from a specific Amazon Virtual Private Cloud (VPC) environment.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release introduces support for configuring the version consistency feature for individual containers defined within a task definition. The configuration allows to specify whether ECS should resolve the container image tag specified in the container definition to an image digest.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds VPC Block Public Access (VPC BPA), a new declarative control which blocks resources in VPCs and subnets that you own in a Region from reaching or being reached from the internet through internet gateways and egress-only internet gateways.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Add support for the new parameters in EFS replication APIs
+
+## __Amazon Keyspaces__
+  - ### Features
+    - Amazon Keyspaces Multi-Region Replication: Adds support to add new regions to multi and single-region keyspaces.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Releasing new ErrorCodes for Image Validation failure during CreateWorkspaceImage process
+
+## __AmazonMWAA__
+  - ### Features
+    - Amazon MWAA now supports a new environment class, mw1.micro, ideal for workloads requiring fewer resources than mw1.small. This class supports a single instance of each Airflow component: Scheduler, Worker, and Webserver.
+
+## __Tax Settings__
+  - ### Features
+    - Release Tax Inheritance APIs, Tax Exemption APIs, and functionality update for some existing Tax Registration APIs
+
 # __2.29.16__ __2024-11-18__
 ## __AWS CloudFormation__
   - ### Features
