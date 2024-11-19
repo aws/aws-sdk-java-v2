@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic File System",
+    "contributor": "",
+    "description": "Add support for the new parameters in EFS replication APIs"
+}
