@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Control Tower",
-    "contributor": "",
-    "description": "Adds support for child enabled baselines which allow you to see the enabled baseline status for individual accounts."
-}

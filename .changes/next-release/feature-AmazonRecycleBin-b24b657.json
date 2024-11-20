@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Recycle Bin",
-    "contributor": "",
-    "description": "This release adds support for exclusion tags for Recycle Bin, which allows you to identify resources that are to be excluded, or ignored, by a Region-level retention rule."
-}

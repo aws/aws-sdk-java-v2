@@ -1,4 +1,89 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.18__ __2024-11-20__
+## __AWS Application Discovery Service__
+  - ### Features
+    - Add support to import data from commercially available discovery tools without file manipulation.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables AWS Compute Optimizer to analyze and generate optimization recommendations for Amazon Aurora database instances. It also enables Compute Optimizer to identify idle Amazon EC2 instances, Amazon EBS volumes, Amazon ECS services running on Fargate, and Amazon RDS databases.
+
+## __AWS Control Tower__
+  - ### Features
+    - Adds support for child enabled baselines which allow you to see the enabled baseline status for individual accounts.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds the ability to reconfigure concurrent job settings for existing queues and create queues with custom concurrent job settings.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - MediaPackage v2 now supports the Media Quality Confidence Score (MQCS) published from MediaLive. Customers can control input switching based on the MQCS and publishing HTTP Headers for the MQCS via the API.
+
+## __AWS Lambda__
+  - ### Features
+    - Add Node 22.x (node22.x) support to AWS Lambda
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Releasing new Prompt Optimization to enhance your prompts for improved performance
+
+## __Amazon CloudFront__
+  - ### Features
+    - Add support for gRPC, VPC origins, and Anycast IP Lists. Allow LoggingConfig IncludeCookies to be set regardless of whether the LoggingConfig is enabled.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release supports Metadata Enforcement Rule feature for Create Subscription Request action.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for the Availability Zone rebalancing feature on Amazon ECS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - With this release, customers can express their desire to launch instances only in an ODCR or ODCR group rather than OnDemand capacity. Customers can express their baseline instances' CPU-performance in attribute-based Instance Requirements configuration by referencing an instance family.
+
+## __Amazon Omics__
+  - ### Features
+    - Enabling call caching feature that allows customers to reuse previously computed results from a set of completed tasks in a new workflow run.
+
+## __Amazon Recycle Bin__
+  - ### Features
+    - This release adds support for exclusion tags for Recycle Bin, which allows you to identify resources that are to be excluded, or ignored, by a Region-level retention rule.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for scale storage on the DB instance using a Blue/Green Deployment.
+
+## __Amazon Timestream Query__
+  - ### Features
+    - This release adds support for Provisioning Timestream Compute Units (TCUs), a new feature that allows provisioning dedicated compute resources for your queries, providing predictable and cost-effective query performance.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added support for Rocky Linux 8 on Amazon WorkSpaces Personal.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Added data protection settings with support for inline data redaction.
+
+## __Auto Scaling__
+  - ### Features
+    - With this release, customers can prioritize launching instances into ODCRs using targets from ASGs or Launch Templates. Customers can express their baseline instances' CPU-performance in attribute-based Instance Requirements configuration by referencing an instance family that meets their needs.
+
+## __Cost Optimization Hub__
+  - ### Features
+    - This release adds action type "Delete" to the GetRecommendation, ListRecommendations and ListRecommendationSummaries APIs to support new EBS and ECS recommendations with action type "Delete".
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for configuring Load balancer Capacity Unit reservations
+
 # __2.29.17__ __2024-11-19__
 ## __AWS B2B Data Interchange__
   - ### Features
