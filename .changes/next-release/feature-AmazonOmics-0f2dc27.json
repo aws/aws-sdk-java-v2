@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Omics",
+    "contributor": "",
+    "description": "Enabling call caching feature that allows customers to reuse previously computed results from a set of completed tasks in a new workflow run."
+}
