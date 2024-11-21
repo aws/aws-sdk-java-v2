@@ -3,7 +3,7 @@
 
 ## 11/19/2024
 
-**Source:** Team design doc review meeting for https://sim.amazon.com/issues/JAVA-4814
+**Source:** Team design doc review meeting for the issue that CloudWatchMetricPublisher doesn't work well for lambda functions
 
 **Attendees:** Bole, David, Debora, Olivier, Dongie, Zoe
 
