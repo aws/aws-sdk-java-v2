@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS User Notifications Contacts",
+    "contributor": "",
+    "description": "This release adds support for AWS User Notifications Contacts. You can now configure and view email contacts for AWS User Notifications using the AWS SDK."
+}
