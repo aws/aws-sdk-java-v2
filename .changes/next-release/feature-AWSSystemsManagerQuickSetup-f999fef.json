@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Systems Manager QuickSetup",
+    "contributor": "",
+    "description": "Add methods that retrieve details about deployed configurations: ListConfigurations, GetConfiguration"
+}
