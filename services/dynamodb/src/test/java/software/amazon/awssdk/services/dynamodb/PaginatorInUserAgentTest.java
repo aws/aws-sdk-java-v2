@@ -22,6 +22,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.core.useragent.BusinessMetricCollection.METRIC_SEARCH_PATTERN;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -69,7 +70,7 @@ public class PaginatorInUserAgentTest {
 
 
     @Test
-    public void syncPaginator_shouldHavePaginatorUserAgent() throws IOException {
+    public void syncPaginator_shouldHavePaginatorUserAgent() {
         stubFor(any(urlEqualTo("/"))
                     .willReturn(aResponse()
                                     .withStatus(500)));
@@ -84,7 +85,7 @@ public class PaginatorInUserAgentTest {
     }
 
     @Test
-    public void syncPaginator_shuldHavePaginatorUserAgent() throws IOException {
+    public void endpointBuiltIn_withBusinessMetricsAndClientEndpointProvider_shouldReturnEndpointOverride() {
         ExecutionAttributes executionAttributes = new ExecutionAttributes();
         BusinessMetricCollection newmetrics = new BusinessMetricCollection();
         newmetrics.addMetric("R");
@@ -92,8 +93,7 @@ public class PaginatorInUserAgentTest {
         ClientEndpointProvider wohoo = ClientEndpointProvider.forEndpointOverride(URI.create("http://wohoo"));
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS, newmetrics);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER, wohoo);
-        String s = AwsEndpointProviderUtils.endpointBuiltIn(executionAttributes);
-        System.out.println(s);
+        assertThat(AwsEndpointProviderUtils.endpointBuiltIn(executionAttributes)).isEqualTo("http://wohoo");
     }
 
     @Test
