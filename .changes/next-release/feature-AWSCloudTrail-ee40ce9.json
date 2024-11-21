@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudTrail",
+    "contributor": "",
+    "description": "This release introduces new APIs for creating and managing CloudTrail Lake dashboards. It also adds support for resource-based policies on CloudTrail EventDataStore and Dashboard resource."
+}
