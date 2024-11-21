@@ -43,6 +43,7 @@ import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.jmespath.internal.JmesPathRuntime;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
 import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperationContextParamRequest;
+import software.amazon.awssdk.services.query.model.OperationWithMapOperationContextParamRequest;
 import software.amazon.awssdk.services.query.model.OperationWithOperationContextParamRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -208,6 +209,9 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             case "OperationWithCustomizedOperationContextParam":
                 setOperationContextParams(params, (OperationWithCustomizedOperationContextParamRequest) request);
                 break;
+            case "OperationWithMapOperationContextParam":
+                setOperationContextParams(params, (OperationWithMapOperationContextParamRequest) request);
+                break;
             case "OperationWithOperationContextParam":
                 setOperationContextParams(params, (OperationWithOperationContextParamRequest) request);
                 break;
@@ -220,6 +224,12 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                                                   OperationWithCustomizedOperationContextParamRequest request) {
         JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
         params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString").stringValues());
+    }
+
+    private static void setOperationContextParams(QueryEndpointParams.Builder params,
+                                                  OperationWithMapOperationContextParamRequest request) {
+        JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
+        params.arnList(input.field("RequestMap").keys().stringValues());
     }
 
     private static void setOperationContextParams(QueryEndpointParams.Builder params,
