@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Health APIs and Notifications",
+    "contributor": "",
+    "description": "Adds metadata property to an AffectedEntity."
+}
