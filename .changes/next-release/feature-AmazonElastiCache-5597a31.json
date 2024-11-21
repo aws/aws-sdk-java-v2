@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon ElastiCache",
+    "contributor": "",
+    "description": "Added support to modify the engine type for existing ElastiCache Users and User Groups. Customers can now modify the engine type from redis to valkey."
+}
