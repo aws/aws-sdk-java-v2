@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS AppSync",
-    "contributor": "",
-    "description": "Add support for the Amazon Bedrock Runtime."
-}

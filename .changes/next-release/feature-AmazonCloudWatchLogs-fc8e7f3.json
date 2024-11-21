@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Logs",
-    "contributor": "",
-    "description": "Adds \"Create field indexes to improve query performance and reduce scan volume\" and \"Transform logs during ingestion\". Updates documentation for \"PutLogEvents with Entity\"."
-}
