@@ -1,4 +1,175 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.18__ __2024-11-20__
+## __AWS Application Discovery Service__
+  - ### Features
+    - Add support to import data from commercially available discovery tools without file manipulation.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables AWS Compute Optimizer to analyze and generate optimization recommendations for Amazon Aurora database instances. It also enables Compute Optimizer to identify idle Amazon EC2 instances, Amazon EBS volumes, Amazon ECS services running on Fargate, and Amazon RDS databases.
+
+## __AWS Control Tower__
+  - ### Features
+    - Adds support for child enabled baselines which allow you to see the enabled baseline status for individual accounts.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds the ability to reconfigure concurrent job settings for existing queues and create queues with custom concurrent job settings.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - MediaPackage v2 now supports the Media Quality Confidence Score (MQCS) published from MediaLive. Customers can control input switching based on the MQCS and publishing HTTP Headers for the MQCS via the API.
+
+## __AWS Lambda__
+  - ### Features
+    - Add Node 22.x (node22.x) support to AWS Lambda
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Releasing new Prompt Optimization to enhance your prompts for improved performance
+
+## __Amazon CloudFront__
+  - ### Features
+    - Add support for gRPC, VPC origins, and Anycast IP Lists. Allow LoggingConfig IncludeCookies to be set regardless of whether the LoggingConfig is enabled.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release supports Metadata Enforcement Rule feature for Create Subscription Request action.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for the Availability Zone rebalancing feature on Amazon ECS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - With this release, customers can express their desire to launch instances only in an ODCR or ODCR group rather than OnDemand capacity. Customers can express their baseline instances' CPU-performance in attribute-based Instance Requirements configuration by referencing an instance family.
+
+## __Amazon Omics__
+  - ### Features
+    - Enabling call caching feature that allows customers to reuse previously computed results from a set of completed tasks in a new workflow run.
+
+## __Amazon Recycle Bin__
+  - ### Features
+    - This release adds support for exclusion tags for Recycle Bin, which allows you to identify resources that are to be excluded, or ignored, by a Region-level retention rule.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for scale storage on the DB instance using a Blue/Green Deployment.
+
+## __Amazon Timestream Query__
+  - ### Features
+    - This release adds support for Provisioning Timestream Compute Units (TCUs), a new feature that allows provisioning dedicated compute resources for your queries, providing predictable and cost-effective query performance.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added support for Rocky Linux 8 on Amazon WorkSpaces Personal.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Added data protection settings with support for inline data redaction.
+
+## __Auto Scaling__
+  - ### Features
+    - With this release, customers can prioritize launching instances into ODCRs using targets from ASGs or Launch Templates. Customers can express their baseline instances' CPU-performance in attribute-based Instance Requirements configuration by referencing an instance family that meets their needs.
+
+## __Cost Optimization Hub__
+  - ### Features
+    - This release adds action type "Delete" to the GetRecommendation, ListRecommendations and ListRecommendationSummaries APIs to support new EBS and ECS recommendations with action type "Delete".
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for configuring Load balancer Capacity Unit reservations
+
+# __2.29.17__ __2024-11-19__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Add new X12 transactions sets and versions
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue Data Catalog now enhances managed table optimizations of Apache Iceberg tables that can be accessed only from a specific Amazon Virtual Private Cloud (VPC) environment.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release introduces support for configuring the version consistency feature for individual containers defined within a task definition. The configuration allows to specify whether ECS should resolve the container image tag specified in the container definition to an image digest.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds VPC Block Public Access (VPC BPA), a new declarative control which blocks resources in VPCs and subnets that you own in a Region from reaching or being reached from the internet through internet gateways and egress-only internet gateways.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Add support for the new parameters in EFS replication APIs
+
+## __Amazon Keyspaces__
+  - ### Features
+    - Amazon Keyspaces Multi-Region Replication: Adds support to add new regions to multi and single-region keyspaces.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Releasing new ErrorCodes for Image Validation failure during CreateWorkspaceImage process
+
+## __AmazonMWAA__
+  - ### Features
+    - Amazon MWAA now supports a new environment class, mw1.micro, ideal for workloads requiring fewer resources than mw1.small. This class supports a single instance of each Airflow component: Scheduler, Worker, and Webserver.
+
+## __Tax Settings__
+  - ### Features
+    - Release Tax Inheritance APIs, Tax Exemption APIs, and functionality update for some existing Tax Registration APIs
+
+# __2.29.16__ __2024-11-18__
+## __AWS CloudFormation__
+  - ### Features
+    - This release adds a new API, ListHookResults, that allows retrieving CloudFormation Hooks invocation results for hooks invoked during a create change set operation or Cloud Control API operation
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - The release introduces a generative AI Assistant in AWS IoT SiteWise. It includes: 1) InvokeAssistant API - Invoke the Assistant to get alarm summaries and ask questions. 2) Dataset APIs - Manage knowledge base configuration for the Assistant. 3) Portal APIs enhancement - Manage AI-aware dashboards.
+
+## __AWS RDS DataService__
+  - ### Features
+    - Add support for the automatic pause/resume feature of Aurora Serverless v2.
+
+## __Amazon AppConfig__
+  - ### Features
+    - AWS AppConfig has added a new extension action point, AT_DEPLOYMENT_TICK, to support third-party monitors to trigger an automatic rollback during a deployment.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces Segmentation APIs and new Calculated Attribute Event Filters as part of Amazon Connect Customer Profiles service.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds CreateContactFlowVersion and ListContactFlowVersions APIs to create and view the versions of a contact flow.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for adding VPC Lattice configurations in ECS CreateService/UpdateService APIs. The configuration allows for associating VPC Lattice target groups with ECS Services.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding request and response elements for managed resources.
+
+## __Amazon Q Connect__
+  - ### Features
+    - This release introduces MessageTemplate as a resource in Amazon Q in Connect, along with APIs to create, read, search, update, and delete MessageTemplate resources.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Add support for the automatic pause/resume feature of Aurora Serverless v2.
+
+## __Auto Scaling__
+  - ### Features
+    - Amazon EC2 Auto Scaling now supports Amazon Application Recovery Controller (ARC) zonal shift and zonal autoshift to help you quickly recover an impaired application from failures in an Availability Zone (AZ).
+
 # __2.29.15__ __2024-11-15__
 ## __AWS DataSync__
   - ### Features
