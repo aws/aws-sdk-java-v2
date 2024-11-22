@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Elastic Load Balancing",
+    "contributor": "",
+    "description": "This release adds support for advertising trusted CA certificate names in associated trust stores."
+}
