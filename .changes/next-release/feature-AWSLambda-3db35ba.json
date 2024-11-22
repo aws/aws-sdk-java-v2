@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "contributor": "",
+    "description": "Add ProvisionedPollerConfig to Lambda event-source-mapping API."
+}
