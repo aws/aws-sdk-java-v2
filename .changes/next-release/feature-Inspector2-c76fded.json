@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Inspector2",
-    "contributor": "",
-    "description": "Extend inspector2 service model to include ServiceQuotaExceededException."
-}
