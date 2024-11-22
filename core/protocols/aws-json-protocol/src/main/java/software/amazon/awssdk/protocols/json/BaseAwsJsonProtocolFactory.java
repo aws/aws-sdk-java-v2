@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -52,6 +53,7 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonResponse
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonResponseHandler;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.ProtocolUnmarshallDependencies;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonProtocolAdvancedOption;
 
 @SdkProtectedApi
 public abstract class BaseAwsJsonProtocolFactory {
@@ -86,7 +88,16 @@ public abstract class BaseAwsJsonProtocolFactory {
         this.customErrorCodeFieldName = builder.customErrorCodeFieldName;
         this.hasAwsQueryCompatible = builder.hasAwsQueryCompatible;
         this.clientConfiguration = builder.clientConfiguration;
+        Boolean enableFastUnmarshalling = false;
+        if (clientConfiguration != null) {
+            enableFastUnmarshalling =
+                clientConfiguration.option(SdkClientJsonProtocolAdvancedOption.ENABLE_FAST_UNMARSHALLER);
+            if (enableFastUnmarshalling == null) {
+                enableFastUnmarshalling = false;
+            }
+        }
         this.protocolUnmarshaller = JsonProtocolUnmarshaller.builder()
+                                                            .enableFastUnmarshalling(enableFastUnmarshalling)
                                                             .protocolUnmarshallDependencies(
                                                                 builder.protocolUnmarshallDependencies.get())
                                                             .build();
@@ -130,7 +141,12 @@ public abstract class BaseAwsJsonProtocolFactory {
 
     /**
      * Creates a response handler for handling a error response (non 2xx response).
+     *
+     * @deprecated Users should favor using
+     * {@link BaseAwsJsonProtocolFactory#createErrorResponseHandler(JsonOperationMetadata, Function)}, which allows the creation
+     * of an error unmarshaller that uses a mapping function to map from error code to the associated {@link ExceptionMetadata}.
      */
+    @Deprecated
     public final HttpResponseHandler<AwsServiceException> createErrorResponseHandler(
         JsonOperationMetadata errorResponseMetadata) {
         return timeUnmarshalling(AwsJsonProtocolErrorUnmarshaller
@@ -143,6 +159,21 @@ public abstract class BaseAwsJsonProtocolFactory {
             .jsonFactory(getSdkFactory().getJsonFactory())
             .defaultExceptionSupplier(defaultServiceExceptionSupplier)
             .build());
+    }
+
+    public final HttpResponseHandler<AwsServiceException> createErrorResponseHandler(
+        JsonOperationMetadata errorResponseMetadata,
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataSupplier) {
+        return timeUnmarshalling(
+            AwsJsonProtocolErrorUnmarshaller.builder()
+                                            .jsonProtocolUnmarshaller(protocolUnmarshaller)
+                                            .exceptionMetadataSupplier(exceptionMetadataSupplier)
+                                            .errorCodeParser(getSdkFactory().getErrorCodeParser(customErrorCodeFieldName))
+                                            .hasAwsQueryCompatible(hasAwsQueryCompatible)
+                                            .errorMessageParser(AwsJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER)
+                                            .jsonFactory(getSdkFactory().getJsonFactory())
+                                            .defaultExceptionSupplier(defaultServiceExceptionSupplier)
+                                            .build());
     }
 
     private <T> MetricCollectingHttpResponseHandler<T> timeUnmarshalling(HttpResponseHandler<T> delegate) {
@@ -205,6 +236,7 @@ public abstract class BaseAwsJsonProtocolFactory {
                                             .operationInfo(operationInfo)
                                             .sendExplicitNullForPayload(false)
                                             .protocolMetadata(protocolMetadata)
+                                            .hasAwsQueryCompatible(hasAwsQueryCompatible)
                                             .build();
     }
 
@@ -239,7 +271,13 @@ public abstract class BaseAwsJsonProtocolFactory {
          *
          * @param errorMetadata Metadata to unmarshall the modeled exception.
          * @return This builder for method chaining.
+         *
+         * @deprecated Users should favor using
+         * {@link BaseAwsJsonProtocolFactory#createErrorResponseHandler(JsonOperationMetadata, Function)}, which allows the
+         * creation of an error unmarshaller that uses a mapping function to map from error code to the associated
+         * {@link ExceptionMetadata}.
          */
+        @Deprecated
         public final SubclassT registerModeledException(ExceptionMetadata errorMetadata) {
             modeledExceptions.add(errorMetadata);
             return getSubclass();

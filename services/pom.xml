@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.28.20-SNAPSHOT</version>
+        <version>2.29.20-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -276,7 +276,6 @@
         <module>lookoutmetrics</module>
         <module>mgn</module>
         <module>lookoutequipment</module>
-        <module>nimble</module>
         <module>finspacedata</module>
         <module>finspace</module>
         <module>ssmincidents</module>
@@ -407,6 +406,15 @@
         <module>pcs</module>
         <module>directoryservicedata</module>
         <module>marketplacereporting</module>
+        <module>socialmessaging</module>
+        <module>geoplaces</module>
+        <module>geomaps</module>
+        <module>georoutes</module>
+        <module>billing</module>
+        <module>partnercentralselling</module>
+        <module>connectcampaignsv2</module>
+        <module>notifications</module>
+        <module>notificationscontacts</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

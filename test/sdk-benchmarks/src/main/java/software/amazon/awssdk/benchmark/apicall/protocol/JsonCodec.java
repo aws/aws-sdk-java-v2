@@ -56,7 +56,6 @@ public final class JsonCodec {
                                                                            .httpMethod(SdkHttpMethod.POST)
                                                                            .hasImplicitPayloadMembers(true)
                                                                            .build();
-    private static final Map<MarshallLocation, TimestampFormatTrait.Format> TIMESTAMP_FORMATS = timestampFormats();
 
 
     /**
@@ -68,6 +67,7 @@ public final class JsonCodec {
             JsonProtocolUnmarshaller unmarshaller =
                 JsonProtocolUnmarshaller
                     .builder()
+                    .enableFastUnmarshalling(true)
                     .protocolUnmarshallDependencies(behavior.protocolUnmarshallDependencies())
                     .build();
             SdkHttpFullResponse response = SdkHttpFullResponse

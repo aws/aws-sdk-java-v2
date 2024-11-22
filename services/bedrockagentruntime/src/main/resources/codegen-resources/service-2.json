@@ -101,7 +101,26 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ServiceQuotaExceededException"}
       ],
-      "documentation":"<p>Invokes an alias of a flow to run the inputs that you specify and return the output of each node as a stream. If there's an error, the error is returned. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/flows-test.html\">Test a flow in Amazon Bedrock</a> in the Amazon Bedrock User Guide.</p> <note> <p>The CLI doesn't support streaming operations in Amazon Bedrock, including <code>InvokeFlow</code>.</p> </note>"
+      "documentation":"<p>Invokes an alias of a flow to run the inputs that you specify and return the output of each node as a stream. If there's an error, the error is returned. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/flows-test.html\">Test a flow in Amazon Bedrock</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p> <note> <p>The CLI doesn't support streaming operations in Amazon Bedrock, including <code>InvokeFlow</code>.</p> </note>"
+    },
+    "OptimizePrompt":{
+      "name":"OptimizePrompt",
+      "http":{
+        "method":"POST",
+        "requestUri":"/optimize-prompt",
+        "responseCode":200
+      },
+      "input":{"shape":"OptimizePromptRequest"},
+      "output":{"shape":"OptimizePromptResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"DependencyFailedException"},
+        {"shape":"BadGatewayException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Optimizes a prompt for the task that you specify. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management-optimize.html\">Optimize a prompt</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
     },
     "Retrieve":{
       "name":"Retrieve",
@@ -197,7 +216,7 @@
           "documentation":"<p>The API method being used, based off the action group.</p>"
         }
       },
-      "documentation":"<p>Contains information about the action group being invoked. For more information about the possible structures, see the InvocationInput tab in <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/trace-orchestration.html\">OrchestrationTrace</a> in the Amazon Bedrock User Guide.</p>"
+      "documentation":"<p>Contains information about the action group being invoked. For more information about the possible structures, see the InvocationInput tab in <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/trace-orchestration.html\">OrchestrationTrace</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
     },
     "ActionGroupInvocationOutput":{
       "type":"structure",
@@ -258,6 +277,18 @@
       "max":5,
       "min":1,
       "pattern":"^(DRAFT|[0-9]{0,4}[1-9][0-9]{0,4})$"
+    },
+    "AnalyzePromptEvent":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"String",
+          "documentation":"<p>A message describing the analysis of the prompt.</p>"
+        }
+      },
+      "documentation":"<p>An event in which the prompt was analyzed in preparation for optimization.</p>",
+      "event":true,
+      "sensitive":true
     },
     "ApiContentMap":{
       "type":"map",
@@ -394,7 +425,7 @@
       "type":"string",
       "max":2048,
       "min":1,
-      "pattern":"^(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:(([0-9]{12}:custom-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}/[a-z0-9]{12})|(:foundation-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.:]?[a-z0-9-]{1,63}))))|(arn:aws(|-us-gov|-cn|-iso|-iso-b):bedrock:(|[0-9a-z-]{1,20}):(|[0-9]{12}):inference-profile/[a-zA-Z0-9-:.]+)|([a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.:]?[a-z0-9-]{1,63}))|(([0-9a-zA-Z][_-]?)+)$"
+      "pattern":"^(arn:aws(-[^:]+)?:(bedrock|sagemaker):[a-z0-9-]{1,20}:([0-9]{12})?:([a-z-]+/)?)?([a-z0-9.-]{1,63}){0,2}(([:][a-z0-9-]{1,63}){0,2})?(/[a-z0-9]{1,12})?$"
     },
     "Boolean":{
       "type":"boolean",
@@ -823,7 +854,7 @@
           "documentation":"<p>The reason that the flow completed.</p>"
         }
       },
-      "documentation":"<p>Contains information about why a flow completed.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeFlow.html#API_agent_InvokeFlow_ResponseSyntax\">InvokeFlow response</a> </p> </li> </ul>",
+      "documentation":"<p>Contains information about why a flow completed.</p>",
       "event":true,
       "sensitive":true
     },
@@ -858,7 +889,7 @@
           "documentation":"<p>The name of the output from the flow input node that begins the prompt flow.</p>"
         }
       },
-      "documentation":"<p>Contains information about an input into the prompt flow and where to send it.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeFlow.html#API_agent_InvokeFlow_RequestSyntax\">InvokeFlow request</a> </p> </li> </ul>"
+      "documentation":"<p>Contains information about an input into the prompt flow and where to send it.</p>"
     },
     "FlowInputContent":{
       "type":"structure",
@@ -868,7 +899,7 @@
           "documentation":"<p>The input to send to the prompt flow input node.</p>"
         }
       },
-      "documentation":"<p>Contains information about an input into the flow.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeFlow.html#API_agent_InvokeFlow_RequestSyntax\">InvokeFlow request</a> </p> </li> </ul>",
+      "documentation":"<p>Contains information about an input into the flow.</p>",
       "sensitive":true,
       "union":true
     },
@@ -886,7 +917,7 @@
           "documentation":"<p>The content in the output.</p>"
         }
       },
-      "documentation":"<p>Contains information about the content in an output from prompt flow invocation.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeFlow.html#API_agent_InvokeFlow_RequestSyntax\">InvokeFlow request</a> </p> </li> </ul>",
+      "documentation":"<p>Contains information about the content in an output from prompt flow invocation.</p>",
       "union":true
     },
     "FlowOutputEvent":{
@@ -910,7 +941,7 @@
           "documentation":"<p>The type of the node that the output is from.</p>"
         }
       },
-      "documentation":"<p>Contains information about an output from prompt flow invoction.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeFlow.html#API_agent_InvokeFlow_ResponseSyntax\">InvokeFlow response</a> </p> </li> </ul>",
+      "documentation":"<p>Contains information about an output from prompt flow invoction.</p>",
       "event":true,
       "sensitive":true
     },
@@ -941,6 +972,10 @@
           "shape":"FlowOutputEvent",
           "documentation":"<p>Contains information about an output from flow invocation.</p>"
         },
+        "flowTraceEvent":{
+          "shape":"FlowTraceEvent",
+          "documentation":"<p>Contains information about a trace, which tracks an input or output for a node in the flow.</p>"
+        },
         "internalServerException":{
           "shape":"InternalServerException",
           "documentation":"<p>An internal server error occurred. Retry your request.</p>"
@@ -962,8 +997,203 @@
           "documentation":"<p>Input validation failed. Check your request parameters and retry the request.</p>"
         }
       },
-      "documentation":"<p>The output of the flow.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeFlow.html#API_agent_InvokeFlow_ResponseSyntax\">InvokeFlow response</a> </p> </li> </ul>",
+      "documentation":"<p>The output of the flow.</p>",
       "eventstream":true
+    },
+    "FlowTrace":{
+      "type":"structure",
+      "members":{
+        "conditionNodeResultTrace":{
+          "shape":"FlowTraceConditionNodeResultEvent",
+          "documentation":"<p>Contains information about an output from a condition node.</p>"
+        },
+        "nodeInputTrace":{
+          "shape":"FlowTraceNodeInputEvent",
+          "documentation":"<p>Contains information about the input into a node.</p>"
+        },
+        "nodeOutputTrace":{
+          "shape":"FlowTraceNodeOutputEvent",
+          "documentation":"<p>Contains information about the output from a node.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about an input or output for a node in the flow. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/flows-trace.html\">Track each step in your prompt flow by viewing its trace in Amazon Bedrock</a>.</p>",
+      "sensitive":true,
+      "union":true
+    },
+    "FlowTraceCondition":{
+      "type":"structure",
+      "required":["conditionName"],
+      "members":{
+        "conditionName":{
+          "shape":"String",
+          "documentation":"<p>The name of the condition.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a condition that was satisfied. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/flows-trace.html\">Track each step in your prompt flow by viewing its trace in Amazon Bedrock</a>.</p>",
+      "sensitive":true
+    },
+    "FlowTraceConditionNodeResultEvent":{
+      "type":"structure",
+      "required":[
+        "nodeName",
+        "satisfiedConditions",
+        "timestamp"
+      ],
+      "members":{
+        "nodeName":{
+          "shape":"NodeName",
+          "documentation":"<p>The name of the condition node.</p>"
+        },
+        "satisfiedConditions":{
+          "shape":"FlowTraceConditions",
+          "documentation":"<p>An array of objects containing information about the conditions that were satisfied.</p>"
+        },
+        "timestamp":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The date and time that the trace was returned.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about an output from a condition node. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/flows-trace.html\">Track each step in your prompt flow by viewing its trace in Amazon Bedrock</a>.</p>",
+      "sensitive":true
+    },
+    "FlowTraceConditions":{
+      "type":"list",
+      "member":{"shape":"FlowTraceCondition"},
+      "max":5,
+      "min":1
+    },
+    "FlowTraceEvent":{
+      "type":"structure",
+      "required":["trace"],
+      "members":{
+        "trace":{
+          "shape":"FlowTrace",
+          "documentation":"<p>The trace object containing information about an input or output for a node in the flow.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a trace, which tracks an input or output for a node in the flow. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/flows-trace.html\">Track each step in your prompt flow by viewing its trace in Amazon Bedrock</a>.</p>",
+      "event":true
+    },
+    "FlowTraceNodeInputContent":{
+      "type":"structure",
+      "members":{
+        "document":{
+          "shape":"Document",
+          "documentation":"<p>The content of the node input.</p>"
+        }
+      },
+      "documentation":"<p>Contains the content of the node input. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/flows-trace.html\">Track each step in your prompt flow by viewing its trace in Amazon Bedrock</a>.</p>",
+      "sensitive":true,
+      "union":true
+    },
+    "FlowTraceNodeInputEvent":{
+      "type":"structure",
+      "required":[
+        "fields",
+        "nodeName",
+        "timestamp"
+      ],
+      "members":{
+        "fields":{
+          "shape":"FlowTraceNodeInputFields",
+          "documentation":"<p>An array of objects containing information about each field in the input.</p>"
+        },
+        "nodeName":{
+          "shape":"NodeName",
+          "documentation":"<p>The name of the node that received the input.</p>"
+        },
+        "timestamp":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The date and time that the trace was returned.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about the input into a node. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/flows-trace.html\">Track each step in your prompt flow by viewing its trace in Amazon Bedrock</a>.</p>",
+      "sensitive":true
+    },
+    "FlowTraceNodeInputField":{
+      "type":"structure",
+      "required":[
+        "content",
+        "nodeInputName"
+      ],
+      "members":{
+        "content":{
+          "shape":"FlowTraceNodeInputContent",
+          "documentation":"<p>The content of the node input.</p>"
+        },
+        "nodeInputName":{
+          "shape":"NodeInputName",
+          "documentation":"<p>The name of the node input.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a field in the input into a node. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/flows-trace.html\">Track each step in your prompt flow by viewing its trace in Amazon Bedrock</a>.</p>",
+      "sensitive":true
+    },
+    "FlowTraceNodeInputFields":{
+      "type":"list",
+      "member":{"shape":"FlowTraceNodeInputField"},
+      "max":5,
+      "min":1
+    },
+    "FlowTraceNodeOutputContent":{
+      "type":"structure",
+      "members":{
+        "document":{
+          "shape":"Document",
+          "documentation":"<p>The content of the node output.</p>"
+        }
+      },
+      "documentation":"<p>Contains the content of the node output. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/flows-trace.html\">Track each step in your prompt flow by viewing its trace in Amazon Bedrock</a>.</p>",
+      "union":true
+    },
+    "FlowTraceNodeOutputEvent":{
+      "type":"structure",
+      "required":[
+        "fields",
+        "nodeName",
+        "timestamp"
+      ],
+      "members":{
+        "fields":{
+          "shape":"FlowTraceNodeOutputFields",
+          "documentation":"<p>An array of objects containing information about each field in the output.</p>"
+        },
+        "nodeName":{
+          "shape":"NodeName",
+          "documentation":"<p>The name of the node that yielded the output.</p>"
+        },
+        "timestamp":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The date and time that the trace was returned.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about the output from a node. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/flows-trace.html\">Track each step in your prompt flow by viewing its trace in Amazon Bedrock</a>.</p>",
+      "sensitive":true
+    },
+    "FlowTraceNodeOutputField":{
+      "type":"structure",
+      "required":[
+        "content",
+        "nodeOutputName"
+      ],
+      "members":{
+        "content":{
+          "shape":"FlowTraceNodeOutputContent",
+          "documentation":"<p>The content of the node output.</p>"
+        },
+        "nodeOutputName":{
+          "shape":"NodeOutputName",
+          "documentation":"<p>The name of the node output.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a field in the output from a node. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/flows-trace.html\">Track each step in your prompt flow by viewing its trace in Amazon Bedrock</a>.</p>",
+      "sensitive":true
+    },
+    "FlowTraceNodeOutputFields":{
+      "type":"list",
+      "member":{"shape":"FlowTraceNodeOutputField"},
+      "max":2,
+      "min":1
     },
     "Function":{
       "type":"string",
@@ -1068,7 +1298,7 @@
         },
         "promptTemplate":{
           "shape":"PromptTemplate",
-          "documentation":"<p>Contains the template for the prompt that's sent to the model for response generation.</p>"
+          "documentation":"<p>Contains the template for the prompt that's sent to the model for response generation. Generation prompts must include the <code>$search_results$</code> variable. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-placeholders.html\">Use placeholder variables</a> in the user guide.</p>"
         }
       },
       "documentation":"<p>Contains configurations for response generation based on the knowledge base query results.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax\">RetrieveAndGenerate request</a> </p> </li> </ul>"
@@ -1575,6 +1805,17 @@
       "type":"list",
       "member":{"shape":"InputFile"}
     },
+    "InputPrompt":{
+      "type":"structure",
+      "members":{
+        "textPrompt":{
+          "shape":"TextPrompt",
+          "documentation":"<p>Contains information about the text prompt to optimize.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about the prompt to optimize.</p>",
+      "union":true
+    },
     "InputText":{
       "type":"string",
       "max":25000000,
@@ -1756,6 +1997,10 @@
         "inputs"
       ],
       "members":{
+        "enableTrace":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to return the trace for the flow or not. Traces track inputs and outputs for nodes in the flow. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/flows-trace.html\">Track each step in your prompt flow by viewing its trace in Amazon Bedrock</a>.</p>"
+        },
         "flowAliasIdentifier":{
           "shape":"FlowAliasIdentifier",
           "documentation":"<p>The unique identifier of the flow alias.</p>",
@@ -2083,6 +2328,10 @@
       "min":1,
       "pattern":"^\\S*$"
     },
+    "NodeInputName":{
+      "type":"string",
+      "pattern":"^[a-zA-Z]([_]?[0-9a-zA-Z]){0,99}$"
+    },
     "NodeName":{
       "type":"string",
       "pattern":"^[a-zA-Z]([_]?[0-9a-zA-Z]){0,99}$"
@@ -2142,10 +2391,117 @@
       "documentation":"<p>Contains the result or output of an action group or knowledge base, or the response to the user.</p>",
       "sensitive":true
     },
+    "OptimizePromptRequest":{
+      "type":"structure",
+      "required":[
+        "input",
+        "targetModelId"
+      ],
+      "members":{
+        "input":{
+          "shape":"InputPrompt",
+          "documentation":"<p>Contains the prompt to optimize.</p>"
+        },
+        "targetModelId":{
+          "shape":"OptimizePromptRequestTargetModelIdString",
+          "documentation":"<p>The unique identifier of the model that you want to optimize the prompt for.</p>"
+        }
+      }
+    },
+    "OptimizePromptRequestTargetModelIdString":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"^(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:(([0-9]{12}:custom-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}/[a-z0-9]{12})|(:foundation-model/[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.:]?[a-z0-9-]{1,63}))|([0-9]{12}:provisioned-model/[a-z0-9]{12})))|([a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.:]?[a-z0-9-]{1,63}))|(([0-9a-zA-Z][_-]?)+)$"
+    },
+    "OptimizePromptResponse":{
+      "type":"structure",
+      "required":["optimizedPrompt"],
+      "members":{
+        "optimizedPrompt":{
+          "shape":"OptimizedPromptStream",
+          "documentation":"<p>The prompt after being optimized for the task.</p>"
+        }
+      },
+      "payload":"optimizedPrompt"
+    },
+    "OptimizedPrompt":{
+      "type":"structure",
+      "members":{
+        "textPrompt":{
+          "shape":"TextPrompt",
+          "documentation":"<p>Contains information about the text in the prompt that was optimized.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about the optimized prompt.</p>",
+      "union":true
+    },
+    "OptimizedPromptEvent":{
+      "type":"structure",
+      "members":{
+        "optimizedPrompt":{
+          "shape":"OptimizedPrompt",
+          "documentation":"<p>Contains information about the optimized prompt.</p>"
+        }
+      },
+      "documentation":"<p>An event in which the prompt was optimized.</p>",
+      "event":true,
+      "sensitive":true
+    },
+    "OptimizedPromptStream":{
+      "type":"structure",
+      "members":{
+        "accessDeniedException":{
+          "shape":"AccessDeniedException",
+          "documentation":"<p>The request is denied because of missing access permissions. Check your permissions and retry your request.</p>"
+        },
+        "analyzePromptEvent":{
+          "shape":"AnalyzePromptEvent",
+          "documentation":"<p>An event in which the prompt was analyzed in preparation for optimization.</p>"
+        },
+        "badGatewayException":{
+          "shape":"BadGatewayException",
+          "documentation":"<p>There was an issue with a dependency due to a server issue. Retry your request.</p>"
+        },
+        "dependencyFailedException":{
+          "shape":"DependencyFailedException",
+          "documentation":"<p>There was an issue with a dependency. Check the resource configurations and retry the request.</p>"
+        },
+        "internalServerException":{
+          "shape":"InternalServerException",
+          "documentation":"<p>An internal server error occurred. Retry your request.</p>"
+        },
+        "optimizedPromptEvent":{
+          "shape":"OptimizedPromptEvent",
+          "documentation":"<p>An event in which the prompt was optimized.</p>"
+        },
+        "throttlingException":{
+          "shape":"ThrottlingException",
+          "documentation":"<p>Your request was throttled because of service-wide limitations. Resubmit your request later or in a different region. You can also purchase <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html\">Provisioned Throughput</a> to increase the rate or number of tokens you can process.</p>"
+        },
+        "validationException":{
+          "shape":"ValidationException",
+          "documentation":"<p>Input validation failed. Check your request parameters and retry the request.</p>"
+        }
+      },
+      "documentation":"<p>The stream containing events in the prompt optimization process.</p>",
+      "eventstream":true
+    },
     "OrchestrationConfiguration":{
       "type":"structure",
-      "required":["queryTransformationConfiguration"],
       "members":{
+        "additionalModelRequestFields":{
+          "shape":"AdditionalModelRequestFields",
+          "documentation":"<p> Additional model parameters and corresponding values not included in the textInferenceConfig structure for a knowledge base. This allows users to provide custom model parameters specific to the language model being used. </p>"
+        },
+        "inferenceConfig":{
+          "shape":"InferenceConfig",
+          "documentation":"<p> Configuration settings for inference when using RetrieveAndGenerate to generate responses while using a knowledge base as a source. </p>"
+        },
+        "promptTemplate":{
+          "shape":"PromptTemplate",
+          "documentation":"<p>Contains the template for the prompt that's sent to the model. Orchestration prompts must include the <code>$conversation_history$</code> and <code>$output_format_instructions$</code> variables. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-placeholders.html\">Use placeholder variables</a> in the user guide.</p>"
+        },
         "queryTransformationConfiguration":{
           "shape":"QueryTransformationConfiguration",
           "documentation":"<p>To split up the prompt and retrieve multiple sources, set the transformation type to <code>QUERY_DECOMPOSITION</code>.</p>"
@@ -2158,7 +2514,7 @@
       "members":{
         "metadata":{
           "shape":"Metadata",
-          "documentation":"<p>Contains information about the foundation model output.</p>"
+          "documentation":"<p>Contains information about the foundation model output from the orchestration step.</p>"
         },
         "rawResponse":{
           "shape":"RawResponse",
@@ -2280,12 +2636,18 @@
     "PostProcessingModelInvocationOutput":{
       "type":"structure",
       "members":{
-        "metadata":{"shape":"Metadata"},
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p> Contains information about the foundation model output from the post-processing step. </p>"
+        },
         "parsedResponse":{
           "shape":"PostProcessingParsedResponse",
           "documentation":"<p>Details about the response from the Lambda parsing of the output of the post-processing step.</p>"
         },
-        "rawResponse":{"shape":"RawResponse"},
+        "rawResponse":{
+          "shape":"RawResponse",
+          "documentation":"<p> Details of the raw response from the foundation model output. </p>"
+        },
         "traceId":{
           "shape":"TraceId",
           "documentation":"<p>The unique identifier of the trace.</p>"
@@ -2324,12 +2686,18 @@
     "PreProcessingModelInvocationOutput":{
       "type":"structure",
       "members":{
-        "metadata":{"shape":"Metadata"},
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p> Contains information about the foundation model output from the pre-processing step. </p>"
+        },
         "parsedResponse":{
           "shape":"PreProcessingParsedResponse",
           "documentation":"<p>Details about the response from the Lambda parsing of the output of the pre-processing step.</p>"
         },
-        "rawResponse":{"shape":"RawResponse"},
+        "rawResponse":{
+          "shape":"RawResponse",
+          "documentation":"<p> Details of the raw response from the foundation model output. </p>"
+        },
         "traceId":{
           "shape":"TraceId",
           "documentation":"<p>The unique identifier of the trace.</p>"
@@ -3117,11 +3485,28 @@
       },
       "documentation":"<p>Configuration settings for text generation using a language model via the RetrieveAndGenerate operation. Includes parameters like temperature, top-p, maximum token count, and stop sequences. </p> <note> <p>The valid range of <code>maxTokens</code> depends on the accepted values for your chosen model's inference parameters. To see the inference parameters for your model, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html\">Inference parameters for foundation models.</a> </p> </note>"
     },
+    "TextPrompt":{
+      "type":"structure",
+      "required":["text"],
+      "members":{
+        "text":{
+          "shape":"TextPromptTextString",
+          "documentation":"<p>The text in the text prompt to optimize.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about the text prompt to optimize.</p>",
+      "sensitive":true
+    },
     "TextPromptTemplate":{
       "type":"string",
       "max":4000,
       "min":1,
       "sensitive":true
+    },
+    "TextPromptTextString":{
+      "type":"string",
+      "max":200000,
+      "min":1
     },
     "TextResponsePart":{
       "type":"structure",

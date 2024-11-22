@@ -17,11 +17,13 @@ package software.amazon.awssdk.services.dynamodb;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.core.useragent.BusinessMetricCollection.METRIC_SEARCH_PATTERN;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
@@ -31,8 +33,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.util.VersionInfo;
+import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.endpoints.internal.AwsEndpointProviderUtils;
 import software.amazon.awssdk.services.dynamodb.paginators.QueryPublisher;
 
 public class PaginatorInUserAgentTest {
@@ -63,7 +70,7 @@ public class PaginatorInUserAgentTest {
 
 
     @Test
-    public void syncPaginator_shouldHavePaginatorUserAgent() throws IOException {
+    public void syncPaginator_shouldHavePaginatorUserAgent() {
         stubFor(any(urlEqualTo("/"))
                     .willReturn(aResponse()
                                     .withStatus(500)));
@@ -73,7 +80,20 @@ public class PaginatorInUserAgentTest {
             //expected
         }
 
-        verify(postRequestedFor(urlEqualTo("/")).withHeader("User-Agent", containing("PAGINATED/" + VersionInfo.SDK_VERSION)));
+        verify(postRequestedFor(urlEqualTo("/")).withHeader("User-Agent",
+                                                            matching(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.PAGINATOR.value()))));
+    }
+
+    @Test
+    public void endpointBuiltIn_withBusinessMetricsAndClientEndpointProvider_shouldReturnEndpointOverride() {
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        BusinessMetricCollection newmetrics = new BusinessMetricCollection();
+        newmetrics.addMetric("R");
+
+        ClientEndpointProvider wohoo = ClientEndpointProvider.forEndpointOverride(URI.create("http://wohoo"));
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS, newmetrics);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER, wohoo);
+        assertThat(AwsEndpointProviderUtils.endpointBuiltIn(executionAttributes)).isEqualTo("http://wohoo");
     }
 
     @Test
@@ -88,7 +108,8 @@ public class PaginatorInUserAgentTest {
             //expected
         }
 
-        verify(postRequestedFor(urlEqualTo("/")).withHeader("User-Agent", containing("PAGINATED/" + VersionInfo.SDK_VERSION)));
+        verify(postRequestedFor(urlEqualTo("/")).withHeader("User-Agent",
+                                                            matching(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.PAGINATOR.value()))));
     }
 
 }

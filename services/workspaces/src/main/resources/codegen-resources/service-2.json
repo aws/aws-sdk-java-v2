@@ -1435,7 +1435,7 @@
         },
         "ClientToken":{
           "shape":"ClientToken",
-          "documentation":"<p>A string of up to 64 ASCII characters that Amazon EFS uses to ensure idempotent creation.</p>"
+          "documentation":"<p>A string of up to 64 ASCII characters that Amazon WorkSpaces uses to ensure idempotent creation.</p>"
         }
       }
     },
@@ -2300,7 +2300,7 @@
         },
         "ClientToken":{
           "shape":"ClientToken",
-          "documentation":"<p>A string of up to 64 ASCII characters that Amazon EFS uses to ensure idempotent creation.</p>"
+          "documentation":"<p>A string of up to 64 ASCII characters that Amazon WorkSpaces uses to ensure idempotent creation.</p>"
         }
       }
     },
@@ -2837,7 +2837,7 @@
         },
         "ClientToken":{
           "shape":"ClientToken",
-          "documentation":"<p>A string of up to 64 ASCII characters that Amazon EFS uses to ensure idempotent creation.</p>"
+          "documentation":"<p>A string of up to 64 ASCII characters that Amazon WorkSpaces uses to ensure idempotent creation.</p>"
         }
       }
     },
@@ -3918,7 +3918,7 @@
     },
     "DomainName":{
       "type":"string",
-      "pattern":"^([a-zA-Z0-9]+[\\\\.-])+([a-zA-Z0-9])+$"
+      "pattern":"^([a-zA-Z0-9]+[.-])+([a-zA-Z0-9])+$"
     },
     "Ec2ImageId":{
       "type":"string",
@@ -4843,7 +4843,8 @@
         "WINDOWS_SERVER_2016",
         "WINDOWS_SERVER_2019",
         "WINDOWS_SERVER_2022",
-        "RHEL_8"
+        "RHEL_8",
+        "ROCKY_8"
       ]
     },
     "OperatingSystemNameList":{
@@ -6625,7 +6626,23 @@
         "UEFINotSupported",
         "UnknownError",
         "AppXPackagesInstalled",
-        "ReservedStorageInUse"
+        "ReservedStorageInUse",
+        "AdditionalDrivesPresent",
+        "WindowsUpdatesRequired",
+        "SysPrepFileMissing",
+        "UserProfileMissing",
+        "InsufficientDiskSpace",
+        "EnvironmentVariablesPathMissingEntries",
+        "DomainAccountServicesFound",
+        "InvalidIp",
+        "RemoteDesktopServicesDisabled",
+        "WindowsModulesInstallerDisabled",
+        "AmazonSsmAgentEnabled",
+        "UnsupportedSecurityProtocol",
+        "MultipleUserProfiles",
+        "StagedAppxPackage",
+        "UnsupportedOsUpgrade",
+        "InsufficientRearmCount"
       ]
     },
     "WorkspaceImageId":{

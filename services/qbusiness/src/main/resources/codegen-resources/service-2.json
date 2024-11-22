@@ -111,7 +111,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ServiceQuotaExceededException"}
       ],
-      "documentation":"<p>Creates an Amazon Q Business application.</p> <note> <p>There are new tiers for Amazon Q Business. Not all features in Amazon Q Business Pro are also available in Amazon Q Business Lite. For information on what's included in Amazon Q Business Lite and what's included in Amazon Q Business Pro, see <a href=\"https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/tiers.html#user-sub-tiers\">Amazon Q Business tiers</a>. You must use the Amazon Q Business console to assign subscription tiers to users.</p> </note>",
+      "documentation":"<p>Creates an Amazon Q Business application.</p> <note> <p>There are new tiers for Amazon Q Business. Not all features in Amazon Q Business Pro are also available in Amazon Q Business Lite. For information on what's included in Amazon Q Business Lite and what's included in Amazon Q Business Pro, see <a href=\"https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/tiers.html#user-sub-tiers\">Amazon Q Business tiers</a>. You must use the Amazon Q Business console to assign subscription tiers to users. </p> <p> A Amazon Q Apps service linked role will be created if it's absent in the Amazon Web Services account when the QAppsConfiguration is enabled in the request. For more information, see <a href=\"https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/using-service-linked-roles-qapps.html\"> Using service-linked roles for Q Apps </a> </p> </note>",
       "idempotent":true
     },
     "CreateDataSource":{
@@ -950,7 +950,7 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Updates an existing Amazon Q Business application.</p>",
+      "documentation":"<p>Updates an existing Amazon Q Business application.</p> <note> <p> A Amazon Q Apps service-linked role will be created if it's absent in the Amazon Web Services account when the QAppsConfiguration is enabled in the request. For more information, see <a href=\"https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/using-service-linked-roles-qapps.html\"> Using service-linked roles for Q Apps </a> </p> </note>",
       "idempotent":true
     },
     "UpdateChatControlsConfiguration":{
@@ -1345,6 +1345,10 @@
           "shape":"String",
           "documentation":"<p>The expected data format for the action review input field value. For example, in PTO request, <code>from</code> and <code>to</code> would be of <code>datetime</code> allowed format. </p>"
         },
+        "arrayItemJsonSchema":{
+          "shape":"ActionReviewPayloadFieldArrayItemJsonSchema",
+          "documentation":"<p>Use to create a custom form with array fields (fields with nested objects inside an array). </p>"
+        },
         "required":{
           "shape":"Boolean",
           "documentation":"<p>Information about whether the field is required.</p>"
@@ -1369,6 +1373,12 @@
     "ActionReviewPayloadFieldAllowedValues":{
       "type":"list",
       "member":{"shape":"ActionReviewPayloadFieldAllowedValue"}
+    },
+    "ActionReviewPayloadFieldArrayItemJsonSchema":{
+      "type":"structure",
+      "members":{
+      },
+      "document":true
     },
     "AmazonResourceName":{
       "type":"string",
@@ -1861,7 +1871,7 @@
         },
         "userGroups":{
           "shape":"UserGroups",
-          "documentation":"<p>The groups that a user associated with the chat input belongs to.</p>",
+          "documentation":"<p>The group names that a user associated with the chat input belongs to.</p>",
           "location":"querystring",
           "locationName":"userGroups"
         },
@@ -1996,7 +2006,7 @@
         },
         "userGroups":{
           "shape":"UserGroups",
-          "documentation":"<p>The groups that a user associated with the chat input belongs to.</p>",
+          "documentation":"<p>The group names that a user associated with the chat input belongs to.</p>",
           "location":"querystring",
           "locationName":"userGroups"
         },
@@ -2211,7 +2221,7 @@
         },
         "roleArn":{
           "shape":"RoleArn",
-          "documentation":"<p> The Amazon Resource Name (ARN) of an IAM role with permissions to access your Amazon CloudWatch logs and metrics.</p>"
+          "documentation":"<p> The Amazon Resource Name (ARN) of an IAM role with permissions to access your Amazon CloudWatch logs and metrics. If this property is not specified, Amazon Q Business will create a <a href=\"https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/using-service-linked-roles.html#slr-permissions\">service linked role (SLR)</a> and use it as the application's role.</p>"
         },
         "identityType":{
           "shape":"IdentityType",
@@ -2572,6 +2582,10 @@
         "samplePromptsControlMode":{
           "shape":"WebExperienceSamplePromptsControlMode",
           "documentation":"<p>Determines whether sample prompts are enabled in the web experience for an end user.</p>"
+        },
+        "origins":{
+          "shape":"WebExperienceOrigins",
+          "documentation":"<p>Sets the website domain origins that are allowed to embed the Amazon Q Business web experience. <pre><code> The &lt;i&gt;domain origin&lt;/i&gt; refers to the base URL for accessing a website including the protocol (&lt;code&gt;http/https&lt;/code&gt;), the domain name, and the port number (if specified). &lt;/p&gt; &lt;note&gt; &lt;p&gt;You must only submit a &lt;i&gt;base URL&lt;/i&gt; and not a full path. For example, &lt;code&gt;https://docs.aws.amazon.com&lt;/code&gt;.&lt;/p&gt; &lt;/note&gt; </code></pre>"
         },
         "roleArn":{
           "shape":"RoleArn",
@@ -4144,6 +4158,10 @@
           "shape":"WebExperienceSamplePromptsControlMode",
           "documentation":"<p>Determines whether sample prompts are enabled in the web experience for an end user.</p>"
         },
+        "origins":{
+          "shape":"WebExperienceOrigins",
+          "documentation":"<p>Gets the website domain origins that are allowed to embed the Amazon Q Business web experience. <pre><code> The &lt;i&gt;domain origin&lt;/i&gt; refers to the base URL for accessing a website including the protocol (&lt;code&gt;http/https&lt;/code&gt;), the domain name, and the port number (if specified). &lt;/p&gt; </code></pre>"
+        },
         "roleArn":{
           "shape":"RoleArn",
           "documentation":"<p> The Amazon Resource Name (ARN) of the service role attached to your web experience.</p>"
@@ -4174,7 +4192,8 @@
         "memberUsers":{
           "shape":"MemberUsers",
           "documentation":"<p>A list of users that belong to a group. For example, a list of interns all belong to the \"Interns\" group.</p>"
-        }
+        },
+        "s3PathForGroupMembers":{"shape":"S3"}
       },
       "documentation":"<p>A list of users or sub groups that belong to a group. This is for generating Amazon Q Business chat results only from document a user has access to.</p>"
     },
@@ -5342,6 +5361,12 @@
       },
       "documentation":"<p>Information about the OIDC-compliant identity provider (IdP) used to authenticate end users of an Amazon Q Business web experience.</p>"
     },
+    "Origin":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"(http://|https://)[a-zA-Z0-9-_.]+(?::[0-9]{1,5})?"
+    },
     "Payload":{
       "type":"string",
       "sensitive":true
@@ -5621,7 +5646,11 @@
           "shape":"MembershipType",
           "documentation":"<p>The type of the group.</p>"
         },
-        "groupMembers":{"shape":"GroupMembers"}
+        "groupMembers":{"shape":"GroupMembers"},
+        "roleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of an IAM role that has access to the S3 file that contains your list of users that belong to a group.The Amazon Resource Name (ARN) of an IAM role that has access to the S3 file that contains your list of users that belong to a group.</p>"
+        }
       }
     },
     "PutGroupResponse":{
@@ -5638,7 +5667,7 @@
           "documentation":"<p>Status information about whether end users can create and use Amazon Q Apps in the web experience.</p>"
         }
       },
-      "documentation":"<p>Configuration information about Amazon Q Apps. (preview feature)</p>"
+      "documentation":"<p>Configuration information about Amazon Q Apps.</p>"
     },
     "QAppsControlMode":{
       "type":"string",
@@ -6739,6 +6768,10 @@
         "identityProviderConfiguration":{
           "shape":"IdentityProviderConfiguration",
           "documentation":"<p>Information about the identity provider (IdP) used to authenticate end users of an Amazon Q Business web experience.</p>"
+        },
+        "origins":{
+          "shape":"WebExperienceOrigins",
+          "documentation":"<p>Updates the website domain origins that are allowed to embed the Amazon Q Business web experience. <pre><code> The &lt;i&gt;domain origin&lt;/i&gt; refers to the &lt;i&gt;base URL&lt;/i&gt; for accessing a website including the protocol (&lt;code&gt;http/https&lt;/code&gt;), the domain name, and the port number (if specified).&lt;/p&gt; &lt;note&gt; &lt;ul&gt; &lt;li&gt; &lt;p&gt;Any values except &lt;code&gt;null&lt;/code&gt; submitted as part of this update will replace all previous values.&lt;/p&gt; &lt;/li&gt; &lt;li&gt; &lt;p&gt;You must only submit a &lt;i&gt;base URL&lt;/i&gt; and not a full path. For example, &lt;code&gt;https://docs.aws.amazon.com&lt;/code&gt;.&lt;/p&gt; &lt;/li&gt; &lt;/ul&gt; &lt;/note&gt; </code></pre>"
         }
       }
     },
@@ -6804,10 +6837,10 @@
         },
         "userGroups":{
           "shape":"UserGroups",
-          "documentation":"<p>The user groups associated with a topic control rule.</p>"
+          "documentation":"<p>The user group names associated with a topic control rule.</p>"
         }
       },
-      "documentation":"<p>Provides information about users and groups associated with a topic control rule.</p>"
+      "documentation":"<p>Provides information about users and group names associated with a topic control rule.</p>"
     },
     "ValidationException":{
       "type":"structure",
@@ -6911,6 +6944,12 @@
       "max":36,
       "min":36,
       "pattern":"[a-zA-Z0-9][a-zA-Z0-9-]*"
+    },
+    "WebExperienceOrigins":{
+      "type":"list",
+      "member":{"shape":"Origin"},
+      "max":10,
+      "min":0
     },
     "WebExperienceSamplePromptsControlMode":{
       "type":"string",

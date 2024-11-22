@@ -30,6 +30,7 @@ import java.util.Optional;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.internal.DigestAlgorithm;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -169,6 +170,13 @@ public final class SignerUtils {
     public static void addHostHeader(SdkHttpRequest.Builder requestBuilder) {
         // AWS4 requires that we sign the Host header, so we
         // have to have it in the request by the time we sign.
+
+        // If the SdkHttpRequest has an associated Host header
+        // already set, prefer to use that.
+
+        if (requestBuilder.headers().get(SignerConstant.HOST) != null) {
+            return;
+        }
 
         String host = requestBuilder.host();
         if (!SdkHttpUtils.isUsingStandardPort(requestBuilder.protocol(), requestBuilder.port())) {

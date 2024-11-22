@@ -7,10 +7,12 @@ import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
+import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
+import software.amazon.awssdk.awscore.internal.useragent.BusinessMetricsUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -20,6 +22,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
@@ -35,6 +38,7 @@ import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.jmespath.internal.JmesPathRuntime;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
 import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperationContextParamRequest;
+import software.amazon.awssdk.services.query.model.OperationWithMapOperationContextParamRequest;
 import software.amazon.awssdk.services.query.model.OperationWithOperationContextParamRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -101,10 +105,8 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         builder.region(AwsEndpointProviderUtils.regionBuiltIn(executionAttributes));
         builder.useDualStackEndpoint(AwsEndpointProviderUtils.dualStackEnabledBuiltIn(executionAttributes));
         builder.useFipsEndpoint(AwsEndpointProviderUtils.fipsEnabledBuiltIn(executionAttributes));
-        builder.accountId(accountIdFromIdentity(executionAttributes
-                                                    .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)));
-        builder.accountIdEndpointMode(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE)
-                                                         .name().toLowerCase());
+        builder.accountId(resolveAndRecordAccountIdFromIdentity(executionAttributes));
+        builder.accountIdEndpointMode(recordAccountIdEndpointMode(executionAttributes));
         setClientContextParams(builder, executionAttributes);
         setContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), request);
         setStaticContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME));
@@ -193,6 +195,9 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             case "OperationWithCustomizedOperationContextParam":
                 setOperationContextParams(params, (OperationWithCustomizedOperationContextParamRequest) request);
                 break;
+            case "OperationWithMapOperationContextParam":
+                setOperationContextParams(params, (OperationWithMapOperationContextParamRequest) request);
+                break;
             case "OperationWithOperationContextParam":
                 setOperationContextParams(params, (OperationWithOperationContextParamRequest) request);
                 break;
@@ -205,6 +210,12 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                                                   OperationWithCustomizedOperationContextParamRequest request) {
         JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
         params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString").stringValues());
+    }
+
+    private static void setOperationContextParams(QueryEndpointParams.Builder params,
+                                                  OperationWithMapOperationContextParamRequest request) {
+        JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
+        params.arnList(input.field("RequestMap").keys().stringValues());
     }
 
     private static void setOperationContextParams(QueryEndpointParams.Builder params,
@@ -223,6 +234,14 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         }
     }
 
+    private static String resolveAndRecordAccountIdFromIdentity(ExecutionAttributes executionAttributes) {
+        String accountId = accountIdFromIdentity(executionAttributes
+                                                     .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
+        executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(
+            BusinessMetricFeatureId.RESOLVED_ACCOUNT_ID.value());
+        return accountId;
+    }
+
     private static <T extends Identity> String accountIdFromIdentity(SelectedAuthScheme<T> selectedAuthScheme) {
         T identity = CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity());
         String accountId = null;
@@ -230,5 +249,12 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             accountId = ((AwsCredentialsIdentity) identity).accountId().orElse(null);
         }
         return accountId;
+    }
+
+    private static String recordAccountIdEndpointMode(ExecutionAttributes executionAttributes) {
+        AccountIdEndpointMode mode = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE);
+        BusinessMetricsUtils.resolveAccountIdEndpointModeMetric(mode).ifPresent(
+            m -> executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(m));
+        return mode.name().toLowerCase();
     }
 }

@@ -4,7 +4,9 @@ import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -27,15 +29,22 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public class InputEvent implements SdkPojo, Serializable, ToCopyableBuilder<InputEvent.Builder, InputEvent>, InputEventStream {
     private static final SdkField<SdkBytes> EXPLICIT_PAYLOAD_MEMBER_FIELD = SdkField
-        .<SdkBytes> builder(MarshallingType.SDK_BYTES)
-        .memberName("ExplicitPayloadMember")
-        .getter(getter(InputEvent::explicitPayloadMember))
-        .setter(setter(Builder::explicitPayloadMember))
-        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ExplicitPayloadMember").build(),
-                PayloadTrait.create()).build();
+            .<SdkBytes> builder(MarshallingType.SDK_BYTES)
+            .memberName("ExplicitPayloadMember")
+            .getter(getter(InputEvent::explicitPayloadMember))
+            .setter(setter(Builder::explicitPayloadMember))
+            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ExplicitPayloadMember").build(),
+                    PayloadTrait.create()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections
-        .unmodifiableList(Arrays.asList(EXPLICIT_PAYLOAD_MEMBER_FIELD));
+            .unmodifiableList(Arrays.asList(EXPLICIT_PAYLOAD_MEMBER_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections
+            .unmodifiableMap(new HashMap<String, SdkField<?>>() {
+                {
+                    put("ExplicitPayloadMember", EXPLICIT_PAYLOAD_MEMBER_FIELD);
+                }
+            });
 
     private static final long serialVersionUID = 1L;
 
@@ -47,7 +56,7 @@ public class InputEvent implements SdkPojo, Serializable, ToCopyableBuilder<Inpu
 
     /**
      * Returns the value of the ExplicitPayloadMember property for this object.
-     *
+     * 
      * @return The value of the ExplicitPayloadMember property for this object.
      */
     public final SdkBytes explicitPayloadMember() {
@@ -105,10 +114,10 @@ public class InputEvent implements SdkPojo, Serializable, ToCopyableBuilder<Inpu
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "ExplicitPayloadMember":
-                return Optional.ofNullable(clazz.cast(explicitPayloadMember()));
-            default:
-                return Optional.empty();
+        case "ExplicitPayloadMember":
+            return Optional.ofNullable(clazz.cast(explicitPayloadMember()));
+        default:
+            return Optional.empty();
         }
     }
 
@@ -120,6 +129,11 @@ public class InputEvent implements SdkPojo, Serializable, ToCopyableBuilder<Inpu
     @Override
     public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
+    }
+
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
     }
 
     private static <T> Function<Object, T> getter(Function<InputEvent, T> g) {
@@ -173,6 +187,11 @@ public class InputEvent implements SdkPojo, Serializable, ToCopyableBuilder<Inpu
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }
