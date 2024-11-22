@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Email Service",
+    "contributor": "",
+    "description": "This release adds support for starting email contacts in your Amazon Connect instance as an email receiving action."
+}
