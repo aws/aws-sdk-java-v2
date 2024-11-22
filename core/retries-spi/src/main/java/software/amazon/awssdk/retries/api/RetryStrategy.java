@@ -87,8 +87,9 @@ public interface RetryStrategy {
     int maxAttempts();
 
     /**
-     * todo
-     * @return
+     * Returns whether the retry strategy uses default retry predicates.
+     *
+     * @return true if this retry strategy should use the default retry predicates, false otherwise.
      */
     default boolean useClientDefaults() {
         return true;
@@ -227,6 +228,12 @@ public interface RetryStrategy {
          */
         B treatAsThrottling(Predicate<Throwable> treatAsThrottling);
 
+
+        /**
+         * Configure whether the default predicates should be used, or not. When set to false, only user-provided retry
+         * predicates will be considered to determine what should be retried or not. Setting this to false and providing
+         * no predicate will result in an empty retry strategy.
+         */
         default B useClientDefaults(boolean useClientDefaults) {
             return (B) this;
         }
