@@ -27,6 +27,7 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import java.nio.charset.StandardCharsets;
@@ -35,19 +36,19 @@ import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.SdkChecksum;
 
 @State(Scope.Benchmark)
-@Warmup(iterations = 3, time = 3, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
+@Warmup(iterations = 3, time = 15, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
+@Fork(2)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-public class CheckSumBenchmark {
+public class ChecksumBenchmark {
     @State(Scope.Thread)
     public static class ChecksumState {
 
         @Param( {"128B", "4KB", "128KB", "1MB"})
         public String size;
 
-        @Param( {"MD5", "CRC32", "CRC32C", "SHA1", "SHA256"})
+        @Param( {"MD5", "CRC32", "CRC32C", "SHA1", "SHA256","CRC64NVME"})
         public String checksumProvider;
 
         private byte[] payload;
@@ -71,6 +72,9 @@ public class CheckSumBenchmark {
                     break;
                 case "SHA256":
                     sdkChecksum = SdkChecksum.forAlgorithm(DefaultChecksumAlgorithm.SHA256);
+                    break;
+                case "CRC64NVME":
+                    sdkChecksum = SdkChecksum.forAlgorithm(DefaultChecksumAlgorithm.CRC64NVME);
                     break;
 
                 default:
@@ -98,10 +102,14 @@ public class CheckSumBenchmark {
 
     @Benchmark
     public void updateEntireByteArrayChecksum(ChecksumState state, Blackhole blackhole) {
-        state.sdkChecksum.reset();  // Ensure we reset the checksum before each run
         state.sdkChecksum.update(state.payload);
         state.sdkChecksum.getChecksumBytes();
         blackhole.consume(state.sdkChecksum);
+    }
+
+    @TearDown
+    public void tearDown(ChecksumState state) {
+        state.sdkChecksum.reset();
     }
 
     @Benchmark
