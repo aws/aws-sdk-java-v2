@@ -391,7 +391,7 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
     @SdkProtectedApi
     public abstract static class Builder {
         private List<Predicate<Throwable>> retryPredicates;
-        protected Set<String> defaultsAdded;
+        private Set<String> defaultsAdded;
         private int maxAttempts;
         private Boolean circuitBreakerEnabled;
         private Boolean useClientDefaults;
