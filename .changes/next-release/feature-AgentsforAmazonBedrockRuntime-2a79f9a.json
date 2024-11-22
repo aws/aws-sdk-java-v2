@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Agents for Amazon Bedrock Runtime",
+    "contributor": "",
+    "description": "InvokeInlineAgent API release to help invoke runtime agents without any dependency on preconfigured agents."
+}
