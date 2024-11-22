@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Cost Explorer Service",
+    "contributor": "",
+    "description": "This release adds the Impact field(contains Contribution field) to the GetAnomalies API response under RootCause"
+}
