@@ -141,7 +141,10 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
     @Override
     public Void visitMemberAccessExpression(MemberAccessExpression e) {
         e.source().accept(this);
-        builder.add(".$L()", e.name());
+        if (!e.directIndex()) {
+            builder.add(".$L()", e.name());
+        }
+
         return null;
     }
 
@@ -197,25 +200,25 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
             RuleType type = symbolTable.locals().get(key);
             builder.addStatement("$T $L = null", type.javaType(), key);
         }
-        builder.add("if (");
-        boolean isFirst = true;
+
+        int count = 0;
         for (Map.Entry<String, RuleExpression> kvp : expr.bindings().entrySet()) {
             String k = kvp.getKey();
             RuleExpression v = kvp.getValue();
-            if (!isFirst) {
-                builder.add(" && ");
-            }
+            builder.add("if (");
             builder.add("($L = ", k);
             v.accept(this);
             builder.add(") != null");
-            isFirst = false;
+
+            builder.beginControlFlow(")");
+            builder.addStatement("locals = locals.toBuilder().$1L($1L).build()", k);
+
+            if (++count < expr.bindings().size()) {
+                builder.nextControlFlow("else");
+                builder.addStatement("return RuleResult.carryOn()");
+                builder.endControlFlow();
+            }
         }
-        builder.beginControlFlow(")");
-        builder.add("locals = locals.toBuilder()");
-        expr.bindings().forEach((k, v) -> {
-            builder.add(".$1L($1L)", k);
-        });
-        builder.addStatement(".build()");
         return null;
     }
 
