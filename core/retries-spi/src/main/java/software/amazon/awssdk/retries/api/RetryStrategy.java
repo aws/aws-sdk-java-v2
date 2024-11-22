@@ -19,7 +19,6 @@ import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * A strategy used by an SDK to determine when something should be retried.
@@ -86,6 +85,14 @@ public interface RetryStrategy {
      * @return the maximum numbers attempts that this retry policy will allow.
      */
     int maxAttempts();
+
+    /**
+     * todo
+     * @return
+     */
+    default boolean useClientDefaults() {
+        return true;
+    }
 
     /**
      * Create a new {@link Builder} with the current configuration.
@@ -219,6 +226,10 @@ public interface RetryStrategy {
          * {@link #backoffStrategy} will be used. This predicate will not be called for non-retryable exceptions.
          */
         B treatAsThrottling(Predicate<Throwable> treatAsThrottling);
+
+        default B useClientDefaults(boolean useClientDefaults) {
+            return (B) this;
+        }
 
         /**
          * Build a new {@link RetryStrategy} with the current configuration on this builder.

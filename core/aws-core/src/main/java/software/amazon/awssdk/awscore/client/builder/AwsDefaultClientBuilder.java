@@ -24,6 +24,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -426,29 +427,27 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             return;
         }
 
-        // TODO(10/09/24) This is a temporal workaround and not a long term solution. It will fail to add the SDK and AWS
-        //  defaults if the users add one or more if their own retry predicates. A long term fix is needed that can
-        //  "remember" which defaults have been already applied, e.g.,
-        //    if (strategy.shouldAddDefaults("aws")) {
-        //       strategy = strategy.toBuilder()
-        //                          .applyMutation(AwsRetryStrategy::applyDefaults)
-        //                          .markDefaultsAdded("aws")
-        //                          .build();
-        //    }
+        if (!strategy.useClientDefaults()) {
+            return;
+        }
 
-        RetryStrategy.Builder<?, ?> builder = strategy.toBuilder();
-        builder.applyMutation(AwsRetryStrategy::applyDefault);
-        config.option(SdkClientOption.RETRY_STRATEGY, builder.build());
+        if (!(strategy instanceof BaseRetryStrategy)) {
+            return;
+        }
 
-        // if (strategy.maxAttempts() > 1
-        //     && (strategy instanceof BaseRetryStrategy)
-        //     && !((BaseRetryStrategy) strategy).hasRetryPredicates()
-        // ) {
-        //     RetryStrategy.Builder<?, ?> builder = strategy.toBuilder();
-        //     SdkDefaultRetryStrategy.configureStrategy(builder);
-        //     AwsRetryStrategy.configureStrategy(builder);
-        //     config.option(SdkClientOption.RETRY_STRATEGY, builder.build());
-        // }
+        BaseRetryStrategy baseRetryStrategy = (BaseRetryStrategy) strategy;
+        RetryStrategy.Builder<?, ?> baseRetryStrategyBuilder = baseRetryStrategy.toBuilder();
+
+        if (baseRetryStrategy.shouldAddDefaults(AwsRetryStrategy.DEFAULTS_NAME)) {
+            baseRetryStrategyBuilder.applyMutation(AwsRetryStrategy::applyDefault);
+        }
+
+        if (baseRetryStrategy.shouldAddDefaults(SdkDefaultRetryStrategy.DEFAULTS_NAME)) {
+            baseRetryStrategyBuilder.applyMutation(SdkDefaultRetryStrategy::applyDefault);
+        }
+
+        config.option(SdkClientOption.RETRY_STRATEGY, baseRetryStrategyBuilder.build());
+
     }
 
     private RetryStrategy resolveAwsRetryStrategy(LazyValueSource config) {

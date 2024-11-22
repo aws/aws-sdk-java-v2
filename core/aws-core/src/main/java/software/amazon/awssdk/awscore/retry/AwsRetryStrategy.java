@@ -34,6 +34,8 @@ import software.amazon.awssdk.retries.internal.BaseRetryStrategy;
 @SdkPublicApi
 public final class AwsRetryStrategy {
 
+    public static final String DEFAULTS_NAME = "aws";
+
     private AwsRetryStrategy() {
     }
 
@@ -129,7 +131,7 @@ public final class AwsRetryStrategy {
      */
     public static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder) {
         builder.retryOnException(AwsRetryStrategy::retryOnAwsRetryableErrors);
-        BaseRetryStrategy base = (BaseRetryStrategy) builder.build();
+        markDefaultsAdded(builder);
         return builder;
     }
 
@@ -167,6 +169,14 @@ public final class AwsRetryStrategy {
 
     public static void applyDefault(RetryStrategy.Builder<?, ?> builder) {
         configureStrategy(builder);
+        markDefaultsAdded(builder);
+    }
+
+    private static void markDefaultsAdded(RetryStrategy.Builder<?, ?> builder) {
+        if (builder instanceof BaseRetryStrategy.Builder) {
+            BaseRetryStrategy.Builder b = (BaseRetryStrategy.Builder) builder;
+            b.markDefaultAdded(DEFAULTS_NAME);
+        }
     }
 
 }
