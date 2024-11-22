@@ -17,7 +17,6 @@ package software.amazon.awssdk.retries.internal;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -40,10 +39,9 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.AcquireResponse;
 import software.amazon.awssdk.retries.internal.circuitbreaker.ReleaseResponse;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucket;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
-import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Generic class that implements that common logic for all the retries strategies with extension points for specific strategies to
@@ -372,19 +370,18 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("BaseRetryStrategy{");
-        sb.append("retryPredicates=").append(retryPredicates);
-        sb.append(", maxAttempts=").append(maxAttempts);
-        sb.append(", circuitBreakerEnabled=").append(circuitBreakerEnabled);
-        sb.append(", backoffStrategy=").append(backoffStrategy);
-        sb.append(", throttlingBackoffStrategy=").append(throttlingBackoffStrategy);
-        sb.append(", treatAsThrottling=").append(treatAsThrottling);
-        sb.append(", exceptionCost=").append(exceptionCost);
-        sb.append(", tokenBucketStore=").append(tokenBucketStore);
-        sb.append(", defaultsAdded=").append(defaultsAdded);
-        sb.append(", useClientDefaults=").append(useClientDefaults);
-        sb.append('}');
-        return sb.toString();
+        return ToString.builder("BaseRetryStrategy")
+                       .add("retryPredicates", retryPredicates)
+                       .add("maxAttempts", maxAttempts)
+                       .add("circuitBreakerEnabled", circuitBreakerEnabled)
+                       .add("backoffStrategy", backoffStrategy)
+                       .add("throttlingBackoffStrategy", throttlingBackoffStrategy)
+                       .add("treatAsThrottling", treatAsThrottling)
+                       .add("exceptionCost", exceptionCost)
+                       .add("tokenBucketStore", tokenBucketStore)
+                       .add("defaultsAdded", defaultsAdded)
+                       .add("useClientDefaults", useClientDefaults)
+                       .build();
     }
 
     public boolean shouldAddDefaults(String defaultPredicateName) {
@@ -394,15 +391,15 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
     @SdkProtectedApi
     public abstract static class Builder {
         private List<Predicate<Throwable>> retryPredicates;
+        protected Set<String> defaultsAdded;
         private int maxAttempts;
         private Boolean circuitBreakerEnabled;
+        private Boolean useClientDefaults;
         private Integer exceptionCost;
         private BackoffStrategy backoffStrategy;
         private BackoffStrategy throttlingBackoffStrategy;
         private Predicate<Throwable> treatAsThrottling = throwable -> false;
         private TokenBucketStore tokenBucketStore;
-        protected Set<String> defaultsAdded;
-        private Boolean useClientDefaults;
 
         Builder() {
             retryPredicates = new ArrayList<>();

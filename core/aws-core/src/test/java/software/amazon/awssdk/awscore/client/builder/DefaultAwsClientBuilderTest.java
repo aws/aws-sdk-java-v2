@@ -59,6 +59,7 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.retries.LegacyRetryStrategy;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
@@ -287,6 +288,8 @@ public class DefaultAwsClientBuilderTest {
         return Stream.of(
             Arguments.of("Standard - static method creation",
                          SdkDefaultRetryStrategy.standardRetryStrategy(), 9),
+            Arguments.of("Standard - static builder method",
+                         DefaultRetryStrategy.standardStrategyBuilder().build(), 9),
             Arguments.of("Standard - builder with retryOnException",
                          StandardRetryStrategy.builder()
                                               .retryOnException(TestException.class)
