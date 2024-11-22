@@ -381,6 +381,8 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
         sb.append(", treatAsThrottling=").append(treatAsThrottling);
         sb.append(", exceptionCost=").append(exceptionCost);
         sb.append(", tokenBucketStore=").append(tokenBucketStore);
+        sb.append(", defaultsAdded=").append(defaultsAdded);
+        sb.append(", useClientDefaults=").append(useClientDefaults);
         sb.append('}');
         return sb.toString();
     }
