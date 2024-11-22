@@ -18,7 +18,6 @@ package software.amazon.awssdk.codegen.poet.rules2;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.utils.ToString;
 
 /**
@@ -64,7 +63,6 @@ public final class AssignTypesVisitor extends RewriteRuleExpressionVisitor {
             type = tableBuilder.param(variableName);
         }
         if (type == null) {
-            errors.add(String.format("Undefined variable `%s`", variableName));
             return e;
         }
         return e.toBuilder()
@@ -90,12 +88,6 @@ public final class AssignTypesVisitor extends RewriteRuleExpressionVisitor {
             return expr;
         }
 
-        List<RuleType> args = expr.arguments().stream().map(RuleExpression::type).collect(Collectors.toList());
-        if (!function.matches(args)) {
-            addError("Arguments for function `%s` doesn't match, expected: `%s`, got: `%s`",
-                     name,
-                     function.arguments().values(), args);
-        }
         return expr.toBuilder().type(function.returns()).build();
     }
 
@@ -160,7 +152,13 @@ public final class AssignTypesVisitor extends RewriteRuleExpressionVisitor {
             addError("Cannot find type for expression `%s`", expr.source());
         } else {
             String name = expr.name();
-            RuleType memberType = type.property(name);
+            RuleType memberType;
+            if (expr.directIndex()) {
+                memberType = type;
+            } else {
+                memberType = type.property(name);
+            }
+
             if (memberType == null) {
                 addError("Cannot find a member with name `%s` for type `%s`", name, type);
             } else {
