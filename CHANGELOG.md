@@ -1,4 +1,26 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.21__ __2024-11-25__
+## __AWS Direct Connect__
+  - ### Features
+    - Update DescribeDirectConnectGatewayAssociations API to return associated core network information if a Direct Connect gateway is attached to a Cloud WAN core network.
+
+## __AWS Network Manager__
+  - ### Features
+    - This release adds native Direct Connect integration on Cloud WAN enabling customers to directly attach their Direct Connect gateways to Cloud WAN without the need for an intermediate Transit Gateway.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon Simple Storage Service / Features: Add support for ETag based conditional writes in PutObject and CompleteMultiPartUpload APIs to prevent unintended object modifications.
+
+## __v2-migration OpenRewrite recipe__
+  - ### Bugfixes
+    - This fixes a ConcurrentModificationException - just by replacing a HashMap with ConcurrentHashMap
+        - Contributed by: [@sk-br](https://github.com/sk-br)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sk-br](https://github.com/sk-br)
 # __2.29.20__ __2024-11-22__
 ## __AWS Billing and Cost Management Pricing Calculator__
   - ### Features

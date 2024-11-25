@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "v2-migration OpenRewrite recipe",
-    "contributor": "sk-br",
-    "description": "This fixes a ConcurrentModificationException - just by replacing a HashMap with ConcurrentHashMap"
-}
