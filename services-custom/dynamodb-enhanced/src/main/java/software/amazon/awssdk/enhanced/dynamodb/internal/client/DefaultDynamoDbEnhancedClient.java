@@ -184,13 +184,13 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
 
         @Override
         public Builder extensions(DynamoDbEnhancedClientExtension... dynamoDbEnhancedClientExtensions) {
-            this.dynamoDbEnhancedClientExtensions = Arrays.asList(dynamoDbEnhancedClientExtensions);
+            this.dynamoDbEnhancedClientExtensions.addAll(Arrays.asList(dynamoDbEnhancedClientExtensions));
             return this;
         }
 
         @Override
         public Builder extensions(List<DynamoDbEnhancedClientExtension> dynamoDbEnhancedClientExtensions) {
-            this.dynamoDbEnhancedClientExtensions = new ArrayList<>(dynamoDbEnhancedClientExtensions);
+            this.dynamoDbEnhancedClientExtensions.addAll(dynamoDbEnhancedClientExtensions);
             return this;
         }
     }
