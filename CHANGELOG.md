@@ -1,4 +1,34 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.22__ __2024-11-26__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix ApacheHttpClient's handling of request bodies on DELETE, GET, HEAD & OPTIONS requests
+        - Contributed by: [@Xtansia](https://github.com/Xtansia)
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Custom Orchestration API release for AWSBedrockAgents.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Custom Orchestration and Streaming configurations API release for AWSBedrockAgents.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Enables access to ValueMap and ValueInteger types for SegmentAttributes and fixes deserialization bug for DescribeContactFlow in AmazonConnect Public API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for Time-based Copy for EBS Snapshots and Cross Region PrivateLink. Time-based Copy ensures that EBS Snapshots are copied within and across AWS Regions in a specified timeframe. Cross Region PrivateLink enables customers to connect to VPC endpoint services hosted in other AWS Regions.
+
+## __QApps__
+  - ### Features
+    - Private sharing, file upload and data collection feature support for Q Apps
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@Xtansia](https://github.com/Xtansia)
 # __2.29.21__ __2024-11-25__
 ## __AWS Direct Connect__
   - ### Features
