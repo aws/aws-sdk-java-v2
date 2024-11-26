@@ -1,4 +1,115 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.21__ __2024-11-25__
+## __AWS Direct Connect__
+  - ### Features
+    - Update DescribeDirectConnectGatewayAssociations API to return associated core network information if a Direct Connect gateway is attached to a Cloud WAN core network.
+
+## __AWS Network Manager__
+  - ### Features
+    - This release adds native Direct Connect integration on Cloud WAN enabling customers to directly attach their Direct Connect gateways to Cloud WAN without the need for an intermediate Transit Gateway.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon Simple Storage Service / Features: Add support for ETag based conditional writes in PutObject and CompleteMultiPartUpload APIs to prevent unintended object modifications.
+
+## __v2-migration OpenRewrite recipe__
+  - ### Bugfixes
+    - This fixes a ConcurrentModificationException - just by replacing a HashMap with ConcurrentHashMap
+        - Contributed by: [@sk-br](https://github.com/sk-br)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sk-br](https://github.com/sk-br)
+# __2.29.20__ __2024-11-22__
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Initial release of the AWS Billing and Cost Management Pricing Calculator API.
+
+## __AWS Chatbot__
+  - ### Features
+    - Adds support for programmatic management of custom actions and aliases which can be associated with channel configurations.
+
+## __AWS CodePipeline__
+  - ### Features
+    - AWS CodePipeline V2 type pipelines now support ECRBuildAndPublish and InspectorScan actions.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release adds the Impact field(contains Contribution field) to the GetAnomalies API response under RootCause
+
+## __AWS Lambda__
+  - ### Features
+    - Add ProvisionedPollerConfig to Lambda event-source-mapping API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Step Functions__
+  - ### Features
+    - Add support for variables and JSONata in TestState, GetExecutionHistory, DescribeStateMachine, and DescribeStateMachineForExecution
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - InvokeInlineAgent API release to help invoke runtime agents without any dependency on preconfigured agents.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add support for users to sign up and sign in without passwords, using email and SMS OTPs and Passkeys. Add support for Passkeys based on WebAuthn. Add support for enhanced branding customization for hosted authentication pages with Amazon Cognito Managed Login. Add feature tiers with new pricing.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Service Feature: Add APIs for Amazon Connect Email Channel
+
+## __Amazon EMR__
+  - ### Features
+    - Advanced Scaling in Amazon EMR Managed Scaling
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Add 4 new APIs to support new Export features, allowing Parquet and CSV formats. Add new arguments in Import APIs to support Parquet import. Add a new query "neptune.read" to run algorithms without loading data into database
+
+## __Amazon Omics__
+  - ### Features
+    - This release adds support for resource policy based cross account S3 access to sequence store read sets.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release includes: Update APIs to support Image, Layer Map, font customization, and Plugin Visual. Add Identity center related information in ListNamsespace API. Update API for restrictedFolder support in topics and add API for SearchTopics, Describe/Update DashboardsQA Configration.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds APIs for new features for SageMaker endpoint to scale down to zero instances, native support for multi-adapter inference, and endpoint scaling improvements.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release adds support for starting email contacts in your Amazon Connect instance as an email receiving action.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - ArchivePolicy attribute added to Archive and Replay feature
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - While integrating WSP-DCV rebrand, a few mentions were erroneously renamed from WSP to DCV. This release reverts those mentions back to WSP.
+
+## __Auto Scaling__
+  - ### Features
+    - Now, Amazon EC2 Auto Scaling customers can enable target tracking policies to take quicker scaling decisions, enhancing their application performance and EC2 utilization. To get started, specify target tracking to monitor a metric that is available on Amazon CloudWatch at seconds-level interval.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for advertising trusted CA certificate names in associated trust stores.
+
+## __Inspector2__
+  - ### Features
+    - Extend inspector2 service model to include ServiceQuotaExceededException.
+
+## __MailManager__
+  - ### Features
+    - Added new "DeliverToQBusiness" rule action to MailManager RulesSet for ingesting email data into Amazon Q Business customer applications
+
 # __2.29.19__ __2024-11-21__
 ## __AWS AppSync__
   - ### Features
