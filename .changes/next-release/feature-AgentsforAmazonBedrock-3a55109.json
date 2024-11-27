@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Agents for Amazon Bedrock",
-    "contributor": "",
-    "description": "Add support for specifying embeddingDataType, either FLOAT32 or BINARY"
-}

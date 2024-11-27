@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "DynamoDB Enhanced Client",
-    "contributor": "",
-    "description": "Fix a bug where DurationAttributeConverter was considering any number past the decimal point as a nanosecond during deserialization"
-}
