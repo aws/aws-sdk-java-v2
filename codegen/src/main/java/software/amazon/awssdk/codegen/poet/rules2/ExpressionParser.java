@@ -316,6 +316,15 @@ public final class ExpressionParser {
             tokenizer.expectAtEof("indexed access");
             return indexedAccessBuilder.build();
         }
+        if (tokenizer.isDirectIndexedAccess()) {
+            IndexedAccessExpression.Builder indexedAccessBuilder = IndexedAccessExpression.builder();
+            tokenizer.consumeDirectIndexed(i -> indexedAccessBuilder
+                .source(memberAccessBuilder.directIndex(true).build())
+                .index(i)
+                .build());
+            tokenizer.expectAtEof("indexed access");
+            return indexedAccessBuilder.build();
+        }
         if (tokenizer.isIdentifier()) {
             tokenizer.consumeIdentifier(memberAccessBuilder::name);
             tokenizer.expectAtEof("member access");

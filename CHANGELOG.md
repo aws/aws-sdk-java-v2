@@ -1,4 +1,238 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.22__ __2024-11-26__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix ApacheHttpClient's handling of request bodies on DELETE, GET, HEAD & OPTIONS requests
+        - Contributed by: [@Xtansia](https://github.com/Xtansia)
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Custom Orchestration API release for AWSBedrockAgents.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Custom Orchestration and Streaming configurations API release for AWSBedrockAgents.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Enables access to ValueMap and ValueInteger types for SegmentAttributes and fixes deserialization bug for DescribeContactFlow in AmazonConnect Public API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for Time-based Copy for EBS Snapshots and Cross Region PrivateLink. Time-based Copy ensures that EBS Snapshots are copied within and across AWS Regions in a specified timeframe. Cross Region PrivateLink enables customers to connect to VPC endpoint services hosted in other AWS Regions.
+
+## __QApps__
+  - ### Features
+    - Private sharing, file upload and data collection feature support for Q Apps
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@Xtansia](https://github.com/Xtansia)
+# __2.29.21__ __2024-11-25__
+## __AWS Direct Connect__
+  - ### Features
+    - Update DescribeDirectConnectGatewayAssociations API to return associated core network information if a Direct Connect gateway is attached to a Cloud WAN core network.
+
+## __AWS Network Manager__
+  - ### Features
+    - This release adds native Direct Connect integration on Cloud WAN enabling customers to directly attach their Direct Connect gateways to Cloud WAN without the need for an intermediate Transit Gateway.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon Simple Storage Service / Features: Add support for ETag based conditional writes in PutObject and CompleteMultiPartUpload APIs to prevent unintended object modifications.
+
+## __v2-migration OpenRewrite recipe__
+  - ### Bugfixes
+    - This fixes a ConcurrentModificationException - just by replacing a HashMap with ConcurrentHashMap
+        - Contributed by: [@sk-br](https://github.com/sk-br)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sk-br](https://github.com/sk-br)
+# __2.29.20__ __2024-11-22__
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Initial release of the AWS Billing and Cost Management Pricing Calculator API.
+
+## __AWS Chatbot__
+  - ### Features
+    - Adds support for programmatic management of custom actions and aliases which can be associated with channel configurations.
+
+## __AWS CodePipeline__
+  - ### Features
+    - AWS CodePipeline V2 type pipelines now support ECRBuildAndPublish and InspectorScan actions.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release adds the Impact field(contains Contribution field) to the GetAnomalies API response under RootCause
+
+## __AWS Lambda__
+  - ### Features
+    - Add ProvisionedPollerConfig to Lambda event-source-mapping API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Step Functions__
+  - ### Features
+    - Add support for variables and JSONata in TestState, GetExecutionHistory, DescribeStateMachine, and DescribeStateMachineForExecution
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - InvokeInlineAgent API release to help invoke runtime agents without any dependency on preconfigured agents.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add support for users to sign up and sign in without passwords, using email and SMS OTPs and Passkeys. Add support for Passkeys based on WebAuthn. Add support for enhanced branding customization for hosted authentication pages with Amazon Cognito Managed Login. Add feature tiers with new pricing.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Service Feature: Add APIs for Amazon Connect Email Channel
+
+## __Amazon EMR__
+  - ### Features
+    - Advanced Scaling in Amazon EMR Managed Scaling
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Add 4 new APIs to support new Export features, allowing Parquet and CSV formats. Add new arguments in Import APIs to support Parquet import. Add a new query "neptune.read" to run algorithms without loading data into database
+
+## __Amazon Omics__
+  - ### Features
+    - This release adds support for resource policy based cross account S3 access to sequence store read sets.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release includes: Update APIs to support Image, Layer Map, font customization, and Plugin Visual. Add Identity center related information in ListNamsespace API. Update API for restrictedFolder support in topics and add API for SearchTopics, Describe/Update DashboardsQA Configration.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds APIs for new features for SageMaker endpoint to scale down to zero instances, native support for multi-adapter inference, and endpoint scaling improvements.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release adds support for starting email contacts in your Amazon Connect instance as an email receiving action.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - ArchivePolicy attribute added to Archive and Replay feature
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - While integrating WSP-DCV rebrand, a few mentions were erroneously renamed from WSP to DCV. This release reverts those mentions back to WSP.
+
+## __Auto Scaling__
+  - ### Features
+    - Now, Amazon EC2 Auto Scaling customers can enable target tracking policies to take quicker scaling decisions, enhancing their application performance and EC2 utilization. To get started, specify target tracking to monitor a metric that is available on Amazon CloudWatch at seconds-level interval.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for advertising trusted CA certificate names in associated trust stores.
+
+## __Inspector2__
+  - ### Features
+    - Extend inspector2 service model to include ServiceQuotaExceededException.
+
+## __MailManager__
+  - ### Features
+    - Added new "DeliverToQBusiness" rule action to MailManager RulesSet for ingesting email data into Amazon Q Business customer applications
+
+# __2.29.19__ __2024-11-21__
+## __AWS AppSync__
+  - ### Features
+    - Add support for the Amazon Bedrock Runtime.
+
+## __AWS CloudTrail__
+  - ### Features
+    - This release introduces new APIs for creating and managing CloudTrail Lake dashboards. It also adds support for resource-based policies on CloudTrail EventDataStore and Dashboard resource.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release introduces three new APIs that enable you to estimate the cost, coverage, and utilization impact of Savings Plans you plan to purchase. The three APIs are StartCommitmentPurchaseAnalysis, GetCommitmentPurchaseAnalysis, and ListCommitmentPurchaseAnalyses.
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Adds metadata property to an AffectedEntity.
+
+## __AWS IoT__
+  - ### Features
+    - General Availability (GA) release of AWS IoT Device Management - Commands, to trigger light-weight remote actions on targeted devices
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - AWS IoT FleetWise now includes campaign parameters to store and forward data, configure MQTT topic as a data destination, and collect diagnostic trouble code data. It includes APIs for network agnostic data collection using custom decoding interfaces, and monitoring the last known state of vehicles.
+
+## __AWS IoT Jobs Data Plane__
+  - ### Features
+    - General Availability (GA) release of AWS IoT Device Management - Commands, to trigger light-weight remote actions on targeted devices
+
+## __AWS Lambda__
+  - ### Features
+    - Adds support for metrics for event source mappings for AWS Lambda
+
+## __AWS Resilience Hub__
+  - ### Features
+    - AWS Resilience Hub's new summary view visually represents applications' resilience through charts, enabling efficient resilience management. It provides a consolidated view of the app portfolio's resilience state and allows data export for custom stakeholder reporting.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager QuickSetup__
+  - ### Features
+    - Add methods that retrieve details about deployed configurations: ListConfigurations, GetConfiguration
+
+## __AWS User Notifications__
+  - ### Features
+    - This release adds support for AWS User Notifications. You can now configure and view notifications from AWS services in a central location using the AWS SDK.
+
+## __AWS User Notifications Contacts__
+  - ### Features
+    - This release adds support for AWS User Notifications Contacts. You can now configure and view email contacts for AWS User Notifications using the AWS SDK.
+
+## __AWS X-Ray__
+  - ### Features
+    - AWS X-Ray introduces Transaction Search APIs, enabling span ingestion into CloudWatch Logs for high-scale trace data indexing. These APIs support span-level queries, trace graph generation, and metric correlation for deeper application insights.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Added support for custom domain names for private APIs.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Adds support for Origin Selection between EMPv2 origins based on media quality score.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Adds "Create field indexes to improve query performance and reduce scan volume" and "Transform logs during ingestion". Updates documentation for "PutLogEvents with Entity".
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Added support to modify the engine type for existing ElastiCache Users and User Groups. Customers can now modify the engine type from redis to valkey.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for requesting future-dated Capacity Reservations with a minimum commitment duration, enabling IPAM for organizational units within AWS Organizations, reserving EC2 Capacity Blocks that start in 30 minutes, and extending the end date of existing Capacity Blocks.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Add support for conditional deletes for the S3 DeleteObject and DeleteObjects APIs. Add support for write offset bytes option used to append to objects with the S3 PutObject API.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Added support for providing high-level overviews of managed nodes and previewing the potential impact of a runbook execution.
+
+## __Application Auto Scaling__
+  - ### Features
+    - Application Auto Scaling now supports Predictive Scaling to proactively increase the desired capacity ahead of predicted demand, ensuring improved availability and responsiveness for customers' applications. This feature is currently only made available for Amazon ECS Service scalable targets.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This feature adds support for enabling zonal shift on cross-zone enabled Application Load Balancer, as well as modifying HTTP request and response headers.
+
 # __2.29.18__ __2024-11-20__
 ## __AWS Application Discovery Service__
   - ### Features

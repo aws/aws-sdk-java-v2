@@ -283,7 +283,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 if (protocol == AwsJsonProtocol.AWS_JSON) {
                     // For RPC formats, this content type will later be pushed down into the `initial-event` in the body
                     request.putHeader(CONTENT_TYPE, contentType);
-                } else if (protocol == AwsJsonProtocol.REST_JSON) {
+                } else if (protocol == AwsJsonProtocol.REST_JSON || protocol == AwsJsonProtocol.SMITHY_RPC_V2_CBOR) {
                     request.putHeader(CONTENT_TYPE, MIMETYPE_EVENT_STREAM);
                 } else {
                     throw new IllegalArgumentException("Unknown AwsJsonProtocol: " + protocol);
