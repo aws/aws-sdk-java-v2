@@ -114,7 +114,6 @@ public class ChecksumBenchmark {
 
     @Benchmark
     public void updateIndividualByteChecksumOneByteATime(ChecksumState state, Blackhole blackhole) {
-        state.sdkChecksum.reset();// Ensure we reset the checksum before each run
         for (byte b : state.payload) {
             state.sdkChecksum.update(b);
         }
