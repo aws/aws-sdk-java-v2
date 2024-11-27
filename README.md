@@ -333,6 +333,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/chaykin"><img src="https://avatars.githubusercontent.com/u/2480265?v=4?s=100" width="100px;" alt="Kirill Chaykin"/><br /><sub><b>Kirill Chaykin</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=chaykin" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/prateek-vats"><img src="https://avatars.githubusercontent.com/u/177409977?v=4?s=100" width="100px;" alt="prateek-vats"/><br /><sub><b>prateek-vats</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=prateek-vats" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Fred1155"><img src="https://avatars.githubusercontent.com/u/49867651?v=4?s=100" width="100px;" alt="Bole1155"/><br /><sub><b>Bole1155</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=Fred1155" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://xtansia.com"><img src="https://avatars.githubusercontent.com/u/1222964?v=4?s=100" width="100px;" alt="Thomas Farr"/><br /><sub><b>Thomas Farr</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=Xtansia" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
