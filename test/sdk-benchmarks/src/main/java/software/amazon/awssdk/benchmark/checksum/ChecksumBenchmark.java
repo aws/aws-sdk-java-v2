@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.benchmark.checksum;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -30,8 +32,6 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.SdkChecksum;
 
@@ -45,10 +45,10 @@ public class ChecksumBenchmark {
     @State(Scope.Thread)
     public static class ChecksumState {
 
-        @Param( {"128B", "4KB", "128KB", "1MB"})
+        @Param({"128B", "4KB", "128KB", "1MB"})
         public String size;
 
-        @Param( {"MD5", "CRC32", "CRC32C", "SHA1", "SHA256","CRC64NVME"})
+        @Param({"MD5", "CRC32", "CRC32C", "SHA1", "SHA256", "CRC64NVME"})
         public String checksumProvider;
 
         private byte[] payload;
