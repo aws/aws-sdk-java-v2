@@ -34,7 +34,7 @@
 
     <properties>
         <awsjavasdk.version>${project.parent.version}</awsjavasdk.version>
-        <openrewrite.version>2.17.0</openrewrite.version>
+        <openrewrite.version>2.23.0</openrewrite.version>
         <junit.version>5.10.3</junit.version>
         <awssdkjavav1.version>1.12.472</awssdkjavav1.version>
     </properties>
