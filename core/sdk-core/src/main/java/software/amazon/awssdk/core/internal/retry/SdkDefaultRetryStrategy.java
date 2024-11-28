@@ -27,7 +27,7 @@ import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.retries.LegacyRetryStrategy;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.RetryStrategy;
-import software.amazon.awssdk.retries.internal.BaseRetryStrategy;
+import software.amazon.awssdk.retries.internal.DefaultAwareRetryStrategy;
 
 /**
  * Retry strategies used by any SDK client.
@@ -167,8 +167,8 @@ public final class SdkDefaultRetryStrategy {
         if (maxAttempts != null) {
             builder.maxAttempts(maxAttempts);
         }
-        if (builder instanceof BaseRetryStrategy.Builder) {
-            BaseRetryStrategy.Builder b = (BaseRetryStrategy.Builder) builder;
+        if (builder instanceof DefaultAwareRetryStrategy.Builder) {
+            DefaultAwareRetryStrategy.Builder b = (DefaultAwareRetryStrategy.Builder) builder;
             b.markDefaultAdded(DEFAULTS_NAME);
         }
         return builder;
@@ -237,14 +237,14 @@ public final class SdkDefaultRetryStrategy {
                                  .build();
     }
 
-    public static void applyDefault(RetryStrategy.Builder<?, ?> builder) {
+    public static void applyDefaults(RetryStrategy.Builder<?, ?> builder) {
         configureStrategy(builder);
         markDefaultsAdded(builder);
     }
 
     private static void markDefaultsAdded(RetryStrategy.Builder<?, ?> builder) {
-        if (builder instanceof BaseRetryStrategy.Builder) {
-            BaseRetryStrategy.Builder b = (BaseRetryStrategy.Builder) builder;
+        if (builder instanceof DefaultAwareRetryStrategy.Builder) {
+            DefaultAwareRetryStrategy.Builder b = (DefaultAwareRetryStrategy.Builder) builder;
             b.markDefaultAdded(DEFAULTS_NAME);
         }
     }

@@ -65,7 +65,7 @@ import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.retries.api.RetryStrategy;
-import software.amazon.awssdk.retries.internal.BaseRetryStrategy;
+import software.amazon.awssdk.retries.internal.DefaultAwareRetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.AttributeMap.LazyValueSource;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -430,22 +430,22 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             return;
         }
 
-        if (!(strategy instanceof BaseRetryStrategy)) {
+        if (!(strategy instanceof DefaultAwareRetryStrategy)) {
             return;
         }
 
-        BaseRetryStrategy baseRetryStrategy = (BaseRetryStrategy) strategy;
-        RetryStrategy.Builder<?, ?> baseRetryStrategyBuilder = baseRetryStrategy.toBuilder();
+        DefaultAwareRetryStrategy defaultAwareRetryStrategy = (DefaultAwareRetryStrategy) strategy;
+        RetryStrategy.Builder<?, ?> strategyBuilder = strategy.toBuilder();
 
-        if (baseRetryStrategy.shouldAddDefaults(AwsRetryStrategy.DEFAULTS_NAME)) {
-            baseRetryStrategyBuilder.applyMutation(AwsRetryStrategy::applyDefault);
+        if (defaultAwareRetryStrategy.shouldAddDefaults(AwsRetryStrategy.DEFAULTS_NAME)) {
+            strategyBuilder.applyMutation(AwsRetryStrategy::applyDefaults);
         }
 
-        if (baseRetryStrategy.shouldAddDefaults(SdkDefaultRetryStrategy.DEFAULTS_NAME)) {
-            baseRetryStrategyBuilder.applyMutation(SdkDefaultRetryStrategy::applyDefault);
+        if (defaultAwareRetryStrategy.shouldAddDefaults(SdkDefaultRetryStrategy.DEFAULTS_NAME)) {
+            strategyBuilder.applyMutation(SdkDefaultRetryStrategy::applyDefaults);
         }
 
-        config.option(SdkClientOption.RETRY_STRATEGY, baseRetryStrategyBuilder.build());
+        config.option(SdkClientOption.RETRY_STRATEGY, strategyBuilder.build());
 
     }
 

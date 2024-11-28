@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
@@ -48,7 +47,7 @@ import software.amazon.awssdk.utils.Validate;
  * tailor the behavior to its needs.
  */
 @SdkInternalApi
-public abstract class BaseRetryStrategy implements RetryStrategy {
+public abstract class BaseRetryStrategy implements RetryStrategy, DefaultAwareRetryStrategy {
 
     protected final Logger log;
     protected final List<Predicate<Throwable>> retryPredicates;
@@ -369,6 +368,11 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
     }
 
     @Override
+    public boolean shouldAddDefaults(String defaultPredicateName) {
+        return useClientDefaults && !defaultsAdded.contains(defaultPredicateName);
+    }
+
+    @Override
     public String toString() {
         return ToString.builder("BaseRetryStrategy")
                        .add("retryPredicates", retryPredicates)
@@ -384,12 +388,8 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
                        .build();
     }
 
-    public boolean shouldAddDefaults(String defaultPredicateName) {
-        return useClientDefaults && !defaultsAdded.contains(defaultPredicateName);
-    }
 
-    @SdkProtectedApi
-    public abstract static class Builder {
+    public abstract static class Builder implements DefaultAwareRetryStrategy.Builder {
         private List<Predicate<Throwable>> retryPredicates;
         private Set<String> defaultsAdded;
         private int maxAttempts;
@@ -454,9 +454,9 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
             this.useClientDefaults = useClientDefaults;
         }
 
+        @Override
         public void markDefaultAdded(String d) {
             defaultsAdded.add(d);
         }
-
     }
 }
