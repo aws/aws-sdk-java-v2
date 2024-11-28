@@ -76,7 +76,7 @@ public class MavenProjectTest {
     private static void verifyTransformation() throws IOException {
         List<String> rewriteArgs = new ArrayList<>();
         // pin version since updates have broken tests
-        String rewriteMavenPluginVersion = "5.43.0";
+        String rewriteMavenPluginVersion = "5.46.0";
         addAll(rewriteArgs, "mvn", "org.openrewrite.maven:rewrite-maven-plugin:" + rewriteMavenPluginVersion + ":run",
                "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration:"+ getMigrationToolVersion() + "-PREVIEW",
                "-Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2");
