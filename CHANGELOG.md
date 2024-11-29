@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.23__ __2024-11-27__
+## __AWS Config__
+  - ### Features
+    - AWS Config adds support for service-linked recorders, a new type of Config recorder managed by AWS services to record specific subsets of resource configuration data and functioning independently from customer managed AWS Config recorders.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Add support for specifying embeddingDataType, either FLOAT32 or BINARY
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds EFA support to increase FSx for Lustre file systems' throughput performance to a single client instance. This can be done by specifying EfaEnabled=true at the time of creation of Persistent_2 file systems.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - Amazon CloudWatch Observability Admin adds the ability to audit telemetry configuration for AWS resources in customers AWS Accounts and Organizations. The release introduces new APIs to turn on/off the new experience, which supports discovering supported AWS resources and their state of telemetry.
+
+## __DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fix a bug where DurationAttributeConverter was considering any number past the decimal point as a nanosecond during deserialization
+
 # __2.29.22__ __2024-11-26__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
