@@ -31,6 +31,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.util.function.Consumer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
@@ -45,12 +46,20 @@ class Ec2MetadataClientTest extends BaseEc2MetadataClientTest<Ec2MetadataClient,
 
     private int port;
 
+
     @BeforeEach
     public void init(WireMockRuntimeInfo wiremock) {
         this.port = wiremock.getHttpPort();
         this.client = Ec2MetadataClient.builder()
                                             .endpoint(URI.create("http://localhost:" + wiremock.getHttpPort()))
                                             .build();
+    }
+
+    @AfterEach
+    void cleanup() {
+        // Cleanup system properties and environment variables after each test
+        System.clearProperty("aws.ec2MetadataServiceTimeout");
+        environmentVariableHelper.reset();
     }
 
     @Override

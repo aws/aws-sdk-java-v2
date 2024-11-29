@@ -91,6 +91,16 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE("aws.ec2MetadataServiceEndpointMode", "IPv4"),
 
     /**
+     * The number of seconds (either as an integer or double) before a connection to the instance
+     * metadata service should time out. This value is applied to both the socket connect and read timeouts.
+     *
+     * The timeout can be configured using the system property "aws.ec2MetadataServiceTimeout". If not set,
+     * a default timeout is used. This setting is crucial for ensuring timely responses from the instance
+     * metadata service in environments with varying network conditions.
+     */
+    AWS_METADATA_SERVICE_TIMEOUT("aws.ec2MetadataServiceTimeout", "1"),
+
+    /**
      * The elastic container metadata service endpoint that should be called by the ContainerCredentialsProvider
      * when loading data from the container metadata service.
      *

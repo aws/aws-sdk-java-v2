@@ -44,18 +44,24 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.imds.Ec2MetadataClientBuilder;
 import software.amazon.awssdk.imds.Ec2MetadataResponse;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 @WireMockTest
 abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B, T>> {
 
     protected static final int DEFAULT_TOTAL_ATTEMPTS = 4;
+
+    protected final EnvironmentVariableHelper environmentVariableHelper = new EnvironmentVariableHelper();
+
 
     protected abstract BaseEc2MetadataClient overrideClient(Consumer<B> builderConsumer);
 
@@ -310,6 +316,43 @@ abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B
             verify(exactly(1), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
                 .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
             verify(exactly(0), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
+                .withHeader(TOKEN_HEADER, equalTo("some-token")));
+        });
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "environment,10",
+        "system,10"
+    })
+    void get_successOnFirstTry_shouldNotRetryAndSucceed_whenConnectionTakesMoreThanOneSeconds(String variableType,
+                                                                                              String timeoutValue) {
+        if (variableType.equals("environment")) {
+            environmentVariableHelper.set(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT.environmentVariable(), timeoutValue);
+        } else if (variableType.equals("system")) {
+            System.setProperty("aws.ec2MetadataServiceTimeout", timeoutValue);
+        }
+
+        overrideClient(builder -> builder
+            .endpoint(URI.create("http://localhost:" + getPort()))
+            .build());
+
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse()
+                .withBody("some-token")
+                .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")
+                .withFixedDelay(2000)
+        ));
+
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(
+            aResponse().withBody("{}")
+        ));
+
+        successAssertions(AMI_ID_RESOURCE, response -> {
+            assertThat(response.asString()).isEqualTo("{}");
+            verify(exactly(1), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+            verify(exactly(1), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
                 .withHeader(TOKEN_HEADER, equalTo("some-token")));
         });
     }

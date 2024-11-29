@@ -19,12 +19,21 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.utils.Lazy;
+import software.amazon.awssdk.utils.NumericUtils;
+import software.amazon.awssdk.utils.internal.SystemSettingUtils;
+
 
 @SdkInternalApi
 //TODO: Refactor to use SDK HTTP client instead of URL connection, also consider putting EC2MetadataClient in its own module
 public class ConnectionUtils {
+
+
+    private final Lazy<Integer> metadataServiceTimeoutMillis = new Lazy<>(this::resolveMetadataServiceTimeoutMillis);
 
     public static ConnectionUtils create() {
         return new ConnectionUtils();
@@ -34,10 +43,17 @@ public class ConnectionUtils {
         return connectToEndpoint(endpoint, headers, "GET");
     }
 
-    public HttpURLConnection connectToEndpoint(URI endpoint, Map<String, String> headers, String method) throws IOException {
+    public HttpURLConnection connectToEndpoint(URI endpoint,
+                                               Map<String, String> headers,
+                                               String method) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) endpoint.toURL().openConnection(Proxy.NO_PROXY);
-        connection.setConnectTimeout(1000);
-        connection.setReadTimeout(1000);
+
+        int timeoutMillis = metadataServiceTimeoutMillis.getValue();
+
+        System.out.println("joviegas timeoutMillis "+timeoutMillis);
+        connection.setConnectTimeout(timeoutMillis);
+        connection.setReadTimeout(timeoutMillis);
+
         connection.setRequestMethod(method);
         connection.setDoOutput(true);
         headers.forEach(connection::addRequestProperty);
@@ -47,4 +63,27 @@ public class ConnectionUtils {
         return connection;
     }
 
+    private int resolveMetadataServiceTimeoutMillis() {
+
+        String timeoutValue = SystemSettingUtils.resolveSetting(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT)
+                                                 .orElseGet(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT::defaultValue);
+
+        try {
+            // To match the CLI behavior, support both integers and doubles; try int first for exact values, fall back to double.
+            int timeoutSeconds = Integer.parseInt(timeoutValue);
+            return NumericUtils.saturatedCast(Duration.ofSeconds(timeoutSeconds).toMillis());
+        } catch (NumberFormatException e) {
+            try {
+                // Fallback to parsing the timeout as a double (seconds) and convert to milliseconds
+                double timeoutSeconds = Double.parseDouble(timeoutValue);
+                return NumericUtils.saturatedCast(Math.round(timeoutSeconds * 1000));
+            } catch (NumberFormatException ignored) {
+                throw new IllegalStateException(String.format(
+                    "%s environment variable value '%s' is not a valid integer or double.",
+                    SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT.property(),
+                    timeoutValue
+                ));
+            }
+        }
+    }
 }

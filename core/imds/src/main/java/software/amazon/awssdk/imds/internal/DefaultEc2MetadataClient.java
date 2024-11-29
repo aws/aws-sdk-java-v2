@@ -72,7 +72,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         this.httpClient = Either
             .fromNullable(builder.httpClient, builder.httpClientBuilder)
             .map(e -> e.map(Function.identity(), SdkHttpClient.Builder::build))
-            .orElseGet(() -> new DefaultSdkHttpClientBuilder().buildWithDefaults(IMDS_HTTP_DEFAULTS));
+            .orElseGet(() -> new DefaultSdkHttpClientBuilder().buildWithDefaults(imdsHttpDefaults()));
         this.httpClientIsInternal = builder.httpClient == null;
 
         this.tokenCache = CachedSupplier.builder(() -> RefreshResult.builder(this.getToken())
