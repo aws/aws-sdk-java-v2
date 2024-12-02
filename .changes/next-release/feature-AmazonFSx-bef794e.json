@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon FSx",
+    "contributor": "",
+    "description": "FSx API changes to support the public launch of the Amazon FSx Intelligent Tiering for OpenZFS storage class."
+}
