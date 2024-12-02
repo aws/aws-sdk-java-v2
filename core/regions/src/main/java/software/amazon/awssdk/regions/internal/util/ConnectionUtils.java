@@ -49,8 +49,6 @@ public class ConnectionUtils {
         HttpURLConnection connection = (HttpURLConnection) endpoint.toURL().openConnection(Proxy.NO_PROXY);
 
         int timeoutMillis = metadataServiceTimeoutMillis.getValue();
-
-        System.out.println("joviegas timeoutMillis "+timeoutMillis);
         connection.setConnectTimeout(timeoutMillis);
         connection.setReadTimeout(timeoutMillis);
 
