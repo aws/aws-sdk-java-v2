@@ -18,14 +18,25 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.head;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER_ALTERNATE;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
 
+import com.github.tomakehurst.wiremock.http.HttpHeader;
+import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,11 +45,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 /**
  * Tests to make sure all CRT resources are cleaned up
@@ -72,6 +87,8 @@ public class S3CrtClientWiremockTest {
     public void setup(WireMockRuntimeInfo wiremock) {
         s3AsyncClient = S3AsyncClient.crtBuilder()
                                      .region(Region.US_EAST_1)
+                                     .minimumPartSizeInBytes(10L)
+                                     .initialReadBufferSizeInBytes(5L)
                                      .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()))
                                      .credentialsProvider(
                                          StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
@@ -94,6 +111,42 @@ public class S3CrtClientWiremockTest {
         assertThat(response.bucket()).isEqualTo(BUCKET);
         assertThat(response.key()).isEqualTo(KEY);
         assertThat(response.eTag()).isEqualTo(E_TAG);
+    }
+
+    @Test
+    public void requestFailedMidway_shouldThrowException() {
+        HttpHeaders httpHeaders = new HttpHeaders(new HttpHeader("content-length", "12345676"),
+                                                  new HttpHeader("etag", E_TAG));
+        stubFor(head(anyUrl()).willReturn(aResponse().withStatus(200)
+                                                     .withHeaders(httpHeaders)));
+
+        stubFor(get(anyUrl())
+                    .inScenario("SucceedThenFail")
+                    .whenScenarioStateIs(Scenario.STARTED)
+                    .willSetStateTo("first request")
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withBody("helloworld".getBytes(StandardCharsets.UTF_8))));
+
+        stubFor(get(anyUrl())
+                    .inScenario("SucceedThenFail")
+                    .whenScenarioStateIs("first request")
+                    .willSetStateTo("second request")
+                    .willReturn(aResponse()
+                                    .withStatus(404)
+                                    .withHeader(X_AMZ_ID_2_HEADER, "foo")
+                                    .withHeader(X_AMZN_REQUEST_ID_HEADER_ALTERNATE, "bar")
+                                    .withBody("".getBytes(StandardCharsets.UTF_8))));
+
+        assertThatThrownBy(() ->s3AsyncClient.getObject(
+            r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join())
+            .satisfies(throwable -> {
+                assertThat(throwable).hasRootCauseInstanceOf(S3Exception.class);
+                S3Exception s3Exception = (S3Exception) throwable.getCause();
+                assertThat(s3Exception.statusCode()).isEqualTo(404);
+                assertThat(s3Exception.extendedRequestId()).isEqualTo("foo");
+                assertThat(s3Exception.requestId()).isEqualTo("bar");
+            });
     }
 
     @Test

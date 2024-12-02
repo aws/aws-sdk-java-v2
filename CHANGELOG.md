@@ -1,4 +1,129 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.24__ __2024-12-01__
+## __AWS CRT-based S3 client__
+  - ### Bugfixes
+    - Fixed an issue where an error was not surfaced if request failed halfway for a GetObject operation. See [#5631](https://github.com/aws/aws-sdk-java-v2/issues/5631)
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release allows customers and their partners to easily collaborate with data stored in Snowflake and Amazon Athena, without having to move or share their underlying data among collaborators.
+
+## __AWS Invoicing__
+  - ### Features
+    - AWS Invoice Configuration allows you to receive separate AWS invoices based on your organizational needs. You can use the AWS SDKs to manage Invoice Units and programmatically fetch the information of the invoice receiver.
+
+## __AWS Organizations__
+  - ### Features
+    - Add support for policy operations on the DECLARATIVE_POLICY_EC2 policy type.
+
+## __AWS S3 Control__
+  - ### Features
+    - Amazon S3 introduces support for AWS Dedicated Local Zones
+
+## __AWS SecurityHub__
+  - ### Features
+    - Add new Multi Domain Correlation findings.
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family now offers Web apps that enables simple and secure access to data stored in Amazon S3.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release introduces APIs to upload documents directly into a Knowledge Base
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces a new Rerank API to leverage reranking models (with integration into Knowledge Bases); APIs to upload documents directly into Knowledge Base; RetrieveAndGenerateStream API for streaming response; Guardrails on Retrieve API; and ability to automatically generate filters
+
+## __Amazon Bedrock__
+  - ### Features
+    - Add support for Knowledge Base Evaluations & LLM as a judge
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - This release adds supports for enterprises to integrate Amazon Connect with other voice systems. It supports directly transferring voice calls and metadata without using the public telephone network. It also supports real-time and post-call analytics.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Adds PutIntegration, GetIntegration, ListIntegrations and DeleteIntegration APIs. Adds QueryLanguage support to StartQuery, GetQueryResults, DescribeQueries, DescribeQueryDefinitions, and PutQueryDefinition APIs.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces Event Trigger APIs as part of Amazon Connect Customer Profiles service.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds support for WhatsApp Business messaging, IVR call recording, enabling Contact Lens for existing on-premise contact centers and telephony platforms, and enabling telephony and IVR migration to Amazon Connect independent of their contact center agents.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for Container Insights with Enhanced Observability for Amazon ECS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for declarative policies that allow you to enforce desired configuration across an AWS organization through configuring account attributes. Adds support for Allowed AMIs that allows you to limit the use of AMIs in AWS accounts. Adds support for connectivity over non-HTTP protocols.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added support for Auto Mode Clusters, Hybrid Nodes, and specifying computeTypes in the DescribeAddonVersions API.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Call private APIs by configuring Connections with VPC connectivity through PrivateLink and VPC Lattice
+
+## __Amazon FSx__
+  - ### Features
+    - FSx API changes to support the public launch of the Amazon FSx Intelligent Tiering for OpenZFS storage class.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add new Multi Domain Correlation findings.
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Amazon MemoryDB SDK now supports all APIs for Multi-Region. Please refer to the updated Amazon MemoryDB public documentation for detailed information on API usage.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This feature introduces support for CRUDL APIs, enabling the creation and management of Connected data sources.
+
+## __Amazon Q Connect__
+  - ### Features
+    - This release adds following capabilities: Configuring safeguards via AIGuardrails for Q in Connect inferencing, and APIs to support Q&A self-service use cases
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Amazon RDS supports CloudWatch Database Insights. You can use the SDK to create, modify, and describe the DatabaseInsightsMode for your DB instances and clusters.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon S3 introduces support for AWS Dedicated Local Zones
+
+## __Amazon VPC Lattice__
+  - ### Features
+    - Lattice APIs that allow sharing and access of VPC resources across accounts.
+
+## __AmazonConnectCampaignServiceV2__
+  - ### Features
+    - Amazon Connect Outbound Campaigns V2 / Features : Adds support for Event-Triggered Campaigns.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Added support for EC2 Image Builder's integration with AWS Marketplace for Marketplace components.
+
+## __Network Flow Monitor__
+  - ### Features
+    - This release adds documentation for a new feature in Amazon CloudWatch called Network Flow Monitor. You can use Network Flow Monitor to get near real-time metrics, including retransmissions and data transferred, for your actual workloads.
+
+## __QBusiness__
+  - ### Features
+    - Amazon Q Business now supports capabilities to extract insights and answer questions from visual elements embedded within documents, a browser extension for Google Chrome, Mozilla Firefox, and Microsoft Edge, and attachments across conversations.
+
+## __Security Incident Response__
+  - ### Features
+    - AWS Security Incident Response is a purpose-built security incident solution designed to help customers prepare for, respond to, and recover from security incidents.
+
 # __2.29.23__ __2024-11-27__
 ## __AWS Config__
   - ### Features
