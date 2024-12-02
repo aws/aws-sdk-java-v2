@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon OpenSearch Service",
+    "contributor": "",
+    "description": "This feature introduces support for CRUDL APIs, enabling the creation and management of Connected data sources."
+}
