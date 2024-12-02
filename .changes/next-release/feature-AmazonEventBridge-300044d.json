@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EventBridge",
+    "contributor": "",
+    "description": "Call private APIs by configuring Connections with VPC connectivity through PrivateLink and VPC Lattice"
+}
