@@ -97,6 +97,7 @@ import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -105,11 +106,13 @@ import software.amazon.awssdk.services.s3.presigner.model.CompleteMultipartUploa
 import software.amazon.awssdk.services.s3.presigner.model.CreateMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.DeleteObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.HeadObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedAbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -141,6 +144,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     private final S3Configuration serviceConfiguration;
     private final List<ExecutionInterceptor> clientInterceptors;
     private final GetObjectRequestMarshaller getObjectRequestMarshaller;
+    private final HeadObjectRequestMarshaller headObjectRequestMarshaller;
     private final PutObjectRequestMarshaller putObjectRequestMarshaller;
     private final CreateMultipartUploadRequestMarshaller createMultipartUploadRequestMarshaller;
     private final UploadPartRequestMarshaller uploadPartRequestMarshaller;
@@ -270,6 +274,17 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                        GetObjectRequest.class,
                        getObjectRequestMarshaller::marshall,
                        "GetObject")
+            .build();
+    }
+
+    @Override
+    public PresignedGetObjectRequest presignHeadObject(HeadObjectPresignRequest request) {
+        return presign(PresignedHeadObjectRequest.builder(),
+                       request,
+                       request.headObjectRequest(),
+                       HeadObjectRequest.class,
+                       headObjectRequestMarshaller::marshall,
+                       "HeadObject")
             .build();
     }
 
