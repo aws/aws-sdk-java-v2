@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS S3 Control",
+    "contributor": "",
+    "description": "Amazon S3 introduces support for AWS Dedicated Local Zones"
+}
