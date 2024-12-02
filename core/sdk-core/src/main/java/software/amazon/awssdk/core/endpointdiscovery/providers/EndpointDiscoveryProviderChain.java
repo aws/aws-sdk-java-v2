@@ -18,14 +18,13 @@ package software.amazon.awssdk.core.endpointdiscovery.providers;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkProtectedApi
 public class EndpointDiscoveryProviderChain implements EndpointDiscoveryProvider {
 
-    private static final Logger log = LoggerFactory.getLogger(EndpointDiscoveryProviderChain.class);
+    private static final Logger log = Logger.loggerFor(EndpointDiscoveryProviderChain.class);
 
     private final List<EndpointDiscoveryProvider> providers;
 
@@ -40,7 +39,8 @@ public class EndpointDiscoveryProviderChain implements EndpointDiscoveryProvider
             try {
                 return provider.resolveEndpointDiscovery();
             } catch (Exception e) {
-                log.debug("Unable to load endpoint discovery from {}:{}", provider.toString(), e.getMessage());
+                log.debug(() -> String.format("Unable to load endpoint discovery from %s:%s", provider.toString(),
+                                              e.getMessage()));
             }
         }
         return false;
