@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Q Connect",
-    "contributor": "",
-    "description": "This release adds following capabilities: Configuring safeguards via AIGuardrails for Q in Connect inferencing, and APIs to support Q&A self-service use cases"
-}

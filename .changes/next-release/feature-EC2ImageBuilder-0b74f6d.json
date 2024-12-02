@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "EC2 Image Builder",
-    "contributor": "",
-    "description": "Added support for EC2 Image Builder's integration with AWS Marketplace for Marketplace components."
-}

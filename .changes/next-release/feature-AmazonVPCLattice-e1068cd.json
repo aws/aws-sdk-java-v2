@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon VPC Lattice",
-    "contributor": "",
-    "description": "Lattice APIs that allow sharing and access of VPC resources across accounts."
-}

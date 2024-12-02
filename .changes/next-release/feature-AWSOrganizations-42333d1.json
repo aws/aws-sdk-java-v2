@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Organizations",
-    "contributor": "",
-    "description": "Add support for policy operations on the DECLARATIVE_POLICY_EC2 policy type."
-}

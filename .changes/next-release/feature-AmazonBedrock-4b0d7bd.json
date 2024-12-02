@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock",
-    "contributor": "",
-    "description": "Add support for Knowledge Base Evaluations & LLM as a judge"
-}

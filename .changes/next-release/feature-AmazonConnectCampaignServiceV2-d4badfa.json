@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonConnectCampaignServiceV2",
-    "contributor": "",
-    "description": "Amazon Connect Outbound Campaigns V2 / Features : Adds support for Event-Triggered Campaigns."
-}
