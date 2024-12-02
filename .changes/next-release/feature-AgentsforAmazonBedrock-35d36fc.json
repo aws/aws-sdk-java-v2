@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Agents for Amazon Bedrock",
+    "contributor": "",
+    "description": "This release introduces APIs to upload documents directly into a Knowledge Base"
+}
