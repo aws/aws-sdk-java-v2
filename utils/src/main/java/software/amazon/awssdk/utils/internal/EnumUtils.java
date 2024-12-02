@@ -18,13 +18,16 @@ package software.amazon.awssdk.utils.internal;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.function.Function;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
  * Utility class for working with {@link Enum}s.
+ * <p>
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class EnumUtils {
     private EnumUtils() {
     }
