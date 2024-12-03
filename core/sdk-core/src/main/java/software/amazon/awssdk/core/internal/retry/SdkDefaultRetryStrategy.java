@@ -28,6 +28,7 @@ import software.amazon.awssdk.retries.LegacyRetryStrategy;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.internal.DefaultAwareRetryStrategy;
+import software.amazon.awssdk.retries.internal.RetryStrategyDefaults;
 
 /**
  * Retry strategies used by any SDK client.
@@ -35,7 +36,20 @@ import software.amazon.awssdk.retries.internal.DefaultAwareRetryStrategy;
 @SdkPublicApi
 public final class SdkDefaultRetryStrategy {
 
-    public static final String DEFAULTS_NAME = "sdk";
+    private static final String DEFAULTS_NAME = "sdk";
+
+    private static final RetryStrategyDefaults DEFAULTS_PREDICATES = new RetryStrategyDefaults() {
+        @Override
+        public String name() {
+            return DEFAULTS_NAME;
+        }
+
+        @Override
+        public void applyDefault(RetryStrategy.Builder<?, ?> builder) {
+            configureStrategy(builder);
+            markDefaultsAdded(builder);
+        }
+    };
 
     private SdkDefaultRetryStrategy() {
     }
@@ -237,9 +251,8 @@ public final class SdkDefaultRetryStrategy {
                                  .build();
     }
 
-    public static void applyDefaults(RetryStrategy.Builder<?, ?> builder) {
-        configureStrategy(builder);
-        markDefaultsAdded(builder);
+    public static RetryStrategyDefaults retryStrategyDefaults() {
+        return DEFAULTS_PREDICATES;
     }
 
     private static void markDefaultsAdded(RetryStrategy.Builder<?, ?> builder) {
@@ -248,5 +261,6 @@ public final class SdkDefaultRetryStrategy {
             b.markDefaultAdded(DEFAULTS_NAME);
         }
     }
+
 }
 

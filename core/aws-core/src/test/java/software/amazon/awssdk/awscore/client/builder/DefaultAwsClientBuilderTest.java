@@ -35,6 +35,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
@@ -267,7 +267,7 @@ public class DefaultAwsClientBuilderTest {
 
     @ParameterizedTest(name = "{0} - expectedPredicateAmount: {2}")
     @MethodSource("retryArguments")
-    public void retryStrategyConfiguration_shouldAddDefaultPredicatesWhenRequired(
+    void retryStrategyConfiguration_shouldAddDefaultPredicatesWhenRequired(
         String testDescription, RetryStrategy retryStrategy, int expectedPredicateAmount) {
         TestClientBuilder builder = testClientBuilder()
             .region(Region.US_EAST_1)
@@ -279,8 +279,8 @@ public class DefaultAwsClientBuilderTest {
 
         RetryStrategy configuredRetryStrategy = conf.retryStrategy().get();
         BaseRetryStrategy baseRetryStrategy = (BaseRetryStrategy) configuredRetryStrategy;
-        assertThat(baseRetryStrategy.shouldAddDefaults(AwsRetryStrategy.DEFAULTS_NAME)).isFalse();
-        assertThat(baseRetryStrategy.shouldAddDefaults(SdkDefaultRetryStrategy.DEFAULTS_NAME)).isFalse();
+        assertThat(baseRetryStrategy.shouldAddDefaults(AwsRetryStrategy.retryStrategyDefaults().name())).isFalse();
+        assertThat(baseRetryStrategy.shouldAddDefaults(SdkDefaultRetryStrategy.retryStrategyDefaults().name())).isFalse();
         assertThat(baseRetryStrategy.retryPredicates()).hasSize(expectedPredicateAmount);
     }
 
@@ -334,6 +334,31 @@ public class DefaultAwsClientBuilderTest {
                                             .useClientDefaults(false)
                                             .build(), 1)
         );
+    }
+
+    @ParameterizedTest(name = "{0} - expectedPredicateAmount: ({2}+2)")
+    @MethodSource("retryArguments")
+    void retryBuilderRoundTrip_ShouldKeepDefaults_ShouldAddNewPredicates(
+        String testDescription, RetryStrategy retryStrategy, int expectedPredicateAmount) {
+        RetryStrategy.Builder<?, ?> retryBuilder = retryStrategy.toBuilder();
+        Predicate<Throwable> newDummyPredicate1 = t -> t instanceof RuntimeException;
+        Predicate<Throwable> newDummyPredicate2 = t -> t instanceof IllegalArgumentException;
+        retryBuilder.retryOnException(newDummyPredicate1);
+        retryBuilder.retryOnException(newDummyPredicate2);
+
+        TestClientBuilder clientBuilder = testClientBuilder()
+            .region(Region.US_EAST_1)
+            .overrideConfiguration(c -> c.retryStrategy(retryBuilder.build()));
+        TestClient client = clientBuilder.build();
+
+        ClientOverrideConfiguration conf = client.clientConfiguration.asOverrideConfiguration();
+        assertThat(conf.retryStrategy()).isPresent();
+
+        RetryStrategy configuredRetryStrategy = conf.retryStrategy().get();
+        BaseRetryStrategy baseRetryStrategy = (BaseRetryStrategy) configuredRetryStrategy;
+        assertThat(baseRetryStrategy.shouldAddDefaults(AwsRetryStrategy.retryStrategyDefaults().name())).isFalse();
+        assertThat(baseRetryStrategy.shouldAddDefaults(SdkDefaultRetryStrategy.retryStrategyDefaults().name())).isFalse();
+        assertThat(baseRetryStrategy.retryPredicates()).hasSize(expectedPredicateAmount + 2);
     }
 
     private AwsClientBuilder<TestClientBuilder, TestClient> testClientBuilder() {

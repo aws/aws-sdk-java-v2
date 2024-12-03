@@ -47,7 +47,7 @@ import software.amazon.awssdk.utils.Validate;
  * tailor the behavior to its needs.
  */
 @SdkInternalApi
-public abstract class BaseRetryStrategy implements RetryStrategy, DefaultAwareRetryStrategy {
+public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
 
     protected final Logger log;
     protected final List<Predicate<Throwable>> retryPredicates;
@@ -367,9 +367,19 @@ public abstract class BaseRetryStrategy implements RetryStrategy, DefaultAwareRe
                                      token.getClass().getName());
     }
 
-    @Override
+
     public boolean shouldAddDefaults(String defaultPredicateName) {
         return useClientDefaults && !defaultsAdded.contains(defaultPredicateName);
+    }
+
+    @Override
+    public DefaultAwareRetryStrategy addDefaults(RetryStrategyDefaults retryStrategyDefaults) {
+        if (!shouldAddDefaults(retryStrategyDefaults.name())) {
+            return this;
+        }
+        RetryStrategy.Builder<?, ?> builder = this.toBuilder();
+        retryStrategyDefaults.applyDefault(builder);
+        return (DefaultAwareRetryStrategy) builder.build();
     }
 
     @Override
@@ -416,6 +426,7 @@ public abstract class BaseRetryStrategy implements RetryStrategy, DefaultAwareRe
             this.treatAsThrottling = strategy.treatAsThrottling;
             this.tokenBucketStore = strategy.tokenBucketStore;
             this.defaultsAdded = strategy.defaultsAdded;
+            this.useClientDefaults = strategy.useClientDefaults;
         }
 
         void setRetryOnException(Predicate<Throwable> shouldRetry) {

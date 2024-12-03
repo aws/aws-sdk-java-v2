@@ -433,18 +433,11 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         if (!(strategy instanceof DefaultAwareRetryStrategy)) {
             return;
         }
-
         DefaultAwareRetryStrategy defaultAwareRetryStrategy = (DefaultAwareRetryStrategy) strategy;
-        RetryStrategy.Builder<?, ?> strategyBuilder = strategy.toBuilder();
+        defaultAwareRetryStrategy = defaultAwareRetryStrategy.addDefaults(AwsRetryStrategy.retryStrategyDefaults());
+        defaultAwareRetryStrategy = defaultAwareRetryStrategy.addDefaults(SdkDefaultRetryStrategy.retryStrategyDefaults());
 
-        if (defaultAwareRetryStrategy.shouldAddDefaults(AwsRetryStrategy.DEFAULTS_NAME)) {
-            strategyBuilder.applyMutation(AwsRetryStrategy::applyDefaults);
-        }
-
-        if (defaultAwareRetryStrategy.shouldAddDefaults(SdkDefaultRetryStrategy.DEFAULTS_NAME)) {
-            strategyBuilder.applyMutation(SdkDefaultRetryStrategy::applyDefaults);
-        }
-
+        RetryStrategy.Builder<?, ?> strategyBuilder = defaultAwareRetryStrategy.toBuilder();
         config.option(SdkClientOption.RETRY_STRATEGY, strategyBuilder.build());
 
     }

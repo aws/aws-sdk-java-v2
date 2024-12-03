@@ -19,24 +19,20 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 
 /**
- * Identify a {@link RetryStrategy} that has the capacity to work with sets of default retry predicates.
+ * The set of retry predicates that are by default added to a retry strategy.
  */
 @SdkProtectedApi
-public interface DefaultAwareRetryStrategy extends RetryStrategy {
+public interface RetryStrategyDefaults {
 
     /**
-     * Add the specified defaults to this retry strategy
-     * @param retryStrategyDefaults the defaults to add to this strategy
-     * @return a new retry strategy containing the specified defaults.
+     * The unique name that identifies this set of predicates
+     * @return
      */
-    DefaultAwareRetryStrategy addDefaults(RetryStrategyDefaults retryStrategyDefaults);
+    String name();
 
-    interface Builder {
-
-        /**
-         * Identify the Builder as having the specified defaults to it.
-         * @param defaultPredicatesName the name the defaults to mark as added
-         */
-        void markDefaultAdded(String defaultPredicatesName);
-    }
+    /**
+     * Apply this set of defaults to the provided retry strategy builder.
+     * @param retryStrategyBuilder the retry strategy to apply the defaults to
+     */
+    void applyDefault(RetryStrategy.Builder<?, ?> retryStrategyBuilder);
 }
