@@ -378,7 +378,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
             return this;
         }
         RetryStrategy.Builder<?, ?> builder = this.toBuilder();
-        retryStrategyDefaults.applyDefault(builder);
+        retryStrategyDefaults.applyDefaults(builder);
         return (DefaultAwareRetryStrategy) builder.build();
     }
 

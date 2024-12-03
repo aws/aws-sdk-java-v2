@@ -45,7 +45,7 @@ public final class SdkDefaultRetryStrategy {
         }
 
         @Override
-        public void applyDefault(RetryStrategy.Builder<?, ?> builder) {
+        public void applyDefaults(RetryStrategy.Builder<?, ?> builder) {
             configureStrategy(builder);
             markDefaultsAdded(builder);
         }

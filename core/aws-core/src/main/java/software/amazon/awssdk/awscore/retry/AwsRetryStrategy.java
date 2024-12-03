@@ -44,7 +44,7 @@ public final class AwsRetryStrategy {
         }
 
         @Override
-        public void applyDefault(RetryStrategy.Builder<?, ?> retryStrategyBuilder) {
+        public void applyDefaults(RetryStrategy.Builder<?, ?> retryStrategyBuilder) {
             configureStrategy(retryStrategyBuilder);
             markDefaultsAdded(retryStrategyBuilder);
         }

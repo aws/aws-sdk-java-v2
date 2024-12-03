@@ -25,8 +25,7 @@ import software.amazon.awssdk.retries.api.RetryStrategy;
 public interface RetryStrategyDefaults {
 
     /**
-     * The unique name that identifies this set of predicates
-     * @return
+     * @return The unique name that identifies this set of predicates
      */
     String name();
 
@@ -34,5 +33,5 @@ public interface RetryStrategyDefaults {
      * Apply this set of defaults to the provided retry strategy builder.
      * @param retryStrategyBuilder the retry strategy to apply the defaults to
      */
-    void applyDefault(RetryStrategy.Builder<?, ?> retryStrategyBuilder);
+    void applyDefaults(RetryStrategy.Builder<?, ?> retryStrategyBuilder);
 }
