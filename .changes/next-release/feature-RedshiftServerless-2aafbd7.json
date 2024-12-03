@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Redshift Serverless",
+    "contributor": "",
+    "description": "Adds support for the ListManagedWorkgroups API to get an overview of existing managed workgroups."
+}
