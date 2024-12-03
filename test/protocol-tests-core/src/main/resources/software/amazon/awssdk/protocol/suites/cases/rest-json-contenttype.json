@@ -230,9 +230,11 @@
       "uri": "/no-payload",
       "method": "GET",
       "headers": {
+        "contains": {
+          "Content-Length": "0"
+        },
         "doesNotContain": [
-          "Content-Type",
-          "Content-Length"
+          "Content-Type"
         ]
       },
       "body": {
@@ -258,11 +260,11 @@
       "method": "GET",
       "headers": {
         "contains": {
+          "Content-Length": "0",
           "x-amz-test-id": "t-12345"
         },
         "doesNotContain": [
-          "Content-Type",
-          "Content-Length"
+          "Content-Type"
         ]
       },
       "body": {
