@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS S3 Control",
+    "contributor": "",
+    "description": "It allows customers to pass CRC64NVME as a header in S3 Batch Operations copy requests"
+}
