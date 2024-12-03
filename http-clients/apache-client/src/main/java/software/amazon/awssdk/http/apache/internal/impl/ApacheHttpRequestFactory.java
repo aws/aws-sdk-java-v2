@@ -116,19 +116,19 @@ public class ApacheHttpRequestFactory {
 
         switch (method) {
             case HEAD:
-                return request.contentStreamProvider().isPresent()
+                return isRequestBodyPresent(request)
                        ? wrapEntity(request, new HttpRequestImpl(method, uri))
                        : new HttpHead(uri);
             case GET:
-                return request.contentStreamProvider().isPresent()
+                return isRequestBodyPresent(request)
                        ? wrapEntity(request, new HttpRequestImpl(method, uri))
                        : new HttpGet(uri);
             case DELETE:
-                return request.contentStreamProvider().isPresent()
+                return isRequestBodyPresent(request)
                        ? wrapEntity(request, new HttpRequestImpl(method, uri))
                        : new HttpDelete(uri);
             case OPTIONS:
-                return request.contentStreamProvider().isPresent()
+                return isRequestBodyPresent(request)
                        ? wrapEntity(request, new HttpRequestImpl(method, uri))
                        : new HttpOptions(uri);
             case PATCH:
@@ -136,10 +136,9 @@ public class ApacheHttpRequestFactory {
             case PUT:
                 return wrapEntity(request, new HttpRequestImpl(method, uri));
             default:
-                throw new IllegalArgumentException("Unknown or unsupported HTTP method: " + method);
+                throw new RuntimeException("Unknown HTTP method name: " + request.httpRequest().method());
         }
     }
-
 
     private HttpRequestBase wrapEntity(HttpExecuteRequest request,
                                        HttpEntityEnclosingRequestBase entityEnclosingRequest) {
@@ -211,4 +210,9 @@ public class ApacheHttpRequestFactory {
             return this.method.toString();
         }
     }
+
+    private static boolean isRequestBodyPresent(HttpExecuteRequest request) {
+        return request.contentStreamProvider().isPresent();
+    }
+
 }
