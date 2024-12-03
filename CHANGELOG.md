@@ -1,4 +1,77 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.26__ __2024-12-03__
+## __AWS Glue__
+  - ### Features
+    - This release includes(1)Zero-ETL integration to ingest data from 3P SaaS and DynamoDB to Redshift/Redlake (2)new properties on Connections to enable reuse; new connection APIs for retrieve/preview metadata (3)support of CRUD operations for Multi-catalog (4)support of automatic statistics collections
+
+## __AWS Lake Formation__
+  - ### Features
+    - This release added two new LakeFormation Permissions (CREATE_CATALOG, SUPER_USER) and added Id field for CatalogResource. It also added new conditon and expression field.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Releasing SDK for Multi-Agent Collaboration.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Releasing SDK for multi agent collaboration
+
+## __Amazon Athena__
+  - ### Features
+    - Add FEDERATED type to CreateDataCatalog. This creates Athena Data Catalog, AWS Lambda connector, and AWS Glue connection. Create/DeleteDataCatalog returns DataCatalog. Add Status, ConnectionType, and Error to DataCatalog and DataCatalogSummary. Add DeleteCatalogOnly to delete Athena Catalog only.
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Add new API operations for Amazon Aurora DSQL. Amazon Aurora DSQL is a serverless, distributed SQL database with virtually unlimited scale, highest availability, and zero infrastructure management.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Tagging support for Async Invoke resources. Added support for Distillation in CreateModelCustomizationJob API. Support for videoDataDeliveryEnabled flag in invocation logging.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Added support for Async Invoke Operations Start, List and Get. Support for invocation logs with `requestMetadata` field in Converse, ConverseStream, Invoke and InvokeStream. Video content blocks in Converse/ConverseStream accept raw bytes or S3 URI.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Support for configuring AiOps investigation as alarm action
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for Connections, ProjectProfiles, and JobRuns APIs. Supports the new Lineage feature at GA. Adjusts optionality of a parameter for DataSource and SubscriptionTarget APIs which may adjust types in some clients.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This change adds support for global tables with multi-Region strong consistency (in preview). The UpdateTable API now supports a new attribute MultiRegionConsistency to set consistency when creating global tables. The DescribeTable output now optionally includes the MultiRegionConsistency attribute.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release includes API needed to support for Unstructured Data in Q in QuickSight Q&A (IDC).
+
+## __Amazon Redshift__
+  - ### Features
+    - Adds support for Amazon Redshift RegisterNamespace and DeregisterNamespace APIs to share data to AWS Glue Data Catalog.
+
+## __Amazon S3 Tables__
+  - ### Features
+    - Amazon S3 Tables deliver the first cloud object store with built-in open table format support, and the easiest way to store tabular data at scale.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon S3 Metadata stores object metadata in read-only, fully managed Apache Iceberg metadata tables that you can query. You can create metadata table configurations for S3 general purpose buckets.
+
+## __QApps__
+  - ### Features
+    - Add support for 11 new plugins as action cards to help automate repetitive tasks and improve productivity.
+
+## __QBusiness__
+  - ### Features
+    - Amazon Q Business now supports customization options for your web experience, 11 new Plugins, and QuickSight support. Amazon Q index allows software providers to enrich their native generative AI experiences with their customer's enterprise knowledge and user context spanning multiple applications.
+
+## __Redshift Serverless__
+  - ### Features
+    - Adds support for the ListManagedWorkgroups API to get an overview of existing managed workgroups.
+
 # __2.29.25__ __2024-12-02__
 ## __AWS End User Messaging Social__
   - ### Features

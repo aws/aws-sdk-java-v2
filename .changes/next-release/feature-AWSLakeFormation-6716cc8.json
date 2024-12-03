@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lake Formation",
-    "contributor": "",
-    "description": "This release added two new LakeFormation Permissions (CREATE_CATALOG, SUPER_USER) and added Id field for CatalogResource. It also added new conditon and expression field."
-}
