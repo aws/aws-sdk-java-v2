@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.25__ __2024-12-02__
+## __AWS End User Messaging Social__
+  - ### Features
+    - Added support for passing role arn corresponding to the supported event destination
+
+## __AWS S3 Control__
+  - ### Features
+    - It allows customers to pass CRC64NVME as a header in S3 Batch Operations copy requests
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Add an API parameter that allows customers to set performance configuration for invoking a model.
+
 # __2.29.24__ __2024-12-01__
 ## __AWS CRT-based S3 client__
   - ### Bugfixes
