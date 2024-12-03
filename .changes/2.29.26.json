@@ -109,6 +109,12 @@
             "category": "Redshift Serverless",
             "contributor": "",
             "description": "Adds support for the ListManagedWorkgroups API to get an overview of existing managed workgroups."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Reverted PR https://github.com/aws/aws-sdk-java-v2/pull/5704, which modified all HTTP methods to include the request body entity, as it caused regression issues for some services."
         }
     ]
 }
