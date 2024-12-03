@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch",
+    "contributor": "",
+    "description": "Support for configuring AiOps investigation as alarm action"
+}
