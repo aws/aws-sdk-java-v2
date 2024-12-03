@@ -72,6 +72,10 @@
   - ### Features
     - Adds support for the ListManagedWorkgroups API to get an overview of existing managed workgroups.
 
+## __AWS SDK for Java v2__
+- ### Bugfixes
+    - Reverted PR https://github.com/aws/aws-sdk-java-v2/pull/5704 that attached the request body entity to all HTTP methods because it caused regression issues for some services.
+
 # __2.29.25__ __2024-12-02__
 ## __AWS End User Messaging Social__
   - ### Features
