@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS End User Messaging Social",
+    "contributor": "",
+    "description": "Added support for passing role arn corresponding to the supported event destination"
+}
