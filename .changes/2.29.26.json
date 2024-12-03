@@ -114,7 +114,7 @@
             "type": "bugfix",
             "category": "AWS SDK for Java v2",
             "contributor": "",
-            "description": "Reverted PR https://github.com/aws/aws-sdk-java-v2/pull/5704 that attached the request body entity to all HTTP methods because it caused regression issues for some services."
+            "description": "Reverted PR https://github.com/aws/aws-sdk-java-v2/pull/5704, which modified all HTTP methods to include the request body entity, as it caused regression issues for some services."
         }
     ]
 }
