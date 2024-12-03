@@ -24,7 +24,11 @@ import java.util.Optional;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpOptions;
 import org.apache.http.client.methods.HttpRequestBase;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -107,22 +111,35 @@ public class ApacheHttpRequestFactory {
         base.setConfig(requestConfigBuilder.build());
     }
 
-
     private HttpRequestBase createApacheRequest(HttpExecuteRequest request, URI uri) {
         SdkHttpMethod method = request.httpRequest().method();
+
         switch (method) {
             case HEAD:
+                return request.contentStreamProvider().isPresent()
+                       ? wrapEntity(request, new HttpRequestImpl(method, uri))
+                       : new HttpHead(uri);
             case GET:
+                return request.contentStreamProvider().isPresent()
+                       ? wrapEntity(request, new HttpRequestImpl(method, uri))
+                       : new HttpGet(uri);
             case DELETE:
+                return request.contentStreamProvider().isPresent()
+                       ? wrapEntity(request, new HttpRequestImpl(method, uri))
+                       : new HttpDelete(uri);
             case OPTIONS:
+                return request.contentStreamProvider().isPresent()
+                       ? wrapEntity(request, new HttpRequestImpl(method, uri))
+                       : new HttpOptions(uri);
             case PATCH:
             case POST:
             case PUT:
                 return wrapEntity(request, new HttpRequestImpl(method, uri));
             default:
-                throw new RuntimeException("Unknown HTTP method name: " + method);
+                throw new IllegalArgumentException("Unknown or unsupported HTTP method: " + method);
         }
     }
+
 
     private HttpRequestBase wrapEntity(HttpExecuteRequest request,
                                        HttpEntityEnclosingRequestBase entityEnclosingRequest) {

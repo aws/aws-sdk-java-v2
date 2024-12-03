@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Skip warpping entities for DELETE, GET, HEAD & OPTIONS requests if it didnot have cintentStreamProvider , since sending empting content length for these request was causing failures in some services."
+}
