@@ -1,4 +1,50 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.28__ __2024-12-04__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Add default retry predicates on top of user-provided ones
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - This release adds GenAI Index in Amazon Kendra for Retrieval Augmented Generation (RAG) and intelligent search. With the Kendra GenAI Index, customers get high retrieval accuracy powered by the latest information retrieval technologies and semantic models.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release introduces the ability to generate SQL using natural language, through a new GenerateQuery API (with native integration into Knowledge Bases); ability to ingest and retrieve images through Bedrock Data Automation; and ability to create a Knowledge Base backed by Kendra GenAI Index.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces the ability to generate SQL using natural language, through a new GenerateQuery API (with native integration into Knowledge Bases); ability to ingest and retrieve images through Bedrock Data Automation; and ability to create a Knowledge Base backed by Kendra GenAI Index.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Introduced two APIs ListPromptRouters and GetPromptRouter for Intelligent Prompt Router feature. Add support for Bedrock Guardrails image content filter. New Bedrock Marketplace feature enabling a wider range of bedrock compatible models with self-hosted capability.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Added support for Intelligent Prompt Router in Invoke, InvokeStream, Converse and ConverseStream. Add support for Bedrock Guardrails image content filter. New Bedrock Marketplace feature enabling a wider range of bedrock compatible models with self-hosted capability.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker HyperPod launched task governance to help customers maximize accelerator utilization for model development and flexible training plans to meet training timelines and budget while reducing weeks of training time. AI apps from AWS partner is now available in SageMaker.
+
+## __DSQL__
+  - ### Features
+    - Add IAM Token Generation Utility for DSQL
+        - Contributed by: [@APandher](https://github.com/APandher)
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Release Bedrock Data Automation SDK
+
+## __Runtime for Amazon Bedrock Data Automation__
+  - ### Features
+    - Release Bedrock Data Automation Runtime SDK
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@APandher](https://github.com/APandher)
 # __2.29.27__ __2024-12-03__
 ## __Amazon Aurora DSQL__
   - ### Features

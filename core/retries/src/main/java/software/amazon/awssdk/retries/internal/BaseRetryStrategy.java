@@ -18,7 +18,9 @@ package software.amazon.awssdk.retries.internal;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
@@ -37,6 +39,7 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.ReleaseResponse;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucket;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -44,7 +47,7 @@ import software.amazon.awssdk.utils.Validate;
  * tailor the behavior to its needs.
  */
 @SdkInternalApi
-public abstract class BaseRetryStrategy implements RetryStrategy {
+public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
 
     protected final Logger log;
     protected final List<Predicate<Throwable>> retryPredicates;
@@ -55,6 +58,8 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
     protected final Predicate<Throwable> treatAsThrottling;
     protected final int exceptionCost;
     protected final TokenBucketStore tokenBucketStore;
+    protected final Set<String> defaultsAdded;
+    protected final Boolean useClientDefaults;
 
     BaseRetryStrategy(Logger log, Builder builder) {
         this.log = log;
@@ -66,6 +71,8 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
         this.treatAsThrottling = Validate.paramNotNull(builder.treatAsThrottling, "treatAsThrottling");
         this.exceptionCost = Validate.paramNotNull(builder.exceptionCost, "exceptionCost");
         this.tokenBucketStore = Validate.paramNotNull(builder.tokenBucketStore, "tokenBucketStore");
+        this.defaultsAdded = Validate.paramNotNull(builder.defaultsAdded, "defaultsAdded");
+        this.useClientDefaults = builder.useClientDefaults == null || builder.useClientDefaults;
     }
 
     /**
@@ -139,6 +146,10 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
         return maxAttempts;
     }
 
+    @Override
+    public boolean useClientDefaults() {
+        return useClientDefaults;
+    }
 
     /**
      * Computes the backoff before the first attempt, by default {@link Duration#ZERO}. Extending classes can override this method
@@ -194,6 +205,10 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
      */
     public final boolean hasRetryPredicates() {
         return !retryPredicates.isEmpty();
+    }
+
+    public List<Predicate<Throwable>> retryPredicates() {
+        return retryPredicates;
     }
 
     private DefaultRetryToken refreshToken(RefreshRetryTokenRequest request, AcquireResponse acquireResponse) {
@@ -352,10 +367,44 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
                                      token.getClass().getName());
     }
 
-    static class Builder {
+
+    public boolean shouldAddDefaults(String defaultPredicateName) {
+        return useClientDefaults && !defaultsAdded.contains(defaultPredicateName);
+    }
+
+    @Override
+    public DefaultAwareRetryStrategy addDefaults(RetryStrategyDefaults retryStrategyDefaults) {
+        if (!shouldAddDefaults(retryStrategyDefaults.name())) {
+            return this;
+        }
+        RetryStrategy.Builder<?, ?> builder = this.toBuilder();
+        retryStrategyDefaults.applyDefaults(builder);
+        return (DefaultAwareRetryStrategy) builder.build();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("BaseRetryStrategy")
+                       .add("retryPredicates", retryPredicates)
+                       .add("maxAttempts", maxAttempts)
+                       .add("circuitBreakerEnabled", circuitBreakerEnabled)
+                       .add("backoffStrategy", backoffStrategy)
+                       .add("throttlingBackoffStrategy", throttlingBackoffStrategy)
+                       .add("treatAsThrottling", treatAsThrottling)
+                       .add("exceptionCost", exceptionCost)
+                       .add("tokenBucketStore", tokenBucketStore)
+                       .add("defaultsAdded", defaultsAdded)
+                       .add("useClientDefaults", useClientDefaults)
+                       .build();
+    }
+
+
+    public abstract static class Builder implements DefaultAwareRetryStrategy.Builder {
         private List<Predicate<Throwable>> retryPredicates;
+        private Set<String> defaultsAdded;
         private int maxAttempts;
         private Boolean circuitBreakerEnabled;
+        private Boolean useClientDefaults;
         private Integer exceptionCost;
         private BackoffStrategy backoffStrategy;
         private BackoffStrategy throttlingBackoffStrategy;
@@ -364,6 +413,7 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
 
         Builder() {
             retryPredicates = new ArrayList<>();
+            defaultsAdded = new HashSet<>();
         }
 
         Builder(BaseRetryStrategy strategy) {
@@ -375,6 +425,8 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
             this.throttlingBackoffStrategy = strategy.throttlingBackoffStrategy;
             this.treatAsThrottling = strategy.treatAsThrottling;
             this.tokenBucketStore = strategy.tokenBucketStore;
+            this.defaultsAdded = strategy.defaultsAdded;
+            this.useClientDefaults = strategy.useClientDefaults;
         }
 
         void setRetryOnException(Predicate<Throwable> shouldRetry) {
@@ -407,6 +459,15 @@ public abstract class BaseRetryStrategy implements RetryStrategy {
 
         void setTokenBucketExceptionCost(int exceptionCost) {
             this.exceptionCost = exceptionCost;
+        }
+
+        void setUseClientDefaults(Boolean useClientDefaults) {
+            this.useClientDefaults = useClientDefaults;
+        }
+
+        @Override
+        public void markDefaultAdded(String d) {
+            defaultsAdded.add(d);
         }
     }
 }

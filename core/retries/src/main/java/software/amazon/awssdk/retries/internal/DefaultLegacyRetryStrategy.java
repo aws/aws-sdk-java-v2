@@ -118,6 +118,12 @@ public final class DefaultLegacyRetryStrategy
         }
 
         @Override
+        public Builder useClientDefaults(boolean useClientDefaults) {
+            setUseClientDefaults(useClientDefaults);
+            return this;
+        }
+
+        @Override
         public LegacyRetryStrategy build() {
             return new DefaultLegacyRetryStrategy(this);
         }
