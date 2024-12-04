@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Aurora DSQL",
-    "contributor": "",
-    "description": "Add IAM Token Generation Utility for DSQL."
-}
