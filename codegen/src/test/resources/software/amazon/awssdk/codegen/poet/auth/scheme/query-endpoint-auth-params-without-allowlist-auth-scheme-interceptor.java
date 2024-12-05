@@ -137,10 +137,11 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
         authOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
         CompletableFuture<? extends T> identity;
         SdkMetric<Duration> metric = getIdentityMetric(identityProvider);
+        ResolveIdentityRequest resolveIdentityRequest = identityRequestBuilder.build();
         if (metric == null) {
-            identity = identityProvider.resolveIdentity(identityRequestBuilder.build());
+            identity = identityProvider.resolveIdentity(resolveIdentityRequest);
         } else {
-            identity = MetricUtils.reportDuration(() -> identityProvider.resolveIdentity(identityRequestBuilder.build()),
+            identity = MetricUtils.reportDuration(() -> identityProvider.resolveIdentity(resolveIdentityRequest),
                                                   metricCollector, metric);
         }
         return new SelectedAuthScheme<>(identity, signer, authOption);
