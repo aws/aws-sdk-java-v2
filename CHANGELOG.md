@@ -1,4 +1,274 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.28__ __2024-12-04__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Add default retry predicates on top of user-provided ones
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - This release adds GenAI Index in Amazon Kendra for Retrieval Augmented Generation (RAG) and intelligent search. With the Kendra GenAI Index, customers get high retrieval accuracy powered by the latest information retrieval technologies and semantic models.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release introduces the ability to generate SQL using natural language, through a new GenerateQuery API (with native integration into Knowledge Bases); ability to ingest and retrieve images through Bedrock Data Automation; and ability to create a Knowledge Base backed by Kendra GenAI Index.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces the ability to generate SQL using natural language, through a new GenerateQuery API (with native integration into Knowledge Bases); ability to ingest and retrieve images through Bedrock Data Automation; and ability to create a Knowledge Base backed by Kendra GenAI Index.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Introduced two APIs ListPromptRouters and GetPromptRouter for Intelligent Prompt Router feature. Add support for Bedrock Guardrails image content filter. New Bedrock Marketplace feature enabling a wider range of bedrock compatible models with self-hosted capability.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Added support for Intelligent Prompt Router in Invoke, InvokeStream, Converse and ConverseStream. Add support for Bedrock Guardrails image content filter. New Bedrock Marketplace feature enabling a wider range of bedrock compatible models with self-hosted capability.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker HyperPod launched task governance to help customers maximize accelerator utilization for model development and flexible training plans to meet training timelines and budget while reducing weeks of training time. AI apps from AWS partner is now available in SageMaker.
+
+## __DSQL__
+  - ### Features
+    - Add IAM Token Generation Utility for DSQL
+        - Contributed by: [@APandher](https://github.com/APandher)
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Release Bedrock Data Automation SDK
+
+## __Runtime for Amazon Bedrock Data Automation__
+  - ### Features
+    - Release Bedrock Data Automation Runtime SDK
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@APandher](https://github.com/APandher)
+# __2.29.27__ __2024-12-03__
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Add IAM Token Generation Utility for DSQL.
+
+# __2.29.26__ __2024-12-03__
+## __AWS Glue__
+  - ### Features
+    - This release includes(1)Zero-ETL integration to ingest data from 3P SaaS and DynamoDB to Redshift/Redlake (2)new properties on Connections to enable reuse; new connection APIs for retrieve/preview metadata (3)support of CRUD operations for Multi-catalog (4)support of automatic statistics collections
+
+## __AWS Lake Formation__
+  - ### Features
+    - This release added two new LakeFormation Permissions (CREATE_CATALOG, SUPER_USER) and added Id field for CatalogResource. It also added new conditon and expression field.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Reverted PR https://github.com/aws/aws-sdk-java-v2/pull/5704, which modified all HTTP methods to include the request body entity, as it caused regression issues for some services.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Releasing SDK for Multi-Agent Collaboration.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Releasing SDK for multi agent collaboration
+
+## __Amazon Athena__
+  - ### Features
+    - Add FEDERATED type to CreateDataCatalog. This creates Athena Data Catalog, AWS Lambda connector, and AWS Glue connection. Create/DeleteDataCatalog returns DataCatalog. Add Status, ConnectionType, and Error to DataCatalog and DataCatalogSummary. Add DeleteCatalogOnly to delete Athena Catalog only.
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Add new API operations for Amazon Aurora DSQL. Amazon Aurora DSQL is a serverless, distributed SQL database with virtually unlimited scale, highest availability, and zero infrastructure management.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Tagging support for Async Invoke resources. Added support for Distillation in CreateModelCustomizationJob API. Support for videoDataDeliveryEnabled flag in invocation logging.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Added support for Async Invoke Operations Start, List and Get. Support for invocation logs with `requestMetadata` field in Converse, ConverseStream, Invoke and InvokeStream. Video content blocks in Converse/ConverseStream accept raw bytes or S3 URI.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Support for configuring AiOps investigation as alarm action
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for Connections, ProjectProfiles, and JobRuns APIs. Supports the new Lineage feature at GA. Adjusts optionality of a parameter for DataSource and SubscriptionTarget APIs which may adjust types in some clients.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This change adds support for global tables with multi-Region strong consistency (in preview). The UpdateTable API now supports a new attribute MultiRegionConsistency to set consistency when creating global tables. The DescribeTable output now optionally includes the MultiRegionConsistency attribute.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release includes API needed to support for Unstructured Data in Q in QuickSight Q&A (IDC).
+
+## __Amazon Redshift__
+  - ### Features
+    - Adds support for Amazon Redshift RegisterNamespace and DeregisterNamespace APIs to share data to AWS Glue Data Catalog.
+
+## __Amazon S3 Tables__
+  - ### Features
+    - Amazon S3 Tables deliver the first cloud object store with built-in open table format support, and the easiest way to store tabular data at scale.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon S3 Metadata stores object metadata in read-only, fully managed Apache Iceberg metadata tables that you can query. You can create metadata table configurations for S3 general purpose buckets.
+
+## __QApps__
+  - ### Features
+    - Add support for 11 new plugins as action cards to help automate repetitive tasks and improve productivity.
+
+## __QBusiness__
+  - ### Features
+    - Amazon Q Business now supports customization options for your web experience, 11 new Plugins, and QuickSight support. Amazon Q index allows software providers to enrich their native generative AI experiences with their customer's enterprise knowledge and user context spanning multiple applications.
+
+## __Redshift Serverless__
+  - ### Features
+    - Adds support for the ListManagedWorkgroups API to get an overview of existing managed workgroups.
+
+# __2.29.25__ __2024-12-02__
+## __AWS End User Messaging Social__
+  - ### Features
+    - Added support for passing role arn corresponding to the supported event destination
+
+## __AWS S3 Control__
+  - ### Features
+    - It allows customers to pass CRC64NVME as a header in S3 Batch Operations copy requests
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Add an API parameter that allows customers to set performance configuration for invoking a model.
+
+# __2.29.24__ __2024-12-01__
+## __AWS CRT-based S3 client__
+  - ### Bugfixes
+    - Fixed an issue where an error was not surfaced if request failed halfway for a GetObject operation. See [#5631](https://github.com/aws/aws-sdk-java-v2/issues/5631)
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release allows customers and their partners to easily collaborate with data stored in Snowflake and Amazon Athena, without having to move or share their underlying data among collaborators.
+
+## __AWS Invoicing__
+  - ### Features
+    - AWS Invoice Configuration allows you to receive separate AWS invoices based on your organizational needs. You can use the AWS SDKs to manage Invoice Units and programmatically fetch the information of the invoice receiver.
+
+## __AWS Organizations__
+  - ### Features
+    - Add support for policy operations on the DECLARATIVE_POLICY_EC2 policy type.
+
+## __AWS S3 Control__
+  - ### Features
+    - Amazon S3 introduces support for AWS Dedicated Local Zones
+
+## __AWS SecurityHub__
+  - ### Features
+    - Add new Multi Domain Correlation findings.
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family now offers Web apps that enables simple and secure access to data stored in Amazon S3.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release introduces APIs to upload documents directly into a Knowledge Base
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces a new Rerank API to leverage reranking models (with integration into Knowledge Bases); APIs to upload documents directly into Knowledge Base; RetrieveAndGenerateStream API for streaming response; Guardrails on Retrieve API; and ability to automatically generate filters
+
+## __Amazon Bedrock__
+  - ### Features
+    - Add support for Knowledge Base Evaluations & LLM as a judge
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - This release adds supports for enterprises to integrate Amazon Connect with other voice systems. It supports directly transferring voice calls and metadata without using the public telephone network. It also supports real-time and post-call analytics.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Adds PutIntegration, GetIntegration, ListIntegrations and DeleteIntegration APIs. Adds QueryLanguage support to StartQuery, GetQueryResults, DescribeQueries, DescribeQueryDefinitions, and PutQueryDefinition APIs.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces Event Trigger APIs as part of Amazon Connect Customer Profiles service.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds support for WhatsApp Business messaging, IVR call recording, enabling Contact Lens for existing on-premise contact centers and telephony platforms, and enabling telephony and IVR migration to Amazon Connect independent of their contact center agents.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for Container Insights with Enhanced Observability for Amazon ECS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for declarative policies that allow you to enforce desired configuration across an AWS organization through configuring account attributes. Adds support for Allowed AMIs that allows you to limit the use of AMIs in AWS accounts. Adds support for connectivity over non-HTTP protocols.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added support for Auto Mode Clusters, Hybrid Nodes, and specifying computeTypes in the DescribeAddonVersions API.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Call private APIs by configuring Connections with VPC connectivity through PrivateLink and VPC Lattice
+
+## __Amazon FSx__
+  - ### Features
+    - FSx API changes to support the public launch of the Amazon FSx Intelligent Tiering for OpenZFS storage class.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add new Multi Domain Correlation findings.
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Amazon MemoryDB SDK now supports all APIs for Multi-Region. Please refer to the updated Amazon MemoryDB public documentation for detailed information on API usage.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This feature introduces support for CRUDL APIs, enabling the creation and management of Connected data sources.
+
+## __Amazon Q Connect__
+  - ### Features
+    - This release adds following capabilities: Configuring safeguards via AIGuardrails for Q in Connect inferencing, and APIs to support Q&A self-service use cases
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Amazon RDS supports CloudWatch Database Insights. You can use the SDK to create, modify, and describe the DatabaseInsightsMode for your DB instances and clusters.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon S3 introduces support for AWS Dedicated Local Zones
+
+## __Amazon VPC Lattice__
+  - ### Features
+    - Lattice APIs that allow sharing and access of VPC resources across accounts.
+
+## __AmazonConnectCampaignServiceV2__
+  - ### Features
+    - Amazon Connect Outbound Campaigns V2 / Features : Adds support for Event-Triggered Campaigns.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Added support for EC2 Image Builder's integration with AWS Marketplace for Marketplace components.
+
+## __Network Flow Monitor__
+  - ### Features
+    - This release adds documentation for a new feature in Amazon CloudWatch called Network Flow Monitor. You can use Network Flow Monitor to get near real-time metrics, including retransmissions and data transferred, for your actual workloads.
+
+## __QBusiness__
+  - ### Features
+    - Amazon Q Business now supports capabilities to extract insights and answer questions from visual elements embedded within documents, a browser extension for Google Chrome, Mozilla Firefox, and Microsoft Edge, and attachments across conversations.
+
+## __Security Incident Response__
+  - ### Features
+    - AWS Security Incident Response is a purpose-built security incident solution designed to help customers prepare for, respond to, and recover from security incidents.
+
 # __2.29.23__ __2024-11-27__
 ## __AWS Config__
   - ### Features

@@ -37,6 +37,28 @@
       "documentation":"<p>Deletes memory from the specified memory identifier.</p>",
       "idempotent":true
     },
+    "GenerateQuery":{
+      "name":"GenerateQuery",
+      "http":{
+        "method":"POST",
+        "requestUri":"/generateQuery",
+        "responseCode":200
+      },
+      "input":{"shape":"GenerateQueryRequest"},
+      "output":{"shape":"GenerateQueryResponse"},
+      "errors":[
+        {"shape":"ConflictException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"DependencyFailedException"},
+        {"shape":"BadGatewayException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceQuotaExceededException"}
+      ],
+      "documentation":"<p>Generates an SQL query from a natural language query. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base-generate-query.html\">Generate a query for structured data</a> in the Amazon Bedrock User Guide.</p>"
+    },
     "GetAgentMemory":{
       "name":"GetAgentMemory",
       "http":{
@@ -144,6 +166,28 @@
       ],
       "documentation":"<p>Optimizes a prompt for the task that you specify. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management-optimize.html\">Optimize a prompt</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
     },
+    "Rerank":{
+      "name":"Rerank",
+      "http":{
+        "method":"POST",
+        "requestUri":"/rerank",
+        "responseCode":200
+      },
+      "input":{"shape":"RerankRequest"},
+      "output":{"shape":"RerankResponse"},
+      "errors":[
+        {"shape":"ConflictException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"DependencyFailedException"},
+        {"shape":"BadGatewayException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceQuotaExceededException"}
+      ],
+      "documentation":"<p>Reranks the relevance of sources based on queries. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/rerank.html\">Improve the relevance of query responses with a reranker model</a>.</p>"
+    },
     "Retrieve":{
       "name":"Retrieve",
       "http":{
@@ -187,6 +231,28 @@
         {"shape":"ServiceQuotaExceededException"}
       ],
       "documentation":"<p>Queries a knowledge base and generates responses based on the retrieved results and using the specified foundation model or <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html\">inference profile</a>. The response only cites sources that are relevant to the query.</p>"
+    },
+    "RetrieveAndGenerateStream":{
+      "name":"RetrieveAndGenerateStream",
+      "http":{
+        "method":"POST",
+        "requestUri":"/retrieveAndGenerateStream",
+        "responseCode":200
+      },
+      "input":{"shape":"RetrieveAndGenerateStreamRequest"},
+      "output":{"shape":"RetrieveAndGenerateStreamResponse"},
+      "errors":[
+        {"shape":"ConflictException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"DependencyFailedException"},
+        {"shape":"BadGatewayException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceQuotaExceededException"}
+      ],
+      "documentation":"<p>Queries a knowledge base and generates responses based on the retrieved results, with output in streaming format.</p> <note> <p>The CLI doesn't support streaming operations in Amazon Bedrock, including <code>InvokeModelWithResponseStream</code>.</p> </note>"
     }
   },
   "shapes":{
@@ -204,6 +270,12 @@
       },
       "documentation":"<p> Contains details about the OpenAPI schema for the action group. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/agents-api-schema.html\">Action group OpenAPI schemas</a>. You can either include the schema directly in the payload field or you can upload it to an S3 bucket and specify the S3 bucket location in the s3 field. </p>",
       "union":true
+    },
+    "AWSResourceARN":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"^arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:agent/[0-9a-zA-Z]{10}$"
     },
     "AccessDeniedException":{
       "type":"structure",
@@ -354,11 +426,93 @@
       "type":"list",
       "member":{"shape":"AgentActionGroup"}
     },
+    "AgentAliasArn":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"^arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:agent-alias/[0-9a-zA-Z]{10}/[0-9a-zA-Z]{10}$"
+    },
     "AgentAliasId":{
       "type":"string",
       "max":10,
       "min":0,
       "pattern":"^[0-9a-zA-Z]+$"
+    },
+    "AgentCollaboratorInputPayload":{
+      "type":"structure",
+      "members":{
+        "returnControlResults":{
+          "shape":"ReturnControlResults",
+          "documentation":"<p>An action invocation result.</p>"
+        },
+        "text":{
+          "shape":"AgentCollaboratorPayloadString",
+          "documentation":"<p>Input text.</p>"
+        },
+        "type":{
+          "shape":"PayloadType",
+          "documentation":"<p>The input type.</p>"
+        }
+      },
+      "documentation":"<p>Input for an agent collaborator. The input can be text or an action invocation result.</p>"
+    },
+    "AgentCollaboratorInvocationInput":{
+      "type":"structure",
+      "members":{
+        "agentCollaboratorAliasArn":{
+          "shape":"AgentAliasArn",
+          "documentation":"<p>The collaborator's alias ARN.</p>"
+        },
+        "agentCollaboratorName":{
+          "shape":"String",
+          "documentation":"<p>The collaborator's name.</p>"
+        },
+        "input":{
+          "shape":"AgentCollaboratorInputPayload",
+          "documentation":"<p>Text or action invocation result input for the collaborator.</p>"
+        }
+      },
+      "documentation":"<p>An agent collaborator invocation input.</p>"
+    },
+    "AgentCollaboratorInvocationOutput":{
+      "type":"structure",
+      "members":{
+        "agentCollaboratorAliasArn":{
+          "shape":"AgentAliasArn",
+          "documentation":"<p>The output's agent collaborator alias ARN.</p>"
+        },
+        "agentCollaboratorName":{
+          "shape":"String",
+          "documentation":"<p>The output's agent collaborator name.</p>"
+        },
+        "output":{
+          "shape":"AgentCollaboratorOutputPayload",
+          "documentation":"<p>The output's output.</p>"
+        }
+      },
+      "documentation":"<p>Output from an agent collaborator.</p>"
+    },
+    "AgentCollaboratorOutputPayload":{
+      "type":"structure",
+      "members":{
+        "returnControlPayload":{
+          "shape":"ReturnControlPayload",
+          "documentation":"<p>An action invocation result.</p>"
+        },
+        "text":{
+          "shape":"AgentCollaboratorPayloadString",
+          "documentation":"<p>Text output.</p>"
+        },
+        "type":{
+          "shape":"PayloadType",
+          "documentation":"<p>The type of output.</p>"
+        }
+      },
+      "documentation":"<p>Output from an agent collaborator. The output can be text or an action invocation result.</p>"
+    },
+    "AgentCollaboratorPayloadString":{
+      "type":"string",
+      "sensitive":true
     },
     "AgentId":{
       "type":"string",
@@ -401,9 +555,17 @@
           "shape":"ActionInvocationType",
           "documentation":"<p>Contains information about the API operation to invoke.</p>"
         },
+        "agentId":{
+          "shape":"String",
+          "documentation":"<p>The agent's ID.</p>"
+        },
         "apiPath":{
           "shape":"ApiPath",
           "documentation":"<p>The path to the API operation.</p>"
+        },
+        "collaboratorName":{
+          "shape":"Name",
+          "documentation":"<p>The agent collaborator's name.</p>"
         },
         "httpMethod":{
           "shape":"String",
@@ -464,6 +626,10 @@
           "shape":"String",
           "documentation":"<p>The action group that the API operation belongs to.</p>"
         },
+        "agentId":{
+          "shape":"String",
+          "documentation":"<p>The agent's ID.</p>"
+        },
         "apiPath":{
           "shape":"ApiPath",
           "documentation":"<p>The path to the API operation.</p>"
@@ -490,6 +656,15 @@
         }
       },
       "documentation":"<p>Contains information about the API operation that was called from the action group and the response body that was returned.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p>In the <code>returnControlInvocationResults</code> of the <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeAgent.html#API_agent-runtime_InvokeAgent_RequestSyntax\">InvokeAgent request</a> </p> </li> </ul>"
+    },
+    "AttributeType":{
+      "type":"string",
+      "enum":[
+        "STRING",
+        "NUMBER",
+        "BOOLEAN",
+        "STRING_LIST"
+      ]
     },
     "Attribution":{
       "type":"structure",
@@ -526,6 +701,48 @@
       "max":2048,
       "min":1,
       "pattern":"^(arn:aws(-[^:]+)?:(bedrock|sagemaker):[a-z0-9-]{1,20}:([0-9]{12})?:([a-z-]+/)?)?([a-z0-9.-]{1,63}){0,2}(([:][a-z0-9-]{1,63}){0,2})?(/[a-z0-9]{1,12})?$"
+    },
+    "BedrockRerankingConfiguration":{
+      "type":"structure",
+      "required":["modelConfiguration"],
+      "members":{
+        "modelConfiguration":{
+          "shape":"BedrockRerankingModelConfiguration",
+          "documentation":"<p>Contains configurations for a reranker model.</p>"
+        },
+        "numberOfResults":{
+          "shape":"BedrockRerankingConfigurationNumberOfResultsInteger",
+          "documentation":"<p>The number of results to return after reranking.</p>"
+        }
+      },
+      "documentation":"<p>Contains configurations for an Amazon Bedrock reranker model.</p>"
+    },
+    "BedrockRerankingConfigurationNumberOfResultsInteger":{
+      "type":"integer",
+      "box":true,
+      "max":1000,
+      "min":1
+    },
+    "BedrockRerankingModelArn":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"^(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}::foundation-model/(.*))?$"
+    },
+    "BedrockRerankingModelConfiguration":{
+      "type":"structure",
+      "required":["modelArn"],
+      "members":{
+        "additionalModelRequestFields":{
+          "shape":"AdditionalModelRequestFields",
+          "documentation":"<p>A JSON object whose keys are request fields for the model and whose values are values for those fields.</p>"
+        },
+        "modelArn":{
+          "shape":"BedrockModelArn",
+          "documentation":"<p>The ARN of the reranker model.</p>"
+        }
+      },
+      "documentation":"<p>Contains configurations for a reranker model.</p>"
     },
     "Boolean":{
       "type":"boolean",
@@ -578,6 +795,21 @@
       },
       "documentation":"<p>The property contains the file to chat with, along with its attributes.</p>"
     },
+    "Caller":{
+      "type":"structure",
+      "members":{
+        "agentAliasArn":{
+          "shape":"AgentAliasArn",
+          "documentation":"<p>The caller's agent alias ARN.</p>"
+        }
+      },
+      "documentation":"<p>Details about a caller.</p>",
+      "union":true
+    },
+    "CallerChain":{
+      "type":"list",
+      "member":{"shape":"Caller"}
+    },
     "Citation":{
       "type":"structure",
       "members":{
@@ -591,6 +823,17 @@
         }
       },
       "documentation":"<p>An object containing a segment of the generated response that is based on a source in the knowledge base, alongside information about the source.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeAgent.html#API_agent-runtime_InvokeAgent_ResponseSyntax\">InvokeAgent response</a> – in the <code>citations</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>citations</code> field</p> </li> </ul>"
+    },
+    "CitationEvent":{
+      "type":"structure",
+      "members":{
+        "citation":{
+          "shape":"Citation",
+          "documentation":"<p>The citation.</p>"
+        }
+      },
+      "documentation":"<p>A citation event.</p>",
+      "event":true
     },
     "Citations":{
       "type":"list",
@@ -651,6 +894,22 @@
       },
       "exception":true
     },
+    "ContentBlock":{
+      "type":"structure",
+      "members":{
+        "text":{
+          "shape":"String",
+          "documentation":"<p>The block's text.</p>"
+        }
+      },
+      "documentation":"<p>A content block.</p>",
+      "sensitive":true,
+      "union":true
+    },
+    "ContentBlocks":{
+      "type":"list",
+      "member":{"shape":"ContentBlock"}
+    },
     "ContentBody":{
       "type":"structure",
       "members":{
@@ -670,6 +929,23 @@
       "type":"string",
       "pattern":"[a-z]{1,20}/.{1,20}"
     },
+    "ConversationHistory":{
+      "type":"structure",
+      "members":{
+        "messages":{
+          "shape":"Messages",
+          "documentation":"<p>The conversation's messages.</p>"
+        }
+      },
+      "documentation":"<p>A conversation history.</p>"
+    },
+    "ConversationRole":{
+      "type":"string",
+      "enum":[
+        "user",
+        "assistant"
+      ]
+    },
     "CreationMode":{
       "type":"string",
       "enum":[
@@ -686,7 +962,7 @@
       "members":{
         "event":{
           "shape":"CustomOrchestrationTraceEvent",
-          "documentation":"<p> The trace event details used with the custom orchestration. </p>"
+          "documentation":"<p> The event details used with the custom orchestration. </p>"
         },
         "traceId":{
           "shape":"TraceId",
@@ -704,7 +980,7 @@
           "documentation":"<p> The text that prompted the event at this step. </p>"
         }
       },
-      "documentation":"<p> The event in the custom orchestration sequence. </p>",
+      "documentation":"<p> The event in the custom orchestration sequence. Events are the responses which the custom orchestration Lambda function sends as response to the agent. </p>",
       "sensitive":true
     },
     "DateTimestamp":{
@@ -872,6 +1148,29 @@
       "documentation":"<p>Contains information about the failure of the interaction.</p>",
       "sensitive":true
     },
+    "FieldForReranking":{
+      "type":"structure",
+      "required":["fieldName"],
+      "members":{
+        "fieldName":{
+          "shape":"FieldForRerankingFieldNameString",
+          "documentation":"<p>The name of a metadata field to include in or exclude from consideration when reranking.</p>"
+        }
+      },
+      "documentation":"<p>Contains information for a metadata field to include in or exclude from consideration when reranking.</p>"
+    },
+    "FieldForRerankingFieldNameString":{
+      "type":"string",
+      "max":2000,
+      "min":1
+    },
+    "FieldsForReranking":{
+      "type":"list",
+      "member":{"shape":"FieldForReranking"},
+      "max":100,
+      "min":1,
+      "sensitive":true
+    },
     "FileBody":{
       "type":"blob",
       "max":1000000,
@@ -968,6 +1267,10 @@
     "FinalResponseString":{
       "type":"string",
       "sensitive":true
+    },
+    "Float":{
+      "type":"float",
+      "box":true
     },
     "FlowAliasIdentifier":{
       "type":"string",
@@ -1369,6 +1672,14 @@
           "shape":"ActionInvocationType",
           "documentation":"<p>Contains information about the function to invoke,</p>"
         },
+        "agentId":{
+          "shape":"String",
+          "documentation":"<p>The agent's ID.</p>"
+        },
+        "collaboratorName":{
+          "shape":"Name",
+          "documentation":"<p>The collaborator's name.</p>"
+        },
         "function":{
           "shape":"String",
           "documentation":"<p>The name of the function.</p>"
@@ -1410,6 +1721,10 @@
           "shape":"String",
           "documentation":"<p>The action group that the function belongs to.</p>"
         },
+        "agentId":{
+          "shape":"String",
+          "documentation":"<p>The agent's ID.</p>"
+        },
         "confirmationState":{
           "shape":"ConfirmationState",
           "documentation":"<p>Contains the user confirmation information about the function that was called.</p>"
@@ -1443,6 +1758,56 @@
     "Functions":{
       "type":"list",
       "member":{"shape":"FunctionDefinition"}
+    },
+    "GenerateQueryRequest":{
+      "type":"structure",
+      "required":[
+        "queryGenerationInput",
+        "transformationConfiguration"
+      ],
+      "members":{
+        "queryGenerationInput":{
+          "shape":"QueryGenerationInput",
+          "documentation":"<p>Specifies information about a natural language query to transform into SQL.</p>"
+        },
+        "transformationConfiguration":{
+          "shape":"TransformationConfiguration",
+          "documentation":"<p>Specifies configurations for transforming the natural language query into SQL.</p>"
+        }
+      }
+    },
+    "GenerateQueryResponse":{
+      "type":"structure",
+      "members":{
+        "queries":{
+          "shape":"GeneratedQueries",
+          "documentation":"<p>A list of objects, each of which defines a generated query that can correspond to the natural language queries.</p>"
+        }
+      }
+    },
+    "GeneratedQueries":{
+      "type":"list",
+      "member":{"shape":"GeneratedQuery"},
+      "min":0
+    },
+    "GeneratedQuery":{
+      "type":"structure",
+      "members":{
+        "sql":{
+          "shape":"String",
+          "documentation":"<p>An SQL query that corresponds to the natural language query.</p>"
+        },
+        "type":{
+          "shape":"GeneratedQueryType",
+          "documentation":"<p>The type of transformed query.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a query generated for a natural language query.</p>",
+      "sensitive":true
+    },
+    "GeneratedQueryType":{
+      "type":"string",
+      "enum":["REDSHIFT_SQL"]
     },
     "GeneratedResponsePart":{
       "type":"structure",
@@ -1704,6 +2069,17 @@
       "member":{"shape":"GuardrailCustomWord"},
       "sensitive":true
     },
+    "GuardrailEvent":{
+      "type":"structure",
+      "members":{
+        "action":{
+          "shape":"GuadrailAction",
+          "documentation":"<p>The guardrail action.</p>"
+        }
+      },
+      "documentation":"<p>A guardrail event.</p>",
+      "event":true
+    },
     "GuardrailIdentifierWithArn":{
       "type":"string",
       "max":2048,
@@ -1945,6 +2321,24 @@
       "min":1,
       "sensitive":true
     },
+    "ImplicitFilterConfiguration":{
+      "type":"structure",
+      "required":[
+        "metadataAttributes",
+        "modelArn"
+      ],
+      "members":{
+        "metadataAttributes":{
+          "shape":"MetadataAttributeSchemaList",
+          "documentation":"<p>Metadata that can be used in a filter.</p>"
+        },
+        "modelArn":{
+          "shape":"BedrockModelArn",
+          "documentation":"<p>The model that generates the filter.</p>"
+        }
+      },
+      "documentation":"<p>Settings for implicit filtering, where a model generates a metadata filter based on the prompt.</p>"
+    },
     "InferenceConfig":{
       "type":"structure",
       "members":{
@@ -2163,6 +2557,10 @@
       "documentation":"<p>Contains information about the prompt to optimize.</p>",
       "union":true
     },
+    "InputQueryType":{
+      "type":"string",
+      "enum":["TEXT"]
+    },
     "InputText":{
       "type":"string",
       "max":25000000,
@@ -2194,6 +2592,10 @@
         "actionGroupInvocationInput":{
           "shape":"ActionGroupInvocationInput",
           "documentation":"<p>Contains information about the action group to be invoked.</p>"
+        },
+        "agentCollaboratorInvocationInput":{
+          "shape":"AgentCollaboratorInvocationInput",
+          "documentation":"<p>The collaborator's invocation input.</p>"
         },
         "codeInterpreterInvocationInput":{
           "shape":"CodeInterpreterInvocationInput",
@@ -2257,7 +2659,8 @@
         "ACTION_GROUP",
         "KNOWLEDGE_BASE",
         "FINISH",
-        "ACTION_GROUP_CODE_INTERPRETER"
+        "ACTION_GROUP_CODE_INTERPRETER",
+        "AGENT_COLLABORATOR"
       ]
     },
     "InvokeAgentRequest":{
@@ -2305,6 +2708,12 @@
         "sessionState":{
           "shape":"SessionState",
           "documentation":"<p>Contains parameters that specify various attributes of the session. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/agents-session-state.html\">Control session context</a>.</p> <note> <p>If you include <code>returnControlInvocationResults</code> in the <code>sessionState</code> field, the <code>inputText</code> field will be ignored.</p> </note>"
+        },
+        "sourceArn":{
+          "shape":"AWSResourceARN",
+          "documentation":"<p>The ARN of the resource making the request.</p>",
+          "location":"header",
+          "locationName":"x-amz-source-arn"
         },
         "streamingConfigurations":{
           "shape":"StreamingConfigurations",
@@ -2505,6 +2914,12 @@
       },
       "documentation":"<p> Details of the knowledge base associated withe inline agent. </p>"
     },
+    "KnowledgeBaseArn":{
+      "type":"string",
+      "max":128,
+      "min":0,
+      "pattern":"^arn:aws(|-cn|-us-gov):bedrock:[a-zA-Z0-9-]*:[0-9]{12}:knowledge-base/[0-9a-zA-Z]+$"
+    },
     "KnowledgeBaseConfiguration":{
       "type":"structure",
       "required":[
@@ -2596,7 +3011,7 @@
       "members":{
         "content":{
           "shape":"RetrievalResultContent",
-          "documentation":"<p>Contains a chunk of text from a data source in the knowledge base.</p>"
+          "documentation":"<p>Contains information about the content of the chunk.</p>"
         },
         "location":{
           "shape":"RetrievalResultLocation",
@@ -2655,6 +3070,10 @@
           "shape":"RetrievalFilter",
           "documentation":"<p>Specifies the filters to use on the metadata in the knowledge base data sources before returning results. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html\">Query configurations</a>.</p>"
         },
+        "implicitFilterConfiguration":{
+          "shape":"ImplicitFilterConfiguration",
+          "documentation":"<p>Settings for implicit filtering.</p>"
+        },
         "numberOfResults":{
           "shape":"KnowledgeBaseVectorSearchConfigurationNumberOfResultsInteger",
           "documentation":"<p>The number of source chunks to retrieve.</p>",
@@ -2663,6 +3082,10 @@
         "overrideSearchType":{
           "shape":"SearchType",
           "documentation":"<p>By default, Amazon Bedrock decides a search strategy for you. If you're using an Amazon OpenSearch Serverless vector store that contains a filterable text field, you can specify whether to query the knowledge base with a <code>HYBRID</code> search using both vector embeddings and raw text, or <code>SEMANTIC</code> search using only vector embeddings. For other vector store configurations, only <code>SEMANTIC</code> search is available. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base-test.html\">Test a knowledge base</a>.</p>"
+        },
+        "rerankingConfiguration":{
+          "shape":"VectorSearchRerankingConfiguration",
+          "documentation":"<p>Contains configurations for reranking the retrieved results. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/rerank.html\">Improve the relevance of query responses with a reranker model</a>.</p>"
         }
       },
       "documentation":"<p>Configurations for how to perform the search query and return results. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html\">Query configurations</a>.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_RequestSyntax\">Retrieve request</a> – in the <code>vectorSearchConfiguration</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax\">RetrieveAndGenerate request</a> – in the <code>vectorSearchConfiguration</code> field</p> </li> </ul>"
@@ -2754,6 +3177,28 @@
       "type":"string",
       "enum":["SESSION_SUMMARY"]
     },
+    "Message":{
+      "type":"structure",
+      "required":[
+        "content",
+        "role"
+      ],
+      "members":{
+        "content":{
+          "shape":"ContentBlocks",
+          "documentation":"<p>The message's content.</p>"
+        },
+        "role":{
+          "shape":"ConversationRole",
+          "documentation":"<p>The message's role.</p>"
+        }
+      },
+      "documentation":"<p>Details about a message.</p>"
+    },
+    "Messages":{
+      "type":"list",
+      "member":{"shape":"Message"}
+    },
     "Metadata":{
       "type":"structure",
       "members":{
@@ -2765,6 +3210,63 @@
       "documentation":"<p>Provides details of the foundation model.</p>",
       "sensitive":true
     },
+    "MetadataAttributeSchema":{
+      "type":"structure",
+      "required":[
+        "description",
+        "key",
+        "type"
+      ],
+      "members":{
+        "description":{
+          "shape":"MetadataAttributeSchemaDescriptionString",
+          "documentation":"<p>The attribute's description.</p>"
+        },
+        "key":{
+          "shape":"MetadataAttributeSchemaKeyString",
+          "documentation":"<p>The attribute's key.</p>"
+        },
+        "type":{
+          "shape":"AttributeType",
+          "documentation":"<p>The attribute's type.</p>"
+        }
+      },
+      "documentation":"<p>Details about a metadata attribute.</p>",
+      "sensitive":true
+    },
+    "MetadataAttributeSchemaDescriptionString":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "pattern":"^[\\s\\S]+$"
+    },
+    "MetadataAttributeSchemaKeyString":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"^[\\s\\S]+$"
+    },
+    "MetadataAttributeSchemaList":{
+      "type":"list",
+      "member":{"shape":"MetadataAttributeSchema"},
+      "max":25,
+      "min":1
+    },
+    "MetadataConfigurationForReranking":{
+      "type":"structure",
+      "required":["selectionMode"],
+      "members":{
+        "selectionMode":{
+          "shape":"RerankingMetadataSelectionMode",
+          "documentation":"<p>Specifies whether to consider all metadata when reranking, or only the metadata that you select. If you specify <code>SELECTIVE</code>, include the <code>selectiveModeConfiguration</code> field.</p>"
+        },
+        "selectiveModeConfiguration":{
+          "shape":"RerankingMetadataSelectiveModeConfiguration",
+          "documentation":"<p>Contains configurations for the metadata fields to include or exclude when considering reranking.</p>"
+        }
+      },
+      "documentation":"<p>Contains configurations for the metadata to use in reranking.</p>"
+    },
     "MimeType":{"type":"string"},
     "ModelIdentifier":{
       "type":"string",
@@ -2775,6 +3277,10 @@
     "ModelInvocationInput":{
       "type":"structure",
       "members":{
+        "foundationModel":{
+          "shape":"ModelIdentifier",
+          "documentation":"<p>The identifier of a foundation model.</p>"
+        },
         "inferenceConfiguration":{
           "shape":"InferenceConfiguration",
           "documentation":"<p>Specifications about the inference parameters that were provided alongside the prompt. These are specified in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_PromptOverrideConfiguration.html\">PromptOverrideConfiguration</a> object that was set when the agent was created or updated. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html\">Inference parameters for foundation models</a>.</p>"
@@ -2805,6 +3311,11 @@
         }
       },
       "documentation":"<p>The input for the pre-processing step.</p> <ul> <li> <p>The <code>type</code> matches the agent step.</p> </li> <li> <p>The <code>text</code> contains the prompt.</p> </li> <li> <p>The <code>inferenceConfiguration</code>, <code>parserMode</code>, and <code>overrideLambda</code> values are set in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_PromptOverrideConfiguration.html\">PromptOverrideConfiguration</a> object that was set when the agent was created or updated.</p> </li> </ul>",
+      "sensitive":true
+    },
+    "Name":{
+      "type":"string",
+      "pattern":"^([0-9a-zA-Z][_-]?){1,100}$",
       "sensitive":true
     },
     "NextToken":{
@@ -2847,6 +3358,10 @@
         "actionGroupInvocationOutput":{
           "shape":"ActionGroupInvocationOutput",
           "documentation":"<p>Contains the JSON-formatted string returned by the API invoked by the action group.</p>"
+        },
+        "agentCollaboratorInvocationOutput":{
+          "shape":"AgentCollaboratorInvocationOutput",
+          "documentation":"<p>A collaborator's invocation output.</p>"
         },
         "codeInterpreterInvocationOutput":{
           "shape":"CodeInterpreterInvocationOutput",
@@ -3165,6 +3680,13 @@
       "event":true,
       "sensitive":true
     },
+    "PayloadType":{
+      "type":"string",
+      "enum":[
+        "TEXT",
+        "RETURN_CONTROL"
+      ]
+    },
     "PostProcessingModelInvocationOutput":{
       "type":"structure",
       "members":{
@@ -3367,6 +3889,30 @@
       },
       "documentation":"<p>Contains the parameters in the request body.</p>"
     },
+    "QueryGenerationInput":{
+      "type":"structure",
+      "required":[
+        "text",
+        "type"
+      ],
+      "members":{
+        "text":{
+          "shape":"QueryGenerationInputTextString",
+          "documentation":"<p>The text of the query.</p>"
+        },
+        "type":{
+          "shape":"InputQueryType",
+          "documentation":"<p>The type of the query.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a natural language query to transform into SQL.</p>",
+      "sensitive":true
+    },
+    "QueryGenerationInputTextString":{
+      "type":"string",
+      "max":20000,
+      "min":1
+    },
     "QueryTransformationConfiguration":{
       "type":"structure",
       "required":["type"],
@@ -3377,6 +3923,10 @@
         }
       },
       "documentation":"<p>To split up the prompt and retrieve multiple sources, set the transformation type to <code>QUERY_DECOMPOSITION</code>.</p>"
+    },
+    "QueryTransformationMode":{
+      "type":"string",
+      "enum":["TEXT_TO_SQL"]
     },
     "QueryTransformationType":{
       "type":"string",
@@ -3454,6 +4004,225 @@
         "ENABLED",
         "DISABLED"
       ]
+    },
+    "RerankDocument":{
+      "type":"structure",
+      "required":["type"],
+      "members":{
+        "jsonDocument":{
+          "shape":"Document",
+          "documentation":"<p>Contains a JSON document to rerank.</p>"
+        },
+        "textDocument":{
+          "shape":"RerankTextDocument",
+          "documentation":"<p>Contains information about a text document to rerank.</p>"
+        },
+        "type":{
+          "shape":"RerankDocumentType",
+          "documentation":"<p>The type of document to rerank.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a document to rerank. Choose the <code>type</code> to define and include the field that corresponds to the type.</p>",
+      "sensitive":true
+    },
+    "RerankDocumentType":{
+      "type":"string",
+      "enum":[
+        "TEXT",
+        "JSON"
+      ]
+    },
+    "RerankQueriesList":{
+      "type":"list",
+      "member":{"shape":"RerankQuery"},
+      "max":1,
+      "min":1,
+      "sensitive":true
+    },
+    "RerankQuery":{
+      "type":"structure",
+      "required":[
+        "textQuery",
+        "type"
+      ],
+      "members":{
+        "textQuery":{
+          "shape":"RerankTextDocument",
+          "documentation":"<p>Contains information about a text query.</p>"
+        },
+        "type":{
+          "shape":"RerankQueryContentType",
+          "documentation":"<p>The type of the query.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a query to submit to the reranker model.</p>",
+      "sensitive":true
+    },
+    "RerankQueryContentType":{
+      "type":"string",
+      "enum":["TEXT"]
+    },
+    "RerankRequest":{
+      "type":"structure",
+      "required":[
+        "queries",
+        "rerankingConfiguration",
+        "sources"
+      ],
+      "members":{
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If the total number of results was greater than could fit in a response, a token is returned in the <code>nextToken</code> field. You can enter that token in this field to return the next batch of results.</p>"
+        },
+        "queries":{
+          "shape":"RerankQueriesList",
+          "documentation":"<p>An array of objects, each of which contains information about a query to submit to the reranker model.</p>"
+        },
+        "rerankingConfiguration":{
+          "shape":"RerankingConfiguration",
+          "documentation":"<p>Contains configurations for reranking.</p>"
+        },
+        "sources":{
+          "shape":"RerankSourcesList",
+          "documentation":"<p>An array of objects, each of which contains information about the sources to rerank.</p>"
+        }
+      }
+    },
+    "RerankResponse":{
+      "type":"structure",
+      "required":["results"],
+      "members":{
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If the total number of results is greater than can fit in the response, use this token in the <code>nextToken</code> field when making another request to return the next batch of results.</p>"
+        },
+        "results":{
+          "shape":"RerankResultsList",
+          "documentation":"<p>An array of objects, each of which contains information about the results of reranking.</p>"
+        }
+      }
+    },
+    "RerankResult":{
+      "type":"structure",
+      "required":[
+        "index",
+        "relevanceScore"
+      ],
+      "members":{
+        "document":{
+          "shape":"RerankDocument",
+          "documentation":"<p>Contains information about the document.</p>"
+        },
+        "index":{
+          "shape":"RerankResultIndexInteger",
+          "documentation":"<p>The ranking of the document. The lower a number, the higher the document is ranked.</p>"
+        },
+        "relevanceScore":{
+          "shape":"Float",
+          "documentation":"<p>The relevance score of the document.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a document that was reranked.</p>"
+    },
+    "RerankResultIndexInteger":{
+      "type":"integer",
+      "box":true,
+      "max":1000,
+      "min":0
+    },
+    "RerankResultsList":{
+      "type":"list",
+      "member":{"shape":"RerankResult"}
+    },
+    "RerankSource":{
+      "type":"structure",
+      "required":[
+        "inlineDocumentSource",
+        "type"
+      ],
+      "members":{
+        "inlineDocumentSource":{
+          "shape":"RerankDocument",
+          "documentation":"<p>Contains an inline definition of a source for reranking.</p>"
+        },
+        "type":{
+          "shape":"RerankSourceType",
+          "documentation":"<p>The type of the source.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a source for reranking.</p>",
+      "sensitive":true
+    },
+    "RerankSourceType":{
+      "type":"string",
+      "enum":["INLINE"]
+    },
+    "RerankSourcesList":{
+      "type":"list",
+      "member":{"shape":"RerankSource"},
+      "max":1000,
+      "min":1,
+      "sensitive":true
+    },
+    "RerankTextDocument":{
+      "type":"structure",
+      "members":{
+        "text":{
+          "shape":"RerankTextDocumentTextString",
+          "documentation":"<p>The text of the document.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a text document to rerank.</p>",
+      "sensitive":true
+    },
+    "RerankTextDocumentTextString":{
+      "type":"string",
+      "max":9000,
+      "min":1
+    },
+    "RerankingConfiguration":{
+      "type":"structure",
+      "required":[
+        "bedrockRerankingConfiguration",
+        "type"
+      ],
+      "members":{
+        "bedrockRerankingConfiguration":{
+          "shape":"BedrockRerankingConfiguration",
+          "documentation":"<p>Contains configurations for an Amazon Bedrock reranker.</p>"
+        },
+        "type":{
+          "shape":"RerankingConfigurationType",
+          "documentation":"<p>The type of reranker that the configurations apply to.</p>"
+        }
+      },
+      "documentation":"<p>Contains configurations for reranking.</p>"
+    },
+    "RerankingConfigurationType":{
+      "type":"string",
+      "enum":["BEDROCK_RERANKING_MODEL"]
+    },
+    "RerankingMetadataSelectionMode":{
+      "type":"string",
+      "enum":[
+        "SELECTIVE",
+        "ALL"
+      ]
+    },
+    "RerankingMetadataSelectiveModeConfiguration":{
+      "type":"structure",
+      "members":{
+        "fieldsToExclude":{
+          "shape":"FieldsForReranking",
+          "documentation":"<p>An array of objects, each of which specifies a metadata field to exclude from consideration when reranking.</p>"
+        },
+        "fieldsToInclude":{
+          "shape":"FieldsForReranking",
+          "documentation":"<p>An array of objects, each of which specifies a metadata field to include in consideration when reranking. The remaining metadata fields are ignored.</p>"
+        }
+      },
+      "documentation":"<p>Contains configurations for the metadata fields to include or exclude when considering reranking. If you include the <code>fieldsToExclude</code> field, the reranker ignores all the metadata fields that you specify. If you include the <code>fieldsToInclude</code> field, the reranker uses only the metadata fields that you specify and ignores all others. You can include only one of these fields.</p>",
+      "union":true
     },
     "ResourceDescription":{
       "type":"string",
@@ -3627,15 +4396,89 @@
     },
     "RetrievalResultContent":{
       "type":"structure",
-      "required":["text"],
       "members":{
+        "byteContent":{
+          "shape":"String",
+          "documentation":"<p>A data URI with base64-encoded content from the data source. The URI is in the following format: returned in the following format: <code>data:image/jpeg;base64,${base64-encoded string}</code>.</p>"
+        },
+        "row":{
+          "shape":"RetrievalResultContentRow",
+          "documentation":"<p>Specifies information about the rows with the cells to return in retrieval.</p>"
+        },
         "text":{
           "shape":"String",
           "documentation":"<p>The cited text from the data source.</p>"
+        },
+        "type":{
+          "shape":"RetrievalResultContentType",
+          "documentation":"<p>The type of content in the retrieval result.</p>"
         }
       },
-      "documentation":"<p>Contains the cited text from the data source.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>content</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>content</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeAgent.html#API_agent-runtime_InvokeAgent_ResponseSyntax\">InvokeAgent response</a> – in the <code>content</code> field</p> </li> </ul>",
+      "documentation":"<p>Contains information about a chunk of text from a data source in the knowledge base. If the result is from a structured data source, the cell in the database and the type of the value is also identified.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>content</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>content</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeAgent.html#API_agent-runtime_InvokeAgent_ResponseSyntax\">InvokeAgent response</a> – in the <code>content</code> field</p> </li> </ul>",
       "sensitive":true
+    },
+    "RetrievalResultContentColumn":{
+      "type":"structure",
+      "members":{
+        "columnName":{
+          "shape":"String",
+          "documentation":"<p>The name of the column.</p>"
+        },
+        "columnValue":{
+          "shape":"String",
+          "documentation":"<p>The value in the column.</p>"
+        },
+        "type":{
+          "shape":"RetrievalResultContentColumnType",
+          "documentation":"<p>The data type of the value.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a column with a cell to return in retrieval.</p>",
+      "sensitive":true
+    },
+    "RetrievalResultContentColumnType":{
+      "type":"string",
+      "enum":[
+        "BLOB",
+        "BOOLEAN",
+        "DOUBLE",
+        "NULL",
+        "LONG",
+        "STRING"
+      ]
+    },
+    "RetrievalResultContentRow":{
+      "type":"list",
+      "member":{"shape":"RetrievalResultContentColumn"},
+      "sensitive":true
+    },
+    "RetrievalResultContentType":{
+      "type":"string",
+      "enum":[
+        "TEXT",
+        "IMAGE",
+        "ROW"
+      ]
+    },
+    "RetrievalResultCustomDocumentLocation":{
+      "type":"structure",
+      "members":{
+        "id":{
+          "shape":"String",
+          "documentation":"<p>The ID of the document.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about the location of a document in a custom data source.</p>"
+    },
+    "RetrievalResultKendraDocumentLocation":{
+      "type":"structure",
+      "members":{
+        "uri":{
+          "shape":"String",
+          "documentation":"<p>The document's uri.</p>"
+        }
+      },
+      "documentation":"<p>The location of a result in Amazon Kendra.</p>"
     },
     "RetrievalResultLocation":{
       "type":"structure",
@@ -3644,6 +4487,14 @@
         "confluenceLocation":{
           "shape":"RetrievalResultConfluenceLocation",
           "documentation":"<p>The Confluence data source location.</p>"
+        },
+        "customDocumentLocation":{
+          "shape":"RetrievalResultCustomDocumentLocation",
+          "documentation":"<p>Specifies the location of a document in a custom data source.</p>"
+        },
+        "kendraDocumentLocation":{
+          "shape":"RetrievalResultKendraDocumentLocation",
+          "documentation":"<p>The location of a document in Amazon Kendra.</p>"
         },
         "s3Location":{
           "shape":"RetrievalResultS3Location",
@@ -3657,6 +4508,10 @@
           "shape":"RetrievalResultSharePointLocation",
           "documentation":"<p>The SharePoint data source location.</p>"
         },
+        "sqlLocation":{
+          "shape":"RetrievalResultSqlLocation",
+          "documentation":"<p>Specifies information about the SQL query used to retrieve the result.</p>"
+        },
         "type":{
           "shape":"RetrievalResultLocationType",
           "documentation":"<p>The type of data source location.</p>"
@@ -3666,7 +4521,7 @@
           "documentation":"<p>The web URL/URLs data source location.</p>"
         }
       },
-      "documentation":"<p>Contains information about the data source location.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>location</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>location</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeAgent.html#API_agent-runtime_InvokeAgent_ResponseSyntax\">InvokeAgent response</a> – in the <code>locatino</code> field</p> </li> </ul>",
+      "documentation":"<p>Contains information about the data source location.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_Retrieve.html#API_agent-runtime_Retrieve_ResponseSyntax\">Retrieve response</a> – in the <code>location</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>location</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeAgent.html#API_agent-runtime_InvokeAgent_ResponseSyntax\">InvokeAgent response</a> – in the <code>location</code> field</p> </li> </ul>",
       "sensitive":true
     },
     "RetrievalResultLocationType":{
@@ -3676,7 +4531,10 @@
         "WEB",
         "CONFLUENCE",
         "SALESFORCE",
-        "SHAREPOINT"
+        "SHAREPOINT",
+        "CUSTOM",
+        "KENDRA",
+        "SQL"
       ]
     },
     "RetrievalResultMetadata":{
@@ -3726,6 +4584,16 @@
         }
       },
       "documentation":"<p>The SharePoint data source location.</p>"
+    },
+    "RetrievalResultSqlLocation":{
+      "type":"structure",
+      "members":{
+        "query":{
+          "shape":"String",
+          "documentation":"<p>The SQL query used to retrieve the result.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about the SQL query used to retrieve the result.</p>"
     },
     "RetrievalResultWebLocation":{
       "type":"structure",
@@ -3783,6 +4651,19 @@
         }
       },
       "documentation":"<p>Contains the response generated from querying the knowledge base.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>output</code> field</p> </li> </ul>",
+      "sensitive":true
+    },
+    "RetrieveAndGenerateOutputEvent":{
+      "type":"structure",
+      "required":["text"],
+      "members":{
+        "text":{
+          "shape":"String",
+          "documentation":"<p>A text response.</p>"
+        }
+      },
+      "documentation":"<p>A retrieve and generate output event.</p>",
+      "event":true,
       "sensitive":true
     },
     "RetrieveAndGenerateRequest":{
@@ -3843,6 +4724,103 @@
       },
       "documentation":"<p>Contains configuration about the session with the knowledge base.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_RequestSyntax\">RetrieveAndGenerate request</a> – in the <code>sessionConfiguration</code> field</p> </li> </ul>"
     },
+    "RetrieveAndGenerateStreamRequest":{
+      "type":"structure",
+      "required":["input"],
+      "members":{
+        "input":{
+          "shape":"RetrieveAndGenerateInput",
+          "documentation":"<p>Contains the query to be made to the knowledge base.</p>"
+        },
+        "retrieveAndGenerateConfiguration":{
+          "shape":"RetrieveAndGenerateConfiguration",
+          "documentation":"<p>Contains configurations for the knowledge base query and retrieval process. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/kb-test-config.html\">Query configurations</a>.</p>"
+        },
+        "sessionConfiguration":{
+          "shape":"RetrieveAndGenerateSessionConfiguration",
+          "documentation":"<p>Contains details about the session with the knowledge base.</p>"
+        },
+        "sessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The unique identifier of the session. When you first make a <code>RetrieveAndGenerate</code> request, Amazon Bedrock automatically generates this value. You must reuse this value for all subsequent requests in the same conversational session. This value allows Amazon Bedrock to maintain context and knowledge from previous interactions. You can't explicitly set the <code>sessionId</code> yourself.</p>"
+        }
+      }
+    },
+    "RetrieveAndGenerateStreamResponse":{
+      "type":"structure",
+      "required":[
+        "sessionId",
+        "stream"
+      ],
+      "members":{
+        "sessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The session ID.</p>",
+          "location":"header",
+          "locationName":"x-amzn-bedrock-knowledge-base-session-id"
+        },
+        "stream":{
+          "shape":"RetrieveAndGenerateStreamResponseOutput",
+          "documentation":"<p>A stream of events from the model.</p>"
+        }
+      },
+      "payload":"stream"
+    },
+    "RetrieveAndGenerateStreamResponseOutput":{
+      "type":"structure",
+      "members":{
+        "accessDeniedException":{
+          "shape":"AccessDeniedException",
+          "documentation":"<p>The request is denied because you do not have sufficient permissions to perform the requested action. For troubleshooting this error, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-access-denied\">AccessDeniedException</a> in the Amazon Bedrock User Guide.</p>"
+        },
+        "badGatewayException":{
+          "shape":"BadGatewayException",
+          "documentation":"<p>The request failed due to a bad gateway error.</p>"
+        },
+        "citation":{
+          "shape":"CitationEvent",
+          "documentation":"<p>A citation event.</p>"
+        },
+        "conflictException":{
+          "shape":"ConflictException",
+          "documentation":"<p>Error occurred because of a conflict while performing an operation.</p>"
+        },
+        "dependencyFailedException":{
+          "shape":"DependencyFailedException",
+          "documentation":"<p>The request failed due to a dependency error.</p>"
+        },
+        "guardrail":{
+          "shape":"GuardrailEvent",
+          "documentation":"<p>A guardrail event.</p>"
+        },
+        "internalServerException":{
+          "shape":"InternalServerException",
+          "documentation":"<p>An internal server error occurred. Retry your request.</p>"
+        },
+        "output":{
+          "shape":"RetrieveAndGenerateOutputEvent",
+          "documentation":"<p>An output event.</p>"
+        },
+        "resourceNotFoundException":{
+          "shape":"ResourceNotFoundException",
+          "documentation":"<p>The specified resource ARN was not found. For troubleshooting this error, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-resource-not-found\">ResourceNotFound</a> in the Amazon Bedrock User Guide.</p>"
+        },
+        "serviceQuotaExceededException":{
+          "shape":"ServiceQuotaExceededException",
+          "documentation":"<p>Your request exceeds the service quota for your account. You can view your quotas at <a href=\"https://docs.aws.amazon.com/servicequotas/latest/userguide/gs-request-quota.html\">Viewing service quotas</a>. You can resubmit your request later.</p>"
+        },
+        "throttlingException":{
+          "shape":"ThrottlingException",
+          "documentation":"<p>Your request was denied due to exceeding the account quotas for <i>Amazon Bedrock</i>. For troubleshooting this error, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-throttling-exception\">ThrottlingException</a> in the Amazon Bedrock User Guide.</p>"
+        },
+        "validationException":{
+          "shape":"ValidationException",
+          "documentation":"<p>The input fails to satisfy the constraints specified by <i>Amazon Bedrock</i>. For troubleshooting this error, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/troubleshooting-api-error-codes.html#ts-validation-error\">ValidationError</a> in the Amazon Bedrock User Guide.</p>"
+        }
+      },
+      "documentation":"<p>A retrieve and generate stream response output.</p>",
+      "eventstream":true
+    },
     "RetrieveAndGenerateType":{
       "type":"string",
       "enum":[
@@ -3857,6 +4835,10 @@
         "retrievalQuery"
       ],
       "members":{
+        "guardrailConfiguration":{
+          "shape":"GuardrailConfiguration",
+          "documentation":"<p>Guardrail settings.</p>"
+        },
         "knowledgeBaseId":{
           "shape":"KnowledgeBaseId",
           "documentation":"<p>The unique identifier of the knowledge base to query.</p>",
@@ -3881,6 +4863,10 @@
       "type":"structure",
       "required":["retrievalResults"],
       "members":{
+        "guardrailAction":{
+          "shape":"GuadrailAction",
+          "documentation":"<p>Specifies if there is a guardrail intervention in the response.</p>"
+        },
         "nextToken":{
           "shape":"NextToken",
           "documentation":"<p>If there are more results than can fit in the response, the response returns a <code>nextToken</code>. Use this token in the <code>nextToken</code> field of another request to retrieve the next batch of results.</p>"
@@ -3934,6 +4920,63 @@
       "documentation":"<p>Contains information to return from the action group that the agent has predicted to invoke.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeAgent.html#API_agent-runtime_InvokeAgent_ResponseSyntax\">InvokeAgent response</a> </p> </li> </ul>",
       "event":true,
       "sensitive":true
+    },
+    "ReturnControlResults":{
+      "type":"structure",
+      "members":{
+        "invocationId":{
+          "shape":"String",
+          "documentation":"<p>The action's invocation ID.</p>"
+        },
+        "returnControlInvocationResults":{
+          "shape":"ReturnControlInvocationResults",
+          "documentation":"<p>The action invocation result.</p>"
+        }
+      },
+      "documentation":"<p>An action invocation result.</p>"
+    },
+    "RoutingClassifierModelInvocationOutput":{
+      "type":"structure",
+      "members":{
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>The invocation's metadata.</p>"
+        },
+        "rawResponse":{
+          "shape":"RawResponse",
+          "documentation":"<p>The invocation's raw response.</p>"
+        },
+        "traceId":{
+          "shape":"TraceId",
+          "documentation":"<p>The invocation's trace ID.</p>"
+        }
+      },
+      "documentation":"<p>Invocation output from a routing classifier model.</p>",
+      "sensitive":true
+    },
+    "RoutingClassifierTrace":{
+      "type":"structure",
+      "members":{
+        "invocationInput":{
+          "shape":"InvocationInput",
+          "documentation":"<p>The classifier's invocation input.</p>"
+        },
+        "modelInvocationInput":{
+          "shape":"ModelInvocationInput",
+          "documentation":"<p>The classifier's model invocation input.</p>"
+        },
+        "modelInvocationOutput":{
+          "shape":"RoutingClassifierModelInvocationOutput",
+          "documentation":"<p>The classifier's model invocation output.</p>"
+        },
+        "observation":{
+          "shape":"Observation",
+          "documentation":"<p>The classifier's observation.</p>"
+        }
+      },
+      "documentation":"<p>A trace for a routing classifier.</p>",
+      "sensitive":true,
+      "union":true
     },
     "S3BucketName":{
       "type":"string",
@@ -4022,6 +5065,10 @@
     "SessionState":{
       "type":"structure",
       "members":{
+        "conversationHistory":{
+          "shape":"ConversationHistory",
+          "documentation":"<p>The state's conversation history.</p>"
+        },
         "files":{
           "shape":"InputFiles",
           "documentation":"<p>Contains information about the files used by code interpreter.</p>"
@@ -4185,6 +5232,36 @@
       "documentation":"<p>Contains the part of the generated text that contains a citation, alongside where it begins and ends.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_RetrieveAndGenerate.html#API_agent-runtime_RetrieveAndGenerate_ResponseSyntax\">RetrieveAndGenerate response</a> – in the <code>textResponsePart</code> field</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent-runtime_InvokeAgent.html#API_agent-runtime_InvokeAgent_ResponseSyntax\">InvokeAgent response</a> – in the <code>textResponsePart</code> field</p> </li> </ul>",
       "sensitive":true
     },
+    "TextToSqlConfiguration":{
+      "type":"structure",
+      "required":["type"],
+      "members":{
+        "knowledgeBaseConfiguration":{
+          "shape":"TextToSqlKnowledgeBaseConfiguration",
+          "documentation":"<p>Specifies configurations for a knowledge base to use in transformation.</p>"
+        },
+        "type":{
+          "shape":"TextToSqlConfigurationType",
+          "documentation":"<p>The type of resource to use in transformation.</p>"
+        }
+      },
+      "documentation":"<p>Contains configurations for transforming text to SQL.</p>"
+    },
+    "TextToSqlConfigurationType":{
+      "type":"string",
+      "enum":["KNOWLEDGE_BASE"]
+    },
+    "TextToSqlKnowledgeBaseConfiguration":{
+      "type":"structure",
+      "required":["knowledgeBaseArn"],
+      "members":{
+        "knowledgeBaseArn":{
+          "shape":"KnowledgeBaseArn",
+          "documentation":"<p>The ARN of the knowledge base</p>"
+        }
+      },
+      "documentation":"<p>Contains configurations for a knowledge base to use in transformation.</p>"
+    },
     "ThrottlingException":{
       "type":"structure",
       "members":{
@@ -4235,6 +5312,10 @@
         "preProcessingTrace":{
           "shape":"PreProcessingTrace",
           "documentation":"<p>Details about the pre-processing step, in which the agent contextualizes and categorizes user inputs.</p>"
+        },
+        "routingClassifierTrace":{
+          "shape":"RoutingClassifierTrace",
+          "documentation":"<p>A routing classifier's trace.</p>"
         }
       },
       "documentation":"<p>Contains one part of the agent's reasoning process and results from calling API actions and querying knowledge bases. You can use the trace to understand how the agent arrived at the response it provided the customer. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/agents-test.html#trace-enablement\">Trace enablement</a>.</p>",
@@ -4265,6 +5346,14 @@
           "shape":"AgentVersion",
           "documentation":"<p>The version of the agent.</p>"
         },
+        "callerChain":{
+          "shape":"CallerChain",
+          "documentation":"<p>The part's caller chain.</p>"
+        },
+        "collaboratorName":{
+          "shape":"Name",
+          "documentation":"<p>The part's collaborator name.</p>"
+        },
         "sessionId":{
           "shape":"SessionId",
           "documentation":"<p>The unique identifier of the session with the agent.</p>"
@@ -4278,10 +5367,26 @@
       "event":true,
       "sensitive":true
     },
+    "TransformationConfiguration":{
+      "type":"structure",
+      "required":["mode"],
+      "members":{
+        "mode":{
+          "shape":"QueryTransformationMode",
+          "documentation":"<p>The mode of the transformation.</p>"
+        },
+        "textToSqlConfiguration":{
+          "shape":"TextToSqlConfiguration",
+          "documentation":"<p>Specifies configurations for transforming text to SQL.</p>"
+        }
+      },
+      "documentation":"<p>Contains configurations for transforming the natural language query into SQL.</p>"
+    },
     "Type":{
       "type":"string",
       "enum":[
         "ACTION_GROUP",
+        "AGENT_COLLABORATOR",
         "KNOWLEDGE_BASE",
         "FINISH",
         "ASK_USER",
@@ -4314,6 +5419,65 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "VectorSearchBedrockRerankingConfiguration":{
+      "type":"structure",
+      "required":["modelConfiguration"],
+      "members":{
+        "metadataConfiguration":{
+          "shape":"MetadataConfigurationForReranking",
+          "documentation":"<p>Contains configurations for the metadata to use in reranking.</p>"
+        },
+        "modelConfiguration":{
+          "shape":"VectorSearchBedrockRerankingModelConfiguration",
+          "documentation":"<p>Contains configurations for the reranker model.</p>"
+        },
+        "numberOfRerankedResults":{
+          "shape":"VectorSearchBedrockRerankingConfigurationNumberOfRerankedResultsInteger",
+          "documentation":"<p>The number of results to return after reranking.</p>"
+        }
+      },
+      "documentation":"<p>Contains configurations for reranking with an Amazon Bedrock reranker model.</p>"
+    },
+    "VectorSearchBedrockRerankingConfigurationNumberOfRerankedResultsInteger":{
+      "type":"integer",
+      "box":true,
+      "max":100,
+      "min":1
+    },
+    "VectorSearchBedrockRerankingModelConfiguration":{
+      "type":"structure",
+      "required":["modelArn"],
+      "members":{
+        "additionalModelRequestFields":{
+          "shape":"AdditionalModelRequestFields",
+          "documentation":"<p>A JSON object whose keys are request fields for the model and whose values are values for those fields.</p>"
+        },
+        "modelArn":{
+          "shape":"BedrockRerankingModelArn",
+          "documentation":"<p>The ARN of the reranker model to use.</p>"
+        }
+      },
+      "documentation":"<p>Contains configurations for an Amazon Bedrock reranker model.</p>"
+    },
+    "VectorSearchRerankingConfiguration":{
+      "type":"structure",
+      "required":["type"],
+      "members":{
+        "bedrockRerankingConfiguration":{
+          "shape":"VectorSearchBedrockRerankingConfiguration",
+          "documentation":"<p>Contains configurations for an Amazon Bedrock reranker model.</p>"
+        },
+        "type":{
+          "shape":"VectorSearchRerankingConfigurationType",
+          "documentation":"<p>The type of reranker model.</p>"
+        }
+      },
+      "documentation":"<p>Contains configurations for reranking the retrieved results.</p>"
+    },
+    "VectorSearchRerankingConfigurationType":{
+      "type":"string",
+      "enum":["BEDROCK_RERANKING_MODEL"]
     },
     "Verb":{
       "type":"string",
