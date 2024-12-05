@@ -43,12 +43,16 @@ public class ConnectionUtils {
         return connectToEndpoint(endpoint, headers, "GET");
     }
 
+    public Lazy<Integer> metadataServiceTimeoutMillis() {
+        return metadataServiceTimeoutMillis;
+    }
+
     public HttpURLConnection connectToEndpoint(URI endpoint,
                                                Map<String, String> headers,
                                                String method) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) endpoint.toURL().openConnection(Proxy.NO_PROXY);
 
-        int timeoutMillis = metadataServiceTimeoutMillis.getValue();
+        int timeoutMillis = metadataServiceTimeoutMillis().getValue();
         connection.setConnectTimeout(timeoutMillis);
         connection.setReadTimeout(timeoutMillis);
 
