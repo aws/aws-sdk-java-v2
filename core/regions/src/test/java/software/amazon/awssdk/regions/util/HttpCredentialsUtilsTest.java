@@ -39,6 +39,7 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.regions.internal.util.ConnectionUtils;
 import software.amazon.awssdk.regions.internal.util.SocketUtils;
+import software.amazon.awssdk.utils.Lazy;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HttpCredentialsUtilsTest {
@@ -189,6 +190,7 @@ public class HttpCredentialsUtilsTest {
         generateStub(500, "Non Json error body");
         Mockito.when(mockConnection.connectToEndpoint(endpoint, headers, "GET")).thenCallRealMethod();
 
+        Mockito.when(mockConnection.metadataServiceTimeoutMillis()).thenReturn(new Lazy<>(() -> 10)) ;
         try {
             new HttpResourcesUtils(mockConnection).readResource(endpointProvider(endpoint, customRetryPolicy));
             fail("Expected an SdkServiceException");
