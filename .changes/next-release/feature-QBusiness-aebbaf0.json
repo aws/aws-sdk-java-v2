@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "QBusiness",
-    "contributor": "",
-    "description": "This release removes the deprecated UserId and UserGroups fields from SearchRelevantContent api's request parameters."
-}

@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.29__ __2024-12-04__
+## __Partner Central Selling API__
+  - ### Features
+    - Introducing the preview of new partner central selling APIs designed to transform how AWS partners collaborate and co-sell with multiple partners. This enables multiple partners to seamlessly engage and jointly pursue customer opportunities, fostering a new era of collaborative selling.
+
+## __QBusiness__
+  - ### Features
+    - This release removes the deprecated UserId and UserGroups fields from SearchRelevantContent api's request parameters.
+
 # __2.29.28__ __2024-12-04__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
