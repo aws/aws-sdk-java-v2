@@ -15,15 +15,19 @@
 
 package software.amazon.awssdk.core.internal.waiters;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Key for additional attribute used in waiter classes
  *
+ * <p>
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
+ *
  * @param <T> Type of metadata.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public class WaiterAttribute<T> extends AttributeMap.Key<T> {
 
     public WaiterAttribute(Class<T> valueType) {
