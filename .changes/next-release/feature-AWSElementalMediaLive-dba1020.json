@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaLive",
+    "contributor": "",
+    "description": "H265 outputs now support disabling the deblocking filter."
+}
