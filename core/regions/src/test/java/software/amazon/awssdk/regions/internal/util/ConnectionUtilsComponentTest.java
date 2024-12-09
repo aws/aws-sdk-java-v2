@@ -149,4 +149,26 @@ class ConnectionUtilsComponentTest {
         assertThat(connection.getReadTimeout()).isEqualTo(expectedTimeoutMillis);
     }
 
+    @ParameterizedTest
+    @CsvSource({
+        "environment,10",
+        "system,10"
+    })
+    void metadataServiceTimeoutMillisOnCreation(String variableType, String variableValue) {
+        if (variableType.equals("environment")) {
+            environmentVariableHelper.set(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT.environmentVariable(), variableValue);
+        } else if (variableType.equals("system")) {
+            System.setProperty("aws.ec2MetadataServiceTimeout", variableValue);
+        }
+
+        ConnectionUtils connectionUtils = ConnectionUtils.create();
+        assertThat(connectionUtils.metadataServiceTimeoutMillis()).isEqualTo(Integer.parseInt(variableValue) * 1000);
+    }
+
+    @Test
+    void defaultMetadataServiceTimeoutMillisOnCreation() {
+        ConnectionUtils connectionUtils = ConnectionUtils.create();
+        assertThat(connectionUtils.metadataServiceTimeoutMillis()).isEqualTo(1000);
+    }
+
 }

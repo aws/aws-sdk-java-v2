@@ -190,7 +190,7 @@ public class HttpCredentialsUtilsTest {
         generateStub(500, "Non Json error body");
         Mockito.when(mockConnection.connectToEndpoint(endpoint, headers, "GET")).thenCallRealMethod();
 
-        Mockito.when(mockConnection.metadataServiceTimeoutMillis()).thenReturn(new Lazy<>(() -> 10)) ;
+        Mockito.when(mockConnection.metadataServiceTimeoutMillis()).thenReturn(10) ;
         try {
             new HttpResourcesUtils(mockConnection).readResource(endpointProvider(endpoint, customRetryPolicy));
             fail("Expected an SdkServiceException");

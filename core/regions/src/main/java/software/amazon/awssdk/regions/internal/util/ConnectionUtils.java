@@ -30,10 +30,13 @@ import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 
 @SdkInternalApi
 //TODO: Refactor to use SDK HTTP client instead of URL connection, also consider putting EC2MetadataClient in its own module
-public class ConnectionUtils {
-
+public final class ConnectionUtils {
 
     private final Lazy<Integer> metadataServiceTimeoutMillis = new Lazy<>(this::resolveMetadataServiceTimeoutMillis);
+
+    private ConnectionUtils() {
+    }
+
 
     public static ConnectionUtils create() {
         return new ConnectionUtils();
@@ -43,8 +46,8 @@ public class ConnectionUtils {
         return connectToEndpoint(endpoint, headers, "GET");
     }
 
-    public Lazy<Integer> metadataServiceTimeoutMillis() {
-        return metadataServiceTimeoutMillis;
+    public Integer metadataServiceTimeoutMillis() {
+        return metadataServiceTimeoutMillis.getValue();
     }
 
     public HttpURLConnection connectToEndpoint(URI endpoint,
@@ -52,7 +55,7 @@ public class ConnectionUtils {
                                                String method) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) endpoint.toURL().openConnection(Proxy.NO_PROXY);
 
-        int timeoutMillis = metadataServiceTimeoutMillis().getValue();
+        int timeoutMillis = metadataServiceTimeoutMillis();
         connection.setConnectTimeout(timeoutMillis);
         connection.setReadTimeout(timeoutMillis);
 
