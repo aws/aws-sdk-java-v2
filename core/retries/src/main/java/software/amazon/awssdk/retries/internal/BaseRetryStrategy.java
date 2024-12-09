@@ -63,7 +63,8 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
 
     BaseRetryStrategy(Logger log, Builder builder) {
         this.log = log;
-        this.retryPredicates = Collections.unmodifiableList(Validate.paramNotNull(builder.retryPredicates, "retryPredicates"));
+        this.retryPredicates = Collections.unmodifiableList(
+            Validate.paramNotNull(new ArrayList<>(builder.retryPredicates), "retryPredicates"));
         this.maxAttempts = Validate.isPositive(builder.maxAttempts, "maxAttempts");
         this.circuitBreakerEnabled = builder.circuitBreakerEnabled == null || builder.circuitBreakerEnabled;
         this.backoffStrategy = Validate.paramNotNull(builder.backoffStrategy, "backoffStrategy");
@@ -71,7 +72,8 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
         this.treatAsThrottling = Validate.paramNotNull(builder.treatAsThrottling, "treatAsThrottling");
         this.exceptionCost = Validate.paramNotNull(builder.exceptionCost, "exceptionCost");
         this.tokenBucketStore = Validate.paramNotNull(builder.tokenBucketStore, "tokenBucketStore");
-        this.defaultsAdded = Validate.paramNotNull(builder.defaultsAdded, "defaultsAdded");
+        this.defaultsAdded = Collections.unmodifiableSet(
+            Validate.paramNotNull(new HashSet<>(builder.defaultsAdded), "defaultsAdded"));
         this.useClientDefaults = builder.useClientDefaults == null || builder.useClientDefaults;
     }
 
@@ -425,7 +427,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
             this.throttlingBackoffStrategy = strategy.throttlingBackoffStrategy;
             this.treatAsThrottling = strategy.treatAsThrottling;
             this.tokenBucketStore = strategy.tokenBucketStore;
-            this.defaultsAdded = strategy.defaultsAdded;
+            this.defaultsAdded = new HashSet<>(strategy.defaultsAdded);
             this.useClientDefaults = strategy.useClientDefaults;
         }
 
