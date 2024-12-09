@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Cognito Identity Provider",
+    "contributor": "",
+    "description": "Change `CustomDomainConfig` from a required to an optional parameter for the `UpdateUserPoolDomain` operation."
+}
