@@ -1,21 +1,21 @@
 #
-#Thu Dec 05 17:23:45 PST 2024
-no\ methods\ that\ are\ declared\ in\ classes\ that\ are\ annotated\ with\ @SdkPublicApi\ should\ declare\ throwable\ of\ type\ java.lang.Exception\ or\ should\ declare\ throwable\ of\ type\ java.io.IOException,\ because\ public\ APIs\ MUST\ NOT\ throw\ checked\ exception=03f609c6-a67b-410a-a402-d9c5cd6f9759
-log.warn\ is\ detected.\ Review\ it\ with\ the\ team.\ If\ this\ is\ a\ valid\ case,\ add\ it\ to\ ALLOWED_WARN_LOG_SUPPRESSION\ allowlist=4195d6e3-8849-4e5a-848d-04f810577cd3
-classes\ that\ are\ annotated\ with\ @SdkPublicApi\ or\ are\ annotated\ with\ @SdkProtectedApi\ should\ reside\ outside\ of\ package\ '..internal..',\ because\ Public\ and\ protected\ APIs\ MUST\ not\ reside\ in\ internal\ subpackage=b00e7099-ac28-4de3-af37-7606dbcdc510
-no\ classes\ should\ use\ org.slf4j.Logger,\ because\ use\ software.amazon.awssdk.utils.Logger\ instead=dee83d93-ecb4-469c-9b0f-68d80676f9c7
-use\ java.util.concurrent.Future,\ because\ Future\ SHOULD\ NOT\ be\ used,\ use\ CompletableFuture\ instead=3d6a7099-7a99-4e4f-b9fd-b9de6356b6bd
-use\ Optional\ for\ method\ parameters,\ because\ Optional\ MUST\ NOT\ be\ used\ for\ method\ parameters.\ See\ https\://github.com/aws/aws-sdk-java-v2/blob/master/docs/design/UseOfOptional.md=924af245-eff4-40ef-ab2d-ebba7137f6b6
+#Tue Dec 10 14:09:26 PST 2024
 log.error\ is\ detected.\ Review\ it\ with\ the\ team.\ If\ this\ is\ a\ valid\ case,\ add\ it\ to\ ALLOWED_ERROR_LOG_SUPPRESSION\ allowlist=a03c3b13-315b-478c-b6c8-82ffd09dafa8
-classes\ that\ are\ annotated\ with\ @SdkInternalApi\ and\ are\ not\ nested\ classes\ and\ are\ not\ package\ private\ should\ reside\ in\ any\ package\ ['..internal..'],\ because\ Internal\ APIs\ MUST\ reside\ in\ internal\ subpackage=c9da3398-6ad3-4ba7-9d7c-1b210e0c720f
-no\ classes\ that\ reside\ in\ any\ package\ ['software.amazon.awssdk..']\ should\ Internal\ APIs\ are\ used\ across\ modules=03edce3a-1fd4-4111-ba43-e9ebd76d6700
-Use\ java.util.concurrent.Future,\ because\ use\ CompletableFuture\ instead=3b48018e-80fd-4eaf-a57c-2f4aef2b59a3
-no\ classes\ that\ are\ not\ interfaces\ and\ have\ simple\ name\ not\ containing\ 'Builder'\ should\ have\ name\ matching\ '.*Implementation|.*Impl'=2d73e19e-5d56-472e-a20e-e55db1790f40
-no\ classes\ that\ are\ annotated\ with\ @SdkProtectedApi\ or\ are\ annotated\ with\ @SdkPublicApi\ should\ the\ number\ of\ method\ parameters\ must\ be\ less\ than\ 4,\ because\ the\ number\ of\ method\ parameters\ must\ be\ less\ than\ 4,\ consider\ creating\ a\ wrapper\ class=d9188132-e54c-4c90-957a-e66adfe8fca7
-classes\ that\ reside\ in\ a\ package\ 'software.amazon.awssdk.utils.internal..'\ should\ only\ be\ accessed\ by\ any\ package\ ['software.amazon.awssdk.utils..']=1b9f2416-6900-440b-ace0-2942f2347149
-use\ Optional\ for\ fields,\ because\ Optional\ SHOULD\ NOT\ be\ used\ for\ method\ parameters.\ See\ https\://github.com/aws/aws-sdk-java-v2/blob/master/docs/design/UseOfOptional.md=b60ce2da-e824-45ff-9414-67a8d0e21f4e
+Use\ internal\ APIs\ from\ a\ different\ module=d114a5e3-9978-4240-aa98-b7a9151a46d9
+log.warn\ is\ detected.\ Review\ it\ with\ the\ team.\ If\ this\ is\ a\ valid\ case,\ add\ it\ to\ ALLOWED_WARN_LOG_SUPPRESSION\ allowlist=4195d6e3-8849-4e5a-848d-04f810577cd3
+classes\ that\ reside\ in\ a\ package\ 'software.amazon.awssdk.awscore.internal..'\ should\ only\ be\ accessed\ by\ any\ package\ ['software.amazon.awssdk.awscore..']=26165647-e516-4539-a7b2-14222ffdbffb
+use\ java.util.concurrent.Future,\ because\ Future\ SHOULD\ NOT\ be\ used,\ use\ CompletableFuture\ instead=3d6a7099-7a99-4e4f-b9fd-b9de6356b6bd
+classes\ that\ reside\ in\ a\ package\ 'software.amazon.awssdk.http.auth.aws.internal..'\ should\ only\ be\ accessed\ by\ any\ package\ ['software.amazon.awssdk.http.auth.aws..']=af956927-1ce5-4cc7-93e6-30f9af447266
 classes\ that\ reside\ in\ a\ package\ 'software.amazon.awssdk.http.auth.internal..'\ should\ only\ be\ accessed\ by\ any\ package\ ['software.amazon.awssdk.http.auth..']=6e1dd7ae-d5c1-4f1a-9510-da1446d752d6
 classes\ that\ reside\ in\ a\ package\ 'software.amazon.awssdk.core.internal..'\ should\ only\ be\ accessed\ by\ any\ package\ ['software.amazon.awssdk.core..']=5309d3a5-f2f9-475e-a41a-9544b598e0c5
+no\ classes\ should\ use\ org.slf4j.Logger,\ because\ use\ software.amazon.awssdk.utils.Logger\ instead=dee83d93-ecb4-469c-9b0f-68d80676f9c7
+no\ classes\ that\ are\ annotated\ with\ @SdkProtectedApi\ or\ are\ annotated\ with\ @SdkPublicApi\ should\ the\ number\ of\ method\ parameters\ must\ be\ less\ than\ 4,\ because\ the\ number\ of\ method\ parameters\ must\ be\ less\ than\ 4,\ consider\ creating\ a\ wrapper\ class=d9188132-e54c-4c90-957a-e66adfe8fca7
+no\ classes\ that\ are\ not\ interfaces\ and\ have\ simple\ name\ not\ containing\ 'Builder'\ should\ have\ name\ matching\ '.*Implementation|.*Impl'=2d73e19e-5d56-472e-a20e-e55db1790f40
+use\ Optional\ for\ method\ parameters,\ because\ Optional\ MUST\ NOT\ be\ used\ for\ method\ parameters.\ See\ https\://github.com/aws/aws-sdk-java-v2/blob/master/docs/design/UseOfOptional.md=924af245-eff4-40ef-ab2d-ebba7137f6b6
+classes\ that\ reside\ in\ a\ package\ 'software.amazon.awssdk.utils.internal..'\ should\ only\ be\ accessed\ by\ any\ package\ ['software.amazon.awssdk.utils..']=1b9f2416-6900-440b-ace0-2942f2347149
 classes\ that\ are\ annotated\ with\ @SdkPublicApi\ and\ are\ not\ interfaces\ should\ have\ modifier\ FINAL,\ because\ public\ APIs\ SHOULD\ be\ final=88a97682-03c2-455b-9a66-6b520f3645b0
-classes\ that\ reside\ in\ a\ package\ 'software.amazon.awssdk.http.auth.aws.internal..'\ should\ only\ be\ accessed\ by\ any\ package\ ['software.amazon.awssdk.http.auth.aws..']=af956927-1ce5-4cc7-93e6-30f9af447266
-classes\ that\ reside\ in\ a\ package\ 'software.amazon.awssdk.awscore.internal..'\ should\ only\ be\ accessed\ by\ any\ package\ ['software.amazon.awssdk.awscore..']=26165647-e516-4539-a7b2-14222ffdbffb
+no\ methods\ that\ are\ declared\ in\ classes\ that\ are\ annotated\ with\ @SdkPublicApi\ should\ declare\ throwable\ of\ type\ java.lang.Exception\ or\ should\ declare\ throwable\ of\ type\ java.io.IOException,\ because\ public\ APIs\ MUST\ NOT\ throw\ checked\ exception=03f609c6-a67b-410a-a402-d9c5cd6f9759
+classes\ that\ are\ annotated\ with\ @SdkPublicApi\ or\ are\ annotated\ with\ @SdkProtectedApi\ should\ reside\ outside\ of\ package\ '..internal..',\ because\ Public\ and\ protected\ APIs\ MUST\ not\ reside\ in\ internal\ subpackage=c898eee1-aeb5-4355-bb3b-ea56bf58cacb
+use\ Optional\ for\ fields,\ because\ Optional\ SHOULD\ NOT\ be\ used\ for\ method\ parameters.\ See\ https\://github.com/aws/aws-sdk-java-v2/blob/master/docs/design/UseOfOptional.md=b60ce2da-e824-45ff-9414-67a8d0e21f4e
+Use\ java.util.concurrent.Future,\ because\ use\ CompletableFuture\ instead=3b48018e-80fd-4eaf-a57c-2f4aef2b59a3
+classes\ that\ are\ annotated\ with\ @SdkInternalApi\ and\ are\ not\ nested\ classes\ and\ are\ not\ package\ private\ should\ reside\ in\ any\ package\ ['..internal..'],\ because\ Internal\ APIs\ MUST\ reside\ in\ internal\ subpackage=c9da3398-6ad3-4ba7-9d7c-1b210e0c720f

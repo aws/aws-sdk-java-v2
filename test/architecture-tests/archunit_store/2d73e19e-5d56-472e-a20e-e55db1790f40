@@ -1,5 +1,4 @@
 Class <software.amazon.awssdk.core.internal.http.async.SimpleHttpContentPublisher$SubscriptionImpl> has name matching '.*Implementation|.*Impl' in (SimpleHttpContentPublisher.java:0)
-Class <software.amazon.awssdk.http.apache.internal.impl.ApacheHttpRequestFactory$HttpRequestImpl> has name matching '.*Implementation|.*Impl' in (ApacheHttpRequestFactory.java:0)
 Class <software.amazon.awssdk.retries.api.internal.AcquireInitialTokenRequestImpl> has name matching '.*Implementation|.*Impl' in (AcquireInitialTokenRequestImpl.java:0)
 Class <software.amazon.awssdk.retries.api.internal.AcquireInitialTokenResponseImpl> has name matching '.*Implementation|.*Impl' in (AcquireInitialTokenResponseImpl.java:0)
 Class <software.amazon.awssdk.retries.api.internal.RecordSuccessRequestImpl> has name matching '.*Implementation|.*Impl' in (RecordSuccessRequestImpl.java:0)

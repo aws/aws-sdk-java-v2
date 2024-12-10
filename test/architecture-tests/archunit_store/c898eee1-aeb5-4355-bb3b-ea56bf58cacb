@@ -15,6 +15,8 @@ Class <software.amazon.awssdk.core.internal.waiters.ResponseOrException> does no
 Class <software.amazon.awssdk.core.internal.waiters.WaiterAttribute> does not reside outside of package '..internal..' in (WaiterAttribute.java:0)
 Class <software.amazon.awssdk.http.nio.netty.internal.DnsResolverLoader> does not reside outside of package '..internal..' in (DnsResolverLoader.java:0)
 Class <software.amazon.awssdk.retries.api.internal.backoff.ExponentialDelayWithHalfJitter> does not reside outside of package '..internal..' in (ExponentialDelayWithHalfJitter.java:0)
+Class <software.amazon.awssdk.retries.internal.DefaultAwareRetryStrategy> does not reside outside of package '..internal..' in (DefaultAwareRetryStrategy.java:0)
+Class <software.amazon.awssdk.retries.internal.RetryStrategyDefaults> does not reside outside of package '..internal..' in (RetryStrategyDefaults.java:0)
 Class <software.amazon.awssdk.services.s3.internal.multipart.PausableUpload> does not reside outside of package '..internal..' in (PausableUpload.java:0)
 Class <software.amazon.awssdk.services.s3.internal.plugins.S3OverrideAuthSchemePropertiesPlugin> does not reside outside of package '..internal..' in (S3OverrideAuthSchemePropertiesPlugin.java:0)
 Class <software.amazon.awssdk.services.s3.internal.resource.S3Resource> does not reside outside of package '..internal..' in (S3Resource.java:0)

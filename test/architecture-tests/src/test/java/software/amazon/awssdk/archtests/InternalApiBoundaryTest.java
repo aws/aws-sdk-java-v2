@@ -63,7 +63,8 @@ public class InternalApiBoundaryTest {
         ArchRule rule =
             FreezingArchRule.freeze(
                 noClasses().that().resideInAnyPackage("software.amazon.awssdk..")
-                           .should(new UseInternalApisFromDifferentModule()));
+                           .should(new UseInternalApisFromDifferentModule()))
+                            .as("Use internal APIs from a different module");
         rule.check(importedClasses);
     }
 
@@ -90,7 +91,7 @@ public class InternalApiBoundaryTest {
 
                 if (JavaClass.Predicates.resideInAPackage("software.amazon.awssdk..internal..").test(dependencyTargetClass)) {
                     if (!ArchUtils.resideInSameRootPackage(packageName, dependencyPackageName)) {
-                        String errorMessage = String.format("%s depends on an internal API from a different module %s",
+                        String errorMessage = String.format("%s depends on an internal API from a different module (%s)",
                                                             item.getDescription(),
                                                             dependencyTargetClass.getDescription());
                         events.add(SimpleConditionEvent.satisfied(item, errorMessage));
