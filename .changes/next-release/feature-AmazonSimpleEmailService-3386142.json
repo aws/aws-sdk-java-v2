@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Email Service",
-    "contributor": "",
-    "description": "Introduces support for creating DEED (Deterministic Easy-DKIM) identities."
-}

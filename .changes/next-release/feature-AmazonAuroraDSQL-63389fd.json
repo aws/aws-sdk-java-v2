@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Aurora DSQL",
-    "contributor": "",
-    "description": "Doc only update to examples for DeleteMultiRegionClusters & CreateMultiRegionClusters"
-}
