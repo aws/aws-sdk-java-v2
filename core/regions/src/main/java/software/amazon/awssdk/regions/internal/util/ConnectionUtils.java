@@ -30,7 +30,7 @@ import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 
 @SdkInternalApi
 //TODO: Refactor to use SDK HTTP client instead of URL connection, also consider putting EC2MetadataClient in its own module
-public final class ConnectionUtils {
+public class ConnectionUtils {
 
     private final Lazy<Integer> metadataServiceTimeoutMillis = new Lazy<>(this::resolveMetadataServiceTimeoutMillis);
 
