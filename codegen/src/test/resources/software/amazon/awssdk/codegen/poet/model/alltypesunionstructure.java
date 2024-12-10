@@ -40,459 +40,420 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class AllTypesUnionStructure implements SdkPojo, Serializable,
-        ToCopyableBuilder<AllTypesUnionStructure.Builder, AllTypesUnionStructure> {
+                                                     ToCopyableBuilder<AllTypesUnionStructure.Builder, AllTypesUnionStructure> {
     private static final SdkField<String> STRING_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .memberName("StringMember").getter(getter(AllTypesUnionStructure::stringMember))
-            .setter(setter(Builder::stringMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StringMember").build()).build();
+                                                                        .memberName("StringMember").getter(getter(AllTypesUnionStructure::stringMember))
+                                                                        .setter(setter(Builder::stringMember))
+                                                                        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StringMember").build()).build();
 
     private static final SdkField<Integer> INTEGER_MEMBER_FIELD = SdkField.<Integer> builder(MarshallingType.INTEGER)
-            .memberName("IntegerMember").getter(getter(AllTypesUnionStructure::integerMember))
-            .setter(setter(Builder::integerMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("IntegerMember").build()).build();
+                                                                          .memberName("IntegerMember").getter(getter(AllTypesUnionStructure::integerMember))
+                                                                          .setter(setter(Builder::integerMember))
+                                                                          .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("IntegerMember").build()).build();
 
     private static final SdkField<Boolean> BOOLEAN_MEMBER_FIELD = SdkField.<Boolean> builder(MarshallingType.BOOLEAN)
-            .memberName("BooleanMember").getter(getter(AllTypesUnionStructure::booleanMember))
-            .setter(setter(Builder::booleanMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BooleanMember").build()).build();
+                                                                          .memberName("BooleanMember").getter(getter(AllTypesUnionStructure::booleanMember))
+                                                                          .setter(setter(Builder::booleanMember))
+                                                                          .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BooleanMember").build()).build();
 
     private static final SdkField<Float> FLOAT_MEMBER_FIELD = SdkField.<Float> builder(MarshallingType.FLOAT)
-            .memberName("FloatMember").getter(getter(AllTypesUnionStructure::floatMember)).setter(setter(Builder::floatMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("FloatMember").build()).build();
+                                                                      .memberName("FloatMember").getter(getter(AllTypesUnionStructure::floatMember)).setter(setter(Builder::floatMember))
+                                                                      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("FloatMember").build()).build();
 
     private static final SdkField<Double> DOUBLE_MEMBER_FIELD = SdkField.<Double> builder(MarshallingType.DOUBLE)
-            .memberName("DoubleMember").getter(getter(AllTypesUnionStructure::doubleMember))
-            .setter(setter(Builder::doubleMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("DoubleMember").build()).build();
+                                                                        .memberName("DoubleMember").getter(getter(AllTypesUnionStructure::doubleMember))
+                                                                        .setter(setter(Builder::doubleMember))
+                                                                        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("DoubleMember").build()).build();
 
     private static final SdkField<Long> LONG_MEMBER_FIELD = SdkField.<Long> builder(MarshallingType.LONG)
-            .memberName("LongMember").getter(getter(AllTypesUnionStructure::longMember)).setter(setter(Builder::longMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("LongMember").build()).build();
+                                                                    .memberName("LongMember").getter(getter(AllTypesUnionStructure::longMember)).setter(setter(Builder::longMember))
+                                                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("LongMember").build()).build();
 
     private static final SdkField<Short> SHORT_MEMBER_FIELD = SdkField.<Short> builder(MarshallingType.SHORT)
-            .memberName("ShortMember").getter(getter(AllTypesUnionStructure::shortMember)).setter(setter(Builder::shortMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ShortMember").build()).build();
+                                                                      .memberName("ShortMember").getter(getter(AllTypesUnionStructure::shortMember)).setter(setter(Builder::shortMember))
+                                                                      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ShortMember").build()).build();
 
     private static final SdkField<List<String>> SIMPLE_LIST_FIELD = SdkField
-            .<List<String>> builder(MarshallingType.LIST)
-            .memberName("SimpleList")
-            .getter(getter(AllTypesUnionStructure::simpleList))
-            .setter(setter(Builder::simpleList))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("SimpleList").build(),
-                    ListTrait
-                            .builder()
-                            .memberLocationName(null)
-                            .memberFieldInfo(
-                                    SdkField.<String> builder(MarshallingType.STRING)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("member").build()).build()).build()).build();
+        .<List<String>> builder(MarshallingType.LIST)
+        .memberName("SimpleList")
+        .getter(getter(AllTypesUnionStructure::simpleList))
+        .setter(setter(Builder::simpleList))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("SimpleList").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<String> builder(MarshallingType.STRING)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("member").build()).build()).build()).build();
 
     private static final SdkField<List<String>> LIST_OF_ENUMS_FIELD = SdkField
-            .<List<String>> builder(MarshallingType.LIST)
-            .memberName("ListOfEnums")
-            .getter(getter(AllTypesUnionStructure::listOfEnumsAsStrings))
-            .setter(setter(Builder::listOfEnumsWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfEnums").build(),
-                    ListTrait
-                            .builder()
-                            .memberLocationName(null)
-                            .memberFieldInfo(
-                                    SdkField.<String> builder(MarshallingType.STRING)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("member").build()).build()).build()).build();
+        .<List<String>> builder(MarshallingType.LIST)
+        .memberName("ListOfEnums")
+        .getter(getter(AllTypesUnionStructure::listOfEnumsAsStrings))
+        .setter(setter(Builder::listOfEnumsWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfEnums").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<String> builder(MarshallingType.STRING)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("member").build()).build()).build()).build();
 
     private static final SdkField<List<Map<String, String>>> LIST_OF_MAPS_FIELD = SdkField
-            .<List<Map<String, String>>> builder(MarshallingType.LIST)
-            .memberName("ListOfMaps")
-            .getter(getter(AllTypesUnionStructure::listOfMaps))
-            .setter(setter(Builder::listOfMaps))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMaps").build(),
-                    ListTrait
-                            .builder()
-                            .memberLocationName(null)
-                            .memberFieldInfo(
-                                    SdkField.<Map<String, String>> builder(MarshallingType.MAP)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("member").build(),
-                                                    MapTrait.builder()
-                                                            .keyLocationName("key")
-                                                            .valueLocationName("value")
-                                                            .valueFieldInfo(
-                                                                    SdkField.<String> builder(MarshallingType.STRING)
-                                                                            .traits(LocationTrait.builder()
-                                                                                    .location(MarshallLocation.PAYLOAD)
-                                                                                    .locationName("value").build()).build())
-                                                            .build()).build()).build()).build();
+        .<List<Map<String, String>>> builder(MarshallingType.LIST)
+        .memberName("ListOfMaps")
+        .getter(getter(AllTypesUnionStructure::listOfMaps))
+        .setter(setter(Builder::listOfMaps))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMaps").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<Map<String, String>> builder(MarshallingType.MAP)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("member").build(),
+                                        MapTrait.builder()
+                                                .keyLocationName("key")
+                                                .valueLocationName("value")
+                                                .valueFieldInfo(
+                                                    SdkField.<String> builder(MarshallingType.STRING)
+                                                            .traits(LocationTrait.builder()
+                                                                                 .location(MarshallLocation.PAYLOAD)
+                                                                                 .locationName("value").build()).build())
+                                                .build()).build()).build()).build();
 
     private static final SdkField<List<SimpleStruct>> LIST_OF_STRUCTS_FIELD = SdkField
-            .<List<SimpleStruct>> builder(MarshallingType.LIST)
-            .memberName("ListOfStructs")
-            .getter(getter(AllTypesUnionStructure::listOfStructs))
-            .setter(setter(Builder::listOfStructs))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfStructs").build(),
-                    ListTrait
-                            .builder()
-                            .memberLocationName(null)
-                            .memberFieldInfo(
-                                    SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
-                                            .constructor(SimpleStruct::builder)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("member").build()).build()).build()).build();
+        .<List<SimpleStruct>> builder(MarshallingType.LIST)
+        .memberName("ListOfStructs")
+        .getter(getter(AllTypesUnionStructure::listOfStructs))
+        .setter(setter(Builder::listOfStructs))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfStructs").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
+                                .constructor(SimpleStruct::builder)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("member").build()).build()).build()).build();
 
     private static final SdkField<List<Map<String, String>>> LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD = SdkField
-            .<List<Map<String, String>>> builder(MarshallingType.LIST)
-            .memberName("ListOfMapOfEnumToString")
-            .getter(getter(AllTypesUnionStructure::listOfMapOfEnumToStringAsStrings))
-            .setter(setter(Builder::listOfMapOfEnumToStringWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMapOfEnumToString").build(),
-                    ListTrait
-                            .builder()
-                            .memberLocationName(null)
-                            .memberFieldInfo(
-                                    SdkField.<Map<String, String>> builder(MarshallingType.MAP)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("member").build(),
-                                                    MapTrait.builder()
-                                                            .keyLocationName("key")
-                                                            .valueLocationName("value")
-                                                            .valueFieldInfo(
-                                                                    SdkField.<String> builder(MarshallingType.STRING)
-                                                                            .traits(LocationTrait.builder()
-                                                                                    .location(MarshallLocation.PAYLOAD)
-                                                                                    .locationName("value").build()).build())
-                                                            .build()).build()).build()).build();
+        .<List<Map<String, String>>> builder(MarshallingType.LIST)
+        .memberName("ListOfMapOfEnumToString")
+        .getter(getter(AllTypesUnionStructure::listOfMapOfEnumToStringAsStrings))
+        .setter(setter(Builder::listOfMapOfEnumToStringWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMapOfEnumToString").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<Map<String, String>> builder(MarshallingType.MAP)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("member").build(),
+                                        MapTrait.builder()
+                                                .keyLocationName("key")
+                                                .valueLocationName("value")
+                                                .valueFieldInfo(
+                                                    SdkField.<String> builder(MarshallingType.STRING)
+                                                            .traits(LocationTrait.builder()
+                                                                                 .location(MarshallLocation.PAYLOAD)
+                                                                                 .locationName("value").build()).build())
+                                                .build()).build()).build()).build();
 
     private static final SdkField<List<Map<String, SimpleStruct>>> LIST_OF_MAP_OF_STRING_TO_STRUCT_FIELD = SdkField
-            .<List<Map<String, SimpleStruct>>> builder(MarshallingType.LIST)
-            .memberName("ListOfMapOfStringToStruct")
-            .getter(getter(AllTypesUnionStructure::listOfMapOfStringToStruct))
-            .setter(setter(Builder::listOfMapOfStringToStruct))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMapOfStringToStruct").build(),
-                    ListTrait
-                            .builder()
-                            .memberLocationName(null)
-                            .memberFieldInfo(
-                                    SdkField.<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("member").build(),
-                                                    MapTrait.builder()
-                                                            .keyLocationName("key")
-                                                            .valueLocationName("value")
-                                                            .valueFieldInfo(
-                                                                    SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
-                                                                            .constructor(SimpleStruct::builder)
-                                                                            .traits(LocationTrait.builder()
-                                                                                    .location(MarshallLocation.PAYLOAD)
-                                                                                    .locationName("value").build()).build())
-                                                            .build()).build()).build()).build();
+        .<List<Map<String, SimpleStruct>>> builder(MarshallingType.LIST)
+        .memberName("ListOfMapOfStringToStruct")
+        .getter(getter(AllTypesUnionStructure::listOfMapOfStringToStruct))
+        .setter(setter(Builder::listOfMapOfStringToStruct))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfMapOfStringToStruct").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("member").build(),
+                                        MapTrait.builder()
+                                                .keyLocationName("key")
+                                                .valueLocationName("value")
+                                                .valueFieldInfo(
+                                                    SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
+                                                            .constructor(SimpleStruct::builder)
+                                                            .traits(LocationTrait.builder()
+                                                                                 .location(MarshallLocation.PAYLOAD)
+                                                                                 .locationName("value").build()).build())
+                                                .build()).build()).build()).build();
 
     private static final SdkField<Map<String, List<Integer>>> MAP_OF_STRING_TO_INTEGER_LIST_FIELD = SdkField
-            .<Map<String, List<Integer>>> builder(MarshallingType.MAP)
-            .memberName("MapOfStringToIntegerList")
-            .getter(getter(AllTypesUnionStructure::mapOfStringToIntegerList))
-            .setter(setter(Builder::mapOfStringToIntegerList))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToIntegerList").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<List<Integer>> builder(MarshallingType.LIST)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build(),
-                                                    ListTrait
-                                                            .builder()
-                                                            .memberLocationName(null)
-                                                            .memberFieldInfo(
-                                                                    SdkField.<Integer> builder(MarshallingType.INTEGER)
-                                                                            .traits(LocationTrait.builder()
-                                                                                    .location(MarshallLocation.PAYLOAD)
-                                                                                    .locationName("member").build()).build())
-                                                            .build()).build()).build()).build();
+        .<Map<String, List<Integer>>> builder(MarshallingType.MAP)
+        .memberName("MapOfStringToIntegerList")
+        .getter(getter(AllTypesUnionStructure::mapOfStringToIntegerList))
+        .setter(setter(Builder::mapOfStringToIntegerList))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToIntegerList").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<List<Integer>> builder(MarshallingType.LIST)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build(),
+                                            ListTrait
+                                                .builder()
+                                                .memberLocationName(null)
+                                                .memberFieldInfo(
+                                                    SdkField.<Integer> builder(MarshallingType.INTEGER)
+                                                            .traits(LocationTrait.builder()
+                                                                                 .location(MarshallLocation.PAYLOAD)
+                                                                                 .locationName("member").build()).build())
+                                                .build()).build()).build()).build();
 
     private static final SdkField<Map<String, String>> MAP_OF_STRING_TO_STRING_FIELD = SdkField
-            .<Map<String, String>> builder(MarshallingType.MAP)
-            .memberName("MapOfStringToString")
-            .getter(getter(AllTypesUnionStructure::mapOfStringToString))
-            .setter(setter(Builder::mapOfStringToString))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToString").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<String> builder(MarshallingType.STRING)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build()).build()).build()).build();
+        .<Map<String, String>> builder(MarshallingType.MAP)
+        .memberName("MapOfStringToString")
+        .getter(getter(AllTypesUnionStructure::mapOfStringToString))
+        .setter(setter(Builder::mapOfStringToString))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToString").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<String> builder(MarshallingType.STRING)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build()).build()).build()).build();
 
     private static final SdkField<Map<String, SimpleStruct>> MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD = SdkField
-            .<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
-            .memberName("MapOfStringToSimpleStruct")
-            .getter(getter(AllTypesUnionStructure::mapOfStringToSimpleStruct))
-            .setter(setter(Builder::mapOfStringToSimpleStruct))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToSimpleStruct").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
-                                            .constructor(SimpleStruct::builder)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build()).build()).build()).build();
+        .<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
+        .memberName("MapOfStringToSimpleStruct")
+        .getter(getter(AllTypesUnionStructure::mapOfStringToSimpleStruct))
+        .setter(setter(Builder::mapOfStringToSimpleStruct))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToSimpleStruct").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
+                                    .constructor(SimpleStruct::builder)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build()).build()).build()).build();
 
     private static final SdkField<Map<String, String>> MAP_OF_ENUM_TO_ENUM_FIELD = SdkField
-            .<Map<String, String>> builder(MarshallingType.MAP)
-            .memberName("MapOfEnumToEnum")
-            .getter(getter(AllTypesUnionStructure::mapOfEnumToEnumAsStrings))
-            .setter(setter(Builder::mapOfEnumToEnumWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToEnum").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<String> builder(MarshallingType.STRING)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build()).build()).build()).build();
+        .<Map<String, String>> builder(MarshallingType.MAP)
+        .memberName("MapOfEnumToEnum")
+        .getter(getter(AllTypesUnionStructure::mapOfEnumToEnumAsStrings))
+        .setter(setter(Builder::mapOfEnumToEnumWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToEnum").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<String> builder(MarshallingType.STRING)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build()).build()).build()).build();
 
     private static final SdkField<Map<String, String>> MAP_OF_ENUM_TO_STRING_FIELD = SdkField
-            .<Map<String, String>> builder(MarshallingType.MAP)
-            .memberName("MapOfEnumToString")
-            .getter(getter(AllTypesUnionStructure::mapOfEnumToStringAsStrings))
-            .setter(setter(Builder::mapOfEnumToStringWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToString").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<String> builder(MarshallingType.STRING)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build()).build()).build()).build();
+        .<Map<String, String>> builder(MarshallingType.MAP)
+        .memberName("MapOfEnumToString")
+        .getter(getter(AllTypesUnionStructure::mapOfEnumToStringAsStrings))
+        .setter(setter(Builder::mapOfEnumToStringWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToString").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<String> builder(MarshallingType.STRING)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build()).build()).build()).build();
 
     private static final SdkField<Map<String, String>> MAP_OF_STRING_TO_ENUM_FIELD = SdkField
-            .<Map<String, String>> builder(MarshallingType.MAP)
-            .memberName("MapOfStringToEnum")
-            .getter(getter(AllTypesUnionStructure::mapOfStringToEnumAsStrings))
-            .setter(setter(Builder::mapOfStringToEnumWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToEnum").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<String> builder(MarshallingType.STRING)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build()).build()).build()).build();
+        .<Map<String, String>> builder(MarshallingType.MAP)
+        .memberName("MapOfStringToEnum")
+        .getter(getter(AllTypesUnionStructure::mapOfStringToEnumAsStrings))
+        .setter(setter(Builder::mapOfStringToEnumWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfStringToEnum").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<String> builder(MarshallingType.STRING)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build()).build()).build()).build();
 
     private static final SdkField<Map<String, SimpleStruct>> MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD = SdkField
-            .<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
-            .memberName("MapOfEnumToSimpleStruct")
-            .getter(getter(AllTypesUnionStructure::mapOfEnumToSimpleStructAsStrings))
-            .setter(setter(Builder::mapOfEnumToSimpleStructWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToSimpleStruct").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
-                                            .constructor(SimpleStruct::builder)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build()).build()).build()).build();
+        .<Map<String, SimpleStruct>> builder(MarshallingType.MAP)
+        .memberName("MapOfEnumToSimpleStruct")
+        .getter(getter(AllTypesUnionStructure::mapOfEnumToSimpleStructAsStrings))
+        .setter(setter(Builder::mapOfEnumToSimpleStructWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToSimpleStruct").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<SimpleStruct> builder(MarshallingType.SDK_POJO)
+                                    .constructor(SimpleStruct::builder)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build()).build()).build()).build();
 
     private static final SdkField<Map<String, List<String>>> MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD = SdkField
-            .<Map<String, List<String>>> builder(MarshallingType.MAP)
-            .memberName("MapOfEnumToListOfEnums")
-            .getter(getter(AllTypesUnionStructure::mapOfEnumToListOfEnumsAsStrings))
-            .setter(setter(Builder::mapOfEnumToListOfEnumsWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToListOfEnums").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<List<String>> builder(MarshallingType.LIST)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build(),
-                                                    ListTrait
-                                                            .builder()
-                                                            .memberLocationName(null)
-                                                            .memberFieldInfo(
-                                                                    SdkField.<String> builder(MarshallingType.STRING)
-                                                                            .traits(LocationTrait.builder()
-                                                                                    .location(MarshallLocation.PAYLOAD)
-                                                                                    .locationName("member").build()).build())
-                                                            .build()).build()).build()).build();
+        .<Map<String, List<String>>> builder(MarshallingType.MAP)
+        .memberName("MapOfEnumToListOfEnums")
+        .getter(getter(AllTypesUnionStructure::mapOfEnumToListOfEnumsAsStrings))
+        .setter(setter(Builder::mapOfEnumToListOfEnumsWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToListOfEnums").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<List<String>> builder(MarshallingType.LIST)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build(),
+                                            ListTrait
+                                                .builder()
+                                                .memberLocationName(null)
+                                                .memberFieldInfo(
+                                                    SdkField.<String> builder(MarshallingType.STRING)
+                                                            .traits(LocationTrait.builder()
+                                                                                 .location(MarshallLocation.PAYLOAD)
+                                                                                 .locationName("member").build()).build())
+                                                .build()).build()).build()).build();
 
     private static final SdkField<Map<String, Map<String, String>>> MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD = SdkField
-            .<Map<String, Map<String, String>>> builder(MarshallingType.MAP)
-            .memberName("MapOfEnumToMapOfStringToEnum")
-            .getter(getter(AllTypesUnionStructure::mapOfEnumToMapOfStringToEnumAsStrings))
-            .setter(setter(Builder::mapOfEnumToMapOfStringToEnumWithStrings))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToMapOfStringToEnum")
-                    .build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<Map<String, String>> builder(MarshallingType.MAP)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build(),
-                                                    MapTrait.builder()
-                                                            .keyLocationName("key")
-                                                            .valueLocationName("value")
-                                                            .valueFieldInfo(
-                                                                    SdkField.<String> builder(MarshallingType.STRING)
-                                                                            .traits(LocationTrait.builder()
-                                                                                    .location(MarshallLocation.PAYLOAD)
-                                                                                    .locationName("value").build()).build())
-                                                            .build()).build()).build()).build();
+        .<Map<String, Map<String, String>>> builder(MarshallingType.MAP)
+        .memberName("MapOfEnumToMapOfStringToEnum")
+        .getter(getter(AllTypesUnionStructure::mapOfEnumToMapOfStringToEnumAsStrings))
+        .setter(setter(Builder::mapOfEnumToMapOfStringToEnumWithStrings))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MapOfEnumToMapOfStringToEnum")
+                             .build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<Map<String, String>> builder(MarshallingType.MAP)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build(),
+                                            MapTrait.builder()
+                                                    .keyLocationName("key")
+                                                    .valueLocationName("value")
+                                                    .valueFieldInfo(
+                                                        SdkField.<String> builder(MarshallingType.STRING)
+                                                                .traits(LocationTrait.builder()
+                                                                                     .location(MarshallLocation.PAYLOAD)
+                                                                                     .locationName("value").build()).build())
+                                                    .build()).build()).build()).build();
 
     private static final SdkField<Instant> TIMESTAMP_MEMBER_FIELD = SdkField.<Instant> builder(MarshallingType.INSTANT)
-            .memberName("TimestampMember").getter(getter(AllTypesUnionStructure::timestampMember))
-            .setter(setter(Builder::timestampMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("TimestampMember").build()).build();
+                                                                            .memberName("TimestampMember").getter(getter(AllTypesUnionStructure::timestampMember))
+                                                                            .setter(setter(Builder::timestampMember))
+                                                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("TimestampMember").build()).build();
 
     private static final SdkField<StructWithTimestamp> STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD = SdkField
-            .<StructWithTimestamp> builder(MarshallingType.SDK_POJO)
-            .memberName("StructWithNestedTimestampMember")
-            .getter(getter(AllTypesUnionStructure::structWithNestedTimestampMember))
-            .setter(setter(Builder::structWithNestedTimestampMember))
-            .constructor(StructWithTimestamp::builder)
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StructWithNestedTimestampMember")
-                    .build()).build();
+        .<StructWithTimestamp> builder(MarshallingType.SDK_POJO)
+        .memberName("StructWithNestedTimestampMember")
+        .getter(getter(AllTypesUnionStructure::structWithNestedTimestampMember))
+        .setter(setter(Builder::structWithNestedTimestampMember))
+        .constructor(StructWithTimestamp::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StructWithNestedTimestampMember")
+                             .build()).build();
 
     private static final SdkField<SdkBytes> BLOB_ARG_FIELD = SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
-            .memberName("BlobArg").getter(getter(AllTypesUnionStructure::blobArg)).setter(setter(Builder::blobArg))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BlobArg").build()).build();
+                                                                     .memberName("BlobArg").getter(getter(AllTypesUnionStructure::blobArg)).setter(setter(Builder::blobArg))
+                                                                     .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BlobArg").build()).build();
 
     private static final SdkField<StructWithNestedBlobType> STRUCT_WITH_NESTED_BLOB_FIELD = SdkField
-            .<StructWithNestedBlobType> builder(MarshallingType.SDK_POJO).memberName("StructWithNestedBlob")
-            .getter(getter(AllTypesUnionStructure::structWithNestedBlob)).setter(setter(Builder::structWithNestedBlob))
-            .constructor(StructWithNestedBlobType::builder)
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StructWithNestedBlob").build())
-            .build();
+        .<StructWithNestedBlobType> builder(MarshallingType.SDK_POJO).memberName("StructWithNestedBlob")
+        .getter(getter(AllTypesUnionStructure::structWithNestedBlob)).setter(setter(Builder::structWithNestedBlob))
+        .constructor(StructWithNestedBlobType::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("StructWithNestedBlob").build())
+        .build();
 
     private static final SdkField<Map<String, SdkBytes>> BLOB_MAP_FIELD = SdkField
-            .<Map<String, SdkBytes>> builder(MarshallingType.MAP)
-            .memberName("BlobMap")
-            .getter(getter(AllTypesUnionStructure::blobMap))
-            .setter(setter(Builder::blobMap))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BlobMap").build(),
-                    MapTrait.builder()
-                            .keyLocationName("key")
-                            .valueLocationName("value")
-                            .valueFieldInfo(
-                                    SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("value").build()).build()).build()).build();
+        .<Map<String, SdkBytes>> builder(MarshallingType.MAP)
+        .memberName("BlobMap")
+        .getter(getter(AllTypesUnionStructure::blobMap))
+        .setter(setter(Builder::blobMap))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BlobMap").build(),
+                MapTrait.builder()
+                        .keyLocationName("key")
+                        .valueLocationName("value")
+                        .valueFieldInfo(
+                            SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
+                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                         .locationName("value").build()).build()).build()).build();
 
     private static final SdkField<List<SdkBytes>> LIST_OF_BLOBS_FIELD = SdkField
-            .<List<SdkBytes>> builder(MarshallingType.LIST)
-            .memberName("ListOfBlobs")
-            .getter(getter(AllTypesUnionStructure::listOfBlobs))
-            .setter(setter(Builder::listOfBlobs))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfBlobs").build(),
-                    ListTrait
-                            .builder()
-                            .memberLocationName(null)
-                            .memberFieldInfo(
-                                    SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
-                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
-                                                    .locationName("member").build()).build()).build()).build();
+        .<List<SdkBytes>> builder(MarshallingType.LIST)
+        .memberName("ListOfBlobs")
+        .getter(getter(AllTypesUnionStructure::listOfBlobs))
+        .setter(setter(Builder::listOfBlobs))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ListOfBlobs").build(),
+                ListTrait
+                    .builder()
+                    .memberLocationName(null)
+                    .memberFieldInfo(
+                        SdkField.<SdkBytes> builder(MarshallingType.SDK_BYTES)
+                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD)
+                                                     .locationName("member").build()).build()).build()).build();
 
     private static final SdkField<RecursiveStructType> RECURSIVE_STRUCT_FIELD = SdkField
-            .<RecursiveStructType> builder(MarshallingType.SDK_POJO).memberName("RecursiveStruct")
-            .getter(getter(AllTypesUnionStructure::recursiveStruct)).setter(setter(Builder::recursiveStruct))
-            .constructor(RecursiveStructType::builder)
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("RecursiveStruct").build()).build();
+        .<RecursiveStructType> builder(MarshallingType.SDK_POJO).memberName("RecursiveStruct")
+        .getter(getter(AllTypesUnionStructure::recursiveStruct)).setter(setter(Builder::recursiveStruct))
+        .constructor(RecursiveStructType::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("RecursiveStruct").build()).build();
 
     private static final SdkField<BaseType> POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD = SdkField
-            .<BaseType> builder(MarshallingType.SDK_POJO)
-            .memberName("PolymorphicTypeWithSubTypes")
-            .getter(getter(AllTypesUnionStructure::polymorphicTypeWithSubTypes))
-            .setter(setter(Builder::polymorphicTypeWithSubTypes))
-            .constructor(BaseType::builder)
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("PolymorphicTypeWithSubTypes")
-                    .build()).build();
+        .<BaseType> builder(MarshallingType.SDK_POJO)
+        .memberName("PolymorphicTypeWithSubTypes")
+        .getter(getter(AllTypesUnionStructure::polymorphicTypeWithSubTypes))
+        .setter(setter(Builder::polymorphicTypeWithSubTypes))
+        .constructor(BaseType::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("PolymorphicTypeWithSubTypes")
+                             .build()).build();
 
     private static final SdkField<SubTypeOne> POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD = SdkField
-            .<SubTypeOne> builder(MarshallingType.SDK_POJO)
-            .memberName("PolymorphicTypeWithoutSubTypes")
-            .getter(getter(AllTypesUnionStructure::polymorphicTypeWithoutSubTypes))
-            .setter(setter(Builder::polymorphicTypeWithoutSubTypes))
-            .constructor(SubTypeOne::builder)
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("PolymorphicTypeWithoutSubTypes")
-                    .build()).build();
+        .<SubTypeOne> builder(MarshallingType.SDK_POJO)
+        .memberName("PolymorphicTypeWithoutSubTypes")
+        .getter(getter(AllTypesUnionStructure::polymorphicTypeWithoutSubTypes))
+        .setter(setter(Builder::polymorphicTypeWithoutSubTypes))
+        .constructor(SubTypeOne::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("PolymorphicTypeWithoutSubTypes")
+                             .build()).build();
 
     private static final SdkField<String> ENUM_TYPE_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .memberName("EnumType").getter(getter(AllTypesUnionStructure::enumTypeAsString)).setter(setter(Builder::enumType))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("EnumType").build()).build();
+                                                                    .memberName("EnumType").getter(getter(AllTypesUnionStructure::enumTypeAsString)).setter(setter(Builder::enumType))
+                                                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("EnumType").build()).build();
 
     private static final SdkField<Underscore_Name_Type> UNDERSCORE_NAME_TYPE_FIELD = SdkField
-            .<Underscore_Name_Type> builder(MarshallingType.SDK_POJO).memberName("Underscore_Name_Type")
-            .getter(getter(AllTypesUnionStructure::underscore_Name_Type)).setter(setter(Builder::underscore_Name_Type))
-            .constructor(Underscore_Name_Type::builder)
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Underscore_Name_Type").build())
-            .build();
+        .<Underscore_Name_Type> builder(MarshallingType.SDK_POJO).memberName("Underscore_Name_Type")
+        .getter(getter(AllTypesUnionStructure::underscore_Name_Type)).setter(setter(Builder::underscore_Name_Type))
+        .constructor(Underscore_Name_Type::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Underscore_Name_Type").build())
+        .build();
 
     private static final SdkField<Document> MY_DOCUMENT_FIELD = SdkField.<Document> builder(MarshallingType.DOCUMENT)
-            .memberName("MyDocument").getter(getter(AllTypesUnionStructure::myDocument)).setter(setter(Builder::myDocument))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MyDocument").build()).build();
+                                                                        .memberName("MyDocument").getter(getter(AllTypesUnionStructure::myDocument)).setter(setter(Builder::myDocument))
+                                                                        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MyDocument").build()).build();
 
     private static final SdkField<AllTypesUnionStructure> ALL_TYPES_UNION_STRUCTURE_FIELD = SdkField
-            .<AllTypesUnionStructure> builder(MarshallingType.SDK_POJO).memberName("AllTypesUnionStructure")
-            .getter(getter(AllTypesUnionStructure::allTypesUnionStructure)).setter(setter(Builder::allTypesUnionStructure))
-            .constructor(AllTypesUnionStructure::builder)
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("AllTypesUnionStructure").build())
-            .build();
+        .<AllTypesUnionStructure> builder(MarshallingType.SDK_POJO).memberName("AllTypesUnionStructure")
+        .getter(getter(AllTypesUnionStructure::allTypesUnionStructure)).setter(setter(Builder::allTypesUnionStructure))
+        .constructor(AllTypesUnionStructure::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("AllTypesUnionStructure").build())
+        .build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD,
-            INTEGER_MEMBER_FIELD, BOOLEAN_MEMBER_FIELD, FLOAT_MEMBER_FIELD, DOUBLE_MEMBER_FIELD, LONG_MEMBER_FIELD,
-            SHORT_MEMBER_FIELD, SIMPLE_LIST_FIELD, LIST_OF_ENUMS_FIELD, LIST_OF_MAPS_FIELD, LIST_OF_STRUCTS_FIELD,
-            LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD, LIST_OF_MAP_OF_STRING_TO_STRUCT_FIELD, MAP_OF_STRING_TO_INTEGER_LIST_FIELD,
-            MAP_OF_STRING_TO_STRING_FIELD, MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD, MAP_OF_ENUM_TO_ENUM_FIELD,
-            MAP_OF_ENUM_TO_STRING_FIELD, MAP_OF_STRING_TO_ENUM_FIELD, MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD,
-            MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD, MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD, TIMESTAMP_MEMBER_FIELD,
-            STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD, BLOB_ARG_FIELD, STRUCT_WITH_NESTED_BLOB_FIELD, BLOB_MAP_FIELD,
-            LIST_OF_BLOBS_FIELD, RECURSIVE_STRUCT_FIELD, POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD,
-            POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD, ENUM_TYPE_FIELD, UNDERSCORE_NAME_TYPE_FIELD, MY_DOCUMENT_FIELD,
-            ALL_TYPES_UNION_STRUCTURE_FIELD));
+                                                                                                   INTEGER_MEMBER_FIELD, BOOLEAN_MEMBER_FIELD, FLOAT_MEMBER_FIELD, DOUBLE_MEMBER_FIELD, LONG_MEMBER_FIELD,
+                                                                                                   SHORT_MEMBER_FIELD, SIMPLE_LIST_FIELD, LIST_OF_ENUMS_FIELD, LIST_OF_MAPS_FIELD, LIST_OF_STRUCTS_FIELD,
+                                                                                                   LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD, LIST_OF_MAP_OF_STRING_TO_STRUCT_FIELD, MAP_OF_STRING_TO_INTEGER_LIST_FIELD,
+                                                                                                   MAP_OF_STRING_TO_STRING_FIELD, MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD, MAP_OF_ENUM_TO_ENUM_FIELD,
+                                                                                                   MAP_OF_ENUM_TO_STRING_FIELD, MAP_OF_STRING_TO_ENUM_FIELD, MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD,
+                                                                                                   MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD, MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD, TIMESTAMP_MEMBER_FIELD,
+                                                                                                   STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD, BLOB_ARG_FIELD, STRUCT_WITH_NESTED_BLOB_FIELD, BLOB_MAP_FIELD,
+                                                                                                   LIST_OF_BLOBS_FIELD, RECURSIVE_STRUCT_FIELD, POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD,
+                                                                                                   POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD, ENUM_TYPE_FIELD, UNDERSCORE_NAME_TYPE_FIELD, MY_DOCUMENT_FIELD,
+                                                                                                   ALL_TYPES_UNION_STRUCTURE_FIELD));
 
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections
-            .unmodifiableMap(new HashMap<String, SdkField<?>>() {
-                {
-                    put("StringMember", STRING_MEMBER_FIELD);
-                    put("IntegerMember", INTEGER_MEMBER_FIELD);
-                    put("BooleanMember", BOOLEAN_MEMBER_FIELD);
-                    put("FloatMember", FLOAT_MEMBER_FIELD);
-                    put("DoubleMember", DOUBLE_MEMBER_FIELD);
-                    put("LongMember", LONG_MEMBER_FIELD);
-                    put("ShortMember", SHORT_MEMBER_FIELD);
-                    put("SimpleList", SIMPLE_LIST_FIELD);
-                    put("ListOfEnums", LIST_OF_ENUMS_FIELD);
-                    put("ListOfMaps", LIST_OF_MAPS_FIELD);
-                    put("ListOfStructs", LIST_OF_STRUCTS_FIELD);
-                    put("ListOfMapOfEnumToString", LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD);
-                    put("ListOfMapOfStringToStruct", LIST_OF_MAP_OF_STRING_TO_STRUCT_FIELD);
-                    put("MapOfStringToIntegerList", MAP_OF_STRING_TO_INTEGER_LIST_FIELD);
-                    put("MapOfStringToString", MAP_OF_STRING_TO_STRING_FIELD);
-                    put("MapOfStringToSimpleStruct", MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD);
-                    put("MapOfEnumToEnum", MAP_OF_ENUM_TO_ENUM_FIELD);
-                    put("MapOfEnumToString", MAP_OF_ENUM_TO_STRING_FIELD);
-                    put("MapOfStringToEnum", MAP_OF_STRING_TO_ENUM_FIELD);
-                    put("MapOfEnumToSimpleStruct", MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD);
-                    put("MapOfEnumToListOfEnums", MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD);
-                    put("MapOfEnumToMapOfStringToEnum", MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD);
-                    put("TimestampMember", TIMESTAMP_MEMBER_FIELD);
-                    put("StructWithNestedTimestampMember", STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD);
-                    put("BlobArg", BLOB_ARG_FIELD);
-                    put("StructWithNestedBlob", STRUCT_WITH_NESTED_BLOB_FIELD);
-                    put("BlobMap", BLOB_MAP_FIELD);
-                    put("ListOfBlobs", LIST_OF_BLOBS_FIELD);
-                    put("RecursiveStruct", RECURSIVE_STRUCT_FIELD);
-                    put("PolymorphicTypeWithSubTypes", POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD);
-                    put("PolymorphicTypeWithoutSubTypes", POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD);
-                    put("EnumType", ENUM_TYPE_FIELD);
-                    put("Underscore_Name_Type", UNDERSCORE_NAME_TYPE_FIELD);
-                    put("MyDocument", MY_DOCUMENT_FIELD);
-                    put("AllTypesUnionStructure", ALL_TYPES_UNION_STRUCTURE_FIELD);
-                }
-            });
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private static final long serialVersionUID = 1L;
 
@@ -609,7 +570,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the StringMember property for this object.
-     * 
+     *
      * @return The value of the StringMember property for this object.
      */
     public final String stringMember() {
@@ -618,7 +579,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the IntegerMember property for this object.
-     * 
+     *
      * @return The value of the IntegerMember property for this object.
      */
     public final Integer integerMember() {
@@ -627,7 +588,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the BooleanMember property for this object.
-     * 
+     *
      * @return The value of the BooleanMember property for this object.
      */
     public final Boolean booleanMember() {
@@ -636,7 +597,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the FloatMember property for this object.
-     * 
+     *
      * @return The value of the FloatMember property for this object.
      */
     public final Float floatMember() {
@@ -645,7 +606,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the DoubleMember property for this object.
-     * 
+     *
      * @return The value of the DoubleMember property for this object.
      */
     public final Double doubleMember() {
@@ -654,7 +615,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the LongMember property for this object.
-     * 
+     *
      * @return The value of the LongMember property for this object.
      */
     public final Long longMember() {
@@ -663,7 +624,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the ShortMember property for this object.
-     * 
+     *
      * @return The value of the ShortMember property for this object.
      */
     public final Short shortMember() {
@@ -691,7 +652,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasSimpleList} method.
      * </p>
-     * 
+     *
      * @return The value of the SimpleList property for this object.
      */
     public final List<String> simpleList() {
@@ -707,7 +668,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasListOfEnums} method.
      * </p>
-     * 
+     *
      * @return The value of the ListOfEnums property for this object.
      */
     public final List<EnumType> listOfEnums() {
@@ -735,7 +696,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasListOfEnums} method.
      * </p>
-     * 
+     *
      * @return The value of the ListOfEnums property for this object.
      */
     public final List<String> listOfEnumsAsStrings() {
@@ -763,7 +724,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasListOfMaps} method.
      * </p>
-     * 
+     *
      * @return The value of the ListOfMaps property for this object.
      */
     public final List<Map<String, String>> listOfMaps() {
@@ -791,7 +752,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasListOfStructs} method.
      * </p>
-     * 
+     *
      * @return The value of the ListOfStructs property for this object.
      */
     public final List<SimpleStruct> listOfStructs() {
@@ -807,7 +768,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasListOfMapOfEnumToString} method.
      * </p>
-     * 
+     *
      * @return The value of the ListOfMapOfEnumToString property for this object.
      */
     public final List<Map<EnumType, String>> listOfMapOfEnumToString() {
@@ -835,7 +796,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasListOfMapOfEnumToString} method.
      * </p>
-     * 
+     *
      * @return The value of the ListOfMapOfEnumToString property for this object.
      */
     public final List<Map<String, String>> listOfMapOfEnumToStringAsStrings() {
@@ -863,7 +824,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasListOfMapOfStringToStruct} method.
      * </p>
-     * 
+     *
      * @return The value of the ListOfMapOfStringToStruct property for this object.
      */
     public final List<Map<String, SimpleStruct>> listOfMapOfStringToStruct() {
@@ -891,7 +852,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToIntegerList} method.
      * </p>
-     * 
+     *
      * @return The value of the MapOfStringToIntegerList property for this object.
      */
     public final Map<String, List<Integer>> mapOfStringToIntegerList() {
@@ -919,7 +880,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToString} method.
      * </p>
-     * 
+     *
      * @return The value of the MapOfStringToString property for this object.
      */
     public final Map<String, String> mapOfStringToString() {
@@ -947,7 +908,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToSimpleStruct} method.
      * </p>
-     * 
+     *
      * @return The value of the MapOfStringToSimpleStruct property for this object.
      */
     public final Map<String, SimpleStruct> mapOfStringToSimpleStruct() {
@@ -963,7 +924,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToEnum} method.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToEnum property for this object.
      */
     public final Map<EnumType, EnumType> mapOfEnumToEnum() {
@@ -991,7 +952,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToEnum} method.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToEnum property for this object.
      */
     public final Map<String, String> mapOfEnumToEnumAsStrings() {
@@ -1007,7 +968,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToString} method.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToString property for this object.
      */
     public final Map<EnumType, String> mapOfEnumToString() {
@@ -1035,7 +996,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToString} method.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToString property for this object.
      */
     public final Map<String, String> mapOfEnumToStringAsStrings() {
@@ -1051,7 +1012,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToEnum} method.
      * </p>
-     * 
+     *
      * @return The value of the MapOfStringToEnum property for this object.
      */
     public final Map<String, EnumType> mapOfStringToEnum() {
@@ -1079,7 +1040,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasMapOfStringToEnum} method.
      * </p>
-     * 
+     *
      * @return The value of the MapOfStringToEnum property for this object.
      */
     public final Map<String, String> mapOfStringToEnumAsStrings() {
@@ -1095,7 +1056,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToSimpleStruct} method.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToSimpleStruct property for this object.
      */
     public final Map<EnumType, SimpleStruct> mapOfEnumToSimpleStruct() {
@@ -1123,7 +1084,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToSimpleStruct} method.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToSimpleStruct property for this object.
      */
     public final Map<String, SimpleStruct> mapOfEnumToSimpleStructAsStrings() {
@@ -1139,7 +1100,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToListOfEnums} method.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToListOfEnums property for this object.
      */
     public final Map<EnumType, List<EnumType>> mapOfEnumToListOfEnums() {
@@ -1167,7 +1128,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToListOfEnums} method.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToListOfEnums property for this object.
      */
     public final Map<String, List<String>> mapOfEnumToListOfEnumsAsStrings() {
@@ -1183,7 +1144,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToMapOfStringToEnum} method.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToMapOfStringToEnum property for this object.
      */
     public final Map<EnumType, Map<String, EnumType>> mapOfEnumToMapOfStringToEnum() {
@@ -1211,7 +1172,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasMapOfEnumToMapOfStringToEnum} method.
      * </p>
-     * 
+     *
      * @return The value of the MapOfEnumToMapOfStringToEnum property for this object.
      */
     public final Map<String, Map<String, String>> mapOfEnumToMapOfStringToEnumAsStrings() {
@@ -1220,7 +1181,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the TimestampMember property for this object.
-     * 
+     *
      * @return The value of the TimestampMember property for this object.
      */
     public final Instant timestampMember() {
@@ -1229,7 +1190,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the StructWithNestedTimestampMember property for this object.
-     * 
+     *
      * @return The value of the StructWithNestedTimestampMember property for this object.
      */
     public final StructWithTimestamp structWithNestedTimestampMember() {
@@ -1238,7 +1199,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the BlobArg property for this object.
-     * 
+     *
      * @return The value of the BlobArg property for this object.
      */
     public final SdkBytes blobArg() {
@@ -1247,7 +1208,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the StructWithNestedBlob property for this object.
-     * 
+     *
      * @return The value of the StructWithNestedBlob property for this object.
      */
     public final StructWithNestedBlobType structWithNestedBlob() {
@@ -1275,7 +1236,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasBlobMap} method.
      * </p>
-     * 
+     *
      * @return The value of the BlobMap property for this object.
      */
     public final Map<String, SdkBytes> blobMap() {
@@ -1303,7 +1264,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * This method will never return null. If you would like to know whether the service returned this field (so that
      * you can differentiate between null and empty), you can use the {@link #hasListOfBlobs} method.
      * </p>
-     * 
+     *
      * @return The value of the ListOfBlobs property for this object.
      */
     public final List<SdkBytes> listOfBlobs() {
@@ -1312,7 +1273,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the RecursiveStruct property for this object.
-     * 
+     *
      * @return The value of the RecursiveStruct property for this object.
      */
     public final RecursiveStructType recursiveStruct() {
@@ -1321,7 +1282,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the PolymorphicTypeWithSubTypes property for this object.
-     * 
+     *
      * @return The value of the PolymorphicTypeWithSubTypes property for this object.
      */
     public final BaseType polymorphicTypeWithSubTypes() {
@@ -1330,7 +1291,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the PolymorphicTypeWithoutSubTypes property for this object.
-     * 
+     *
      * @return The value of the PolymorphicTypeWithoutSubTypes property for this object.
      */
     public final SubTypeOne polymorphicTypeWithoutSubTypes() {
@@ -1344,7 +1305,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * return {@link EnumType#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is available from
      * {@link #enumTypeAsString}.
      * </p>
-     * 
+     *
      * @return The value of the EnumType property for this object.
      * @see EnumType
      */
@@ -1359,7 +1320,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      * return {@link EnumType#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is available from
      * {@link #enumTypeAsString}.
      * </p>
-     * 
+     *
      * @return The value of the EnumType property for this object.
      * @see EnumType
      */
@@ -1369,7 +1330,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the Underscore_Name_Type property for this object.
-     * 
+     *
      * @return The value of the Underscore_Name_Type property for this object.
      */
     public final Underscore_Name_Type underscore_Name_Type() {
@@ -1378,7 +1339,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the MyDocument property for this object.
-     * 
+     *
      * @return The value of the MyDocument property for this object.
      */
     public final Document myDocument() {
@@ -1387,7 +1348,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the AllTypesUnionStructure property for this object.
-     * 
+     *
      * @return The value of the AllTypesUnionStructure property for this object.
      */
     public final AllTypesUnionStructure allTypesUnionStructure() {
@@ -1432,7 +1393,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         hashCode = 31 * hashCode + Objects.hashCode(hasMapOfEnumToSimpleStruct() ? mapOfEnumToSimpleStructAsStrings() : null);
         hashCode = 31 * hashCode + Objects.hashCode(hasMapOfEnumToListOfEnums() ? mapOfEnumToListOfEnumsAsStrings() : null);
         hashCode = 31 * hashCode
-                + Objects.hashCode(hasMapOfEnumToMapOfStringToEnum() ? mapOfEnumToMapOfStringToEnumAsStrings() : null);
+                   + Objects.hashCode(hasMapOfEnumToMapOfStringToEnum() ? mapOfEnumToMapOfStringToEnumAsStrings() : null);
         hashCode = 31 * hashCode + Objects.hashCode(timestampMember());
         hashCode = 31 * hashCode + Objects.hashCode(structWithNestedTimestampMember());
         hashCode = 31 * hashCode + Objects.hashCode(blobArg());
@@ -1467,48 +1428,48 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
         AllTypesUnionStructure other = (AllTypesUnionStructure) obj;
         return Objects.equals(stringMember(), other.stringMember()) && Objects.equals(integerMember(), other.integerMember())
-                && Objects.equals(booleanMember(), other.booleanMember()) && Objects.equals(floatMember(), other.floatMember())
-                && Objects.equals(doubleMember(), other.doubleMember()) && Objects.equals(longMember(), other.longMember())
-                && Objects.equals(shortMember(), other.shortMember()) && hasSimpleList() == other.hasSimpleList()
-                && Objects.equals(simpleList(), other.simpleList()) && hasListOfEnums() == other.hasListOfEnums()
-                && Objects.equals(listOfEnumsAsStrings(), other.listOfEnumsAsStrings())
-                && hasListOfMaps() == other.hasListOfMaps() && Objects.equals(listOfMaps(), other.listOfMaps())
-                && hasListOfStructs() == other.hasListOfStructs() && Objects.equals(listOfStructs(), other.listOfStructs())
-                && hasListOfMapOfEnumToString() == other.hasListOfMapOfEnumToString()
-                && Objects.equals(listOfMapOfEnumToStringAsStrings(), other.listOfMapOfEnumToStringAsStrings())
-                && hasListOfMapOfStringToStruct() == other.hasListOfMapOfStringToStruct()
-                && Objects.equals(listOfMapOfStringToStruct(), other.listOfMapOfStringToStruct())
-                && hasMapOfStringToIntegerList() == other.hasMapOfStringToIntegerList()
-                && Objects.equals(mapOfStringToIntegerList(), other.mapOfStringToIntegerList())
-                && hasMapOfStringToString() == other.hasMapOfStringToString()
-                && Objects.equals(mapOfStringToString(), other.mapOfStringToString())
-                && hasMapOfStringToSimpleStruct() == other.hasMapOfStringToSimpleStruct()
-                && Objects.equals(mapOfStringToSimpleStruct(), other.mapOfStringToSimpleStruct())
-                && hasMapOfEnumToEnum() == other.hasMapOfEnumToEnum()
-                && Objects.equals(mapOfEnumToEnumAsStrings(), other.mapOfEnumToEnumAsStrings())
-                && hasMapOfEnumToString() == other.hasMapOfEnumToString()
-                && Objects.equals(mapOfEnumToStringAsStrings(), other.mapOfEnumToStringAsStrings())
-                && hasMapOfStringToEnum() == other.hasMapOfStringToEnum()
-                && Objects.equals(mapOfStringToEnumAsStrings(), other.mapOfStringToEnumAsStrings())
-                && hasMapOfEnumToSimpleStruct() == other.hasMapOfEnumToSimpleStruct()
-                && Objects.equals(mapOfEnumToSimpleStructAsStrings(), other.mapOfEnumToSimpleStructAsStrings())
-                && hasMapOfEnumToListOfEnums() == other.hasMapOfEnumToListOfEnums()
-                && Objects.equals(mapOfEnumToListOfEnumsAsStrings(), other.mapOfEnumToListOfEnumsAsStrings())
-                && hasMapOfEnumToMapOfStringToEnum() == other.hasMapOfEnumToMapOfStringToEnum()
-                && Objects.equals(mapOfEnumToMapOfStringToEnumAsStrings(), other.mapOfEnumToMapOfStringToEnumAsStrings())
-                && Objects.equals(timestampMember(), other.timestampMember())
-                && Objects.equals(structWithNestedTimestampMember(), other.structWithNestedTimestampMember())
-                && Objects.equals(blobArg(), other.blobArg())
-                && Objects.equals(structWithNestedBlob(), other.structWithNestedBlob()) && hasBlobMap() == other.hasBlobMap()
-                && Objects.equals(blobMap(), other.blobMap()) && hasListOfBlobs() == other.hasListOfBlobs()
-                && Objects.equals(listOfBlobs(), other.listOfBlobs())
-                && Objects.equals(recursiveStruct(), other.recursiveStruct())
-                && Objects.equals(polymorphicTypeWithSubTypes(), other.polymorphicTypeWithSubTypes())
-                && Objects.equals(polymorphicTypeWithoutSubTypes(), other.polymorphicTypeWithoutSubTypes())
-                && Objects.equals(enumTypeAsString(), other.enumTypeAsString())
-                && Objects.equals(underscore_Name_Type(), other.underscore_Name_Type())
-                && Objects.equals(myDocument(), other.myDocument())
-                && Objects.equals(allTypesUnionStructure(), other.allTypesUnionStructure());
+               && Objects.equals(booleanMember(), other.booleanMember()) && Objects.equals(floatMember(), other.floatMember())
+               && Objects.equals(doubleMember(), other.doubleMember()) && Objects.equals(longMember(), other.longMember())
+               && Objects.equals(shortMember(), other.shortMember()) && hasSimpleList() == other.hasSimpleList()
+               && Objects.equals(simpleList(), other.simpleList()) && hasListOfEnums() == other.hasListOfEnums()
+               && Objects.equals(listOfEnumsAsStrings(), other.listOfEnumsAsStrings())
+               && hasListOfMaps() == other.hasListOfMaps() && Objects.equals(listOfMaps(), other.listOfMaps())
+               && hasListOfStructs() == other.hasListOfStructs() && Objects.equals(listOfStructs(), other.listOfStructs())
+               && hasListOfMapOfEnumToString() == other.hasListOfMapOfEnumToString()
+               && Objects.equals(listOfMapOfEnumToStringAsStrings(), other.listOfMapOfEnumToStringAsStrings())
+               && hasListOfMapOfStringToStruct() == other.hasListOfMapOfStringToStruct()
+               && Objects.equals(listOfMapOfStringToStruct(), other.listOfMapOfStringToStruct())
+               && hasMapOfStringToIntegerList() == other.hasMapOfStringToIntegerList()
+               && Objects.equals(mapOfStringToIntegerList(), other.mapOfStringToIntegerList())
+               && hasMapOfStringToString() == other.hasMapOfStringToString()
+               && Objects.equals(mapOfStringToString(), other.mapOfStringToString())
+               && hasMapOfStringToSimpleStruct() == other.hasMapOfStringToSimpleStruct()
+               && Objects.equals(mapOfStringToSimpleStruct(), other.mapOfStringToSimpleStruct())
+               && hasMapOfEnumToEnum() == other.hasMapOfEnumToEnum()
+               && Objects.equals(mapOfEnumToEnumAsStrings(), other.mapOfEnumToEnumAsStrings())
+               && hasMapOfEnumToString() == other.hasMapOfEnumToString()
+               && Objects.equals(mapOfEnumToStringAsStrings(), other.mapOfEnumToStringAsStrings())
+               && hasMapOfStringToEnum() == other.hasMapOfStringToEnum()
+               && Objects.equals(mapOfStringToEnumAsStrings(), other.mapOfStringToEnumAsStrings())
+               && hasMapOfEnumToSimpleStruct() == other.hasMapOfEnumToSimpleStruct()
+               && Objects.equals(mapOfEnumToSimpleStructAsStrings(), other.mapOfEnumToSimpleStructAsStrings())
+               && hasMapOfEnumToListOfEnums() == other.hasMapOfEnumToListOfEnums()
+               && Objects.equals(mapOfEnumToListOfEnumsAsStrings(), other.mapOfEnumToListOfEnumsAsStrings())
+               && hasMapOfEnumToMapOfStringToEnum() == other.hasMapOfEnumToMapOfStringToEnum()
+               && Objects.equals(mapOfEnumToMapOfStringToEnumAsStrings(), other.mapOfEnumToMapOfStringToEnumAsStrings())
+               && Objects.equals(timestampMember(), other.timestampMember())
+               && Objects.equals(structWithNestedTimestampMember(), other.structWithNestedTimestampMember())
+               && Objects.equals(blobArg(), other.blobArg())
+               && Objects.equals(structWithNestedBlob(), other.structWithNestedBlob()) && hasBlobMap() == other.hasBlobMap()
+               && Objects.equals(blobMap(), other.blobMap()) && hasListOfBlobs() == other.hasListOfBlobs()
+               && Objects.equals(listOfBlobs(), other.listOfBlobs())
+               && Objects.equals(recursiveStruct(), other.recursiveStruct())
+               && Objects.equals(polymorphicTypeWithSubTypes(), other.polymorphicTypeWithSubTypes())
+               && Objects.equals(polymorphicTypeWithoutSubTypes(), other.polymorphicTypeWithoutSubTypes())
+               && Objects.equals(enumTypeAsString(), other.enumTypeAsString())
+               && Objects.equals(underscore_Name_Type(), other.underscore_Name_Type())
+               && Objects.equals(myDocument(), other.myDocument())
+               && Objects.equals(allTypesUnionStructure(), other.allTypesUnionStructure());
     }
 
     /**
@@ -1518,114 +1479,114 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
     @Override
     public final String toString() {
         return ToString
-                .builder("AllTypesUnionStructure")
-                .add("StringMember", stringMember())
-                .add("IntegerMember", integerMember())
-                .add("BooleanMember", booleanMember())
-                .add("FloatMember", floatMember())
-                .add("DoubleMember", doubleMember())
-                .add("LongMember", longMember())
-                .add("ShortMember", shortMember())
-                .add("SimpleList", hasSimpleList() ? simpleList() : null)
-                .add("ListOfEnums", hasListOfEnums() ? listOfEnumsAsStrings() : null)
-                .add("ListOfMaps", hasListOfMaps() ? listOfMaps() : null)
-                .add("ListOfStructs", hasListOfStructs() ? listOfStructs() : null)
-                .add("ListOfMapOfEnumToString", hasListOfMapOfEnumToString() ? listOfMapOfEnumToStringAsStrings() : null)
-                .add("ListOfMapOfStringToStruct", hasListOfMapOfStringToStruct() ? listOfMapOfStringToStruct() : null)
-                .add("MapOfStringToIntegerList", hasMapOfStringToIntegerList() ? mapOfStringToIntegerList() : null)
-                .add("MapOfStringToString", hasMapOfStringToString() ? mapOfStringToString() : null)
-                .add("MapOfStringToSimpleStruct", hasMapOfStringToSimpleStruct() ? mapOfStringToSimpleStruct() : null)
-                .add("MapOfEnumToEnum", hasMapOfEnumToEnum() ? mapOfEnumToEnumAsStrings() : null)
-                .add("MapOfEnumToString", hasMapOfEnumToString() ? mapOfEnumToStringAsStrings() : null)
-                .add("MapOfStringToEnum", hasMapOfStringToEnum() ? mapOfStringToEnumAsStrings() : null)
-                .add("MapOfEnumToSimpleStruct", hasMapOfEnumToSimpleStruct() ? mapOfEnumToSimpleStructAsStrings() : null)
-                .add("MapOfEnumToListOfEnums", hasMapOfEnumToListOfEnums() ? mapOfEnumToListOfEnumsAsStrings() : null)
-                .add("MapOfEnumToMapOfStringToEnum",
-                        hasMapOfEnumToMapOfStringToEnum() ? mapOfEnumToMapOfStringToEnumAsStrings() : null)
-                .add("TimestampMember", timestampMember())
-                .add("StructWithNestedTimestampMember", structWithNestedTimestampMember()).add("BlobArg", blobArg())
-                .add("StructWithNestedBlob", structWithNestedBlob()).add("BlobMap", hasBlobMap() ? blobMap() : null)
-                .add("ListOfBlobs", hasListOfBlobs() ? listOfBlobs() : null).add("RecursiveStruct", recursiveStruct())
-                .add("PolymorphicTypeWithSubTypes", polymorphicTypeWithSubTypes())
-                .add("PolymorphicTypeWithoutSubTypes", polymorphicTypeWithoutSubTypes()).add("EnumType", enumTypeAsString())
-                .add("Underscore_Name_Type", underscore_Name_Type()).add("MyDocument", myDocument())
-                .add("AllTypesUnionStructure", allTypesUnionStructure()).build();
+            .builder("AllTypesUnionStructure")
+            .add("StringMember", stringMember())
+            .add("IntegerMember", integerMember())
+            .add("BooleanMember", booleanMember())
+            .add("FloatMember", floatMember())
+            .add("DoubleMember", doubleMember())
+            .add("LongMember", longMember())
+            .add("ShortMember", shortMember())
+            .add("SimpleList", hasSimpleList() ? simpleList() : null)
+            .add("ListOfEnums", hasListOfEnums() ? listOfEnumsAsStrings() : null)
+            .add("ListOfMaps", hasListOfMaps() ? listOfMaps() : null)
+            .add("ListOfStructs", hasListOfStructs() ? listOfStructs() : null)
+            .add("ListOfMapOfEnumToString", hasListOfMapOfEnumToString() ? listOfMapOfEnumToStringAsStrings() : null)
+            .add("ListOfMapOfStringToStruct", hasListOfMapOfStringToStruct() ? listOfMapOfStringToStruct() : null)
+            .add("MapOfStringToIntegerList", hasMapOfStringToIntegerList() ? mapOfStringToIntegerList() : null)
+            .add("MapOfStringToString", hasMapOfStringToString() ? mapOfStringToString() : null)
+            .add("MapOfStringToSimpleStruct", hasMapOfStringToSimpleStruct() ? mapOfStringToSimpleStruct() : null)
+            .add("MapOfEnumToEnum", hasMapOfEnumToEnum() ? mapOfEnumToEnumAsStrings() : null)
+            .add("MapOfEnumToString", hasMapOfEnumToString() ? mapOfEnumToStringAsStrings() : null)
+            .add("MapOfStringToEnum", hasMapOfStringToEnum() ? mapOfStringToEnumAsStrings() : null)
+            .add("MapOfEnumToSimpleStruct", hasMapOfEnumToSimpleStruct() ? mapOfEnumToSimpleStructAsStrings() : null)
+            .add("MapOfEnumToListOfEnums", hasMapOfEnumToListOfEnums() ? mapOfEnumToListOfEnumsAsStrings() : null)
+            .add("MapOfEnumToMapOfStringToEnum",
+                 hasMapOfEnumToMapOfStringToEnum() ? mapOfEnumToMapOfStringToEnumAsStrings() : null)
+            .add("TimestampMember", timestampMember())
+            .add("StructWithNestedTimestampMember", structWithNestedTimestampMember()).add("BlobArg", blobArg())
+            .add("StructWithNestedBlob", structWithNestedBlob()).add("BlobMap", hasBlobMap() ? blobMap() : null)
+            .add("ListOfBlobs", hasListOfBlobs() ? listOfBlobs() : null).add("RecursiveStruct", recursiveStruct())
+            .add("PolymorphicTypeWithSubTypes", polymorphicTypeWithSubTypes())
+            .add("PolymorphicTypeWithoutSubTypes", polymorphicTypeWithoutSubTypes()).add("EnumType", enumTypeAsString())
+            .add("Underscore_Name_Type", underscore_Name_Type()).add("MyDocument", myDocument())
+            .add("AllTypesUnionStructure", allTypesUnionStructure()).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "StringMember":
-            return Optional.ofNullable(clazz.cast(stringMember()));
-        case "IntegerMember":
-            return Optional.ofNullable(clazz.cast(integerMember()));
-        case "BooleanMember":
-            return Optional.ofNullable(clazz.cast(booleanMember()));
-        case "FloatMember":
-            return Optional.ofNullable(clazz.cast(floatMember()));
-        case "DoubleMember":
-            return Optional.ofNullable(clazz.cast(doubleMember()));
-        case "LongMember":
-            return Optional.ofNullable(clazz.cast(longMember()));
-        case "ShortMember":
-            return Optional.ofNullable(clazz.cast(shortMember()));
-        case "SimpleList":
-            return Optional.ofNullable(clazz.cast(simpleList()));
-        case "ListOfEnums":
-            return Optional.ofNullable(clazz.cast(listOfEnumsAsStrings()));
-        case "ListOfMaps":
-            return Optional.ofNullable(clazz.cast(listOfMaps()));
-        case "ListOfStructs":
-            return Optional.ofNullable(clazz.cast(listOfStructs()));
-        case "ListOfMapOfEnumToString":
-            return Optional.ofNullable(clazz.cast(listOfMapOfEnumToStringAsStrings()));
-        case "ListOfMapOfStringToStruct":
-            return Optional.ofNullable(clazz.cast(listOfMapOfStringToStruct()));
-        case "MapOfStringToIntegerList":
-            return Optional.ofNullable(clazz.cast(mapOfStringToIntegerList()));
-        case "MapOfStringToString":
-            return Optional.ofNullable(clazz.cast(mapOfStringToString()));
-        case "MapOfStringToSimpleStruct":
-            return Optional.ofNullable(clazz.cast(mapOfStringToSimpleStruct()));
-        case "MapOfEnumToEnum":
-            return Optional.ofNullable(clazz.cast(mapOfEnumToEnumAsStrings()));
-        case "MapOfEnumToString":
-            return Optional.ofNullable(clazz.cast(mapOfEnumToStringAsStrings()));
-        case "MapOfStringToEnum":
-            return Optional.ofNullable(clazz.cast(mapOfStringToEnumAsStrings()));
-        case "MapOfEnumToSimpleStruct":
-            return Optional.ofNullable(clazz.cast(mapOfEnumToSimpleStructAsStrings()));
-        case "MapOfEnumToListOfEnums":
-            return Optional.ofNullable(clazz.cast(mapOfEnumToListOfEnumsAsStrings()));
-        case "MapOfEnumToMapOfStringToEnum":
-            return Optional.ofNullable(clazz.cast(mapOfEnumToMapOfStringToEnumAsStrings()));
-        case "TimestampMember":
-            return Optional.ofNullable(clazz.cast(timestampMember()));
-        case "StructWithNestedTimestampMember":
-            return Optional.ofNullable(clazz.cast(structWithNestedTimestampMember()));
-        case "BlobArg":
-            return Optional.ofNullable(clazz.cast(blobArg()));
-        case "StructWithNestedBlob":
-            return Optional.ofNullable(clazz.cast(structWithNestedBlob()));
-        case "BlobMap":
-            return Optional.ofNullable(clazz.cast(blobMap()));
-        case "ListOfBlobs":
-            return Optional.ofNullable(clazz.cast(listOfBlobs()));
-        case "RecursiveStruct":
-            return Optional.ofNullable(clazz.cast(recursiveStruct()));
-        case "PolymorphicTypeWithSubTypes":
-            return Optional.ofNullable(clazz.cast(polymorphicTypeWithSubTypes()));
-        case "PolymorphicTypeWithoutSubTypes":
-            return Optional.ofNullable(clazz.cast(polymorphicTypeWithoutSubTypes()));
-        case "EnumType":
-            return Optional.ofNullable(clazz.cast(enumTypeAsString()));
-        case "Underscore_Name_Type":
-            return Optional.ofNullable(clazz.cast(underscore_Name_Type()));
-        case "MyDocument":
-            return Optional.ofNullable(clazz.cast(myDocument()));
-        case "AllTypesUnionStructure":
-            return Optional.ofNullable(clazz.cast(allTypesUnionStructure()));
-        default:
-            return Optional.empty();
+            case "StringMember":
+                return Optional.ofNullable(clazz.cast(stringMember()));
+            case "IntegerMember":
+                return Optional.ofNullable(clazz.cast(integerMember()));
+            case "BooleanMember":
+                return Optional.ofNullable(clazz.cast(booleanMember()));
+            case "FloatMember":
+                return Optional.ofNullable(clazz.cast(floatMember()));
+            case "DoubleMember":
+                return Optional.ofNullable(clazz.cast(doubleMember()));
+            case "LongMember":
+                return Optional.ofNullable(clazz.cast(longMember()));
+            case "ShortMember":
+                return Optional.ofNullable(clazz.cast(shortMember()));
+            case "SimpleList":
+                return Optional.ofNullable(clazz.cast(simpleList()));
+            case "ListOfEnums":
+                return Optional.ofNullable(clazz.cast(listOfEnumsAsStrings()));
+            case "ListOfMaps":
+                return Optional.ofNullable(clazz.cast(listOfMaps()));
+            case "ListOfStructs":
+                return Optional.ofNullable(clazz.cast(listOfStructs()));
+            case "ListOfMapOfEnumToString":
+                return Optional.ofNullable(clazz.cast(listOfMapOfEnumToStringAsStrings()));
+            case "ListOfMapOfStringToStruct":
+                return Optional.ofNullable(clazz.cast(listOfMapOfStringToStruct()));
+            case "MapOfStringToIntegerList":
+                return Optional.ofNullable(clazz.cast(mapOfStringToIntegerList()));
+            case "MapOfStringToString":
+                return Optional.ofNullable(clazz.cast(mapOfStringToString()));
+            case "MapOfStringToSimpleStruct":
+                return Optional.ofNullable(clazz.cast(mapOfStringToSimpleStruct()));
+            case "MapOfEnumToEnum":
+                return Optional.ofNullable(clazz.cast(mapOfEnumToEnumAsStrings()));
+            case "MapOfEnumToString":
+                return Optional.ofNullable(clazz.cast(mapOfEnumToStringAsStrings()));
+            case "MapOfStringToEnum":
+                return Optional.ofNullable(clazz.cast(mapOfStringToEnumAsStrings()));
+            case "MapOfEnumToSimpleStruct":
+                return Optional.ofNullable(clazz.cast(mapOfEnumToSimpleStructAsStrings()));
+            case "MapOfEnumToListOfEnums":
+                return Optional.ofNullable(clazz.cast(mapOfEnumToListOfEnumsAsStrings()));
+            case "MapOfEnumToMapOfStringToEnum":
+                return Optional.ofNullable(clazz.cast(mapOfEnumToMapOfStringToEnumAsStrings()));
+            case "TimestampMember":
+                return Optional.ofNullable(clazz.cast(timestampMember()));
+            case "StructWithNestedTimestampMember":
+                return Optional.ofNullable(clazz.cast(structWithNestedTimestampMember()));
+            case "BlobArg":
+                return Optional.ofNullable(clazz.cast(blobArg()));
+            case "StructWithNestedBlob":
+                return Optional.ofNullable(clazz.cast(structWithNestedBlob()));
+            case "BlobMap":
+                return Optional.ofNullable(clazz.cast(blobMap()));
+            case "ListOfBlobs":
+                return Optional.ofNullable(clazz.cast(listOfBlobs()));
+            case "RecursiveStruct":
+                return Optional.ofNullable(clazz.cast(recursiveStruct()));
+            case "PolymorphicTypeWithSubTypes":
+                return Optional.ofNullable(clazz.cast(polymorphicTypeWithSubTypes()));
+            case "PolymorphicTypeWithoutSubTypes":
+                return Optional.ofNullable(clazz.cast(polymorphicTypeWithoutSubTypes()));
+            case "EnumType":
+                return Optional.ofNullable(clazz.cast(enumTypeAsString()));
+            case "Underscore_Name_Type":
+                return Optional.ofNullable(clazz.cast(underscore_Name_Type()));
+            case "MyDocument":
+                return Optional.ofNullable(clazz.cast(myDocument()));
+            case "AllTypesUnionStructure":
+                return Optional.ofNullable(clazz.cast(allTypesUnionStructure()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -1782,7 +1743,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      *        The new value for the ListOfMapOfEnumToString property for this object.
      */
     public static AllTypesUnionStructure fromListOfMapOfEnumToStringWithStrings(
-            List<Map<String, String>> listOfMapOfEnumToStringWithStrings) {
+        List<Map<String, String>> listOfMapOfEnumToStringWithStrings) {
         return builder().listOfMapOfEnumToStringWithStrings(listOfMapOfEnumToStringWithStrings).build();
     }
 
@@ -1795,7 +1756,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      *        The new value for the ListOfMapOfEnumToString property for this object.
      */
     public static AllTypesUnionStructure fromListOfMapOfEnumToString(
-            List<Map<EnumType, String>> listOfMapOfEnumToStringWithStrings) {
+        List<Map<EnumType, String>> listOfMapOfEnumToStringWithStrings) {
         return builder().listOfMapOfEnumToString(listOfMapOfEnumToStringWithStrings).build();
     }
 
@@ -1928,7 +1889,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      *        The new value for the MapOfEnumToSimpleStruct property for this object.
      */
     public static AllTypesUnionStructure fromMapOfEnumToSimpleStructWithStrings(
-            Map<String, SimpleStruct> mapOfEnumToSimpleStructWithStrings) {
+        Map<String, SimpleStruct> mapOfEnumToSimpleStructWithStrings) {
         return builder().mapOfEnumToSimpleStructWithStrings(mapOfEnumToSimpleStructWithStrings).build();
     }
 
@@ -1941,7 +1902,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      *        The new value for the MapOfEnumToSimpleStruct property for this object.
      */
     public static AllTypesUnionStructure fromMapOfEnumToSimpleStruct(
-            Map<EnumType, SimpleStruct> mapOfEnumToSimpleStructWithStrings) {
+        Map<EnumType, SimpleStruct> mapOfEnumToSimpleStructWithStrings) {
         return builder().mapOfEnumToSimpleStruct(mapOfEnumToSimpleStructWithStrings).build();
     }
 
@@ -1954,7 +1915,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      *        The new value for the MapOfEnumToListOfEnums property for this object.
      */
     public static AllTypesUnionStructure fromMapOfEnumToListOfEnumsWithStrings(
-            Map<String, List<String>> mapOfEnumToListOfEnumsWithStrings) {
+        Map<String, List<String>> mapOfEnumToListOfEnumsWithStrings) {
         return builder().mapOfEnumToListOfEnumsWithStrings(mapOfEnumToListOfEnumsWithStrings).build();
     }
 
@@ -1967,7 +1928,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      *        The new value for the MapOfEnumToListOfEnums property for this object.
      */
     public static AllTypesUnionStructure fromMapOfEnumToListOfEnums(
-            Map<EnumType, List<EnumType>> mapOfEnumToListOfEnumsWithStrings) {
+        Map<EnumType, List<EnumType>> mapOfEnumToListOfEnumsWithStrings) {
         return builder().mapOfEnumToListOfEnums(mapOfEnumToListOfEnumsWithStrings).build();
     }
 
@@ -1981,7 +1942,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      *        The new value for the MapOfEnumToMapOfStringToEnum property for this object.
      */
     public static AllTypesUnionStructure fromMapOfEnumToMapOfStringToEnumWithStrings(
-            Map<String, Map<String, String>> mapOfEnumToMapOfStringToEnumWithStrings) {
+        Map<String, Map<String, String>> mapOfEnumToMapOfStringToEnumWithStrings) {
         return builder().mapOfEnumToMapOfStringToEnumWithStrings(mapOfEnumToMapOfStringToEnumWithStrings).build();
     }
 
@@ -1995,7 +1956,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      *        The new value for the MapOfEnumToMapOfStringToEnum property for this object.
      */
     public static AllTypesUnionStructure fromMapOfEnumToMapOfStringToEnum(
-            Map<EnumType, Map<String, EnumType>> mapOfEnumToMapOfStringToEnumWithStrings) {
+        Map<EnumType, Map<String, EnumType>> mapOfEnumToMapOfStringToEnumWithStrings) {
         return builder().mapOfEnumToMapOfStringToEnum(mapOfEnumToMapOfStringToEnumWithStrings).build();
     }
 
@@ -2032,7 +1993,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      *        The new value for the StructWithNestedTimestampMember property for this object.
      */
     public static AllTypesUnionStructure fromStructWithNestedTimestampMember(
-            Consumer<StructWithTimestamp.Builder> structWithNestedTimestampMember) {
+        Consumer<StructWithTimestamp.Builder> structWithNestedTimestampMember) {
         StructWithTimestamp.Builder builder = StructWithTimestamp.builder();
         structWithNestedTimestampMember.accept(builder);
         return fromStructWithNestedTimestampMember(builder.build());
@@ -2173,7 +2134,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
      *        The new value for the PolymorphicTypeWithoutSubTypes property for this object.
      */
     public static AllTypesUnionStructure fromPolymorphicTypeWithoutSubTypes(
-            Consumer<SubTypeOne.Builder> polymorphicTypeWithoutSubTypes) {
+        Consumer<SubTypeOne.Builder> polymorphicTypeWithoutSubTypes) {
         SubTypeOne.Builder builder = SubTypeOne.builder();
         polymorphicTypeWithoutSubTypes.accept(builder);
         return fromPolymorphicTypeWithoutSubTypes(builder.build());
@@ -2290,6 +2251,46 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
     @Override
     public final Map<String, SdkField<?>> sdkFieldNameToField() {
         return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("StringMember", STRING_MEMBER_FIELD);
+        map.put("IntegerMember", INTEGER_MEMBER_FIELD);
+        map.put("BooleanMember", BOOLEAN_MEMBER_FIELD);
+        map.put("FloatMember", FLOAT_MEMBER_FIELD);
+        map.put("DoubleMember", DOUBLE_MEMBER_FIELD);
+        map.put("LongMember", LONG_MEMBER_FIELD);
+        map.put("ShortMember", SHORT_MEMBER_FIELD);
+        map.put("SimpleList", SIMPLE_LIST_FIELD);
+        map.put("ListOfEnums", LIST_OF_ENUMS_FIELD);
+        map.put("ListOfMaps", LIST_OF_MAPS_FIELD);
+        map.put("ListOfStructs", LIST_OF_STRUCTS_FIELD);
+        map.put("ListOfMapOfEnumToString", LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD);
+        map.put("ListOfMapOfStringToStruct", LIST_OF_MAP_OF_STRING_TO_STRUCT_FIELD);
+        map.put("MapOfStringToIntegerList", MAP_OF_STRING_TO_INTEGER_LIST_FIELD);
+        map.put("MapOfStringToString", MAP_OF_STRING_TO_STRING_FIELD);
+        map.put("MapOfStringToSimpleStruct", MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD);
+        map.put("MapOfEnumToEnum", MAP_OF_ENUM_TO_ENUM_FIELD);
+        map.put("MapOfEnumToString", MAP_OF_ENUM_TO_STRING_FIELD);
+        map.put("MapOfStringToEnum", MAP_OF_STRING_TO_ENUM_FIELD);
+        map.put("MapOfEnumToSimpleStruct", MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD);
+        map.put("MapOfEnumToListOfEnums", MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD);
+        map.put("MapOfEnumToMapOfStringToEnum", MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD);
+        map.put("TimestampMember", TIMESTAMP_MEMBER_FIELD);
+        map.put("StructWithNestedTimestampMember", STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD);
+        map.put("BlobArg", BLOB_ARG_FIELD);
+        map.put("StructWithNestedBlob", STRUCT_WITH_NESTED_BLOB_FIELD);
+        map.put("BlobMap", BLOB_MAP_FIELD);
+        map.put("ListOfBlobs", LIST_OF_BLOBS_FIELD);
+        map.put("RecursiveStruct", RECURSIVE_STRUCT_FIELD);
+        map.put("PolymorphicTypeWithSubTypes", POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD);
+        map.put("PolymorphicTypeWithoutSubTypes", POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD);
+        map.put("EnumType", ENUM_TYPE_FIELD);
+        map.put("Underscore_Name_Type", UNDERSCORE_NAME_TYPE_FIELD);
+        map.put("MyDocument", MY_DOCUMENT_FIELD);
+        map.put("AllTypesUnionStructure", ALL_TYPES_UNION_STRUCTURE_FIELD);
+        return Collections.unmodifiableMap(map);
     }
 
     private static <T> Function<Object, T> getter(Function<AllTypesUnionStructure, T> g) {
@@ -2466,7 +2467,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          * When the {@link Consumer} completes,
          * {@link software.amazon.awssdk.services.jsonprotocoltests.model.SimpleStruct.Builder#build()} is called
          * immediately and its result is passed to {@link #listOfStructs(List<SimpleStruct>)}.
-         * 
+         *
          * @param listOfStructs
          *        a consumer that will call methods on
          *        {@link software.amazon.awssdk.services.jsonprotocoltests.model.SimpleStruct.Builder}
@@ -2673,7 +2674,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          * <p>
          * When the {@link Consumer} completes, {@link StructWithTimestamp.Builder#build()} is called immediately and
          * its result is passed to {@link #structWithNestedTimestampMember(StructWithTimestamp)}.
-         * 
+         *
          * @param structWithNestedTimestampMember
          *        a consumer that will call methods on {@link StructWithTimestamp.Builder}
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -2681,7 +2682,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          */
         default Builder structWithNestedTimestampMember(Consumer<StructWithTimestamp.Builder> structWithNestedTimestampMember) {
             return structWithNestedTimestampMember(StructWithTimestamp.builder().applyMutation(structWithNestedTimestampMember)
-                    .build());
+                                                                      .build());
         }
 
         /**
@@ -2711,7 +2712,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          * <p>
          * When the {@link Consumer} completes, {@link StructWithNestedBlobType.Builder#build()} is called immediately
          * and its result is passed to {@link #structWithNestedBlob(StructWithNestedBlobType)}.
-         * 
+         *
          * @param structWithNestedBlob
          *        a consumer that will call methods on {@link StructWithNestedBlobType.Builder}
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -2766,7 +2767,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          * <p>
          * When the {@link Consumer} completes, {@link RecursiveStructType.Builder#build()} is called immediately and
          * its result is passed to {@link #recursiveStruct(RecursiveStructType)}.
-         * 
+         *
          * @param recursiveStruct
          *        a consumer that will call methods on {@link RecursiveStructType.Builder}
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -2794,7 +2795,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          * <p>
          * When the {@link Consumer} completes, {@link BaseType.Builder#build()} is called immediately and its result is
          * passed to {@link #polymorphicTypeWithSubTypes(BaseType)}.
-         * 
+         *
          * @param polymorphicTypeWithSubTypes
          *        a consumer that will call methods on {@link BaseType.Builder}
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -2822,7 +2823,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          * <p>
          * When the {@link Consumer} completes, {@link SubTypeOne.Builder#build()} is called immediately and its result
          * is passed to {@link #polymorphicTypeWithoutSubTypes(SubTypeOne)}.
-         * 
+         *
          * @param polymorphicTypeWithoutSubTypes
          *        a consumer that will call methods on {@link SubTypeOne.Builder}
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -2872,7 +2873,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          * <p>
          * When the {@link Consumer} completes, {@link Underscore_Name_Type.Builder#build()} is called immediately and
          * its result is passed to {@link #underscore_Name_Type(Underscore_Name_Type)}.
-         * 
+         *
          * @param underscore_Name_Type
          *        a consumer that will call methods on {@link Underscore_Name_Type.Builder}
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -2909,7 +2910,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          * <p>
          * When the {@link Consumer} completes, {@link AllTypesUnionStructure.Builder#build()} is called immediately and
          * its result is passed to {@link #allTypesUnionStructure(AllTypesUnionStructure)}.
-         * 
+         *
          * @param allTypesUnionStructure
          *        a consumer that will call methods on {@link AllTypesUnionStructure.Builder}
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -3294,7 +3295,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         @SafeVarargs
         public final Builder listOfStructs(Consumer<SimpleStruct.Builder>... listOfStructs) {
             listOfStructs(Stream.of(listOfStructs).map(c -> SimpleStruct.builder().applyMutation(c).build())
-                    .collect(Collectors.toList()));
+                                .collect(Collectors.toList()));
             return this;
         }
 
@@ -3328,7 +3329,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
         public final List<Map<String, SimpleStruct.Builder>> getListOfMapOfStringToStruct() {
             List<Map<String, SimpleStruct.Builder>> result = ListOfMapOfStringToStructCopier
-                    .copyToBuilder(this.listOfMapOfStringToStruct);
+                .copyToBuilder(this.listOfMapOfStringToStruct);
             if (result instanceof SdkAutoConstructList) {
                 return null;
             }
@@ -3336,7 +3337,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         }
 
         public final void setListOfMapOfStringToStruct(
-                Collection<? extends Map<String, SimpleStruct.BuilderImpl>> listOfMapOfStringToStruct) {
+            Collection<? extends Map<String, SimpleStruct.BuilderImpl>> listOfMapOfStringToStruct) {
             Object oldValue = this.listOfMapOfStringToStruct;
             this.listOfMapOfStringToStruct = ListOfMapOfStringToStructCopier.copyFromBuilder(listOfMapOfStringToStruct);
             handleUnionValueChange(Type.LIST_OF_MAP_OF_STRING_TO_STRUCT, oldValue, this.listOfMapOfStringToStruct);
@@ -3401,7 +3402,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
         public final Map<String, SimpleStruct.Builder> getMapOfStringToSimpleStruct() {
             Map<String, SimpleStruct.Builder> result = MapOfStringToSimpleStructCopier
-                    .copyToBuilder(this.mapOfStringToSimpleStruct);
+                .copyToBuilder(this.mapOfStringToSimpleStruct);
             if (result instanceof SdkAutoConstructMap) {
                 return null;
             }
@@ -3583,7 +3584,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
         @Override
         public final Builder mapOfEnumToMapOfStringToEnumWithStrings(
-                Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum) {
+            Map<String, ? extends Map<String, String>> mapOfEnumToMapOfStringToEnum) {
             Object oldValue = this.mapOfEnumToMapOfStringToEnum;
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copy(mapOfEnumToMapOfStringToEnum);
             handleUnionValueChange(Type.MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM, oldValue, this.mapOfEnumToMapOfStringToEnum);
@@ -3592,7 +3593,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
         @Override
         public final Builder mapOfEnumToMapOfStringToEnum(
-                Map<EnumType, ? extends Map<String, EnumType>> mapOfEnumToMapOfStringToEnum) {
+            Map<EnumType, ? extends Map<String, EnumType>> mapOfEnumToMapOfStringToEnum) {
             Object oldValue = this.mapOfEnumToMapOfStringToEnum;
             this.mapOfEnumToMapOfStringToEnum = MapOfEnumToMapOfStringToEnumCopier.copyEnumToString(mapOfEnumToMapOfStringToEnum);
             handleUnionValueChange(Type.MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM, oldValue, this.mapOfEnumToMapOfStringToEnum);
@@ -3624,7 +3625,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         public final void setStructWithNestedTimestampMember(StructWithTimestamp.BuilderImpl structWithNestedTimestampMember) {
             Object oldValue = this.structWithNestedTimestampMember;
             this.structWithNestedTimestampMember = structWithNestedTimestampMember != null ? structWithNestedTimestampMember
-                    .build() : null;
+                .build() : null;
             handleUnionValueChange(Type.STRUCT_WITH_NESTED_TIMESTAMP_MEMBER, oldValue, this.structWithNestedTimestampMember);
         }
 
@@ -3675,12 +3676,12 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
                 return null;
             }
             return blobMap == null ? null : blobMap.entrySet().stream()
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().asByteBuffer()));
+                                                   .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().asByteBuffer()));
         }
 
         public final void setBlobMap(Map<String, ByteBuffer> blobMap) {
             blobMap(blobMap == null ? null : blobMap.entrySet().stream()
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> SdkBytes.fromByteBuffer(e.getValue()))));
+                                                    .collect(Collectors.toMap(e -> e.getKey(), e -> SdkBytes.fromByteBuffer(e.getValue()))));
         }
 
         @Override
@@ -3700,7 +3701,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
 
         public final void setListOfBlobs(Collection<ByteBuffer> listOfBlobs) {
             listOfBlobs(listOfBlobs == null ? null : listOfBlobs.stream().map(SdkBytes::fromByteBuffer)
-                    .collect(Collectors.toList()));
+                                                                .collect(Collectors.toList()));
         }
 
         @Override
@@ -3761,7 +3762,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         public final void setPolymorphicTypeWithoutSubTypes(SubTypeOne.BuilderImpl polymorphicTypeWithoutSubTypes) {
             Object oldValue = this.polymorphicTypeWithoutSubTypes;
             this.polymorphicTypeWithoutSubTypes = polymorphicTypeWithoutSubTypes != null ? polymorphicTypeWithoutSubTypes.build()
-                    : null;
+                                                                                         : null;
             handleUnionValueChange(Type.POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES, oldValue, this.polymorphicTypeWithoutSubTypes);
         }
 
