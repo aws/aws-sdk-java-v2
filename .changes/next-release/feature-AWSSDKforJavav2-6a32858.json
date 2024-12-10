@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Added AWS_METADATA_SERVICE_TIMEOUT environment variable and System property setting to configure connection and read timeouts (in seconds) for the instance metadata service.Supported in InstanceProfileCredentials and IMDS client."
+}

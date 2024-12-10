@@ -21,6 +21,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -29,20 +30,20 @@ import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 
 @SdkInternalApi
 public abstract class BaseEc2MetadataClient {
 
     protected static final Duration DEFAULT_TOKEN_TTL = Duration.of(21_600, ChronoUnit.SECONDS);
-    protected static final AttributeMap IMDS_HTTP_DEFAULTS =
-        AttributeMap.builder()
-                    .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofSeconds(1))
-                    .put(SdkHttpConfigurationOption.READ_TIMEOUT, Duration.ofSeconds(1))
-                    .build();
 
     private static final Logger log = Logger.loggerFor(BaseEc2MetadataClient.class);
+
+    protected final Lazy<Duration> metadataServiceDuration = new Lazy<>(this::resolveMetadataServiceTimeoutDuration);
 
     protected final Ec2MetadataRetryPolicy retryPolicy;
     protected final URI endpoint;
@@ -96,4 +97,34 @@ public abstract class BaseEc2MetadataClient {
         return error instanceof RetryableException || error.getCause() instanceof RetryableException;
     }
 
+    protected AttributeMap imdsHttpDefaults() {
+        Duration metadataServiceTimeout = metadataServiceDuration.getValue();
+        return AttributeMap.builder()
+                           .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, metadataServiceTimeout)
+                           .put(SdkHttpConfigurationOption.READ_TIMEOUT, metadataServiceTimeout)
+                           .build();
+    }
+
+    private Duration resolveMetadataServiceTimeoutDuration() {
+        String timeoutValue = SystemSettingUtils.resolveSetting(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT)
+                                                .orElseGet(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT::defaultValue);
+
+        try {
+            // To match the CLI behavior, support both integers and doubles; try int first for exact values, fall back to double.
+            int timeoutSeconds = Integer.parseInt(timeoutValue);
+            return Duration.ofSeconds(timeoutSeconds);
+        } catch (NumberFormatException e) {
+            try {
+                // Fallback to parsing the timeout as a double (seconds) and convert to milliseconds
+                Double timeoutSeconds = Double.parseDouble(timeoutValue);
+                return Duration.ofSeconds(NumericUtils.saturatedCast(timeoutSeconds.longValue()));
+            } catch (NumberFormatException ignored) {
+                throw new IllegalStateException(String.format(
+                    "%s environment variable value '%s' is not a valid integer or double.",
+                    SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT.property(),
+                    timeoutValue
+                ));
+            }
+        }
+    }
 }
