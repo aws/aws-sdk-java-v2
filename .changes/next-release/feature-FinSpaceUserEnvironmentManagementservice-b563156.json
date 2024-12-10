@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "FinSpace User Environment Management service",
+    "contributor": "",
+    "description": "Update KxCommandLineArgument value parameter regex to allow for spaces and semicolons"
+}
