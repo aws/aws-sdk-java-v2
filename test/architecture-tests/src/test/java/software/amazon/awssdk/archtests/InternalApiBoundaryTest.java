@@ -30,6 +30,7 @@ import com.tngtech.archunit.library.freeze.FreezingArchRule;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
 import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
@@ -61,9 +62,7 @@ public class InternalApiBoundaryTest {
             .importPackages("software.amazon.awssdk");
 
         ArchRule rule =
-            FreezingArchRule.freeze(
-                noClasses().that().resideInAnyPackage("software.amazon.awssdk..")
-                           .should(new UseInternalApisFromDifferentModule()))
+            FreezingArchRule.freeze(noClasses().should(new UseInternalApisFromDifferentModule()))
                             .as("Use internal APIs from a different module");
         rule.check(importedClasses);
     }
@@ -75,10 +74,10 @@ public class InternalApiBoundaryTest {
 
         @Override
         public void check(JavaClass item, ConditionEvents events) {
-            Set<Dependency> directDependenciesFromSelf = item.getDirectDependenciesFromSelf();
+            Set<JavaClass> directDependenciesFromSelf =
+                item.getDirectDependenciesFromSelf().stream().map(dependency -> dependency.getTargetClass()).collect(Collectors.toSet());
             String packageName = item.getPackageName();
-            for (Dependency dependency : directDependenciesFromSelf) {
-                JavaClass dependencyTargetClass = dependency.getTargetClass();
+            for (JavaClass dependencyTargetClass : directDependenciesFromSelf) {
                 String dependencyPackageName = dependencyTargetClass.getPackageName();
 
                 boolean allowListed =
