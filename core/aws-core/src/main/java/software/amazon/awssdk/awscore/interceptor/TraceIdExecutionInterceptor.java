@@ -16,7 +16,7 @@
 package software.amazon.awssdk.awscore.interceptor;
 
 import java.util.Optional;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.internal.interceptor.TracingSystemSetting;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.SystemSetting;
  * The {@code TraceIdExecutionInterceptor} copies the trace details to the {@link #TRACE_ID_HEADER} header, assuming we seem to
  * be running in a lambda environment.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public class TraceIdExecutionInterceptor implements ExecutionInterceptor {
     private static final String TRACE_ID_HEADER = "X-Amzn-Trace-Id";
     private static final String LAMBDA_FUNCTION_NAME_ENVIRONMENT_VARIABLE = "AWS_LAMBDA_FUNCTION_NAME";

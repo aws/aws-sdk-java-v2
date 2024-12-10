@@ -16,11 +16,15 @@
 package software.amazon.awssdk.awscore.internal.useragent;
 
 import java.util.Optional;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 
-@SdkInternalApi
+/**
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
+ */
+@SdkProtectedApi
 public final class BusinessMetricsUtils {
     private BusinessMetricsUtils() {
     }

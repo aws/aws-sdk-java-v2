@@ -25,11 +25,10 @@ import java.io.OutputStream;
 import java.util.Optional;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.InputStreamEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Custom implementation of {@link org.apache.http.HttpEntity} that delegates to an
@@ -41,7 +40,7 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
 @SdkInternalApi
 public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
 
-    private static final Logger log = LoggerFactory.getLogger(RepeatableInputStreamRequestEntity.class);
+    private static final Logger log = Logger.loggerFor(RepeatableInputStreamRequestEntity.class);
 
     /**
      * True if the request entity hasn't been written out yet
@@ -111,7 +110,7 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
         try {
             return Long.parseLong(contentLength);
         } catch (NumberFormatException nfe) {
-            log.warn("Unable to parse content length from request. Buffering contents in memory.");
+            log.warn(() -> "Unable to parse content length from request. Buffering contents in memory.");
             return -1;
         }
     }
