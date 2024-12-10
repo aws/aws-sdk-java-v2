@@ -27,7 +27,7 @@ public final class ArchUtils {
     }
 
     public static boolean resideInSameRootPackage(String pkg1, String pkg2) {
-        if (pkg1.equals(pkg2) || pkg1.startsWith(pkg2) || pkg2.startsWith(pkg1)) {
+        if (pkg1.startsWith(pkg2) || pkg2.startsWith(pkg1)) {
             return true;
         }
         String root1 = findRootPackage(pkg1);
@@ -35,13 +35,18 @@ public final class ArchUtils {
         return root1.equals(root2);
     }
 
-    public static String findRootPackage(String pkg) {
-        if (pkg.startsWith("software.amazon.awssdk.services.")) {
-            int serviceLength = pkg.replace("software.amazon.awssdk.services.", "").indexOf(".");
-            return serviceLength == 0 ? pkg : pkg.substring(0, "software.amazon.awssdk.services.".length() + serviceLength);
+    private static String findRootPackage(String pkg) {
+        String servicePackagePrefix = "software.amazon.awssdk.services.";
+        if (pkg.startsWith(servicePackagePrefix)) {
+            return findRootPackage(pkg, servicePackagePrefix);
         }
 
-        int moduleLength = pkg.replace("software.amazon.awssdk.", "").indexOf(".");
-        return  pkg.substring(0, "software.amazon.awssdk.".length() + moduleLength);
+        String corePackagePrefix = "software.amazon.awssdk.";
+        return findRootPackage(pkg, corePackagePrefix);
+    }
+
+    private static String findRootPackage(String pkg, String packagePrefix) {
+        int mayBeModuleLength = pkg.substring(packagePrefix.length(), pkg.length()).indexOf(".");
+        return mayBeModuleLength == -1 ? pkg : pkg.substring(0, packagePrefix.length() + mayBeModuleLength);
     }
 }
