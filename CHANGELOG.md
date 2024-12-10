@@ -1,4 +1,46 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.30__ __2024-12-09__
+## __AWS AppSync__
+  - ### Features
+    - Provides description of new Amazon Bedrock runtime datasource.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - H265 outputs now support disabling the deblocking filter.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Change `CustomDomainConfig` from a required to an optional parameter for the `UpdateUserPoolDomain` operation.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation only update to address various tickets for Amazon ECS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release includes a new API for modifying instance network-performance-options after launch.
+
+## __Amazon Keyspaces__
+  - ### Features
+    - Amazon Keyspaces: adding the list of IAM actions required by the UpdateKeyspace API.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added text to clarify case-sensitivity
+
+# __2.29.29__ __2024-12-04__
+## __Partner Central Selling API__
+  - ### Features
+    - Introducing the preview of new partner central selling APIs designed to transform how AWS partners collaborate and co-sell with multiple partners. This enables multiple partners to seamlessly engage and jointly pursue customer opportunities, fostering a new era of collaborative selling.
+
+## __QBusiness__
+  - ### Features
+    - This release removes the deprecated UserId and UserGroups fields from SearchRelevantContent api's request parameters.
+
 # __2.29.28__ __2024-12-04__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
