@@ -56,6 +56,7 @@ public class InternalApiBoundaryTest {
 
     @Test
     void internalApi_shouldNotUsedAcrossModule() {
+        System.out.println(Runtime.getRuntime().maxMemory());
         JavaClasses importedClasses = new ClassFileImporter()
             .withImportOptions(Arrays.asList(
                 new ImportOption.Predefined.DoNotIncludeTests()))
