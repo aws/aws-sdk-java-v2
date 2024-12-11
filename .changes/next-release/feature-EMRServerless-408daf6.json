@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "EMR Serverless",
+    "contributor": "",
+    "description": "This release adds support for accessing system profile logs in Lake Formation-enabled jobs."
+}
