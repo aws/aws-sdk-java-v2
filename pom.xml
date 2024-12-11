@@ -665,8 +665,7 @@
                             <includeModule>s3-event-notifications</includeModule>
 
                             <!-- Service modules that are heavily customized should be included -->
-                            <!-- TODO: remove the following line -->
-                            <!-- <includeModule>s3</includeModule> -->
+                             <includeModule>s3</includeModule>
                             <includeModule>s3-control</includeModule>
                             <includeModule>sqs</includeModule>
                             <includeModule>rds</includeModule>

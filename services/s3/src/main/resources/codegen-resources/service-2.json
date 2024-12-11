@@ -79,6 +79,21 @@
         "UseS3ExpressControlEndpoint":{"value":true}
       }
     },
+    "CreateBucketMetadataTableConfiguration":{
+      "name":"CreateBucketMetadataTableConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/{Bucket}?metadataTable"
+      },
+      "input":{"shape":"CreateBucketMetadataTableConfigurationRequest"},
+      "httpChecksum":{
+        "requestAlgorithmMember":"ChecksumAlgorithm",
+        "requestChecksumRequired":true
+      },
+      "staticContextParams":{
+        "UseS3ExpressControlEndpoint":{"value":true}
+      }
+    },
     "CreateMultipartUpload":{
       "name":"CreateMultipartUpload",
       "http":{
@@ -197,6 +212,18 @@
       "input":{"shape":"DeleteBucketLifecycleRequest"},
       "documentationUrl":"http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketDELETElifecycle.html",
       "documentation":"<note> <p>This operation is not supported by directory buckets.</p> </note> <p>Deletes the lifecycle configuration from the specified bucket. Amazon S3 removes all the lifecycle configuration rules in the lifecycle subresource associated with the bucket. Your objects never expire, and Amazon S3 no longer automatically deletes any objects on the basis of rules contained in the deleted lifecycle configuration.</p> <p>To use this operation, you must have permission to perform the <code>s3:PutLifecycleConfiguration</code> action. By default, the bucket owner has this permission and the bucket owner can grant this permission to others.</p> <p>There is usually some time lag before lifecycle configuration deletion is fully propagated to all the Amazon S3 systems.</p> <p>For more information about the object expiration, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/intro-lifecycle-rules.html#intro-lifecycle-rules-actions\">Elements to Describe Lifecycle Actions</a>.</p> <p>Related actions include:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketLifecycleConfiguration.html\">PutBucketLifecycleConfiguration</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketLifecycleConfiguration.html\">GetBucketLifecycleConfiguration</a> </p> </li> </ul>",
+      "staticContextParams":{
+        "UseS3ExpressControlEndpoint":{"value":true}
+      }
+    },
+    "DeleteBucketMetadataTableConfiguration":{
+      "name":"DeleteBucketMetadataTableConfiguration",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/{Bucket}?metadataTable",
+        "responseCode":204
+      },
+      "input":{"shape":"DeleteBucketMetadataTableConfigurationRequest"},
       "staticContextParams":{
         "UseS3ExpressControlEndpoint":{"value":true}
       }
@@ -479,6 +506,18 @@
       "output":{"shape":"GetBucketLoggingOutput"},
       "documentationUrl":"http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTBucketGETlogging.html",
       "documentation":"<note> <p>This operation is not supported by directory buckets.</p> </note> <p>Returns the logging status of a bucket and the permissions users have to view and modify that status.</p> <p>The following operations are related to <code>GetBucketLogging</code>:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucket.html\">CreateBucket</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketLogging.html\">PutBucketLogging</a> </p> </li> </ul>",
+      "staticContextParams":{
+        "UseS3ExpressControlEndpoint":{"value":true}
+      }
+    },
+    "GetBucketMetadataTableConfiguration":{
+      "name":"GetBucketMetadataTableConfiguration",
+      "http":{
+        "method":"GET",
+        "requestUri":"/{Bucket}?metadataTable"
+      },
+      "input":{"shape":"GetBucketMetadataTableConfigurationRequest"},
+      "output":{"shape":"GetBucketMetadataTableConfigurationOutput"},
       "staticContextParams":{
         "UseS3ExpressControlEndpoint":{"value":true}
       }
@@ -1231,6 +1270,12 @@
       },
       "input":{"shape":"PutObjectRequest"},
       "output":{"shape":"PutObjectOutput"},
+      "errors":[
+        {"shape":"InvalidRequest"},
+        {"shape":"InvalidWriteOffset"},
+        {"shape":"TooManyParts"},
+        {"shape":"EncryptionTypeMismatch"}
+      ],
       "documentationUrl":"http://docs.amazonwebservices.com/AmazonS3/latest/API/RESTObjectPUT.html",
       "documentation":"<p>Adds an object to a bucket.</p> <note> <ul> <li> <p>Amazon S3 never adds partial objects; if you receive a success response, Amazon S3 added the entire object to the bucket. You cannot use <code>PutObject</code> to only update a single piece of metadata for an existing object. You must put the entire object with updated metadata if you want to update some values.</p> </li> <li> <p>If your bucket uses the bucket owner enforced setting for Object Ownership, ACLs are disabled and no longer affect permissions. All objects written to the bucket by any account will be owned by the bucket owner.</p> </li> <li> <p> <b>Directory buckets</b> - For directory buckets, you must make requests for this API operation to the Zonal endpoint. These endpoints support virtual-hosted-style requests in the format <code>https://<i>bucket_name</i>.s3express-<i>az_id</i>.<i>region</i>.amazonaws.com/<i>key-name</i> </code>. Path-style requests are not supported. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-express-Regions-and-Zones.html\">Regional and Zonal endpoints</a> in the <i>Amazon S3 User Guide</i>.</p> </li> </ul> </note> <p>Amazon S3 is a distributed system. If it receives multiple write requests for the same object simultaneously, it overwrites all but the last object written. However, Amazon S3 provides features that can modify this behavior:</p> <ul> <li> <p> <b>S3 Object Lock</b> - To prevent objects from being deleted or overwritten, you can use <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html\">Amazon S3 Object Lock</a> in the <i>Amazon S3 User Guide</i>.</p> <note> <p>This functionality is not supported for directory buckets.</p> </note> </li> <li> <p> <b>S3 Versioning</b> - When you enable versioning for a bucket, if Amazon S3 receives multiple write requests for the same object simultaneously, it stores all versions of the objects. For each write request that is made to the same object, Amazon S3 automatically generates a unique version ID of that object being stored in Amazon S3. You can retrieve, replace, or delete any version of the object. For more information about versioning, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/AddingObjectstoVersioningEnabledBuckets.html\">Adding Objects to Versioning-Enabled Buckets</a> in the <i>Amazon S3 User Guide</i>. For information about returning the versioning state of a bucket, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketVersioning.html\">GetBucketVersioning</a>. </p> <note> <p>This functionality is not supported for directory buckets.</p> </note> </li> </ul> <dl> <dt>Permissions</dt> <dd> <ul> <li> <p> <b>General purpose bucket permissions</b> - The following permissions are required in your policies when your <code>PutObject</code> request includes specific headers.</p> <ul> <li> <p> <b> <code>s3:PutObject</code> </b> - To successfully complete the <code>PutObject</code> request, you must always have the <code>s3:PutObject</code> permission on a bucket to add an object to it.</p> </li> <li> <p> <b> <code>s3:PutObjectAcl</code> </b> - To successfully change the objects ACL of your <code>PutObject</code> request, you must have the <code>s3:PutObjectAcl</code>.</p> </li> <li> <p> <b> <code>s3:PutObjectTagging</code> </b> - To successfully set the tag-set with your <code>PutObject</code> request, you must have the <code>s3:PutObjectTagging</code>.</p> </li> </ul> </li> <li> <p> <b>Directory bucket permissions</b> - To grant access to this API operation on a directory bucket, we recommend that you use the <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateSession.html\"> <code>CreateSession</code> </a> API operation for session-based authorization. Specifically, you grant the <code>s3express:CreateSession</code> permission to the directory bucket in a bucket policy or an IAM identity-based policy. Then, you make the <code>CreateSession</code> API call on the bucket to obtain a session token. With the session token in your request header, you can make API requests to this operation. After the session token expires, you make another <code>CreateSession</code> API call to generate a new session token for use. Amazon Web Services CLI or SDKs create session and refresh the session token automatically to avoid service interruptions when a session expires. For more information about authorization, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateSession.html\"> <code>CreateSession</code> </a>.</p> <p>If the object is encrypted with SSE-KMS, you must also have the <code>kms:GenerateDataKey</code> and <code>kms:Decrypt</code> permissions in IAM identity-based policies and KMS key policies for the KMS key.</p> </li> </ul> </dd> <dt>Data integrity with Content-MD5</dt> <dd> <ul> <li> <p> <b>General purpose bucket</b> - To ensure that data is not corrupted traversing the network, use the <code>Content-MD5</code> header. When you use this header, Amazon S3 checks the object against the provided MD5 value and, if they do not match, Amazon S3 returns an error. Alternatively, when the object's ETag is its MD5 digest, you can calculate the MD5 while putting the object to Amazon S3 and compare the returned ETag to the calculated MD5 value.</p> </li> <li> <p> <b>Directory bucket</b> - This functionality is not supported for directory buckets.</p> </li> </ul> </dd> <dt>HTTP Host header syntax</dt> <dd> <p> <b>Directory buckets </b> - The HTTP Host header syntax is <code> <i>Bucket_name</i>.s3express-<i>az_id</i>.<i>region</i>.amazonaws.com</code>.</p> </dd> </dl> <p>For more information about related Amazon S3 APIs, see the following:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html\">CopyObject</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObject.html\">DeleteObject</a> </p> </li> </ul>",
       "httpChecksum":{
@@ -1468,6 +1513,11 @@
           "documentation":"<p>The account ID of the expected bucket owner. If the account ID that you provide does not match the actual owner of the bucket, the request fails with the HTTP status code <code>403 Forbidden</code> (access denied).</p>",
           "location":"header",
           "locationName":"x-amz-expected-bucket-owner"
+        },
+        "IfMatchInitiatedTime":{
+          "shape":"IfMatchInitiatedTime",
+          "location":"header",
+          "locationName":"x-amz-if-match-initiated-time"
         }
       }
     },
@@ -2201,6 +2251,11 @@
           "location":"header",
           "locationName":"x-amz-expected-bucket-owner"
         },
+        "IfMatch":{
+          "shape":"IfMatch",
+          "location":"header",
+          "locationName":"If-Match"
+        },
         "IfNoneMatch":{
           "shape":"IfNoneMatch",
           "documentation":"<p>Uploads the object only if the object key name does not already exist in the bucket specified. Otherwise, Amazon S3 returns a <code>412 Precondition Failed</code> error.</p> <p>If a conflicting operation occurs during the upload S3 returns a <code>409 ConditionalRequestConflict</code> response. On a 409 failure you should re-initiate the multipart upload with <code>CreateMultipartUpload</code> and re-upload each part.</p> <p>Expects the '*' (asterisk) character.</p> <p>For more information about conditional requests, see <a href=\"https://tools.ietf.org/html/rfc7232\">RFC 7232</a>, or <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-requests.html\">Conditional requests</a> in the <i>Amazon S3 User Guide</i>.</p>",
@@ -2751,6 +2806,42 @@
       },
       "documentation":"<p>The configuration information for the bucket.</p>"
     },
+    "CreateBucketMetadataTableConfigurationRequest":{
+      "type":"structure",
+      "required":[
+        "Bucket",
+        "MetadataTableConfiguration"
+      ],
+      "members":{
+        "Bucket":{
+          "shape":"BucketName",
+          "contextParam":{"name":"Bucket"},
+          "location":"uri",
+          "locationName":"Bucket"
+        },
+        "ContentMD5":{
+          "shape":"ContentMD5",
+          "location":"header",
+          "locationName":"Content-MD5"
+        },
+        "ChecksumAlgorithm":{
+          "shape":"ChecksumAlgorithm",
+          "location":"header",
+          "locationName":"x-amz-sdk-checksum-algorithm"
+        },
+        "MetadataTableConfiguration":{
+          "shape":"MetadataTableConfiguration",
+          "locationName":"MetadataTableConfiguration",
+          "xmlNamespace":{"uri":"http://s3.amazonaws.com/doc/2006-03-01/"}
+        },
+        "ExpectedBucketOwner":{
+          "shape":"AccountId",
+          "location":"header",
+          "locationName":"x-amz-expected-bucket-owner"
+        }
+      },
+      "payload":"MetadataTableConfiguration"
+    },
     "CreateBucketOutput":{
       "type":"structure",
       "members":{
@@ -3189,7 +3280,10 @@
     "CreationDate":{"type":"timestamp"},
     "DataRedundancy":{
       "type":"string",
-      "enum":["SingleAvailabilityZone"]
+      "enum":[
+        "SingleAvailabilityZone",
+        "SingleLocalZone"
+      ]
     },
     "Date":{
       "type":"timestamp",
@@ -3367,6 +3461,23 @@
         "ExpectedBucketOwner":{
           "shape":"AccountId",
           "documentation":"<p>The account ID of the expected bucket owner. If the account ID that you provide does not match the actual owner of the bucket, the request fails with the HTTP status code <code>403 Forbidden</code> (access denied).</p>",
+          "location":"header",
+          "locationName":"x-amz-expected-bucket-owner"
+        }
+      }
+    },
+    "DeleteBucketMetadataTableConfigurationRequest":{
+      "type":"structure",
+      "required":["Bucket"],
+      "members":{
+        "Bucket":{
+          "shape":"BucketName",
+          "contextParam":{"name":"Bucket"},
+          "location":"uri",
+          "locationName":"Bucket"
+        },
+        "ExpectedBucketOwner":{
+          "shape":"AccountId",
           "location":"header",
           "locationName":"x-amz-expected-bucket-owner"
         }
@@ -3635,6 +3746,21 @@
           "documentation":"<p>The account ID of the expected bucket owner. If the account ID that you provide does not match the actual owner of the bucket, the request fails with the HTTP status code <code>403 Forbidden</code> (access denied).</p>",
           "location":"header",
           "locationName":"x-amz-expected-bucket-owner"
+        },
+        "IfMatch":{
+          "shape":"IfMatch",
+          "location":"header",
+          "locationName":"If-Match"
+        },
+        "IfMatchLastModifiedTime":{
+          "shape":"IfMatchLastModifiedTime",
+          "location":"header",
+          "locationName":"x-amz-if-match-last-modified-time"
+        },
+        "IfMatchSize":{
+          "shape":"IfMatchSize",
+          "location":"header",
+          "locationName":"x-amz-if-match-size"
         }
       }
     },
@@ -3883,6 +4009,13 @@
       },
       "documentation":"<p>Specifies encryption-related information for an Amazon S3 bucket that is a destination for replicated objects.</p> <note> <p>If you're specifying a customer managed KMS key, we recommend using a fully qualified KMS key ARN. If you use a KMS key alias instead, then KMS resolves the key within the requester’s account. This behavior can result in data that's encrypted with a KMS key that belongs to the requester, and not the bucket owner.</p> </note>"
     },
+    "EncryptionTypeMismatch":{
+      "type":"structure",
+      "members":{
+      },
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
     "End":{
       "type":"long",
       "box":true
@@ -3917,6 +4050,13 @@
       "documentation":"<p>Container for all error elements.</p>"
     },
     "ErrorCode":{"type":"string"},
+    "ErrorDetails":{
+      "type":"structure",
+      "members":{
+        "ErrorCode":{"shape":"ErrorCode"},
+        "ErrorMessage":{"shape":"ErrorMessage"}
+      }
+    },
     "ErrorDocument":{
       "type":"structure",
       "required":["Key"],
@@ -4410,6 +4550,42 @@
           "location":"header",
           "locationName":"x-amz-expected-bucket-owner"
         }
+      }
+    },
+    "GetBucketMetadataTableConfigurationOutput":{
+      "type":"structure",
+      "members":{
+        "GetBucketMetadataTableConfigurationResult":{"shape":"GetBucketMetadataTableConfigurationResult"}
+      },
+      "payload":"GetBucketMetadataTableConfigurationResult"
+    },
+    "GetBucketMetadataTableConfigurationRequest":{
+      "type":"structure",
+      "required":["Bucket"],
+      "members":{
+        "Bucket":{
+          "shape":"BucketName",
+          "contextParam":{"name":"Bucket"},
+          "location":"uri",
+          "locationName":"Bucket"
+        },
+        "ExpectedBucketOwner":{
+          "shape":"AccountId",
+          "location":"header",
+          "locationName":"x-amz-expected-bucket-owner"
+        }
+      }
+    },
+    "GetBucketMetadataTableConfigurationResult":{
+      "type":"structure",
+      "required":[
+        "MetadataTableConfigurationResult",
+        "Status"
+      ],
+      "members":{
+        "MetadataTableConfigurationResult":{"shape":"MetadataTableConfigurationResult"},
+        "Status":{"shape":"MetadataTableStatus"},
+        "Error":{"shape":"ErrorDetails"}
       }
     },
     "GetBucketMetricsConfigurationOutput":{
@@ -6040,6 +6216,18 @@
     "HttpRedirectCode":{"type":"string"},
     "ID":{"type":"string"},
     "IfMatch":{"type":"string"},
+    "IfMatchInitiatedTime":{
+      "type":"timestamp",
+      "timestampFormat":"rfc822"
+    },
+    "IfMatchLastModifiedTime":{
+      "type":"timestamp",
+      "timestampFormat":"rfc822"
+    },
+    "IfMatchSize":{
+      "type":"long",
+      "box":true
+    },
     "IfModifiedSince":{"type":"timestamp"},
     "IfNoneMatch":{"type":"string"},
     "IfUnmodifiedSince":{"type":"timestamp"},
@@ -6182,6 +6370,20 @@
       },
       "documentation":"<p>Object is archived and inaccessible until restored.</p> <p>If the object you are retrieving is stored in the S3 Glacier Flexible Retrieval storage class, the S3 Glacier Deep Archive storage class, the S3 Intelligent-Tiering Archive Access tier, or the S3 Intelligent-Tiering Deep Archive Access tier, before you can retrieve the object you must first restore a copy using <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/API_RestoreObject.html\">RestoreObject</a>. Otherwise, this operation returns an <code>InvalidObjectState</code> error. For information about restoring archived objects, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/restoring-objects.html\">Restoring Archived Objects</a> in the <i>Amazon S3 User Guide</i>.</p>",
       "error":{"httpStatusCode":403},
+      "exception":true
+    },
+    "InvalidRequest":{
+      "type":"structure",
+      "members":{
+      },
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "InvalidWriteOffset":{
+      "type":"structure",
+      "members":{
+      },
+      "error":{"httpStatusCode":400},
       "exception":true
     },
     "InventoryConfiguration":{
@@ -6439,6 +6641,10 @@
       "flattened":true
     },
     "LastModified":{"type":"timestamp"},
+    "LastModifiedTime":{
+      "type":"timestamp",
+      "timestampFormat":"rfc822"
+    },
     "LifecycleConfiguration":{
       "type":"structure",
       "required":["Rules"],
@@ -7480,7 +7686,10 @@
     "LocationPrefix":{"type":"string"},
     "LocationType":{
       "type":"string",
-      "enum":["AvailabilityZone"]
+      "enum":[
+        "AvailabilityZone",
+        "LocalZone"
+      ]
     },
     "LoggingEnabled":{
       "type":"structure",
@@ -7531,7 +7740,7 @@
     "MaxBuckets":{
       "type":"integer",
       "box":true,
-      "max":1000,
+      "max":10000,
       "min":1
     },
     "MaxDirectoryBuckets":{
@@ -7571,6 +7780,21 @@
       "documentation":"<p>A metadata key-value pair to store with an object.</p>"
     },
     "MetadataKey":{"type":"string"},
+    "MetadataTableConfiguration":{
+      "type":"structure",
+      "required":["S3TablesDestination"],
+      "members":{
+        "S3TablesDestination":{"shape":"S3TablesDestination"}
+      }
+    },
+    "MetadataTableConfigurationResult":{
+      "type":"structure",
+      "required":["S3TablesDestinationResult"],
+      "members":{
+        "S3TablesDestinationResult":{"shape":"S3TablesDestinationResult"}
+      }
+    },
+    "MetadataTableStatus":{"type":"string"},
     "MetadataValue":{"type":"string"},
     "Metrics":{
       "type":"structure",
@@ -7920,7 +8144,10 @@
         "VersionId":{
           "shape":"ObjectVersionId",
           "documentation":"<p>Version ID for the specific version of the object to delete.</p> <note> <p>This functionality is not supported for directory buckets.</p> </note>"
-        }
+        },
+        "ETag":{"shape":"ETag"},
+        "LastModifiedTime":{"shape":"LastModifiedTime"},
+        "Size":{"shape":"Size"}
       },
       "documentation":"<p>Object Identifier is unique value to identify objects.</p>"
     },
@@ -9565,6 +9792,11 @@
           "location":"header",
           "locationName":"x-amz-server-side-encryption-bucket-key-enabled"
         },
+        "Size":{
+          "shape":"Size",
+          "location":"header",
+          "locationName":"x-amz-object-size"
+        },
         "RequestCharged":{
           "shape":"RequestCharged",
           "location":"header",
@@ -9681,6 +9913,11 @@
           "location":"header",
           "locationName":"Expires"
         },
+        "IfMatch":{
+          "shape":"IfMatch",
+          "location":"header",
+          "locationName":"If-Match"
+        },
         "IfNoneMatch":{
           "shape":"IfNoneMatch",
           "documentation":"<p>Uploads the object only if the object key name does not already exist in the bucket specified. Otherwise, Amazon S3 returns a <code>412 Precondition Failed</code> error.</p> <p>If a conflicting operation occurs during the upload S3 returns a <code>409 ConditionalRequestConflict</code> response. On a 409 failure you should retry the upload.</p> <p>Expects the '*' (asterisk) character.</p> <p>For more information about conditional requests, see <a href=\"https://tools.ietf.org/html/rfc7232\">RFC 7232</a>, or <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-requests.html\">Conditional requests</a> in the <i>Amazon S3 User Guide</i>.</p>",
@@ -9717,6 +9954,11 @@
           "contextParam":{"name":"Key"},
           "location":"uri",
           "locationName":"Key"
+        },
+        "WriteOffsetBytes":{
+          "shape":"WriteOffsetBytes",
+          "location":"header",
+          "locationName":"x-amz-write-offset-bytes"
         },
         "Metadata":{
           "shape":"Metadata",
@@ -10568,6 +10810,36 @@
       },
       "documentation":"<p>Describes an Amazon S3 location that will receive the results of the restore request.</p>"
     },
+    "S3TablesArn":{"type":"string"},
+    "S3TablesBucketArn":{"type":"string"},
+    "S3TablesDestination":{
+      "type":"structure",
+      "required":[
+        "TableBucketArn",
+        "TableName"
+      ],
+      "members":{
+        "TableBucketArn":{"shape":"S3TablesBucketArn"},
+        "TableName":{"shape":"S3TablesName"}
+      }
+    },
+    "S3TablesDestinationResult":{
+      "type":"structure",
+      "required":[
+        "TableBucketArn",
+        "TableName",
+        "TableArn",
+        "TableNamespace"
+      ],
+      "members":{
+        "TableBucketArn":{"shape":"S3TablesBucketArn"},
+        "TableName":{"shape":"S3TablesName"},
+        "TableArn":{"shape":"S3TablesArn"},
+        "TableNamespace":{"shape":"S3TablesNamespace"}
+      }
+    },
+    "S3TablesName":{"type":"string"},
+    "S3TablesNamespace":{"type":"string"},
     "SSECustomerAlgorithm":{"type":"string"},
     "SSECustomerKey":{
       "type":"string",
@@ -11107,6 +11379,13 @@
       "flattened":true
     },
     "Token":{"type":"string"},
+    "TooManyParts":{
+      "type":"structure",
+      "members":{
+      },
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
     "TopicArn":{"type":"string"},
     "TopicConfiguration":{
       "type":"structure",
@@ -11885,6 +12164,10 @@
         }
       },
       "payload":"Body"
+    },
+    "WriteOffsetBytes":{
+      "type":"long",
+      "box":true
     },
     "Years":{
       "type":"integer",
