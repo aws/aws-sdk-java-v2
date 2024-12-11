@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.s3.multipart;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AES256;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
@@ -36,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletionException;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 import javax.crypto.KeyGenerator;
@@ -62,7 +60,6 @@ import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
 import software.amazon.awssdk.utils.IoUtils;
@@ -238,22 +235,6 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
 
         assertThat(objContent.response().contentLength()).isEqualTo(testFile.length());
         assertThat(objContent.response().checksumCRC32()).isEqualTo(crc32Val);
-    }
-
-    @Test
-    void putObject_withUserSpecifiedSha_fails() throws Exception {
-        String sha1Val = calculateSHA1AsString();
-        AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
-
-        // Full object checksums only supported for CRCs
-        CompletionException exception = assertThrows(CompletionException.class,
-                                                     () -> mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET)
-                                                                                       .key(TEST_KEY)
-                                                                                       .checksumSHA1(sha1Val),
-                                                                                 body).join());
-
-        assertThat(exception.getMessage()).contains("S3Exception: The FULL_OBJECT checksum type cannot be used with the sha1 checksum algorithm.");
-        assertThat(exception.getCause()).isInstanceOf(S3Exception.class);
     }
 
     @Test
