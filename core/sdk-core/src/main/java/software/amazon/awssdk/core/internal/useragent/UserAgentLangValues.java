@@ -20,15 +20,14 @@ import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.c
 import java.util.Arrays;
 import java.util.List;
 import java.util.jar.JarInputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class UserAgentLangValues {
 
-    private static final Logger log = LoggerFactory.getLogger(UserAgentLangValues.class);
+    private static final Logger log = Logger.loggerFor(UserAgentLangValues.class);
 
     private UserAgentLangValues() {
     }
@@ -38,9 +37,9 @@ public final class UserAgentLangValues {
     }
 
     /**
-     * Attempt to determine if Scala is on the classpath and if so what version is in use.
-     * Does this by looking for a known Scala class (scala.util.Properties) and then calling
-     * a static method on that class via reflection to determine the versionNumberString.
+     * Attempt to determine if Scala is on the classpath and if so what version is in use. Does this by looking for a known Scala
+     * class (scala.util.Properties) and then calling a static method on that class via reflection to determine the
+     * versionNumberString.
      *
      * @return Scala version if any, else empty string
      */
@@ -54,17 +53,14 @@ public final class UserAgentLangValues {
         } catch (ClassNotFoundException e) {
             //Ignore
         } catch (Exception e) {
-            if (log.isTraceEnabled()) {
-                log.trace("Exception attempting to get Scala version.", e);
-            }
+            log.trace(() -> "Exception attempting to get Scala version.", e);
         }
         return scalaVersion;
     }
 
     /**
-     * Attempt to determine if Kotlin is on the classpath and if so what version is in use.
-     * Does this by looking for a known Kotlin class (kotlin.Unit) and then loading the Manifest
-     * from that class' JAR to determine the Kotlin version.
+     * Attempt to determine if Kotlin is on the classpath and if so what version is in use. Does this by looking for a known
+     * Kotlin class (kotlin.Unit) and then loading the Manifest from that class' JAR to determine the Kotlin version.
      *
      * @return Kotlin version if any, else empty string
      */
@@ -80,11 +76,9 @@ public final class UserAgentLangValues {
         } catch (ClassNotFoundException e) {
             //Ignore
         } catch (Exception e) {
-            if (log.isTraceEnabled()) {
-                log.trace("Exception attempting to get Kotlin version.", e);
-            }
+            log.trace(() -> "Exception attempting to get Kotlin version.", e);
         } finally {
-            IoUtils.closeQuietly(kotlinJar, log);
+            IoUtils.closeQuietlyV2(kotlinJar, log);
         }
         return kotlinVersion;
     }
