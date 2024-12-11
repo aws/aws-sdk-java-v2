@@ -49,7 +49,6 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 @AnalyzeClasses(packages = "software.amazon.awssdk..")
-@ArchIgnore(reason = "CI keeps crashing when running the tests. Ignoring them for now")
 public class CodingConventionTest {
 
     @ArchTest
