@@ -53,8 +53,8 @@ public class S3WithUrlHttpClientIntegrationTest {
     private static final String KEY = "key";
     private static final Region REGION = Region.US_WEST_2;
     private static final CapturingInterceptor capturingInterceptor = new CapturingInterceptor();
-    private static final String SIGNED_PAYLOAD_HEADER_VALUE = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD";
-    private static final String UNSIGNED_PAYLOAD_HEADER_VALUE = "UNSIGNED-PAYLOAD";
+    private static final String SIGNED_PAYLOAD_HEADER_VALUE = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER";
+    private static final String UNSIGNED_PAYLOAD_HEADER_VALUE = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
 
     private static S3Client s3;
     private static S3Client s3Http;
