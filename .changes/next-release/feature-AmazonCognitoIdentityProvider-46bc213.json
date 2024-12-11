@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Cognito Identity Provider",
+    "contributor": "",
+    "description": "Updated descriptions for some API operations and parameters, corrected some errors in Cognito user pools"
+}
