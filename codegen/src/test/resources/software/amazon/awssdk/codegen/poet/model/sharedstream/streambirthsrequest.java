@@ -15,10 +15,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
 public final class StreamBirthsRequest extends SharedEventStreamRequest implements
-        ToCopyableBuilder<StreamBirthsRequest.Builder, StreamBirthsRequest> {
+                                                                        ToCopyableBuilder<StreamBirthsRequest.Builder, StreamBirthsRequest> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.emptyList();
 
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections.emptyMap();
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private StreamBirthsRequest(BuilderImpl builder) {
         super(builder);
@@ -84,6 +84,10 @@ public final class StreamBirthsRequest extends SharedEventStreamRequest implemen
     @Override
     public final Map<String, SdkField<?>> sdkFieldNameToField() {
         return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        return Collections.emptyMap();
     }
 
     public interface Builder extends SharedEventStreamRequest.Builder, SdkPojo, CopyableBuilder<Builder, StreamBirthsRequest> {

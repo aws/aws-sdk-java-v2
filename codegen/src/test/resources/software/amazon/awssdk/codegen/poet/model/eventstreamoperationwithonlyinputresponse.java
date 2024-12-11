@@ -13,10 +13,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
 public final class EventStreamOperationWithOnlyInputResponse extends JsonProtocolTestsResponse implements
-        ToCopyableBuilder<EventStreamOperationWithOnlyInputResponse.Builder, EventStreamOperationWithOnlyInputResponse> {
+                                                                                               ToCopyableBuilder<EventStreamOperationWithOnlyInputResponse.Builder, EventStreamOperationWithOnlyInputResponse> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.emptyList();
 
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections.emptyMap();
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private EventStreamOperationWithOnlyInputResponse(BuilderImpl builder) {
         super(builder);
@@ -84,8 +84,12 @@ public final class EventStreamOperationWithOnlyInputResponse extends JsonProtoco
         return SDK_NAME_TO_FIELD;
     }
 
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        return Collections.emptyMap();
+    }
+
     public interface Builder extends JsonProtocolTestsResponse.Builder, SdkPojo,
-            CopyableBuilder<Builder, EventStreamOperationWithOnlyInputResponse> {
+                                     CopyableBuilder<Builder, EventStreamOperationWithOnlyInputResponse> {
     }
 
     static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl implements Builder {

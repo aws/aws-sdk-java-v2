@@ -113,6 +113,8 @@ public class AwsServiceModel implements ClassSpec {
                                                .addMethod(addModifier(sdkFieldNameToFieldMethod(), FINAL))
                                                .addTypes(nestedModelClassTypes());
 
+        shapeModelSpec.additionalMethods().forEach(specBuilder::addMethod);
+
         if (shapeModel.isUnion()) {
             specBuilder.addField(unionTypeField());
         }

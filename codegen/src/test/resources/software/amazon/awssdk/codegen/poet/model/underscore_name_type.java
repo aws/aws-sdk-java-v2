@@ -16,10 +16,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class Underscore_Name_Type implements SdkPojo, Serializable,
-        ToCopyableBuilder<Underscore_Name_Type.Builder, Underscore_Name_Type> {
+                                                   ToCopyableBuilder<Underscore_Name_Type.Builder, Underscore_Name_Type> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.emptyList();
 
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections.emptyMap();
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private static final long serialVersionUID = 1L;
 
@@ -85,6 +85,10 @@ public final class Underscore_Name_Type implements SdkPojo, Serializable,
     @Override
     public final Map<String, SdkField<?>> sdkFieldNameToField() {
         return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        return Collections.emptyMap();
     }
 
     public interface Builder extends SdkPojo, CopyableBuilder<Builder, Underscore_Name_Type> {

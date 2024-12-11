@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.poet.model;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
@@ -128,7 +129,7 @@ class ShapeModelSpec {
                                                                sdkFieldType),
                                      "SDK_NAME_TO_FIELD",
                                      Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                       .initializer(memberNameToFieldInitializer(nameToField))
+                       .initializer(memberNameToFieldInitializer())
                        .build());
         return fields;
     }
@@ -148,6 +149,22 @@ class ShapeModelSpec {
                         .add(traits(m))
                         .add(".build()")
                         .build();
+    }
+
+    public List<MethodSpec> additionalMethods() {
+        return Collections.singletonList(memberNameToFieldInitializerMethod(nameToField()));
+    }
+
+    public Map<String, String> nameToField() {
+        Map<String, String> nameToField = new LinkedHashMap<>();
+        shapeModel.getNonStreamingMembers().stream()
+                  .filter(m -> m.getShape() == null || m.getShape().getShapeType() != ShapeType.Exception)
+                  .filter(m -> !m.isSynthetic())
+                  .forEach(m -> {
+                      String name = m.getHttp().getMarshallLocationName();
+                      nameToField.put(name, namingStrategy.getSdkFieldFieldName(m));
+                  });
+        return nameToField;
     }
 
     private CodeBlock containerSdkFieldInitializer(MemberModel m) {
@@ -392,18 +409,29 @@ class ShapeModelSpec {
         return builder.build();
     }
 
-    private CodeBlock memberNameToFieldInitializer(Map<String, String> nameToField) {
-        CodeBlock.Builder builder = CodeBlock.builder();
-        if (nameToField.isEmpty()) {
-            builder.add("$T.emptyMap()", Collections.class);
-            return builder.build();
-        }
-        builder.add("$T.unmodifiableMap(", Collections.class);
-        builder.add("new $T<$T, $T<?>>() {{\n", HashMap.class, String.class, SdkField.class);
-        nameToField.forEach((name, field) -> builder.add("put($S, $L);\n", name, field));
-        builder.add("}}");
-        builder.add(")");
-        return builder.build();
+    private CodeBlock memberNameToFieldInitializer() {
+        return CodeBlock.builder()
+                        .add("memberNameToFieldInitializer()")
+                        .build();
     }
 
+    private MethodSpec memberNameToFieldInitializerMethod(Map<String, String> nameToField) {
+        ParameterizedTypeName sdkFieldT = ParameterizedTypeName.get(ClassName.get(SdkField.class),
+                                                                    WildcardTypeName.subtypeOf(Object.class));
+        ParameterizedTypeName mapT = ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class),
+                                                               sdkFieldT);
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("memberNameToFieldInitializer")
+            .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+            .returns(mapT);
+
+        if (nameToField.isEmpty()) {
+            builder.addStatement("return $T.emptyMap()", Collections.class);
+        } else {
+            builder.addStatement("$T map = new $T<>()", mapT, HashMap.class);
+            nameToField.forEach((name, field) -> builder.addStatement("map.put($S, $L)", name, field));
+            builder.addStatement("return $T.unmodifiableMap(map)", Collections.class);
+        }
+
+        return builder.build();
+    }
 }

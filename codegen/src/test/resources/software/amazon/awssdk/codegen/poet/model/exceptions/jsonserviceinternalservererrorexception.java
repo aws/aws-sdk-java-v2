@@ -17,10 +17,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class JsonServiceInternalServerErrorException extends JsonException implements
-        ToCopyableBuilder<JsonServiceInternalServerErrorException.Builder, JsonServiceInternalServerErrorException> {
+                                                                                 ToCopyableBuilder<JsonServiceInternalServerErrorException.Builder, JsonServiceInternalServerErrorException> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.emptyList();
 
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections.emptyMap();
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private static final long serialVersionUID = 1L;
 
@@ -56,8 +56,12 @@ public final class JsonServiceInternalServerErrorException extends JsonException
         return SDK_NAME_TO_FIELD;
     }
 
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        return Collections.emptyMap();
+    }
+
     public interface Builder extends SdkPojo, CopyableBuilder<Builder, JsonServiceInternalServerErrorException>,
-            JsonException.Builder {
+                                     JsonException.Builder {
         @Override
         Builder awsErrorDetails(AwsErrorDetails awsErrorDetails);
 

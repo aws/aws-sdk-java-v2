@@ -26,17 +26,12 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<EventTwo.Builder, EventTwo>, EventStream {
     private static final SdkField<String> BAR_FIELD = SdkField.<String> builder(MarshallingType.STRING).memberName("Bar")
-            .getter(getter(EventTwo::bar)).setter(setter(Builder::bar))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Bar").build()).build();
+                                                              .getter(getter(EventTwo::bar)).setter(setter(Builder::bar))
+                                                              .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Bar").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(BAR_FIELD));
 
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections
-            .unmodifiableMap(new HashMap<String, SdkField<?>>() {
-                {
-                    put("Bar", BAR_FIELD);
-                }
-            });
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private static final long serialVersionUID = 1L;
 
@@ -48,7 +43,7 @@ public class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<EventT
 
     /**
      * Returns the value of the Bar property for this object.
-     * 
+     *
      * @return The value of the Bar property for this object.
      */
     public final String bar() {
@@ -106,10 +101,10 @@ public class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<EventT
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "Bar":
-            return Optional.ofNullable(clazz.cast(bar()));
-        default:
-            return Optional.empty();
+            case "Bar":
+                return Optional.ofNullable(clazz.cast(bar()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -126,6 +121,12 @@ public class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<EventT
     @Override
     public final Map<String, SdkField<?>> sdkFieldNameToField() {
         return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("Bar", BAR_FIELD);
+        return Collections.unmodifiableMap(map);
     }
 
     private static <T> Function<Object, T> getter(Function<EventTwo, T> g) {

@@ -25,24 +25,18 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public class GetRandomPersonResponse extends SharedEventStreamResponse implements
-        ToCopyableBuilder<GetRandomPersonResponse.Builder, GetRandomPersonResponse> {
+                                                                       ToCopyableBuilder<GetRandomPersonResponse.Builder, GetRandomPersonResponse> {
     private static final SdkField<String> NAME_FIELD = SdkField.<String> builder(MarshallingType.STRING).memberName("Name")
-            .getter(getter(GetRandomPersonResponse::name)).setter(setter(Builder::name))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Name").build()).build();
+                                                               .getter(getter(GetRandomPersonResponse::name)).setter(setter(Builder::name))
+                                                               .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Name").build()).build();
 
     private static final SdkField<Instant> BIRTHDAY_FIELD = SdkField.<Instant> builder(MarshallingType.INSTANT)
-            .memberName("Birthday").getter(getter(GetRandomPersonResponse::birthday)).setter(setter(Builder::birthday))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Birthday").build()).build();
+                                                                    .memberName("Birthday").getter(getter(GetRandomPersonResponse::birthday)).setter(setter(Builder::birthday))
+                                                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Birthday").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NAME_FIELD, BIRTHDAY_FIELD));
 
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections
-            .unmodifiableMap(new HashMap<String, SdkField<?>>() {
-                {
-                    put("Name", NAME_FIELD);
-                    put("Birthday", BIRTHDAY_FIELD);
-                }
-            });
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private final String name;
 
@@ -56,7 +50,7 @@ public class GetRandomPersonResponse extends SharedEventStreamResponse implement
 
     /**
      * Returns the value of the Name property for this object.
-     * 
+     *
      * @return The value of the Name property for this object.
      */
     public final String name() {
@@ -65,7 +59,7 @@ public class GetRandomPersonResponse extends SharedEventStreamResponse implement
 
     /**
      * Returns the value of the Birthday property for this object.
-     * 
+     *
      * @return The value of the Birthday property for this object.
      */
     public final Instant birthday() {
@@ -125,12 +119,12 @@ public class GetRandomPersonResponse extends SharedEventStreamResponse implement
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "Name":
-            return Optional.ofNullable(clazz.cast(name()));
-        case "Birthday":
-            return Optional.ofNullable(clazz.cast(birthday()));
-        default:
-            return Optional.empty();
+            case "Name":
+                return Optional.ofNullable(clazz.cast(name()));
+            case "Birthday":
+                return Optional.ofNullable(clazz.cast(birthday()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -149,6 +143,13 @@ public class GetRandomPersonResponse extends SharedEventStreamResponse implement
         return SDK_NAME_TO_FIELD;
     }
 
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("Name", NAME_FIELD);
+        map.put("Birthday", BIRTHDAY_FIELD);
+        return Collections.unmodifiableMap(map);
+    }
+
     private static <T> Function<Object, T> getter(Function<GetRandomPersonResponse, T> g) {
         return obj -> g.apply((GetRandomPersonResponse) obj);
     }
@@ -158,7 +159,7 @@ public class GetRandomPersonResponse extends SharedEventStreamResponse implement
     }
 
     public interface Builder extends SharedEventStreamResponse.Builder, SdkPojo,
-            CopyableBuilder<Builder, GetRandomPersonResponse> {
+                                     CopyableBuilder<Builder, GetRandomPersonResponse> {
         /**
          * Sets the value of the Name property for this object.
          *

@@ -25,30 +25,24 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class NestedQueryParameterOperation implements SdkPojo, Serializable,
-        ToCopyableBuilder<NestedQueryParameterOperation.Builder, NestedQueryParameterOperation> {
+                                                            ToCopyableBuilder<NestedQueryParameterOperation.Builder, NestedQueryParameterOperation> {
     private static final SdkField<String> QUERY_PARAM_ONE_FIELD = SdkField
-            .<String> builder(MarshallingType.STRING)
-            .memberName("QueryParamOne")
-            .getter(getter(NestedQueryParameterOperation::queryParamOne))
-            .setter(setter(Builder::queryParamOne))
-            .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("QueryParamOne").build(),
-                    RequiredTrait.create()).build();
+        .<String> builder(MarshallingType.STRING)
+        .memberName("QueryParamOne")
+        .getter(getter(NestedQueryParameterOperation::queryParamOne))
+        .setter(setter(Builder::queryParamOne))
+        .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("QueryParamOne").build(),
+                RequiredTrait.create()).build();
 
     private static final SdkField<String> QUERY_PARAM_TWO_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .memberName("QueryParamTwo").getter(getter(NestedQueryParameterOperation::queryParamTwo))
-            .setter(setter(Builder::queryParamTwo))
-            .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("QueryParamTwo").build()).build();
+                                                                          .memberName("QueryParamTwo").getter(getter(NestedQueryParameterOperation::queryParamTwo))
+                                                                          .setter(setter(Builder::queryParamTwo))
+                                                                          .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("QueryParamTwo").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(QUERY_PARAM_ONE_FIELD,
-            QUERY_PARAM_TWO_FIELD));
+                                                                                                   QUERY_PARAM_TWO_FIELD));
 
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections
-            .unmodifiableMap(new HashMap<String, SdkField<?>>() {
-                {
-                    put("QueryParamOne", QUERY_PARAM_ONE_FIELD);
-                    put("QueryParamTwo", QUERY_PARAM_TWO_FIELD);
-                }
-            });
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private static final long serialVersionUID = 1L;
 
@@ -63,7 +57,7 @@ public final class NestedQueryParameterOperation implements SdkPojo, Serializabl
 
     /**
      * Returns the value of the QueryParamOne property for this object.
-     * 
+     *
      * @return The value of the QueryParamOne property for this object.
      */
     public final String queryParamOne() {
@@ -72,7 +66,7 @@ public final class NestedQueryParameterOperation implements SdkPojo, Serializabl
 
     /**
      * Returns the value of the QueryParamTwo property for this object.
-     * 
+     *
      * @return The value of the QueryParamTwo property for this object.
      */
     public final String queryParamTwo() {
@@ -127,17 +121,17 @@ public final class NestedQueryParameterOperation implements SdkPojo, Serializabl
     @Override
     public final String toString() {
         return ToString.builder("NestedQueryParameterOperation").add("QueryParamOne", queryParamOne())
-                .add("QueryParamTwo", queryParamTwo()).build();
+                       .add("QueryParamTwo", queryParamTwo()).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "QueryParamOne":
-            return Optional.ofNullable(clazz.cast(queryParamOne()));
-        case "QueryParamTwo":
-            return Optional.ofNullable(clazz.cast(queryParamTwo()));
-        default:
-            return Optional.empty();
+            case "QueryParamOne":
+                return Optional.ofNullable(clazz.cast(queryParamOne()));
+            case "QueryParamTwo":
+                return Optional.ofNullable(clazz.cast(queryParamTwo()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -149,6 +143,13 @@ public final class NestedQueryParameterOperation implements SdkPojo, Serializabl
     @Override
     public final Map<String, SdkField<?>> sdkFieldNameToField() {
         return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("QueryParamOne", QUERY_PARAM_ONE_FIELD);
+        map.put("QueryParamTwo", QUERY_PARAM_TWO_FIELD);
+        return Collections.unmodifiableMap(map);
     }
 
     private static <T> Function<Object, T> getter(Function<NestedQueryParameterOperation, T> g) {

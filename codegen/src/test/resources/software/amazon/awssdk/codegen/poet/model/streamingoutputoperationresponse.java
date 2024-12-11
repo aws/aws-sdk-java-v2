@@ -15,10 +15,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class StreamingOutputOperationResponse extends JsonProtocolTestsResponse implements
-        ToCopyableBuilder<StreamingOutputOperationResponse.Builder, StreamingOutputOperationResponse> {
+                                                                                      ToCopyableBuilder<StreamingOutputOperationResponse.Builder, StreamingOutputOperationResponse> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.emptyList();
 
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections.emptyMap();
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private StreamingOutputOperationResponse(BuilderImpl builder) {
         super(builder);
@@ -86,8 +86,12 @@ public final class StreamingOutputOperationResponse extends JsonProtocolTestsRes
         return SDK_NAME_TO_FIELD;
     }
 
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        return Collections.emptyMap();
+    }
+
     public interface Builder extends JsonProtocolTestsResponse.Builder, SdkPojo,
-            CopyableBuilder<Builder, StreamingOutputOperationResponse> {
+                                     CopyableBuilder<Builder, StreamingOutputOperationResponse> {
     }
 
     static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl implements Builder {

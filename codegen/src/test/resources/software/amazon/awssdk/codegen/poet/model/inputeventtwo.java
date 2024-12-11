@@ -27,35 +27,28 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<InputEventTwo.Builder, InputEventTwo>,
-        InputEventStreamTwo {
+                                      InputEventStreamTwo {
     private static final SdkField<SdkBytes> IMPLICIT_PAYLOAD_MEMBER_ONE_FIELD = SdkField
-            .<SdkBytes> builder(MarshallingType.SDK_BYTES).memberName("ImplicitPayloadMemberOne")
-            .getter(getter(InputEventTwo::implicitPayloadMemberOne)).setter(setter(Builder::implicitPayloadMemberOne))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ImplicitPayloadMemberOne").build())
-            .build();
+        .<SdkBytes> builder(MarshallingType.SDK_BYTES).memberName("ImplicitPayloadMemberOne")
+        .getter(getter(InputEventTwo::implicitPayloadMemberOne)).setter(setter(Builder::implicitPayloadMemberOne))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ImplicitPayloadMemberOne").build())
+        .build();
 
     private static final SdkField<String> IMPLICIT_PAYLOAD_MEMBER_TWO_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .memberName("ImplicitPayloadMemberTwo").getter(getter(InputEventTwo::implicitPayloadMemberTwo))
-            .setter(setter(Builder::implicitPayloadMemberTwo))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ImplicitPayloadMemberTwo").build())
-            .build();
+                                                                                      .memberName("ImplicitPayloadMemberTwo").getter(getter(InputEventTwo::implicitPayloadMemberTwo))
+                                                                                      .setter(setter(Builder::implicitPayloadMemberTwo))
+                                                                                      .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ImplicitPayloadMemberTwo").build())
+                                                                                      .build();
 
     private static final SdkField<String> EVENT_HEADER_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .memberName("EventHeaderMember").getter(getter(InputEventTwo::eventHeaderMember))
-            .setter(setter(Builder::eventHeaderMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.HEADER).locationName("EventHeaderMember").build()).build();
+                                                                              .memberName("EventHeaderMember").getter(getter(InputEventTwo::eventHeaderMember))
+                                                                              .setter(setter(Builder::eventHeaderMember))
+                                                                              .traits(LocationTrait.builder().location(MarshallLocation.HEADER).locationName("EventHeaderMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(
-            IMPLICIT_PAYLOAD_MEMBER_ONE_FIELD, IMPLICIT_PAYLOAD_MEMBER_TWO_FIELD, EVENT_HEADER_MEMBER_FIELD));
+        IMPLICIT_PAYLOAD_MEMBER_ONE_FIELD, IMPLICIT_PAYLOAD_MEMBER_TWO_FIELD, EVENT_HEADER_MEMBER_FIELD));
 
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections
-            .unmodifiableMap(new HashMap<String, SdkField<?>>() {
-                {
-                    put("ImplicitPayloadMemberOne", IMPLICIT_PAYLOAD_MEMBER_ONE_FIELD);
-                    put("ImplicitPayloadMemberTwo", IMPLICIT_PAYLOAD_MEMBER_TWO_FIELD);
-                    put("EventHeaderMember", EVENT_HEADER_MEMBER_FIELD);
-                }
-            });
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private static final long serialVersionUID = 1L;
 
@@ -73,7 +66,7 @@ public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<I
 
     /**
      * Returns the value of the ImplicitPayloadMemberOne property for this object.
-     * 
+     *
      * @return The value of the ImplicitPayloadMemberOne property for this object.
      */
     public final SdkBytes implicitPayloadMemberOne() {
@@ -82,7 +75,7 @@ public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<I
 
     /**
      * Returns the value of the ImplicitPayloadMemberTwo property for this object.
-     * 
+     *
      * @return The value of the ImplicitPayloadMemberTwo property for this object.
      */
     public final String implicitPayloadMemberTwo() {
@@ -91,7 +84,7 @@ public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<I
 
     /**
      * Returns the value of the EventHeaderMember property for this object.
-     * 
+     *
      * @return The value of the EventHeaderMember property for this object.
      */
     public final String eventHeaderMember() {
@@ -138,8 +131,8 @@ public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<I
         }
         InputEventTwo other = (InputEventTwo) obj;
         return Objects.equals(implicitPayloadMemberOne(), other.implicitPayloadMemberOne())
-                && Objects.equals(implicitPayloadMemberTwo(), other.implicitPayloadMemberTwo())
-                && Objects.equals(eventHeaderMember(), other.eventHeaderMember());
+               && Objects.equals(implicitPayloadMemberTwo(), other.implicitPayloadMemberTwo())
+               && Objects.equals(eventHeaderMember(), other.eventHeaderMember());
     }
 
     /**
@@ -149,20 +142,20 @@ public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<I
     @Override
     public final String toString() {
         return ToString.builder("InputEventTwo").add("ImplicitPayloadMemberOne", implicitPayloadMemberOne())
-                .add("ImplicitPayloadMemberTwo", implicitPayloadMemberTwo()).add("EventHeaderMember", eventHeaderMember())
-                .build();
+                       .add("ImplicitPayloadMemberTwo", implicitPayloadMemberTwo()).add("EventHeaderMember", eventHeaderMember())
+                       .build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "ImplicitPayloadMemberOne":
-            return Optional.ofNullable(clazz.cast(implicitPayloadMemberOne()));
-        case "ImplicitPayloadMemberTwo":
-            return Optional.ofNullable(clazz.cast(implicitPayloadMemberTwo()));
-        case "EventHeaderMember":
-            return Optional.ofNullable(clazz.cast(eventHeaderMember()));
-        default:
-            return Optional.empty();
+            case "ImplicitPayloadMemberOne":
+                return Optional.ofNullable(clazz.cast(implicitPayloadMemberOne()));
+            case "ImplicitPayloadMemberTwo":
+                return Optional.ofNullable(clazz.cast(implicitPayloadMemberTwo()));
+            case "EventHeaderMember":
+                return Optional.ofNullable(clazz.cast(eventHeaderMember()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -179,6 +172,14 @@ public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<I
     @Override
     public final Map<String, SdkField<?>> sdkFieldNameToField() {
         return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("ImplicitPayloadMemberOne", IMPLICIT_PAYLOAD_MEMBER_ONE_FIELD);
+        map.put("ImplicitPayloadMemberTwo", IMPLICIT_PAYLOAD_MEMBER_TWO_FIELD);
+        map.put("EventHeaderMember", EVENT_HEADER_MEMBER_FIELD);
+        return Collections.unmodifiableMap(map);
     }
 
     private static <T> Function<Object, T> getter(Function<InputEventTwo, T> g) {

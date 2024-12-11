@@ -17,10 +17,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class EventStreamOperationRequest extends JsonProtocolTestsRequest implements
-        ToCopyableBuilder<EventStreamOperationRequest.Builder, EventStreamOperationRequest> {
+                                                                                ToCopyableBuilder<EventStreamOperationRequest.Builder, EventStreamOperationRequest> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.emptyList();
 
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections.emptyMap();
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private EventStreamOperationRequest(BuilderImpl builder) {
         super(builder);
@@ -88,8 +88,12 @@ public final class EventStreamOperationRequest extends JsonProtocolTestsRequest 
         return SDK_NAME_TO_FIELD;
     }
 
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        return Collections.emptyMap();
+    }
+
     public interface Builder extends JsonProtocolTestsRequest.Builder, SdkPojo,
-            CopyableBuilder<Builder, EventStreamOperationRequest> {
+                                     CopyableBuilder<Builder, EventStreamOperationRequest> {
         @Override
         Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
 
