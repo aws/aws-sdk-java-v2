@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Email Service",
-    "contributor": "",
-    "description": "Introduces support for multi-region endpoint."
-}
