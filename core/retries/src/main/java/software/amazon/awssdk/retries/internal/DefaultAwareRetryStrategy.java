@@ -20,6 +20,10 @@ import software.amazon.awssdk.retries.api.RetryStrategy;
 
 /**
  * Identify a {@link RetryStrategy} that has the capacity to work with sets of default retry predicates.
+ *
+ * <p>
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
  */
 @SdkProtectedApi
 public interface DefaultAwareRetryStrategy extends RetryStrategy {
