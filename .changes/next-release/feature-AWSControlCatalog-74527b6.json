@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Control Catalog",
+    "contributor": "",
+    "description": "Minor documentation updates to the content of ImplementationDetails object part of the Control Catalog GetControl API"
+}
