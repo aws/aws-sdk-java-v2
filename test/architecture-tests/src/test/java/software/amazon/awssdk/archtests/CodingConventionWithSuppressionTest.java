@@ -67,20 +67,22 @@ public class CodingConventionWithSuppressionTest {
      */
     private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>();
 
-    // @Test
-    // void publicApisShouldBeFinal() {
-    //     JavaClasses classes = new ClassFileImporter()
-    //         .withImportOptions(Arrays.asList(new ImportOption.Predefined.DoNotIncludeTests()))
-    //         .importPackages("software.amazon.awssdk");
-    //     freeze(classes().that().areAnnotatedWith(SdkPublicApi.class)
-    //                     .and().areNotInterfaces()
-    //                     .should().haveModifier(JavaModifier.FINAL))
-    //         .because("public APIs SHOULD be final")
-    //         .check(classes);
-    // }
+    @Test
+    void publicApisShouldBeFinal() {
+        System.out.println("publicApisShouldBeFinal");
+        JavaClasses classes = new ClassFileImporter()
+            .withImportOptions(Arrays.asList(new ImportOption.Predefined.DoNotIncludeTests()))
+            .importPackages("software.amazon.awssdk");
+        freeze(classes().that().areAnnotatedWith(SdkPublicApi.class)
+                        .and().areNotInterfaces()
+                        .should().haveModifier(JavaModifier.FINAL))
+            .because("public APIs SHOULD be final")
+            .check(classes);
+    }
 
     @Test
     void shouldNotUseFuture() {
+        System.out.println("shouldNotUseFuture");
         JavaClasses classes = new ClassFileImporter()
             .withImportOptions(Arrays.asList(new ImportOption.Predefined.DoNotIncludeTests()))
             .importPackages("software.amazon.awssdk");
@@ -90,78 +92,83 @@ public class CodingConventionWithSuppressionTest {
             .check(classes);
     }
 
-    // @Test
-    // void shouldNotUseOptionalForFields() {
-    //     JavaClasses classes = new ClassFileImporter()
-    //         .withImportOptions(Arrays.asList(new ImportOption.Predefined.DoNotIncludeTests()))
-    //         .importPackages("software.amazon.awssdk");
-    //     freeze(noFields().should().haveRawType(Optional.class)
-    //                      .as("use Optional for fields")
-    //                      .because("Optional SHOULD NOT be used for method parameters. See "
-    //                               + "https://github.com/aws/aws-sdk-java-v2/blob/master/docs"
-    //                               + "/design/UseOfOptional.md"))
-    //         .check(classes);
-    // }
-    //
-    // @Test
-    // void mustNotUseOptionalForMethodParam() {
-    //     JavaClasses classes = new ClassFileImporter()
-    //         .withImportOptions(Arrays.asList(new ImportOption.Predefined.DoNotIncludeTests()))
-    //         .importPackages("software.amazon.awssdk");
-    //     freeze(noMethods().should().haveRawParameterTypes(Optional.class)
-    //                       .as("use Optional for method parameters")
-    //                       .because("Optional MUST NOT be used for method parameters. See "
-    //                                + "https://github.com/aws/aws-sdk-java-v2/blob/master/docs/design/UseOfOptional.md"))
-    //         .check(classes);
-    // }
-    //
-    // @Test
-    // void publicApisMustNotDeclareThrowableOfCheckedException() {
-    //     JavaClasses classes = new ClassFileImporter()
-    //         .withImportOptions(Arrays.asList(new ImportOption.Predefined.DoNotIncludeTests()))
-    //         .importPackages("software.amazon.awssdk");
-    //     freeze(noMethods().that()
-    //                       .areDeclaredInClassesThat().areAnnotatedWith(SdkPublicApi.class)
-    //                       .should()
-    //                       .declareThrowableOfType(Exception.class).orShould().declareThrowableOfType(IOException.class)
-    //                       .because("public APIs MUST NOT throw checked exception"))
-    //         .check(classes);
-    // }
-    //
-    // @Test
-    // void shouldNotAbuseWarnLog() {
-    //     JavaClasses classes = new ClassFileImporter()
-    //         .withImportOptions(Arrays.asList(
-    //             location -> ALLOWED_WARN_LOG_SUPPRESSION.stream().noneMatch(location::matches),
-    //             new ImportOption.Predefined.DoNotIncludeTests()))
-    //         .importPackages("software.amazon.awssdk..");
-    //
-    //     ArchRule rule =
-    //         freeze(methods().that().areDeclaredIn(Logger.class).and()
-    //                         .haveName("warn").should(new MethodBeingUsedByOthers(
-    //                 "log.warn is detected")))
-    //             .as("log.warn is detected. Review it with the team. If this is a valid case, add it"
-    //                 + " to ALLOWED_WARN_LOG_SUPPRESSION allowlist");
-    //
-    //     rule.check(classes);
-    // }
-    //
-    // @Test
-    // void shouldNotAbuseErrorLog() {
-    //     JavaClasses classes = new ClassFileImporter()
-    //         .withImportOptions(Arrays.asList(
-    //             location -> ALLOWED_ERROR_LOG_SUPPRESSION.stream().noneMatch(location::matches),
-    //             new ImportOption.Predefined.DoNotIncludeTests()))
-    //         .importPackages("software.amazon.awssdk..");
-    //
-    //     ArchRule rule =
-    //         freeze(methods().that().areDeclaredIn(Logger.class).and()
-    //                         .haveName("error").should(new MethodBeingUsedByOthers("log.error is detected")))
-    //             .as("log.error is detected. Review it with the team. If this is a valid case, add it to "
-    //                 + "ALLOWED_ERROR_LOG_SUPPRESSION allowlist");
-    //
-    //     rule.check(classes);
-    // }
+    @Test
+    void shouldNotUseOptionalForFields() {
+        System.out.println("shouldNotUseOptionalForFields");
+        JavaClasses classes = new ClassFileImporter()
+            .withImportOptions(Arrays.asList(new ImportOption.Predefined.DoNotIncludeTests()))
+            .importPackages("software.amazon.awssdk");
+        freeze(noFields().should().haveRawType(Optional.class)
+                         .as("use Optional for fields")
+                         .because("Optional SHOULD NOT be used for method parameters. See "
+                                  + "https://github.com/aws/aws-sdk-java-v2/blob/master/docs"
+                                  + "/design/UseOfOptional.md"))
+            .check(classes);
+    }
+
+    @Test
+    void mustNotUseOptionalForMethodParam() {
+        System.out.println("mustNotUseOptionalForMethodParam");
+        JavaClasses classes = new ClassFileImporter()
+            .withImportOptions(Arrays.asList(new ImportOption.Predefined.DoNotIncludeTests()))
+            .importPackages("software.amazon.awssdk");
+        freeze(noMethods().should().haveRawParameterTypes(Optional.class)
+                          .as("use Optional for method parameters")
+                          .because("Optional MUST NOT be used for method parameters. See "
+                                   + "https://github.com/aws/aws-sdk-java-v2/blob/master/docs/design/UseOfOptional.md"))
+            .check(classes);
+    }
+
+    @Test
+    void publicApisMustNotDeclareThrowableOfCheckedException() {
+        System.out.println("publicApisMustNotDeclareThrowableOfCheckedException");
+        JavaClasses classes = new ClassFileImporter()
+            .withImportOptions(Arrays.asList(new ImportOption.Predefined.DoNotIncludeTests()))
+            .importPackages("software.amazon.awssdk");
+        freeze(noMethods().that()
+                          .areDeclaredInClassesThat().areAnnotatedWith(SdkPublicApi.class)
+                          .should()
+                          .declareThrowableOfType(Exception.class).orShould().declareThrowableOfType(IOException.class)
+                          .because("public APIs MUST NOT throw checked exception"))
+            .check(classes);
+    }
+
+    @Test
+    void shouldNotAbuseWarnLog() {
+        System.out.println("shouldNotAbuseWarnLog");
+        JavaClasses classes = new ClassFileImporter()
+            .withImportOptions(Arrays.asList(
+                location -> ALLOWED_WARN_LOG_SUPPRESSION.stream().noneMatch(location::matches),
+                new ImportOption.Predefined.DoNotIncludeTests()))
+            .importPackages("software.amazon.awssdk..");
+
+        ArchRule rule =
+            freeze(methods().that().areDeclaredIn(Logger.class).and()
+                            .haveName("warn").should(new MethodBeingUsedByOthers(
+                    "log.warn is detected")))
+                .as("log.warn is detected. Review it with the team. If this is a valid case, add it"
+                    + " to ALLOWED_WARN_LOG_SUPPRESSION allowlist");
+
+        rule.check(classes);
+    }
+
+    @Test
+    void shouldNotAbuseErrorLog() {
+        System.out.println("shouldNotAbuseErrorLog");
+        JavaClasses classes = new ClassFileImporter()
+            .withImportOptions(Arrays.asList(
+                location -> ALLOWED_ERROR_LOG_SUPPRESSION.stream().noneMatch(location::matches),
+                new ImportOption.Predefined.DoNotIncludeTests()))
+            .importPackages("software.amazon.awssdk..");
+
+        ArchRule rule =
+            freeze(methods().that().areDeclaredIn(Logger.class).and()
+                            .haveName("error").should(new MethodBeingUsedByOthers("log.error is detected")))
+                .as("log.error is detected. Review it with the team. If this is a valid case, add it to "
+                    + "ALLOWED_ERROR_LOG_SUPPRESSION allowlist");
+
+        rule.check(classes);
+    }
 
     private static final class MethodBeingUsedByOthers extends ArchCondition<JavaMethod> {
         public MethodBeingUsedByOthers(String description) {
