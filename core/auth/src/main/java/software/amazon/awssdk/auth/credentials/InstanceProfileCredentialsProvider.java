@@ -32,6 +32,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvider;
 import software.amazon.awssdk.auth.credentials.internal.Ec2MetadataDisableV1Resolver;
+import software.amazon.awssdk.auth.credentials.internal.Ec2MetadataServiceTimeoutResolver;
 import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader;
 import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader.LoadedCredentials;
 import software.amazon.awssdk.auth.credentials.internal.StaticResourcesEndpointProvider;
@@ -79,6 +80,7 @@ public final class InstanceProfileCredentialsProvider
     private final String endpoint;
     private final Ec2MetadataConfigProvider configProvider;
     private final Ec2MetadataDisableV1Resolver ec2MetadataDisableV1Resolver;
+    private final Ec2MetadataServiceTimeoutResolver ec2MetadataServiceTimeoutResolver;
     private final HttpCredentialsLoader httpCredentialsLoader;
     private final CachedSupplier<AwsCredentials> credentialsCache;
 
@@ -110,6 +112,7 @@ public final class InstanceProfileCredentialsProvider
                                      .profileName(profileName)
                                      .build();
         this.ec2MetadataDisableV1Resolver = Ec2MetadataDisableV1Resolver.create(profileFile, profileName);
+        this.ec2MetadataServiceTimeoutResolver = Ec2MetadataServiceTimeoutResolver.create(profileFile, profileName);
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
@@ -211,9 +214,13 @@ public final class InstanceProfileCredentialsProvider
         String token = getToken(imdsHostname);
         String[] securityCredentials = getSecurityCredentials(imdsHostname, token);
 
-        return new StaticResourcesEndpointProvider(URI.create(imdsHostname + SECURITY_CREDENTIALS_RESOURCE +
-                                                              securityCredentials[0]),
-                                                   getTokenHeaders(token));
+        return StaticResourcesEndpointProvider.builder()
+                                              .endpoint(URI.create(imdsHostname + SECURITY_CREDENTIALS_RESOURCE
+                                                                   + securityCredentials[0]))
+                                              .headers(getTokenHeaders(token))
+                                              .connectionTimeout(Duration.ofMillis(
+                                                  this.ec2MetadataServiceTimeoutResolver.resolve()))
+                                              .build();
     }
 
     private String getImdsEndpoint() {
@@ -226,8 +233,13 @@ public final class InstanceProfileCredentialsProvider
 
     private String getToken(String imdsHostname) {
         Map<String, String> tokenTtlHeaders = Collections.singletonMap(EC2_METADATA_TOKEN_TTL_HEADER, DEFAULT_TOKEN_TTL);
-        ResourcesEndpointProvider tokenEndpoint = new StaticResourcesEndpointProvider(getTokenEndpoint(imdsHostname),
-                                                                                      tokenTtlHeaders);
+        ResourcesEndpointProvider tokenEndpoint =
+            StaticResourcesEndpointProvider.builder()
+                                           .endpoint(getTokenEndpoint(imdsHostname))
+                                           .headers(tokenTtlHeaders)
+                                           .connectionTimeout(
+                                               Duration.ofMillis(this.ec2MetadataServiceTimeoutResolver.resolve()))
+                                           .build();
 
         try {
             return HttpResourcesUtils.instance().readResource(tokenEndpoint, "PUT");
@@ -275,9 +287,13 @@ public final class InstanceProfileCredentialsProvider
     }
 
     private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {
+
         ResourcesEndpointProvider securityCredentialsEndpoint =
-            new StaticResourcesEndpointProvider(URI.create(imdsHostname + SECURITY_CREDENTIALS_RESOURCE),
-                                                getTokenHeaders(metadataToken));
+            StaticResourcesEndpointProvider.builder()
+                                           .endpoint(URI.create(imdsHostname + SECURITY_CREDENTIALS_RESOURCE))
+                                           .headers(getTokenHeaders(metadataToken))
+                .connectionTimeout(Duration.ofMillis(this.ec2MetadataServiceTimeoutResolver.resolve()))
+                                           .build();
 
         String securityCredentialsList =
             invokeSafely(() -> HttpResourcesUtils.instance().readResource(securityCredentialsEndpoint));

@@ -22,21 +22,12 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.utils.Lazy;
+import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.utils.NumericUtils;
-import software.amazon.awssdk.utils.internal.SystemSettingUtils;
-
 
 @SdkInternalApi
 //TODO: Refactor to use SDK HTTP client instead of URL connection, also consider putting EC2MetadataClient in its own module
 public class ConnectionUtils {
-
-    private final Lazy<Integer> metadataServiceTimeoutMillis = new Lazy<>(this::resolveMetadataServiceTimeoutMillis);
-
-    private ConnectionUtils() {
-    }
-
 
     public static ConnectionUtils create() {
         return new ConnectionUtils();
@@ -46,19 +37,16 @@ public class ConnectionUtils {
         return connectToEndpoint(endpoint, headers, "GET");
     }
 
-    public Integer metadataServiceTimeoutMillis() {
-        return metadataServiceTimeoutMillis.getValue();
+    public HttpURLConnection connectToEndpoint(URI endpoint, Map<String, String> headers, String method) throws IOException {
+        return connectToEndpoint(endpoint, headers, method, null);
     }
 
-    public HttpURLConnection connectToEndpoint(URI endpoint,
-                                               Map<String, String> headers,
-                                               String method) throws IOException {
+    private HttpURLConnection connectToEndpoint(URI endpoint, Map<String, String> headers, String method,
+                                                Duration serviceTimeout) throws IOException {
+        int timeout = serviceTimeout != null ? NumericUtils.saturatedCast(serviceTimeout.toMillis()) : 1000;
         HttpURLConnection connection = (HttpURLConnection) endpoint.toURL().openConnection(Proxy.NO_PROXY);
-
-        int timeoutMillis = metadataServiceTimeoutMillis();
-        connection.setConnectTimeout(timeoutMillis);
-        connection.setReadTimeout(timeoutMillis);
-
+        connection.setConnectTimeout(timeout);
+        connection.setReadTimeout(timeout);
         connection.setRequestMethod(method);
         connection.setDoOutput(true);
         headers.forEach(connection::addRequestProperty);
@@ -68,27 +56,8 @@ public class ConnectionUtils {
         return connection;
     }
 
-    private int resolveMetadataServiceTimeoutMillis() {
-
-        String timeoutValue = SystemSettingUtils.resolveSetting(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT)
-                                                 .orElseGet(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT::defaultValue);
-
-        try {
-            // To match the CLI behavior, support both integers and doubles; try int first for exact values, fall back to double.
-            int timeoutSeconds = Integer.parseInt(timeoutValue);
-            return NumericUtils.saturatedCast(Duration.ofSeconds(timeoutSeconds).toMillis());
-        } catch (NumberFormatException e) {
-            try {
-                // Fallback to parsing the timeout as a double (seconds) and convert to milliseconds
-                double timeoutSeconds = Double.parseDouble(timeoutValue);
-                return NumericUtils.saturatedCast(Math.round(timeoutSeconds * 1000));
-            } catch (NumberFormatException ignored) {
-                throw new IllegalStateException(String.format(
-                    "%s environment variable value '%s' is not a valid integer or double.",
-                    SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT.property(),
-                    timeoutValue
-                ));
-            }
-        }
+    public HttpURLConnection connectToEndpoint(ResourcesEndpointProvider endpointProvider, String method) throws IOException {
+        return connectToEndpoint(endpointProvider.endpoint(), endpointProvider.headers(), method,
+                                 endpointProvider.connectionTimeout().orElse(null));
     }
 }

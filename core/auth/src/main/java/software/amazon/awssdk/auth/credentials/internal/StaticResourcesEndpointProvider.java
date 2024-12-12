@@ -17,8 +17,11 @@ package software.amazon.awssdk.auth.credentials.internal;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.utils.Validate;
@@ -27,15 +30,24 @@ import software.amazon.awssdk.utils.Validate;
 public final class StaticResourcesEndpointProvider implements ResourcesEndpointProvider {
     private final URI endpoint;
     private final Map<String, String> headers;
+    private final Optional<Duration> connectionTimeout;
 
-    public StaticResourcesEndpointProvider(URI endpoint,
-                                           Map<String, String> additionalHeaders) {
+    private StaticResourcesEndpointProvider(URI endpoint,
+                                           Map<String, String> additionalHeaders,
+                                           Duration customTimeout) {
         this.endpoint = Validate.paramNotNull(endpoint, "endpoint");
         this.headers = ResourcesEndpointProvider.super.headers();
         if (additionalHeaders != null) {
             this.headers.putAll(additionalHeaders);
         }
+        this.connectionTimeout = Optional.ofNullable(customTimeout);
     }
+
+    @Override
+    public Optional<Duration> connectionTimeout() {
+        return connectionTimeout;
+    }
+
 
     @Override
     public URI endpoint() throws IOException {
@@ -45,5 +57,37 @@ public final class StaticResourcesEndpointProvider implements ResourcesEndpointP
     @Override
     public Map<String, String> headers() {
         return Collections.unmodifiableMap(headers);
+    }
+
+    public static class Builder {
+        private URI endpoint;
+        private Map<String, String> additionalHeaders = new HashMap<>();
+        private Duration customTimeout;
+
+        public Builder endpoint(URI endpoint) {
+            this.endpoint = Validate.paramNotNull(endpoint, "endpoint");
+            return this;
+        }
+
+
+        public Builder headers(Map<String, String> headers) {
+            if (headers != null) {
+                this.additionalHeaders.putAll(headers);
+            }
+            return this;
+        }
+
+        public Builder connectionTimeout(Duration timeout) {
+            this.customTimeout = timeout;
+            return this;
+        }
+
+        public StaticResourcesEndpointProvider build() {
+            return new StaticResourcesEndpointProvider(endpoint, additionalHeaders, customTimeout);
+        }
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 }

@@ -28,6 +28,7 @@ import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -38,6 +39,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
+import java.net.SocketTimeoutException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -56,12 +58,14 @@ import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.SdkUserAgent;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 @WireMockTest
 public class InstanceProfileCredentialsProviderTest {
@@ -76,6 +80,7 @@ public class InstanceProfileCredentialsProviderTest {
     private static final String PROFILE_NAME = "some-profile";
     private static final String USER_AGENT = SdkUserAgent.create().userAgent();
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
+    private static final EnvironmentVariableHelper environmentVariableHelper = new EnvironmentVariableHelper();
 
     @RegisterExtension
     static WireMockExtension wireMockServer = WireMockExtension.newInstance()
@@ -85,12 +90,14 @@ public class InstanceProfileCredentialsProviderTest {
 
     @BeforeEach
     public void methodSetup() {
+        environmentVariableHelper.reset();
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "http://localhost:" + wireMockServer.getPort());
     }
 
     @AfterAll
     public static void teardown() {
         System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
+        environmentVariableHelper.reset();
     }
 
     private void stubSecureCredentialsResponse(ResponseDefinitionBuilder responseDefinitionBuilder) {
@@ -139,6 +146,50 @@ public class InstanceProfileCredentialsProviderTest {
         assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
         assertThat(credentials.providerName()).isPresent().contains("InstanceProfileCredentialsProvider");
         verifyImdsCallWithToken();
+    }
+
+
+    @Test
+    public void resolveCredentials_WhenConnectionDelaySetToHighValue() {
+        environmentVariableHelper.set(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT, "10");
+        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS).withFixedDelay(3000));
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+        AwsCredentials credentials = provider.resolveCredentials();
+        assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+        assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(credentials.providerName()).isPresent().contains("InstanceProfileCredentialsProvider");
+        verifyImdsCallWithToken();
+    }
+
+    @Test
+    public void resolveCredentialsFails_WhenConnectionDelaySetToHighValue_ForDefaultConnectionTimeoutValue() {
+        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS).withFixedDelay(1100));
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+        assertThatExceptionOfType(SdkClientException.class).isThrownBy(() -> provider.resolveCredentials())
+                                                           .withRootCauseExactlyInstanceOf(SocketTimeoutException.class);
+
+    }
+
+
+    @Test
+    void resolveIdentity_WhenConnectionDelaySetToHighValue() {
+        environmentVariableHelper.set(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT, "10");
+        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS).withFixedDelay(3000));
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+        AwsCredentialsIdentity credentialsIdentity = provider.resolveIdentity().join();
+        assertThat(credentialsIdentity.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+        assertThat(credentialsIdentity.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(credentialsIdentity.providerName()).isPresent().contains("InstanceProfileCredentialsProvider");
+        verifyImdsCallWithToken();
+    }
+
+    @Test
+    void resolveIdentityFails_WhenConnectionDelaySetToHighValue_ForDefaultConnectionTimeoutValue() {
+        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS).withFixedDelay(1100));
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+        assertThatExceptionOfType(SdkClientException.class).isThrownBy(() -> provider.resolveIdentity().join())
+                                                           .withRootCauseExactlyInstanceOf(SocketTimeoutException.class);
+
     }
 
     @ParameterizedTest

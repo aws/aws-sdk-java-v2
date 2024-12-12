@@ -17,7 +17,6 @@ package software.amazon.awssdk.regions.internal.util;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -27,13 +26,13 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.Inet4Address;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Collections;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 class ConnectionUtilsComponentTest {
@@ -85,58 +84,9 @@ class ConnectionUtilsComponentTest {
         assertThat(connection.getResponseCode()).isEqualTo(301);
     }
 
-    @ParameterizedTest
-    @CsvSource({
-        "environment,5,5000",
-        "environment,1.9,1900",
-        "system,5,5000",
-        "system,1.9,1900"
-    })
-    void shouldSetTimeoutsBasedOnVariable(String variableType, String variableValue, int expectedTimeoutMillis) throws IOException {
-        if (variableType.equals("environment")) {
-            environmentVariableHelper.set(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT.environmentVariable(), variableValue);
-        } else if (variableType.equals("system")) {
-            System.setProperty("aws.ec2MetadataServiceTimeout", variableValue);
-        }
 
-        ConnectionUtils connectionUtils = ConnectionUtils.create();
-
-        HttpURLConnection connection = connectionUtils.connectToEndpoint(
-            URI.create("http://localhost:" + mockServer.getPort()), emptyMap()
-        );
-
-        assertThat(connection.getConnectTimeout()).isEqualTo(expectedTimeoutMillis);
-        assertThat(connection.getReadTimeout()).isEqualTo(expectedTimeoutMillis);
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-        "environment,invalid",
-        "system,invalid"
-    })
-    void shouldThrowExceptionForInvalidValue(String variableType, String variableValue) {
-        if (variableType.equals("environment")) {
-            environmentVariableHelper.set(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT.environmentVariable(), variableValue);
-        } else if (variableType.equals("system")) {
-            System.setProperty("aws.ec2MetadataServiceTimeout", variableValue);
-        }
-
-        ConnectionUtils connectionUtils = ConnectionUtils.create();
-
-        assertThrows(IllegalStateException.class, () -> {
-            connectionUtils.connectToEndpoint(
-                URI.create("http://localhost:" + mockServer.getPort()), emptyMap()
-            );
-        });
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-        "environment",
-        "system"
-    })
-    void shouldUseDefaultTimeoutWhenVariableNotSet(String variableType) throws IOException {
-        // No setup for environment or system property
+    @Test
+    void connectionUtilsSetDefaultTimeoutIfNotProvided( ) throws IOException {
 
         ConnectionUtils connectionUtils = ConnectionUtils.create();
 
@@ -149,26 +99,40 @@ class ConnectionUtilsComponentTest {
         assertThat(connection.getReadTimeout()).isEqualTo(expectedTimeoutMillis);
     }
 
-    @ParameterizedTest
-    @CsvSource({
-        "environment,10",
-        "system,10"
-    })
-    void metadataServiceTimeoutMillisOnCreation(String variableType, String variableValue) {
-        if (variableType.equals("environment")) {
-            environmentVariableHelper.set(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT.environmentVariable(), variableValue);
-        } else if (variableType.equals("system")) {
-            System.setProperty("aws.ec2MetadataServiceTimeout", variableValue);
-        }
+    @Test
+    void connectionUtilsSetsTimeoutAsPassedInProvider( ) throws IOException {
 
         ConnectionUtils connectionUtils = ConnectionUtils.create();
-        assertThat(connectionUtils.metadataServiceTimeoutMillis()).isEqualTo(Integer.parseInt(variableValue) * 1000);
+        ResourcesEndpointProvider endpointProvider = new ResourcesEndpointProvider() {
+            @Override
+            public URI endpoint() throws IOException {
+                return URI.create("http://localhost:" + mockServer.getPort());
+            }
+            @Override
+            public Optional<Duration> connectionTimeout() {
+                return Optional.of(Duration.ofSeconds(7));
+            }
+        };
+
+        HttpURLConnection connection = connectionUtils.connectToEndpoint(endpointProvider , "GET");
+        int expectedTimeoutMillis = 7000;
+        assertThat(connection.getConnectTimeout()).isEqualTo(expectedTimeoutMillis);
+        assertThat(connection.getReadTimeout()).isEqualTo(expectedTimeoutMillis);
     }
 
     @Test
-    void defaultMetadataServiceTimeoutMillisOnCreation() {
+    void connectionUtilsSetsTimeoutDefaultIfNotPassedInProvider( ) throws IOException {
         ConnectionUtils connectionUtils = ConnectionUtils.create();
-        assertThat(connectionUtils.metadataServiceTimeoutMillis()).isEqualTo(1000);
+        ResourcesEndpointProvider endpointProvider = new ResourcesEndpointProvider() {
+            @Override
+            public URI endpoint() throws IOException {
+                return URI.create("http://localhost:" + mockServer.getPort());
+            }
+        };
+        HttpURLConnection connection = connectionUtils.connectToEndpoint(endpointProvider , "GET");
+        int expectedTimeoutMillis = 1000;
+        assertThat(connection.getConnectTimeout()).isEqualTo(expectedTimeoutMillis);
+        assertThat(connection.getReadTimeout()).isEqualTo(expectedTimeoutMillis);
     }
 
 }
