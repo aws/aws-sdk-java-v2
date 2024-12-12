@@ -109,7 +109,8 @@
         "third-party-slf4j-api": { "skipImport": true },
         "v2-migration-tests": {"skipImport":  true},
         "crt-unavailable-tests": { "skipImport": true },
-        "bundle-shading-tests": { "skipImport": true }
+        "bundle-shading-tests": { "skipImport": true },
+        "architecture-tests": {"skipImport":  true}
     },
 
     "dependencies": {

@@ -1,4 +1,99 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.33__ __2024-12-12__
+## __AWS Database Migration Service__
+  - ### Features
+    - Add parameters to support for kerberos authentication. Add parameter for disabling the Unicode source filter with PostgreSQL settings. Add parameter to use large integer value with Kinesis/Kafka settings.
+
+## __AWS Glue__
+  - ### Features
+    - To support customer-managed encryption in Data Quality to allow customers encrypt data with their own KMS key, we will add a DataQualityEncryption field to the SecurityConfiguration API where customers can provide their KMS keys.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Configure holidays and other overrides to hours of operation in advance. During contact handling, Amazon Connect automatically checks for overrides and provides customers with an appropriate flow path. After an override period passes call center automatically reverts to standard hours of operation.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Improved descriptions for certain APIs.
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - This release includes the following API updates: added the enumeration type RESTORE_DOMAIN to the OperationType; constrained the Price attribute to non-negative values; updated the LangCode to allow 2 or 3 alphabetical characters.
+
+# __2.29.32__ __2024-12-11__
+## __AWS Artifact__
+  - ### Features
+    - Add support for listing active customer agreements for the calling AWS Account.
+
+## __AWS CloudTrail__
+  - ### Features
+    - Doc-only updates for CloudTrail.
+
+## __AWS Control Catalog__
+  - ### Features
+    - Minor documentation updates to the content of ImplementationDetails object part of the Control Catalog GetControl API
+
+## __AWS Migration Hub__
+  - ### Features
+    - API and documentation updates for AWS MigrationHub related to adding support for listing migration task updates and associating, disassociating and listing source resources
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Updated descriptions for some API operations and parameters, corrected some errors in Cognito user pools
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Introduces support for multi-region endpoint.
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds support for accessing system profile logs in Lake Formation-enabled jobs.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - Adds networkType parameter to CreateDbInstance API which allows IPv6 support to the InfluxDB endpoint
+
+# __2.29.31__ __2024-12-10__
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Updated condition key inference from Workload Estimate, Bill Scenario, and Bill Estimate resources. Updated documentation links.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Doc only update to examples for DeleteMultiRegionClusters & CreateMultiRegionClusters
+
+## __Amazon Connect Service__
+  - ### Features
+    - Add support for Push Notifications for Amazon Connect chat. With Push Notifications enabled an alert could be sent to customers about new messages even when they aren't actively using the mobile application.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - IVS Real-Time now offers customers the ability to customize thumbnails recording mode and interval for both Individual Participant Recording (IPR) and Server-Side Compositions (SSC).
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Introduces support for creating DEED (Deterministic Easy-DKIM) identities.
+
+## __Application Auto Scaling__
+  - ### Features
+    - Doc only update for AAS Predictive Scaling policy configuration API.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Update KxCommandLineArgument value parameter regex to allow for spaces and semicolons
+
 # __2.29.30__ __2024-12-09__
 ## __AWS AppSync__
   - ### Features
