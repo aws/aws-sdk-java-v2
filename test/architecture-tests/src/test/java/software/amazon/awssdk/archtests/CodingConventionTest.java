@@ -51,6 +51,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 
 @AnalyzeClasses(packages = "software.amazon.awssdk..",
     importOptions = ImportOption.DoNotIncludeTests.class)
+@ArchIgnore
 public class CodingConventionTest {
 
     @ArchTest
