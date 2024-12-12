@@ -15,10 +15,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
 public final class OperationWithNoInputOrOutputRequest extends JsonProtocolTestsRequest implements
-        ToCopyableBuilder<OperationWithNoInputOrOutputRequest.Builder, OperationWithNoInputOrOutputRequest> {
+                                                                                        ToCopyableBuilder<OperationWithNoInputOrOutputRequest.Builder, OperationWithNoInputOrOutputRequest> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.emptyList();
 
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections.emptyMap();
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private OperationWithNoInputOrOutputRequest(BuilderImpl builder) {
         super(builder);
@@ -86,8 +86,12 @@ public final class OperationWithNoInputOrOutputRequest extends JsonProtocolTests
         return SDK_NAME_TO_FIELD;
     }
 
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        return Collections.emptyMap();
+    }
+
     public interface Builder extends JsonProtocolTestsRequest.Builder, SdkPojo,
-            CopyableBuilder<Builder, OperationWithNoInputOrOutputRequest> {
+                                     CopyableBuilder<Builder, OperationWithNoInputOrOutputRequest> {
         @Override
         Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
 
