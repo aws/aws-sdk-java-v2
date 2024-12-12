@@ -32,19 +32,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.MetricRecord;
 import software.amazon.awssdk.metrics.SdkMetric;
-import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonGenerator;
 import software.amazon.awssdk.utils.Logger;
@@ -54,6 +50,7 @@ import software.amazon.awssdk.utils.Logger;
 @SdkPublicApi
 public final class EmfMetricPublisher implements MetricPublisher {
     private static final String DEFAULT_NAMESPACE = "AwsSdk/JavaSdk2";
+    private static final String  DEFAULT_LOG_GROUP_NAME = "/aws/emf/metrics";
     private static final Set<SdkMetric<String>> DEFAULT_DIMENSIONS = Collections.emptySet();
     private static final Set<MetricCategory> DEFAULT_METRIC_CATEGORIES = Collections.singleton(MetricCategory.ALL);
     private static final MetricLevel DEFAULT_METRIC_LEVEL = MetricLevel.INFO;
@@ -68,6 +65,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
     private final Collection<MetricCategory> metricCategories;
     private final MetricLevel metricLevel;
     private final boolean metricCategoriesContainsAll;
+    private final boolean unitTest;
 
     private EmfMetricPublisher(Builder builder){
         this.namespace = resolveNamespace(builder);
@@ -77,6 +75,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
         this.metricLevel = resolveMetricLevel(builder);
         this.dimensionStrings = resolveDimensionStrings(builder);
         this.metricCategoriesContainsAll = metricCategories.contains(MetricCategory.ALL);
+        this.unitTest = builder.unitTest;
     }
     private static String resolveNamespace(Builder builder) {
         return builder.namespace == null ? DEFAULT_NAMESPACE : builder.namespace;
@@ -105,8 +104,9 @@ public final class EmfMetricPublisher implements MetricPublisher {
     }
 
     private static String resolveLogGroupName(Builder builder) {
-        return builder.logGroupName == null ? DEFAULT_NAMESPACE : builder.logGroupName;
+        return builder.logGroupName == null ? DEFAULT_LOG_GROUP_NAME: builder.logGroupName;
     }
+
 
 
 
@@ -121,7 +121,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
 
     private Object processValue(String metricName, Object metricValue) {
         if (metricValue == null) {
-            return 0.0;  // or throw an exception depending on your requirements
+            return 0.0;
         }
 
         // Changes boolean value from true/false to 1/0
@@ -129,7 +129,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
             return metricValue.equals(true) ? 1.0 : 0.0;
         }
 
-        // Changes duration value from format PT0.070550318S to a number of ms
+        // Changes duration value to a number of ms
         if (hasUnit(metricName)) {
             String durationStr = metricValue.toString();
             metricValue = Double.parseDouble(durationStr.substring(2, durationStr.length() - 1)) * 1000;
@@ -146,50 +146,47 @@ public final class EmfMetricPublisher implements MetricPublisher {
         return metricValue;
     }
 
+    private List<String> createEmfStrings(Map<String, List<Object>> aggregatedMetrics) {
+        List<String> emfStrings = new ArrayList<>();
+        Map<String, List<Object>> currentMetricBatch = new HashMap<>();
+        Set<String> currentMetricNames = new HashSet<>();
 
-    public String convertMetricCollectionToEMF(MetricCollection metricCollection) {
+        // Process metric names and their values
+        for (Map.Entry<String, List<Object>> entry : aggregatedMetrics.entrySet()) {
+            String metricName = entry.getKey();
+            List<Object> values = entry.getValue();
+
+            // Drop large value arrays into chunks of 100
+            if (values.size() > 100) {
+                values = values.subList(0, 100);
+                logger.warn(()-> "Some AWS SDK client-side metric data have been dropped because it exceeds the cloudwatch "
+                                 + "requirements. This usually occurs because you have generated too many requests for the publisher to handle in a timely fashion.");
+            }
+            // If adding this metric would exceed 100 metrics, create new batch
+            if (currentMetricNames.size() >= 100) {
+                emfStrings.add(createEmfString(currentMetricBatch, currentMetricNames));
+                currentMetricBatch = new HashMap<>();
+                currentMetricNames = new HashSet<>();
+            }
+
+            currentMetricBatch.put(metricName, values);
+            if(!(values.get(0) instanceof String)){
+                currentMetricNames.add(metricName);
+            }
+
+        }
+
+        emfStrings.add(createEmfString(currentMetricBatch, currentMetricNames));
+
+        return emfStrings;
+    }
+
+
+    private String createEmfString(Map<String, List<Object>> metrics, Set<String> metricNames) {
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         JsonFactory factory = new JsonFactory();
 
-        try {
-            // Map to store aggregated metrics
-            Map<String, List<Object>> aggregatedMetrics = new HashMap<>();
-            Set<String> metricNames = new HashSet<>();
-
-            // Process metrics using level-order traversal
-            Queue<MetricCollection> queue = new LinkedList<>();
-            queue.offer(metricCollection);
-
-            while (!queue.isEmpty()) {
-                MetricCollection current = queue.poll();
-
-                // Process all metrics in current collection
-                current.stream().forEach(record -> {
-                    if(!shouldReport(record)){
-                        return;
-                    }
-                    String metricName = record.metric().name();
-                    Object metricValue = record.value();
-
-                    // Store dimension and metric name for later use in Metrics array
-                    if (isDimension(metricName)) {
-                        realDimensionStrings.add(metricName);
-                    }
-                    else if (!(metricValue instanceof String)){
-                        metricNames.add(metricName);
-                    }
-
-                    // Add value to aggregated metrics
-                    aggregatedMetrics.computeIfAbsent(metricName, k -> new ArrayList<>())
-                                     .add(metricValue);
-                });
-
-                // Add children to queue
-                if (current.children() != null) {
-                    queue.addAll(current.children());
-                }
-            }
-
+        try{
             JsonGenerator generator = factory.createGenerator(byteStream);
             generator.writeStartObject();
 
@@ -198,7 +195,11 @@ public final class EmfMetricPublisher implements MetricPublisher {
             generator.writeStartObject();
 
             // Write Timestamp
-            generator.writeNumberField("Timestamp", Instant.now().toEpochMilli());
+            if (unitTest) {
+                generator.writeNumberField("Timestamp", 12345678);
+            } else {
+                generator.writeNumberField("Timestamp", Instant.now().toEpochMilli());
+            }
             generator.writeStringField("LogGroupName", logGroupName);
 
             // Write CloudWatchMetrics array
@@ -212,9 +213,11 @@ public final class EmfMetricPublisher implements MetricPublisher {
             // Write Dimensions array
             generator.writeFieldName("Dimensions");
             generator.writeStartArray();
+            generator.writeStartArray();
             for (String dimension : realDimensionStrings) {
                 generator.writeString(dimension);
             }
+            generator.writeEndArray();
             generator.writeEndArray();
 
             // Write Metrics array
@@ -227,7 +230,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
                 generator.writeStartObject();
                 generator.writeStringField("Name", metricName);
 
-                // Add Unit if available (you'll need to implement logic to determine the unit)
+                // Add Unit if available
                 if (hasUnit(metricName)) {
                     generator.writeStringField("Unit", getMetricUnit(metricName));
                 }
@@ -241,7 +244,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
             generator.writeEndObject(); // End _aws object
 
             // Write metric values
-            for (Map.Entry<String, List<Object>> entry : aggregatedMetrics.entrySet()) {
+            for (Map.Entry<String, List<Object>> entry : metrics.entrySet()) {
                 String metricName = entry.getKey();
                 List<Object> values = entry.getValue();
 
@@ -273,11 +276,51 @@ public final class EmfMetricPublisher implements MetricPublisher {
             generator.close();
 
             return new String(byteStream.toByteArray(), StandardCharsets.UTF_8);
-
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to convert metrics to EMF format", e);
         }
+
     }
+
+
+
+public List<String> convertMetricCollectionToEMF(MetricCollection metricCollection) {
+    // Map to store aggregated metrics
+    Map<String, List<Object>> aggregatedMetrics = new HashMap<>();
+
+    // Process metrics using level-order traversal
+    Queue<MetricCollection> queue = new LinkedList<>();
+    queue.offer(metricCollection);
+
+    while (!queue.isEmpty()) {
+        MetricCollection current = queue.poll();
+
+        // Process all metrics in current collection
+        current.stream().forEach(record -> {
+            if(!shouldReport(record)){
+                return;
+            }
+            String metricName = record.metric().name();
+            Object metricValue = record.value();
+
+            // Store dimension and metric name for later use in Metrics array
+            if (isDimension(metricName)) {
+                realDimensionStrings.add(metricName);
+            }
+
+            // Add value to aggregated metrics
+            aggregatedMetrics.computeIfAbsent(metricName, k -> new ArrayList<>())
+                             .add(metricValue);
+        });
+
+        // Add children to queue
+        if (current.children() != null) {
+            queue.addAll(current.children());
+        }
+    }
+
+    return createEmfStrings(aggregatedMetrics);
+}
 
     private boolean isDimension(String metricName) {
         return metricName != null && dimensionStrings.contains(metricName);
@@ -292,7 +335,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
         if (metricName.endsWith("Duration")) {
             return "Milliseconds";
         }
-        // Add other unit mappings as needed
+        // Add other unit mappings
         return null;
     }
 
@@ -315,7 +358,15 @@ public final class EmfMetricPublisher implements MetricPublisher {
 
     @Override
     public void publish(MetricCollection metricCollection) {
-        logger.info(() -> convertMetricCollectionToEMF(metricCollection));
+        if (metricCollection == null) {
+            return;
+        }
+
+        List<String> emfStrings = convertMetricCollectionToEMF(metricCollection);
+        for (String emfString : emfStrings) {
+            logger.info(() -> emfString);
+        }
+
     }
 
     @Override
@@ -327,6 +378,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
         private Collection<SdkMetric<String>> dimensions;
         private Collection<MetricCategory> metricCategories;
         private MetricLevel metricLevel;
+        private boolean unitTest = false;
 
         private Builder() {
         }
@@ -370,7 +422,15 @@ public final class EmfMetricPublisher implements MetricPublisher {
             return this;
         }
 
+        public Builder unitTest(boolean unitTest) {
+            this.unitTest = unitTest;
+            return this;
+        }
+
         public EmfMetricPublisher build() {
+            // if (this.logGroupName == null || this.logGroupName.trim().isEmpty()) {
+            //     throw new IllegalStateException("logGroupName is required");
+            // }
             return new EmfMetricPublisher(this);
         }
 

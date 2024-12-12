@@ -16,13 +16,9 @@
 package software.amazon.awssdk.metrics.publishers.emf;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 
-import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import com.fasterxml.jackson.core.JsonGenerator;
 import software.amazon.awssdk.core.metrics.CoreMetric;
@@ -30,13 +26,8 @@ import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricRecord;
-import software.amazon.awssdk.metrics.SdkMetric;
 
-import java.io.IOException;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 
 public class EmfMetricPublisherTest {
@@ -52,29 +43,42 @@ public class EmfMetricPublisherTest {
 
     @BeforeEach
     void setUp() {
-        PublisherBuilder = EmfMetricPublisher.builder();
+        PublisherBuilder = EmfMetricPublisher.builder().unitTest(true);
     }
 
     @Test
-    void testconvertMetricCollectionToEMF_EmptyCollection(){
-        EmfMetricPublisher publisher = PublisherBuilder.build();
+    void testConvertMetricCollectionToEMF_EmptyCollection(){
+        EmfMetricPublisher publisher = PublisherBuilder.logGroupName("my-log-group-name")
+                                                       .build();
 
-        Object emf = publisher.convertMetricCollectionToEMF(MetricCollector.create("test").collect());
-        System.out.println(emf);
+        List<String> emfLogs = publisher.convertMetricCollectionToEMF(MetricCollector.create("test").collect());
+        for (String emfLog : emfLogs) {
+            assertThat(emfLog).isEqualTo("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"my-log-group-name\","
+                                         + "\"CloudWatchMetrics\":[{\"Namespace\":\"AwsSdk/JavaSdk2\",\"Dimensions\":[[]],"
+                                         + "\"Metrics\":[]}]}}");
+            System.out.println(emfLog);
+        }
     }
 
     @Test
-    void testconvertMetricCollectionToEMF_SingleMetric(){
+    void testConvertMetricCollectionToEMF_SingleMetric(){
         EmfMetricPublisher publisher = PublisherBuilder.build();
 
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
-        Object emf = publisher.convertMetricCollectionToEMF(metricCollector.collect());
-        System.out.println(emf);
+        List<String> emfLogs = publisher.convertMetricCollectionToEMF(metricCollector.collect());
+
+        for (String emfLog : emfLogs) {
+            assertThat(emfLog).isEqualTo("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"/aws/emf/metrics\","
+                                         + "\"CloudWatchMetrics\":[{\"Namespace\":\"AwsSdk/JavaSdk2\",\"Dimensions\":[[]],"
+                                         + "\"Metrics\":[{\"Name\":\"AvailableConcurrency\"}]}]},\"AvailableConcurrency\":5}");
+            System.out.println(emfLog);
+        }
+
     }
 
     @Test
-    void testconvertMetricCollectionToEMF_MultipleMetrics(){
+    void testConvertMetricCollectionToEMF_MultipleMetrics(){
         EmfMetricPublisher publisher = PublisherBuilder.dimensions(CoreMetric.SERVICE_ID)
                                                        .build();
 
@@ -82,36 +86,49 @@ public class EmfMetricPublisherTest {
         metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
         metricCollector.reportMetric(CoreMetric.API_CALL_SUCCESSFUL, true);
         metricCollector.reportMetric(CoreMetric.SIGNING_DURATION, java.time.Duration.ofMillis(100));
-        Object emf = publisher.convertMetricCollectionToEMF(metricCollector.collect());
-        System.out.println(emf);
+        List<String> emfLogs = publisher.convertMetricCollectionToEMF(metricCollector.collect());
+
+        for (String emfLog : emfLogs) {
+             assertThat(emfLog).isEqualTo("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"/aws/emf/metrics\","
+                                          + "\"CloudWatchMetrics\":[{\"Namespace\":\"AwsSdk/JavaSdk2\",\"Dimensions\":[[]],\"Metrics\":"
+                                          + "[{\"Name\":\"AvailableConcurrency\"},{\"Name\":\"SigningDuration\",\"Unit\":\"Milliseconds\"},"
+                                          + "{\"Name\":\"ApiCallSuccessful\"}]}]},\"AvailableConcurrency\":5,\"SigningDuration\":100.0,\"ApiCallSuccessful\":1.0}");
+
+             System.out.println(emfLog);
+        }
     }
 
     @Test
-    void testconvertMetricCollectionToEMF_Dimensions(){
+    void testConvertMetricCollectionToEMF_Dimensions(){
         EmfMetricPublisher publisher = PublisherBuilder.dimensions(CoreMetric.SERVICE_ID)
                                                        .build();
 
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(CoreMetric.SERVICE_ID, "ServiceId1234");
         metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
-        Object emf = publisher.convertMetricCollectionToEMF(metricCollector.collect());
-        System.out.println(emf);
+        List<String> emfLogs = publisher.convertMetricCollectionToEMF(metricCollector.collect());
+
+        for (String emfLog : emfLogs) {
+            assertThat(emfLog).isEqualTo("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"/aws/emf/metrics\",\"CloudWatchMetrics\":[{\"Namespace\":\"AwsSdk/JavaSdk2\","
+                                         + "\"Dimensions\":[[\"ServiceId\"]],\"Metrics\":[{\"Name\":\"AvailableConcurrency\"}]}]},\"AvailableConcurrency\":5,\"ServiceId\":\"ServiceId1234\"}");
+
+            System.out.println(emfLog);
+        }
     }
 
     @Test
-    void testconvertMetricCollectionToEMF_nonExistDimensions(){
+    void testConvertMetricCollectionToEMF_nonExistDimensions(){
         EmfMetricPublisher publisher = PublisherBuilder.dimensions(CoreMetric.SERVICE_ID)
                                                        .build();
 
         MetricCollector metricCollector = MetricCollector.create("test");
-        //metricCollector.reportMetric(CoreMetric.SERVICE_ID, "ServiceId1234");
         metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
         Object emf = publisher.convertMetricCollectionToEMF(metricCollector.collect());
         System.out.println(emf);
     }
 
     @Test
-    void testconvertMetricCollectionToEMF_extraDimensions(){
+    void testConvertMetricCollectionToEMF_extraDimensions(){
         EmfMetricPublisher publisher = PublisherBuilder.build();
 
         MetricCollector metricCollector = MetricCollector.create("test");
@@ -122,19 +139,25 @@ public class EmfMetricPublisherTest {
     }
 
     @Test
-    void testconvertMetricCollectionToEMF_metricCatagory(){
+    void testConvertMetricCollectionToEMF_metricCatagory(){
         EmfMetricPublisher publisher = PublisherBuilder.metricCategories(MetricCategory.HTTP_CLIENT)
                                                        .build();
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(CoreMetric.API_CALL_SUCCESSFUL, true);
         metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
-        Object emf = publisher.convertMetricCollectionToEMF(metricCollector.collect());
-        System.out.println(emf);
+        List<String> emfLogs = publisher.convertMetricCollectionToEMF(metricCollector.collect());
+
+        for (String emfLog : emfLogs) {
+            assertThat(emfLog).isEqualTo("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"/aws/emf/metrics\",\"CloudWatchMetrics\":[{\"Namespace\":\"AwsSdk/JavaSdk2\","
+                                         + "\"Dimensions\":[[]],\"Metrics\":[{\"Name\":\"AvailableConcurrency\"}]}]},\"AvailableConcurrency\":5}");
+
+            System.out.println(emfLog);
+        }
     }
 
 
     @Test
-    void testconvertMetricCollectionToEMF_ChildCollections(){
+    void testConvertMetricCollectionToEMF_ChildCollections(){
         EmfMetricPublisher publisher = PublisherBuilder.dimensions(CoreMetric.SERVICE_ID)
                                                        .build();
 
@@ -143,13 +166,20 @@ public class EmfMetricPublisherTest {
         metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
 
         MetricCollector childMetricCollector = metricCollector.createChild("child");
-        childMetricCollector.reportMetric(HttpMetric.HTTP_STATUS_CODE, 404);
-        Object emf = publisher.convertMetricCollectionToEMF(metricCollector.collect());
-        System.out.println(emf);
+        childMetricCollector.reportMetric(CoreMetric.SIGNING_DURATION, java.time.Duration.ofMillis(100));
+        List<String> emfLogs = publisher.convertMetricCollectionToEMF(metricCollector.collect());
+
+        for (String emfLog : emfLogs) {
+            assertThat(emfLog).isEqualTo("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"/aws/emf/metrics\",\"CloudWatchMetrics\":[{\"Namespace\":"
+                                         + "\"AwsSdk/JavaSdk2\",\"Dimensions\":[[\"ServiceId\"]],\"Metrics\":[{\"Name\":\"AvailableConcurrency\"},{\"Name\":"
+                                         + "\"SigningDuration\",\"Unit\":\"Milliseconds\"}]}]},\"AvailableConcurrency\":5,\"SigningDuration\":100.0,\"ServiceId\":\"ServiceId1234\"}");
+
+            System.out.println(emfLog);
+        }
     }
 
     @Test
-    void testconvertMetricCollectionToEMF_MultiChildCollections(){
+    void testConvertMetricCollectionToEMF_MultiChildCollections(){
         EmfMetricPublisher publisher = PublisherBuilder.dimensions(CoreMetric.SERVICE_ID)
                                                        .build();
 
@@ -161,8 +191,15 @@ public class EmfMetricPublisherTest {
         childMetricCollector1.reportMetric(CoreMetric.SIGNING_DURATION, java.time.Duration.ofMillis(100));
         MetricCollector childMetricCollector2 = metricCollector.createChild("child2");
         childMetricCollector2.reportMetric(CoreMetric.SIGNING_DURATION, java.time.Duration.ofMillis(200));
-        Object emf = publisher.convertMetricCollectionToEMF(metricCollector.collect());
-        System.out.println(emf);
+        List<String> emfLogs = publisher.convertMetricCollectionToEMF(metricCollector.collect());
+
+        for (String emfLog : emfLogs) {
+            assertThat(emfLog).isEqualTo("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"/aws/emf/metrics\",\"CloudWatchMetrics\":[{\"Namespace\":"
+                                         + "\"AwsSdk/JavaSdk2\",\"Dimensions\":[[\"ServiceId\"]],\"Metrics\":[{\"Name\":\"AvailableConcurrency\"},{\"Name\":"
+                                         + "\"SigningDuration\",\"Unit\":\"Milliseconds\"}]}]},\"AvailableConcurrency\":5,\"SigningDuration\":[100.0,200.0],\"ServiceId\":\"ServiceId1234\"}");
+
+            System.out.println(emfLog);
+        }
     }
 
 
