@@ -48,7 +48,6 @@ public final class StaticResourcesEndpointProvider implements ResourcesEndpointP
         return connectionTimeout;
     }
 
-
     @Override
     public URI endpoint() throws IOException {
         return endpoint;
@@ -68,7 +67,6 @@ public final class StaticResourcesEndpointProvider implements ResourcesEndpointP
             this.endpoint = Validate.paramNotNull(endpoint, "endpoint");
             return this;
         }
-
 
         public Builder headers(Map<String, String> headers) {
             if (headers != null) {

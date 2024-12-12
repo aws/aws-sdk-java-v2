@@ -46,7 +46,6 @@ class Ec2MetadataClientTest extends BaseEc2MetadataClientTest<Ec2MetadataClient,
 
     private int port;
 
-
     @BeforeEach
     public void init(WireMockRuntimeInfo wiremock) {
         this.port = wiremock.getHttpPort();

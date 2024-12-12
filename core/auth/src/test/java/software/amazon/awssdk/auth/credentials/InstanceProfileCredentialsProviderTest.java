@@ -148,7 +148,6 @@ public class InstanceProfileCredentialsProviderTest {
         verifyImdsCallWithToken();
     }
 
-
     @Test
     public void resolveCredentials_WhenConnectionDelaySetToHighValue() {
         environmentVariableHelper.set(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT, "10");
@@ -169,7 +168,6 @@ public class InstanceProfileCredentialsProviderTest {
                                                            .withRootCauseExactlyInstanceOf(SocketTimeoutException.class);
 
     }
-
 
     @Test
     void resolveIdentity_WhenConnectionDelaySetToHighValue() {
