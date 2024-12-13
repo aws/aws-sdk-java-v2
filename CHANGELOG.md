@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.34__ __2024-12-13__
+## __AWS Cloud Map__
+  - ### Features
+    - AWS Cloud Map now supports service-level attributes, allowing you to associate custom metadata directly with services. These attributes can be retrieved, updated, and deleted using the new GetServiceAttributes, UpdateServiceAttributes, and DeleteServiceAttributes API calls.
+
+## __AWS CloudHSM V2__
+  - ### Features
+    - Add support for Dual-Stack hsm2m.medium clusters. The customers will now be able to create hsm2m.medium clusters having both IPv4 and IPv6 connection capabilities by specifying a new param called NetworkType=DUALSTACK during cluster creation.
+
+## __AWS MediaConnect__
+  - ### Features
+    - AWS Elemental MediaConnect Gateway now supports Source Specific Multicast (SSM) for ingress bridges. This enables you to specify a source IP address in addition to a multicast IP when creating or updating an ingress bridge source.
+
+## __AWS Network Manager__
+  - ### Features
+    - There was a sentence fragment in UpdateDirectConnectGatewayAttachment that was causing customer confusion as to whether it's an incomplete sentence or if it was a typo. Removed the fragment.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Limit PutIntegration IntegrationName and ListIntegrations IntegrationNamePrefix parameters to 50 characters
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds GroupId to the response for DeleteSecurityGroup.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Add NodeRepairConfig in CreateNodegroupRequest and UpdateNodegroupConfigRequest
+
 # __2.29.33__ __2024-12-12__
 ## __AWS Database Migration Service__
   - ### Features
