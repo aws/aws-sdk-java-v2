@@ -23,39 +23,32 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class OperationWithDeprecatedMemberResponse extends JsonProtocolTestsResponse implements
-        ToCopyableBuilder<OperationWithDeprecatedMemberResponse.Builder, OperationWithDeprecatedMemberResponse> {
+                                                                                           ToCopyableBuilder<OperationWithDeprecatedMemberResponse.Builder, OperationWithDeprecatedMemberResponse> {
     private static final SdkField<String> MEMBER_MODELED_AS_DEPRECATED_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .memberName("MemberModeledAsDeprecated")
-            .getter(getter(OperationWithDeprecatedMemberResponse::memberModeledAsDeprecated))
-            .setter(setter(Builder::memberModeledAsDeprecated))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MemberModeledAsDeprecated").build())
-            .build();
+                                                                                       .memberName("MemberModeledAsDeprecated")
+                                                                                       .getter(getter(OperationWithDeprecatedMemberResponse::memberModeledAsDeprecated))
+                                                                                       .setter(setter(Builder::memberModeledAsDeprecated))
+                                                                                       .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MemberModeledAsDeprecated").build())
+                                                                                       .build();
 
     private static final SdkField<String> MEMBER_MODIFIED_AS_DEPRECATED_FIELD = SdkField
-            .<String> builder(MarshallingType.STRING)
-            .memberName("MemberModifiedAsDeprecated")
-            .getter(getter(OperationWithDeprecatedMemberResponse::memberModifiedAsDeprecated))
-            .setter(setter(Builder::memberModifiedAsDeprecated))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MemberModifiedAsDeprecated").build())
-            .build();
+        .<String> builder(MarshallingType.STRING)
+        .memberName("MemberModifiedAsDeprecated")
+        .getter(getter(OperationWithDeprecatedMemberResponse::memberModifiedAsDeprecated))
+        .setter(setter(Builder::memberModifiedAsDeprecated))
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("MemberModifiedAsDeprecated").build())
+        .build();
 
     private static final SdkField<String> UNDEPRECATED_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .memberName("UndeprecatedMember").getter(getter(OperationWithDeprecatedMemberResponse::undeprecatedMember))
-            .setter(setter(Builder::undeprecatedMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("UndeprecatedMember").build())
-            .build();
+                                                                              .memberName("UndeprecatedMember").getter(getter(OperationWithDeprecatedMemberResponse::undeprecatedMember))
+                                                                              .setter(setter(Builder::undeprecatedMember))
+                                                                              .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("UndeprecatedMember").build())
+                                                                              .build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(
-            MEMBER_MODELED_AS_DEPRECATED_FIELD, MEMBER_MODIFIED_AS_DEPRECATED_FIELD, UNDEPRECATED_MEMBER_FIELD));
+        MEMBER_MODELED_AS_DEPRECATED_FIELD, MEMBER_MODIFIED_AS_DEPRECATED_FIELD, UNDEPRECATED_MEMBER_FIELD));
 
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections
-            .unmodifiableMap(new HashMap<String, SdkField<?>>() {
-                {
-                    put("MemberModeledAsDeprecated", MEMBER_MODELED_AS_DEPRECATED_FIELD);
-                    put("MemberModifiedAsDeprecated", MEMBER_MODIFIED_AS_DEPRECATED_FIELD);
-                    put("UndeprecatedMember", UNDEPRECATED_MEMBER_FIELD);
-                }
-            });
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private final String memberModeledAsDeprecated;
 
@@ -72,7 +65,7 @@ public final class OperationWithDeprecatedMemberResponse extends JsonProtocolTes
 
     /**
      * Returns the value of the MemberModeledAsDeprecated property for this object.
-     * 
+     *
      * @return The value of the MemberModeledAsDeprecated property for this object.
      * @deprecated This field is modeled as deprecated.
      */
@@ -83,7 +76,7 @@ public final class OperationWithDeprecatedMemberResponse extends JsonProtocolTes
 
     /**
      * Returns the value of the MemberModifiedAsDeprecated property for this object.
-     * 
+     *
      * @return The value of the MemberModifiedAsDeprecated property for this object.
      */
     public final String memberModifiedAsDeprecated() {
@@ -92,7 +85,7 @@ public final class OperationWithDeprecatedMemberResponse extends JsonProtocolTes
 
     /**
      * Returns the value of the UndeprecatedMember property for this object.
-     * 
+     *
      * @return The value of the UndeprecatedMember property for this object.
      */
     public final String undeprecatedMember() {
@@ -140,8 +133,8 @@ public final class OperationWithDeprecatedMemberResponse extends JsonProtocolTes
         }
         OperationWithDeprecatedMemberResponse other = (OperationWithDeprecatedMemberResponse) obj;
         return Objects.equals(memberModeledAsDeprecated(), other.memberModeledAsDeprecated())
-                && Objects.equals(memberModifiedAsDeprecated(), other.memberModifiedAsDeprecated())
-                && Objects.equals(undeprecatedMember(), other.undeprecatedMember());
+               && Objects.equals(memberModifiedAsDeprecated(), other.memberModifiedAsDeprecated())
+               && Objects.equals(undeprecatedMember(), other.undeprecatedMember());
     }
 
     /**
@@ -151,21 +144,21 @@ public final class OperationWithDeprecatedMemberResponse extends JsonProtocolTes
     @Override
     public final String toString() {
         return ToString.builder("OperationWithDeprecatedMemberResponse")
-                .add("MemberModeledAsDeprecated", memberModeledAsDeprecated())
-                .add("MemberModifiedAsDeprecated", memberModifiedAsDeprecated()).add("UndeprecatedMember", undeprecatedMember())
-                .build();
+                       .add("MemberModeledAsDeprecated", memberModeledAsDeprecated())
+                       .add("MemberModifiedAsDeprecated", memberModifiedAsDeprecated()).add("UndeprecatedMember", undeprecatedMember())
+                       .build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "MemberModeledAsDeprecated":
-            return Optional.ofNullable(clazz.cast(memberModeledAsDeprecated()));
-        case "MemberModifiedAsDeprecated":
-            return Optional.ofNullable(clazz.cast(memberModifiedAsDeprecated()));
-        case "UndeprecatedMember":
-            return Optional.ofNullable(clazz.cast(undeprecatedMember()));
-        default:
-            return Optional.empty();
+            case "MemberModeledAsDeprecated":
+                return Optional.ofNullable(clazz.cast(memberModeledAsDeprecated()));
+            case "MemberModifiedAsDeprecated":
+                return Optional.ofNullable(clazz.cast(memberModifiedAsDeprecated()));
+            case "UndeprecatedMember":
+                return Optional.ofNullable(clazz.cast(undeprecatedMember()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -179,6 +172,14 @@ public final class OperationWithDeprecatedMemberResponse extends JsonProtocolTes
         return SDK_NAME_TO_FIELD;
     }
 
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("MemberModeledAsDeprecated", MEMBER_MODELED_AS_DEPRECATED_FIELD);
+        map.put("MemberModifiedAsDeprecated", MEMBER_MODIFIED_AS_DEPRECATED_FIELD);
+        map.put("UndeprecatedMember", UNDEPRECATED_MEMBER_FIELD);
+        return Collections.unmodifiableMap(map);
+    }
+
     private static <T> Function<Object, T> getter(Function<OperationWithDeprecatedMemberResponse, T> g) {
         return obj -> g.apply((OperationWithDeprecatedMemberResponse) obj);
     }
@@ -188,7 +189,7 @@ public final class OperationWithDeprecatedMemberResponse extends JsonProtocolTes
     }
 
     public interface Builder extends JsonProtocolTestsResponse.Builder, SdkPojo,
-            CopyableBuilder<Builder, OperationWithDeprecatedMemberResponse> {
+                                     CopyableBuilder<Builder, OperationWithDeprecatedMemberResponse> {
         /**
          * Sets the value of the MemberModeledAsDeprecated property for this object.
          *
