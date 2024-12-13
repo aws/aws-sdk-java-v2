@@ -19,36 +19,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import com.fasterxml.jackson.core.JsonGenerator;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.metrics.MetricRecord;
 
 import java.util.List;
 
 
 public class EmfMetricPublisherTest {
 
-    private EmfMetricPublisher.Builder PublisherBuilder;
-
-
-    @Mock
-    private JsonGenerator jsonGenerator;
-
-    @Mock
-    private MetricRecord metricRecord;
+    private EmfMetricPublisher.Builder publisherBuilder;
 
     @BeforeEach
     void setUp() {
-        PublisherBuilder = EmfMetricPublisher.builder().unitTest(true);
+        publisherBuilder = EmfMetricPublisher.builder().unitTest(true);
     }
 
     @Test
     void testConvertMetricCollectionToEMF_EmptyCollection(){
-        EmfMetricPublisher publisher = PublisherBuilder.logGroupName("my-log-group-name")
+        EmfMetricPublisher publisher = publisherBuilder.logGroupName("my-log-group-name")
                                                        .build();
 
         List<String> emfLogs = publisher.convertMetricCollectionToEMF(MetricCollector.create("test").collect());
@@ -62,7 +52,7 @@ public class EmfMetricPublisherTest {
 
     @Test
     void testConvertMetricCollectionToEMF_SingleMetric(){
-        EmfMetricPublisher publisher = PublisherBuilder.build();
+        EmfMetricPublisher publisher = publisherBuilder.build();
 
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
@@ -79,7 +69,7 @@ public class EmfMetricPublisherTest {
 
     @Test
     void testConvertMetricCollectionToEMF_MultipleMetrics(){
-        EmfMetricPublisher publisher = PublisherBuilder.dimensions(CoreMetric.SERVICE_ID)
+        EmfMetricPublisher publisher = publisherBuilder.dimensions(CoreMetric.SERVICE_ID)
                                                        .build();
 
         MetricCollector metricCollector = MetricCollector.create("test");
@@ -100,7 +90,7 @@ public class EmfMetricPublisherTest {
 
     @Test
     void testConvertMetricCollectionToEMF_Dimensions(){
-        EmfMetricPublisher publisher = PublisherBuilder.dimensions(CoreMetric.SERVICE_ID)
+        EmfMetricPublisher publisher = publisherBuilder.dimensions(CoreMetric.SERVICE_ID)
                                                        .build();
 
         MetricCollector metricCollector = MetricCollector.create("test");
@@ -118,7 +108,7 @@ public class EmfMetricPublisherTest {
 
     @Test
     void testConvertMetricCollectionToEMF_nonExistDimensions(){
-        EmfMetricPublisher publisher = PublisherBuilder.dimensions(CoreMetric.SERVICE_ID)
+        EmfMetricPublisher publisher = publisherBuilder.dimensions(CoreMetric.SERVICE_ID)
                                                        .build();
 
         MetricCollector metricCollector = MetricCollector.create("test");
@@ -129,7 +119,7 @@ public class EmfMetricPublisherTest {
 
     @Test
     void testConvertMetricCollectionToEMF_extraDimensions(){
-        EmfMetricPublisher publisher = PublisherBuilder.build();
+        EmfMetricPublisher publisher = publisherBuilder.build();
 
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(CoreMetric.SERVICE_ID, "ServiceId1234");
@@ -140,7 +130,7 @@ public class EmfMetricPublisherTest {
 
     @Test
     void testConvertMetricCollectionToEMF_metricCatagory(){
-        EmfMetricPublisher publisher = PublisherBuilder.metricCategories(MetricCategory.HTTP_CLIENT)
+        EmfMetricPublisher publisher = publisherBuilder.metricCategories(MetricCategory.HTTP_CLIENT)
                                                        .build();
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(CoreMetric.API_CALL_SUCCESSFUL, true);
@@ -158,7 +148,7 @@ public class EmfMetricPublisherTest {
 
     @Test
     void testConvertMetricCollectionToEMF_ChildCollections(){
-        EmfMetricPublisher publisher = PublisherBuilder.dimensions(CoreMetric.SERVICE_ID)
+        EmfMetricPublisher publisher = publisherBuilder.dimensions(CoreMetric.SERVICE_ID)
                                                        .build();
 
         MetricCollector metricCollector = MetricCollector.create("test");
@@ -180,7 +170,7 @@ public class EmfMetricPublisherTest {
 
     @Test
     void testConvertMetricCollectionToEMF_MultiChildCollections(){
-        EmfMetricPublisher publisher = PublisherBuilder.dimensions(CoreMetric.SERVICE_ID)
+        EmfMetricPublisher publisher = publisherBuilder.dimensions(CoreMetric.SERVICE_ID)
                                                        .build();
 
         MetricCollector metricCollector = MetricCollector.create("test");

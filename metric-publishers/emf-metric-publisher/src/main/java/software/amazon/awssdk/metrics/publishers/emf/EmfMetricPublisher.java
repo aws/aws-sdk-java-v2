@@ -69,7 +69,7 @@ import software.amazon.awssdk.utils.Logger;
  * collector.reportMetric(CoreMetric.SERVICE_ID, "ServiceId1234");
  * collector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
  *
- * List<String> emfLogs = publisher.convertMetricCollectionToEMF(collector.collect());
+ * List emfLogs = publisher.convertMetricCollectionToEMF(collector.collect());
  * </pre>
  *
  * <p>The generated EMF logs include:</p>
@@ -79,6 +79,8 @@ import software.amazon.awssdk.utils.Logger;
  *   <li>Namespace (defaults to "AwsSdk/JavaSdk2")</li>
  *   <li>CloudWatch Metrics directives that specify how to process the metrics</li>
  * </ul>
+ *
+ *
  */
 
 @ThreadSafe
@@ -144,8 +146,6 @@ public final class EmfMetricPublisher implements MetricPublisher {
     }
 
 
-
-
     public static Builder builder() {
         return new Builder();
     }
@@ -155,6 +155,18 @@ public final class EmfMetricPublisher implements MetricPublisher {
     }
 
 
+    /**
+     * Processes and normalizes metric values for EMF formatting.
+     *
+     * @param metricName  The name of the metric being processed
+     * @param metricValue The value of the metric to be processed, can be Boolean, Double, or a duration string
+     * @return Object containing the processed metric value:
+     *         - For null input: returns 0.0
+     *         - For Boolean: converts true to 1.0 and false to 0.0
+     *         - For duration values: converts to milliseconds
+     *         - For Double values: normalizes very small values (less than ZERO_THRESHOLD) to 0.0
+     *         - For other cases: returns the original value
+     */
     private Object processValue(String metricName, Object metricValue) {
         if (metricValue == null) {
             return 0.0;
@@ -180,6 +192,57 @@ public final class EmfMetricPublisher implements MetricPublisher {
         }
 
         return metricValue;
+    }
+
+    /**
+     * Converts a collection of SDK metrics into EMF (Embedded Metric Format) metrics.
+     * This method transforms standard SDK metric measurements into the EMF format
+     * that can be processed by CloudWatch.
+     *
+     * @param metricCollection The collection of SDK metrics to be converted to EMF format
+     * @return A list of EMF-formatted metrics ready for publishing to CloudWatch
+     *
+     * <p>The example emf string generated:</>
+     * <pre>
+        * { "_aws": { "Timestamp": 1672963200, "CloudWatchMetrics": [{ "Namespace": "AwsSdk/JavaSdk2", "Dimensions": [["ServiceId"]], "Metrics": [{ "Name": "AvailableConcurrency", "Unit": "Count" }] }] }, "ServiceId": "XXXXXXXXXXXXX", "AvailableConcurrency": 5 }
+     * </pre>
+     */
+    public List<String> convertMetricCollectionToEMF(MetricCollection metricCollection) {
+        // Map to store aggregated metrics
+        Map<String, List<Object>> aggregatedMetrics = new HashMap<>();
+
+        // Process metrics using level-order traversal
+        Queue<MetricCollection> queue = new LinkedList<>();
+        queue.offer(metricCollection);
+
+        while (!queue.isEmpty()) {
+            MetricCollection current = queue.poll();
+
+            // Process all metrics in current collection
+            current.stream().forEach(record -> {
+                String metricName = record.metric().name();
+                Object metricValue = record.value();
+
+                // Store dimension and metric name for later use in Metrics array
+                if (isDimension(metricName)) {
+                    realDimensionStrings.add(metricName);
+                }
+
+                // Add value to aggregated metrics
+                if(shouldReport(record) || isDimension(metricName)){
+                    aggregatedMetrics.computeIfAbsent(metricName, k -> new ArrayList<>())
+                                     .add(metricValue);
+                }
+
+            });
+
+            // Add children to queue
+            if (current.children() != null) {
+                queue.addAll(current.children());
+            }
+        }
+
+        return createEmfStrings(aggregatedMetrics);
     }
 
     private List<String> createEmfStrings(Map<String, List<Object>> aggregatedMetrics) {
@@ -319,45 +382,6 @@ public final class EmfMetricPublisher implements MetricPublisher {
     }
 
 
-
-public List<String> convertMetricCollectionToEMF(MetricCollection metricCollection) {
-    // Map to store aggregated metrics
-    Map<String, List<Object>> aggregatedMetrics = new HashMap<>();
-
-    // Process metrics using level-order traversal
-    Queue<MetricCollection> queue = new LinkedList<>();
-    queue.offer(metricCollection);
-
-    while (!queue.isEmpty()) {
-        MetricCollection current = queue.poll();
-
-        // Process all metrics in current collection
-        current.stream().forEach(record -> {
-            if(!shouldReport(record)){
-                return;
-            }
-            String metricName = record.metric().name();
-            Object metricValue = record.value();
-
-            // Store dimension and metric name for later use in Metrics array
-            if (isDimension(metricName)) {
-                realDimensionStrings.add(metricName);
-            }
-
-            // Add value to aggregated metrics
-            aggregatedMetrics.computeIfAbsent(metricName, k -> new ArrayList<>())
-                             .add(metricValue);
-        });
-
-        // Add children to queue
-        if (current.children() != null) {
-            queue.addAll(current.children());
-        }
-    }
-
-    return createEmfStrings(aggregatedMetrics);
-}
-
     private boolean isDimension(String metricName) {
         return metricName != null && dimensionStrings.contains(metricName);
     }
@@ -429,6 +453,13 @@ public List<String> convertMetricCollectionToEMF(MetricCollection metricCollecti
             return this;
         }
 
+        /**
+         * Configure the {@link SdkMetric} that are used to define the Dimension Set Array that will be put into the emf log to
+         * this
+         * publisher.
+         *
+         * <p>If this is not specified, [] will be used.
+         */
         public Builder dimensions(Collection<SdkMetric<String>> dimensions) {
             this.dimensions = new ArrayList<>(dimensions);
             return this;
@@ -439,30 +470,76 @@ public List<String> convertMetricCollectionToEMF(MetricCollection metricCollecti
             return dimensions(Arrays.asList(dimensions));
         }
 
+
+        /**
+         * Configure the {@link MetricCategory}s that should be uploaded to CloudWatch.
+         *
+         * <p>If this is not specified, {@link MetricCategory#ALL} is used.
+         *
+         * <p>All {@link SdkMetric}s are associated with at least one {@code MetricCategory}. This setting determines which
+         * category of metrics uploaded to CloudWatch. Any metrics {@link #publish(MetricCollection)}ed that do not fall under
+         * these configured categories are ignored.
+         *
+         * <p>Note: If there are {@link #dimensions(Collection)} configured that do not fall under these {@code MetricCategory}
+         * values, the dimensions will NOT be ignored. In other words, the metric category configuration only affects which
+         * metrics are uploaded to CloudWatch, not which values can be used for {@code dimensions}.
+         */
         public Builder metricCategories(Collection<MetricCategory> metricCategories) {
             this.metricCategories = new ArrayList<>(metricCategories);
             return this;
         }
 
+        /**
+         * @see #metricCategories(Collection)
+         */
         public Builder metricCategories(MetricCategory... metricCategories) {
             return metricCategories(Arrays.asList(metricCategories));
         }
 
+        /**
+         * Configure the {@link MetricLevel} that should be uploaded to CloudWatch.
+         *
+         * <p>If this is not specified, {@link MetricLevel#INFO} is used.
+         *
+         * <p>All {@link SdkMetric}s are associated with one {@code MetricLevel}. This setting determines which level of metrics
+         * uploaded to CloudWatch. Any metrics {@link #publish(MetricCollection)}ed that do not fall under these configured
+         * categories are ignored.
+         *
+         * <p>Note: If there are {@link #dimensions(Collection)} configured that do not fall under this {@code MetricLevel}
+         * values, the dimensions will NOT be ignored. In other words, the metric category configuration only affects which
+         * metrics are uploaded to CloudWatch, not which values can be used for {@code dimensions}.
+         */
         public Builder metricLevel(MetricLevel metricLevel) {
             this.metricLevel = metricLevel;
             return this;
         }
 
+        /**
+         * Configure the LogGroupName key that will be put into the emf log to this publisher. This is a required key for
+         * using the CloudWatch agent to send embedded metric format logs that tells the agent which log group to use.
+         *
+         * <p>If this is not specified, {@code /aws/emf/metrics} will be used.
+         */
         public Builder logGroupName(String logGroupName) {
             this.logGroupName = logGroupName;
             return this;
         }
 
+
+        /**
+         * Configure the unitTest field to the publisher. It tells the publisher if this publisher is used in unit test.
+         * If so, it will use a fixed timestamp when generating emf string instead of the current time.
+         *
+         * <p>If this is not specified, {@code false} will be used.
+         */
         public Builder unitTest(boolean unitTest) {
             this.unitTest = unitTest;
             return this;
         }
 
+        /**
+         * Build a {@link EmfMetricPublisher} using the configuration currently configured on this publisher.
+         */
         public EmfMetricPublisher build() {
             // if (this.logGroupName == null || this.logGroupName.trim().isEmpty()) {
             //     throw new IllegalStateException("logGroupName is required");
