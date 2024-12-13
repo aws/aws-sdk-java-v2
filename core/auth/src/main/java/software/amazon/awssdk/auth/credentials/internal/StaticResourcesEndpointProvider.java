@@ -30,7 +30,7 @@ import software.amazon.awssdk.utils.Validate;
 public final class StaticResourcesEndpointProvider implements ResourcesEndpointProvider {
     private final URI endpoint;
     private final Map<String, String> headers;
-    private final Optional<Duration> connectionTimeout;
+    private final Duration connectionTimeout;
 
     private StaticResourcesEndpointProvider(URI endpoint,
                                            Map<String, String> additionalHeaders,
@@ -40,12 +40,12 @@ public final class StaticResourcesEndpointProvider implements ResourcesEndpointP
         if (additionalHeaders != null) {
             this.headers.putAll(additionalHeaders);
         }
-        this.connectionTimeout = Optional.ofNullable(customTimeout);
+        this.connectionTimeout = customTimeout;
     }
 
     @Override
     public Optional<Duration> connectionTimeout() {
-        return connectionTimeout;
+        return Optional.ofNullable(connectionTimeout);
     }
 
     @Override

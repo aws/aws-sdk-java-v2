@@ -124,9 +124,9 @@ class Ec2MetadataServiceTimeoutResolverTest {
 
         setUpSystemSettings(systemProperty);
 
-        Ec2MetadataServiceTimeoutResolver resolver =
-            Ec2MetadataServiceTimeoutResolver.create(() -> profileFile, "test");
-        assertThat(resolver.resolve()).isEqualTo(expected);
+        Ec2MetadataConfigProvider resolver =
+            Ec2MetadataConfigProvider.builder().profileFile(() -> profileFile).profileName("test").build();
+        assertThat(resolver.serviceTimeout()).isEqualTo(expected);
     }
 
     @ParameterizedTest(name = "{index} - sys:{0}, cfg:{1}")
@@ -134,9 +134,9 @@ class Ec2MetadataServiceTimeoutResolverTest {
     void resolveTimeoutValue_whenInvalid_throws(String systemProperty, ProfileFile profileFile) {
         setUpSystemSettings(systemProperty);
 
-        Ec2MetadataServiceTimeoutResolver resolver =
-            Ec2MetadataServiceTimeoutResolver.create(() -> profileFile, "test");
-        assertThatThrownBy(resolver::resolve)
+        Ec2MetadataConfigProvider resolver =
+            Ec2MetadataConfigProvider.builder().profileFile(() -> profileFile).profileName("test").build();
+        assertThatThrownBy(resolver::serviceTimeout)
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("is not a valid integer or double");
     }
@@ -157,11 +157,11 @@ class Ec2MetadataServiceTimeoutResolverTest {
         }
 
         // Create the resolver
-        Ec2MetadataServiceTimeoutResolver resolver =
-            Ec2MetadataServiceTimeoutResolver.create(() -> profileFile, "test");
+        Ec2MetadataConfigProvider resolver =
+            Ec2MetadataConfigProvider.builder().profileFile(() -> profileFile).profileName("test").build();
 
         // Verify the resolved value
-        assertThat(resolver.resolve()).isEqualTo(expected);
+        assertThat(resolver.serviceTimeout()).isEqualTo(expected);
 
         // Clean up the system property
         System.clearProperty(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT.property());
@@ -182,12 +182,12 @@ class Ec2MetadataServiceTimeoutResolverTest {
             ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT, environmentVariable);
         }
 
-        // Create the resolver
-        Ec2MetadataServiceTimeoutResolver resolver =
-            Ec2MetadataServiceTimeoutResolver.create(() -> profileFile, "test");
+        // Create the configProvider
+        Ec2MetadataConfigProvider configProvider =
+            Ec2MetadataConfigProvider.builder().profileFile(() -> profileFile).profileName("test").build();
 
         // Verify exception is thrown
-        assertThatThrownBy(resolver::resolve)
+        assertThatThrownBy(configProvider::serviceTimeout)
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("is not a valid integer or double");
 
