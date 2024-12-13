@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudWatch Logs",
-    "contributor": "",
-    "description": "Limit PutIntegration IntegrationName and ListIntegrations IntegrationNamePrefix parameters to 50 characters"
-}
