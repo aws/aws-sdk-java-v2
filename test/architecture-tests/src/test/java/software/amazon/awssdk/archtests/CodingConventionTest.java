@@ -49,7 +49,7 @@ import java.util.concurrent.Future;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
-@AnalyzeClasses(packages = "software.amazon.awssdk..",
+@AnalyzeClasses(packages = "software.amazon.awssdk",
     importOptions = ImportOption.DoNotIncludeTests.class)
 @ArchIgnore
 public class CodingConventionTest {

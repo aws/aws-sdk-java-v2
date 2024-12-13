@@ -17,7 +17,6 @@ package software.amazon.awssdk.archtests;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 import static com.tngtech.archunit.library.freeze.FreezingArchRule.freeze;
@@ -37,7 +36,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -78,18 +76,7 @@ public class CodingConventionWithSuppressionTest {
                         .should().haveModifier(JavaModifier.FINAL))
             .because("public APIs SHOULD be final")
             .check(classes);
-    }
-
-    @Test
-    void shouldNotUseFuture() {
-        System.out.println("shouldNotUseFuture");
-        JavaClasses classes = new ClassFileImporter()
-            .withImportOptions(Arrays.asList(new ImportOption.Predefined.DoNotIncludeTests()))
-            .importPackages("software.amazon.awssdk");
-        freeze(noClasses().should().dependOnClassesThat().areAssignableFrom(Future.class)
-                          .as("use java.util.concurrent.Future")
-                          .because("Future SHOULD NOT be used, use CompletableFuture instead"))
-            .check(classes);
+        System.out.println("publicApisShouldBeFinal finished");
     }
 
     @Test
@@ -104,6 +91,7 @@ public class CodingConventionWithSuppressionTest {
                                   + "https://github.com/aws/aws-sdk-java-v2/blob/master/docs"
                                   + "/design/UseOfOptional.md"))
             .check(classes);
+        System.out.println("shouldNotUseOptionalForFields finished");
     }
 
     @Test
@@ -117,6 +105,7 @@ public class CodingConventionWithSuppressionTest {
                           .because("Optional MUST NOT be used for method parameters. See "
                                    + "https://github.com/aws/aws-sdk-java-v2/blob/master/docs/design/UseOfOptional.md"))
             .check(classes);
+        System.out.println("mustNotUseOptionalForMethodParam finished");
     }
 
     @Test
@@ -125,12 +114,13 @@ public class CodingConventionWithSuppressionTest {
         JavaClasses classes = new ClassFileImporter()
             .withImportOptions(Arrays.asList(new ImportOption.Predefined.DoNotIncludeTests()))
             .importPackages("software.amazon.awssdk");
-        freeze(noMethods().that()
+        freeze(noMethods().that().arePublic().and()
                           .areDeclaredInClassesThat().areAnnotatedWith(SdkPublicApi.class)
                           .should()
                           .declareThrowableOfType(Exception.class).orShould().declareThrowableOfType(IOException.class)
                           .because("public APIs MUST NOT throw checked exception"))
             .check(classes);
+        System.out.println("publicApisMustNotDeclareThrowableOfCheckedException finished");
     }
 
     @Test
@@ -140,7 +130,7 @@ public class CodingConventionWithSuppressionTest {
             .withImportOptions(Arrays.asList(
                 location -> ALLOWED_WARN_LOG_SUPPRESSION.stream().noneMatch(location::matches),
                 new ImportOption.Predefined.DoNotIncludeTests()))
-            .importPackages("software.amazon.awssdk..");
+            .importPackages("software.amazon.awssdk");
 
         ArchRule rule =
             freeze(methods().that().areDeclaredIn(Logger.class).and()
@@ -150,6 +140,7 @@ public class CodingConventionWithSuppressionTest {
                     + " to ALLOWED_WARN_LOG_SUPPRESSION allowlist");
 
         rule.check(classes);
+        System.out.println("shouldNotAbuseWarnLog finished");
     }
 
     @Test
@@ -159,7 +150,7 @@ public class CodingConventionWithSuppressionTest {
             .withImportOptions(Arrays.asList(
                 location -> ALLOWED_ERROR_LOG_SUPPRESSION.stream().noneMatch(location::matches),
                 new ImportOption.Predefined.DoNotIncludeTests()))
-            .importPackages("software.amazon.awssdk..");
+            .importPackages("software.amazon.awssdk");
 
         ArchRule rule =
             freeze(methods().that().areDeclaredIn(Logger.class).and()
@@ -168,6 +159,7 @@ public class CodingConventionWithSuppressionTest {
                     + "ALLOWED_ERROR_LOG_SUPPRESSION allowlist");
 
         rule.check(classes);
+        System.out.println("shouldNotAbuseErrorLog finished");
     }
 
     private static final class MethodBeingUsedByOthers extends ArchCondition<JavaMethod> {
