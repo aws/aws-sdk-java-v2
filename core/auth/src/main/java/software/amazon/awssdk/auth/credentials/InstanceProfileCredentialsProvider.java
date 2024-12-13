@@ -281,7 +281,6 @@ public final class InstanceProfileCredentialsProvider
     }
 
     private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {
-
         ResourcesEndpointProvider securityCredentialsEndpoint =
             StaticResourcesEndpointProvider.builder()
                                            .endpoint(URI.create(imdsHostname + SECURITY_CREDENTIALS_RESOURCE))

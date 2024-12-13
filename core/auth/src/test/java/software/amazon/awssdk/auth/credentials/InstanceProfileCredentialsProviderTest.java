@@ -138,7 +138,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_usesTokenByDefault() {
+    void resolveCredentials_usesTokenByDefault() {
         stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
         InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
         AwsCredentials credentials = provider.resolveCredentials();
@@ -149,7 +149,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_WhenConnectionDelaySetToHighValue() {
+    void resolveCredentials_WhenConnectionDelaySetToHighValue() {
         environmentVariableHelper.set(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT, "10");
         stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS).withFixedDelay(3000));
         InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
@@ -161,7 +161,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentialsFails_WhenConnectionDelaySetToHighValue_ForDefaultConnectionTimeoutValue() {
+    void resolveCredentialsFails_WhenConnectionDelaySetToHighValue_ForDefaultConnectionTimeoutValue() {
         stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS).withFixedDelay(1100));
         InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
         assertThatExceptionOfType(SdkClientException.class).isThrownBy(() -> provider.resolveCredentials())
@@ -192,7 +192,7 @@ public class InstanceProfileCredentialsProviderTest {
 
     @ParameterizedTest
     @ValueSource(ints = {403, 404, 405})
-    public void resolveCredentials_queriesTokenResource_40xError_fallbackToInsecure(int statusCode) {
+    void resolveCredentials_queriesTokenResource_40xError_fallbackToInsecure(int statusCode) {
         stubTokenFetchErrorResponse(aResponse().withBody(STUB_CREDENTIALS), statusCode);
         InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
         provider.resolveCredentials();
@@ -200,7 +200,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_queriesTokenResource_socketTimeout_fallbackToInsecure() {
+    void resolveCredentials_queriesTokenResource_socketTimeout_fallbackToInsecure() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token").withFixedDelay(Integer.MAX_VALUE)));
         stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody(PROFILE_NAME)));
         stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + PROFILE_NAME)).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
@@ -212,7 +212,7 @@ public class InstanceProfileCredentialsProviderTest {
 
     @ParameterizedTest
     @ValueSource(ints = {403, 404, 405})
-    public void resolveCredentials_fallbackToInsecureDisabledThroughProperty_throwsWhenTokenFails(int statusCode) {
+    void resolveCredentials_fallbackToInsecureDisabledThroughProperty_throwsWhenTokenFails(int statusCode) {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property(), "true");
         stubTokenFetchErrorResponse(aResponse().withBody(STUB_CREDENTIALS), statusCode);
         try {
@@ -229,7 +229,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_fallbackToInsecureDisabledThroughProperty_returnsCredentialsWhenTokenReturned() {
+    void resolveCredentials_fallbackToInsecureDisabledThroughProperty_returnsCredentialsWhenTokenReturned() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.property(), "true");
         stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
         try {
@@ -260,7 +260,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_fallbackToInsecureDisabledThroughConfig_returnsCredentialsWhenTokenReturned() {
+    void resolveCredentials_fallbackToInsecureDisabledThroughConfig_returnsCredentialsWhenTokenReturned() {
         stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
         InstanceProfileCredentialsProvider.builder()
                                           .profileFile(configFile("profile test", Pair.of(ProfileProperty.EC2_METADATA_V1_DISABLED, "true")))
@@ -271,7 +271,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_fallbackToInsecureEnabledThroughConfig_returnsCredentialsWhenTokenReturned() {
+    void resolveCredentials_fallbackToInsecureEnabledThroughConfig_returnsCredentialsWhenTokenReturned() {
         stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
         InstanceProfileCredentialsProvider.builder()
                                           .profileFile(configFile("profile test",
@@ -283,7 +283,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_queriesTokenResource_400Error_throws() {
+    void resolveCredentials_queriesTokenResource_400Error_throws() {
         stubTokenFetchErrorResponse(aResponse().withBody(STUB_CREDENTIALS), 400);
 
         assertThatThrownBy(() ->  InstanceProfileCredentialsProvider.builder().build().resolveCredentials())
@@ -291,21 +291,21 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_endpointSettingEmpty_throws() {
+    void resolveCredentials_endpointSettingEmpty_throws() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "");
         assertThatThrownBy(() ->  InstanceProfileCredentialsProvider.builder().build().resolveCredentials())
             .isInstanceOf(SdkClientException.class).hasMessage("Failed to load credentials from IMDS.");
     }
 
     @Test
-    public void resolveCredentials_endpointSettingHostNotExists_throws() {
+    void resolveCredentials_endpointSettingHostNotExists_throws() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "some-host-that-does-not-exist");
         assertThatThrownBy(() ->  InstanceProfileCredentialsProvider.builder().build().resolveCredentials())
             .isInstanceOf(SdkClientException.class).hasMessage("Failed to load credentials from IMDS.");
     }
 
     @Test
-    public void resolveCredentials_metadataLookupDisabled_throws() {
+    void resolveCredentials_metadataLookupDisabled_throws() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property(), "true");
         try {
             assertThatThrownBy(() ->  InstanceProfileCredentialsProvider.builder().build().resolveCredentials())
@@ -317,7 +317,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_customProfileFileAndName_usesCorrectEndpoint() {
+    void resolveCredentials_customProfileFileAndName_usesCorrectEndpoint() {
         WireMockServer mockMetadataEndpoint_2 = new WireMockServer(WireMockConfiguration.options().dynamicPort());
         mockMetadataEndpoint_2.start();
         try {
@@ -349,7 +349,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_customProfileFileSupplierAndNameSettingEndpointOverride_usesCorrectEndpointFromSupplier() {
+   void resolveCredentials_customProfileFileSupplierAndNameSettingEndpointOverride_usesCorrectEndpointFromSupplier() {
         System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
         WireMockServer mockMetadataEndpoint_2 = new WireMockServer(WireMockConfiguration.options().dynamicPort());
         mockMetadataEndpoint_2.start();
@@ -393,7 +393,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_customSupplierProfileFileAndNameSettingEndpointOverride_usesCorrectEndpointFromSupplier() {
+    void resolveCredentials_customSupplierProfileFileAndNameSettingEndpointOverride_usesCorrectEndpointFromSupplier() {
         System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
         WireMockServer mockMetadataEndpoint_2 = new WireMockServer(WireMockConfiguration.options().dynamicPort());
         mockMetadataEndpoint_2.start();
@@ -435,7 +435,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_doesNotFailIfImdsReturnsExpiredCredentials() {
+    void resolveCredentials_doesNotFailIfImdsReturnsExpiredCredentials() {
         String credentialsResponse =
             "{"
             + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
@@ -452,7 +452,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_onlyCallsImdsOnceEvenWithExpiredCredentials() {
+    void resolveCredentials_onlyCallsImdsOnceEvenWithExpiredCredentials() {
         String credentialsResponse =
             "{"
             + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
@@ -477,7 +477,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_failsIfImdsReturns500OnFirstCall() {
+    void resolveCredentials_failsIfImdsReturns500OnFirstCall() {
         String errorMessage = "XXXXX";
         String credentialsResponse =
             "{"
@@ -494,7 +494,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_usesCacheIfImdsFailsOnSecondCall() {
+    void resolveCredentials_usesCacheIfImdsFailsOnSecondCall() {
         AdjustableClock clock = new AdjustableClock();
         AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
         String successfulCredentialsResponse =
@@ -518,7 +518,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_callsImdsIfCredentialsWithin5MinutesOfExpiration() {
+    void resolveCredentials_callsImdsIfCredentialsWithin5MinutesOfExpiration() {
         AdjustableClock clock = new AdjustableClock();
         AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
         Instant now = Instant.now();
@@ -558,7 +558,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    public void imdsCallFrequencyIsLimited() {
+    void imdsCallFrequencyIsLimited() {
         // Requires running the test multiple times to account for refresh jitter
         for (int i = 0; i < 10; i++) {
             AdjustableClock clock = new AdjustableClock();

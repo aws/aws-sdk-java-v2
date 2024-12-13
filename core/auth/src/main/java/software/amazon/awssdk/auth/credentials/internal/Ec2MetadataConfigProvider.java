@@ -47,7 +47,6 @@ public final class Ec2MetadataConfigProvider {
     private final Lazy<Boolean> metadataV1Disabled;
     private final Lazy<Long> serviceTimeout;
 
-
     private Ec2MetadataConfigProvider(Builder builder) {
         this.profileFile = builder.profileFile;
         this.profileName = builder.profileName;

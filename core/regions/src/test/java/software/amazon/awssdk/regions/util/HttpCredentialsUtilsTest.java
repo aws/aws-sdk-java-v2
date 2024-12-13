@@ -51,14 +51,6 @@ public class HttpCredentialsUtilsTest {
     private static final String SUCCESS_BODY = "{\"AccessKeyId\":\"ACCESS_KEY_ID\",\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
                                                + "\"Token\":\"TOKEN_TOKEN_TOKEN\",\"Expiration\":\"3000-05-03T04:55:54Z\"}";
     private static URI endpoint;
-    private static Map<String, String> headers = new HashMap<String, String>()
-    {
-        {
-            put("User-Agent", SdkUserAgent.create().userAgent());
-            put("Accept", "*/*");
-            put("Connection", "keep-alive");
-        }
-    };
 
     private static CustomRetryPolicy customRetryPolicy;
 
