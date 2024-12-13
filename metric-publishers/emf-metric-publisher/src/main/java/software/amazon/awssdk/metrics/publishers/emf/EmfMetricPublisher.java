@@ -45,6 +45,42 @@ import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonGenerator;
 import software.amazon.awssdk.utils.Logger;
 
+/**
+ * A metric publisher implementation that converts metrics into CloudWatch Embedded Metric Format (EMF).
+ * EMF allows metrics to be published through CloudWatch Logs using a structured JSON format, which
+ * CloudWatch automatically extracts and processes into metrics.
+ *
+ * <p>This publisher is particularly well-suited for serverless environments like AWS Lambda and container
+ * environments like Amazon ECS that have built-in integration with CloudWatch Logs. Using EMF eliminates
+ * the need for separate metric publishing infrastructure as metrics are automatically extracted from
+ * log entries.</p>
+ *
+ * <p>The EMF publisher converts metric collections into JSON-formatted log entries that conform to the
+ * CloudWatch EMF specification. These logs are written to the "/aws/emf/metrics" log group by default.
+ * CloudWatch automatically processes these logs to generate corresponding metrics that can be used for
+ * monitoring and alerting.</p>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * EmfMetricPublisher publisher = PublisherBuilder.dimensions(CoreMetric.SERVICE_ID)
+ *                                               .build();
+ *
+ * MetricCollector collector = MetricCollector.create("test");
+ * collector.reportMetric(CoreMetric.SERVICE_ID, "ServiceId1234");
+ * collector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+ *
+ * List<String> emfLogs = publisher.convertMetricCollectionToEMF(collector.collect());
+ * </pre>
+ *
+ * <p>The generated EMF logs include:</p>
+ * <ul>
+ *   <li>Metric values and their associated dimensions</li>
+ *   <li>Timestamp information</li>
+ *   <li>Namespace (defaults to "AwsSdk/JavaSdk2")</li>
+ *   <li>CloudWatch Metrics directives that specify how to process the metrics</li>
+ * </ul>
+ */
+
 @ThreadSafe
 @Immutable
 @SdkPublicApi
