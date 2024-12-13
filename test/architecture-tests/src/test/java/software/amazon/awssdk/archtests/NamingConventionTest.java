@@ -22,14 +22,9 @@ import static com.tngtech.archunit.library.freeze.FreezingArchRule.freeze;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
 import software.amazon.awssdk.awscore.presigner.SdkPresigner;
 
-@AnalyzeClasses(packages = "software.amazon.awssdk..")
+@AnalyzeClasses(packages = "software.amazon.awssdk")
 public class NamingConventionTest {
 
     @ArchTest
