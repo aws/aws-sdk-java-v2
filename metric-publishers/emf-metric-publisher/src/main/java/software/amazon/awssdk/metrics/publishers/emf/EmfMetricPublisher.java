@@ -94,7 +94,6 @@ public final class EmfMetricPublisher implements MetricPublisher {
     private static final MetricLevel DEFAULT_METRIC_LEVEL = MetricLevel.INFO;
     private static final double ZERO_THRESHOLD = 0.0001;
     private static final Logger logger = Logger.loggerFor("software.amazon.awssdk.metrics.publishers.emf");
-    // private final Level logLevel;
     private final String namespace;
     private final String logGroupName;
     private final Collection<SdkMetric<String>> dimensions;
@@ -219,9 +218,9 @@ public final class EmfMetricPublisher implements MetricPublisher {
             MetricCollection current = queue.poll();
 
             // Process all metrics in current collection
-            current.stream().forEach(record -> {
-                String metricName = record.metric().name();
-                Object metricValue = record.value();
+            current.stream().forEach(r -> {
+                String metricName = r.metric().name();
+                Object metricValue = r.value();
 
                 // Store dimension and metric name for later use in Metrics array
                 if (isDimension(metricName)) {
@@ -229,7 +228,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
                 }
 
                 // Add value to aggregated metrics
-                if(shouldReport(record) || isDimension(metricName)){
+                if(shouldReport(r) || isDimension(metricName)){
                     aggregatedMetrics.computeIfAbsent(metricName, k -> new ArrayList<>())
                                      .add(metricValue);
                 }
@@ -541,9 +540,6 @@ public final class EmfMetricPublisher implements MetricPublisher {
          * Build a {@link EmfMetricPublisher} using the configuration currently configured on this publisher.
          */
         public EmfMetricPublisher build() {
-            // if (this.logGroupName == null || this.logGroupName.trim().isEmpty()) {
-            //     throw new IllegalStateException("logGroupName is required");
-            // }
             return new EmfMetricPublisher(this);
         }
 
