@@ -89,7 +89,7 @@ class EndpointProviderConnectionTimeoutTest {
         String values = Arrays.stream(pairs)
                               .map(pair -> String.format("%s=%s", pair.left(), pair.right()))
                               .collect(Collectors.joining(System.lineSeparator()));
-        String contents = String.format("[%s]\n%s", name, values);
+        String contents = String.format("[%s]%n%s", name, values);
 
         return ProfileFile.builder()
                           .content(new StringInputStream(contents))

@@ -98,8 +98,8 @@ class Ec2MetadataServiceTimeoutResolverTest {
     private static ProfileFile configFile(String name, Pair<?, ?>... pairs) {
         String values = Arrays.stream(pairs)
                               .map(pair -> String.format("%s=%s", pair.left(), pair.right()))
-                              .collect(Collectors.joining(System.lineSeparator()));
-        String contents = String.format("[%s]\n%s", name, values);
+                              .collect(Collectors.joining(String.format("%n")));
+        String contents = String.format("[%s]%n%s", name, values);
 
         return configFile(contents);
     }

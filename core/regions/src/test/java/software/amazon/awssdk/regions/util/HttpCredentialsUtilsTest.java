@@ -18,7 +18,6 @@ package software.amazon.awssdk.regions.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -26,8 +25,6 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -37,8 +34,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.internal.StaticClientEndpointProvider;
-import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.regions.internal.util.ConnectionUtils;
 import software.amazon.awssdk.regions.internal.util.SocketUtils;
 

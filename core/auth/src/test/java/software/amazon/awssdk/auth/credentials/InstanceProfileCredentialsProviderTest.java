@@ -162,11 +162,14 @@ public class InstanceProfileCredentialsProviderTest {
 
     @Test
     void resolveCredentialsFails_WhenConnectionDelaySetToHighValue_ForDefaultConnectionTimeoutValue() {
-        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS).withFixedDelay(1100));
-        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
-        assertThatExceptionOfType(SdkClientException.class).isThrownBy(() -> provider.resolveCredentials())
-                                                           .withRootCauseExactlyInstanceOf(SocketTimeoutException.class);
 
+        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS).withFixedDelay(1100));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+
+        assertThatExceptionOfType(SdkClientException.class)
+            .isThrownBy(provider::resolveCredentials)
+            .withRootCauseExactlyInstanceOf(SocketTimeoutException.class);
     }
 
     @Test
