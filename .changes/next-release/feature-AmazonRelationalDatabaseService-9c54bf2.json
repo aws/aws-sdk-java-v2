@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "This release adds support for the \"MYSQL_CACHING_SHA2_PASSWORD\" enum value for RDS Proxy ClientPasswordAuthType."
-}

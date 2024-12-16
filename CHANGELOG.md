@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.35__ __2024-12-16__
+## __AWS Cloud9__
+  - ### Features
+    - Added information about Ubuntu 18.04 will be removed from the available imageIds for Cloud9 because Ubuntu 18.04 has ended standard support on May 31, 2023.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive adds three new features: MediaPackage v2 endpoint support for live stream delivery, KLV metadata passthrough in CMAF Ingest output groups, and Metadata Name Modifier in CMAF Ingest output groups for customizing metadata track names in output streams.
+
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - Add support for runtime in GetCoreDevice and ListCoreDevices APIs.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - This release adds support for Local Zones in Amazon Data Lifecycle Manager EBS snapshot lifecycle policies.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for EBS local snapshots in AWS Dedicated Local Zones, which allows you to store snapshots of EBS volumes locally in Dedicated Local Zones.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for the "MYSQL_CACHING_SHA2_PASSWORD" enum value for RDS Proxy ClientPasswordAuthType.
+
 # __2.29.34__ __2024-12-13__
 ## __AWS Cloud Map__
   - ### Features
