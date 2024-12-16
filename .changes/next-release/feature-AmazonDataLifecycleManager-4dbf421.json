@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Data Lifecycle Manager",
+    "contributor": "",
+    "description": "This release adds support for Local Zones in Amazon Data Lifecycle Manager EBS snapshot lifecycle policies."
+}
