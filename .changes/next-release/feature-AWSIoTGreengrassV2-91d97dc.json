@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Greengrass V2",
+    "contributor": "",
+    "description": "Add support for runtime in GetCoreDevice and ListCoreDevices APIs."
+}
