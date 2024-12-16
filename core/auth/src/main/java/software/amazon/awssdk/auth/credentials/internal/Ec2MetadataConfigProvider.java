@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.auth.credentials.internal;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -24,6 +25,8 @@ import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
+import software.amazon.awssdk.utils.Lazy;
+import software.amazon.awssdk.utils.OptionalUtils;
 
 @SdkInternalApi
 // TODO: Remove or consolidate this class with the one from the regions module.
@@ -41,9 +44,14 @@ public final class Ec2MetadataConfigProvider {
     private final Supplier<ProfileFile> profileFile;
     private final String profileName;
 
+    private final Lazy<Boolean> metadataV1Disabled;
+    private final Lazy<Long> serviceTimeout;
+
     private Ec2MetadataConfigProvider(Builder builder) {
         this.profileFile = builder.profileFile;
         this.profileName = builder.profileName;
+        this.metadataV1Disabled = new Lazy<>(this::resolveMetadataV1Disabled);
+        this.serviceTimeout = new Lazy<>(this::resolveServiceTimeout);
     }
 
     public enum EndpointMode {
@@ -102,6 +110,84 @@ public final class Ec2MetadataConfigProvider {
         Optional<String> configFileValue = configFileEndpointOverride();
 
         return configFileValue.orElse(null);
+    }
+
+    /**
+     * Resolves whether EC2 Metadata V1 is disabled.
+     * @return true if EC2 Metadata V1 is disabled, false otherwise.
+     */
+    public boolean isMetadataV1Disabled() {
+        return metadataV1Disabled.getValue();
+    }
+
+    /**
+     * Resolves the EC2 Metadata Service Timeout in milliseconds.
+     * @return the timeout value in milliseconds.
+     */
+    public long serviceTimeout() {
+        return serviceTimeout.getValue();
+    }
+
+    // Internal resolution logic for Metadata V1 disabled
+    private boolean resolveMetadataV1Disabled() {
+        return OptionalUtils.firstPresent(
+                                fromSystemSettingsMetadataV1Disabled(),
+                                () -> fromProfileFileMetadataV1Disabled(profileFile, profileName)
+                            )
+                            .orElse(false);
+    }
+
+    // Internal resolution logic for Service Timeout
+    private long resolveServiceTimeout() {
+        return OptionalUtils.firstPresent(
+                                fromSystemSettingsServiceTimeout(),
+                                () -> fromProfileFileServiceTimeout(profileFile, profileName)
+                            )
+                            .orElseGet(() -> parseTimeoutValue(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT.defaultValue()));
+    }
+
+    // System settings resolution for Metadata V1 disabled
+    private static Optional<Boolean> fromSystemSettingsMetadataV1Disabled() {
+        return SdkSystemSetting.AWS_EC2_METADATA_V1_DISABLED.getBooleanValue();
+    }
+
+    // Profile file resolution for Metadata V1 disabled
+    private static Optional<Boolean> fromProfileFileMetadataV1Disabled(Supplier<ProfileFile> profileFile, String profileName) {
+        return profileFile.get()
+                          .profile(profileName)
+                          .flatMap(p -> p.booleanProperty(ProfileProperty.EC2_METADATA_V1_DISABLED));
+    }
+
+    // System settings resolution for Service Timeout
+    private static Optional<Long> fromSystemSettingsServiceTimeout() {
+        return SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT.getNonDefaultStringValue()
+                                                            .map(Ec2MetadataConfigProvider::parseTimeoutValue);
+    }
+
+    // Profile file resolution for Service Timeout
+    private static Optional<Long> fromProfileFileServiceTimeout(Supplier<ProfileFile> profileFile, String profileName) {
+        return profileFile.get()
+                          .profile(profileName)
+                          .flatMap(p -> p.property(ProfileProperty.METADATA_SERVICE_TIMEOUT))
+                          .map(Ec2MetadataConfigProvider::parseTimeoutValue);
+    }
+
+    // Parses a timeout value from a string to milliseconds
+    private static long parseTimeoutValue(String timeoutValue) {
+        try {
+            int timeoutSeconds = Integer.parseInt(timeoutValue);
+            return Duration.ofSeconds(timeoutSeconds).toMillis();
+        } catch (NumberFormatException e) {
+            try {
+                double timeoutSeconds = Double.parseDouble(timeoutValue);
+                return Math.round(timeoutSeconds * 1000);
+            } catch (NumberFormatException ignored) {
+                throw new IllegalStateException(String.format(
+                    "Timeout value '%s' is not a valid integer or double.",
+                    timeoutValue
+                ));
+            }
+        }
     }
 
     public static Builder builder() {
