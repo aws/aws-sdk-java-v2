@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodePipeline",
+    "contributor": "",
+    "description": "AWS CodePipeline V2 type pipelines now support Managed Compute Rule."
+}
