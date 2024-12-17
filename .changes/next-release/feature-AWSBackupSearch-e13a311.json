@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Backup Search",
-    "contributor": "",
-    "description": "Add support for searching backups"
-}

@@ -1,4 +1,50 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.36__ __2024-12-17__
+## __AWS Account__
+  - ### Features
+    - Update endpoint configuration.
+
+## __AWS Backup__
+  - ### Features
+    - Add Support for Backup Indexing
+
+## __AWS Backup Search__
+  - ### Features
+    - Add support for searching backups
+
+## __AWS Batch__
+  - ### Features
+    - This feature allows AWS Batch on Amazon EKS to support configuration of Pod Annotations, overriding Namespace on which the Batch job's Pod runs on, and allows Subpath and Persistent Volume claim to be set for AWS Batch on Amazon EKS jobs.
+
+## __AWS Clean Rooms ML__
+  - ### Features
+    - Add support for SQL compute configuration for StartAudienceGenerationJob API.
+
+## __AWS CodePipeline__
+  - ### Features
+    - AWS CodePipeline V2 type pipelines now support Managed Compute Rule.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added `AWS_METADATA_SERVICE_TIMEOUT` environment variable, System property and `metadata_service_timeout` Profile property to configure connection and read timeouts (in seconds) for both InstanceProfileCredentialsProvider and IMDS client.
+    - Updated endpoint and partition metadata.
+
+## __AWSMainframeModernization__
+  - ### Features
+    - This release adds support for AWS Mainframe Modernization(M2) Service to allow specifying network type(ipv4, dual) for the environment instances. For dual network type, m2 environment applications will serve both IPv4 and IPv6 requests, whereas for ipv4 it will serve only IPv4 requests.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Adds support for OriginReadTimeout and OriginKeepaliveTimeout to create CloudFront Distributions with VPC Origins.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Added support for enableFaultInjection task definition parameter which can be used to enable Fault Injection feature on ECS tasks.
+
+## __Synthetics__
+  - ### Features
+    - Add support to toggle outbound IPv6 traffic on canaries connected to dualstack subnets. This behavior can be controlled via the new Ipv6AllowedForDualStack parameter of the VpcConfig input object in CreateCanary and UpdateCanary APIs.
+
 # __2.29.35__ __2024-12-16__
 ## __AWS Cloud9__
   - ### Features
