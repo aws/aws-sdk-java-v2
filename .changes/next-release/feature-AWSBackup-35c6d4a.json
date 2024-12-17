@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Backup",
+    "contributor": "",
+    "description": "Add Support for Backup Indexing"
+}
