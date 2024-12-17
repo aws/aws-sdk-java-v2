@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,14 +36,14 @@ import java.util.Set;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.MetricRecord;
 import software.amazon.awssdk.metrics.SdkMetric;
-import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
-import software.amazon.awssdk.thirdparty.jackson.core.JsonGenerator;
+import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -97,8 +98,8 @@ public final class EmfMetricPublisher implements MetricPublisher {
     private final String namespace;
     private final String logGroupName;
     private final Collection<SdkMetric<String>> dimensions;
-    private final ArrayList<String> dimensionStrings;
-    private final ArrayList<String> realDimensionStrings = new ArrayList<>();
+    private final List<String> dimensionStrings;
+    private final List<String> realDimensionStrings = new ArrayList<>();
     private final Collection<MetricCategory> metricCategories;
     private final MetricLevel metricLevel;
     private final boolean metricCategoriesContainsAll;
@@ -126,8 +127,8 @@ public final class EmfMetricPublisher implements MetricPublisher {
     private static MetricLevel resolveMetricLevel(Builder builder) {
         return builder.metricLevel == null ? DEFAULT_METRIC_LEVEL : builder.metricLevel;
     }
-    private static ArrayList<String> resolveDimensionStrings(Builder builder) {
-        ArrayList<String> dimensionStrings = new ArrayList<>();
+    private static List<String> resolveDimensionStrings(Builder builder) {
+        List<String> dimensionStrings = new ArrayList<>();
         if (builder.dimensions != null) {
             for (SdkMetric<String> dimension : builder.dimensions) {
                 dimensionStrings.add(dimension.name());
@@ -157,7 +158,6 @@ public final class EmfMetricPublisher implements MetricPublisher {
     /**
      * Processes and normalizes metric values for EMF formatting.
      *
-     * @param metricName  The name of the metric being processed
      * @param metricValue The value of the metric to be processed, can be Boolean, Double, or a duration string
      * @return Object containing the processed metric value:
      *         - For null input: returns 0.0
@@ -166,7 +166,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
      *         - For Double values: normalizes very small values (less than ZERO_THRESHOLD) to 0.0
      *         - For other cases: returns the original value
      */
-    private Object processValue(String metricName, Object metricValue) {
+    private Object processValue(Object metricValue) {
         if (metricValue == null) {
             return 0.0;
         }
@@ -177,7 +177,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
         }
 
         // Changes duration value to a number of ms
-        if (hasUnit(metricName)) {
+        if (metricValue instanceof Duration) {
             String durationStr = metricValue.toString();
             metricValue = Double.parseDouble(durationStr.substring(2, durationStr.length() - 1)) * 1000;
         }
@@ -192,6 +192,17 @@ public final class EmfMetricPublisher implements MetricPublisher {
 
         return metricValue;
     }
+
+    private void writeProcessedValue(JsonWriter jsonWriter, Object processedValue){
+        if (processedValue instanceof Double) {
+            jsonWriter.writeValue((Double) processedValue);
+        } else if (processedValue instanceof Integer) {
+            jsonWriter.writeValue((Integer) processedValue);
+        } else if (processedValue instanceof Long) {
+            jsonWriter.writeValue((Long) processedValue);
+        }
+    }
+
 
     /**
      * Converts a collection of SDK metrics into EMF (Embedded Metric Format) metrics.
@@ -281,65 +292,71 @@ public final class EmfMetricPublisher implements MetricPublisher {
 
 
     private String createEmfString(Map<String, List<Object>> metrics, Set<String> metricNames) {
-        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-        JsonFactory factory = new JsonFactory();
 
-        try{
-            JsonGenerator generator = factory.createGenerator(byteStream);
-            generator.writeStartObject();
+        try {
+            JsonWriter jsonWriter = JsonWriter.create();
+            jsonWriter.writeStartObject();
 
             // Start with _aws section
-            generator.writeFieldName("_aws");
-            generator.writeStartObject();
+            jsonWriter.writeFieldName("_aws");
+            jsonWriter.writeStartObject();
 
             // Write Timestamp
             if (unitTest) {
-                generator.writeNumberField("Timestamp", 12345678);
+
+                jsonWriter.writeFieldName("Timestamp");
+                jsonWriter.writeValue(12345678);
             } else {
-                generator.writeNumberField("Timestamp", Instant.now().toEpochMilli());
+
+                jsonWriter.writeFieldName("Timestamp");
+                jsonWriter.writeValue(Instant.now().toEpochMilli());
             }
-            generator.writeStringField("LogGroupName", logGroupName);
+            jsonWriter.writeFieldName("LogGroupName");
+            jsonWriter.writeValue(logGroupName);
 
             // Write CloudWatchMetrics array
-            generator.writeFieldName("CloudWatchMetrics");
-            generator.writeStartArray();
-            generator.writeStartObject();
+            jsonWriter.writeFieldName("CloudWatchMetrics");
+            jsonWriter.writeStartArray();
+            jsonWriter.writeStartObject();
 
             // Write Namespace
-            generator.writeStringField("Namespace", namespace);
+            jsonWriter.writeFieldName("Namespace");
+            jsonWriter.writeValue(namespace);
 
             // Write Dimensions array
-            generator.writeFieldName("Dimensions");
-            generator.writeStartArray();
-            generator.writeStartArray();
+            jsonWriter.writeFieldName("Dimensions");
+            jsonWriter.writeStartArray();
+            jsonWriter.writeStartArray();
             for (String dimension : realDimensionStrings) {
-                generator.writeString(dimension);
+                jsonWriter.writeValue(dimension);
             }
-            generator.writeEndArray();
-            generator.writeEndArray();
+            jsonWriter.writeEndArray();
+            jsonWriter.writeEndArray();
 
             // Write Metrics array
-            generator.writeFieldName("Metrics");
-            generator.writeStartArray();
+            jsonWriter.writeFieldName("Metrics");
+            jsonWriter.writeStartArray();
 
 
             // Write metric definitions
             for (String metricName : metricNames) {
-                generator.writeStartObject();
-                generator.writeStringField("Name", metricName);
+                jsonWriter.writeStartObject();
+                jsonWriter.writeFieldName("Name");
+                jsonWriter.writeValue(metricName);
 
                 // Add Unit if available
                 if (hasUnit(metricName)) {
-                    generator.writeStringField("Unit", getMetricUnit(metricName));
+                    jsonWriter.writeFieldName("Unit");
+                    jsonWriter.writeValue(getMetricUnit(metricName));
                 }
 
-                generator.writeEndObject();
+                jsonWriter.writeEndObject();
             }
 
-            generator.writeEndArray(); // End Metrics array
-            generator.writeEndObject(); // End CloudWatchMetrics object
-            generator.writeEndArray(); // End CloudWatchMetrics array
-            generator.writeEndObject(); // End _aws object
+            jsonWriter.writeEndArray(); // End Metrics array
+            jsonWriter.writeEndObject(); // End CloudWatchMetrics object
+            jsonWriter.writeEndArray(); // End CloudWatchMetrics array
+            jsonWriter.writeEndObject(); // End _aws object
 
             // Write metric values
             for (Map.Entry<String, List<Object>> entry : metrics.entrySet()) {
@@ -348,36 +365,37 @@ public final class EmfMetricPublisher implements MetricPublisher {
 
                 // For dimension metrics, write the last value
                 if (isDimension(metricName)) {
-                    generator.writeObjectField(metricName, values.get(values.size() - 1));
+                    jsonWriter.writeFieldName(metricName);
+                    jsonWriter.writeValue((String) values.get(values.size() - 1));
                 } else {
                     //skip string values
-                    if (values.get(0) instanceof String){
+                    if (values.get(0) instanceof String) {
                         continue;
                     }
                     // For regular metrics, if there's only one value, write it directly
                     if (values.size() == 1) {
-                        generator.writeObjectField(metricName, processValue(metricName,values.get(0)));
+                        jsonWriter.writeFieldName(metricName);
+                        writeProcessedValue(jsonWriter,processValue(values.get(0)));
                     } else {
                         // If there are multiple values, write as an array
-                        generator.writeFieldName(metricName);
-                        generator.writeStartArray();
+                        jsonWriter.writeFieldName(metricName);
+                        jsonWriter.writeStartArray();
                         for (Object value : values) {
-                            generator.writeObject(processValue(metricName,value));
-
+                            writeProcessedValue(jsonWriter,processValue(value));
                         }
-                        generator.writeEndArray();
+                        jsonWriter.writeEndArray();
                     }
                 }
             }
 
-            generator.writeEndObject(); // End root object
-            generator.close();
+            jsonWriter.writeEndObject(); // End root object
 
-            return new String(byteStream.toByteArray(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed to convert metrics to EMF format", e);
+            return new String(jsonWriter.getBytes(), StandardCharsets.UTF_8);
+
+        } catch(SdkClientException e){
+            logger.error(()-> "Failed to create EMF format string");
+            throw e;
         }
-
     }
 
 

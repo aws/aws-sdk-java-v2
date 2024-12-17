@@ -81,7 +81,8 @@ public class EmfMetricPublisherTest {
              assertThat(emfLog).isEqualTo("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"/aws/emf/metrics\","
                                           + "\"CloudWatchMetrics\":[{\"Namespace\":\"AwsSdk/JavaSdk2\",\"Dimensions\":[[]],\"Metrics\":"
                                           + "[{\"Name\":\"AvailableConcurrency\"},{\"Name\":\"SigningDuration\",\"Unit\":\"Milliseconds\"},"
-                                          + "{\"Name\":\"ApiCallSuccessful\"}]}]},\"AvailableConcurrency\":5,\"SigningDuration\":100.0,\"ApiCallSuccessful\":1.0}");
+                                          + "{\"Name\":\"ApiCallSuccessful\"}]}]},\"AvailableConcurrency\":5,"
+                                          + "\"SigningDuration\":100.0,\"ApiCallSuccessful\":1.0}");
 
         }
     }
@@ -98,7 +99,9 @@ public class EmfMetricPublisherTest {
 
         for (String emfLog : emfLogs) {
             assertThat(emfLog).isEqualTo("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"/aws/emf/metrics\",\"CloudWatchMetrics\":[{\"Namespace\":\"AwsSdk/JavaSdk2\","
-                                         + "\"Dimensions\":[[\"ServiceId\"]],\"Metrics\":[{\"Name\":\"AvailableConcurrency\"}]}]},\"AvailableConcurrency\":5,\"ServiceId\":\"ServiceId1234\"}");
+                                         + "\"Dimensions\":[[\"ServiceId\"]],"
+                                         + "\"Metrics\":[{\"Name\":\"AvailableConcurrency\"}]}]},\"AvailableConcurrency\":5,"
+                                         + "\"ServiceId\":\"ServiceId1234\"}");
 
         }
     }
@@ -113,7 +116,8 @@ public class EmfMetricPublisherTest {
         List<String> emfLogs = publisher.convertMetricCollectionToEMF(metricCollector.collect());
         for (String emfLog : emfLogs) {
             assertThat(emfLog).isEqualTo("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"/aws/emf/metrics\",\"CloudWatchMetrics\":[{\"Namespace\":\"AwsSdk/JavaSdk2\","
-                                         + "\"Dimensions\":[[]],\"Metrics\":[{\"Name\":\"AvailableConcurrency\"}]}]},\"AvailableConcurrency\":5}");
+                                         + "\"Dimensions\":[[]],\"Metrics\":[{\"Name\":\"AvailableConcurrency\"}]}]},"
+                                         + "\"AvailableConcurrency\":5}");
 
         }
     }
@@ -128,7 +132,8 @@ public class EmfMetricPublisherTest {
         List<String> emfLogs = publisher.convertMetricCollectionToEMF(metricCollector.collect());
         for (String emfLog : emfLogs) {
             assertThat(emfLog).isEqualTo("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"/aws/emf/metrics\",\"CloudWatchMetrics\":[{\"Namespace\":\"AwsSdk/JavaSdk2\","
-                                         + "\"Dimensions\":[[]],\"Metrics\":[{\"Name\":\"AvailableConcurrency\"}]}]},\"AvailableConcurrency\":5}");
+                                         + "\"Dimensions\":[[]],\"Metrics\":[{\"Name\":\"AvailableConcurrency\"}]}]},"
+                                         + "\"AvailableConcurrency\":5}");
 
         }
     }
@@ -144,7 +149,8 @@ public class EmfMetricPublisherTest {
 
         for (String emfLog : emfLogs) {
             assertThat(emfLog).isEqualTo("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"/aws/emf/metrics\",\"CloudWatchMetrics\":[{\"Namespace\":\"AwsSdk/JavaSdk2\","
-                                         + "\"Dimensions\":[[]],\"Metrics\":[{\"Name\":\"AvailableConcurrency\"}]}]},\"AvailableConcurrency\":5}");
+                                         + "\"Dimensions\":[[]],\"Metrics\":[{\"Name\":\"AvailableConcurrency\"}]}]},"
+                                         + "\"AvailableConcurrency\":5}");
 
         }
     }
