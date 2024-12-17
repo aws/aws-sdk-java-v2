@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Clean Rooms ML",
+    "contributor": "",
+    "description": "Add support for SQL compute configuration for StartAudienceGenerationJob API."
+}
