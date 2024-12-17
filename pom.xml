@@ -655,6 +655,7 @@
                             <includeModule>netty-nio-client</includeModule>
                             <includeModule>url-connection-client</includeModule>
                             <includeModule>cloudwatch-metric-publisher</includeModule>
+                            <includeModule>emf-metric-publisher</includeModule>
                             <includeModule>utils</includeModule>
                             <includeModule>imds</includeModule>
                             <includeModule>retries</includeModule>
