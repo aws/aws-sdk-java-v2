@@ -21,10 +21,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.SdkMetric;
 
+@SdkInternalApi
 public final class EmfMetricConfiguration {
     private static final String DEFAULT_NAMESPACE = "AwsSdk/JavaSdk2";
     private static final String DEFAULT_LOG_GROUP_NAME = "/aws/emf/metrics";

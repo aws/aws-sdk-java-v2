@@ -34,7 +34,7 @@ public class EmfMetricPublisherTest {
 
     @BeforeEach
     void setUp() {
-        publisherBuilder = EmfMetricPublisher.builder().unitTest(true);
+        publisherBuilder = EmfMetricPublisher.builder();
     }
 
     @Test
