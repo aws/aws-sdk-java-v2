@@ -151,7 +151,9 @@ public class MetricEmfConverter {
 
         // Process metrics using level-order traversal
         Queue<MetricCollection> queue = new LinkedList<>();
-        queue.offer(metricCollection);
+        if (!queue.offer(metricCollection)) {
+            logger.warn(() -> "failed to add metricCollection to the queue");
+        }
 
         while (!queue.isEmpty()) {
             MetricCollection current = queue.poll();

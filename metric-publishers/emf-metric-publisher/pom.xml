@@ -61,7 +61,7 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>third-party-jackson-core</artifactId>
+            <artifactId>http-client-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
