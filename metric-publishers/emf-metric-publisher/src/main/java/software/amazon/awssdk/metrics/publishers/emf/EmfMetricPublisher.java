@@ -88,61 +88,17 @@ import software.amazon.awssdk.utils.Logger;
 @Immutable
 @SdkPublicApi
 public final class EmfMetricPublisher implements MetricPublisher {
-    private static final String DEFAULT_NAMESPACE = "AwsSdk/JavaSdk2";
-    private static final String  DEFAULT_LOG_GROUP_NAME = "/aws/emf/metrics";
-    private static final Set<SdkMetric<String>> DEFAULT_DIMENSIONS = Collections.emptySet();
-    private static final Set<MetricCategory> DEFAULT_METRIC_CATEGORIES = Collections.singleton(MetricCategory.ALL);
-    private static final MetricLevel DEFAULT_METRIC_LEVEL = MetricLevel.INFO;
     private static final double ZERO_THRESHOLD = 0.0001;
     private static final Logger logger = Logger.loggerFor("software.amazon.awssdk.metrics.publishers.emf");
-    private final String namespace;
-    private final String logGroupName;
-    private final Collection<SdkMetric<String>> dimensions;
-    private final List<String> dimensionStrings;
     private final List<String> realDimensionStrings = new ArrayList<>();
-    private final Collection<MetricCategory> metricCategories;
-    private final MetricLevel metricLevel;
     private final boolean metricCategoriesContainsAll;
     private final boolean unitTest;
+    private final EmfMetricConfiguration config;
 
     private EmfMetricPublisher(Builder builder){
-        this.namespace = resolveNamespace(builder);
-        this.logGroupName = resolveLogGroupName(builder);
-        this.dimensions = resolveDimensions(builder);
-        this.metricCategories = resolveMetricCategories(builder);
-        this.metricLevel = resolveMetricLevel(builder);
-        this.dimensionStrings = resolveDimensionStrings(builder);
-        this.metricCategoriesContainsAll = metricCategories.contains(MetricCategory.ALL);
+        this.config = new EmfMetricConfiguration(builder);
+        this.metricCategoriesContainsAll = config.getMetricCategories().contains(MetricCategory.ALL);
         this.unitTest = builder.unitTest;
-    }
-    private static String resolveNamespace(Builder builder) {
-        return builder.namespace == null ? DEFAULT_NAMESPACE : builder.namespace;
-    }
-    private static Collection<SdkMetric<String>> resolveDimensions(Builder builder) {
-        return builder.dimensions == null ? DEFAULT_DIMENSIONS : new HashSet<>(builder.dimensions);
-    }
-    private static Collection<MetricCategory> resolveMetricCategories(Builder builder) {
-        return builder.metricCategories == null ? DEFAULT_METRIC_CATEGORIES : new HashSet<>(builder.metricCategories);
-    }
-    private static MetricLevel resolveMetricLevel(Builder builder) {
-        return builder.metricLevel == null ? DEFAULT_METRIC_LEVEL : builder.metricLevel;
-    }
-    private static List<String> resolveDimensionStrings(Builder builder) {
-        List<String> dimensionStrings = new ArrayList<>();
-        if (builder.dimensions != null) {
-            for (SdkMetric<String> dimension : builder.dimensions) {
-                dimensionStrings.add(dimension.name());
-            }
-        } else {
-            for (SdkMetric<String> dimension : DEFAULT_DIMENSIONS) {
-                dimensionStrings.add(dimension.name());
-            }
-        }
-        return dimensionStrings;
-    }
-
-    private static String resolveLogGroupName(Builder builder) {
-        return builder.logGroupName == null ? DEFAULT_LOG_GROUP_NAME: builder.logGroupName;
     }
 
 
@@ -303,7 +259,6 @@ public final class EmfMetricPublisher implements MetricPublisher {
 
             // Write Timestamp
             if (unitTest) {
-
                 jsonWriter.writeFieldName("Timestamp");
                 jsonWriter.writeValue(12345678);
             } else {
@@ -312,7 +267,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
                 jsonWriter.writeValue(Instant.now().toEpochMilli());
             }
             jsonWriter.writeFieldName("LogGroupName");
-            jsonWriter.writeValue(logGroupName);
+            jsonWriter.writeValue(config.getLogGroupName());
 
             // Write CloudWatchMetrics array
             jsonWriter.writeFieldName("CloudWatchMetrics");
@@ -321,7 +276,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
 
             // Write Namespace
             jsonWriter.writeFieldName("Namespace");
-            jsonWriter.writeValue(namespace);
+            jsonWriter.writeValue(config.getNamespace());
 
             // Write Dimensions array
             jsonWriter.writeFieldName("Dimensions");
@@ -400,7 +355,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
 
 
     private boolean isDimension(String metricName) {
-        return metricName != null && dimensionStrings.contains(metricName);
+        return metricName != null && config.getDimensionStrings().contains(metricName);
     }
 
     private boolean hasUnit(String metricName) {
@@ -425,11 +380,11 @@ public final class EmfMetricPublisher implements MetricPublisher {
                metricRecord.metric()
                            .categories()
                            .stream()
-                           .anyMatch(metricCategories::contains);
+                           .anyMatch(config.getMetricCategories()::contains);
     }
 
     private boolean isSupportedLevel(MetricRecord<?> metricRecord) {
-        return metricLevel.includesLevel(metricRecord.metric().level());
+        return config.getMetricLevel().includesLevel(metricRecord.metric().level());
     }
 
 
@@ -450,11 +405,11 @@ public final class EmfMetricPublisher implements MetricPublisher {
     public void close() {}
 
     public static final class Builder{
-        private String namespace;
-        private String logGroupName;
-        private Collection<SdkMetric<String>> dimensions;
-        private Collection<MetricCategory> metricCategories;
-        private MetricLevel metricLevel;
+        String namespace;
+        String logGroupName;
+        Collection<SdkMetric<String>> dimensions;
+        Collection<MetricCategory> metricCategories;
+        MetricLevel metricLevel;
         private boolean unitTest = false;
 
         private Builder() {

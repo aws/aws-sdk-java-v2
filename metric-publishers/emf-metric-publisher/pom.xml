@@ -51,7 +51,7 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>json-utils</artifactId>
-            <version>2.29.35-SNAPSHOT</version>
+            <version>${awsjavasdk.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
