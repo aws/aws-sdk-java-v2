@@ -321,7 +321,6 @@
             <artifactId>http-client-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
-
     </dependencies>
 
     <build>

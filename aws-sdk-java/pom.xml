@@ -1785,6 +1785,11 @@ Amazon AutoScaling, etc).</description>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>emf-metric-publisher</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>launchwizard</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
