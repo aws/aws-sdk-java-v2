@@ -51,26 +51,47 @@ public final class EmfMetricConfiguration {
     }
 
     // Add getters for all fields
-    public String getNamespace() { return namespace; }
-    public String getLogGroupName() { return logGroupName; }
-    public Collection<SdkMetric<String>> getDimensions() { return dimensions; }
-    public Collection<MetricCategory> getMetricCategories() { return metricCategories; }
-    public MetricLevel getMetricLevel() { return metricLevel; }
-    public List<String> getDimensionStrings() { return dimensionStrings; }
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public String getLogGroupName() {
+        return logGroupName;
+    }
+
+    public Collection<SdkMetric<String>> getDimensions() {
+        return dimensions;
+    }
+
+    public Collection<MetricCategory> getMetricCategories() {
+        return metricCategories;
+    }
+
+    public MetricLevel getMetricLevel() {
+        return metricLevel;
+    }
+
+    public List<String> getDimensionStrings() {
+        return dimensionStrings;
+    }
 
 
     private static String resolveNamespace(EmfMetricPublisher.Builder builder) {
         return builder.namespace == null ? DEFAULT_NAMESPACE : builder.namespace;
     }
+
     private static Collection<SdkMetric<String>> resolveDimensions(EmfMetricPublisher.Builder builder) {
         return builder.dimensions == null ? DEFAULT_DIMENSIONS : new HashSet<>(builder.dimensions);
     }
+
     private static Collection<MetricCategory> resolveMetricCategories(EmfMetricPublisher.Builder builder) {
         return builder.metricCategories == null ? DEFAULT_METRIC_CATEGORIES : new HashSet<>(builder.metricCategories);
     }
+
     private static MetricLevel resolveMetricLevel(EmfMetricPublisher.Builder builder) {
         return builder.metricLevel == null ? DEFAULT_METRIC_LEVEL : builder.metricLevel;
     }
+
     private static List<String> resolveDimensionStrings(EmfMetricPublisher.Builder builder) {
         List<String> dimensionStrings = new ArrayList<>();
         if (builder.dimensions != null) {
@@ -86,7 +107,7 @@ public final class EmfMetricConfiguration {
     }
 
     private static String resolveLogGroupName(EmfMetricPublisher.Builder builder) {
-        return builder.logGroupName == null ? DEFAULT_LOG_GROUP_NAME: builder.logGroupName;
+        return builder.logGroupName == null ? DEFAULT_LOG_GROUP_NAME : builder.logGroupName;
     }
 }
 

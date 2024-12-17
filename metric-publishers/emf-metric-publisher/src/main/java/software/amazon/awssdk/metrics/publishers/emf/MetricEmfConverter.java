@@ -17,7 +17,6 @@ package software.amazon.awssdk.metrics.publishers.emf;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,11 +56,11 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public class MetricEmfConverter {
+    private static final Logger logger = Logger.loggerFor("software.amazon.awssdk.metrics.publishers.emf");
     private static final double ZERO_THRESHOLD = 0.0001;
     private final List<String> realDimensionStrings = new ArrayList<>();
     private final EmfMetricConfiguration config;
     private final boolean metricCategoriesContainsAll;
-    private static final Logger logger = Logger.loggerFor("software.amazon.awssdk.metrics.publishers.emf");;
 
     // Constructor that takes the configuration
     public MetricEmfConverter(EmfMetricConfiguration config) {
@@ -107,7 +106,7 @@ public class MetricEmfConverter {
         return metricValue;
     }
 
-    private void writeProcessedValue(JsonWriter jsonWriter, Object processedValue){
+    private void writeProcessedValue(JsonWriter jsonWriter, Object processedValue) {
         if (processedValue instanceof Double) {
             jsonWriter.writeValue((Double) processedValue);
         } else if (processedValue instanceof Integer) {
@@ -146,7 +145,7 @@ public class MetricEmfConverter {
      * @param metricCollection Collection of SDK metrics to be converted
      * @return List of EMF-formatted metrics ready for CloudWatch ingestion
      */
-    public List<String> convertMetricCollectionToEMF(MetricCollection metricCollection) {
+    public List<String> convertMetricCollectionToEmf(MetricCollection metricCollection) {
         // Map to store aggregated metrics
         Map<String, List<Object>> aggregatedMetrics = new HashMap<>();
 
@@ -168,7 +167,7 @@ public class MetricEmfConverter {
                 }
 
                 // Add value to aggregated metrics
-                if(shouldReport(r) || isDimension(metricName)){
+                if (shouldReport(r) || isDimension(metricName)) {
                     aggregatedMetrics.computeIfAbsent(metricName, k -> new ArrayList<>())
                                      .add(metricValue);
                 }
@@ -197,8 +196,8 @@ public class MetricEmfConverter {
             // Drop large value arrays into chunks of 100
             if (values.size() > 100) {
                 values = values.subList(0, 100);
-                logger.warn(()-> "Some AWS SDK client-side metric data have been dropped because it exceeds the cloudwatch "
-                                 + "requirements. This usually occurs because you have generated too many requests for the publisher to handle in a timely fashion.");
+                logger.warn(() -> "Some AWS SDK client-side metric data have been dropped because it exceeds the cloudwatch "
+                                 + "requirements.");
             }
             // If adding this metric would exceed 100 metrics, create new batch
             if (currentMetricNames.size() >= 100) {
@@ -208,7 +207,7 @@ public class MetricEmfConverter {
             }
 
             currentMetricBatch.put(metricName, values);
-            if(!(values.get(0) instanceof String)){
+            if (!(values.get(0) instanceof String)) {
                 currentMetricNames.add(metricName);
             }
 
@@ -234,13 +233,13 @@ public class MetricEmfConverter {
 
             return new String(jsonWriter.getBytes(), StandardCharsets.UTF_8);
 
-        } catch(SdkClientException e){
-            logger.error(()-> "Failed to create EMF format string");
+        } catch (SdkClientException e) {
+            logger.error(() -> "Failed to create EMF format string");
             throw e;
         }
     }
 
-    private void writeAwsObject(JsonWriter jsonWriter, Set<String> metricNames){
+    private void writeAwsObject(JsonWriter jsonWriter, Set<String> metricNames) {
         // Start with _aws section
         jsonWriter.writeFieldName("_aws");
         jsonWriter.writeStartObject();
@@ -300,7 +299,7 @@ public class MetricEmfConverter {
         jsonWriter.writeEndObject(); // End _aws object
     }
 
-    private void writeMetricValues(JsonWriter jsonWriter, Map<String, List<Object>> metrics){
+    private void writeMetricValues(JsonWriter jsonWriter, Map<String, List<Object>> metrics) {
         for (Map.Entry<String, List<Object>> entry : metrics.entrySet()) {
             String metricName = entry.getKey();
             List<Object> values = entry.getValue();
@@ -317,13 +316,13 @@ public class MetricEmfConverter {
                 // For regular metrics, if there's only one value, write it directly
                 if (values.size() == 1) {
                     jsonWriter.writeFieldName(metricName);
-                    writeProcessedValue(jsonWriter,processValue(values.get(0)));
+                    writeProcessedValue(jsonWriter, processValue(values.get(0)));
                 } else {
                     // If there are multiple values, write as an array
                     jsonWriter.writeFieldName(metricName);
                     jsonWriter.writeStartArray();
                     for (Object value : values) {
-                        writeProcessedValue(jsonWriter,processValue(value));
+                        writeProcessedValue(jsonWriter, processValue(value));
                     }
                     jsonWriter.writeEndArray();
                 }

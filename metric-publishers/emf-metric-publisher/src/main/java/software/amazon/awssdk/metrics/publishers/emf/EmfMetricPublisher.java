@@ -55,6 +55,7 @@ import software.amazon.awssdk.utils.Logger;
  * @see MetricEmfConverter  For the conversion logic
  *
  */
+
 @ThreadSafe
 @Immutable
 @SdkPublicApi
@@ -62,7 +63,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
     private static final Logger logger = Logger.loggerFor("software.amazon.awssdk.metrics.publishers.emf");
     private final MetricEmfConverter metricConverter;
 
-    private EmfMetricPublisher(Builder builder){
+    private EmfMetricPublisher(Builder builder) {
         this.metricConverter = new MetricEmfConverter(new EmfMetricConfiguration(builder));
     }
 
@@ -76,8 +77,8 @@ public final class EmfMetricPublisher implements MetricPublisher {
     }
 
     //To be deleted
-    public List<String> convertMetricCollectionToEMF(MetricCollection metricCollection) {
-        return metricConverter.convertMetricCollectionToEMF(metricCollection);
+    public List<String> convertMetricCollectionToEmf(MetricCollection metricCollection) {
+        return metricConverter.convertMetricCollectionToEmf(metricCollection);
     }
 
 
@@ -87,16 +88,17 @@ public final class EmfMetricPublisher implements MetricPublisher {
             return;
         }
 
-        List<String> emfStrings = metricConverter.convertMetricCollectionToEMF(metricCollection);
+        List<String> emfStrings = metricConverter.convertMetricCollectionToEmf(metricCollection);
         for (String emfString : emfStrings) {
             logger.info(() -> emfString);
         }
     }
 
     @Override
-    public void close() {}
+    public void close() {
+    }
 
-    public static final class Builder{
+    public static final class Builder {
         String namespace;
         String logGroupName;
         Collection<SdkMetric<String>> dimensions;
