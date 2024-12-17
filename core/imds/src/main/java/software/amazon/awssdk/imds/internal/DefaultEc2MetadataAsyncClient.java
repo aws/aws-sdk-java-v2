@@ -68,7 +68,7 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         this.httpClient = Either
             .fromNullable(builder.httpClient, builder.httpClientBuilder)
             .map(e -> e.map(Function.identity(), SdkAsyncHttpClient.Builder::build))
-            .orElseGet(() -> new DefaultSdkAsyncHttpClientBuilder().buildWithDefaults(IMDS_HTTP_DEFAULTS));
+            .orElseGet(() -> new DefaultSdkAsyncHttpClientBuilder().buildWithDefaults(imdsHttpDefaults()));
         this.httpClientIsInternal = builder.httpClient == null;
 
         this.asyncRetryScheduler = Validate.getOrDefault(
