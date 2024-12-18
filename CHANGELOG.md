@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.37__ __2024-12-18__
+## __AWS Amplify__
+  - ### Features
+    - Added WAF Configuration to Amplify Apps
+
+## __AWS Budgets__
+  - ### Features
+    - Releasing minor partition endpoint updates
+
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync introduces the ability to update attributes for in-cloud locations.
+
+## __AWS IoT__
+  - ### Features
+    - Release connectivity status query API which is a dedicated high throughput(TPS) API to query a specific device's most recent connectivity state and metadata.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - AWS Resilience Hub now automatically detects already configured CloudWatch alarms and FIS experiments as part of the assessment process and returns the discovered resources in the corresponding list API responses. It also allows you to include or exclude test recommendations for an AppComponent.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Added AS2 agreement configurations to control filename preservation and message signing enforcement. Added AS2 connector configuration to preserve content type from S3 objects.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - This release adds support for the GetAuthenticationUrl and CancelParticipantAuthentication APIs used for customer authentication within Amazon Connect chats. There are also minor updates to the GetAttachment API.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds support for the UpdateParticipantAuthentication API used for customer authentication within Amazon Connect chats.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add support for PerformanceConfiguration attribute to Dataset entity. Allow PerformanceConfiguration specification in CreateDataset and UpdateDataset APIs.
+
+## __AmazonMWAA__
+  - ### Features
+    - Added support for Apache Airflow version 2.10.3 to MWAA.
+
 # __2.29.36__ __2024-12-17__
 ## __AWS Account__
   - ### Features
