@@ -25,8 +25,6 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -36,7 +34,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.regions.internal.util.ConnectionUtils;
 import software.amazon.awssdk.regions.internal.util.SocketUtils;
 
@@ -49,14 +46,6 @@ public class HttpCredentialsUtilsTest {
     private static final String SUCCESS_BODY = "{\"AccessKeyId\":\"ACCESS_KEY_ID\",\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
                                                + "\"Token\":\"TOKEN_TOKEN_TOKEN\",\"Expiration\":\"3000-05-03T04:55:54Z\"}";
     private static URI endpoint;
-    private static Map<String, String> headers = new HashMap<String, String>()
-    {
-        {
-            put("User-Agent", SdkUserAgent.create().userAgent());
-            put("Accept", "*/*");
-            put("Connection", "keep-alive");
-        }
-    };
 
     private static CustomRetryPolicy customRetryPolicy;
 
@@ -152,13 +141,15 @@ public class HttpCredentialsUtilsTest {
      */
     @Test
     public void readResouceWithDefaultRetryPolicy_DoesNotRetry_ForIoException() throws IOException {
-        Mockito.when(mockConnection.connectToEndpoint(endpoint, headers, "GET")).thenThrow(new IOException());
+
+        ResourcesEndpointProvider endpointProvider = () -> endpoint;
+        Mockito.when(mockConnection.connectToEndpoint(endpointProvider, "GET")).thenThrow(new IOException());
 
         try {
-            new HttpResourcesUtils(mockConnection).readResource(endpoint);
+            new HttpResourcesUtils(mockConnection).readResource(endpointProvider);
             fail("Expected an IOexception");
         } catch (IOException exception) {
-            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpoint, headers, "GET");
+            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpointProvider, "GET");
         }
     }
 
@@ -169,13 +160,15 @@ public class HttpCredentialsUtilsTest {
      */
     @Test
     public void readResouceWithCustomRetryPolicy_DoesRetry_ForIoException() throws IOException {
-        Mockito.when(mockConnection.connectToEndpoint(endpoint, headers, "GET")).thenThrow(new IOException());
+        ResourcesEndpointProvider endpointProvider = endpointProvider(endpoint, customRetryPolicy);
+
+        Mockito.when(mockConnection.connectToEndpoint(endpointProvider, "GET")).thenThrow(new IOException());
 
         try {
-            new HttpResourcesUtils(mockConnection).readResource(endpointProvider(endpoint, customRetryPolicy));
+            new HttpResourcesUtils(mockConnection).readResource(endpointProvider);
             fail("Expected an IOexception");
         } catch (IOException exception) {
-            Mockito.verify(mockConnection, Mockito.times(CustomRetryPolicy.MAX_RETRIES + 1)).connectToEndpoint(endpoint, headers, "GET");
+            Mockito.verify(mockConnection, Mockito.times(CustomRetryPolicy.MAX_RETRIES + 1)).connectToEndpoint(endpointProvider, "GET");
         }
     }
 
@@ -187,13 +180,15 @@ public class HttpCredentialsUtilsTest {
     @Test
     public void readResouceWithCustomRetryPolicy_DoesNotRetry_ForNonIoException() throws IOException {
         generateStub(500, "Non Json error body");
-        Mockito.when(mockConnection.connectToEndpoint(endpoint, headers, "GET")).thenCallRealMethod();
+        ResourcesEndpointProvider endpointProvider = endpointProvider(endpoint, customRetryPolicy);
+
+        Mockito.when(mockConnection.connectToEndpoint(endpointProvider, "GET")).thenCallRealMethod();
 
         try {
-            new HttpResourcesUtils(mockConnection).readResource(endpointProvider(endpoint, customRetryPolicy));
+            new HttpResourcesUtils(mockConnection).readResource(endpointProvider);
             fail("Expected an SdkServiceException");
         } catch (SdkServiceException exception) {
-            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpoint, headers, "GET");
+            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpointProvider, "GET");
         }
     }
 

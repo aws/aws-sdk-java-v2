@@ -1,4 +1,133 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.36__ __2024-12-17__
+## __AWS Account__
+  - ### Features
+    - Update endpoint configuration.
+
+## __AWS Backup__
+  - ### Features
+    - Add Support for Backup Indexing
+
+## __AWS Backup Search__
+  - ### Features
+    - Add support for searching backups
+
+## __AWS Batch__
+  - ### Features
+    - This feature allows AWS Batch on Amazon EKS to support configuration of Pod Annotations, overriding Namespace on which the Batch job's Pod runs on, and allows Subpath and Persistent Volume claim to be set for AWS Batch on Amazon EKS jobs.
+
+## __AWS Clean Rooms ML__
+  - ### Features
+    - Add support for SQL compute configuration for StartAudienceGenerationJob API.
+
+## __AWS CodePipeline__
+  - ### Features
+    - AWS CodePipeline V2 type pipelines now support Managed Compute Rule.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added `AWS_METADATA_SERVICE_TIMEOUT` environment variable, System property and `metadata_service_timeout` Profile property to configure connection and read timeouts (in seconds) for both InstanceProfileCredentialsProvider and IMDS client.
+    - Updated endpoint and partition metadata.
+
+## __AWSMainframeModernization__
+  - ### Features
+    - This release adds support for AWS Mainframe Modernization(M2) Service to allow specifying network type(ipv4, dual) for the environment instances. For dual network type, m2 environment applications will serve both IPv4 and IPv6 requests, whereas for ipv4 it will serve only IPv4 requests.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Adds support for OriginReadTimeout and OriginKeepaliveTimeout to create CloudFront Distributions with VPC Origins.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Added support for enableFaultInjection task definition parameter which can be used to enable Fault Injection feature on ECS tasks.
+
+## __Synthetics__
+  - ### Features
+    - Add support to toggle outbound IPv6 traffic on canaries connected to dualstack subnets. This behavior can be controlled via the new Ipv6AllowedForDualStack parameter of the VpcConfig input object in CreateCanary and UpdateCanary APIs.
+
+# __2.29.35__ __2024-12-16__
+## __AWS Cloud9__
+  - ### Features
+    - Added information about Ubuntu 18.04 will be removed from the available imageIds for Cloud9 because Ubuntu 18.04 has ended standard support on May 31, 2023.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive adds three new features: MediaPackage v2 endpoint support for live stream delivery, KLV metadata passthrough in CMAF Ingest output groups, and Metadata Name Modifier in CMAF Ingest output groups for customizing metadata track names in output streams.
+
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - Add support for runtime in GetCoreDevice and ListCoreDevices APIs.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - This release adds support for Local Zones in Amazon Data Lifecycle Manager EBS snapshot lifecycle policies.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for EBS local snapshots in AWS Dedicated Local Zones, which allows you to store snapshots of EBS volumes locally in Dedicated Local Zones.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for the "MYSQL_CACHING_SHA2_PASSWORD" enum value for RDS Proxy ClientPasswordAuthType.
+
+# __2.29.34__ __2024-12-13__
+## __AWS Cloud Map__
+  - ### Features
+    - AWS Cloud Map now supports service-level attributes, allowing you to associate custom metadata directly with services. These attributes can be retrieved, updated, and deleted using the new GetServiceAttributes, UpdateServiceAttributes, and DeleteServiceAttributes API calls.
+
+## __AWS CloudHSM V2__
+  - ### Features
+    - Add support for Dual-Stack hsm2m.medium clusters. The customers will now be able to create hsm2m.medium clusters having both IPv4 and IPv6 connection capabilities by specifying a new param called NetworkType=DUALSTACK during cluster creation.
+
+## __AWS MediaConnect__
+  - ### Features
+    - AWS Elemental MediaConnect Gateway now supports Source Specific Multicast (SSM) for ingress bridges. This enables you to specify a source IP address in addition to a multicast IP when creating or updating an ingress bridge source.
+
+## __AWS Network Manager__
+  - ### Features
+    - There was a sentence fragment in UpdateDirectConnectGatewayAttachment that was causing customer confusion as to whether it's an incomplete sentence or if it was a typo. Removed the fragment.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Limit PutIntegration IntegrationName and ListIntegrations IntegrationNamePrefix parameters to 50 characters
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds GroupId to the response for DeleteSecurityGroup.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Add NodeRepairConfig in CreateNodegroupRequest and UpdateNodegroupConfigRequest
+
+# __2.29.33__ __2024-12-12__
+## __AWS Database Migration Service__
+  - ### Features
+    - Add parameters to support for kerberos authentication. Add parameter for disabling the Unicode source filter with PostgreSQL settings. Add parameter to use large integer value with Kinesis/Kafka settings.
+
+## __AWS Glue__
+  - ### Features
+    - To support customer-managed encryption in Data Quality to allow customers encrypt data with their own KMS key, we will add a DataQualityEncryption field to the SecurityConfiguration API where customers can provide their KMS keys.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Configure holidays and other overrides to hours of operation in advance. During contact handling, Amazon Connect automatically checks for overrides and provides customers with an appropriate flow path. After an override period passes call center automatically reverts to standard hours of operation.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Improved descriptions for certain APIs.
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - This release includes the following API updates: added the enumeration type RESTORE_DOMAIN to the OperationType; constrained the Price attribute to non-negative values; updated the LangCode to allow 2 or 3 alphabetical characters.
+
 # __2.29.32__ __2024-12-11__
 ## __AWS Artifact__
   - ### Features
