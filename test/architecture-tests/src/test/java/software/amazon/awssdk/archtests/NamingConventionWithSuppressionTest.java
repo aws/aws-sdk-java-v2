@@ -54,7 +54,7 @@ public class NamingConventionWithSuppressionTest {
             .withImportOptions(Arrays.asList(
                 location -> ALLOWED_SUPPLIER_SUPPRESSION.stream().noneMatch(location::matches),
                 new ImportOption.Predefined.DoNotIncludeTests()))
-            .importPackages("software.amazon.awssdk..");
+            .importPackages("software.amazon.awssdk");
 
         ArchRule rule =
             classes().that().implement(Supplier.class).and().areNotPackagePrivate().should().haveSimpleNameEndingWith(
