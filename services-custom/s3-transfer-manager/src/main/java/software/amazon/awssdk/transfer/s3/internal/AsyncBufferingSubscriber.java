@@ -80,7 +80,9 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
         try {
             currentRequest = consumer.apply(item);
         } catch (Throwable t) {
-            subscription.cancel();
+            synchronized (this) {
+                subscription.cancel();
+            }
             onError(t);
             return;
         }
