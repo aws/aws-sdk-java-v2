@@ -379,6 +379,7 @@ public final class InstanceProfileCredentialsProvider
             this.asyncThreadName = provider.asyncThreadName;
             this.profileFile = provider.profileFile;
             this.profileName = provider.profileName;
+            this.staleTime = provider.staleTime;
         }
 
         Builder clock(Clock clock) {
@@ -449,7 +450,7 @@ public final class InstanceProfileCredentialsProvider
 
         @Override
         public Builder staleTime(Duration duration) {
-            this.staleTime = staleTime;
+            this.staleTime = duration;
             return this;
         }
 
