@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Participant Service",
+    "contributor": "",
+    "description": "This release adds support for the GetAuthenticationUrl and CancelParticipantAuthentication APIs used for customer authentication within Amazon Connect chats. There are also minor updates to the GetAttachment API."
+}
