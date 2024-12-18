@@ -4,7 +4,9 @@ import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -45,6 +47,8 @@ public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<I
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(
         IMPLICIT_PAYLOAD_MEMBER_ONE_FIELD, IMPLICIT_PAYLOAD_MEMBER_TWO_FIELD, EVENT_HEADER_MEMBER_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private static final long serialVersionUID = 1L;
 
@@ -165,6 +169,19 @@ public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<I
         return SDK_FIELDS;
     }
 
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("ImplicitPayloadMemberOne", IMPLICIT_PAYLOAD_MEMBER_ONE_FIELD);
+        map.put("ImplicitPayloadMemberTwo", IMPLICIT_PAYLOAD_MEMBER_TWO_FIELD);
+        map.put("EventHeaderMember", EVENT_HEADER_MEMBER_FIELD);
+        return Collections.unmodifiableMap(map);
+    }
+
     private static <T> Function<Object, T> getter(Function<InputEventTwo, T> g) {
         return obj -> g.apply((InputEventTwo) obj);
     }
@@ -268,6 +285,11 @@ public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<I
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }

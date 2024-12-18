@@ -3,6 +3,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -132,6 +133,8 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(LIST_OF_LIST_OF_STRINGS_FIELD,
                                                                                                    LIST_OF_LIST_OF_LIST_OF_STRINGS_FIELD, MAP_OF_STRING_TO_LIST_OF_LIST_OF_STRINGS_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private final List<List<String>> listOfListOfStrings;
 
@@ -312,6 +315,19 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
         return SDK_FIELDS;
     }
 
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("ListOfListOfStrings", LIST_OF_LIST_OF_STRINGS_FIELD);
+        map.put("ListOfListOfListOfStrings", LIST_OF_LIST_OF_LIST_OF_STRINGS_FIELD);
+        map.put("MapOfStringToListOfListOfStrings", MAP_OF_STRING_TO_LIST_OF_LIST_OF_STRINGS_FIELD);
+        return Collections.unmodifiableMap(map);
+    }
+
     private static <T> Function<Object, T> getter(Function<NestedContainersRequest, T> g) {
         return obj -> g.apply((NestedContainersRequest) obj);
     }
@@ -480,6 +496,11 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }

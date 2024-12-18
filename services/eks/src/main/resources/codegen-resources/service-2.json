@@ -855,7 +855,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidRequestException"}
       ],
-      "documentation":"<p>Updates an Amazon EKS cluster configuration. Your cluster continues to function during the update. The response output includes an update ID that you can use to track the status of your cluster update with <code>DescribeUpdate</code>\"/&gt;.</p> <p>You can use this API operation to enable or disable exporting the Kubernetes control plane logs for your cluster to CloudWatch Logs. By default, cluster control plane logs aren't exported to CloudWatch Logs. For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html\">Amazon EKS Cluster control plane logs</a> in the <i> <i>Amazon EKS User Guide</i> </i>.</p> <note> <p>CloudWatch Logs ingestion, archive storage, and data scanning rates apply to exported control plane logs. For more information, see <a href=\"http://aws.amazon.com/cloudwatch/pricing/\">CloudWatch Pricing</a>.</p> </note> <p>You can also use this API operation to enable or disable public and private access to your cluster's Kubernetes API server endpoint. By default, public access is enabled, and private access is disabled. For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html\">Amazon EKS cluster endpoint access control</a> in the <i> <i>Amazon EKS User Guide</i> </i>.</p> <p>You can also use this API operation to choose different subnets and security groups for the cluster. You must specify at least two subnets that are in different Availability Zones. You can't change which VPC the subnets are from, the subnets must be in the same VPC as the subnets that the cluster was created with. For more information about the VPC requirements, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html\">https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html</a> in the <i> <i>Amazon EKS User Guide</i> </i>.</p> <p>Cluster updates are asynchronous, and they should finish within a few minutes. During an update, the cluster status moves to <code>UPDATING</code> (this status transition is eventually consistent). When the update is complete (either <code>Failed</code> or <code>Successful</code>), the cluster status moves to <code>Active</code>.</p>"
+      "documentation":"<p>Updates an Amazon EKS cluster configuration. Your cluster continues to function during the update. The response output includes an update ID that you can use to track the status of your cluster update with <code>DescribeUpdate</code>\"/&gt;.</p> <p>You can use this API operation to enable or disable exporting the Kubernetes control plane logs for your cluster to CloudWatch Logs. By default, cluster control plane logs aren't exported to CloudWatch Logs. For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html\">Amazon EKS Cluster control plane logs</a> in the <i> <i>Amazon EKS User Guide</i> </i>.</p> <note> <p>CloudWatch Logs ingestion, archive storage, and data scanning rates apply to exported control plane logs. For more information, see <a href=\"http://aws.amazon.com/cloudwatch/pricing/\">CloudWatch Pricing</a>.</p> </note> <p>You can also use this API operation to enable or disable public and private access to your cluster's Kubernetes API server endpoint. By default, public access is enabled, and private access is disabled. For more information, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html\">Amazon EKS cluster endpoint access control</a> in the <i> <i>Amazon EKS User Guide</i> </i>.</p> <p>You can also use this API operation to choose different subnets and security groups for the cluster. You must specify at least two subnets that are in different Availability Zones. You can't change which VPC the subnets are from, the subnets must be in the same VPC as the subnets that the cluster was created with. For more information about the VPC requirements, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html\">https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html</a> in the <i> <i>Amazon EKS User Guide</i> </i>.</p> <p>You can also use this API operation to enable or disable ARC zonal shift. If zonal shift is enabled, Amazon Web Services configures zonal autoshift for the cluster.</p> <p>Cluster updates are asynchronous, and they should finish within a few minutes. During an update, the cluster status moves to <code>UPDATING</code> (this status transition is eventually consistent). When the update is complete (either <code>Failed</code> or <code>Successful</code>), the cluster status moves to <code>Active</code>.</p>"
     },
     "UpdateClusterVersion":{
       "name":"UpdateClusterVersion",
@@ -1286,6 +1286,10 @@
           "shape":"StringList",
           "documentation":"<p>The architectures that the version supports.</p>"
         },
+        "computeTypes":{
+          "shape":"StringList",
+          "documentation":"<p>Indicates the compute type of the addon version.</p>"
+        },
         "compatibilities":{
           "shape":"Compatibilities",
           "documentation":"<p>An object representing the compatibilities of a version.</p>"
@@ -1485,6 +1489,16 @@
       "error":{"httpStatusCode":400},
       "exception":true
     },
+    "BlockStorage":{
+      "type":"structure",
+      "members":{
+        "enabled":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Indicates if the block storage capability is enabled on your EKS Auto Mode cluster. If the block storage capability is enabled, EKS Auto Mode will create and delete EBS volumes in your Amazon Web Services account.</p>"
+        }
+      },
+      "documentation":"<p>Indicates the current configuration of the block storage capability on your EKS Auto Mode cluster. For example, if the capability is enabled or disabled. If the block storage capability is enabled, EKS Auto Mode will create and delete EBS volumes in your Amazon Web Services account. For more information, see EKS Auto Mode block storage capability in the EKS User Guide.</p>"
+    },
     "Boolean":{"type":"boolean"},
     "BoxedBoolean":{
       "type":"boolean",
@@ -1665,6 +1679,22 @@
         "upgradePolicy":{
           "shape":"UpgradePolicyResponse",
           "documentation":"<p>This value indicates if extended support is enabled or disabled for the cluster.</p> <p> <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/extended-support-control.html\">Learn more about EKS Extended Support in the EKS User Guide.</a> </p>"
+        },
+        "zonalShiftConfig":{
+          "shape":"ZonalShiftConfigResponse",
+          "documentation":"<p>The configuration for zonal shift for the cluster.</p>"
+        },
+        "remoteNetworkConfig":{
+          "shape":"RemoteNetworkConfigResponse",
+          "documentation":"<p>The configuration in the cluster for EKS Hybrid Nodes. You can't change or update this configuration after the cluster is created.</p>"
+        },
+        "computeConfig":{
+          "shape":"ComputeConfigResponse",
+          "documentation":"<p>Indicates the current configuration of the compute capability on your EKS Auto Mode cluster. For example, if the capability is enabled or disabled. If the compute capability is enabled, EKS Auto Mode will create and delete EC2 Managed Instances in your Amazon Web Services account. For more information, see EKS Auto Mode compute capability in the EKS User Guide.</p>"
+        },
+        "storageConfig":{
+          "shape":"StorageConfigResponse",
+          "documentation":"<p>Indicates the current configuration of the block storage capability on your EKS Auto Mode cluster. For example, if the capability is enabled or disabled. If the block storage capability is enabled, EKS Auto Mode will create and delete EBS volumes in your Amazon Web Services account. For more information, see EKS Auto Mode block storage capability in the EKS User Guide.</p>"
         }
       },
       "documentation":"<p>An object representing an Amazon EKS cluster.</p>"
@@ -1763,6 +1793,42 @@
         }
       },
       "documentation":"<p>Compatibility information.</p>"
+    },
+    "ComputeConfigRequest":{
+      "type":"structure",
+      "members":{
+        "enabled":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Request to enable or disable the compute capability on your EKS Auto Mode cluster. If the compute capability is enabled, EKS Auto Mode will create and delete EC2 Managed Instances in your Amazon Web Services account.</p>"
+        },
+        "nodePools":{
+          "shape":"StringList",
+          "documentation":"<p>Configuration for node pools that defines the compute resources for your EKS Auto Mode cluster. For more information, see EKS Auto Mode Node Pools in the EKS User Guide.</p>"
+        },
+        "nodeRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the IAM Role EKS will assign to EC2 Managed Instances in your EKS Auto Mode cluster. This value cannot be changed after the compute capability of EKS Auto Mode is enabled. For more information, see the IAM Reference in the EKS User Guide.</p>"
+        }
+      },
+      "documentation":"<p>Request to update the configuration of the compute capability of your EKS Auto Mode cluster. For example, enable the capability. For more information, see EKS Auto Mode compute capability in the EKS User Guide.</p>"
+    },
+    "ComputeConfigResponse":{
+      "type":"structure",
+      "members":{
+        "enabled":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Indicates if the compute capability is enabled on your EKS Auto Mode cluster. If the compute capability is enabled, EKS Auto Mode will create and delete EC2 Managed Instances in your Amazon Web Services account.</p>"
+        },
+        "nodePools":{
+          "shape":"StringList",
+          "documentation":"<p>Indicates the current configuration of node pools in your EKS Auto Mode cluster. For more information, see EKS Auto Mode Node Pools in the EKS User Guide.</p>"
+        },
+        "nodeRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the IAM Role EKS will assign to EC2 Managed Instances in your EKS Auto Mode cluster.</p>"
+        }
+      },
+      "documentation":"<p>Indicates the status of the request to update the compute capability of your EKS Auto Mode cluster.</p>"
     },
     "ConnectorConfigProvider":{
       "type":"string",
@@ -1966,7 +2032,7 @@
       "members":{
         "name":{
           "shape":"ClusterName",
-          "documentation":"<p>The unique name to give to your cluster.</p>"
+          "documentation":"<p>The unique name to give to your cluster. The name can contain only alphanumeric characters (case-sensitive), hyphens, and underscores. It must start with an alphanumeric character and can't be longer than 100 characters. The name must be unique within the Amazon Web Services Region and Amazon Web Services account that you're creating the cluster in.</p>"
         },
         "version":{
           "shape":"String",
@@ -2016,6 +2082,22 @@
         "upgradePolicy":{
           "shape":"UpgradePolicyRequest",
           "documentation":"<p>New clusters, by default, have extended support enabled. You can disable extended support when creating a cluster by setting this value to <code>STANDARD</code>.</p>"
+        },
+        "zonalShiftConfig":{
+          "shape":"ZonalShiftConfigRequest",
+          "documentation":"<p>Enable or disable ARC zonal shift for the cluster. If zonal shift is enabled, Amazon Web Services configures zonal autoshift for the cluster.</p> <p>Zonal shift is a feature of Amazon Application Recovery Controller (ARC). ARC zonal shift is designed to be a temporary measure that allows you to move traffic for a resource away from an impaired AZ until the zonal shift expires or you cancel it. You can extend the zonal shift if necessary.</p> <p>You can start a zonal shift for an EKS cluster, or you can allow Amazon Web Services to do it for you by enabling <i>zonal autoshift</i>. This shift updates the flow of east-to-west network traffic in your cluster to only consider network endpoints for Pods running on worker nodes in healthy AZs. Additionally, any ALB or NLB handling ingress traffic for applications in your EKS cluster will automatically route traffic to targets in the healthy AZs. For more information about zonal shift in EKS, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/zone-shift.html\">Learn about Amazon Application Recovery Controller (ARC) Zonal Shift in Amazon EKS</a> in the <i> <i>Amazon EKS User Guide</i> </i>.</p>"
+        },
+        "remoteNetworkConfig":{
+          "shape":"RemoteNetworkConfigRequest",
+          "documentation":"<p>The configuration in the cluster for EKS Hybrid Nodes. You can't change or update this configuration after the cluster is created.</p>"
+        },
+        "computeConfig":{
+          "shape":"ComputeConfigRequest",
+          "documentation":"<p>Enable or disable the compute capability of EKS Auto Mode when creating your EKS Auto Mode cluster. If the compute capability is enabled, EKS Auto Mode will create and delete EC2 Managed Instances in your Amazon Web Services account</p>"
+        },
+        "storageConfig":{
+          "shape":"StorageConfigRequest",
+          "documentation":"<p>Enable or disable the block storage capability of EKS Auto Mode when creating your EKS Auto Mode cluster. If the block storage capability is enabled, EKS Auto Mode will create and delete EBS volumes in your Amazon Web Services account.</p>"
         }
       }
     },
@@ -3068,6 +3150,16 @@
       "type":"string",
       "enum":["MONTHS"]
     },
+    "ElasticLoadBalancing":{
+      "type":"structure",
+      "members":{
+        "enabled":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Indicates if the load balancing capability is enabled on your EKS Auto Mode cluster. If the load balancing capability is enabled, EKS Auto Mode will create and delete load balancers in your Amazon Web Services account.</p>"
+        }
+      },
+      "documentation":"<p>Indicates the current configuration of the load balancing capability on your EKS Auto Mode cluster. For example, if the capability is enabled or disabled. For more information, see EKS Auto Mode load balancing capability in the EKS User Guide.</p>"
+    },
     "EncryptionConfig":{
       "type":"structure",
       "members":{
@@ -3549,7 +3641,7 @@
       "members":{
         "code":{
           "shape":"NodegroupIssueCode",
-          "documentation":"<p>A brief description of the error.</p> <ul> <li> <p> <b>AccessDenied</b>: Amazon EKS or one or more of your managed nodes is failing to authenticate or authorize with your Kubernetes cluster API server.</p> </li> <li> <p> <b>AsgInstanceLaunchFailures</b>: Your Auto Scaling group is experiencing failures while attempting to launch instances.</p> </li> <li> <p> <b>AutoScalingGroupNotFound</b>: We couldn't find the Auto Scaling group associated with the managed node group. You may be able to recreate an Auto Scaling group with the same settings to recover.</p> </li> <li> <p> <b>ClusterUnreachable</b>: Amazon EKS or one or more of your managed nodes is unable to to communicate with your Kubernetes cluster API server. This can happen if there are network disruptions or if API servers are timing out processing requests. </p> </li> <li> <p> <b>Ec2LaunchTemplateNotFound</b>: We couldn't find the Amazon EC2 launch template for your managed node group. You may be able to recreate a launch template with the same settings to recover.</p> </li> <li> <p> <b>Ec2LaunchTemplateVersionMismatch</b>: The Amazon EC2 launch template version for your managed node group does not match the version that Amazon EKS created. You may be able to revert to the version that Amazon EKS created to recover.</p> </li> <li> <p> <b>Ec2SecurityGroupDeletionFailure</b>: We could not delete the remote access security group for your managed node group. Remove any dependencies from the security group.</p> </li> <li> <p> <b>Ec2SecurityGroupNotFound</b>: We couldn't find the cluster security group for the cluster. You must recreate your cluster.</p> </li> <li> <p> <b>Ec2SubnetInvalidConfiguration</b>: One or more Amazon EC2 subnets specified for a node group do not automatically assign public IP addresses to instances launched into it. If you want your instances to be assigned a public IP address, then you need to enable the <code>auto-assign public IP address</code> setting for the subnet. See <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-ip-addressing.html#subnet-public-ip\">Modifying the public <code>IPv4</code> addressing attribute for your subnet</a> in the <i>Amazon VPC User Guide</i>.</p> </li> <li> <p> <b>IamInstanceProfileNotFound</b>: We couldn't find the IAM instance profile for your managed node group. You may be able to recreate an instance profile with the same settings to recover.</p> </li> <li> <p> <b>IamNodeRoleNotFound</b>: We couldn't find the IAM role for your managed node group. You may be able to recreate an IAM role with the same settings to recover.</p> </li> <li> <p> <b>InstanceLimitExceeded</b>: Your Amazon Web Services account is unable to launch any more instances of the specified instance type. You may be able to request an Amazon EC2 instance limit increase to recover.</p> </li> <li> <p> <b>InsufficientFreeAddresses</b>: One or more of the subnets associated with your managed node group does not have enough available IP addresses for new nodes.</p> </li> <li> <p> <b>InternalFailure</b>: These errors are usually caused by an Amazon EKS server-side issue.</p> </li> <li> <p> <b>NodeCreationFailure</b>: Your launched instances are unable to register with your Amazon EKS cluster. Common causes of this failure are insufficient <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/create-node-role.html\">node IAM role</a> permissions or lack of outbound internet access for the nodes. </p> </li> </ul>"
+          "documentation":"<p>A brief description of the error.</p> <ul> <li> <p> <b>AccessDenied</b>: Amazon EKS or one or more of your managed nodes is failing to authenticate or authorize with your Kubernetes cluster API server.</p> </li> <li> <p> <b>AsgInstanceLaunchFailures</b>: Your Auto Scaling group is experiencing failures while attempting to launch instances.</p> </li> <li> <p> <b>AutoScalingGroupNotFound</b>: We couldn't find the Auto Scaling group associated with the managed node group. You may be able to recreate an Auto Scaling group with the same settings to recover.</p> </li> <li> <p> <b>ClusterUnreachable</b>: Amazon EKS or one or more of your managed nodes is unable to to communicate with your Kubernetes cluster API server. This can happen if there are network disruptions or if API servers are timing out processing requests. </p> </li> <li> <p> <b>Ec2InstanceTypeDoesNotExist</b>: One or more of the supplied Amazon EC2 instance types do not exist. Amazon EKS checked for the instance types that you provided in this Amazon Web Services Region, and one or more aren't available.</p> </li> <li> <p> <b>Ec2LaunchTemplateNotFound</b>: We couldn't find the Amazon EC2 launch template for your managed node group. You may be able to recreate a launch template with the same settings to recover.</p> </li> <li> <p> <b>Ec2LaunchTemplateVersionMismatch</b>: The Amazon EC2 launch template version for your managed node group does not match the version that Amazon EKS created. You may be able to revert to the version that Amazon EKS created to recover.</p> </li> <li> <p> <b>Ec2SecurityGroupDeletionFailure</b>: We could not delete the remote access security group for your managed node group. Remove any dependencies from the security group.</p> </li> <li> <p> <b>Ec2SecurityGroupNotFound</b>: We couldn't find the cluster security group for the cluster. You must recreate your cluster.</p> </li> <li> <p> <b>Ec2SubnetInvalidConfiguration</b>: One or more Amazon EC2 subnets specified for a node group do not automatically assign public IP addresses to instances launched into it. If you want your instances to be assigned a public IP address, then you need to enable the <code>auto-assign public IP address</code> setting for the subnet. See <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-ip-addressing.html#subnet-public-ip\">Modifying the public <code>IPv4</code> addressing attribute for your subnet</a> in the <i>Amazon VPC User Guide</i>.</p> </li> <li> <p> <b>IamInstanceProfileNotFound</b>: We couldn't find the IAM instance profile for your managed node group. You may be able to recreate an instance profile with the same settings to recover.</p> </li> <li> <p> <b>IamNodeRoleNotFound</b>: We couldn't find the IAM role for your managed node group. You may be able to recreate an IAM role with the same settings to recover.</p> </li> <li> <p> <b>InstanceLimitExceeded</b>: Your Amazon Web Services account is unable to launch any more instances of the specified instance type. You may be able to request an Amazon EC2 instance limit increase to recover.</p> </li> <li> <p> <b>InsufficientFreeAddresses</b>: One or more of the subnets associated with your managed node group does not have enough available IP addresses for new nodes.</p> </li> <li> <p> <b>InternalFailure</b>: These errors are usually caused by an Amazon EKS server-side issue.</p> </li> <li> <p> <b>NodeCreationFailure</b>: Your launched instances are unable to register with your Amazon EKS cluster. Common causes of this failure are insufficient <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/create-node-role.html\">node IAM role</a> permissions or lack of outbound internet access for the nodes. </p> </li> </ul>"
         },
         "message":{
           "shape":"String",
@@ -3576,6 +3668,10 @@
         "ipFamily":{
           "shape":"IpFamily",
           "documentation":"<p>Specify which IP family is used to assign Kubernetes pod and service IP addresses. If you don't specify a value, <code>ipv4</code> is used by default. You can only specify an IP family when you create a cluster and can't change this value once the cluster is created. If you specify <code>ipv6</code>, the VPC and subnets that you specify for cluster creation must have both <code>IPv4</code> and <code>IPv6</code> CIDR blocks assigned to them. You can't specify <code>ipv6</code> for clusters in China Regions.</p> <p>You can only specify <code>ipv6</code> for <code>1.21</code> and later clusters that use version <code>1.10.1</code> or later of the Amazon VPC CNI add-on. If you specify <code>ipv6</code>, then ensure that your VPC meets the requirements listed in the considerations listed in <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/cni-ipv6.html\">Assigning IPv6 addresses to pods and services</a> in the Amazon EKS User Guide. Kubernetes assigns services <code>IPv6</code> addresses from the unique local address range <code>(fc00::/7)</code>. You can't specify a custom <code>IPv6</code> CIDR block. Pod addresses are assigned from the subnet's <code>IPv6</code> CIDR.</p>"
+        },
+        "elasticLoadBalancing":{
+          "shape":"ElasticLoadBalancing",
+          "documentation":"<p>Request to enable or disable the load balancing capability on your EKS Auto Mode cluster. For more information, see EKS Auto Mode load balancing capability in the EKS User Guide.</p>"
         }
       },
       "documentation":"<p>The Kubernetes network configuration for the cluster.</p>"
@@ -3594,6 +3690,10 @@
         "ipFamily":{
           "shape":"IpFamily",
           "documentation":"<p>The IP family used to assign Kubernetes <code>Pod</code> and <code>Service</code> objects IP addresses. The IP family is always <code>ipv4</code>, unless you have a <code>1.21</code> or later cluster running version <code>1.10.1</code> or later of the Amazon VPC CNI plugin for Kubernetes and specified <code>ipv6</code> when you created the cluster. </p>"
+        },
+        "elasticLoadBalancing":{
+          "shape":"ElasticLoadBalancing",
+          "documentation":"<p>Indicates the current configuration of the load balancing capability on your EKS Auto Mode cluster. For example, if the capability is enabled or disabled.</p>"
         }
       },
       "documentation":"<p>The Kubernetes network configuration for the cluster. The response contains a value for <b>serviceIpv6Cidr</b> or <b>serviceIpv4Cidr</b>, but not both. </p>"
@@ -4386,7 +4486,8 @@
         "Unknown",
         "AutoScalingGroupInstanceRefreshActive",
         "KubernetesLabelInvalid",
-        "Ec2LaunchTemplateVersionMaxLimitExceeded"
+        "Ec2LaunchTemplateVersionMaxLimitExceeded",
+        "Ec2InstanceTypeDoesNotExist"
       ]
     },
     "NodegroupResources":{
@@ -4757,6 +4858,64 @@
       },
       "documentation":"<p>An object representing the remote access configuration for the managed node group.</p>"
     },
+    "RemoteNetworkConfigRequest":{
+      "type":"structure",
+      "members":{
+        "remoteNodeNetworks":{
+          "shape":"RemoteNodeNetworkList",
+          "documentation":"<p>The list of network CIDRs that can contain hybrid nodes.</p>"
+        },
+        "remotePodNetworks":{
+          "shape":"RemotePodNetworkList",
+          "documentation":"<p>The list of network CIDRs that can contain pods that run Kubernetes webhooks on hybrid nodes.</p>"
+        }
+      },
+      "documentation":"<p>The configuration in the cluster for EKS Hybrid Nodes. You can't change or update this configuration after the cluster is created.</p>"
+    },
+    "RemoteNetworkConfigResponse":{
+      "type":"structure",
+      "members":{
+        "remoteNodeNetworks":{
+          "shape":"RemoteNodeNetworkList",
+          "documentation":"<p>The list of network CIDRs that can contain hybrid nodes.</p>"
+        },
+        "remotePodNetworks":{
+          "shape":"RemotePodNetworkList",
+          "documentation":"<p>The list of network CIDRs that can contain pods that run Kubernetes webhooks on hybrid nodes.</p>"
+        }
+      },
+      "documentation":"<p>The configuration in the cluster for EKS Hybrid Nodes. You can't change or update this configuration after the cluster is created.</p>"
+    },
+    "RemoteNodeNetwork":{
+      "type":"structure",
+      "members":{
+        "cidrs":{
+          "shape":"StringList",
+          "documentation":"<p>A network CIDR that can contain hybrid nodes.</p>"
+        }
+      },
+      "documentation":"<p>A network CIDR that can contain hybrid nodes.</p>"
+    },
+    "RemoteNodeNetworkList":{
+      "type":"list",
+      "member":{"shape":"RemoteNodeNetwork"},
+      "max":1
+    },
+    "RemotePodNetwork":{
+      "type":"structure",
+      "members":{
+        "cidrs":{
+          "shape":"StringList",
+          "documentation":"<p>A network CIDR that can contain pods that run Kubernetes webhooks on hybrid nodes.</p>"
+        }
+      },
+      "documentation":"<p>A network CIDR that can contain pods that run Kubernetes webhooks on hybrid nodes.</p>"
+    },
+    "RemotePodNetworkList":{
+      "type":"list",
+      "member":{"shape":"RemotePodNetwork"},
+      "max":1
+    },
     "ResolveConflicts":{
       "type":"string",
       "enum":[
@@ -4903,6 +5062,26 @@
       "error":{"httpStatusCode":503},
       "exception":true,
       "fault":true
+    },
+    "StorageConfigRequest":{
+      "type":"structure",
+      "members":{
+        "blockStorage":{
+          "shape":"BlockStorage",
+          "documentation":"<p>Request to configure EBS Block Storage settings for your EKS Auto Mode cluster.</p>"
+        }
+      },
+      "documentation":"<p>Request to update the configuration of the storage capability of your EKS Auto Mode cluster. For example, enable the capability. For more information, see EKS Auto Mode block storage capability in the EKS User Guide.</p>"
+    },
+    "StorageConfigResponse":{
+      "type":"structure",
+      "members":{
+        "blockStorage":{
+          "shape":"BlockStorage",
+          "documentation":"<p>Indicates the current configuration of the block storage capability on your EKS Auto Mode cluster. For example, if the capability is enabled or disabled.</p>"
+        }
+      },
+      "documentation":"<p>Indicates the status of the request to update the block storage capability of your EKS Auto Mode cluster.</p>"
     },
     "String":{"type":"string"},
     "StringList":{
@@ -5204,6 +5383,19 @@
         "upgradePolicy":{
           "shape":"UpgradePolicyRequest",
           "documentation":"<p>You can enable or disable extended support for clusters currently on standard support. You cannot disable extended support once it starts. You must enable extended support before your cluster exits standard support.</p>"
+        },
+        "zonalShiftConfig":{
+          "shape":"ZonalShiftConfigRequest",
+          "documentation":"<p>Enable or disable ARC zonal shift for the cluster. If zonal shift is enabled, Amazon Web Services configures zonal autoshift for the cluster.</p> <p>Zonal shift is a feature of Amazon Application Recovery Controller (ARC). ARC zonal shift is designed to be a temporary measure that allows you to move traffic for a resource away from an impaired AZ until the zonal shift expires or you cancel it. You can extend the zonal shift if necessary.</p> <p>You can start a zonal shift for an EKS cluster, or you can allow Amazon Web Services to do it for you by enabling <i>zonal autoshift</i>. This shift updates the flow of east-to-west network traffic in your cluster to only consider network endpoints for Pods running on worker nodes in healthy AZs. Additionally, any ALB or NLB handling ingress traffic for applications in your EKS cluster will automatically route traffic to targets in the healthy AZs. For more information about zonal shift in EKS, see <a href=\"https://docs.aws.amazon.com/eks/latest/userguide/zone-shift.html\">Learn about Amazon Application Recovery Controller (ARC) Zonal Shift in Amazon EKS</a> in the <i> <i>Amazon EKS User Guide</i> </i>.</p>"
+        },
+        "computeConfig":{
+          "shape":"ComputeConfigRequest",
+          "documentation":"<p>Update the configuration of the compute capability of your EKS Auto Mode cluster. For example, enable the capability.</p>"
+        },
+        "kubernetesNetworkConfig":{"shape":"KubernetesNetworkConfigRequest"},
+        "storageConfig":{
+          "shape":"StorageConfigRequest",
+          "documentation":"<p>Update the configuration of the block storage capability of your EKS Auto Mode cluster. For example, enable the capability.</p>"
         }
       }
     },
@@ -5434,7 +5626,11 @@
         "Subnets",
         "AuthenticationMode",
         "PodIdentityAssociations",
-        "UpgradePolicy"
+        "UpgradePolicy",
+        "ZonalShiftConfig",
+        "ComputeConfig",
+        "StorageConfig",
+        "KubernetesNetworkConfig"
       ]
     },
     "UpdateParams":{
@@ -5516,7 +5712,9 @@
         "AddonUpdate",
         "VpcConfigUpdate",
         "AccessConfigUpdate",
-        "UpgradePolicyUpdate"
+        "UpgradePolicyUpdate",
+        "ZonalShiftConfigUpdate",
+        "AutoModeUpdate"
       ]
     },
     "UpgradePolicyRequest":{
@@ -5603,6 +5801,26 @@
       "type":"integer",
       "box":true,
       "min":0
+    },
+    "ZonalShiftConfigRequest":{
+      "type":"structure",
+      "members":{
+        "enabled":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>If zonal shift is enabled, Amazon Web Services configures zonal autoshift for the cluster.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for zonal shift for the cluster.</p>"
+    },
+    "ZonalShiftConfigResponse":{
+      "type":"structure",
+      "members":{
+        "enabled":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Whether the zonal shift is enabled.</p>"
+        }
+      },
+      "documentation":"<p>The status of zonal shift configuration for the cluster</p>"
     },
     "configStatus":{
       "type":"string",

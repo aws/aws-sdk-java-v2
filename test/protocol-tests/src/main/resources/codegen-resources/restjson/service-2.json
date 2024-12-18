@@ -188,6 +188,15 @@
       },
       "output":{"shape":"StatusCodeInOutputStructure"}
     },
+    "MixedLocationOperation":{
+      "name":"MixedLocationOperation",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2016-03-11/mixedLocationOperation"
+      },
+      "output":{"shape":"MixedLocationOperationOutput"},
+      "input":{"shape":"MixedLocationOperationInput"}
+    },
     "StreamingInputOperation":{
       "name":"StreamingInputOperation",
       "http":{
@@ -259,6 +268,7 @@
         "DoubleMember":{"shape":"Double"},
         "LongMember":{"shape":"Long"},
         "ShortMember":{"shape":"Short"},
+        "ByteMember":{"shape":"Byte"},
         "BigDecimalMember":{"shape":"NumericValue"},
         "SimpleList":{"shape":"ListOfStrings"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
@@ -494,6 +504,7 @@
     },
     "Long":{"type":"long"},
     "Short":{"type":"short"},
+    "Byte":{"type":"byte"},
     "MapOfEnumToEnum":{
       "type":"map",
       "key":{"shape":"EnumType"},
@@ -780,6 +791,37 @@
         }
       }
     },
+    "MixedLocationOperationInput":{
+      "type":"structure",
+      "members":{
+        "StringMember":{
+          "shape":"String"
+        },
+        "IntegerMember":{
+          "shape":"Integer"
+        }
+      }
+    },
+    "MixedLocationOperationOutput":{
+      "type":"structure",
+      "members":{
+        "StringMember":{
+          "shape":"String"
+        },
+        "IntegerMember":{
+          "shape":"Integer"
+        },
+        "StatusCodeMember":{
+          "shape":"Integer",
+          "location":"statusCode"
+        },
+        "StringHeaderMember":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"x-amz-string"
+        }
+      }
+    },
     "StreamType":{
       "type":"blob",
       "streaming":true,
@@ -923,6 +965,9 @@
         },
         "EventTwo": {
           "shape": "EventTwo"
+        },
+        "errorOne": {
+          "shape": "EmptyModeledException"
         }
       },
       "eventstream": true

@@ -10,6 +10,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
@@ -43,8 +44,11 @@ public final class AwsEndpointProviderUtils {
      */
     public static String endpointBuiltIn(ExecutionAttributes executionAttributes) {
         if (endpointIsOverridden(executionAttributes)) {
+            executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).ifPresent(
+                metric -> metric.addMetric(BusinessMetricFeatureId.ENDPOINT_OVERRIDE.value()));
             return invokeSafely(() -> {
-                URI endpointOverride = executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT);
+                URI endpointOverride = executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER)
+                                                          .clientEndpoint();
                 return new URI(endpointOverride.getScheme(), null, endpointOverride.getHost(), endpointOverride.getPort(),
                         endpointOverride.getPath(), null, endpointOverride.getFragment()).toString();
             });
@@ -53,11 +57,10 @@ public final class AwsEndpointProviderUtils {
     }
 
     /**
-     * True if the the {@link SdkExecutionAttribute#ENDPOINT_OVERRIDDEN} attribute is present and its value is
-     * {@code true}, {@code false} otherwise.
+     * Read {@link SdkExecutionAttribute#CLIENT_ENDPOINT_PROVIDER}'s isEndpointOverridden attribute.
      */
     public static boolean endpointIsOverridden(ExecutionAttributes attrs) {
-        return attrs.getOptionalAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN).orElse(false);
+        return attrs.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER).isEndpointOverridden();
     }
 
     /**

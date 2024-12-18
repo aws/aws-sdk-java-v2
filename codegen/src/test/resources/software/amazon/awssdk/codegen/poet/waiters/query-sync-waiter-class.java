@@ -107,7 +107,7 @@ final class DefaultQueryWaiter implements QueryWaiter {
 
     private <T extends QueryRequest> T applyWaitersUserAgent(T request) {
         Consumer<AwsRequestOverrideConfiguration.Builder> userAgentApplier = b -> b.addApiName(ApiName.builder()
-                                                                                                      .version("waiter").name("hll").build());
+                                                                                                      .name("sdk-metrics").version("B").build());
         AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
                                                                        .map(c -> c.toBuilder().applyMutation(userAgentApplier).build())
                                                                        .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(userAgentApplier).build()));

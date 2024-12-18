@@ -1,0 +1,684 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2016-03-11",
+    "endpointPrefix": "smithyrpcv2",
+    "jsonVersion": "1.1",
+    "protocol": "smithy-rpc-v2-cbor",
+    "protocols": [
+      "smithy-rpc-v2-cbor"
+    ],
+    "serviceAbbreviation": "SmithyRpcV2ProtocolTests",
+    "serviceFullName": "Smithy RPCv2 Protocol Tests",
+    "serviceId": "ProtocolSmithyrpcv2",
+    "signatureVersion": "v4",
+    "targetPrefix": "ProtocolTestsSmithyRpcV2Service",
+    "uid": "smithyrpcv2-2016-03-11"
+  },
+  "operations": {
+    "GetMetricData": {
+      "name": "GetMetricData",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "GetMetricDataRequest"
+      },
+      "output": {
+        "shape": "GetMetricDataResponse"
+      }
+    },
+    "AllTypes": {
+      "name": "AllTypes",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "AllTypesStructure"
+      },
+      "output": {
+        "shape": "AllTypesStructure"
+      },
+      "errors": [
+        {
+          "shape": "EmptyModeledException"
+        },
+        {
+          "shape": "ImplicitPayloadException"
+        }
+      ]
+    },
+    "FurtherNestedContainers": {
+      "name": "FurtherNestedContainers",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "FurtherNestedContainersStructure"
+      },
+      "output": {
+        "shape": "FurtherNestedContainersStructure"
+      }
+    },
+    "IdempotentOperation": {
+      "name": "IdempotentOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "IdempotentOperationStructure"
+      },
+      "output": {
+        "shape": "IdempotentOperationStructure"
+      }
+    },
+    "NestedContainers": {
+      "name": "NestedContainers",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "NestedContainersStructure"
+      },
+      "output": {
+        "shape": "NestedContainersStructure"
+      }
+    },
+    "OperationWithNoInputOrOutput": {
+      "name": "OperationWithNoInputOrOutput",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      }
+    }
+  },
+  "shapes": {
+    "GetMetricDataRequest": {
+      "type": "structure",
+      "members": {
+        "id": {
+          "shape": "String"
+        }
+      }
+    },
+    "GetMetricDataResponse": {
+      "type": "structure",
+      "members": {
+        "id": {
+          "shape": "String"
+        },
+        "label": {
+          "shape": "String"
+        },
+        "statusCode": {
+          "shape": "StatusCode"
+        },
+        "timestamps": {
+          "shape": "ListOfTimeStamp"
+        },
+        "values": {
+          "shape": "ListOfDouble"
+        }
+      }
+    },
+    "ListOfDouble": {
+      "type": "list",
+      "member": {
+        "shape": "Double"
+      }
+    },
+    "StatusCode": {
+      "type": "string",
+      "enum": [
+        "Complete",
+        "InProgess"
+      ]
+    },
+    "AllTypesStructure": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        },
+        "IntegerMember": {
+          "shape": "Integer"
+        },
+        "BooleanMember": {
+          "shape": "Boolean"
+        },
+        "FloatMember": {
+          "shape": "Float"
+        },
+        "DoubleMember": {
+          "shape": "Double"
+        },
+        "BigDecimalMember": {
+          "shape": "NumericValue"
+        },
+        "LongMember": {
+          "shape": "Long"
+        },
+        "ShortMember": {
+          "shape": "Short"
+        },
+        "ByteMember": {
+          "shape": "Byte"
+        },
+        "SimpleList": {
+          "shape": "ListOfStrings"
+        },
+        "ListOfMaps": {
+          "shape": "ListOfMapStringToString"
+        },
+        "ListOfStructs": {
+          "shape": "ListOfSimpleStructs"
+        },
+        "MapOfStringToIntegerList": {
+          "shape": "MapOfStringToIntegerList"
+        },
+        "MapOfStringToString": {
+          "shape": "MapOfStringToString"
+        },
+        "MapOfStringToStruct": {
+          "shape": "MapOfStringToSimpleStruct"
+        },
+        "TimestampMember": {
+          "shape": "Timestamp"
+        },
+        "StructWithNestedTimestampMember": {
+          "shape": "StructWithTimestamp"
+        },
+        "TimestampFormatMember": {
+          "shape": "IsoTimestamp"
+        },
+        "BlobArg": {
+          "shape": "BlobType"
+        },
+        "StructWithNestedBlob": {
+          "shape": "StructWithNestedBlobType"
+        },
+        "BlobMap": {
+          "shape": "BlobMapType"
+        },
+        "ListOfBlobs": {
+          "shape": "ListOfBlobsType"
+        },
+        "RecursiveStruct": {
+          "shape": "RecursiveStructType"
+        },
+        "PolymorphicTypeWithSubTypes": {
+          "shape": "BaseType"
+        },
+        "PolymorphicTypeWithoutSubTypes": {
+          "shape": "SubTypeOne"
+        },
+        "EnumMember": {
+          "shape": "EnumType"
+        },
+        "ListOfEnums": {
+          "shape": "ListOfEnums"
+        },
+        "MapOfEnumToEnum": {
+          "shape": "MapOfEnumToEnum"
+        },
+        "ListOfTimeStamp": {
+          "shape": "ListOfTimeStamp"
+        },
+        "MapOfTimeStamp": {
+          "shape": "MapOfTimeStamp"
+        },
+        "MyDocument": {
+          "shape": "MyDocument"
+        },
+        "UnionMember": {
+          "shape": "AllTypesUnionStructure"
+        }
+      }
+    },
+    "BaseType": {
+      "type": "structure",
+      "members": {
+        "BaseMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "BlobMapType": {
+      "type": "map",
+      "key": {
+        "shape": "String"
+      },
+      "value": {
+        "shape": "BlobType"
+      }
+    },
+    "BlobType": {
+      "type": "blob"
+    },
+    "Boolean": {
+      "type": "boolean"
+    },
+    "Double": {
+      "type": "double"
+    },
+    "EmptyModeledException": {
+      "type": "structure",
+      "members": {},
+      "exception": true
+    },
+    "EnumType": {
+      "type": "string",
+      "enum": [
+        "EnumValue1",
+        "EnumValue2"
+      ]
+    },
+    "Float": {
+      "type": "float"
+    },
+    "Short": {
+      "type": "short"
+    },
+    "Byte": {
+      "type": "byte"
+    },
+    "FurtherNestedContainersStructure": {
+      "type": "structure",
+      "members": {
+        "ListOfNested": {
+          "shape": "ListOfNested"
+        }
+      }
+    },
+    "IdempotentOperationStructure": {
+      "type": "structure",
+      "members": {
+        "IdempotencyToken": {
+          "shape": "String",
+          "idempotencyToken": true
+        }
+      }
+    },
+    "ImplicitPayloadException": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        },
+        "IntegerMember": {
+          "shape": "Integer"
+        },
+        "LongMember": {
+          "shape": "Long"
+        },
+        "ShortMember": {
+          "shape": "Short"
+        },
+        "DoubleMember": {
+          "shape": "Double"
+        },
+        "FloatMember": {
+          "shape": "Float"
+        },
+        "TimestampMember": {
+          "shape": "Timestamp"
+        },
+        "BooleanMember": {
+          "shape": "Boolean"
+        },
+        "BlobMember": {
+          "shape": "BlobType"
+        },
+        "ListMember": {
+          "shape": "ListOfStrings"
+        },
+        "MapMember": {
+          "shape": "MapOfStringToString"
+        },
+        "SimpleStructMember": {
+          "shape": "SimpleStruct"
+        }
+      },
+      "exception": true
+    },
+    "Integer": {
+      "type": "integer"
+    },
+    "NumericValue": {
+      "type": "string",
+      "pattern": "([0-9]*\\.)?[0-9]+"
+    },
+    "IsoTimestamp": {
+      "type": "timestamp",
+      "timestampFormat": "iso8601"
+    },
+    "UnixTimestamp": {
+      "type": "timestamp",
+      "timestampFormat": "unixTimestamp"
+    },
+    "ListOfAllTypesStructs": {
+      "type": "list",
+      "member": {
+        "shape": "AllTypesStructure"
+      }
+    },
+    "ListOfBlobsType": {
+      "type": "list",
+      "member": {
+        "shape": "BlobType"
+      }
+    },
+    "ListOfEnums": {
+      "type": "list",
+      "member": {
+        "shape": "EnumType"
+      }
+    },
+    "ListOfIntegers": {
+      "type": "list",
+      "member": {
+        "shape": "Integer"
+      }
+    },
+    "ListOfListOfListsOfStrings": {
+      "type": "list",
+      "member": {
+        "shape": "ListOfListsOfStrings"
+      }
+    },
+    "ListOfListsOfAllTypesStructs": {
+      "type": "list",
+      "member": {
+        "shape": "ListOfAllTypesStructs"
+      }
+    },
+    "ListOfListsOfStrings": {
+      "type": "list",
+      "member": {
+        "shape": "ListOfStrings"
+      }
+    },
+    "ListOfListsOfStructs": {
+      "type": "list",
+      "member": {
+        "shape": "ListOfSimpleStructs"
+      }
+    },
+    "ListOfMapStringToString": {
+      "type": "list",
+      "member": {
+        "shape": "MapOfStringToString"
+      }
+    },
+    "ListOfNested": {
+      "type": "list",
+      "member": {
+        "shape": "NestedContainersStructure"
+      }
+    },
+    "ListOfSimpleStructs": {
+      "type": "list",
+      "member": {
+        "shape": "SimpleStruct"
+      }
+    },
+    "ListOfStrings": {
+      "type": "list",
+      "member": {
+        "shape": "String"
+      }
+    },
+    "Long": {
+      "type": "long"
+    },
+    "MapOfEnumToEnum": {
+      "type": "map",
+      "key": {
+        "shape": "EnumType"
+      },
+      "value": {
+        "shape": "EnumType"
+      }
+    },
+    "MapOfStringToIntegerList": {
+      "type": "map",
+      "key": {
+        "shape": "String"
+      },
+      "value": {
+        "shape": "ListOfIntegers"
+      }
+    },
+    "MapOfStringToListOfListsOfStrings": {
+      "type": "map",
+      "key": {
+        "shape": "String"
+      },
+      "value": {
+        "shape": "ListOfListsOfStrings"
+      }
+    },
+    "MapOfStringToSimpleStruct": {
+      "type": "map",
+      "key": {
+        "shape": "String"
+      },
+      "value": {
+        "shape": "SimpleStruct"
+      }
+    },
+    "MapOfStringToString": {
+      "type": "map",
+      "key": {
+        "shape": "String"
+      },
+      "value": {
+        "shape": "String"
+      }
+    },
+    "NestedContainersStructure": {
+      "type": "structure",
+      "members": {
+        "ListOfListsOfStrings": {
+          "shape": "ListOfListsOfStrings"
+        },
+        "ListOfListsOfStructs": {
+          "shape": "ListOfListsOfStructs"
+        },
+        "ListOfListsOfAllTypesStructs": {
+          "shape": "ListOfListsOfAllTypesStructs"
+        },
+        "ListOfListOfListsOfStrings": {
+          "shape": "ListOfListOfListsOfStrings"
+        },
+        "MapOfStringToListOfListsOfStrings": {
+          "shape": "MapOfStringToListOfListsOfStrings"
+        },
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "RecursiveListType": {
+      "type": "list",
+      "member": {
+        "shape": "RecursiveStructType"
+      }
+    },
+    "RecursiveMapType": {
+      "type": "map",
+      "key": {
+        "shape": "String"
+      },
+      "value": {
+        "shape": "RecursiveStructType"
+      }
+    },
+    "RecursiveStructType": {
+      "type": "structure",
+      "members": {
+        "NoRecurse": {
+          "shape": "String"
+        },
+        "RecursiveStruct": {
+          "shape": "RecursiveStructType"
+        },
+        "RecursiveList": {
+          "shape": "RecursiveListType"
+        },
+        "RecursiveMap": {
+          "shape": "RecursiveMapType"
+        }
+      }
+    },
+    "SimpleStruct": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "String": {
+      "type": "string"
+    },
+    "StructWithNestedBlobType": {
+      "type": "structure",
+      "members": {
+        "NestedBlob": {
+          "shape": "BlobType"
+        }
+      }
+    },
+    "StructWithTimestamp": {
+      "type": "structure",
+      "members": {
+        "NestedTimestamp": {
+          "shape": "Timestamp"
+        }
+      }
+    },
+    "SubTypeOne": {
+      "type": "structure",
+      "members": {
+        "SubTypeOneMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "Timestamp": {
+      "type": "timestamp"
+    },
+    "ListOfTimeStamp": {
+      "type": "list",
+      "member": {
+        "shape": "UnixTimestamp"
+      }
+    },
+    "MapOfTimeStamp": {
+      "type": "map",
+      "key": {
+        "shape": "String"
+      },
+      "value": {
+        "shape": "UnixTimestamp"
+      }
+    },
+    "MyDocument": {
+      "type": "structure",
+      "document": true
+    },
+    "AllTypesUnionStructure": {
+      "type": "structure",
+      "union": true,
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        },
+        "IntegerMember": {
+          "shape": "Integer"
+        },
+        "BooleanMember": {
+          "shape": "Boolean"
+        },
+        "FloatMember": {
+          "shape": "Float"
+        },
+        "DoubleMember": {
+          "shape": "Double"
+        },
+        "LongMember": {
+          "shape": "Long"
+        },
+        "ShortMember": {
+          "shape": "Short"
+        },
+        "EnumMember": {
+          "shape": "EnumType"
+        },
+        "SimpleList": {
+          "shape": "ListOfStrings"
+        },
+        "ListOfEnums": {
+          "shape": "ListOfEnums"
+        },
+        "ListOfMaps": {
+          "shape": "ListOfMapStringToString"
+        },
+        "ListOfStructs": {
+          "shape": "ListOfSimpleStructs"
+        },
+        "MapOfStringToIntegerList": {
+          "shape": "MapOfStringToIntegerList"
+        },
+        "MapOfStringToString": {
+          "shape": "MapOfStringToString"
+        },
+        "MapOfStringToStruct": {
+          "shape": "MapOfStringToSimpleStruct"
+        },
+        "MapOfEnumToEnum": {
+          "shape": "MapOfEnumToEnum"
+        },
+        "TimestampMember": {
+          "shape": "Timestamp"
+        },
+        "StructWithNestedTimestampMember": {
+          "shape": "StructWithTimestamp"
+        },
+        "BlobArg": {
+          "shape": "BlobType"
+        },
+        "StructWithNestedBlob": {
+          "shape": "StructWithNestedBlobType"
+        },
+        "BlobMap": {
+          "shape": "BlobMapType"
+        },
+        "ListOfBlobs": {
+          "shape": "ListOfBlobsType"
+        },
+        "RecursiveStruct": {
+          "shape": "RecursiveStructType"
+        },
+        "PolymorphicTypeWithSubTypes": {
+          "shape": "BaseType"
+        },
+        "PolymorphicTypeWithoutSubTypes": {
+          "shape": "SubTypeOne"
+        },
+        "SetPrefixedMember": {
+          "shape": "String"
+        },
+        "UnionMember": {
+          "shape": "AllTypesUnionStructure"
+        }
+      }
+    }
+  }
+}

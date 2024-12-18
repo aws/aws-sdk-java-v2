@@ -38,7 +38,7 @@
         "requestUri": "/"
       },
       "operationContextParams":{
-        "customEndpointArray":{"value":"ListMember.StringList[*].LeafString"}
+        "customEndpointArray":{"path":"ListMember.StringList[*].LeafString"}
       },
       "input":{"shape":"WithOperationContextParam"}
     },
@@ -49,6 +49,17 @@
         "requestUri": "/"
       },
       "input":{"shape":"WithOperationContextParam"}
+    },
+    "OperationWithMapOperationContextParam": {
+      "name": "OperationWithMapOperationContextParam",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "operationContextParams":{
+        "arnList":{"path":"keys(RequestMap)"}
+      },
+      "input":{"shape":"WithMapOperationContextParam"}
     },
     "OperationWithStaticContextParams": {
       "name": "OperationWithStaticContextParams",
@@ -226,6 +237,27 @@
       "members": {
         "ListMember":{
           "shape":"ListMember"
+        }
+      }
+    },
+    "WithMapOperationContextParam": {
+      "type": "structure",
+      "members": {
+        "OperationWithMapOperationContextParam":{
+          "shape":"RequestMap"
+        }
+      }
+    },
+    "RequestMap":{
+      "type":"map",
+      "key":{"shape":"LeafString"},
+      "value":{"shape":"AttributeValue"}
+    },
+    "AttributeValue": {
+      "type": "structure",
+      "members": {
+        "S": {
+          "shape": "LeafString"
         }
       }
     },

@@ -28,6 +28,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -100,6 +101,13 @@ public class CodegenServiceClientConfigurationTest {
                     .setter(ProtocolRestJsonServiceClientConfiguration.Builder::endpointOverride)
                     .getter(ProtocolRestJsonServiceClientConfiguration.Builder::endpointOverride)
                     .dataGetter(x -> x.endpointOverride().orElse(null))
+                    .build(),
+            TestCase.<ClientEndpointProvider>builder()
+                    .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER)
+                    .value(ClientEndpointProvider.forEndpointOverride(new URI("http://localhost:8080")))
+                    .setter((b, p) -> b.endpointOverride(p.clientEndpoint()))
+                    .getter(b -> b.endpointOverride() == null ? null : ClientEndpointProvider.forEndpointOverride(b.endpointOverride()))
+                    .dataGetter(x -> x.endpointOverride().map(ClientEndpointProvider::forEndpointOverride).orElse(null))
                     .build(),
             TestCase.<EndpointProvider>builder()
                     .option(SdkClientOption.ENDPOINT_PROVIDER)

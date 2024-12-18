@@ -11,7 +11,8 @@
     "serviceId":"imagebuilder",
     "signatureVersion":"v4",
     "signingName":"imagebuilder",
-    "uid":"imagebuilder-2019-12-02"
+    "uid":"imagebuilder-2019-12-02",
+    "auth":["aws.auth#sigv4"]
   },
   "operations":{
     "CancelImageCreation":{
@@ -661,6 +662,24 @@
       ],
       "documentation":"<p>Get details for the specified image lifecycle policy.</p>"
     },
+    "GetMarketplaceResource":{
+      "name":"GetMarketplaceResource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/GetMarketplaceResource"
+      },
+      "input":{"shape":"GetMarketplaceResourceRequest"},
+      "output":{"shape":"GetMarketplaceResourceResponse"},
+      "errors":[
+        {"shape":"ServiceException"},
+        {"shape":"ClientException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"InvalidRequestException"},
+        {"shape":"ForbiddenException"},
+        {"shape":"CallRateLimitExceededException"}
+      ],
+      "documentation":"<p>Verify the subscription and perform resource dependency checks on the requested Amazon Web Services Marketplace resource. For Amazon Web Services Marketplace components, the response contains fields to download the components and their artifacts.</p>"
+    },
     "GetWorkflow":{
       "name":"GetWorkflow",
       "http":{
@@ -769,7 +788,7 @@
         {"shape":"ForbiddenException"},
         {"shape":"CallRateLimitExceededException"}
       ],
-      "documentation":"<p>Returns the list of component build versions for the specified semantic version.</p> <note> <p>The semantic version has four nodes: &lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;/&lt;build&gt;. You can assign values for the first three, and can filter on all of them.</p> <p> <b>Filtering:</b> With semantic versioning, you have the flexibility to use wildcards (x) to specify the most recent versions or nodes when selecting the base image or components for your recipe. When you use a wildcard in any node, all nodes to the right of the first wildcard must also be wildcards.</p> </note>"
+      "documentation":"<p>Returns the list of component build versions for the specified component version Amazon Resource Name (ARN).</p>"
     },
     "ListComponents":{
       "name":"ListComponents",
@@ -1663,7 +1682,7 @@
         },
         "state":{
           "shape":"ComponentState",
-          "documentation":"<p>Describes the current status of the component. This is used for components that are no longer active.</p>"
+          "documentation":"<p>Describes the current status of the component.</p>"
         },
         "parameters":{
           "shape":"ComponentParameterDetailList",
@@ -1700,6 +1719,10 @@
         "obfuscate":{
           "shape":"Boolean",
           "documentation":"<p>Indicates whether component source is hidden from view in the console, and from component detail results for API, CLI, or SDK operations.</p>"
+        },
+        "productCodes":{
+          "shape":"ProductCodeList",
+          "documentation":"<p>Contains product codes that are used for billing purposes for Amazon Web Services Marketplace components.</p>"
         }
       },
       "documentation":"<p>A detailed view of a component.</p>"
@@ -1829,7 +1852,11 @@
     },
     "ComponentStatus":{
       "type":"string",
-      "enum":["DEPRECATED"]
+      "enum":[
+        "DEPRECATED",
+        "DISABLED",
+        "ACTIVE"
+      ]
     },
     "ComponentSummary":{
       "type":"structure",
@@ -1942,6 +1969,14 @@
         "dateCreated":{
           "shape":"DateTime",
           "documentation":"<p>The date that the component was created.</p>"
+        },
+        "status":{
+          "shape":"ComponentStatus",
+          "documentation":"<p>Describes the current status of the component version.</p>"
+        },
+        "productCodes":{
+          "shape":"ProductCodeList",
+          "documentation":"<p>Contains product codes that are used for billing purposes for Amazon Web Services Marketplace components.</p>"
         }
       },
       "documentation":"<p>The defining characteristics of a specific version of an Amazon Web Services TOE component.</p>"
@@ -2266,7 +2301,7 @@
         },
         "kmsKeyId":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Identifies which KMS key is used to encrypt the container image.</p>"
+          "documentation":"<p>Identifies which KMS key is used to encrypt the Dockerfile template.</p>"
         },
         "clientToken":{
           "shape":"ClientToken",
@@ -2619,7 +2654,7 @@
         },
         "resourceTags":{
           "shape":"ResourceTagMap",
-          "documentation":"<p>The tags attached to the resource created by Image Builder.</p>"
+          "documentation":"<p>The metadata tags to assign to the Amazon EC2 instance that Image Builder launches during the build process. Tags are formatted as key value pairs.</p>"
         },
         "instanceMetadataOptions":{
           "shape":"InstanceMetadataOptions",
@@ -2627,7 +2662,11 @@
         },
         "tags":{
           "shape":"TagMap",
-          "documentation":"<p>The tags of the infrastructure configuration.</p>"
+          "documentation":"<p>The metadata tags to assign to the infrastructure configuration resource that Image Builder creates as output. Tags are formatted as key value pairs.</p>"
+        },
+        "placement":{
+          "shape":"Placement",
+          "documentation":"<p>The instance placement settings that define where the instances that are launched from your image will run.</p>"
         },
         "clientToken":{
           "shape":"ClientToken",
@@ -3282,7 +3321,7 @@
         },
         "containerTags":{
           "shape":"StringList",
-          "documentation":"<p>Tags for Image Builder to apply to the output container image that &amp;INS; scans. Tags can help you identify and manage your scanned images.</p>"
+          "documentation":"<p>Tags for Image Builder to apply to the output container image that Amazon Inspector scans. Tags can help you identify and manage your scanned images.</p>"
         }
       },
       "documentation":"<p>Settings that Image Builder uses to configure the ECR repository and the output container images that Amazon Inspector scans.</p>"
@@ -3380,7 +3419,7 @@
     },
     "FilterValue":{
       "type":"string",
-      "pattern":"^[0-9a-zA-Z./_ :-]{1,1024}$"
+      "pattern":"^[0-9a-zA-Z./_ :,{}\"-]{1,1024}$"
     },
     "FilterValues":{
       "type":"list",
@@ -3713,6 +3752,44 @@
         "lifecyclePolicy":{
           "shape":"LifecyclePolicy",
           "documentation":"<p>The ARN of the image lifecycle policy resource that was returned.</p>"
+        }
+      }
+    },
+    "GetMarketplaceResourceRequest":{
+      "type":"structure",
+      "required":[
+        "resourceType",
+        "resourceArn"
+      ],
+      "members":{
+        "resourceType":{
+          "shape":"MarketplaceResourceType",
+          "documentation":"<p>Specifies which type of Amazon Web Services Marketplace resource Image Builder retrieves.</p>"
+        },
+        "resourceArn":{
+          "shape":"ImageBuilderArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) that uniquely identifies an Amazon Web Services Marketplace resource.</p>"
+        },
+        "resourceLocation":{
+          "shape":"MarketplaceResourceLocation",
+          "documentation":"<p>The bucket path that you can specify to download the resource from Amazon S3.</p>"
+        }
+      }
+    },
+    "GetMarketplaceResourceResponse":{
+      "type":"structure",
+      "members":{
+        "resourceArn":{
+          "shape":"ImageBuilderArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) for the Amazon Web Services Marketplace resource that was requested.</p>"
+        },
+        "url":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The obfuscated S3 URL to download the component artifact from.</p>"
+        },
+        "data":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>Returns obfuscated data that contains the YAML content of the component.</p>"
         }
       }
     },
@@ -4055,14 +4132,14 @@
       "members":{
         "packageName":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The name of the package as reported to the operating system package manager.</p>"
+          "documentation":"<p>The name of the package that's reported to the operating system package manager.</p>"
         },
         "packageVersion":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The version of the package as reported to the operating system package manager.</p>"
+          "documentation":"<p>The version of the package that's reported to the operating system package manager.</p>"
         }
       },
-      "documentation":"<p>Represents a package installed on an Image Builder image.</p>"
+      "documentation":"<p>A software package that's installed on top of the base image to create a customized image.</p>"
     },
     "ImagePackageList":{
       "type":"list",
@@ -4558,7 +4635,7 @@
         },
         "timeoutMinutes":{
           "shape":"ImageTestsTimeoutMinutes",
-          "documentation":"<p>The maximum time in minutes that tests are permitted to run.</p> <note> <p>The timeoutMinutes attribute is not currently active. This value is ignored.</p> </note>"
+          "documentation":"<p>The maximum time in minutes that tests are permitted to run.</p> <note> <p>The timeout attribute is not currently active. This value is ignored.</p> </note>"
         }
       },
       "documentation":"<p>Configure image tests for your pipeline build. Tests run after building the image, to verify that the AMI or container image is valid before distributing it.</p>"
@@ -4840,6 +4917,10 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>The tags of the infrastructure configuration.</p>"
+        },
+        "placement":{
+          "shape":"Placement",
+          "documentation":"<p>The instance placement settings that define where the instances that are launched from your image will run.</p>"
         }
       },
       "documentation":"<p>Details of the infrastructure configuration.</p>"
@@ -4886,6 +4967,10 @@
         "instanceProfileName":{
           "shape":"InstanceProfileNameType",
           "documentation":"<p>The instance profile of the infrastructure configuration.</p>"
+        },
+        "placement":{
+          "shape":"Placement",
+          "documentation":"<p>The instance placement settings that define where the instances that are launched from your image will run.</p>"
         }
       },
       "documentation":"<p>The infrastructure used when building Amazon EC2 AMIs.</p>"
@@ -6453,6 +6538,18 @@
       },
       "documentation":"<p>Logging configuration defines where Image Builder uploads your logs.</p>"
     },
+    "MarketplaceResourceLocation":{
+      "type":"string",
+      "max":1024,
+      "pattern":"^s3://[^/]+/.+[^/]$"
+    },
+    "MarketplaceResourceType":{
+      "type":"string",
+      "enum":[
+        "COMPONENT_DATA",
+        "COMPONENT_ARTIFACT"
+      ]
+    },
     "MaxParallelLaunches":{
       "type":"integer",
       "min":1
@@ -6529,7 +6626,8 @@
         "Self",
         "Shared",
         "Amazon",
-        "ThirdParty"
+        "ThirdParty",
+        "AWSMarketplace"
       ]
     },
     "PackageArchitecture":{"type":"string"},
@@ -6606,12 +6704,65 @@
         "ENABLED"
       ]
     },
+    "Placement":{
+      "type":"structure",
+      "members":{
+        "availabilityZone":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Availability Zone where your build and test instances will launch.</p>"
+        },
+        "tenancy":{
+          "shape":"TenancyType",
+          "documentation":"<p>The tenancy of the instance. An instance with a tenancy of <code>dedicated</code> runs on single-tenant hardware. An instance with a tenancy of <code>host</code> runs on a Dedicated Host.</p> <p>If tenancy is set to <code>host</code>, then you can optionally specify one target for placement – either host ID or host resource group ARN. If automatic placement is enabled for your host, and you don't specify any placement target, Amazon EC2 will try to find an available host for your build and test instances.</p>"
+        },
+        "hostId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The ID of the Dedicated Host on which build and test instances run. This only applies if <code>tenancy</code> is <code>host</code>. If you specify the host ID, you must not specify the resource group ARN. If you specify both, Image Builder returns an error.</p>"
+        },
+        "hostResourceGroupArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the host resource group in which to launch build and test instances. This only applies if <code>tenancy</code> is <code>host</code>. If you specify the resource group ARN, you must not specify the host ID. If you specify both, Image Builder returns an error.</p>"
+        }
+      },
+      "documentation":"<p>By default, EC2 instances run on shared tenancy hardware. This means that multiple Amazon Web Services accounts might share the same physical hardware. When you use dedicated hardware, the physical server that hosts your instances is dedicated to your Amazon Web Services account. Instance placement settings contain the details for the physical hardware where instances that Image Builder launches during image creation will run.</p>"
+    },
     "Platform":{
       "type":"string",
       "enum":[
         "Windows",
-        "Linux"
+        "Linux",
+        "macOS"
       ]
+    },
+    "ProductCodeId":{
+      "type":"string",
+      "pattern":"^[A-Za-z0-9]{1,25}$"
+    },
+    "ProductCodeList":{
+      "type":"list",
+      "member":{"shape":"ProductCodeListItem"}
+    },
+    "ProductCodeListItem":{
+      "type":"structure",
+      "required":[
+        "productCodeId",
+        "productCodeType"
+      ],
+      "members":{
+        "productCodeId":{
+          "shape":"ProductCodeId",
+          "documentation":"<p>For Amazon Web Services Marketplace components, this contains the product code ID that can be stamped onto an EC2 AMI to ensure that components are billed correctly. If this property is empty, it might mean that the component is not published.</p>"
+        },
+        "productCodeType":{
+          "shape":"ProductCodeType",
+          "documentation":"<p>The owner of the product code that's billed. If this property is empty, it might mean that the component is not published.</p>"
+        }
+      },
+      "documentation":"<p>Information about a single product code.</p>"
+    },
+    "ProductCodeType":{
+      "type":"string",
+      "enum":["marketplace"]
     },
     "PutComponentPolicyRequest":{
       "type":"structure",
@@ -7196,7 +7347,7 @@
         },
         "repositoryName":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The name of the container repository where the output container image is stored. This name is prefixed by the repository location.</p>"
+          "documentation":"<p>The name of the container repository where the output container image is stored. This name is prefixed by the repository location. For example, <code>&lt;repository location url&gt;/repository_name</code>.</p>"
         }
       },
       "documentation":"<p>The container repository where the output container image is stored.</p>"
@@ -7205,6 +7356,14 @@
       "type":"integer",
       "max":10000,
       "min":1
+    },
+    "TenancyType":{
+      "type":"string",
+      "enum":[
+        "default",
+        "dedicated",
+        "host"
+      ]
     },
     "Timezone":{
       "type":"string",
@@ -7414,11 +7573,6 @@
           "shape":"SnsTopicArn",
           "documentation":"<p>The Amazon Resource Name (ARN) for the SNS topic to which we send image build event notifications.</p> <note> <p>EC2 Image Builder is unable to send notifications to SNS topics that are encrypted using keys from other accounts. The key that is used to encrypt the SNS topic must reside in the account that the Image Builder service runs under.</p> </note>"
         },
-        "clientToken":{
-          "shape":"ClientToken",
-          "documentation":"<p>Unique, case-sensitive identifier you provide to ensure idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">Ensuring idempotency</a> in the <i>Amazon EC2 API Reference</i>.</p>",
-          "idempotencyToken":true
-        },
         "resourceTags":{
           "shape":"ResourceTagMap",
           "documentation":"<p>The tags attached to the resource created by Image Builder.</p>"
@@ -7426,6 +7580,15 @@
         "instanceMetadataOptions":{
           "shape":"InstanceMetadataOptions",
           "documentation":"<p>The instance metadata options that you can set for the HTTP requests that pipeline builds use to launch EC2 build and test instances. For more information about instance metadata options, see one of the following links:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-options.html\">Configure the instance metadata options</a> in the <i> <i>Amazon EC2 User Guide</i> </i> for Linux instances.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/configuring-instance-metadata-options.html\">Configure the instance metadata options</a> in the <i> <i>Amazon EC2 Windows Guide</i> </i> for Windows instances.</p> </li> </ul>"
+        },
+        "placement":{
+          "shape":"Placement",
+          "documentation":"<p>The instance placement settings that define where the instances that are launched from your image will run.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>Unique, case-sensitive identifier you provide to ensure idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">Ensuring idempotency</a> in the <i>Amazon EC2 API Reference</i>.</p>",
+          "idempotencyToken":true
         }
       }
     },

@@ -30,6 +30,21 @@ public interface NamingStrategy {
     String getServiceName();
 
     /**
+     * Retrieve the service name that should be used for environment variables.
+     */
+    String getServiceNameForEnvironmentVariables();
+
+    /**
+     * Retrieve the service name that should be used for system properties.
+     */
+    String getServiceNameForSystemProperties();
+
+    /**
+     * Retrieve the service name that should be used for profile properties.
+     */
+    String getServiceNameForProfileFile();
+
+    /**
      * Retrieve the client package name that should be used based on the service name.
      */
     String getClientPackageName(String serviceName);
@@ -73,6 +88,11 @@ public interface NamingStrategy {
      * Retrieve the path runtime package name that should be used based on the service name.
      */
     String getJmesPathPackageName(String serviceName);
+
+    /**
+     * Retrieve the batchManager package name that should be used based on the service name.
+     */
+    String getBatchManagerPackageName(String serviceName);
 
     /**
      * Retrieve the smote test package name that should be used based on the service name.

@@ -2462,6 +2462,10 @@
         "ResizeSpecifications":{
           "shape":"InstanceFleetResizingSpecifications",
           "documentation":"<p>The resize specification for the instance fleet.</p>"
+        },
+        "Context":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>Reserved.</p>"
         }
       },
       "documentation":"<p>Describes an instance fleet, which is a group of Amazon EC2 instances that host a particular node type (master, core, or task) in an Amazon EMR cluster. Instance fleets can consist of a mix of instance types and On-Demand and Spot Instances, which are provisioned to meet a defined target capacity. </p> <note> <p>The instance fleet configuration is available only in Amazon EMR releases 4.8.0 and later, excluding 5.0.x versions.</p> </note>"
@@ -2497,6 +2501,10 @@
         "ResizeSpecifications":{
           "shape":"InstanceFleetResizingSpecifications",
           "documentation":"<p>The resize specification for the instance fleet.</p>"
+        },
+        "Context":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>Reserved.</p>"
         }
       },
       "documentation":"<p>The configuration that defines an instance fleet.</p> <note> <p>The instance fleet configuration is available only in Amazon EMR releases 4.8.0 and later, excluding 5.0.x versions.</p> </note>"
@@ -2529,6 +2537,14 @@
         "ResizeSpecifications":{
           "shape":"InstanceFleetResizingSpecifications",
           "documentation":"<p>The resize specification for the instance fleet.</p>"
+        },
+        "InstanceTypeConfigs":{
+          "shape":"InstanceTypeConfigList",
+          "documentation":"<p>An array of InstanceTypeConfig objects that specify how Amazon EMR provisions Amazon EC2 instances when it fulfills On-Demand and Spot capacities. For more information, see <a href=\"https://docs.aws.amazon.com/emr/latest/APIReference/API_InstanceTypeConfig.html\">InstanceTypeConfig</a>.</p>"
+        },
+        "Context":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>Reserved.</p>"
         }
       },
       "documentation":"<p>Configuration parameters for an instance fleet modification request.</p> <note> <p>The instance fleet configuration is available only in Amazon EMR releases 4.8.0 and later, excluding 5.0.x versions.</p> </note>"
@@ -2538,25 +2554,25 @@
       "members":{
         "SpotSpecification":{
           "shape":"SpotProvisioningSpecification",
-          "documentation":"<p>The launch specification for Spot instances in the fleet, which determines the defined duration, provisioning timeout behavior, and allocation strategy.</p>"
+          "documentation":"<p>The launch specification for Spot instances in the fleet, which determines the allocation strategy, defined duration, and provisioning timeout behavior.</p>"
         },
         "OnDemandSpecification":{
           "shape":"OnDemandProvisioningSpecification",
-          "documentation":"<p> The launch specification for On-Demand Instances in the instance fleet, which determines the allocation strategy. </p> <note> <p>The instance fleet configuration is available only in Amazon EMR releases 4.8.0 and later, excluding 5.0.x versions. On-Demand Instances allocation strategy is available in Amazon EMR releases 5.12.1 and later.</p> </note>"
+          "documentation":"<p> The launch specification for On-Demand Instances in the instance fleet, which determines the allocation strategy and capacity reservation options.</p> <note> <p>The instance fleet configuration is available only in Amazon EMR releases 4.8.0 and later, excluding 5.0.x versions. On-Demand Instances allocation strategy is available in Amazon EMR releases 5.12.1 and later.</p> </note>"
         }
       },
-      "documentation":"<p>The launch specification for Spot Instances in the fleet, which determines the defined duration, provisioning timeout behavior, and allocation strategy.</p> <note> <p>The instance fleet configuration is available only in Amazon EMR releases 4.8.0 and later, excluding 5.0.x versions. On-Demand and Spot instance allocation strategies are available in Amazon EMR releases 5.12.1 and later.</p> </note>"
+      "documentation":"<p>The launch specification for On-Demand and Spot Instances in the fleet.</p> <note> <p>The instance fleet configuration is available only in Amazon EMR releases 4.8.0 and later, excluding 5.0.x versions. On-Demand and Spot instance allocation strategies are available in Amazon EMR releases 5.12.1 and later.</p> </note>"
     },
     "InstanceFleetResizingSpecifications":{
       "type":"structure",
       "members":{
         "SpotResizeSpecification":{
           "shape":"SpotResizingSpecification",
-          "documentation":"<p>The resize specification for Spot Instances in the instance fleet, which contains the resize timeout period. </p>"
+          "documentation":"<p>The resize specification for Spot Instances in the instance fleet, which contains the allocation strategy and the resize timeout period. </p>"
         },
         "OnDemandResizeSpecification":{
           "shape":"OnDemandResizingSpecification",
-          "documentation":"<p>The resize specification for On-Demand Instances in the instance fleet, which contains the resize timeout period. </p>"
+          "documentation":"<p>The resize specification for On-Demand Instances in the instance fleet, which contains the allocation strategy, capacity reservation options, and the resize timeout period. </p>"
         }
       },
       "documentation":"<p>The resize specification for On-Demand and Spot Instances in the fleet.</p>"
@@ -3926,6 +3942,14 @@
         "ComputeLimits":{
           "shape":"ComputeLimits",
           "documentation":"<p>The Amazon EC2 unit limits for a managed scaling policy. The managed scaling activity of a cluster is not allowed to go above or below these limits. The limit only applies to the core and task nodes. The master node cannot be scaled after initial configuration.</p>"
+        },
+        "UtilizationPerformanceIndex":{
+          "shape":"UtilizationPerformanceIndexInteger",
+          "documentation":"<p>An integer value that represents an advanced scaling strategy. Setting a higher value optimizes for performance. Setting a lower value optimizes for resource conservation. Setting the value to 50 balances performance and resource conservation. Possible values are 1, 25, 50, 75, and 100.</p>"
+        },
+        "ScalingStrategy":{
+          "shape":"ScalingStrategy",
+          "documentation":"<p>Determines whether a custom scaling utilization performance index can be set. Possible values include <i>ADVANCED</i> or <i>DEFAULT</i>.</p>"
         }
       },
       "documentation":"<p> Managed scaling policy for an Amazon EMR cluster. The policy specifies the limits for resources that can be added or terminated from a cluster. The policy only applies to the core and task nodes. The master node cannot be scaled after initial configuration. </p>"
@@ -4249,12 +4273,16 @@
     },
     "OnDemandResizingSpecification":{
       "type":"structure",
-      "required":["TimeoutDurationMinutes"],
       "members":{
         "TimeoutDurationMinutes":{
           "shape":"WholeNumber",
           "documentation":"<p>On-Demand resize timeout in minutes. If On-Demand Instances are not provisioned within this time, the resize workflow stops. The minimum value is 5 minutes, and the maximum value is 10,080 minutes (7 days). The timeout applies to all resize workflows on the Instance Fleet. The resize could be triggered by Amazon EMR Managed Scaling or by the customer (via Amazon EMR Console, Amazon EMR CLI modify-instance-fleet or Amazon EMR SDK ModifyInstanceFleet API) or by Amazon EMR due to Amazon EC2 Spot Reclamation.</p>"
-        }
+        },
+        "AllocationStrategy":{
+          "shape":"OnDemandProvisioningAllocationStrategy",
+          "documentation":"<p>Specifies the allocation strategy to use to launch On-Demand instances during a resize. The default is <code>lowest-price</code>.</p>"
+        },
+        "CapacityReservationOptions":{"shape":"OnDemandCapacityReservationOptions"}
       },
       "documentation":"<p>The resize specification for On-Demand Instances in the instance fleet, which contains the resize timeout period. </p>"
     },
@@ -4781,6 +4809,13 @@
       "type":"list",
       "member":{"shape":"ScalingRule"}
     },
+    "ScalingStrategy":{
+      "type":"string",
+      "enum":[
+        "DEFAULT",
+        "ADVANCED"
+      ]
+    },
     "ScalingTrigger":{
       "type":"structure",
       "required":["CloudWatchAlarmDefinition"],
@@ -5063,11 +5098,14 @@
     },
     "SpotResizingSpecification":{
       "type":"structure",
-      "required":["TimeoutDurationMinutes"],
       "members":{
         "TimeoutDurationMinutes":{
           "shape":"WholeNumber",
           "documentation":"<p>Spot resize timeout in minutes. If Spot Instances are not provisioned within this time, the resize workflow will stop provisioning of Spot instances. Minimum value is 5 minutes and maximum value is 10,080 minutes (7 days). The timeout applies to all resize workflows on the Instance Fleet. The resize could be triggered by Amazon EMR Managed Scaling or by the customer (via Amazon EMR Console, Amazon EMR CLI modify-instance-fleet or Amazon EMR SDK ModifyInstanceFleet API) or by Amazon EMR due to Amazon EC2 Spot Reclamation.</p>"
+        },
+        "AllocationStrategy":{
+          "shape":"SpotProvisioningAllocationStrategy",
+          "documentation":"<p>Specifies the allocation strategy to use to launch Spot instances during a resize. If you run Amazon EMR releases 6.9.0 or higher, the default is <code>price-capacity-optimized</code>. If you run Amazon EMR releases 6.8.0 or lower, the default is <code>capacity-optimized</code>.</p>"
         }
       },
       "documentation":"<p>The resize specification for Spot Instances in the instance fleet, which contains the resize timeout period. </p>"
@@ -5753,6 +5791,11 @@
       },
       "documentation":"<p>The username and password that you use to connect to cluster endpoints.</p>",
       "sensitive":true
+    },
+    "UtilizationPerformanceIndexInteger":{
+      "type":"integer",
+      "max":100,
+      "min":1
     },
     "VolumeSpecification":{
       "type":"structure",

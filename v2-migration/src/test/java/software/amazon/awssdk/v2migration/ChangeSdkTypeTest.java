@@ -29,7 +29,7 @@ public class ChangeSdkTypeTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
         spec.recipe(new ChangeSdkType()).parser(Java8Parser.builder().classpath("aws-java-sdk-sqs", "sqs", "aws-java-sdk-s3",
-                                                                                "aws-java-sdk-dynamodb"));
+                                                                                "aws-java-sdk-dynamodb", "aws-java-sdk-lambda"));
     }
 
     @Test
@@ -225,19 +225,23 @@ public class ChangeSdkTypeTest implements RewriteTest {
                 "import com.amazonaws.services.s3.transfer.TransferManager;\n" +
                 "import com.amazonaws.services.sqs.model.DeleteQueueRequest;\n" +
                 "import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;\n" +
+                "import com.amazonaws.services.lambda.invoke.LambdaFunction;\n" +
                 "class Test {\n" +
                 "    private TransferManager transferManager;\n" +
                 "    private DeleteQueueRequest deleteQueue;\n" +
                 "    private DynamoDBMapper ddbMapper;\n" +
+                "    private LambdaFunction lambdaFunction;\n" +
                 "}\n",
                 "import com.amazonaws.services.s3.transfer.TransferManager;\n"
                 + "import software.amazon.awssdk.services.sqs.model.DeleteQueueRequest;\n"
                 + "import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;\n"
+                + "import com.amazonaws.services.lambda.invoke.LambdaFunction;\n"
                 + "\n"
                 + "class Test {\n"
                 + "    private TransferManager transferManager;\n"
                 + "    private DeleteQueueRequest deleteQueue;\n"
                 + "    private DynamoDBMapper ddbMapper;\n"
+                + "    private LambdaFunction lambdaFunction;\n"
                 + "}"
             )
         );

@@ -1,0 +1,11 @@
+[
+  {
+    "name": "software.amazon.awssdk.crt.s3.S3Client",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

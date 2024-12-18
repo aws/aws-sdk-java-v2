@@ -15,12 +15,17 @@
 
 package software.amazon.awssdk.transfer.s3.internal.utils;
 
+import static software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior.LEAVE;
+import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION;
 import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
 
 import java.time.Instant;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadResumeContext;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadUtils;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
@@ -39,37 +44,74 @@ public final class ResumableRequestConverter {
 
     /**
      * Converts a {@link ResumableFileDownload} to {@link DownloadFileRequest} and {@link AsyncResponseTransformer} pair.
+     * <p>
+     * If before resuming the download the file on disk was modified, or the s3 object was modified, we need to restart the
+     * download from the beginning.
+     * <p>
+     * If the original requests has some individual parts downloaded, we need to make a multipart GET for the remaining parts.
+     * <p>
+     * Else, we need to make a ranged GET for the remaining bytes.
      */
     public static Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>>
-            toDownloadFileRequestAndTransformer(ResumableFileDownload resumableFileDownload,
-                                                HeadObjectResponse headObjectResponse,
-                                                DownloadFileRequest originalDownloadRequest) {
+        toDownloadFileRequestAndTransformer(ResumableFileDownload resumableFileDownload,
+                                        HeadObjectResponse headObjectResponse,
+                                        DownloadFileRequest originalDownloadRequest) {
 
         GetObjectRequest getObjectRequest = originalDownloadRequest.getObjectRequest();
         DownloadFileRequest newDownloadFileRequest;
-        boolean shouldAppend;
         Instant lastModified = resumableFileDownload.s3ObjectLastModified().orElse(null);
-        boolean s3ObjectNotModified = headObjectResponse.lastModified().equals(lastModified);
+        boolean s3ObjectModified = !headObjectResponse.lastModified().equals(lastModified);
 
-        boolean fileNotModified = fileNotModified(resumableFileDownload.bytesTransferred(),
-            resumableFileDownload.fileLastModified(), resumableFileDownload.downloadFileRequest().destination());
+        boolean fileModified = !fileNotModified(resumableFileDownload.bytesTransferred(),
+                                                resumableFileDownload.fileLastModified(),
+                                                resumableFileDownload.downloadFileRequest().destination());
 
-        if (fileNotModified && s3ObjectNotModified) {
-            newDownloadFileRequest = resumedDownloadFileRequest(resumableFileDownload,
-                                                                originalDownloadRequest,
-                                                                getObjectRequest,
-                                                                headObjectResponse);
-            shouldAppend = true;
-        } else {
-            logIfNeeded(originalDownloadRequest, getObjectRequest, fileNotModified, s3ObjectNotModified);
-            shouldAppend = false;
-            newDownloadFileRequest = newDownloadFileRequest(originalDownloadRequest, getObjectRequest,
-                                                            headObjectResponse);
+        if (fileModified || s3ObjectModified) {
+            // modification detected: new download request for the whole object from the beginning
+            logIfNeeded(originalDownloadRequest, getObjectRequest, fileModified, s3ObjectModified);
+            newDownloadFileRequest = newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
+
+            AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
+                fileAsyncResponseTransformer(newDownloadFileRequest, false);
+            return Pair.of(newDownloadFileRequest, responseTransformer);
         }
 
+        if (hasRemainingParts(getObjectRequest)) {
+            log.debug(() -> "The paused download was performed with part GET, now resuming download of remaining parts");
+            Long positionToWriteFrom =
+                MultipartDownloadUtils.multipartDownloadResumeContext(originalDownloadRequest.getObjectRequest())
+                .map(MultipartDownloadResumeContext::bytesToLastCompletedParts)
+                .orElse(0L);
+            AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
+                AsyncResponseTransformer.toFile(originalDownloadRequest.destination(),
+                                                FileTransformerConfiguration.builder()
+                                                                            .fileWriteOption(WRITE_TO_POSITION)
+                                                                            .position(positionToWriteFrom)
+                                                                            .failureBehavior(LEAVE)
+                                                                            .build());
+            return Pair.of(originalDownloadRequest, responseTransformer);
+        }
+
+        log.debug(() -> "The paused download was performed with range GET, now resuming download of remaining bytes.");
+        newDownloadFileRequest = resumedDownloadFileRequest(resumableFileDownload,
+                                                            originalDownloadRequest,
+                                                            getObjectRequest,
+                                                            headObjectResponse);
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
-            fileAsyncResponseTransformer(newDownloadFileRequest, shouldAppend);
+            fileAsyncResponseTransformer(newDownloadFileRequest, true);
         return Pair.of(newDownloadFileRequest, responseTransformer);
+    }
+
+    private static boolean hasRemainingParts(GetObjectRequest getObjectRequest) {
+        Optional<MultipartDownloadResumeContext> optCtx = MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest);
+        if (!optCtx.isPresent()) {
+            return false;
+        }
+        MultipartDownloadResumeContext ctx = optCtx.get();
+        if (ctx.response() != null && ctx.response().partsCount() == null) {
+            return false;
+        }
+        return !ctx.completedParts().isEmpty();
     }
 
     private static AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> fileAsyncResponseTransformer(
@@ -85,10 +127,10 @@ public final class ResumableRequestConverter {
 
     private static void logIfNeeded(DownloadFileRequest downloadRequest,
                                     GetObjectRequest getObjectRequest,
-                                    boolean fileNotModified,
-                                    boolean s3ObjectNotModified) {
+                                    boolean fileModified,
+                                    boolean s3ObjectModified) {
         if (log.logger().isDebugEnabled()) {
-            if (!s3ObjectNotModified) {
+            if (s3ObjectModified) {
                 log.debug(() -> String.format("The requested object in bucket (%s) with key (%s) "
                                               + "has been modified on Amazon S3 since the last "
                                               + "pause. The SDK will download the S3 object from "
@@ -96,7 +138,7 @@ public final class ResumableRequestConverter {
                                               getObjectRequest.bucket(), getObjectRequest.key()));
             }
 
-            if (!fileNotModified) {
+            if (fileModified) {
                 log.debug(() -> String.format("The file (%s) has been modified since "
                                               + "the last pause. " +
                                               "The SDK will download the requested object in bucket"

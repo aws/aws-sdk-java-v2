@@ -141,6 +141,30 @@
     }
   },
   {
+    "description": "Mixed location response with status code and header is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 201,
+        "body": "{\"StringMember\": \"string member value\",\"IntegerMember\":123}",
+        "headers": {
+          "x-amz-string": "header member value"
+        }
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "MixedLocationOperation"
+    },
+    "then": {
+      "deserializedAs": {
+        "StatusCodeMember": 201,
+        "StringMember": "string member value",
+        "IntegerMember": 123,
+        "StringHeaderMember": "header member value"
+      }
+    }
+  },
+  {
     "description": "Members declared to be in the query parameters or path on response are unmarshalled from the payload",
     "given": {
       "input": {

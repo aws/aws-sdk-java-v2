@@ -740,7 +740,7 @@
         {"shape":"MissingFileSystemConfiguration"},
         {"shape":"ServiceLimitExceeded"}
       ],
-      "documentation":"<p>Use this operation to update the configuration of an existing Amazon FSx file system. You can update multiple properties in a single request.</p> <p>For FSx for Windows File Server file systems, you can update the following properties:</p> <ul> <li> <p> <code>AuditLogConfiguration</code> </p> </li> <li> <p> <code>AutomaticBackupRetentionDays</code> </p> </li> <li> <p> <code>DailyAutomaticBackupStartTime</code> </p> </li> <li> <p> <code>SelfManagedActiveDirectoryConfiguration</code> </p> </li> <li> <p> <code>StorageCapacity</code> </p> </li> <li> <p> <code>StorageType</code> </p> </li> <li> <p> <code>ThroughputCapacity</code> </p> </li> <li> <p> <code>DiskIopsConfiguration</code> </p> </li> <li> <p> <code>WeeklyMaintenanceStartTime</code> </p> </li> </ul> <p>For FSx for Lustre file systems, you can update the following properties:</p> <ul> <li> <p> <code>AutoImportPolicy</code> </p> </li> <li> <p> <code>AutomaticBackupRetentionDays</code> </p> </li> <li> <p> <code>DailyAutomaticBackupStartTime</code> </p> </li> <li> <p> <code>DataCompressionType</code> </p> </li> <li> <p> <code>LogConfiguration</code> </p> </li> <li> <p> <code>LustreRootSquashConfiguration</code> </p> </li> <li> <p> <code>MetadataConfiguration</code> </p> </li> <li> <p> <code>PerUnitStorageThroughput</code> </p> </li> <li> <p> <code>StorageCapacity</code> </p> </li> <li> <p> <code>WeeklyMaintenanceStartTime</code> </p> </li> </ul> <p>For FSx for ONTAP file systems, you can update the following properties:</p> <ul> <li> <p> <code>AddRouteTableIds</code> </p> </li> <li> <p> <code>AutomaticBackupRetentionDays</code> </p> </li> <li> <p> <code>DailyAutomaticBackupStartTime</code> </p> </li> <li> <p> <code>DiskIopsConfiguration</code> </p> </li> <li> <p> <code>FsxAdminPassword</code> </p> </li> <li> <p> <code>HAPairs</code> </p> </li> <li> <p> <code>RemoveRouteTableIds</code> </p> </li> <li> <p> <code>StorageCapacity</code> </p> </li> <li> <p> <code>ThroughputCapacity</code> </p> </li> <li> <p> <code>ThroughputCapacityPerHAPair</code> </p> </li> <li> <p> <code>WeeklyMaintenanceStartTime</code> </p> </li> </ul> <p>For FSx for OpenZFS file systems, you can update the following properties:</p> <ul> <li> <p> <code>AddRouteTableIds</code> </p> </li> <li> <p> <code>AutomaticBackupRetentionDays</code> </p> </li> <li> <p> <code>CopyTagsToBackups</code> </p> </li> <li> <p> <code>CopyTagsToVolumes</code> </p> </li> <li> <p> <code>DailyAutomaticBackupStartTime</code> </p> </li> <li> <p> <code>DiskIopsConfiguration</code> </p> </li> <li> <p> <code>RemoveRouteTableIds</code> </p> </li> <li> <p> <code>StorageCapacity</code> </p> </li> <li> <p> <code>ThroughputCapacity</code> </p> </li> <li> <p> <code>WeeklyMaintenanceStartTime</code> </p> </li> </ul>"
+      "documentation":"<p>Use this operation to update the configuration of an existing Amazon FSx file system. You can update multiple properties in a single request.</p> <p>For FSx for Windows File Server file systems, you can update the following properties:</p> <ul> <li> <p> <code>AuditLogConfiguration</code> </p> </li> <li> <p> <code>AutomaticBackupRetentionDays</code> </p> </li> <li> <p> <code>DailyAutomaticBackupStartTime</code> </p> </li> <li> <p> <code>SelfManagedActiveDirectoryConfiguration</code> </p> </li> <li> <p> <code>StorageCapacity</code> </p> </li> <li> <p> <code>StorageType</code> </p> </li> <li> <p> <code>ThroughputCapacity</code> </p> </li> <li> <p> <code>DiskIopsConfiguration</code> </p> </li> <li> <p> <code>WeeklyMaintenanceStartTime</code> </p> </li> </ul> <p>For FSx for Lustre file systems, you can update the following properties:</p> <ul> <li> <p> <code>AutoImportPolicy</code> </p> </li> <li> <p> <code>AutomaticBackupRetentionDays</code> </p> </li> <li> <p> <code>DailyAutomaticBackupStartTime</code> </p> </li> <li> <p> <code>DataCompressionType</code> </p> </li> <li> <p> <code>LogConfiguration</code> </p> </li> <li> <p> <code>LustreRootSquashConfiguration</code> </p> </li> <li> <p> <code>MetadataConfiguration</code> </p> </li> <li> <p> <code>PerUnitStorageThroughput</code> </p> </li> <li> <p> <code>StorageCapacity</code> </p> </li> <li> <p> <code>WeeklyMaintenanceStartTime</code> </p> </li> </ul> <p>For FSx for ONTAP file systems, you can update the following properties:</p> <ul> <li> <p> <code>AddRouteTableIds</code> </p> </li> <li> <p> <code>AutomaticBackupRetentionDays</code> </p> </li> <li> <p> <code>DailyAutomaticBackupStartTime</code> </p> </li> <li> <p> <code>DiskIopsConfiguration</code> </p> </li> <li> <p> <code>FsxAdminPassword</code> </p> </li> <li> <p> <code>HAPairs</code> </p> </li> <li> <p> <code>RemoveRouteTableIds</code> </p> </li> <li> <p> <code>StorageCapacity</code> </p> </li> <li> <p> <code>ThroughputCapacity</code> </p> </li> <li> <p> <code>ThroughputCapacityPerHAPair</code> </p> </li> <li> <p> <code>WeeklyMaintenanceStartTime</code> </p> </li> </ul> <p>For FSx for OpenZFS file systems, you can update the following properties:</p> <ul> <li> <p> <code>AddRouteTableIds</code> </p> </li> <li> <p> <code>AutomaticBackupRetentionDays</code> </p> </li> <li> <p> <code>CopyTagsToBackups</code> </p> </li> <li> <p> <code>CopyTagsToVolumes</code> </p> </li> <li> <p> <code>DailyAutomaticBackupStartTime</code> </p> </li> <li> <p> <code>DiskIopsConfiguration</code> </p> </li> <li> <p> <code>ReadCacheConfiguration</code> </p> </li> <li> <p> <code>RemoveRouteTableIds</code> </p> </li> <li> <p> <code>StorageCapacity</code> </p> </li> <li> <p> <code>ThroughputCapacity</code> </p> </li> <li> <p> <code>WeeklyMaintenanceStartTime</code> </p> </li> </ul>"
     },
     "UpdateSharedVpcConfiguration":{
       "name":"UpdateSharedVpcConfiguration",
@@ -1177,7 +1177,11 @@
           "shape":"ResourceType",
           "documentation":"<p>Specifies the resource type that's backed up.</p>"
         },
-        "Volume":{"shape":"Volume"}
+        "Volume":{"shape":"Volume"},
+        "SizeInBytes":{
+          "shape":"SizeInBytes",
+          "documentation":"<p> The size of the backup in bytes. This represents the amount of data that the file system would contain if you restore this backup. </p>"
+        }
       },
       "documentation":"<p>A backup of an Amazon FSx for Windows File Server, Amazon FSx for Lustre file system, Amazon FSx for NetApp ONTAP volume, or Amazon FSx for OpenZFS file system.</p>"
     },
@@ -1324,7 +1328,7 @@
         },
         "Path":{
           "shape":"ArchivePath",
-          "documentation":"<p>Required if <code>Enabled</code> is set to <code>true</code>. Specifies the location of the report on the file system's linked S3 data repository. An absolute path that defines where the completion report will be stored in the destination location. The <code>Path</code> you provide must be located within the file system’s ExportPath. An example <code>Path</code> value is \"s3://myBucket/myExportPath/optionalPrefix\". The report provides the following information for each file in the report: FilePath, FileStatus, and ErrorCode.</p>"
+          "documentation":"<p>Required if <code>Enabled</code> is set to <code>true</code>. Specifies the location of the report on the file system's linked S3 data repository. An absolute path that defines where the completion report will be stored in the destination location. The <code>Path</code> you provide must be located within the file system’s ExportPath. An example <code>Path</code> value is \"s3://amzn-s3-demo-bucket/myExportPath/optionalPrefix\". The report provides the following information for each file in the report: FilePath, FileStatus, and ErrorCode.</p>"
         },
         "Format":{
           "shape":"ReportFormat",
@@ -1477,7 +1481,7 @@
         },
         "DataRepositoryPath":{
           "shape":"ArchivePath",
-          "documentation":"<p>The path to the Amazon S3 data repository that will be linked to the file system. The path can be an S3 bucket or prefix in the format <code>s3://myBucket/myPrefix/</code>. This path specifies where in the S3 data repository files will be imported from or exported to.</p>"
+          "documentation":"<p>The path to the Amazon S3 data repository that will be linked to the file system. The path can be an S3 bucket or prefix in the format <code>s3://bucket-name/prefix/</code> (where <code>prefix</code> is optional). This path specifies where in the S3 data repository files will be imported from or exported to.</p>"
         },
         "BatchImportMetaDataOnCreate":{
           "shape":"BatchImportMetaDataOnCreate",
@@ -1521,7 +1525,7 @@
         },
         "Paths":{
           "shape":"DataRepositoryTaskPaths",
-          "documentation":"<p>A list of paths for the data repository task to use when the task is processed. If a path that you provide isn't valid, the task fails. If you don't provide paths, the default behavior is to export all files to S3 (for export tasks), import all files from S3 (for import tasks), or release all exported files that meet the last accessed time criteria (for release tasks).</p> <ul> <li> <p>For export tasks, the list contains paths on the FSx for Lustre file system from which the files are exported to the Amazon S3 bucket. The default path is the file system root directory. The paths you provide need to be relative to the mount point of the file system. If the mount point is <code>/mnt/fsx</code> and <code>/mnt/fsx/path1</code> is a directory or file on the file system you want to export, then the path to provide is <code>path1</code>.</p> </li> <li> <p>For import tasks, the list contains paths in the Amazon S3 bucket from which POSIX metadata changes are imported to the FSx for Lustre file system. The path can be an S3 bucket or prefix in the format <code>s3://myBucket/myPrefix</code> (where <code>myPrefix</code> is optional). </p> </li> <li> <p>For release tasks, the list contains directory or file paths on the FSx for Lustre file system from which to release exported files. If a directory is specified, files within the directory are released. If a file path is specified, only that file is released. To release all exported files in the file system, specify a forward slash (/) as the path.</p> <note> <p>A file must also meet the last accessed time criteria specified in for the file to be released.</p> </note> </li> </ul>"
+          "documentation":"<p>A list of paths for the data repository task to use when the task is processed. If a path that you provide isn't valid, the task fails. If you don't provide paths, the default behavior is to export all files to S3 (for export tasks), import all files from S3 (for import tasks), or release all exported files that meet the last accessed time criteria (for release tasks).</p> <ul> <li> <p>For export tasks, the list contains paths on the FSx for Lustre file system from which the files are exported to the Amazon S3 bucket. The default path is the file system root directory. The paths you provide need to be relative to the mount point of the file system. If the mount point is <code>/mnt/fsx</code> and <code>/mnt/fsx/path1</code> is a directory or file on the file system you want to export, then the path to provide is <code>path1</code>.</p> </li> <li> <p>For import tasks, the list contains paths in the Amazon S3 bucket from which POSIX metadata changes are imported to the FSx for Lustre file system. The path can be an S3 bucket or prefix in the format <code>s3://bucket-name/prefix</code> (where <code>prefix</code> is optional).</p> </li> <li> <p>For release tasks, the list contains directory or file paths on the FSx for Lustre file system from which to release exported files. If a directory is specified, files within the directory are released. If a file path is specified, only that file is released. To release all exported files in the file system, specify a forward slash (/) as the path.</p> <note> <p>A file must also meet the last accessed time criteria specified in for the file to be released.</p> </note> </li> </ul>"
         },
         "FileSystemId":{"shape":"FileSystemId"},
         "Report":{
@@ -1748,6 +1752,10 @@
           "shape":"DataCompressionType",
           "documentation":"<p>Sets the data compression configuration for the file system. <code>DataCompressionType</code> can have the following values:</p> <ul> <li> <p> <code>NONE</code> - (Default) Data compression is turned off when the file system is created.</p> </li> <li> <p> <code>LZ4</code> - Data compression is turned on with the LZ4 algorithm.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/data-compression.html\">Lustre data compression</a> in the <i>Amazon FSx for Lustre User Guide</i>.</p>"
         },
+        "EfaEnabled":{
+          "shape":"Flag",
+          "documentation":"<p>(Optional) Specifies whether Elastic Fabric Adapter (EFA) and GPUDirect Storage (GDS) support is enabled for the Amazon FSx for Lustre file system.</p> <p>(Default = <code>false</code>)</p>"
+        },
         "LogConfiguration":{
           "shape":"LustreLogCreateConfiguration",
           "documentation":"<p>The Lustre logging configuration used when creating an Amazon FSx for Lustre file system. When logging is enabled, Lustre logs error and warning events for data repositories associated with your file system to Amazon CloudWatch Logs.</p>"
@@ -1866,6 +1874,10 @@
         "RouteTableIds":{
           "shape":"RouteTableIds",
           "documentation":"<p>(Multi-AZ only) Specifies the route tables in which Amazon FSx creates the rules for routing traffic to the correct file server. You should specify all virtual private cloud (VPC) route tables associated with the subnets in which your clients are located. By default, Amazon FSx selects your VPC's default route table.</p>"
+        },
+        "ReadCacheConfiguration":{
+          "shape":"OpenZFSReadCacheConfiguration",
+          "documentation":"<p> Specifies the optional provisioned SSD read cache on file systems that use the Intelligent-Tiering storage class. </p>"
         }
       },
       "documentation":"<p>The Amazon FSx for OpenZFS configuration properties for the file system that you are creating.</p>"
@@ -1874,7 +1886,6 @@
       "type":"structure",
       "required":[
         "FileSystemType",
-        "StorageCapacity",
         "SubnetIds"
       ],
       "members":{
@@ -1893,7 +1904,7 @@
         },
         "StorageType":{
           "shape":"StorageType",
-          "documentation":"<p>Sets the storage type for the file system that you're creating. Valid values are <code>SSD</code> and <code>HDD</code>.</p> <ul> <li> <p>Set to <code>SSD</code> to use solid state drive storage. SSD is supported on all Windows, Lustre, ONTAP, and OpenZFS deployment types.</p> </li> <li> <p>Set to <code>HDD</code> to use hard disk drive storage. HDD is supported on <code>SINGLE_AZ_2</code> and <code>MULTI_AZ_1</code> Windows file system deployment types, and on <code>PERSISTENT_1</code> Lustre file system deployment types.</p> </li> </ul> <p>Default value is <code>SSD</code>. For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/WindowsGuide/optimize-fsx-costs.html#storage-type-options\"> Storage type options</a> in the <i>FSx for Windows File Server User Guide</i> and <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/what-is.html#storage-options\">Multiple storage options</a> in the <i>FSx for Lustre User Guide</i>. </p>"
+          "documentation":"<p>Sets the storage class for the file system that you're creating. Valid values are <code>SSD</code>, <code>HDD</code>, and <code>INTELLIGENT_TIERING</code>.</p> <ul> <li> <p>Set to <code>SSD</code> to use solid state drive storage. SSD is supported on all Windows, Lustre, ONTAP, and OpenZFS deployment types.</p> </li> <li> <p>Set to <code>HDD</code> to use hard disk drive storage. HDD is supported on <code>SINGLE_AZ_2</code> and <code>MULTI_AZ_1</code> Windows file system deployment types, and on <code>PERSISTENT_1</code> Lustre file system deployment types.</p> </li> <li> <p>Set to <code>INTELLIGENT_TIERING</code> to use fully elastic, intelligently-tiered storage. Intelligent-Tiering is only available for OpenZFS file systems with the Multi-AZ deployment type.</p> </li> </ul> <p>Default value is <code>SSD</code>. For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/WindowsGuide/optimize-fsx-costs.html#storage-type-options\"> Storage type options</a> in the <i>FSx for Windows File Server User Guide</i>, <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/what-is.html#storage-options\">Multiple storage options</a> in the <i>FSx for Lustre User Guide</i>, and <a href=\"https://docs.aws.amazon.com/fsx/latest/OpenZFSGuide/performance-intelligent-tiering\">Working with Intelligent-Tiering</a> in the <i>Amazon FSx for OpenZFS User Guide</i>. </p>"
         },
         "SubnetIds":{
           "shape":"SubnetIds",
@@ -2078,7 +2089,7 @@
         },
         "RecordSizeKiB":{
           "shape":"IntegerRecordSizeKiB",
-          "documentation":"<p>Specifies the suggested block size for a volume in a ZFS dataset, in kibibytes (KiB). Valid values are 4, 8, 16, 32, 64, 128, 256, 512, or 1024 KiB. The default is 128 KiB. We recommend using the default setting for the majority of use cases. Generally, workloads that write in fixed small or large record sizes may benefit from setting a custom record size, like database workloads (small record size) or media streaming workloads (large record size). For additional guidance on when to set a custom record size, see <a href=\"https://docs.aws.amazon.com/fsx/latest/OpenZFSGuide/performance.html#record-size-performance\"> ZFS Record size</a> in the <i>Amazon FSx for OpenZFS User Guide</i>.</p>"
+          "documentation":"<p>Specifies the suggested block size for a volume in a ZFS dataset, in kibibytes (KiB). For file systems using the Intelligent-Tiering storage class, valid values are 128, 256, 512, 1024, 2048, or 4096 KiB, with a default of 2048 KiB. For all other file systems, valid values are 4, 8, 16, 32, 64, 128, 256, 512, or 1024 KiB, with a default of 128 KiB. We recommend using the default setting for the majority of use cases. Generally, workloads that write in fixed small or large record sizes may benefit from setting a custom record size, like database workloads (small record size) or media streaming workloads (large record size). For additional guidance on when to set a custom record size, see <a href=\"https://docs.aws.amazon.com/fsx/latest/OpenZFSGuide/performance.html#record-size-performance\"> ZFS Record size</a> in the <i>Amazon FSx for OpenZFS User Guide</i>.</p>"
         },
         "DataCompressionType":{
           "shape":"OpenZFSDataCompressionType",
@@ -2337,7 +2348,7 @@
         },
         "DataRepositoryPath":{
           "shape":"ArchivePath",
-          "documentation":"<p>The path to the data repository that will be linked to the cache or file system.</p> <ul> <li> <p>For Amazon File Cache, the path can be an NFS data repository that will be linked to the cache. The path can be in one of two formats:</p> <ul> <li> <p>If you are not using the <code>DataRepositorySubdirectories</code> parameter, the path is to an NFS Export directory (or one of its subdirectories) in the format <code>nsf://nfs-domain-name/exportpath</code>. You can therefore link a single NFS Export to a single data repository association.</p> </li> <li> <p>If you are using the <code>DataRepositorySubdirectories</code> parameter, the path is the domain name of the NFS file system in the format <code>nfs://filer-domain-name</code>, which indicates the root of the subdirectories specified with the <code>DataRepositorySubdirectories</code> parameter.</p> </li> </ul> </li> <li> <p>For Amazon File Cache, the path can be an S3 bucket or prefix in the format <code>s3://myBucket/myPrefix/</code>.</p> </li> <li> <p>For Amazon FSx for Lustre, the path can be an S3 bucket or prefix in the format <code>s3://myBucket/myPrefix/</code>.</p> </li> </ul>"
+          "documentation":"<p>The path to the data repository that will be linked to the cache or file system.</p> <ul> <li> <p>For Amazon File Cache, the path can be an NFS data repository that will be linked to the cache. The path can be in one of two formats:</p> <ul> <li> <p>If you are not using the <code>DataRepositorySubdirectories</code> parameter, the path is to an NFS Export directory (or one of its subdirectories) in the format <code>nsf://nfs-domain-name/exportpath</code>. You can therefore link a single NFS Export to a single data repository association.</p> </li> <li> <p>If you are using the <code>DataRepositorySubdirectories</code> parameter, the path is the domain name of the NFS file system in the format <code>nfs://filer-domain-name</code>, which indicates the root of the subdirectories specified with the <code>DataRepositorySubdirectories</code> parameter.</p> </li> </ul> </li> <li> <p>For Amazon File Cache, the path can be an S3 bucket or prefix in the format <code>s3://bucket-name/prefix/</code> (where <code>prefix</code> is optional).</p> </li> <li> <p>For Amazon FSx for Lustre, the path can be an S3 bucket or prefix in the format <code>s3://bucket-name/prefix/</code> (where <code>prefix</code> is optional).</p> </li> </ul>"
         },
         "BatchImportMetaDataOnCreate":{
           "shape":"BatchImportMetaDataOnCreate",
@@ -3509,7 +3520,7 @@
         },
         "DataRepositoryPath":{
           "shape":"ArchivePath",
-          "documentation":"<p>The path to the S3 or NFS data repository that links to the cache. You must provide one of the following paths:</p> <ul> <li> <p>The path can be an NFS data repository that links to the cache. The path can be in one of two formats:</p> <ul> <li> <p>If you are not using the <code>DataRepositorySubdirectories</code> parameter, the path is to an NFS Export directory (or one of its subdirectories) in the format <code>nfs://nfs-domain-name/exportpath</code>. You can therefore link a single NFS Export to a single data repository association.</p> </li> <li> <p>If you are using the <code>DataRepositorySubdirectories</code> parameter, the path is the domain name of the NFS file system in the format <code>nfs://filer-domain-name</code>, which indicates the root of the subdirectories specified with the <code>DataRepositorySubdirectories</code> parameter.</p> </li> </ul> </li> <li> <p>The path can be an S3 bucket or prefix in the format <code>s3://myBucket/myPrefix/</code>.</p> </li> </ul>"
+          "documentation":"<p>The path to the S3 or NFS data repository that links to the cache. You must provide one of the following paths:</p> <ul> <li> <p>The path can be an NFS data repository that links to the cache. The path can be in one of two formats:</p> <ul> <li> <p>If you are not using the <code>DataRepositorySubdirectories</code> parameter, the path is to an NFS Export directory (or one of its subdirectories) in the format <code>nfs://nfs-domain-name/exportpath</code>. You can therefore link a single NFS Export to a single data repository association.</p> </li> <li> <p>If you are using the <code>DataRepositorySubdirectories</code> parameter, the path is the domain name of the NFS file system in the format <code>nfs://filer-domain-name</code>, which indicates the root of the subdirectories specified with the <code>DataRepositorySubdirectories</code> parameter.</p> </li> </ul> </li> <li> <p>The path can be an S3 bucket or prefix in the format <code>s3://bucket-name/prefix/</code> (where <code>prefix</code> is optional).</p> </li> </ul>"
         },
         "DataRepositorySubdirectories":{
           "shape":"SubDirectoriesPaths",
@@ -3944,7 +3955,7 @@
     },
     "IntegerRecordSizeKiB":{
       "type":"integer",
-      "max":1024,
+      "max":4096,
       "min":4
     },
     "InternalServerError":{
@@ -4174,6 +4185,10 @@
         "MetadataConfiguration":{
           "shape":"FileSystemLustreMetadataConfiguration",
           "documentation":"<p>The Lustre metadata performance configuration for an Amazon FSx for Lustre file system using a <code>PERSISTENT_2</code> deployment type.</p>"
+        },
+        "EfaEnabled":{
+          "shape":"Flag",
+          "documentation":"<p>Specifies whether Elastic Fabric Adapter (EFA) and GPUDirect Storage (GDS) support is enabled for the Amazon FSx for Lustre file system.</p>"
         }
       },
       "documentation":"<p>The configuration for the Amazon FSx for Lustre file system.</p>"
@@ -4634,6 +4649,10 @@
         "EndpointIpAddress":{
           "shape":"IpAddress",
           "documentation":"<p>The IP address of the endpoint that is used to access data or to manage the file system.</p>"
+        },
+        "ReadCacheConfiguration":{
+          "shape":"OpenZFSReadCacheConfiguration",
+          "documentation":"<p> Required when <code>StorageType</code> is set to <code>INTELLIGENT_TIERING</code>. Specifies the optional provisioned SSD read cache. </p>"
         }
       },
       "documentation":"<p>The configuration for the Amazon FSx for OpenZFS file system. </p>"
@@ -4682,6 +4701,28 @@
       "enum":[
         "USER",
         "GROUP"
+      ]
+    },
+    "OpenZFSReadCacheConfiguration":{
+      "type":"structure",
+      "members":{
+        "SizingMode":{
+          "shape":"OpenZFSReadCacheSizingMode",
+          "documentation":"<p> Specifies how the provisioned SSD read cache is sized, as follows: </p> <ul> <li> <p>Set to <code>NO_CACHE</code> if you do not want to use an SSD read cache with your Intelligent-Tiering file system.</p> </li> <li> <p>Set to <code>USER_PROVISIONED</code> to specify the exact size of your SSD read cache.</p> </li> <li> <p>Set to <code>PROPORTIONAL_TO_THROUGHPUT_CAPACITY</code> to have your SSD read cache automatically sized based on your throughput capacity.</p> </li> </ul>"
+        },
+        "SizeGiB":{
+          "shape":"StorageCapacity",
+          "documentation":"<p> Required if <code>SizingMode</code> is set to <code>USER_PROVISIONED</code>. Specifies the size of the file system's SSD read cache, in gibibytes (GiB). </p>"
+        }
+      },
+      "documentation":"<p> The configuration for the optional provisioned SSD read cache on file systems that use the Intelligent-Tiering storage class. </p>"
+    },
+    "OpenZFSReadCacheSizingMode":{
+      "type":"string",
+      "enum":[
+        "NO_CACHE",
+        "USER_PROVISIONED",
+        "PROPORTIONAL_TO_THROUGHPUT_CAPACITY"
       ]
     },
     "OpenZFSUserAndGroupQuotas":{
@@ -5164,6 +5205,10 @@
       "documentation":"<p>An error indicating that a particular service limit was exceeded. You can increase some service limits by contacting Amazon Web Services Support.</p>",
       "exception":true
     },
+    "SizeInBytes":{
+      "type":"long",
+      "min":0
+    },
     "SnaplockConfiguration":{
       "type":"structure",
       "members":{
@@ -5390,7 +5435,8 @@
       "documentation":"<p>Specifies the file system's storage type.</p>",
       "enum":[
         "SSD",
-        "HDD"
+        "HDD",
+        "INTELLIGENT_TIERING"
       ]
     },
     "StorageVirtualMachine":{
@@ -5935,6 +5981,10 @@
         "RemoveRouteTableIds":{
           "shape":"RouteTableIds",
           "documentation":"<p>(Multi-AZ only) A list of IDs of existing virtual private cloud (VPC) route tables to disassociate (remove) from your Amazon FSx for OpenZFS file system. You can use the API operation to retrieve the list of VPC route table IDs for a file system.</p>"
+        },
+        "ReadCacheConfiguration":{
+          "shape":"OpenZFSReadCacheConfiguration",
+          "documentation":"<p> The configuration for the optional provisioned SSD read cache on file systems that use the Intelligent-Tiering storage class.</p>"
         }
       },
       "documentation":"<p>The configuration updates for an Amazon FSx for OpenZFS file system.</p>"

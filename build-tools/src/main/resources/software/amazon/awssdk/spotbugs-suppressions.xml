@@ -280,6 +280,7 @@
             <Class name="software.amazon.awssdk.codegen.model.service.Waiters"/>
             <Class name="software.amazon.awssdk.regions.EndpointTag"/>
             <Class name="software.amazon.awssdk.regions.Region"/>
+            <Class name="software.amazon.awssdk.core.internal.useragent.DefaultSystemUserAgent"/>
             <Class name="software.amazon.awssdk.core.util.DefaultSdkAutoConstructList"/>
             <Class name="software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap"/>
             <Class name="software.amazon.awssdk.http.nio.netty.internal.http2.FlushOnReadHandler"/>
@@ -302,14 +303,57 @@
     <!-- Retrieves and updates crc value in update() -->
      <Match>
          <Or>
-             <Class name="software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkCrc32CChecksum"/>
-             <Class name="software.amazon.awssdk.http.auth.aws.internal.signer.checksums.SdkCrc32Checksum"/>
+             <Class name="software.amazon.awssdk.checksums.internal.SdkCrc32CChecksum"/>
+             <Class name="software.amazon.awssdk.checksums.internal.SdkCrc32Checksum"/>
              <Class name="software.amazon.awssdk.core.internal.checksums.factory.SdkCrc32C"/>
              <Class name="software.amazon.awssdk.core.internal.checksums.factory.SdkCrc32"/>
          </Or>
          <Bug pattern="SA_FIELD_SELF_ASSIGNMENT"/>
     </Match>
 
+    <!-- Suppress existing blocking call. -->
+    <!-- Classes making calls to disallowed methods made outside of the async code path can be added here to be suppressed -->
+    <!-- TODO: remove classes from the list once blocking calls have been removed from the SDK async code path -->
+    <Match>
+        <Or>
+            <Class name="~software\.amazon\.awssdk\.core\.endpointdiscovery\.EndpointDiscoveryRefreshCache"/>
+            <Class name="~software\.amazon\.awssdk\.core\.internal\.http\.async\.CombinedResponseAsyncHttpResponseHandler" />
+            <Class name="~software\.amazon\.awssdk\.authcrt\.signer\.internal\.AwsCrt4aSigningAdapter" />
+            <Class name="~software\.amazon\.awssdk\.http\.auth\.aws\.crt\.internal\.signer\.DefaultAwsCrtV4aHttpSigner" />
+            <Class name="~software\.amazon\.awssdk\.http\.auth\.aws\.crt\.internal\.signer\.RollingSigner" />
+            <Class name="~software\.amazon\.awssdk\.core\.internal\.http\.pipeline\.stages\.ApplyUserAgentStage" />
+            <Class name="~software\.amazon\.awssdk\.core\.internal\.http\.pipeline\.stages\.SigningStage" />
+            <Class name="~software\.amazon\.awssdk\.auth\.credentials\.AwsCredentialsProviderChain" />
+            <Class name="~software\.amazon\.awssdk\.auth\.credentials\.CredentialUtils" />
+            <Class name="~software\.amazon\.awssdk\.auth\.credentials\.TokenUtils" />
+            <Class name="~software\.amazon\.awssdk\.auth\.signer\.AwsSignerExecutionAttribute" />
+            <Class name="~software\.amazon\.awssdk\.auth\.token\.credentials\.SdkTokenProviderChain" />
+            <Class name="~software\.amazon\.awssdk\.auth\.token\.signer\.SdkTokenExecutionAttribute" />
+            <Class name="~software\.amazon\.awssdk\.awscore\.internal\.authcontext\.AwsCredentialsAuthorizationStrategy" />
+            <Class name="~software\.amazon\.awssdk\.awscore\.internal\.authcontext\.TokenAuthorizationStrategy" />
+            <Class name="~software\.amazon\.awssdk\.http\.nio\.netty\.internal\.AwaitCloseChannelPoolMap" />
+            <Class name="~software\.amazon\.awssdk\.http\.nio\.netty\.internal\.ChannelAttributeKey" />
+            <Class name="~software\.amazon\.awssdk\.transfer\.s3\.internal\.progress\.ResumeTransferProgress" />
+            <Class name="~software\.amazon\.awssdk\.utils\.CompletableFutureUtils" />
+            <Class name="~software\.amazon\.awssdk\.metrics\.publishers\.cloudwatch\.CloudWatchMetricPublisher" />
+            <Class name="~software\.amazon\.awssdk\.http\.apache\.internal\.conn\.IdleConnectionReaper\$ReaperTask" />
+            <Class name="~software\.amazon\.awssdk\.core\.internal\.retry\.RateLimitingTokenBucket" />
+            <Class name="~software\.amazon\.awssdk\.core\.internal\.waiters\.WaiterExecutor" />
+            <Class name="~software\.amazon\.awssdk\.regions\.internal\.util\.EC2MetadataUtils" />
+            <Class name="~software\.amazon\.awssdk\.regions\.util\.HttpResourcesUtils" />
+            <Class name="~software\.amazon\.awssdk\.auth\.credentials\.InstanceProfileCredentialsProvider" />
+            <Class name="~software\.amazon\.awssdk\.auth\.credentials\.internal\.HttpCredentialsLoader" />
+            <Class name="~software\.amazon\.awssdk\.auth\.credentials\.ContainerCredentialsProvider" />
+            <Class name="~software\.amazon\.awssdk\.auth\.credentials\.InstanceProfileCredentialsProvider" />
+
+            <!-- test modules are allowed to make blocking call as parts of their testing -->
+            <Class name="~.*testutils.*" />
+            <Class name="~.*s3benchmarks.*" />
+
+        </Or>
+        <Bug pattern="ASYNC_BLOCKING_CALL"/>
+    </Match>
+  
     <!-- False positive -->
     <Match>
         <Class name="software.amazon.awssdk.v2migration.EnumCasingToV2$Visitor"/>

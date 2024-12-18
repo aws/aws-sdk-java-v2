@@ -66,6 +66,10 @@ public interface ProtocolSpec {
 
     Optional<MethodSpec> createErrorResponseHandler();
 
+    default Optional<MethodSpec> createEventstreamErrorResponseHandler() {
+        return Optional.empty();
+    }
+
     default List<MethodSpec> additionalMethods() {
         return new ArrayList<>();
     }
@@ -90,7 +94,10 @@ public interface ProtocolSpec {
     default String populateHttpStatusCode(ShapeModel shapeModel, IntermediateModel model) {
         Integer statusCode = shapeModel.getHttpStatusCode();
 
-        if (statusCode == null && model.getMetadata().getProtocol() == Protocol.AWS_JSON) {
+        Protocol protocol = model.getMetadata().getProtocol();
+
+        if (statusCode == null
+            && (protocol == Protocol.AWS_JSON || protocol == Protocol.CBOR)) {
             if (shapeModel.isFault()) {
                 statusCode = 500;
             } else {

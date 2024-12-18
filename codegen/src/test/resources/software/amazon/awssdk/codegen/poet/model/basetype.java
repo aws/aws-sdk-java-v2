@@ -3,7 +3,9 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -27,6 +29,8 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
                                                                       .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("BaseMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(BASE_MEMBER_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private static final long serialVersionUID = 1L;
 
@@ -140,6 +144,17 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
         return SDK_FIELDS;
     }
 
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("BaseMember", BASE_MEMBER_FIELD);
+        return Collections.unmodifiableMap(map);
+    }
+
     private static <T> Function<Object, T> getter(Function<BaseType, T> g) {
         return obj -> g.apply((BaseType) obj);
     }
@@ -243,6 +258,11 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }

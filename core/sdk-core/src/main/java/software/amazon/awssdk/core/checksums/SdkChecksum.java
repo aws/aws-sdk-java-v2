@@ -22,7 +22,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 /**
  * Extension of {@link Checksum} to support checksums and checksum validations used by the SDK that
  * are not provided by the JDK.
+ * @deprecated this class is deprecated and will not be updated.
  */
+@Deprecated
 @SdkPublicApi
 public interface SdkChecksum extends Checksum {
 

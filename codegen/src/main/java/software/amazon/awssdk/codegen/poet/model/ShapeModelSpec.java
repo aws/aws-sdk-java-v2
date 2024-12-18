@@ -18,12 +18,16 @@ package software.amazon.awssdk.codegen.poet.model;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
@@ -95,6 +99,7 @@ class ShapeModelSpec {
 
     public Iterable<FieldSpec> staticFields(Modifier... modifiers) {
         List<FieldSpec> fields = new ArrayList<>();
+        Map<String, String> nameToField = new LinkedHashMap<>();
         shapeModel.getNonStreamingMembers().stream()
                   // Exceptions can be members of event stream shapes, need to filter those out of the models
                   .filter(m -> m.getShape() == null || m.getShape().getShapeType() != ShapeType.Exception)
@@ -107,6 +112,8 @@ class ShapeModelSpec {
                                                    Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                                           .initializer(sdkFieldInitializer(m))
                                           .build());
+                      String name = m.getHttp().getMarshallLocationName();
+                      nameToField.put(name, namingStrategy.getSdkFieldFieldName(m));
                   });
 
         ParameterizedTypeName sdkFieldType = ParameterizedTypeName.get(ClassName.get(SdkField.class),
@@ -115,13 +122,15 @@ class ShapeModelSpec {
         fields.add(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(List.class),
                                                                sdkFieldType), "SDK_FIELDS",
                                      Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                            .initializer("$T.unmodifiableList($T.asList($L))",
-                                         ClassName.get(Collections.class),
-                                         ClassName.get(Arrays.class),
-                                         fields.stream()
-                                               .map(f -> f.name)
-                                               .collect(Collectors.joining(",")))
+                            .initializer(sdkFieldsInitializer(fields))
                             .build());
+        fields.add(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(Map.class),
+                                                               ClassName.get(String.class),
+                                                               sdkFieldType),
+                                     "SDK_NAME_TO_FIELD",
+                                     Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                       .initializer(memberNameToFieldInitializer())
+                       .build());
         return fields;
     }
 
@@ -140,6 +149,22 @@ class ShapeModelSpec {
                         .add(traits(m))
                         .add(".build()")
                         .build();
+    }
+
+    public List<MethodSpec> additionalMethods() {
+        return Collections.singletonList(memberNameToFieldInitializerMethod(nameToField()));
+    }
+
+    public Map<String, String> nameToField() {
+        Map<String, String> nameToField = new LinkedHashMap<>();
+        shapeModel.getNonStreamingMembers().stream()
+                  .filter(m -> m.getShape() == null || m.getShape().getShapeType() != ShapeType.Exception)
+                  .filter(m -> !m.isSynthetic())
+                  .forEach(m -> {
+                      String name = m.getHttp().getMarshallLocationName();
+                      nameToField.put(name, namingStrategy.getSdkFieldFieldName(m));
+                  });
+        return nameToField;
     }
 
     private CodeBlock containerSdkFieldInitializer(MemberModel m) {
@@ -369,4 +394,44 @@ class ShapeModelSpec {
         }
     }
 
+    private CodeBlock sdkFieldsInitializer(List<FieldSpec> fields) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        if (fields.isEmpty()) {
+            builder.add("$T.emptyList()", Collections.class);
+            return builder.build();
+        }
+        builder.add("$T.unmodifiableList($T.asList($L))",
+                    ClassName.get(Collections.class),
+                    ClassName.get(Arrays.class),
+                    fields.stream()
+                          .map(f -> f.name)
+                          .collect(Collectors.joining(",")));
+        return builder.build();
+    }
+
+    private CodeBlock memberNameToFieldInitializer() {
+        return CodeBlock.builder()
+                        .add("memberNameToFieldInitializer()")
+                        .build();
+    }
+
+    private MethodSpec memberNameToFieldInitializerMethod(Map<String, String> nameToField) {
+        ParameterizedTypeName sdkFieldT = ParameterizedTypeName.get(ClassName.get(SdkField.class),
+                                                                    WildcardTypeName.subtypeOf(Object.class));
+        ParameterizedTypeName mapT = ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class),
+                                                               sdkFieldT);
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("memberNameToFieldInitializer")
+            .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+            .returns(mapT);
+
+        if (nameToField.isEmpty()) {
+            builder.addStatement("return $T.emptyMap()", Collections.class);
+        } else {
+            builder.addStatement("$T map = new $T<>()", mapT, HashMap.class);
+            nameToField.forEach((name, field) -> builder.addStatement("map.put($S, $L)", name, field));
+            builder.addStatement("return $T.unmodifiableMap(map)", Collections.class);
+        }
+
+        return builder.build();
+    }
 }

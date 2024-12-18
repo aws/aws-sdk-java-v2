@@ -15,15 +15,22 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.AUTH_SOURCE;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.BUSINESS_METADATA;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.CONFIG_METADATA;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.SLASH;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.SPACE;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.appendSpaceAndField;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.uaPair;
+import static software.amazon.awssdk.utils.StringUtils.trim;
+
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BinaryOperator;
-import java.util.function.UnaryOperator;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.ClientType;
-import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -34,15 +41,14 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.useragent.IdentityProviderNameMapping;
-import software.amazon.awssdk.core.util.SdkUserAgent;
-import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * A stage for adding the user agent header to the request, after retrieving the current string
@@ -52,23 +58,9 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
 
     public static final String HEADER_USER_AGENT = "User-Agent";
+    public static final String SDK_METRICS = "sdk-metrics";
 
     private static final Logger log = Logger.loggerFor(ApplyUserAgentStage.class);
-
-    private static final String COMMA = ", ";
-    private static final String SLASH = "/";
-    private static final String SPACE = " ";
-    private static final String HASH = "#";
-    private static final String IO = "io";
-    private static final String HTTP = "http";
-    private static final String CONFIG = "cfg";
-    private static final String RETRY_MODE = "retry-mode";
-    private static final String AUTH_HEADER = "auth-source";
-    private static final String AWS_EXECUTION_ENV_PREFIX = "exec-env/";
-
-    private static final BinaryOperator<String> API_NAMES = (name, version) -> name + "/" + version;
-    private static final BinaryOperator<String> CONFIG_METADATA = (param, name) -> CONFIG + SLASH + param + HASH + name;
-    private static final UnaryOperator<String> AUTH_CONFIG = name -> CONFIG_METADATA.apply(AUTH_HEADER, name);
 
     private final SdkClientConfiguration clientConfig;
 
@@ -76,83 +68,94 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         this.clientConfig = dependencies.clientConfiguration();
     }
 
-    public static String resolveClientUserAgent(String userAgentPrefix,
-                                                String internalUserAgent,
-                                                ClientType clientType,
-                                                SdkHttpClient syncHttpClient,
-                                                SdkAsyncHttpClient asyncHttpClient,
-                                                String retryMode) {
-        String awsExecutionEnvironment = SdkSystemSetting.AWS_EXECUTION_ENV.getStringValue().orElse(null);
-
-        StringBuilder userAgent = new StringBuilder(128);
-
-        userAgent.append(StringUtils.trimToEmpty(userAgentPrefix));
-
-        String systemUserAgent = SdkUserAgent.create().userAgent();
-        if (!systemUserAgent.equals(userAgentPrefix)) {
-            userAgent.append(COMMA).append(systemUserAgent);
-        }
-
-        String trimmedInternalUserAgent = StringUtils.trimToEmpty(internalUserAgent);
-        if (!trimmedInternalUserAgent.isEmpty()) {
-            userAgent.append(SPACE).append(trimmedInternalUserAgent);
-        }
-
-        if (!StringUtils.isEmpty(awsExecutionEnvironment)) {
-            userAgent.append(SPACE).append(AWS_EXECUTION_ENV_PREFIX).append(awsExecutionEnvironment.trim());
-        }
-
-        if (clientType == null) {
-            clientType = ClientType.UNKNOWN;
-        }
-
-        userAgent.append(SPACE)
-                 .append(IO)
-                 .append("/")
-                 .append(StringUtils.lowerCase(clientType.name()));
-
-        userAgent.append(SPACE)
-                 .append(HTTP)
-                 .append("/")
-                 .append(SdkHttpUtils.urlEncode(clientName(clientType, syncHttpClient, asyncHttpClient)))
-                 .append(SPACE)
-                 .append(CONFIG)
-                 .append("/")
-                 .append(RETRY_MODE)
-                 .append("/")
-                 .append(StringUtils.lowerCase(retryMode));
-
-        return userAgent.toString();
-    }
-
     @Override
-    public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
-            throws Exception {
-        return request.putHeader(HEADER_USER_AGENT, getUserAgent(clientConfig, context));
+    public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request,
+                                              RequestExecutionContext context) throws Exception {
+        String headerValue = finalizeUserAgent(context);
+        return request.putHeader(HEADER_USER_AGENT, headerValue);
     }
 
-    private String getUserAgent(SdkClientConfiguration config, RequestExecutionContext context) {
+    /**
+     * The final value sent in the user agent header consists of
+     * <ol>
+     *     <li>an optional user provided prefix</li>
+     *     <li>SDK user agent values (governed by a common specification)</li>
+     *     <li>an optional set of API names, expressed as name/version pairs</li>
+     *     <li>an optional user provided suffix</li>
+     * </ol>
+     * <p>
+     * In general, usage of the optional values is discouraged since they do not follow a specification and can make
+     * the user agent too long.
+     * <p>
+     * The SDK user agent values are constructed from static system values, client level values and request level
+     * values. This method adds request level values directly after the retrieved SDK client user agent string.
+     */
+    private String finalizeUserAgent(RequestExecutionContext context) {
         String clientUserAgent = clientConfig.option(SdkClientOption.CLIENT_USER_AGENT);
         if (clientUserAgent == null) {
             log.warn(() -> "Client user agent configuration is missing, so request user agent will be incomplete.");
             clientUserAgent = "";
         }
-        StringBuilder userAgent = new StringBuilder(clientUserAgent);
 
-        //additional cfg information
-        identityProviderName(context.executionAttributes())
-            .ifPresent(providerName -> userAgent.append(SPACE).append(AUTH_CONFIG.apply(providerName)));
+        //separate apiNames into opaque customer added values and known values added internally as metrics
+        Pair<List<ApiName>, Collection<String>> groupedApiNames = groupApiNames(context.requestConfig().apiNames());
 
-        //request API names
-        requestApiNames(context.requestConfig().apiNames()).ifPresent(userAgent::append);
+        //create builder for the user agent string
+        StringBuilder javaUserAgent = new StringBuilder();
 
-        //suffix
-        String userDefinedSuffix = config.option(SdkAdvancedClientOption.USER_AGENT_SUFFIX);
-        if (!StringUtils.isEmpty(userDefinedSuffix)) {
-            userAgent.append(COMMA).append(userDefinedSuffix.trim());
+        String userPrefix = trim(clientConfig.option(SdkAdvancedClientOption.USER_AGENT_PREFIX));
+        if (!StringUtils.isEmpty(userPrefix)) {
+            javaUserAgent.append(userPrefix).append(SPACE);
         }
 
-        return userAgent.toString();
+        javaUserAgent.append(clientUserAgent);
+
+        //add remaining SDK user agent properties
+        identityProviderName(context.executionAttributes()).ifPresent(
+            authSource -> appendSpaceAndField(javaUserAgent, CONFIG_METADATA, uaPair(AUTH_SOURCE, authSource)));
+
+        Optional<String> businessMetrics = getBusinessMetricsString(context.executionAttributes(), groupedApiNames.right());
+        businessMetrics.ifPresent(
+            metrics -> appendSpaceAndField(javaUserAgent, BUSINESS_METADATA, metrics)
+        );
+
+        //Any ApiName value that isn't known is added to the end of the user agent
+        Optional<String> apiNames = requestApiNames(groupedApiNames.left());
+        apiNames.ifPresent(javaUserAgent::append);
+
+        String userSuffix = trim(clientConfig.option(SdkAdvancedClientOption.USER_AGENT_SUFFIX));
+        if (!StringUtils.isEmpty(userSuffix)) {
+            javaUserAgent.append(SPACE).append(userSuffix);
+        }
+
+        return javaUserAgent.toString();
+    }
+
+    private static Pair<List<ApiName>, Collection<String>> groupApiNames(List<ApiName> input) {
+        List<ApiName> customApiNames = new ArrayList<>();
+        Collection<String> metricsFromApiNames = new ArrayList<>();
+        for (ApiName requestApiName : input) {
+            if (requestApiName.name().equals(SDK_METRICS)) {
+                metricsFromApiNames.add(requestApiName.version());
+            } else {
+                customApiNames.add(requestApiName);
+            }
+        }
+        return Pair.of(customApiNames, metricsFromApiNames);
+    }
+
+    private static Optional<String> getBusinessMetricsString(ExecutionAttributes executionAttributes,
+                                                             Collection<String> metricsFromApiNames) {
+        BusinessMetricCollection businessMetrics =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        if (businessMetrics == null && CollectionUtils.isNullOrEmpty(metricsFromApiNames)) {
+            return Optional.empty();
+        }
+        if (businessMetrics == null) {
+            businessMetrics = new BusinessMetricCollection();
+        }
+        businessMetrics.merge(metricsFromApiNames);
+        return Optional.of(businessMetrics.asBoundedString());
     }
 
     private static Optional<String> identityProviderName(ExecutionAttributes executionAttributes) {
@@ -170,26 +173,24 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         return identity.providerName().flatMap(IdentityProviderNameMapping::mapFrom);
     }
 
+    /**
+     * This structure is used for external users as well as for internal tracking of features.
+     * It's not governed by a specification.
+     * Internal usage should be migrated to business metrics or another designated metadata field,
+     * leaving these values to be completely user-set, in which case the result would in most cases be empty.
+     * <p>
+     * Currently tracking these SDK values (remove from list as they're migrated):
+     * PAGINATED/sdk-version, hll/s3Multipart, hll/ddb-enh, hll/cw-mp, hll/waiter, hll/cross-region, ft/s3-transfer
+     */
     private Optional<String> requestApiNames(List<ApiName> requestApiNames) {
         if (requestApiNames.isEmpty()) {
             return Optional.empty();
         }
         StringBuilder concatenatedNames = new StringBuilder();
         requestApiNames.forEach(apiName -> concatenatedNames.append(SPACE)
-                                                            .append(API_NAMES.apply(apiName.name(),
-                                                                                    apiName.version())));
+                                                            .append(apiName.name())
+                                                            .append(SLASH)
+                                                            .append(apiName.version()));
         return Optional.of(concatenatedNames.toString());
-    }
-
-    private static String clientName(ClientType clientType, SdkHttpClient syncHttpClient, SdkAsyncHttpClient asyncHttpClient) {
-        if (clientType == ClientType.SYNC) {
-            return syncHttpClient == null ? "null" : syncHttpClient.clientName();
-        }
-
-        if (clientType == ClientType.ASYNC) {
-            return asyncHttpClient == null ? "null" : asyncHttpClient.clientName();
-        }
-
-        return ClientType.UNKNOWN.name();
     }
 }

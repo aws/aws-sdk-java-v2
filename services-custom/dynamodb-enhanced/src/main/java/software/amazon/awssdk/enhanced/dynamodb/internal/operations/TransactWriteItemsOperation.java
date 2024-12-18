@@ -20,6 +20,7 @@ import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
@@ -27,9 +28,9 @@ import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsResponse
 
 @SdkInternalApi
 public class TransactWriteItemsOperation
-    implements DatabaseOperation<TransactWriteItemsRequest, TransactWriteItemsResponse, Void> {
+    implements DatabaseOperation<TransactWriteItemsRequest, TransactWriteItemsResponse, TransactWriteItemsEnhancedResponse> {
 
-    private TransactWriteItemsEnhancedRequest request;
+    private final TransactWriteItemsEnhancedRequest request;
 
     private TransactWriteItemsOperation(TransactWriteItemsEnhancedRequest request) {
         this.request = request;
@@ -49,18 +50,23 @@ public class TransactWriteItemsOperation
         return TransactWriteItemsRequest.builder()
                                         .transactItems(this.request.transactWriteItems())
                                         .clientRequestToken(this.request.clientRequestToken())
+                                        .returnConsumedCapacity(this.request.returnConsumedCapacity())
+                                        .returnItemCollectionMetrics(this.request.returnItemCollectionMetrics())
                                         .build();
     }
 
     @Override
-    public Void transformResponse(TransactWriteItemsResponse response, DynamoDbEnhancedClientExtension extension) {
-        return null;        // this operation does not return results
+    public TransactWriteItemsEnhancedResponse transformResponse(TransactWriteItemsResponse response,
+                                                                   DynamoDbEnhancedClientExtension extension) {
+        return TransactWriteItemsEnhancedResponse.builder()
+                                                 .consumedCapacity(response.consumedCapacity())
+                                                 .itemCollectionMetrics(response.itemCollectionMetrics())
+                                                 .build();
     }
 
     @Override
     public Function<TransactWriteItemsRequest, TransactWriteItemsResponse> serviceCall(
         DynamoDbClient dynamoDbClient) {
-
         return dynamoDbClient::transactWriteItems;
     }
 

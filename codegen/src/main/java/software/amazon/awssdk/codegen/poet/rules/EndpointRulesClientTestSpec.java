@@ -20,6 +20,7 @@ import static software.amazon.awssdk.codegen.poet.rules.TestGeneratorUtils.getHo
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.jr.stree.JrsArray;
 import com.fasterxml.jackson.jr.stree.JrsObject;
+import com.fasterxml.jackson.jr.stree.JrsString;
 import com.fasterxml.jackson.jr.stree.JrsValue;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
@@ -68,6 +69,7 @@ import software.amazon.awssdk.core.rules.testing.SyncTestCase;
 import software.amazon.awssdk.core.rules.testing.util.EmptyPublisher;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.ImmutableMap;
 import software.amazon.awssdk.utils.Validate;
 
 public class EndpointRulesClientTestSpec implements ClassSpec {
@@ -442,7 +444,7 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
 
         if (opParams != null) {
             opParams.forEach((n, v) -> {
-                MemberModel memberModel = opModel.getInputShape().getMemberByName(n);
+                MemberModel memberModel = opModel.getInputShape().getMemberByC2jName(n);
                 CodeBlock memberValue = createMemberValue(memberModel, v);
                 b.add(".$N($L)", memberModel.getFluentSetterMethodName(), memberValue);
             });
@@ -781,8 +783,26 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         }
 
         if (memberModel.isMap()) {
-            // Not necessary at the moment
-            throw new RuntimeException("Don't know how to create map member.");
+            Iterator<Map.Entry<String, JrsValue>> fieldsIter = ((JrsObject) valueNode).fields();
+            MemberModel keyModel = memberModel.getMapModel().getKeyModel();
+            MemberModel valueModel = memberModel.getMapModel().getValueModel();
+
+            b.add("$T.of(", ImmutableMap.class);
+            boolean firstKey = true;
+            while (fieldsIter.hasNext()) {
+                Map.Entry<String, JrsValue> entry = fieldsIter.next();
+                JrsString keyNode = new JrsString(entry.getKey());
+
+                if (!firstKey) {
+                    b.add(", ");
+                }
+                firstKey = false;
+                b.add(createMemberValue(keyModel, keyNode));
+                b.add(", ");
+                b.add(createMemberValue(valueModel, entry.getValue()));
+            }
+            b.add(")");
+            return b.build();
         }
 
         return createModelClass(model.getShapes().get(memberModel.getC2jShape()), valueNode);
@@ -799,7 +819,7 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         Iterator<String> fieldNamesIter = obj.fieldNames();
         while (fieldNamesIter.hasNext()) {
             String fieldName = fieldNamesIter.next();
-            MemberModel member = shapeModel.getMemberByName(fieldName);
+            MemberModel member = shapeModel.getMemberByC2jName(fieldName);
             JrsValue value = obj.get(fieldName);
 
             b.add(".$N($L)", member.getFluentSetterMethodName(), createMemberValue(member, value));

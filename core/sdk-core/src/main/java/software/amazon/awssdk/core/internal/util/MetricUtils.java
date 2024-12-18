@@ -26,7 +26,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -41,8 +41,11 @@ import software.amazon.awssdk.utils.Pair;
 
 /**
  * Utility methods for working with metrics.
+ * <p>
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class MetricUtils {
     private static final long ONE_SEC_IN_NS = 1_000_000_000L;
 

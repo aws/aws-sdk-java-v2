@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.InstantToString;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -44,7 +45,9 @@ import software.amazon.awssdk.protocols.core.ProtocolUtils;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter.ValueToString;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolMetadata;
+import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
+import software.amazon.awssdk.protocols.json.internal.ProtocolFact;
 
 /**
  * Implementation of {@link ProtocolMarshaller} for JSON based services. This includes JSON-RPC and REST-JSON.
@@ -69,12 +72,14 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     private final JsonMarshallerContext marshallerContext;
     private final boolean hasEventStreamingInput;
     private final boolean hasEvent;
+    private final boolean hasAwsQueryCompatible;
 
     JsonProtocolMarshaller(URI endpoint,
                            StructuredJsonGenerator jsonGenerator,
                            String contentType,
                            OperationInfo operationInfo,
-                           AwsJsonProtocolMetadata protocolMetadata) {
+                           AwsJsonProtocolMetadata protocolMetadata,
+                           boolean hasAwsQueryCompatible) {
         this.endpoint = endpoint;
         this.jsonGenerator = jsonGenerator;
         this.contentType = contentType;
@@ -85,6 +90,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         this.hasEventStreamingInput = operationInfo.hasEventStreamingInput();
         this.hasEvent = operationInfo.hasEvent();
         this.request = fillBasicRequestParams(operationInfo);
+        this.hasAwsQueryCompatible = hasAwsQueryCompatible;
         this.marshallerContext = JsonMarshallerContext.builder()
                                                       .jsonGenerator(jsonGenerator)
                                                       .marshallerRegistry(MARSHALLER_REGISTRY)
@@ -100,6 +106,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .payloadMarshaller(MarshallingType.INTEGER, SimpleTypeJsonMarshaller.INTEGER)
             .payloadMarshaller(MarshallingType.LONG, SimpleTypeJsonMarshaller.LONG)
             .payloadMarshaller(MarshallingType.SHORT, SimpleTypeJsonMarshaller.SHORT)
+            .payloadMarshaller(MarshallingType.BYTE, SimpleTypeJsonMarshaller.BYTE)
             .payloadMarshaller(MarshallingType.DOUBLE, SimpleTypeJsonMarshaller.DOUBLE)
             .payloadMarshaller(MarshallingType.FLOAT, SimpleTypeJsonMarshaller.FLOAT)
             .payloadMarshaller(MarshallingType.BIG_DECIMAL, SimpleTypeJsonMarshaller.BIG_DECIMAL)
@@ -116,6 +123,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .headerMarshaller(MarshallingType.INTEGER, HeaderMarshaller.INTEGER)
             .headerMarshaller(MarshallingType.LONG, HeaderMarshaller.LONG)
             .headerMarshaller(MarshallingType.SHORT, HeaderMarshaller.SHORT)
+            .headerMarshaller(MarshallingType.BYTE, HeaderMarshaller.BYTE)
             .headerMarshaller(MarshallingType.DOUBLE, HeaderMarshaller.DOUBLE)
             .headerMarshaller(MarshallingType.FLOAT, HeaderMarshaller.FLOAT)
             .headerMarshaller(MarshallingType.BOOLEAN, HeaderMarshaller.BOOLEAN)
@@ -127,6 +135,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .queryParamMarshaller(MarshallingType.INTEGER, QueryParamMarshaller.INTEGER)
             .queryParamMarshaller(MarshallingType.LONG, QueryParamMarshaller.LONG)
             .queryParamMarshaller(MarshallingType.SHORT, QueryParamMarshaller.SHORT)
+            .queryParamMarshaller(MarshallingType.BYTE, QueryParamMarshaller.BYTE)
             .queryParamMarshaller(MarshallingType.DOUBLE, QueryParamMarshaller.DOUBLE)
             .queryParamMarshaller(MarshallingType.FLOAT, QueryParamMarshaller.FLOAT)
             .queryParamMarshaller(MarshallingType.BOOLEAN, QueryParamMarshaller.BOOLEAN)
@@ -139,6 +148,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .pathParamMarshaller(MarshallingType.INTEGER, SimpleTypePathMarshaller.INTEGER)
             .pathParamMarshaller(MarshallingType.LONG, SimpleTypePathMarshaller.LONG)
             .pathParamMarshaller(MarshallingType.SHORT, SimpleTypePathMarshaller.SHORT)
+            .pathParamMarshaller(MarshallingType.BYTE, SimpleTypePathMarshaller.BYTE)
             .pathParamMarshaller(MarshallingType.NULL, SimpleTypePathMarshaller.NULL)
 
             .greedyPathParamMarshaller(MarshallingType.STRING, SimpleTypePathMarshaller.GREEDY_STRING)
@@ -157,12 +167,20 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     }
 
     private SdkHttpFullRequest.Builder fillBasicRequestParams(OperationInfo operationInfo) {
-        return ProtocolUtils.createSdkHttpRequest(operationInfo, endpoint)
-                            .applyMutation(b -> {
-                                if (operationInfo.operationIdentifier() != null) {
-                                    b.putHeader("X-Amz-Target", operationInfo.operationIdentifier());
-                                }
-                            });
+        SdkHttpFullRequest.Builder requestBuilder = ProtocolUtils.createSdkHttpRequest(operationInfo, endpoint);
+        String operationIdentifier = operationInfo.operationIdentifier();
+        if (operationIdentifier != null) {
+            requestBuilder.putHeader("X-Amz-Target", operationIdentifier);
+        }
+        Map<String, String> extraHeaders = operationInfo.addtionalMetadata(BaseAwsJsonProtocolFactory.HTTP_EXTRA_HEADERS);
+        if (extraHeaders == null) {
+            extraHeaders =
+                ProtocolFact.from(protocolMetadata.protocol()).extraHeaders();
+        }
+        if (extraHeaders != null) {
+            extraHeaders.forEach(requestBuilder::putHeader);
+        }
+        return requestBuilder;
     }
 
     /**
@@ -213,7 +231,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     }
 
     private boolean isExplicitPayloadMember(SdkField<?> field) {
-        return field.containsTrait(PayloadTrait.class);
+        return field.containsTrait(PayloadTrait.class, TraitType.PAYLOAD_TRAIT);
     }
 
     private void marshallExplicitJsonPayload(SdkField<?> field, Object val) {
@@ -265,7 +283,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 if (protocol == AwsJsonProtocol.AWS_JSON) {
                     // For RPC formats, this content type will later be pushed down into the `initial-event` in the body
                     request.putHeader(CONTENT_TYPE, contentType);
-                } else if (protocol == AwsJsonProtocol.REST_JSON) {
+                } else if (protocol == AwsJsonProtocol.REST_JSON || protocol == AwsJsonProtocol.SMITHY_RPC_V2_CBOR) {
                     request.putHeader(CONTENT_TYPE, MIMETYPE_EVENT_STREAM);
                 } else {
                     throw new IllegalArgumentException("Unknown AwsJsonProtocol: " + protocol);
@@ -277,6 +295,10 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             }
         }
 
+        if (hasAwsQueryCompatible) {
+            request.putHeader("x-amzn-query-mode", "true");
+        }
+
         return request.build();
     }
 
@@ -286,7 +308,9 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     }
 
     private boolean needTopLevelJsonObject() {
-        return AwsJsonProtocol.AWS_JSON.equals(protocolMetadata.protocol())
+        AwsJsonProtocol protocol = protocolMetadata.protocol();
+        return protocol == AwsJsonProtocol.AWS_JSON
+               || protocol == AwsJsonProtocol.SMITHY_RPC_V2_CBOR
                || (!hasExplicitPayloadMember && hasImplicitPayloadMembers);
 
     }

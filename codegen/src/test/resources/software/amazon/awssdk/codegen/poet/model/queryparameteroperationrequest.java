@@ -3,7 +3,9 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -46,11 +48,10 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
         .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("QueryParamOne").build(),
                 RequiredTrait.create()).build();
 
-    private static final SdkField<String> QUERY_PARAM_TWO_FIELD = SdkField
-        .<String> builder(MarshallingType.STRING)
-        .memberName("QueryParamTwo").getter(getter(QueryParameterOperationRequest::queryParamTwo))
-        .setter(setter(Builder::queryParamTwo))
-        .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("QueryParamTwo").build()).build();
+    private static final SdkField<String> QUERY_PARAM_TWO_FIELD = SdkField.<String> builder(MarshallingType.STRING)
+                                                                          .memberName("QueryParamTwo").getter(getter(QueryParameterOperationRequest::queryParamTwo))
+                                                                          .setter(setter(Builder::queryParamTwo))
+                                                                          .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("QueryParamTwo").build()).build();
 
     private static final SdkField<String> STRING_HEADER_MEMBER_FIELD = SdkField
         .<String> builder(MarshallingType.STRING)
@@ -103,6 +104,8 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(PATH_PARAM_FIELD,
                                                                                                    QUERY_PARAM_ONE_FIELD, QUERY_PARAM_TWO_FIELD, STRING_HEADER_MEMBER_FIELD, NESTED_QUERY_PARAMETER_OPERATION_FIELD,
                                                                                                    REQUIRED_LIST_QUERY_PARAMS_FIELD, OPTIONAL_LIST_QUERY_PARAMS_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private final String pathParam;
 
@@ -322,6 +325,23 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     @Override
     public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
+    }
+
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("PathParam", PATH_PARAM_FIELD);
+        map.put("QueryParamOne", QUERY_PARAM_ONE_FIELD);
+        map.put("QueryParamTwo", QUERY_PARAM_TWO_FIELD);
+        map.put("x-amz-header-string", STRING_HEADER_MEMBER_FIELD);
+        map.put("NestedQueryParameterOperation", NESTED_QUERY_PARAMETER_OPERATION_FIELD);
+        map.put("RequiredListQueryParams", REQUIRED_LIST_QUERY_PARAMS_FIELD);
+        map.put("OptionalListQueryParams", OPTIONAL_LIST_QUERY_PARAMS_FIELD);
+        return Collections.unmodifiableMap(map);
     }
 
     private static <T> Function<Object, T> getter(Function<QueryParameterOperationRequest, T> g) {
@@ -611,6 +631,11 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }

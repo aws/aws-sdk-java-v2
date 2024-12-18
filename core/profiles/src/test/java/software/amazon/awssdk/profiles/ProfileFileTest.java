@@ -343,7 +343,9 @@ public class ProfileFileTest {
         assertThat(configFileProfiles("[profile foo]\n" +
                                       "s3 =\n" +
                                       " name = value"))
-            .isEqualTo(profiles(profile("foo", property("s3", "\nname = value"))));
+            .isEqualTo(profiles(profile("foo",
+                                        property("s3", "\nname = value"),
+                                        property("s3.name", "value"))));
     }
 
     @Test
@@ -359,7 +361,9 @@ public class ProfileFileTest {
         assertThat(configFileProfiles("[profile foo]\n" +
                                       "s3 =\n" +
                                       " name ="))
-            .isEqualTo(profiles(profile("foo", property("s3", "\nname ="))));
+            .isEqualTo(profiles(profile("foo",
+                                        property("s3", "\nname ="),
+                                        property("s3.name", ""))));
     }
 
     @Test
@@ -385,7 +389,10 @@ public class ProfileFileTest {
                                       " name = value\n" +
                                       "\t \n" +
                                       " name2 = value2"))
-            .isEqualTo(profiles(profile("foo", property("s3", "\nname = value\nname2 = value2"))));
+            .isEqualTo(profiles(profile("foo",
+                                        property("s3", "\nname = value\nname2 = value2"),
+                                        property("s3.name", "value"),
+                                        property("s3.name2", "value2"))));
     }
 
     @Test
@@ -565,7 +572,7 @@ public class ProfileFileTest {
 
     private ProfileFile configFile(String configFile) {
         return ProfileFile.builder()
-                          .content(new StringInputStream(configFile))
+                          .content(configFile)
                           .type(ProfileFile.Type.CONFIGURATION)
                           .build();
     }
@@ -576,7 +583,7 @@ public class ProfileFileTest {
 
     private ProfileFile credentialFile(String credentialFile) {
         return ProfileFile.builder()
-                          .content(new StringInputStream(credentialFile))
+                          .content(credentialFile)
                           .type(ProfileFile.Type.CREDENTIALS)
                           .build();
     }

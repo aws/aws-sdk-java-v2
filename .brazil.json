@@ -14,6 +14,7 @@
         "aws-json-protocol": { "packageName": "AwsJavaSdk-Core-AwsJsonProtocol" },
         "aws-query-protocol": { "packageName": "AwsJavaSdk-Core-AwsQueryProtocol" },
         "aws-xml-protocol": { "packageName": "AwsJavaSdk-Core-AwsXmlProtocol" },
+        "smithy-rpcv2-protocol": { "packageName": "AwsJavaSdk-Core-SmithyRpcV2Protocol" },
         "cloudwatch-metric-publisher": { "packageName": "AwsJavaSdk-MetricPublisher-CloudWatch" },
         "codegen": { "packageName": "AwsJavaSdk-Codegen" },
         "dynamodb-enhanced": { "packageName": "AwsJavaSdk-DynamoDb-Enhanced" },
@@ -108,7 +109,8 @@
         "third-party-slf4j-api": { "skipImport": true },
         "v2-migration-tests": {"skipImport":  true},
         "crt-unavailable-tests": { "skipImport": true },
-        "bundle-shading-tests": { "skipImport": true }
+        "bundle-shading-tests": { "skipImport": true },
+        "architecture-tests": {"skipImport":  true}
     },
 
     "dependencies": {

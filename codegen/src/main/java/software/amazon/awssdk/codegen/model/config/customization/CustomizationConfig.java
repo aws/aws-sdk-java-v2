@@ -342,6 +342,16 @@ public class CustomizationConfig {
      */
     private Map<String, PreClientExecutionRequestCustomizer> preClientExecutionRequestCustomizer;
 
+    /**
+     * A boolean flag to indicate if Automatic Batch Request is supported.
+     */
+    private boolean batchManagerSupported;
+
+    /**
+     * A boolean flag to indicate if the fast unmarshaller code path is enabled.
+     */
+    private boolean enableFastUnmarshaller;
+
     private CustomizationConfig() {
     }
 
@@ -901,4 +911,19 @@ public class CustomizationConfig {
         this.preClientExecutionRequestCustomizer = preClientExecutionRequestCustomizer;
     }
 
+    public boolean getBatchManagerSupported() {
+        return batchManagerSupported;
+    }
+
+    public void setBatchManagerSupported(boolean batchManagerSupported) {
+        this.batchManagerSupported = batchManagerSupported;
+    }
+
+    public boolean getEnableFastUnmarshaller() {
+        return enableFastUnmarshaller;
+    }
+
+    public void setEnableFastUnmarshaller(boolean enableFastUnmarshaller) {
+        this.enableFastUnmarshaller = enableFastUnmarshaller;
+    }
 }

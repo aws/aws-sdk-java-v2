@@ -20,13 +20,16 @@ import static software.amazon.awssdk.transfer.s3.internal.serialization.Transfer
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.traits.MapTrait;
+import software.amazon.awssdk.core.traits.TraitType;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.DateUtils;
@@ -83,7 +86,7 @@ public interface TransferManagerJsonUnmarshaller<T> {
                 return null;
             }
 
-            SdkField<Object> valueInfo = field.getTrait(MapTrait.class).valueFieldInfo();
+            SdkField<Object> valueInfo = field.getTrait(MapTrait.class, TraitType.MAP_TRAIT).valueFieldInfo();
 
             Map<String, Object> map = new HashMap<>();
             jsonContent.asObject().forEach((fieldName, value) -> {
@@ -95,6 +98,21 @@ public interface TransferManagerJsonUnmarshaller<T> {
 
         @Override
         public Map<String, Object> unmarshall(String content, SdkField<?> field) {
+            return unmarshall(JsonNode.parser().parse(content), field);
+        }
+    };
+
+    TransferManagerJsonUnmarshaller<List<Integer>> LIST_INT = new TransferManagerJsonUnmarshaller<List<Integer>>() {
+        @Override
+        public List<Integer> unmarshall(JsonNode jsonContent, SdkField<?> field) {
+            if (jsonContent == null) {
+                return null;
+            }
+            return jsonContent.asArray().stream().map(INTEGER::unmarshall).collect(Collectors.toList());
+        }
+
+        @Override
+        public List<Integer> unmarshall(String content, SdkField<?> field) {
             return unmarshall(JsonNode.parser().parse(content), field);
         }
     };

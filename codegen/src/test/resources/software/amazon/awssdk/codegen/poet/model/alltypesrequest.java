@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -65,6 +66,10 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     private static final SdkField<Short> SHORT_MEMBER_FIELD = SdkField.<Short> builder(MarshallingType.SHORT)
                                                                       .memberName("ShortMember").getter(getter(AllTypesRequest::shortMember)).setter(setter(Builder::shortMember))
                                                                       .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ShortMember").build()).build();
+
+    private static final SdkField<Byte> BYTE_MEMBER_FIELD = SdkField.<Byte> builder(MarshallingType.BYTE)
+                                                                    .memberName("ByteMember").getter(getter(AllTypesRequest::byteMember)).setter(setter(Builder::byteMember))
+                                                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("ByteMember").build()).build();
 
     private static final SdkField<List<String>> SIMPLE_LIST_FIELD = SdkField
         .<List<String>> builder(MarshallingType.LIST)
@@ -436,15 +441,17 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(STRING_MEMBER_FIELD,
                                                                                                    INTEGER_MEMBER_FIELD, BOOLEAN_MEMBER_FIELD, FLOAT_MEMBER_FIELD, DOUBLE_MEMBER_FIELD, LONG_MEMBER_FIELD,
-                                                                                                   SHORT_MEMBER_FIELD, SIMPLE_LIST_FIELD, LIST_OF_ENUMS_FIELD, LIST_OF_MAPS_FIELD, LIST_OF_STRUCTS_FIELD,
-                                                                                                   LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD, LIST_OF_MAP_OF_STRING_TO_STRUCT_FIELD, MAP_OF_STRING_TO_INTEGER_LIST_FIELD,
-                                                                                                   MAP_OF_STRING_TO_STRING_FIELD, MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD, MAP_OF_ENUM_TO_ENUM_FIELD,
-                                                                                                   MAP_OF_ENUM_TO_STRING_FIELD, MAP_OF_STRING_TO_ENUM_FIELD, MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD,
-                                                                                                   MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD, MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD, TIMESTAMP_MEMBER_FIELD,
-                                                                                                   STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD, BLOB_ARG_FIELD, STRUCT_WITH_NESTED_BLOB_FIELD, BLOB_MAP_FIELD,
-                                                                                                   LIST_OF_BLOBS_FIELD, RECURSIVE_STRUCT_FIELD, POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD,
+                                                                                                   SHORT_MEMBER_FIELD, BYTE_MEMBER_FIELD, SIMPLE_LIST_FIELD, LIST_OF_ENUMS_FIELD, LIST_OF_MAPS_FIELD,
+                                                                                                   LIST_OF_STRUCTS_FIELD, LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD, LIST_OF_MAP_OF_STRING_TO_STRUCT_FIELD,
+                                                                                                   MAP_OF_STRING_TO_INTEGER_LIST_FIELD, MAP_OF_STRING_TO_STRING_FIELD, MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD,
+                                                                                                   MAP_OF_ENUM_TO_ENUM_FIELD, MAP_OF_ENUM_TO_STRING_FIELD, MAP_OF_STRING_TO_ENUM_FIELD,
+                                                                                                   MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD, MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD, MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD,
+                                                                                                   TIMESTAMP_MEMBER_FIELD, STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD, BLOB_ARG_FIELD, STRUCT_WITH_NESTED_BLOB_FIELD,
+                                                                                                   BLOB_MAP_FIELD, LIST_OF_BLOBS_FIELD, RECURSIVE_STRUCT_FIELD, POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD,
                                                                                                    POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD, ENUM_TYPE_FIELD, UNDERSCORE_NAME_TYPE_FIELD, MY_DOCUMENT_FIELD,
                                                                                                    ALL_TYPES_UNION_STRUCTURE_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private final String stringMember;
 
@@ -459,6 +466,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     private final Long longMember;
 
     private final Short shortMember;
+
+    private final Byte byteMember;
 
     private final List<String> simpleList;
 
@@ -525,6 +534,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         this.doubleMember = builder.doubleMember;
         this.longMember = builder.longMember;
         this.shortMember = builder.shortMember;
+        this.byteMember = builder.byteMember;
         this.simpleList = builder.simpleList;
         this.listOfEnums = builder.listOfEnums;
         this.listOfMaps = builder.listOfMaps;
@@ -616,6 +626,15 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      */
     public final Short shortMember() {
         return shortMember;
+    }
+
+    /**
+     * Returns the value of the ByteMember property for this object.
+     *
+     * @return The value of the ByteMember property for this object.
+     */
+    public final Byte byteMember() {
+        return byteMember;
     }
 
     /**
@@ -1366,6 +1385,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         hashCode = 31 * hashCode + Objects.hashCode(doubleMember());
         hashCode = 31 * hashCode + Objects.hashCode(longMember());
         hashCode = 31 * hashCode + Objects.hashCode(shortMember());
+        hashCode = 31 * hashCode + Objects.hashCode(byteMember());
         hashCode = 31 * hashCode + Objects.hashCode(hasSimpleList() ? simpleList() : null);
         hashCode = 31 * hashCode + Objects.hashCode(hasListOfEnums() ? listOfEnumsAsStrings() : null);
         hashCode = 31 * hashCode + Objects.hashCode(hasListOfMaps() ? listOfMaps() : null);
@@ -1418,8 +1438,9 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         return Objects.equals(stringMember(), other.stringMember()) && Objects.equals(integerMember(), other.integerMember())
                && Objects.equals(booleanMember(), other.booleanMember()) && Objects.equals(floatMember(), other.floatMember())
                && Objects.equals(doubleMember(), other.doubleMember()) && Objects.equals(longMember(), other.longMember())
-               && Objects.equals(shortMember(), other.shortMember()) && hasSimpleList() == other.hasSimpleList()
-               && Objects.equals(simpleList(), other.simpleList()) && hasListOfEnums() == other.hasListOfEnums()
+               && Objects.equals(shortMember(), other.shortMember()) && Objects.equals(byteMember(), other.byteMember())
+               && hasSimpleList() == other.hasSimpleList() && Objects.equals(simpleList(), other.simpleList())
+               && hasListOfEnums() == other.hasListOfEnums()
                && Objects.equals(listOfEnumsAsStrings(), other.listOfEnumsAsStrings())
                && hasListOfMaps() == other.hasListOfMaps() && Objects.equals(listOfMaps(), other.listOfMaps())
                && hasListOfStructs() == other.hasListOfStructs() && Objects.equals(listOfStructs(), other.listOfStructs())
@@ -1475,6 +1496,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             .add("DoubleMember", doubleMember())
             .add("LongMember", longMember())
             .add("ShortMember", shortMember())
+            .add("ByteMember", byteMember())
             .add("SimpleList", hasSimpleList() ? simpleList() : null)
             .add("ListOfEnums", hasListOfEnums() ? listOfEnumsAsStrings() : null)
             .add("ListOfMaps", hasListOfMaps() ? listOfMaps() : null)
@@ -1517,6 +1539,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
                 return Optional.ofNullable(clazz.cast(longMember()));
             case "ShortMember":
                 return Optional.ofNullable(clazz.cast(shortMember()));
+            case "ByteMember":
+                return Optional.ofNullable(clazz.cast(byteMember()));
             case "SimpleList":
                 return Optional.ofNullable(clazz.cast(simpleList()));
             case "ListOfEnums":
@@ -1581,6 +1605,52 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
     @Override
     public final List<SdkField<?>> sdkFields() {
         return SDK_FIELDS;
+    }
+
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("StringMember", STRING_MEMBER_FIELD);
+        map.put("IntegerMember", INTEGER_MEMBER_FIELD);
+        map.put("BooleanMember", BOOLEAN_MEMBER_FIELD);
+        map.put("FloatMember", FLOAT_MEMBER_FIELD);
+        map.put("DoubleMember", DOUBLE_MEMBER_FIELD);
+        map.put("LongMember", LONG_MEMBER_FIELD);
+        map.put("ShortMember", SHORT_MEMBER_FIELD);
+        map.put("ByteMember", BYTE_MEMBER_FIELD);
+        map.put("SimpleList", SIMPLE_LIST_FIELD);
+        map.put("ListOfEnums", LIST_OF_ENUMS_FIELD);
+        map.put("ListOfMaps", LIST_OF_MAPS_FIELD);
+        map.put("ListOfStructs", LIST_OF_STRUCTS_FIELD);
+        map.put("ListOfMapOfEnumToString", LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD);
+        map.put("ListOfMapOfStringToStruct", LIST_OF_MAP_OF_STRING_TO_STRUCT_FIELD);
+        map.put("MapOfStringToIntegerList", MAP_OF_STRING_TO_INTEGER_LIST_FIELD);
+        map.put("MapOfStringToString", MAP_OF_STRING_TO_STRING_FIELD);
+        map.put("MapOfStringToSimpleStruct", MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD);
+        map.put("MapOfEnumToEnum", MAP_OF_ENUM_TO_ENUM_FIELD);
+        map.put("MapOfEnumToString", MAP_OF_ENUM_TO_STRING_FIELD);
+        map.put("MapOfStringToEnum", MAP_OF_STRING_TO_ENUM_FIELD);
+        map.put("MapOfEnumToSimpleStruct", MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD);
+        map.put("MapOfEnumToListOfEnums", MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD);
+        map.put("MapOfEnumToMapOfStringToEnum", MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD);
+        map.put("TimestampMember", TIMESTAMP_MEMBER_FIELD);
+        map.put("StructWithNestedTimestampMember", STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD);
+        map.put("BlobArg", BLOB_ARG_FIELD);
+        map.put("StructWithNestedBlob", STRUCT_WITH_NESTED_BLOB_FIELD);
+        map.put("BlobMap", BLOB_MAP_FIELD);
+        map.put("ListOfBlobs", LIST_OF_BLOBS_FIELD);
+        map.put("RecursiveStruct", RECURSIVE_STRUCT_FIELD);
+        map.put("PolymorphicTypeWithSubTypes", POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD);
+        map.put("PolymorphicTypeWithoutSubTypes", POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD);
+        map.put("EnumType", ENUM_TYPE_FIELD);
+        map.put("Underscore_Name_Type", UNDERSCORE_NAME_TYPE_FIELD);
+        map.put("MyDocument", MY_DOCUMENT_FIELD);
+        map.put("AllTypesUnionStructure", ALL_TYPES_UNION_STRUCTURE_FIELD);
+        return Collections.unmodifiableMap(map);
     }
 
     private static <T> Function<Object, T> getter(Function<AllTypesRequest, T> g) {
@@ -1654,6 +1724,15 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder shortMember(Short shortMember);
+
+        /**
+         * Sets the value of the ByteMember property for this object.
+         *
+         * @param byteMember
+         *        The new value for the ByteMember property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder byteMember(Byte byteMember);
 
         /**
          * Sets the value of the SimpleList property for this object.
@@ -2232,6 +2311,8 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         private Short shortMember;
 
+        private Byte byteMember;
+
         private List<String> simpleList = DefaultSdkAutoConstructList.getInstance();
 
         private List<String> listOfEnums = DefaultSdkAutoConstructList.getInstance();
@@ -2300,6 +2381,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
             doubleMember(model.doubleMember);
             longMember(model.longMember);
             shortMember(model.shortMember);
+            byteMember(model.byteMember);
             simpleList(model.simpleList);
             listOfEnumsWithStrings(model.listOfEnums);
             listOfMaps(model.listOfMaps);
@@ -2425,6 +2507,20 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         @Override
         public final Builder shortMember(Short shortMember) {
             this.shortMember = shortMember;
+            return this;
+        }
+
+        public final Byte getByteMember() {
+            return byteMember;
+        }
+
+        public final void setByteMember(Byte byteMember) {
+            this.byteMember = byteMember;
+        }
+
+        @Override
+        public final Builder byteMember(Byte byteMember) {
+            this.byteMember = byteMember;
             return this;
         }
 
@@ -3017,6 +3113,11 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }

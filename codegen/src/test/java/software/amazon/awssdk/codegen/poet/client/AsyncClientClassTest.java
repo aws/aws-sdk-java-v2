@@ -18,11 +18,14 @@ package software.amazon.awssdk.codegen.poet.client;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsQueryCompatibleJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.batchManagerModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.cborServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customContentTypeModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customPackageModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.endpointDiscoveryModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.rpcv2ServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.xmlServiceModels;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
@@ -60,6 +63,15 @@ public class AsyncClientClassTest {
     }
 
     @Test
+    public void asyncClientClassCbor() {
+        AsyncClientClass asyncClientClass = createAsyncClientClass(cborServiceModels(), false);
+        assertThat(asyncClientClass, generatesTo("test-cbor-async-client-class.java"));
+
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(cborServiceModels(), true);
+        assertThat(sraAsyncClientClass, generatesTo("sra/test-cbor-async-client-class.java"));
+    }
+
+    @Test
     public void asyncClientClassAwsQueryCompatibleJson() {
         AsyncClientClass asyncClientClass = createAsyncClientClass(awsQueryCompatibleJsonServiceModels());
         assertThat(asyncClientClass, generatesTo("test-aws-query-compatible-json-async-client-class.java"));
@@ -90,6 +102,18 @@ public class AsyncClientClassTest {
     public void asyncClientCustomPackageName() {
         ClassSpec syncClientCustomServiceMetaData = createAsyncClientClass(customPackageModels());
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-custompackage-async.java"));
+    }
+
+    @Test
+    public void asyncClientClassRpcv2() {
+        AsyncClientClass asyncClientClass = createAsyncClientClass(rpcv2ServiceModels(), true);
+        assertThat(asyncClientClass, generatesTo("test-rpcv2-async-client-class.java"));
+    }
+
+    @Test
+    public void asyncClientBatchManager() {
+        ClassSpec aSyncClientBatchManager = createAsyncClientClass(batchManagerModels());
+        assertThat(aSyncClientBatchManager, generatesTo("test-batchmanager-async.java"));
     }
 
     private AsyncClientClass createAsyncClientClass(IntermediateModel model) {

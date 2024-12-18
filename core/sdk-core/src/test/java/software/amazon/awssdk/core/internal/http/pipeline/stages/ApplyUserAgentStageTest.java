@@ -16,7 +16,13 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
 import static software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage.HEADER_USER_AGENT;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.HTTP;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.IO;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.RETRY_MODE;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.SPACE;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -35,6 +41,9 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.useragent.SdkClientUserAgentProperties;
+import software.amazon.awssdk.core.internal.useragent.SdkUserAgentBuilder;
+import software.amazon.awssdk.core.util.SystemUserAgent;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
@@ -49,7 +58,6 @@ public class ApplyUserAgentStageTest {
                                  (HttpSigner<Identity>) Mockito.mock(HttpSigner.class),
                                  AuthSchemeOption.builder().schemeId("mock").build());
 
-    private static final String SDK_UA_STRING = "aws-sdk-java/version vendor/unknown";
     private static final String PROVIDER_SOURCE = "ProcessCredentialsProvider";
     private static final AwsCredentialsIdentity IDENTITY_WITHOUT_SOURCE =
         AwsCredentialsIdentity.create("akid", "secret");
@@ -59,38 +67,49 @@ public class ApplyUserAgentStageTest {
                                      .providerName(PROVIDER_SOURCE).build();
 
     @Test
-    public void when_noAdditionalDataIsPresent_outputStringEqualsInputString() throws Exception {
-        String clientBuildTimeUserAgentString = SDK_UA_STRING;
-
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependenciesWithUserAgent(clientBuildTimeUserAgentString));
+    public void when_noAdditionalDataIsPresent_userAgentOnlyHasSdkValues() throws Exception {
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
 
         RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITHOUT_SOURCE), noOpRequest());
         SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
 
         List<String> userAgentHeaders = request.headers().get(HEADER_USER_AGENT);
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).isEqualTo(SDK_UA_STRING);
+        String userAgentString = userAgentHeaders.get(0);
+        assertThat(userAgentString).startsWith("aws-sdk-java");
     }
 
     @Test
-    public void when_identityContainsProvider_authSourceIsPresent() throws Exception {
-        String clientBuildTimeUserAgentString = SDK_UA_STRING;
+    public void when_userPrefixIsPresent_itIsAddedToUserAgent() throws Exception {
+        String prefix = "Some completely opaque user prefix";
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent(), prefix, null));
 
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependenciesWithUserAgent(clientBuildTimeUserAgentString));
-
-        RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITH_SOURCE), noOpRequest());
+        RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITHOUT_SOURCE), noOpRequest());
         SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
 
         List<String> userAgentHeaders = request.headers().get(HEADER_USER_AGENT);
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains("auth-source#proc");
+        String userAgentString = userAgentHeaders.get(0);
+        assertThat(userAgentString).startsWith(prefix + SPACE);
+    }
+
+    @Test
+    public void when_userSuffixIsPresent_itIsAddedToUserAgent() throws Exception {
+        String suffix = "Some completely opaque user suffix";
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent(), null, suffix));
+
+        RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITHOUT_SOURCE), noOpRequest());
+        SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
+
+        List<String> userAgentHeaders = request.headers().get(HEADER_USER_AGENT);
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
+        String userAgentString = userAgentHeaders.get(0);
+        assertThat(userAgentString).startsWith("aws-sdk-java").endsWith(SPACE + suffix);
     }
 
     @Test
     public void when_requestContainsApiName_apiNamesArePresent() throws Exception {
-        String clientBuildTimeUserAgentString = SDK_UA_STRING;
-
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependenciesWithUserAgent(clientBuildTimeUserAgentString));
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
 
         RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITH_SOURCE),
                                                               requestWithApiName("myLib", "1.0"));
@@ -101,13 +120,42 @@ public class ApplyUserAgentStageTest {
         assertThat(userAgentHeaders.get(0)).contains("myLib/1.0");
     }
 
-    private static HttpClientDependencies dependenciesWithUserAgent(String userAgent) {
-        SdkClientConfiguration clientConfiguration = SdkClientConfiguration.builder()
-                                                                           .option(SdkClientOption.CLIENT_USER_AGENT, userAgent)
-                                                                           .build();
+    @Test
+    public void when_identityContainsProvider_authSourceIsPresent() throws Exception {
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+
+        RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITH_SOURCE), noOpRequest());
+        SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
+
+        List<String> userAgentHeaders = request.headers().get(HEADER_USER_AGENT);
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
+        assertThat(userAgentHeaders.get(0)).contains("auth-source#proc");
+    }
+
+    private static HttpClientDependencies dependencies(String clientUserAgent) {
+        return dependencies(clientUserAgent, null, null);
+    }
+
+    private static HttpClientDependencies dependencies(String clientUserAgent, String prefix, String suffix) {
+        SdkClientConfiguration clientConfiguration =
+            SdkClientConfiguration.builder()
+                                  .option(SdkClientOption.CLIENT_USER_AGENT, clientUserAgent)
+                                  .option(USER_AGENT_PREFIX, prefix)
+                                  .option(USER_AGENT_SUFFIX, suffix)
+                                  .build();
         return HttpClientDependencies.builder()
                                      .clientConfiguration(clientConfiguration)
                                      .build();
+    }
+
+    private String clientUserAgent() {
+        SdkClientUserAgentProperties clientProperties = new SdkClientUserAgentProperties();
+
+        clientProperties.putProperty(RETRY_MODE, "standard");
+        clientProperties.putProperty(IO, "async");
+        clientProperties.putProperty(HTTP, "netty");
+
+        return SdkUserAgentBuilder.buildClientUserAgentString(SystemUserAgent.getOrCreate(), clientProperties);
     }
 
     private static SdkRequest noOpRequest() {
