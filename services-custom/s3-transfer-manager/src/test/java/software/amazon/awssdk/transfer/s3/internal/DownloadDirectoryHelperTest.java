@@ -39,6 +39,7 @@ import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.assertj.core.util.Sets;
@@ -469,6 +470,56 @@ public class DownloadDirectoryHelperTest {
         assertThatThrownBy(() -> downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder().destination(file)
                                                                                                    .bucket("bucketName").build()).completionFuture().join())
             .hasMessageContaining("is not a directory").hasCauseInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void downloadDirectory_withDownloadRequestTransformer_transformerThrows_failsDownload() {
+        stubSuccessfulListObjects(listObjectsHelper, "key1", "key2");
+
+        FileDownload fileDownload = newSuccessfulDownload();
+        FileDownload fileDownload2 = newSuccessfulDownload();
+
+        when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
+
+
+        RuntimeException exception = new RuntimeException("boom");
+        Consumer<DownloadFileRequest.Builder> downloadFileRequestTransformer = b -> {
+            throw exception;
+        };
+
+        DirectoryDownload downloadDirectory =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destination(directory)
+                                                                              .bucket("bucket")
+                                                                              .downloadFileRequestTransformer(downloadFileRequestTransformer)
+                                                                              .build());
+
+        assertThatThrownBy(downloadDirectory.completionFuture()::join).getCause().hasCause(exception);
+    }
+
+    @Test
+    void downloadDirectory_withListObjectsRequestTransformer_transformerThrows_failsDownload() {
+        stubSuccessfulListObjects(listObjectsHelper, "key1", "key2");
+
+        FileDownload fileDownload = newSuccessfulDownload();
+        FileDownload fileDownload2 = newSuccessfulDownload();
+
+        when(singleDownloadFunction.apply(any(DownloadFileRequest.class))).thenReturn(fileDownload, fileDownload2);
+
+
+        RuntimeException exception = new RuntimeException("boom");
+        Consumer<ListObjectsV2Request.Builder> downloadFileRequestTransformer = b -> {
+            throw exception;
+        };
+
+        DirectoryDownload downloadDirectory =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destination(directory)
+                                                                              .bucket("bucket")
+                                                                              .listObjectsV2RequestTransformer(downloadFileRequestTransformer)
+                                                                              .build());
+
+        assertThatThrownBy(downloadDirectory.completionFuture()::join).hasCause(exception);
     }
 
     private static DefaultFileDownload completedDownload() {
