@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS DataSync",
+    "contributor": "",
+    "description": "AWS DataSync introduces the ability to update attributes for in-cloud locations."
+}
