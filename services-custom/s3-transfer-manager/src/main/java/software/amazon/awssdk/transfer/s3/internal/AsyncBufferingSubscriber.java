@@ -40,7 +40,7 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
     private final int maxConcurrentExecutions;
     private final AtomicInteger numRequestsInFlight;
     private volatile boolean upstreamDone;
-    private Subscription subscription;
+    private volatile Subscription subscription;
 
     private final Set<CompletableFuture<?>> requestsInFlight;
 
