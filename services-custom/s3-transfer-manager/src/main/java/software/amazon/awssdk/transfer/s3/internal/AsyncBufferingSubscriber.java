@@ -75,7 +75,16 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
     @Override
     public void onNext(T item) {
         numRequestsInFlight.incrementAndGet();
-        CompletableFuture<?> currentRequest = consumer.apply(item);
+        CompletableFuture<?> currentRequest;
+
+        try {
+            currentRequest = consumer.apply(item);
+        } catch (Throwable t) {
+            subscription.cancel();
+            onError(t);
+            return;
+        }
+
         requestsInFlight.add(currentRequest);
         currentRequest.whenComplete((r, t) -> {
             checkForCompletion(numRequestsInFlight.decrementAndGet());
