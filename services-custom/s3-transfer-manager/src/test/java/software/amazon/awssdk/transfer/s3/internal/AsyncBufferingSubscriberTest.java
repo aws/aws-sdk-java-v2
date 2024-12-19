@@ -16,6 +16,10 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
@@ -36,6 +40,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 class AsyncBufferingSubscriberTest {
@@ -107,5 +112,22 @@ class AsyncBufferingSubscriberTest {
         assertThat(returnFuture).isCompletedExceptionally();
         assertThat(futures.get(0)).isCancelled();
         assertThat(futures.get(1)).isCancelled();
+    }
+
+    @Test
+    public void consumerFunctionThrows_shouldCancelSubscriptionAndCompleteFutureExceptionally() {
+        RuntimeException exception = new RuntimeException("test");
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        AsyncBufferingSubscriber<String> subscriber = new AsyncBufferingSubscriber<>(s -> {
+            throw exception;
+        }, future, 1);
+
+        Subscription mockSubscription = mock(Subscription.class);
+
+        subscriber.onSubscribe(mockSubscription);
+        subscriber.onNext("item");
+
+        verify(mockSubscription, times(1)).cancel();
+        assertThatThrownBy(future::join).hasCause(exception);
     }
 }
