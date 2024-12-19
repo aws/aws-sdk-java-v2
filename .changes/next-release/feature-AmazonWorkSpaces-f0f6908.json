@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon WorkSpaces",
-    "contributor": "",
-    "description": "Added AWS Global Accelerator (AGA) support for WorkSpaces Personal."
-}

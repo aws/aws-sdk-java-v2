@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.38__ __2024-12-19__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds support for inserting timecode tracks into MP4 container outputs.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - MediaLive is releasing ListVersions api
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - AWS Systems Manager for SAP added support for registration and discovery of distributed ABAP applications
+
+## __Amazon AppStream__
+  - ### Features
+    - Added support for Rocky Linux 8 on Amazon AppStream 2.0
+
+## __Amazon Q Connect__
+  - ### Features
+    - Amazon Q in Connect enables agents to ask Q for assistance in multiple languages and Q will provide answers and recommended step-by-step guides in those languages. Qs default language is English (United States) and you can switch this by setting the locale configuration on the AI Agent.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added AWS Global Accelerator (AGA) support for WorkSpaces Personal.
+
 # __2.29.37__ __2024-12-18__
 ## __AWS Amplify__
   - ### Features
