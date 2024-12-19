@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.metrics.publishers.emf;
+package software.amazon.awssdk.metrics.publishers.emf.internal;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,16 +41,21 @@ public final class EmfMetricConfiguration {
     private final MetricLevel metricLevel;
     private final List<String> dimensionStrings;
 
-    EmfMetricConfiguration(EmfMetricPublisher.Builder builder) {
-        this.namespace = resolveNamespace(builder);
-        this.logGroupName = resolveLogGroupName(builder);
-        this.dimensions = resolveDimensions(builder);
-        this.metricCategories = resolveMetricCategories(builder);
-        this.metricLevel = resolveMetricLevel(builder);
-        this.dimensionStrings = resolveDimensionStrings(builder);
+    public EmfMetricConfiguration(
+        String namespace,
+        String logGroupName,
+        Collection<SdkMetric<String>> dimensions,
+        Collection<MetricCategory> metricCategories,
+        MetricLevel metricLevel
+    ) {
+        this.namespace = namespace == null ? DEFAULT_NAMESPACE : namespace;
+        this.logGroupName = logGroupName == null ? DEFAULT_LOG_GROUP_NAME : logGroupName;
+        this.dimensions = dimensions == null ? DEFAULT_DIMENSIONS : new HashSet<>(dimensions);
+        this.metricCategories = metricCategories == null ? DEFAULT_METRIC_CATEGORIES : new HashSet<>(metricCategories);
+        this.metricLevel = metricLevel == null ? DEFAULT_METRIC_LEVEL : metricLevel;
+        this.dimensionStrings = resolveDimensionStrings(dimensions);
     }
 
-    // Add getters for all fields
     public String getNamespace() {
         return namespace;
     }
@@ -76,26 +81,11 @@ public final class EmfMetricConfiguration {
     }
 
 
-    private static String resolveNamespace(EmfMetricPublisher.Builder builder) {
-        return builder.namespace == null ? DEFAULT_NAMESPACE : builder.namespace;
-    }
 
-    private static Collection<SdkMetric<String>> resolveDimensions(EmfMetricPublisher.Builder builder) {
-        return builder.dimensions == null ? DEFAULT_DIMENSIONS : new HashSet<>(builder.dimensions);
-    }
-
-    private static Collection<MetricCategory> resolveMetricCategories(EmfMetricPublisher.Builder builder) {
-        return builder.metricCategories == null ? DEFAULT_METRIC_CATEGORIES : new HashSet<>(builder.metricCategories);
-    }
-
-    private static MetricLevel resolveMetricLevel(EmfMetricPublisher.Builder builder) {
-        return builder.metricLevel == null ? DEFAULT_METRIC_LEVEL : builder.metricLevel;
-    }
-
-    private static List<String> resolveDimensionStrings(EmfMetricPublisher.Builder builder) {
+    private static List<String> resolveDimensionStrings(Collection<SdkMetric<String>> dimensions) {
         List<String> dimensionStrings = new ArrayList<>();
-        if (builder.dimensions != null) {
-            for (SdkMetric<String> dimension : builder.dimensions) {
+        if (dimensions != null) {
+            for (SdkMetric<String> dimension : dimensions) {
                 dimensionStrings.add(dimension.name());
             }
         } else {
@@ -106,8 +96,5 @@ public final class EmfMetricConfiguration {
         return dimensionStrings;
     }
 
-    private static String resolveLogGroupName(EmfMetricPublisher.Builder builder) {
-        return builder.logGroupName == null ? DEFAULT_LOG_GROUP_NAME : builder.logGroupName;
-    }
 }
 

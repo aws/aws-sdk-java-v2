@@ -28,6 +28,8 @@ import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.SdkMetric;
+import software.amazon.awssdk.metrics.publishers.emf.internal.EmfMetricConfiguration;
+import software.amazon.awssdk.metrics.publishers.emf.internal.MetricEmfConverter;
 import software.amazon.awssdk.utils.Logger;
 /**
  * A metric publisher implementation that converts metrics into CloudWatch Embedded Metric Format (EMF).
@@ -60,11 +62,21 @@ import software.amazon.awssdk.utils.Logger;
 @Immutable
 @SdkPublicApi
 public final class EmfMetricPublisher implements MetricPublisher {
+
     private static final Logger logger = Logger.loggerFor("software.amazon.awssdk.metrics.publishers.emf");
     private final MetricEmfConverter metricConverter;
 
+
     private EmfMetricPublisher(Builder builder) {
-        this.metricConverter = new MetricEmfConverter(new EmfMetricConfiguration(builder));
+        EmfMetricConfiguration config = new EmfMetricConfiguration(
+            builder.namespace,
+            builder.logGroupName,
+            builder.dimensions,
+            builder.metricCategories,
+            builder.metricLevel
+        );
+
+        this.metricConverter = new MetricEmfConverter(config);
     }
 
 
@@ -87,10 +99,13 @@ public final class EmfMetricPublisher implements MetricPublisher {
         if (metricCollection == null) {
             return;
         }
-
-        List<String> emfStrings = metricConverter.convertMetricCollectionToEmf(metricCollection);
-        for (String emfString : emfStrings) {
-            logger.info(() -> emfString);
+        try {
+            List<String> emfStrings = metricConverter.convertMetricCollectionToEmf(metricCollection);
+            for (String emfString : emfStrings) {
+                logger.info(() -> emfString);
+            }
+        } catch (Exception e) {
+            logger.warn(() -> "Failed to publish metric to CloudWatch", e);
         }
     }
 
@@ -99,11 +114,11 @@ public final class EmfMetricPublisher implements MetricPublisher {
     }
 
     public static final class Builder {
-        String namespace;
-        String logGroupName;
-        Collection<SdkMetric<String>> dimensions;
-        Collection<MetricCategory> metricCategories;
-        MetricLevel metricLevel;
+        private String namespace;
+        private String logGroupName;
+        private Collection<SdkMetric<String>> dimensions;
+        private Collection<MetricCategory> metricCategories;
+        private MetricLevel metricLevel;
 
         private Builder() {
         }

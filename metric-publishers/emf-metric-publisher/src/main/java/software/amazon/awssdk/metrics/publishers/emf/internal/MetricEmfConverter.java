@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.metrics.publishers.emf;
+package software.amazon.awssdk.metrics.publishers.emf.internal;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricRecord;
@@ -56,13 +55,12 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public class MetricEmfConverter {
-    private static final Logger logger = Logger.loggerFor("software.amazon.awssdk.metrics.publishers.emf");
+    private static final Logger logger = Logger.loggerFor(MetricEmfConverter.class);
     private static final double ZERO_THRESHOLD = 0.0001;
     private final List<String> realDimensionStrings = new ArrayList<>();
     private final EmfMetricConfiguration config;
     private final boolean metricCategoriesContainsAll;
 
-    // Constructor that takes the configuration
     public MetricEmfConverter(EmfMetricConfiguration config) {
         this.config = config;
         this.metricCategoriesContainsAll = config.getMetricCategories().contains(MetricCategory.ALL);
@@ -84,18 +82,15 @@ public class MetricEmfConverter {
             return 0.0;
         }
 
-        // Changes boolean value from true/false to 1/0
         if (metricValue instanceof Boolean) {
             return metricValue.equals(true) ? 1.0 : 0.0;
         }
 
-        // Changes duration value to a number of ms
         if (metricValue instanceof Duration) {
             String durationStr = metricValue.toString();
             metricValue = Double.parseDouble(durationStr.substring(2, durationStr.length() - 1)) * 1000;
         }
 
-        //normalize
         if (metricValue instanceof Double) {
             double doubleValue = (double) metricValue;
             if (Math.abs(doubleValue) < ZERO_THRESHOLD) {
@@ -146,7 +141,6 @@ public class MetricEmfConverter {
      * @return List of EMF-formatted metrics ready for CloudWatch ingestion
      */
     public List<String> convertMetricCollectionToEmf(MetricCollection metricCollection) {
-        // Map to store aggregated metrics
         Map<String, List<Object>> aggregatedMetrics = new HashMap<>();
 
         // Process metrics using level-order traversal
@@ -158,17 +152,14 @@ public class MetricEmfConverter {
         while (!queue.isEmpty()) {
             MetricCollection current = queue.poll();
 
-            // Process all metrics in current collection
             current.stream().forEach(r -> {
                 String metricName = r.metric().name();
                 Object metricValue = r.value();
 
-                // Store dimension and metric name for later use in Metrics array
                 if (isDimension(metricName)) {
                     realDimensionStrings.add(metricName);
                 }
 
-                // Add value to aggregated metrics
                 if (shouldReport(r) || isDimension(metricName)) {
                     aggregatedMetrics.computeIfAbsent(metricName, k -> new ArrayList<>())
                                      .add(metricValue);
@@ -176,7 +167,6 @@ public class MetricEmfConverter {
 
             });
 
-            // Add children to queue
             if (current.children() != null) {
                 queue.addAll(current.children());
             }
@@ -190,18 +180,16 @@ public class MetricEmfConverter {
         Map<String, List<Object>> currentMetricBatch = new HashMap<>();
         Set<String> currentMetricNames = new HashSet<>();
 
-        // Process metric names and their values
         for (Map.Entry<String, List<Object>> entry : aggregatedMetrics.entrySet()) {
             String metricName = entry.getKey();
             List<Object> values = entry.getValue();
 
-            // Drop large value arrays into chunks of 100
             if (values.size() > 100) {
                 values = values.subList(0, 100);
                 logger.warn(() -> "Some AWS SDK client-side metric data have been dropped because it exceeds the cloudwatch "
                                  + "requirements.");
             }
-            // If adding this metric would exceed 100 metrics, create new batch
+
             if (currentMetricNames.size() >= 100) {
                 emfStrings.add(createEmfString(currentMetricBatch, currentMetricNames));
                 currentMetricBatch = new HashMap<>();
@@ -223,32 +211,24 @@ public class MetricEmfConverter {
 
     private String createEmfString(Map<String, List<Object>> metrics, Set<String> metricNames) {
 
-        try {
-            JsonWriter jsonWriter = JsonWriter.create();
-            jsonWriter.writeStartObject();
+        JsonWriter jsonWriter = JsonWriter.create();
+        jsonWriter.writeStartObject();
 
-            writeAwsObject(jsonWriter, metricNames);
-            // Write metric values
-            writeMetricValues(jsonWriter, metrics);
+        writeAwsObject(jsonWriter, metricNames);
+        writeMetricValues(jsonWriter, metrics);
 
-            jsonWriter.writeEndObject(); // End root object
+        jsonWriter.writeEndObject(); // End root object
 
-            return new String(jsonWriter.getBytes(), StandardCharsets.UTF_8);
+        return new String(jsonWriter.getBytes(), StandardCharsets.UTF_8);
 
-        } catch (SdkClientException e) {
-            logger.error(() -> "Failed to create EMF format string");
-            throw e;
-        }
     }
 
     private void writeAwsObject(JsonWriter jsonWriter, Set<String> metricNames) {
-        // Start with _aws section
         jsonWriter.writeFieldName("_aws");
         jsonWriter.writeStartObject();
 
-        // Write Timestamp
+
         jsonWriter.writeFieldName("Timestamp");
-        //jsonWriter.writeValue(Instant.now().toEpochMilli());
         //Unit Test
         jsonWriter.writeValue(12345678);
 
@@ -256,16 +236,30 @@ public class MetricEmfConverter {
         jsonWriter.writeFieldName("LogGroupName");
         jsonWriter.writeValue(config.getLogGroupName());
 
-        // Write CloudWatchMetrics array
+        writeCloudWatchMetricsArray(jsonWriter, metricNames);
+        jsonWriter.writeEndObject();
+    }
+
+    private void writeCloudWatchMetricsArray(JsonWriter jsonWriter, Set<String> metricNames) {
         jsonWriter.writeFieldName("CloudWatchMetrics");
         jsonWriter.writeStartArray();
-        jsonWriter.writeStartObject();
 
-        // Write Namespace
+        writeCloudWatchMetricsObjects(jsonWriter, metricNames);
+        jsonWriter.writeEndArray();
+    }
+
+    private void writeCloudWatchMetricsObjects(JsonWriter jsonWriter,  Set<String> metricNames) {
+        jsonWriter.writeStartObject();
         jsonWriter.writeFieldName("Namespace");
         jsonWriter.writeValue(config.getNamespace());
 
-        // Write Dimensions array
+        writeDimensionSetArray(jsonWriter);
+
+        writeMetricDefinitionArray(jsonWriter, metricNames);
+        jsonWriter.writeEndObject();
+    }
+
+    private void writeDimensionSetArray(JsonWriter jsonWriter) {
         jsonWriter.writeFieldName("Dimensions");
         jsonWriter.writeStartArray();
         jsonWriter.writeStartArray();
@@ -274,8 +268,9 @@ public class MetricEmfConverter {
         }
         jsonWriter.writeEndArray();
         jsonWriter.writeEndArray();
+    }
 
-        // Write Metrics array
+    private void writeMetricDefinitionArray(JsonWriter jsonWriter,  Set<String> metricNames) {
         jsonWriter.writeFieldName("Metrics");
         jsonWriter.writeStartArray();
 
@@ -286,7 +281,6 @@ public class MetricEmfConverter {
             jsonWriter.writeFieldName("Name");
             jsonWriter.writeValue(metricName);
 
-            // Add Unit if available
             if (hasUnit(metricName)) {
                 jsonWriter.writeFieldName("Unit");
                 jsonWriter.writeValue(getMetricUnit(metricName));
@@ -295,32 +289,26 @@ public class MetricEmfConverter {
             jsonWriter.writeEndObject();
         }
 
-        jsonWriter.writeEndArray(); // End Metrics array
-        jsonWriter.writeEndObject(); // End CloudWatchMetrics object
-        jsonWriter.writeEndArray(); // End CloudWatchMetrics array
-        jsonWriter.writeEndObject(); // End _aws object
+        jsonWriter.writeEndArray();
     }
+
 
     private void writeMetricValues(JsonWriter jsonWriter, Map<String, List<Object>> metrics) {
         for (Map.Entry<String, List<Object>> entry : metrics.entrySet()) {
             String metricName = entry.getKey();
             List<Object> values = entry.getValue();
 
-            // For dimension metrics, write the last value
             if (isDimension(metricName)) {
                 jsonWriter.writeFieldName(metricName);
-                jsonWriter.writeValue((String) values.get(values.size() - 1));
+                jsonWriter.writeValue((String) values.get(0));
             } else {
-                //skip string values
                 if (values.get(0) instanceof String) {
                     continue;
                 }
-                // For regular metrics, if there's only one value, write it directly
                 if (values.size() == 1) {
                     jsonWriter.writeFieldName(metricName);
                     writeProcessedValue(jsonWriter, processValue(values.get(0)));
                 } else {
-                    // If there are multiple values, write as an array
                     jsonWriter.writeFieldName(metricName);
                     jsonWriter.writeStartArray();
                     for (Object value : values) {
@@ -338,7 +326,6 @@ public class MetricEmfConverter {
     }
 
     private boolean hasUnit(String metricName) {
-        // Implement logic to determine if metric should have a unit
         return metricName.contains("Duration");
     }
 
@@ -346,7 +333,6 @@ public class MetricEmfConverter {
         if (metricName.endsWith("Duration")) {
             return "Milliseconds";
         }
-        // Add other unit mappings
         return null;
     }
 
