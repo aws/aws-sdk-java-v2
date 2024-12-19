@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaLive",
+    "contributor": "",
+    "description": "MediaLive is releasing ListVersions api"
+}
