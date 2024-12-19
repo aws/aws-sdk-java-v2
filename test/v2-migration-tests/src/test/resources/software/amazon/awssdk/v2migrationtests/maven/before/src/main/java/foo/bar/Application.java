@@ -100,12 +100,4 @@ public class Application {
 
         return result;
     }
-
-    private static void createBucket(AmazonS3 s3, String bucket) {
-        s3.createBucket(bucket);
-    }
-
-    private static void deleteBucket(AmazonS3 s3, String bucket) {
-        s3.deleteBucket(bucket);
-    }
 }

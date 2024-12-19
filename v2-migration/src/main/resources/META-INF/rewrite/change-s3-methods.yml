@@ -1,0 +1,120 @@
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+#
+#  http://aws.amazon.com/apache2.0
+#
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: software.amazon.awssdk.v2migration.S3MethodsToV2
+displayName: Change S3 methods to v2.
+description: Change S3 methods to v2.
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 getObjectMetadata(com.amazonaws.services.s3.model.GetObjectMetadataRequest)
+      newMethodName: headObject
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 initiateMultipartUpload(com.amazonaws.services.s3.model.InitiateMultipartUploadRequest)
+      newMethodName: createMultipartUpload
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 listVersions(com.amazonaws.services.s3.model.ListVersionsRequest)
+      newMethodName: listObjectVersions
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 setBucketCrossOriginConfiguration(com.amazonaws.services.s3.model.SetBucketCrossOriginConfigurationRequest)
+      newMethodName: putBucketCors
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 deleteBucketCrossOriginConfiguration(com.amazonaws.services.s3.model.DeleteBucketCrossOriginConfigurationRequest)
+      newMethodName: deleteBucketCors
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketCrossOriginConfiguration(com.amazonaws.services.s3.model.GetBucketCrossOriginConfigurationRequest)
+      newMethodName: getBucketCors
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketVersioningConfiguration(com.amazonaws.services.s3.model.GetBucketVersioningConfigurationRequest)
+      newMethodName: getBucketVersioning
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 deleteBucketLifecycleConfiguration(com.amazonaws.services.s3.model.DeleteBucketLifecycleConfigurationRequest)
+      newMethodName: deleteBucketLifecycle
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 deleteBucketReplicationConfiguration(com.amazonaws.services.s3.model.DeleteBucketReplicationConfigurationRequest)
+      newMethodName: deleteBucketReplication
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 deleteBucketTaggingConfiguration(com.amazonaws.services.s3.model.DeleteBucketTaggingConfigurationRequest)
+      newMethodName: deleteBucketTagging
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 deleteBucketWebsiteConfiguration(com.amazonaws.services.s3.model.DeleteBucketWebsiteConfigurationRequest)
+      newMethodName: deleteBucketWebsite
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketLoggingConfiguration(com.amazonaws.services.s3.model.GetBucketLoggingConfigurationRequest)
+      newMethodName: getBucketLogging
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketReplicationConfiguration(com.amazonaws.services.s3.model.GetBucketReplicationConfigurationRequest)
+      newMethodName: getBucketReplication
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketTaggingConfiguration(com.amazonaws.services.s3.model.GetBucketTaggingConfigurationRequest)
+      newMethodName: getBucketTagging
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketWebsiteConfiguration(com.amazonaws.services.s3.model.GetBucketWebsiteConfigurationRequest)
+      newMethodName: getBucketWebsite
+
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client getObjectMetadata(com.amazonaws.services.s3.model.GetObjectMetadataRequest)
+      newMethodName: headObject
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client initiateMultipartUpload(com.amazonaws.services.s3.model.InitiateMultipartUploadRequest)
+      newMethodName: createMultipartUpload
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client listVersions(com.amazonaws.services.s3.model.ListVersionsRequest)
+      newMethodName: listObjectVersions
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client setBucketCrossOriginConfiguration(com.amazonaws.services.s3.model.SetBucketCrossOriginConfigurationRequest)
+      newMethodName: putBucketCors
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client deleteBucketCrossOriginConfiguration(com.amazonaws.services.s3.model.DeleteBucketCrossOriginConfigurationRequest)
+      newMethodName: deleteBucketCors
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketCrossOriginConfiguration(com.amazonaws.services.s3.model.GetBucketCrossOriginConfigurationRequest)
+      newMethodName: getBucketCors
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketVersioningConfiguration(com.amazonaws.services.s3.model.GetBucketVersioningConfigurationRequest)
+      newMethodName: getBucketVersioning
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client deleteBucketLifecycleConfiguration(com.amazonaws.services.s3.model.DeleteBucketLifecycleConfigurationRequest)
+      newMethodName: deleteBucketLifecycle
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client deleteBucketReplicationConfiguration(com.amazonaws.services.s3.model.DeleteBucketReplicationConfigurationRequest)
+      newMethodName: deleteBucketReplication
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client deleteBucketTaggingConfiguration(com.amazonaws.services.s3.model.DeleteBucketTaggingConfigurationRequest)
+      newMethodName: deleteBucketTagging
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client deleteBucketWebsiteConfiguration(com.amazonaws.services.s3.model.DeleteBucketWebsiteConfigurationRequest)
+      newMethodName: deleteBucketWebsite
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketLoggingConfiguration(com.amazonaws.services.s3.model.GetBucketLoggingConfigurationRequest)
+      newMethodName: getBucketLogging
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketReplicationConfiguration(com.amazonaws.services.s3.model.GetBucketReplicationConfigurationRequest)
+      newMethodName: getBucketReplication
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketTaggingConfiguration(com.amazonaws.services.s3.model.GetBucketTaggingConfigurationRequest)
+      newMethodName: getBucketTagging
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketWebsiteConfiguration(com.amazonaws.services.s3.model.GetBucketWebsiteConfigurationRequest)
+      newMethodName: getBucketWebsite
+
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.model.BucketCrossOriginConfiguration withRules(com.amazonaws.services.s3.model.CORSRule...)
+      newMethodName: withCorsRules
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.model.ListObjectsRequest withBucketName(String)
+      newMethodName: withBucket
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.model.ListObjectsV2Request withBucketName(String)
+      newMethodName: withBucket

@@ -114,4 +114,67 @@ public class NamingConversionUtilsTest {
         assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.dynamodbv2.AmazonDynamoDB"))
             .isEqualTo("software.amazon.awssdk.services.dynamodb.DynamoDbClient");
     }
+
+    @Test
+    void v1S3PojoSpecialCase_shouldConvertToV2() {
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.GetObjectMetadataRequest"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.HeadObjectRequest");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.InitiateMultipartUploadRequest"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.InitiateMultipartUploadResponse"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.ListVersionsRequest"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.ObjectMetadata"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.HeadObjectResponse");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.ObjectListing"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.ListObjectsResponse");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.CorsRule"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.CORSRule");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.BucketCrossOriginConfiguration"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.CORSConfiguration");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.GetBucketCrossOriginConfigurationRequest"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.GetBucketCorsRequest");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.DeleteBucketCrossOriginConfigurationRequest"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.DeleteBucketCorsRequest");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.SetBucketCrossOriginConfigurationRequest"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.PutBucketCorsRequest");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.GetBucketVersioningConfigurationRequest"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.GetBucketVersioningRequest");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.DeleteBucketLifecycleConfigurationRequest"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.DeleteBucketLifecycleRequest");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.DeleteBucketReplicationConfigurationRequest"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.DeleteBucketReplicationRequest");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.DeleteBucketTaggingConfigurationRequest"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.DeleteBucketTaggingRequest");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.DeleteBucketWebsiteConfigurationRequest"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.DeleteBucketWebsiteRequest");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.GetBucketLoggingConfigurationRequest"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.GetBucketLoggingRequest");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.GetBucketReplicationConfigurationRequest"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.GetBucketReplicationRequest");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.GetBucketTaggingConfigurationRequest"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.GetBucketTaggingRequest");
+
+        assertThat(NamingConversionUtils.getV2Equivalent("com.amazonaws.services.s3.model.GetBucketWebsiteConfigurationRequest"))
+            .isEqualTo("software.amazon.awssdk.services.s3.model.GetBucketWebsiteRequest");
+    }
 }
