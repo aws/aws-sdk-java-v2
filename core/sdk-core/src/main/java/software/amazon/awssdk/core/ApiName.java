@@ -21,7 +21,7 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Encapsulates the API name and version of a library built using the AWS SDK.
+ * Encapsulates the API name and version of a library built on the AWS SDK.
  *
  * See {@link RequestOverrideConfiguration.Builder#addApiName(ApiName)}.
  */
