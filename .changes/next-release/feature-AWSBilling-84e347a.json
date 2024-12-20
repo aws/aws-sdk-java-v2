@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Billing",
-    "contributor": "",
-    "description": "Added new API's for defining and fetching Billing Views."
-}

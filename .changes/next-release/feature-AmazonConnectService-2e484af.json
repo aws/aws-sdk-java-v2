@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "This release supports adding NotAttributeCondition and Range to the RoutingCriteria object."
-}
