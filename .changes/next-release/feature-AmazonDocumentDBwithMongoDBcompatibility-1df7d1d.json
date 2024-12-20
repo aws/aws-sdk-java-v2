@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DocumentDB with MongoDB compatibility",
+    "contributor": "",
+    "description": "Support AWS Secret Manager managed password for AWS DocumentDB instance-based cluster."
+}
