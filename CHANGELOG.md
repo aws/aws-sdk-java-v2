@@ -1,4 +1,57 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.39__ __2024-12-20__
+## __AWS Billing__
+  - ### Features
+    - Added new API's for defining and fetching Billing Views.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Support for retrieving cost, usage, and forecast for billing view.
+
+## __AWS Outposts__
+  - ### Features
+    - Add CS8365C as a supported power connector for Outpost sites.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Support for custom user agent and max web pages crawled for web connector. Support app only credentials for SharePoint connector. Increase agents memory duration limit to 365 days. Support to specify max number of session summaries to include in agent invocation context.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - bedrock agents now supports long term memory and performance configs. Invokeflow supports performance configs. RetrieveAndGenerate performance configs
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release supports adding NotAttributeCondition and Range to the RoutingCriteria object.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Support AWS Secret Manager managed password for AWS DocumentDB instance-based cluster.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - This release expands the catalog of upgrade insight checks
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for identifying S3 general purpose buckets that exceed the Amazon Macie quota for preventative control monitoring.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for c6i, m6i and r6i instance on SageMaker Hyperpod and trn1 instances in batch
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Documentation update for Amazon Bedrock Data Automation
+
+## __Runtime for Amazon Bedrock Data Automation__
+  - ### Features
+    - Documentation update for Amazon Bedrock Data Automation Runtime
+
 # __2.29.38__ __2024-12-19__
 ## __AWS Elemental MediaConvert__
   - ### Features
