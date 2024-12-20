@@ -19,12 +19,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollection;
@@ -74,43 +72,34 @@ public class MetricEmfConverter {
      * - `Duration` : milliseconds value
      * - `Double`: normalized to 0.0 if below threshold
      *
-     * @param metricValue The metric value to process
+     * @param mRecord The metric record to process
      * @return The processed value in EMF-compatible format
      */
-    private Object processValue(Object metricValue) {
-        if (metricValue == null) {
-            return 0.0;
-        }
+    private void processAndWriteValue(JsonWriter jsonWriter, MetricRecord<?> mRecord) {
+        Object value = mRecord.value();
+        Class<?> valueClass = mRecord.metric().valueClass();
 
-        if (metricValue instanceof Boolean) {
-            return metricValue.equals(true) ? 1.0 : 0.0;
-        }
-
-        if (metricValue instanceof Duration) {
-            String durationStr = metricValue.toString();
-            metricValue = Double.parseDouble(durationStr.substring(2, durationStr.length() - 1)) * 1000;
-        }
-
-        if (metricValue instanceof Double) {
-            double doubleValue = (double) metricValue;
+        if (value == null) {
+            jsonWriter.writeValue(0.0);
+        } else if (Boolean.class.isAssignableFrom(valueClass)) {
+            jsonWriter.writeValue(value.equals(true) ? 1.0 : 0.0);
+        } else if (Duration.class.isAssignableFrom(valueClass)) {
+            Duration duration = (Duration) value;
+            double millisValue = duration.toMillis();
+            jsonWriter.writeValue(millisValue);
+        } else if (Double.class.isAssignableFrom(valueClass)) {
+            double doubleValue = (Double) value;
             if (Math.abs(doubleValue) < ZERO_THRESHOLD) {
-                metricValue = 0.0;
+                jsonWriter.writeValue(0.0);
+            } else {
+                jsonWriter.writeValue(doubleValue);
             }
-        }
-
-        return metricValue;
-    }
-
-    private void writeProcessedValue(JsonWriter jsonWriter, Object processedValue) {
-        if (processedValue instanceof Double) {
-            jsonWriter.writeValue((Double) processedValue);
-        } else if (processedValue instanceof Integer) {
-            jsonWriter.writeValue((Integer) processedValue);
-        } else if (processedValue instanceof Long) {
-            jsonWriter.writeValue((Long) processedValue);
+        } else if (Integer.class.isAssignableFrom(valueClass)) {
+            jsonWriter.writeValue((Integer) value);
+        } else if (Long.class.isAssignableFrom(valueClass)) {
+            jsonWriter.writeValue((Long) value);
         }
     }
-
 
     /**
      * # Convert SDK Metrics to EMF Format
@@ -141,7 +130,7 @@ public class MetricEmfConverter {
      * @return List of EMF-formatted metrics ready for CloudWatch ingestion
      */
     public List<String> convertMetricCollectionToEmf(MetricCollection metricCollection) {
-        Map<String, List<Object>> aggregatedMetrics = new HashMap<>();
+        Map<String, List<MetricRecord<?>>> aggregatedMetrics = new HashMap<>();
 
         // Process metrics using level-order traversal
         Queue<MetricCollection> queue = new LinkedList<>();
@@ -152,17 +141,16 @@ public class MetricEmfConverter {
         while (!queue.isEmpty()) {
             MetricCollection current = queue.poll();
 
-            current.stream().forEach(r -> {
-                String metricName = r.metric().name();
-                Object metricValue = r.value();
+            current.stream().forEach(mRecord -> {
+                String metricName = mRecord.metric().name();
 
                 if (isDimension(metricName)) {
                     realDimensionStrings.add(metricName);
                 }
 
-                if (shouldReport(r) || isDimension(metricName)) {
+                if (shouldReport(mRecord) || isDimension(metricName)) {
                     aggregatedMetrics.computeIfAbsent(metricName, k -> new ArrayList<>())
-                                     .add(metricValue);
+                                     .add(mRecord);
                 }
 
             });
@@ -175,17 +163,17 @@ public class MetricEmfConverter {
         return createEmfStrings(aggregatedMetrics);
     }
 
-    private List<String> createEmfStrings(Map<String, List<Object>> aggregatedMetrics) {
+    private List<String> createEmfStrings(Map<String, List<MetricRecord<?>>> aggregatedMetrics) {
         List<String> emfStrings = new ArrayList<>();
-        Map<String, List<Object>> currentMetricBatch = new HashMap<>();
-        Set<String> currentMetricNames = new HashSet<>();
+        Map<String, List<MetricRecord<?>>> currentMetricBatch = new HashMap<>();
+        Map<String, Class<?>> currentMetricNames = new HashMap<>();
 
-        for (Map.Entry<String, List<Object>> entry : aggregatedMetrics.entrySet()) {
+        for (Map.Entry<String, List<MetricRecord<?>>> entry : aggregatedMetrics.entrySet()) {
             String metricName = entry.getKey();
-            List<Object> values = entry.getValue();
+            List<MetricRecord<?>> records = entry.getValue();
 
-            if (values.size() > 100) {
-                values = values.subList(0, 100);
+            if (records.size() > 100) {
+                records = records.subList(0, 100);
                 logger.warn(() -> "Some AWS SDK client-side metric data have been dropped because it exceeds the cloudwatch "
                                  + "requirements.");
             }
@@ -193,12 +181,12 @@ public class MetricEmfConverter {
             if (currentMetricNames.size() >= 100) {
                 emfStrings.add(createEmfString(currentMetricBatch, currentMetricNames));
                 currentMetricBatch = new HashMap<>();
-                currentMetricNames = new HashSet<>();
+                currentMetricNames = new HashMap<>();
             }
 
-            currentMetricBatch.put(metricName, values);
-            if (!(values.get(0) instanceof String)) {
-                currentMetricNames.add(metricName);
+            currentMetricBatch.put(metricName, records);
+            if (!String.class.isAssignableFrom(records.get(0).metric().valueClass())) {
+                currentMetricNames.put(metricName, records.get(0).metric().valueClass());
             }
 
         }
@@ -209,7 +197,7 @@ public class MetricEmfConverter {
     }
 
 
-    private String createEmfString(Map<String, List<Object>> metrics, Set<String> metricNames) {
+    private String createEmfString(Map<String, List<MetricRecord<?>>> metrics, Map<String, Class<?>> metricNames) {
 
         JsonWriter jsonWriter = JsonWriter.create();
         jsonWriter.writeStartObject();
@@ -223,7 +211,7 @@ public class MetricEmfConverter {
 
     }
 
-    private void writeAwsObject(JsonWriter jsonWriter, Set<String> metricNames) {
+    private void writeAwsObject(JsonWriter jsonWriter, Map<String, Class<?>> metricNames) {
         jsonWriter.writeFieldName("_aws");
         jsonWriter.writeStartObject();
 
@@ -240,7 +228,7 @@ public class MetricEmfConverter {
         jsonWriter.writeEndObject();
     }
 
-    private void writeCloudWatchMetricsArray(JsonWriter jsonWriter, Set<String> metricNames) {
+    private void writeCloudWatchMetricsArray(JsonWriter jsonWriter, Map<String, Class<?>> metricNames) {
         jsonWriter.writeFieldName("CloudWatchMetrics");
         jsonWriter.writeStartArray();
 
@@ -248,7 +236,7 @@ public class MetricEmfConverter {
         jsonWriter.writeEndArray();
     }
 
-    private void writeCloudWatchMetricsObjects(JsonWriter jsonWriter,  Set<String> metricNames) {
+    private void writeCloudWatchMetricsObjects(JsonWriter jsonWriter,  Map<String, Class<?>> metricNames) {
         jsonWriter.writeStartObject();
         jsonWriter.writeFieldName("Namespace");
         jsonWriter.writeValue(config.getNamespace());
@@ -270,49 +258,50 @@ public class MetricEmfConverter {
         jsonWriter.writeEndArray();
     }
 
-    private void writeMetricDefinitionArray(JsonWriter jsonWriter,  Set<String> metricNames) {
+    private void writeMetricDefinitionArray(JsonWriter jsonWriter,  Map<String, Class<?>> metricNames) {
         jsonWriter.writeFieldName("Metrics");
         jsonWriter.writeStartArray();
 
 
         // Write metric definitions
-        for (String metricName : metricNames) {
+        metricNames.forEach((name, type) -> {
             jsonWriter.writeStartObject();
             jsonWriter.writeFieldName("Name");
-            jsonWriter.writeValue(metricName);
+            jsonWriter.writeValue(name);
 
-            if (hasUnit(metricName)) {
+            String unit = getMetricUnit(type);
+            if (unit != null) {
                 jsonWriter.writeFieldName("Unit");
-                jsonWriter.writeValue(getMetricUnit(metricName));
+                jsonWriter.writeValue(unit);
             }
 
             jsonWriter.writeEndObject();
-        }
+        });
 
         jsonWriter.writeEndArray();
     }
 
 
-    private void writeMetricValues(JsonWriter jsonWriter, Map<String, List<Object>> metrics) {
-        for (Map.Entry<String, List<Object>> entry : metrics.entrySet()) {
+    private void writeMetricValues(JsonWriter jsonWriter, Map<String, List<MetricRecord<?>>> metrics) {
+        for (Map.Entry<String, List<MetricRecord<?>>> entry : metrics.entrySet()) {
             String metricName = entry.getKey();
-            List<Object> values = entry.getValue();
+            List<MetricRecord<?>> records = entry.getValue();
 
             if (isDimension(metricName)) {
                 jsonWriter.writeFieldName(metricName);
-                jsonWriter.writeValue((String) values.get(0));
+                jsonWriter.writeValue((String) records.get(0).value());
             } else {
-                if (values.get(0) instanceof String) {
+                if (records.get(0).value() instanceof String) {
                     continue;
                 }
-                if (values.size() == 1) {
+                if (records.size() == 1) {
                     jsonWriter.writeFieldName(metricName);
-                    writeProcessedValue(jsonWriter, processValue(values.get(0)));
+                    processAndWriteValue(jsonWriter, records.get(0));
                 } else {
                     jsonWriter.writeFieldName(metricName);
                     jsonWriter.writeStartArray();
-                    for (Object value : values) {
-                        writeProcessedValue(jsonWriter, processValue(value));
+                    for (MetricRecord<?> mRecord: records) {
+                        processAndWriteValue(jsonWriter, mRecord);
                     }
                     jsonWriter.writeEndArray();
                 }
@@ -325,12 +314,9 @@ public class MetricEmfConverter {
         return metricName != null && config.getDimensionStrings().contains(metricName);
     }
 
-    private boolean hasUnit(String metricName) {
-        return metricName.contains("Duration");
-    }
 
-    private String getMetricUnit(String metricName) {
-        if (metricName.endsWith("Duration")) {
+    private String getMetricUnit(Class<?> type) {
+        if (Duration.class.isAssignableFrom(type)) {
             return "Milliseconds";
         }
         return null;
