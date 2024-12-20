@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans;
 
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
@@ -24,6 +25,9 @@ public class FlattenedBeanBean {
     private String id;
     private String attribute1;
     private AbstractBean abstractBean;
+    private AbstractBean explicitPrefixBean;
+    private AbstractBean autoPrefixBean;
+    private AbstractBean customPrefixBean;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -46,5 +50,30 @@ public class FlattenedBeanBean {
     }
     public void setAbstractBean(AbstractBean abstractBean) {
         this.abstractBean = abstractBean;
+    }
+
+    @DynamoDbFlatten(prefix = "prefix-")
+    public AbstractBean getExplicitPrefixBean() {
+        return explicitPrefixBean;
+    }
+    public void setExplicitPrefixBean(AbstractBean explicitPrefixBean) {
+        this.explicitPrefixBean = explicitPrefixBean;
+    }
+
+    @DynamoDbFlatten(prefix = DynamoDbFlatten.AUTO_PREFIX)
+    public AbstractBean getAutoPrefixBean() {
+        return autoPrefixBean;
+    }
+    public void setAutoPrefixBean(AbstractBean autoPrefixBean) {
+        this.autoPrefixBean = autoPrefixBean;
+    }
+
+    @DynamoDbAttribute("custom")
+    @DynamoDbFlatten(prefix = DynamoDbFlatten.AUTO_PREFIX)
+    public AbstractBean getCustomPrefixBean() {
+        return customPrefixBean;
+    }
+    public void setCustomPrefixBean(AbstractBean customPrefixBean) {
+        this.customPrefixBean = customPrefixBean;
     }
 }

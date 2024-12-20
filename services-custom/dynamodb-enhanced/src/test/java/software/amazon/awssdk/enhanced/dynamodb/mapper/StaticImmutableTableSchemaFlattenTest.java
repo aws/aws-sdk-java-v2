@@ -74,8 +74,8 @@ public class StaticImmutableTableSchemaFlattenTest {
         map.put("attribute2b", AttributeValue.builder().s("2b").build());
         map.put("attribute3a", AttributeValue.builder().s("3a").build());
         map.put("attribute3b", AttributeValue.builder().s("3b").build());
-        map.put("attribute4a", AttributeValue.builder().s("4a").build());
-        map.put("attribute4b", AttributeValue.builder().s("4b").build());
+        map.put("2b.attribute4a", AttributeValue.builder().s("4a").build());
+        map.put("2b.attribute4b", AttributeValue.builder().s("4b").build());
 
         ITEM_MAP = Collections.unmodifiableMap(map);
     }
@@ -128,8 +128,8 @@ public class StaticImmutableTableSchemaFlattenTest {
                    .addAttribute(String.class, a -> a.name("attribute2b")
                                                      .getter(ImmutableRecord::attribute1)
                                                      .setter(ImmutableRecord.Builder::attribute1))
-                   .flatten(childTableSchema4a, ImmutableRecord::getChild1, ImmutableRecord.Builder::child1)
-                   .flatten(childTableSchema4b, ImmutableRecord::getChild2, ImmutableRecord.Builder::child2)
+                   .flatten(childTableSchema4a, ImmutableRecord::getChild1, ImmutableRecord.Builder::child1, "2b.")
+                   .flatten(childTableSchema4b, ImmutableRecord::getChild2, ImmutableRecord.Builder::child2, "2b.")
                    .build();
 
     private final TableSchema<ImmutableRecord> immutableTableSchema =
@@ -156,19 +156,19 @@ public class StaticImmutableTableSchemaFlattenTest {
     @Test
     public void itemToMap_specificAttributes() {
         Map<String, AttributeValue> result =
-            immutableTableSchema.itemToMap(TEST_RECORD, Arrays.asList("attribute1", "attribute2a", "attribute4b"));
+            immutableTableSchema.itemToMap(TEST_RECORD, Arrays.asList("attribute1", "attribute2a", "2b.attribute4b"));
 
         Map<String, AttributeValue> expectedResult = new HashMap<>();
         expectedResult.put("attribute1", AttributeValue.builder().s("1").build());
         expectedResult.put("attribute2a", AttributeValue.builder().s("2a").build());
-        expectedResult.put("attribute4b", AttributeValue.builder().s("4b").build());
+        expectedResult.put("2b.attribute4b", AttributeValue.builder().s("4b").build());
 
         assertThat(result).isEqualTo(expectedResult);
     }
 
     @Test
     public void itemToMap_specificAttribute() {
-        AttributeValue result = immutableTableSchema.attributeValue(TEST_RECORD, "attribute4b");
+        AttributeValue result = immutableTableSchema.attributeValue(TEST_RECORD, "2b.attribute4b");
         assertThat(result).isEqualTo(AttributeValue.builder().s("4b").build());
     }
 
@@ -189,7 +189,9 @@ public class StaticImmutableTableSchemaFlattenTest {
     @Test
     public void converterForAttribute() {
         ITEM_MAP.forEach((key, attributeValue) -> {
-            assertThat(immutableTableSchema.converterForAttribute(key)).isNotNull();
+            assertThat(immutableTableSchema.converterForAttribute(key))
+                .as("Check converter for '%s'", key)
+                .isNotNull();
         });
     }
 
@@ -246,6 +248,16 @@ public class StaticImmutableTableSchemaFlattenTest {
             result = 31 * result + (child1 != null ? child1.hashCode() : 0);
             result = 31 * result + (child2 != null ? child2.hashCode() : 0);
             return result;
+        }
+
+        @Override
+        public String toString() {
+            return "ImmutableRecord{" +
+                   "id='" + id + '\'' +
+                   ", attribute1='" + attribute1 + '\'' +
+                   ", child1=" + child1 +
+                   ", child2=" + child2 +
+                   '}';
         }
 
         public static class Builder {
