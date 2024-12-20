@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Outposts",
+    "contributor": "",
+    "description": "Add CS8365C as a supported power connector for Outpost sites."
+}
