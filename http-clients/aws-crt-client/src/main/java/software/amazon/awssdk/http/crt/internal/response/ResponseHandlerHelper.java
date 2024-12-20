@@ -88,13 +88,4 @@ public class ResponseHandlerHelper {
             }
         }
     }
-
-    public void cleanUpConnectionBasedOnStatusCode(HttpStream stream) {
-        // always close the connection on a 5XX response code.
-        if (HttpStatusFamily.of(responseBuilder.statusCode()) == HttpStatusFamily.SERVER_ERROR) {
-            closeConnection(stream);
-        } else {
-            releaseConnection(stream);
-        }
-    }
 }
