@@ -89,11 +89,6 @@ public final class EmfMetricPublisher implements MetricPublisher {
         return builder().build();
     }
 
-    // //To be deleted
-    // public List<String> convertMetricCollectionToEmf(MetricCollection metricCollection) {
-    //     return metricConverter.convertMetricCollectionToEmf(metricCollection);
-    // }
-
 
     @Override
     public void publish(MetricCollection metricCollection) {
