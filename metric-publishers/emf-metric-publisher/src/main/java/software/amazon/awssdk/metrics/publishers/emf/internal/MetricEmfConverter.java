@@ -16,6 +16,7 @@
 package software.amazon.awssdk.metrics.publishers.emf.internal;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +49,6 @@ import software.amazon.awssdk.utils.Logger;
  * - Very small numeric values (below 0.0001) are normalized to 0.0
  * - Duration values are converted to milliseconds
  *
- * @since 2.0
  * @see EmfMetricConfiguration
  */
 @SdkInternalApi
@@ -58,9 +58,11 @@ public class MetricEmfConverter {
     private final List<String> realDimensionStrings = new ArrayList<>();
     private final EmfMetricConfiguration config;
     private final boolean metricCategoriesContainsAll;
+    private final Clock clock;
 
-    public MetricEmfConverter(EmfMetricConfiguration config) {
+    public MetricEmfConverter(EmfMetricConfiguration config, Clock clock) {
         this.config = config;
+        this.clock = clock;
         this.metricCategoriesContainsAll = config.getMetricCategories().contains(MetricCategory.ALL);
     }
 
@@ -73,7 +75,6 @@ public class MetricEmfConverter {
      * - `Double`: normalized to 0.0 if below threshold
      *
      * @param mRecord The metric record to process
-     * @return The processed value in EMF-compatible format
      */
     private void processAndWriteValue(JsonWriter jsonWriter, MetricRecord<?> mRecord) {
         Object value = mRecord.value();
@@ -103,11 +104,9 @@ public class MetricEmfConverter {
 
     /**
      * # Convert SDK Metrics to EMF Format
-     *
      * Transforms a collection of SDK metrics into CloudWatch's Embedded Metric Format (EMF).
      * The method processes standard SDK measurements and structures them according to
      * CloudWatch's EMF specification.
-     *
      * ## Example Output
      * ```json
      * {
@@ -127,7 +126,7 @@ public class MetricEmfConverter {
      * ```
      *
      * @param metricCollection Collection of SDK metrics to be converted
-     * @return List of EMF-formatted metrics ready for CloudWatch ingestion
+     * @return List of EMF-formatted metrics ready for CloudWatch
      */
     public List<String> convertMetricCollectionToEmf(MetricCollection metricCollection) {
         Map<String, List<MetricRecord<?>>> aggregatedMetrics = new HashMap<>();
@@ -218,7 +217,7 @@ public class MetricEmfConverter {
 
         jsonWriter.writeFieldName("Timestamp");
         //Unit Test
-        jsonWriter.writeValue(12345678);
+        jsonWriter.writeValue(clock.instant());
 
 
         jsonWriter.writeFieldName("LogGroupName");

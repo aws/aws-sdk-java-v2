@@ -16,6 +16,7 @@
 package software.amazon.awssdk.metrics.publishers.emf;
 
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -76,7 +77,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
             builder.metricLevel
         );
 
-        this.metricConverter = new MetricEmfConverter(config);
+        this.metricConverter = new MetricEmfConverter(config, Clock.systemUTC());
     }
 
 
@@ -88,10 +89,10 @@ public final class EmfMetricPublisher implements MetricPublisher {
         return builder().build();
     }
 
-    //To be deleted
-    public List<String> convertMetricCollectionToEmf(MetricCollection metricCollection) {
-        return metricConverter.convertMetricCollectionToEmf(metricCollection);
-    }
+    // //To be deleted
+    // public List<String> convertMetricCollectionToEmf(MetricCollection metricCollection) {
+    //     return metricConverter.convertMetricCollectionToEmf(metricCollection);
+    // }
 
 
     @Override
@@ -105,7 +106,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
                 logger.info(() -> emfString);
             }
         } catch (Exception e) {
-            logger.warn(() -> "Failed to publish metric to CloudWatch", e);
+            logger.warn(() -> "Failed to publish emf format metric to CloudWatch", e);
         }
     }
 
