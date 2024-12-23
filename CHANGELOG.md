@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.40__ __2024-12-23__
+## __AWS Glue__
+  - ### Features
+    - Add IncludeRoot parameters to GetCatalogs API to return root catalog.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Documentation update for ECR GetAccountSetting and PutAccountSetting APIs.
+
+## __Amazon Elastic Container Registry Public__
+  - ### Features
+    - Add support for Dualstack endpoints
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - This release adds support for DescribeClusterVersions API that provides important information about Kubernetes versions along with end of support dates
+
 # __2.29.39__ __2024-12-20__
 ## __AWS Billing__
   - ### Features
