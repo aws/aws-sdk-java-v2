@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "contributor": "",
-    "description": "This release adds support for DescribeClusterVersions API that provides important information about Kubernetes versions along with end of support dates"
-}
