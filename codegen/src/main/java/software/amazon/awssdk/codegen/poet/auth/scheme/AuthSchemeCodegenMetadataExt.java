@@ -97,7 +97,7 @@ public final class AuthSchemeCodegenMetadataExt {
                 return BEARER;
             case NONE:
                 return NO_AUTH;
-            case V4a:
+            case V4A:
                 return SIGV4A;
             default:
                 String authTypeName = type.value();

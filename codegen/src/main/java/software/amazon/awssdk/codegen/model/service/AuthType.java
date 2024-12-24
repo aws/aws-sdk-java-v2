@@ -24,7 +24,7 @@ public enum AuthType {
     CUSTOM("custom"),
     IAM("iam"),
     V4("v4"),
-    V4a("v4a"),
+    V4A("v4a"),
     V4_UNSIGNED_BODY("v4-unsigned-body"),
     S3("s3"),
     S3V4("s3v4"),
@@ -51,7 +51,7 @@ public enum AuthType {
             case "aws.auth#sigv4":
                 return V4;
             case "aws.auth#sigv4a":
-                return V4a;
+                return V4A;
             default:
                 String normalizedValue = StringUtils.lowerCase(value);
                 return Arrays.stream(values())
