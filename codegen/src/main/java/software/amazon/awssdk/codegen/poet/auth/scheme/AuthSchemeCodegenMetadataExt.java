@@ -25,7 +25,9 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeCodegenMetadata.SignerPropertyValueProvider;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
@@ -59,6 +61,24 @@ public final class AuthSchemeCodegenMetadataExt {
         .authSchemeClass(BearerAuthScheme.class)
         .build();
 
+    static final AuthSchemeCodegenMetadata SIGV4A =
+        builder()
+            .schemeId(AwsV4aAuthScheme.SCHEME_ID)
+            .authSchemeClass(AwsV4aAuthScheme.class)
+            .addProperty(SignerPropertyValueProvider.builder()
+                                                    .containingClass(AwsV4aHttpSigner.class)
+                                                    .fieldName(
+                                                        "SERVICE_SIGNING_NAME")
+                                                    .valueEmitter((spec, utils) -> spec.add("$S", utils.signingName()))
+                                                    .build())
+            .addProperty(SignerPropertyValueProvider.builder()
+                                                    .containingClass(AwsV4aHttpSigner.class)
+                                                    .fieldName(
+                                                        "REGION_SET")
+                                                    .valueEmitter((spec, utils) -> spec.add("$L", "params.regionSet()"))
+                                                    .build())
+            .build();
+
     static final AuthSchemeCodegenMetadata NO_AUTH = builder()
         .schemeId(NoAuthAuthScheme.SCHEME_ID)
         .authSchemeClass(NoAuthAuthScheme.class)
@@ -77,6 +97,8 @@ public final class AuthSchemeCodegenMetadataExt {
                 return BEARER;
             case NONE:
                 return NO_AUTH;
+            case V4A:
+                return SIGV4A;
             default:
                 String authTypeName = type.value();
                 SigV4SignerDefaults defaults = AuthTypeToSigV4Default.authTypeToDefaults().get(authTypeName);
