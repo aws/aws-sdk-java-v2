@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricRecord;
@@ -60,10 +61,15 @@ public class MetricEmfConverter {
     private final boolean metricCategoriesContainsAll;
     private final Clock clock;
 
+    @SdkTestInternalApi
     public MetricEmfConverter(EmfMetricConfiguration config, Clock clock) {
         this.config = config;
         this.clock = clock;
         this.metricCategoriesContainsAll = config.getMetricCategories().contains(MetricCategory.ALL);
+    }
+
+    public MetricEmfConverter(EmfMetricConfiguration config) {
+        this(config, Clock.systemUTC());
     }
 
     /**
@@ -204,7 +210,7 @@ public class MetricEmfConverter {
         writeAwsObject(jsonWriter, metricNames);
         writeMetricValues(jsonWriter, metrics);
 
-        jsonWriter.writeEndObject(); // End root object
+        jsonWriter.writeEndObject();
 
         return new String(jsonWriter.getBytes(), StandardCharsets.UTF_8);
 
@@ -216,7 +222,6 @@ public class MetricEmfConverter {
 
 
         jsonWriter.writeFieldName("Timestamp");
-        //Unit Test
         jsonWriter.writeValue(clock.instant());
 
 

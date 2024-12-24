@@ -64,7 +64,7 @@ import software.amazon.awssdk.utils.Logger;
 @SdkPublicApi
 public final class EmfMetricPublisher implements MetricPublisher {
 
-    private static final Logger logger = Logger.loggerFor("software.amazon.awssdk.metrics.publishers.emf");
+    private static final Logger logger = Logger.loggerFor(EmfMetricPublisher.class);
     private final MetricEmfConverter metricConverter;
 
 
@@ -77,7 +77,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
             builder.metricLevel
         );
 
-        this.metricConverter = new MetricEmfConverter(config, Clock.systemUTC());
+        this.metricConverter = new MetricEmfConverter(config);
     }
 
 
@@ -101,7 +101,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
                 logger.info(() -> emfString);
             }
         } catch (Exception e) {
-            logger.warn(() -> "Failed to publish emf format metric to CloudWatch", e);
+            logger.warn(() -> "Failed to log metrics in EMF format", e);
         }
     }
 
