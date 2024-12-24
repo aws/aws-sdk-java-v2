@@ -436,6 +436,29 @@ public class UploadDirectoryHelperTest {
         assertThat(keys).containsOnly("2.txt");
     }
 
+    @Test
+    public void uploadDirectory_requestTransformFunctionThrows_failsUpload() {
+        when(singleUploadFunction.apply(any())).thenReturn(null);
+
+        RuntimeException exception = new RuntimeException("boom");
+
+        Consumer<UploadFileRequest.Builder> uploadFileRequestTransformer = r -> {
+            throw exception;
+        };
+
+        CompletableFuture<CompletedDirectoryUpload> uploadFuture =
+            uploadDirectoryHelper.uploadDirectory(
+                                     UploadDirectoryRequest.builder()
+                                                           .source(directory)
+                                                           .bucket("bucket")
+                                                           .uploadFileRequestTransformer(uploadFileRequestTransformer)
+                                                           .build())
+                                 .completionFuture();
+
+        assertThatThrownBy(uploadFuture::join).getCause().hasCause(exception);
+    }
+
+
     private DefaultFileUpload completedUpload() {
         return new DefaultFileUpload(CompletableFuture.completedFuture(CompletedFileUpload.builder()
                                                                                           .response(PutObjectResponse.builder().build())

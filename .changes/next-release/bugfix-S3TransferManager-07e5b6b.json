@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Fix an issue where if the request transformation function given to UploadDirectoryRequest throws an error when it is invoked, the error would be silently swallowed. Now, the completion future will be completed exceptionally if the function throws."
+}
