@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Network Firewall",
-    "contributor": "",
-    "description": "Dual-stack endpoints are now supported."
-}
