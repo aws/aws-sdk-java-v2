@@ -184,6 +184,7 @@ public final class ProfileProperty {
      * The value should be less than 50 characters in length and is null by default.
      */
     public static final String SDK_UA_APP_ID = "sdk_ua_app_id";
+    public static final String SIGV4A_SIGNING_REGION_SET = "sigv4a_signing_region_set";
 
     private ProfileProperty() {
     }

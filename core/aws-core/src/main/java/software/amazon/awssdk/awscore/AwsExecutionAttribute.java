@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.awscore;
 
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
@@ -45,6 +46,13 @@ public final class  AwsExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Boolean> DUALSTACK_ENDPOINT_ENABLED =
         new ExecutionAttribute<>("DualstackEndpointsEnabled");
+
+
+    /**
+     * AWS Sigv4a  signing region set. This is used to compute the signing region for Sigv4a requests.
+     */
+    public static final ExecutionAttribute<Set<String>> AWS_SIGV4A_SIGNING_REGION_SET =
+        new ExecutionAttribute<>("AwsSigv4aSigningRegionSet");
 
     /**
      * Whether fips endpoints were enabled for this request.

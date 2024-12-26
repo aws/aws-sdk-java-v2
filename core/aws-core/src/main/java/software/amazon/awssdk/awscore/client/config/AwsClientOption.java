@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.awscore.client.config;
 
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
@@ -62,6 +63,13 @@ public final class AwsClientOption<T> extends ClientOption<T> {
      * {@link AwsClientBuilder#dualstackEnabled(Boolean)}.
      */
     public static final AwsClientOption<Boolean> DUALSTACK_ENDPOINT_ENABLED = new AwsClientOption<>(Boolean.class);
+
+
+    /**
+     * AWS Sigv4a  signing region set. This is used to compute the signing region for Sigv4a requests.
+     */
+    public static final AwsClientOption<Set<String>> AWS_SIGV4A_SIGNING_REGION_SET =
+        new AwsClientOption<>(new UnsafeValueType(Set.class));
 
     /**
      * Whether the SDK should resolve fips endpoints instead of default endpoints. See

@@ -24,6 +24,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
 import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
+import software.amazon.awssdk.awscore.endpoint.Sigv4aSigningRegionSetProvider;
 import software.amazon.awssdk.awscore.eventstream.EventStreamInitialRequestInterceptor;
 import software.amazon.awssdk.awscore.interceptor.HelpfulUnknownHostExceptionInterceptor;
 import software.amazon.awssdk.awscore.interceptor.TraceIdExecutionInterceptor;
@@ -194,6 +196,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                             .applyMutation(this::configureRetryPolicy)
                             .applyMutation(this::configureRetryStrategy)
                             .lazyOptionIfAbsent(SdkClientOption.IDENTITY_PROVIDERS, this::resolveIdentityProviders)
+                            .lazyOptionIfAbsent(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET, this::resolveSigv4aRegionSet)
                             .build();
     }
 
@@ -383,6 +386,17 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                        .isDualstackEnabled()
                                        .orElse(null);
     }
+
+    private Set<String> resolveSigv4aRegionSet(LazyValueSource config) {
+        Supplier<ProfileFile> profileFile = config.get(SdkClientOption.PROFILE_FILE_SUPPLIER);
+        String profileName = config.get(SdkClientOption.PROFILE_NAME);
+        return Sigv4aSigningRegionSetProvider.builder()
+                                             .profileFile(profileFile)
+                                             .profileName(profileName)
+                                             .build()
+                                             .resolveRegionSet();
+    }
+
 
     /**
      * Resolve whether a fips endpoint should be used for this client.

@@ -240,7 +240,10 @@ public enum SdkSystemSetting implements SystemSetting {
      * Configure an optional identification value to be appended to the user agent header.
      * The value should be less than 50 characters in length and is null by default.
      */
-    AWS_SDK_UA_APP_ID("sdk.ua.appId", null)
+    AWS_SDK_UA_APP_ID("sdk.ua.appId", null),
+
+
+    AWS_SIGV4A_SIGNING_REGION_SET("aws.sigv4a.signing.region.set", null)
 
     ;
 
