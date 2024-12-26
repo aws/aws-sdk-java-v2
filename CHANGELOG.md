@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.41__ __2024-12-26__
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Added ConflictException to DeleteBillEstimate.
+
+## __AWS Network Firewall__
+  - ### Features
+    - Dual-stack endpoints are now supported.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Add support for Dualstack Endpoints
+
 # __2.29.40__ __2024-12-23__
 ## __AWS Glue__
   - ### Features
