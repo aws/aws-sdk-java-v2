@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awscore.endpoint;
+package software.amazon.awssdk.awscore.internal.auth;
 
 
 import java.util.Arrays;
@@ -63,23 +63,26 @@ public final class Sigv4aSigningRegionSetProvider {
         }
         ProfileFile file = this.profileFile.get();
         Optional<Profile> profile = file.profile(profileName());
-        return profile
-            .flatMap(p -> p.property(ProfileProperty.SIGV4A_SIGNING_REGION_SET))
-            .map(this::parseRegionSet)
-            .orElse(null);
+        if (profile.isPresent()) {
+            Optional<String> property = profile.get().property(ProfileProperty.SIGV4A_SIGNING_REGION_SET);
+            if (property.isPresent()) {
+                return parseRegionSet(property.get());
+            }
+        }
+        return Collections.emptySet();
     }
 
     private Set<String> parseRegionSet(String value) {
         if (StringUtils.isBlank(value)) {
-            return null;
+            return Collections.emptySet();
         }
-        Set<String> regions = Arrays.stream(value.split(","))
-                                    .map(String::trim)
-                                    .filter(s -> !s.isEmpty())
-                                    .collect(Collectors.toSet());
 
-        return regions.isEmpty() ? null : Collections.unmodifiableSet(regions);
+        return Arrays.stream(value.split(","))
+                     .map(String::trim)
+                     .filter(s -> !s.isEmpty())
+                     .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
     }
+
 
     private String profileName() {
         return profileName != null ? profileName : ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();

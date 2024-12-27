@@ -12,8 +12,7 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
-package software.amazon.awssdk.awscore.endpoint;
+package software.amazon.awssdk.awscore.internal.auth;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -63,8 +62,14 @@ class Sigv4aSigningRegionSetProviderTest {
 
     private static Stream<Arguments> configValues() {
         return Stream.of(
-            Arguments.of(null, null, emptyProfile(), null,
+            Arguments.of(null, null, emptyProfile(), Collections.emptySet(),
                          "No values set anywhere"),
+
+            Arguments.of(",",
+                         null,
+                         null,
+                         Collections.emptySet(),
+                         "Empty comma separated values"),
 
             Arguments.of("us-west-2",
                          null,
