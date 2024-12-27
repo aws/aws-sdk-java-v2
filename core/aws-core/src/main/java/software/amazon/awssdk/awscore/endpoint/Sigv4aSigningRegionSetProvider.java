@@ -17,6 +17,7 @@ package software.amazon.awssdk.awscore.endpoint;
 
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -30,7 +31,6 @@ import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
-
 
 @SdkProtectedApi
 public final class Sigv4aSigningRegionSetProvider {
@@ -59,28 +59,26 @@ public final class Sigv4aSigningRegionSetProvider {
     private Set<String> regionSet() {
         Optional<String> setting = SdkSystemSetting.AWS_SIGV4A_SIGNING_REGION_SET.getStringValue();
         if (setting.isPresent()) {
-            return parseRegionSet(setting.get()).orElse(null);
+            return parseRegionSet(setting.get());
         }
-
         ProfileFile file = this.profileFile.get();
         Optional<Profile> profile = file.profile(profileName());
         return profile
             .flatMap(p -> p.property(ProfileProperty.SIGV4A_SIGNING_REGION_SET))
-            .flatMap(this::parseRegionSet)
+            .map(this::parseRegionSet)
             .orElse(null);
     }
 
-    private Optional<Set<String>> parseRegionSet(String value) {
+    private Set<String> parseRegionSet(String value) {
         if (StringUtils.isBlank(value)) {
-            return Optional.empty();
+            return null;
         }
-
         Set<String> regions = Arrays.stream(value.split(","))
                                     .map(String::trim)
                                     .filter(s -> !s.isEmpty())
                                     .collect(Collectors.toSet());
 
-        return regions.isEmpty() ? Optional.empty() : Optional.of(regions);
+        return regions.isEmpty() ? null : Collections.unmodifiableSet(regions);
     }
 
     private String profileName() {
