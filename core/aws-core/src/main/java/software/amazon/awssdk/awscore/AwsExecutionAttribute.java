@@ -47,7 +47,6 @@ public final class  AwsExecutionAttribute extends SdkExecutionAttribute {
     public static final ExecutionAttribute<Boolean> DUALSTACK_ENDPOINT_ENABLED =
         new ExecutionAttribute<>("DualstackEndpointsEnabled");
 
-
     /**
      * AWS Sigv4a signing region set used for computing multi-region request signatures.
      */
