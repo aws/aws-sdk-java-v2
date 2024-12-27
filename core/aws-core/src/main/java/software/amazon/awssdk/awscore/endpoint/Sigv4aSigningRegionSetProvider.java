@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -32,7 +32,7 @@ import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
-@SdkProtectedApi
+@SdkInternalApi
 public final class Sigv4aSigningRegionSetProvider {
     private final Supplier<ProfileFile> profileFile;
     private final String profileName;
