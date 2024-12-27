@@ -1,4 +1,9 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.42__ __2024-12-27__
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation to correct various descriptions.
+
 # __2.29.41__ __2024-12-26__
 ## __AWS Billing and Cost Management Pricing Calculator__
   - ### Features

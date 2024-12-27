@@ -1,0 +1,12 @@
+{
+    "version": "2.29.42",
+    "date": "2024-12-27",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Updates Amazon RDS documentation to correct various descriptions."
+        }
+    ]
+}
