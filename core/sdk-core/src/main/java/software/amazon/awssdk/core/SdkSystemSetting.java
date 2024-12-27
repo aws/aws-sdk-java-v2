@@ -242,9 +242,11 @@ public enum SdkSystemSetting implements SystemSetting {
      */
     AWS_SDK_UA_APP_ID("sdk.ua.appId", null),
 
-
+    /**
+     * Configure the SIGV4A signing region set.
+     * This is a non-empty, comma-delimited list of AWS region names used during signing.
+     */
     AWS_SIGV4A_SIGNING_REGION_SET("aws.sigv4a.signing.region.set", null)
-
     ;
 
     private final String systemProperty;

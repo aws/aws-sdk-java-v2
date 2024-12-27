@@ -184,6 +184,13 @@ public final class ProfileProperty {
      * The value should be less than 50 characters in length and is null by default.
      */
     public static final String SDK_UA_APP_ID = "sdk_ua_app_id";
+
+    /**
+     * Property name for specifying the SIGV4A signing region set configuration.
+     * This optional property is a non-empty, comma-delimited list of non-empty strings, which can be configured
+     * via the environment variable {@code AWS_SIGV4A_SIGNING_REGION_SET},
+     * or the configuration file property {@code sigv4a_signing_region_set}, following standard precedence rules.
+     */
     public static final String SIGV4A_SIGNING_REGION_SET = "sigv4a_signing_region_set";
 
     private ProfileProperty() {

@@ -397,7 +397,6 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                              .resolveRegionSet();
     }
 
-
     /**
      * Resolve whether a fips endpoint should be used for this client.
      */

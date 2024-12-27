@@ -66,7 +66,7 @@ public final class AwsClientOption<T> extends ClientOption<T> {
 
 
     /**
-     * AWS Sigv4a  signing region set. This is used to compute the signing region for Sigv4a requests.
+     * AWS Sigv4a signing region set used for computing multi-region request signatures.
      */
     public static final AwsClientOption<Set<String>> AWS_SIGV4A_SIGNING_REGION_SET =
         new AwsClientOption<>(new UnsafeValueType(Set.class));

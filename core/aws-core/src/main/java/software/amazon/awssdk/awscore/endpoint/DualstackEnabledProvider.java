@@ -49,7 +49,6 @@ public class DualstackEnabledProvider {
      */
     public Optional<Boolean> isDualstackEnabled() {
         Optional<Boolean> setting = SdkSystemSetting.AWS_USE_DUALSTACK_ENDPOINT.getBooleanValue();
-
         if (setting.isPresent()) {
             return setting;
         }

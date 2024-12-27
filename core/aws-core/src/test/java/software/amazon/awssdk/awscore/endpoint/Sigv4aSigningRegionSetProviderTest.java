@@ -42,7 +42,6 @@ class Sigv4aSigningRegionSetProviderTest {
 
     @BeforeEach
     public void setup() {
-
         ENVIRONMENT_VARIABLE_HELPER.reset();
         System.clearProperty(SdkSystemSetting.AWS_SIGV4A_SIGNING_REGION_SET.property());
     }
@@ -64,41 +63,85 @@ class Sigv4aSigningRegionSetProviderTest {
 
     private static Stream<Arguments> configValues() {
         return Stream.of(
-            // Basic scenarios
             Arguments.of(null, null, emptyProfile(), null,
                          "No values set anywhere"),
 
-            Arguments.of("us-west-2", null, null, Collections.singleton("us-west-2"),
+            Arguments.of("us-west-2",
+                         null,
+                         null,
+                         Collections.singleton("us-west-2"),
                          "System Property value takes precedence"),
-            Arguments.of(null, "us-west-2", null, Collections.singleton("us-west-2"),
+
+            Arguments.of(null,
+                         "us-west-2",
+                         null,
+                         Collections.singleton("us-west-2"),
                          "Environment used when System Property null"),
-            Arguments.of(null, null, configWithRegion("us-west-2"), Collections.singleton("us-west-2"),
+
+            Arguments.of(null,
+                         null,
+                         configWithRegion("us-west-2"),
+                         Collections.singleton("us-west-2"),
                          "Config file used when others null"),
 
-            // Precedence scenarios
-            Arguments.of("us-west-2", "us-east-1", null, Collections.singleton("us-west-2"),
+            Arguments.of("us-west-2",
+                         "us-east-1",
+                         null,
+                         Collections.singleton("us-west-2"),
                          "System Property overrides Environment"),
-            Arguments.of("us-west-2", null, configWithRegion("us-east-1"), Collections.singleton("us-west-2"),
+
+            Arguments.of("us-west-2",
+                         null,
+                         configWithRegion("us-east-1"),
+                         Collections.singleton("us-west-2"),
                          "System Property overrides Config File"),
-            Arguments.of(null, "us-west-2", configWithRegion("us-east-1"), Collections.singleton("us-west-2"),
+
+            Arguments.of(null,
+                         "us-west-2",
+                         configWithRegion("us-east-1"),
+                         Collections.singleton("us-west-2"),
                          "Environment overrides Config File"),
-            Arguments.of("us-west-2", "us-east-1", configWithRegion("us-north-1"), Collections.singleton("us-west-2"),
+
+            Arguments.of("us-west-2",
+                         "us-east-1",
+                         configWithRegion("us-north-1"),
+                         Collections.singleton("us-west-2"),
                          "System Property highest precedence"),
 
-            // Wildcard scenarios
-            Arguments.of("*", "us-west-2", null, Collections.singleton("*"),
+            Arguments.of("*",
+                         "us-west-2",
+                         null,
+                         Collections.singleton("*"),
                          "Wildcard in System Property overrides specific value"),
-            Arguments.of("us-west-2", "*", null, Collections.singleton("us-west-2"),
+
+            Arguments.of("us-west-2",
+                         "*",
+                         null,
+                         Collections.singleton("us-west-2"),
                          "Specific Environment overrides wildcard"),
-            Arguments.of(null, "*", configWithRegion("us-west-2"), Collections.singleton("*"),
+
+            Arguments.of(null,
+                         "*",
+                         configWithRegion("us-west-2"),
+                         Collections.singleton("*"),
                          "Wildcard in Environment overrides Config"),
 
-            // Multi-region scenarios
-            Arguments.of("us-west-1,us-east-1", "us-west-2", null, createSet("us-west-1", "us-east-1"),
+            Arguments.of("us-west-1,us-east-1",
+                         "us-west-2",
+                         null,
+                         createSet("us-west-1", "us-east-1"),
                          "Multi-region System Property overrides single"),
-            Arguments.of("us-west-1,us-east-1", null, configWithRegion("us-west-2"), createSet("us-west-1", "us-east-1"),
+
+            Arguments.of("us-west-1,us-east-1",
+                         null,
+                         configWithRegion("us-west-2"),
+                         createSet("us-west-1", "us-east-1"),
                          "Multi-region System Property overrides Config"),
-            Arguments.of(null, "us-west-1,us-east-1", configWithRegion("us-west-2"), createSet("us-west-1", "us-east-1"),
+
+            Arguments.of(null,
+                         "us-west-1,us-east-1",
+                         configWithRegion("us-west-2"),
+                         createSet("us-west-1", "us-east-1"),
                          "Multi-region Environment overrides Config")
         );
     }
@@ -127,7 +170,7 @@ class Sigv4aSigningRegionSetProviderTest {
         String values = Arrays.stream(pairs)
                               .map(pair -> String.format("%s=%s", pair.left(), pair.right()))
                               .collect(Collectors.joining(System.lineSeparator()));
-        String contents = String.format("[%s]\n%s", profileName, values);
+        String contents = String.format("[%s]%n%s", profileName, values);
 
         return ProfileFile.builder()
                           .content(new StringInputStream(contents))

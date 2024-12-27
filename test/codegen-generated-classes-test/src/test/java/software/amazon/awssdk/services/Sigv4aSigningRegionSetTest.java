@@ -31,7 +31,7 @@ class Sigv4aSigningRegionSetTest {
 
     static Stream<Arguments> testCases() {
 
-        //TODO : ClientBuilder option test cases will be added after we add regionSet option in clientBuilder in new PR
+        //TODO: ClientBuilder option test cases will be added after we add regionSet option in clientBuilder in new PR.
         return Stream.of(
             Arguments.of(new SuccessCase(null,
                                          null,
@@ -111,7 +111,6 @@ class Sigv4aSigningRegionSetTest {
         );
     }
 
-
     @AfterEach
     void tearDown() {
         System.clearProperty(SdkSystemSetting.AWS_SIGV4A_SIGNING_REGION_SET.property());
@@ -126,15 +125,12 @@ class Sigv4aSigningRegionSetTest {
                 ProtocolRestJsonWithConfigClient.builder()
                                                 .region(Region.US_WEST_2)
                                                 .credentialsProvider(AnonymousCredentialsProvider.create());
-
             if (testCase.systemPropSetting != null) {
                 System.setProperty(SdkSystemSetting.AWS_SIGV4A_SIGNING_REGION_SET.property(), testCase.systemPropSetting);
             }
-
             if (testCase.envVarSetting != null) {
                 helper.set(SdkSystemSetting.AWS_SIGV4A_SIGNING_REGION_SET.environmentVariable(), testCase.envVarSetting);
             }
-
             ProfileFile.Builder profileFile = ProfileFile.builder().type(ProfileFile.Type.CONFIGURATION);
 
             if (testCase.profileSetting != null) {
@@ -157,9 +153,6 @@ class Sigv4aSigningRegionSetTest {
             } catch (EndpointCapturingInterceptor.CaptureCompletedException e) {
                 // Expected
             }
-
-            System.out.println(testCase.caseName + "  "+ interceptor.sigv4aSigningRegionSet());
-
             assertThat(interceptor.sigv4aSigningRegionSet())
                 .containsExactlyInAnyOrderElementsOf(testCase.expectedValues);
 

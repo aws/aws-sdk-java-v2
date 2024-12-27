@@ -49,7 +49,7 @@ public final class  AwsExecutionAttribute extends SdkExecutionAttribute {
 
 
     /**
-     * AWS Sigv4a  signing region set. This is used to compute the signing region for Sigv4a requests.
+     * AWS Sigv4a signing region set used for computing multi-region request signatures.
      */
     public static final ExecutionAttribute<Set<String>> AWS_SIGV4A_SIGNING_REGION_SET =
         new ExecutionAttribute<>("AwsSigv4aSigningRegionSet");
