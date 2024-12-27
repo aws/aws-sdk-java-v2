@@ -122,7 +122,9 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE,
                           clientConfig.option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE))
             .putAttribute(RESOLVED_CHECKSUM_SPECS, HttpChecksumResolver.resolveChecksumSpecs(executionAttributes))
-            .putAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS, resolveUserAgentBusinessMetrics(clientConfig));
+            .putAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS, resolveUserAgentBusinessMetrics(clientConfig))
+            .putAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET,
+                          clientConfig.option(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET));
 
         // Auth Scheme resolution related attributes
         putAuthSchemeResolutionAttributes(executionAttributes, clientConfig, originalRequest);
