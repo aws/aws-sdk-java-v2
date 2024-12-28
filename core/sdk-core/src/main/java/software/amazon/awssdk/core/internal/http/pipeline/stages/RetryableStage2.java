@@ -53,6 +53,7 @@ public final class RetryableStage2<OutputT> implements RequestToResponsePipeline
         while (true) {
             try {
                 retryableStageHelper.startingAttempt();
+                retryableStageHelper.resolveCredentialsIfS3ExpressRetry(context);
                 Response<OutputT> response = executeRequest(retryableStageHelper, context);
                 retryableStageHelper.recordAttemptSucceeded();
                 return response;

@@ -95,6 +95,7 @@ public final class AsyncRetryableStage2<OutputT> implements RequestPipeline<SdkH
             try {
                 retryableStageHelper.startingAttempt();
                 retryableStageHelper.logSendingRequest();
+                retryableStageHelper.resolveCredentialsIfS3ExpressRetry(context);
                 responseFuture = requestPipeline.execute(retryableStageHelper.requestToSend(), context);
 
                 // If the result future fails, go ahead and fail the response future.
