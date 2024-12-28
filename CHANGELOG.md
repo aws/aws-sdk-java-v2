@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.43__ __2024-12-27__
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Restoring custom endpoint functionality for ECR
+
+## __Amazon Elastic Container Registry Public__
+  - ### Features
+    - Restoring custom endpoint functionality for ECR Public
+
 # __2.29.42__ __2024-12-27__
 ## __Amazon Relational Database Service__
   - ### Features
