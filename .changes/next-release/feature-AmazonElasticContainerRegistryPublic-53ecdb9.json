@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Container Registry Public",
+    "contributor": "",
+    "description": "Restoring custom endpoint functionality for ECR Public"
+}
