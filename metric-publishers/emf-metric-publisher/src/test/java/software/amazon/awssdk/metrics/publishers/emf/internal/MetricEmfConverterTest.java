@@ -34,17 +34,14 @@ public class MetricEmfConverterTest {
 
     private MetricEmfConverter metricEmfConverterDefault;
     private MetricEmfConverter metricEmfConverterCustom;
-    private final EmfMetricConfiguration testConfigDefault = new EmfMetricConfiguration("AwsSdk/Test/JavaSdk2",
-                                                                                        "my_log_group_name",
-                                                                                        Stream.of(HttpMetric.HTTP_CLIENT_NAME)
-                                                                                              .collect(Collectors.toSet()),
-                                                                                        null, null);
-    private final EmfMetricConfiguration testConfigCustom = new EmfMetricConfiguration("AwsSdk/Test/JavaSdk2",
-                                                                                       "my_log_group_name",
-                                                                                       Stream.of(HttpMetric.HTTP_CLIENT_NAME)
-                                                                                             .collect(Collectors.toSet()),
-                                                                                       Stream.of(MetricCategory.HTTP_CLIENT)
-                                                                                             .collect(Collectors.toSet()), MetricLevel.TRACE);
+    private final EmfMetricConfiguration testConfigDefault = new EmfMetricConfiguration.Builder().build();
+    private final EmfMetricConfiguration testConfigCustom = new EmfMetricConfiguration.Builder()
+                                                                                        .logGroupName("my_log_group_name")
+                                                                                        .dimensions(Stream.of(HttpMetric.HTTP_CLIENT_NAME)
+                                                                                        .collect(Collectors.toSet()))
+                                                                                        .metricCategories(Stream.of(MetricCategory.HTTP_CLIENT).collect(Collectors.toSet()))
+                                                                                        .metricLevel(MetricLevel.TRACE)
+                                                                                        .build();
     private final Clock fixedClock = Clock.fixed(
         Instant.ofEpochMilli(12345678),
         ZoneOffset.UTC

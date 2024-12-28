@@ -16,7 +16,6 @@
 package software.amazon.awssdk.metrics.publishers.emf;
 
 
-import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -69,13 +68,14 @@ public final class EmfMetricPublisher implements MetricPublisher {
 
 
     private EmfMetricPublisher(Builder builder) {
-        EmfMetricConfiguration config = new EmfMetricConfiguration(
-            builder.namespace,
-            builder.logGroupName,
-            builder.dimensions,
-            builder.metricCategories,
-            builder.metricLevel
-        );
+        EmfMetricConfiguration config = new EmfMetricConfiguration.Builder()
+            .namespace(builder.namespace)
+            .logGroupName(builder.logGroupName)
+            .dimensions(builder.dimensions)
+            .metricLevel(builder.metricLevel)
+            .metricCategories(builder.metricCategories)
+            .build()
+        ;
 
         this.metricConverter = new MetricEmfConverter(config);
     }
@@ -93,6 +93,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
     @Override
     public void publish(MetricCollection metricCollection) {
         if (metricCollection == null) {
+            logger.warn(() -> "Null metric collection passed to the publisher");
             return;
         }
         try {
