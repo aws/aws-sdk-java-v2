@@ -36,6 +36,16 @@ public final class AuthUtils {
                     .anyMatch(authType -> authType == AuthType.BEARER);
     }
 
+    public static boolean usesSigv4aAuth(IntermediateModel model) {
+        if (isServiceSigv4a(model)) {
+            return true;
+        }
+        return model.getOperations()
+                    .values()
+                    .stream()
+                    .anyMatch(operationModel -> operationModel.getAuth().stream().anyMatch(authType -> authType == AuthType.V4A));
+    }
+
     public static boolean usesAwsAuth(IntermediateModel model) {
         if (isServiceAwsAuthType(model)) {
             return true;
@@ -58,6 +68,10 @@ public final class AuthUtils {
 
     private static boolean isServiceBearerAuth(IntermediateModel model) {
         return model.getMetadata().getAuthType() == AuthType.BEARER;
+    }
+
+    private static boolean isServiceSigv4a(IntermediateModel model) {
+        return model.getMetadata().getAuth().stream().anyMatch(authType -> authType == AuthType.V4A);
     }
 
     private static boolean isServiceAwsAuthType(IntermediateModel model) {
