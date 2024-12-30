@@ -109,6 +109,10 @@ public final class AuthSchemeSpecUtils {
         return AuthUtils.usesAwsAuth(intermediateModel);
     }
 
+    public boolean usesSigV4a() {
+        return AuthUtils.usesSigv4aAuth(intermediateModel);
+    }
+
     public boolean useEndpointBasedAuthProvider() {
         // Endpoint based auth provider is gated using the same setting that enables the use of auth scheme params. One does
         // not make sense without the other so there's no much point on creating another setting if both have to be at the same

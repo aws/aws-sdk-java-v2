@@ -29,6 +29,7 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.Validate;
 
@@ -77,6 +78,10 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
 
         if (authSchemeSpecUtils.usesSigV4()) {
             b.addStatement("this.region = builder.region");
+        }
+
+        if (authSchemeSpecUtils.usesSigV4a()) {
+            b.addStatement("this.regionSet = builder.regionSet");
         }
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
@@ -145,6 +150,9 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.usesSigV4()) {
             builderFromInstance.addStatement("this.region = params.region");
         }
+        if (authSchemeSpecUtils.usesSigV4a()) {
+            builderFromInstance.addStatement("this.regionSet = params.regionSet");
+        }
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
                 if (authSchemeSpecUtils.includeParam(name)) {
@@ -178,6 +186,19 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                                   .addAnnotation(Override.class)
                                   .returns(Region.class)
                                   .addStatement("return region")
+                                  .build());
+        }
+
+        if (authSchemeSpecUtils.usesSigV4a()) {
+            b.addField(FieldSpec.builder(RegionSet.class, "regionSet")
+                                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                                .build());
+
+            b.addMethod(MethodSpec.methodBuilder("regionSet")
+                                  .addModifiers(Modifier.PUBLIC)
+                                  .addAnnotation(Override.class)
+                                  .returns(RegionSet.class)
+                                  .addStatement("return regionSet")
                                   .build());
         }
 
@@ -225,6 +246,13 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                                 .addModifiers(Modifier.PRIVATE)
                                 .build());
             b.addMethod(builderSetterMethod("region", TypeName.get(Region.class)));
+        }
+
+        if (authSchemeSpecUtils.usesSigV4a()) {
+            b.addField(FieldSpec.builder(RegionSet.class, "regionSet")
+                                .addModifiers(Modifier.PRIVATE)
+                                .build());
+            b.addMethod(builderSetterMethod("regionSet", TypeName.get(RegionSet.class)));
         }
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {

@@ -196,6 +196,18 @@ public class AuthSchemeSpecTest {
                     .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
                     .caseName("ops-auth-sigv4a-value")
                     .outputFileSuffix("default-provider")
+                    .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::opsWithSigv4a)
+                    .classSpecProvider(AuthSchemeParamsSpec::new)
+                    .caseName("ops-auth-sigv4a-value")
+                    .outputFileSuffix("params")
+                    .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::opsWithSigv4a)
+                    .classSpecProvider(DefaultAuthSchemeParamsSpec::new)
+                    .caseName("ops-auth-sigv4a-value")
+                    .outputFileSuffix("default-params")
                     .build()
         );
     }
@@ -210,7 +222,7 @@ public class AuthSchemeSpecTest {
         @Override
         public String toString() {
             return "TestCase{" +
-                   "caseName='" + caseName + '\'' +
+                   "caseName='" + caseName + "-" + outputFileSuffix + '\'' +
                    '}';
         }
 
