@@ -435,16 +435,6 @@ Amazon AutoScaling, etc).</description>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>iot1clickdevices</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>iot1clickprojects</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
             <artifactId>iotanalytics</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>

@@ -151,8 +151,6 @@
         <module>dlm</module>
         <module>eks</module>
         <module>iotjobsdataplane</module>
-        <module>iot1clickdevices</module>
-        <module>iot1clickprojects</module>
         <module>iotanalytics</module>
         <module>kinesisvideoarchivedmedia</module>
         <module>kinesisvideomedia</module>
