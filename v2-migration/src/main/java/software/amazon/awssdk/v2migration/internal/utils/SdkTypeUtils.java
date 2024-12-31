@@ -353,7 +353,6 @@ public final class SdkTypeUtils {
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.autoscaling");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.resiliencehub");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.securityhub");
-        V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.iot1clickdevices");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.backup");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.iotdeviceadvisor");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.mediastore");
@@ -459,7 +458,6 @@ public final class SdkTypeUtils {
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.cleanrooms");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.elasticmapreduce");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.pcaconnectorad");
-        V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.iot1clickprojects");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.elasticbeanstalk");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.worklink");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.supplychain");
