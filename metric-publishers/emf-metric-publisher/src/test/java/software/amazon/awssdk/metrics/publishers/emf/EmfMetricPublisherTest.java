@@ -61,7 +61,4 @@ public class EmfMetricPublisherTest extends LogCaptor.LogCaptorTestBase{
         assertThat(loggedEvents()).hasSize(4);
     }
 
-
-
-
 }

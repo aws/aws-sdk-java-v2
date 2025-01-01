@@ -23,6 +23,7 @@ import java.util.List;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricLevel;
@@ -49,6 +50,13 @@ import software.amazon.awssdk.utils.Logger;
  * CloudWatch automatically processes these logs to generate corresponding metrics that can be used for
  * monitoring and alerting.
  * </p>
+ *
+ * <pre>
+ * // Create a CloudWatchMetricPublisher using a custom namespace.
+ * MetricPublisher metricPublisher = EmfMetricPublisher.builder()
+ *                                                     .namespace("MyApplication")
+ *                                                     .build();
+ * </pre>
  *
  *
  * @see MetricPublisher The base interface for metric publishers
@@ -135,7 +143,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
          * this
          * publisher.
          *
-         * <p>If this is not specified, [] will be used.
+         * <p>If this is not specified,  {@link CoreMetric#SERVICE_ID} and {@link CoreMetric#OPERATION_NAME} will be used.
          */
         public Builder dimensions(Collection<SdkMetric<String>> dimensions) {
             this.dimensions = new ArrayList<>(dimensions);
