@@ -6,7 +6,7 @@
         "globalEndpoint": "database-service.amazonaws.com",
         "protocol": "rest-json",
         "serviceAbbreviation": "Database Service",
-        "serviceFullName": "Some Service That Uses AWS Database Protocol",
+        "serviceFullName": "Some Service That Uses AWS Database Protocol With Sigv4a",
         "serviceId": "Database Service",
         "signingName": "database-service",
         "signatureVersion": "v4",

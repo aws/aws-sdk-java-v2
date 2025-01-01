@@ -208,6 +208,12 @@ public class AuthSchemeSpecTest {
                     .classSpecProvider(DefaultAuthSchemeParamsSpec::new)
                     .caseName("ops-auth-sigv4a-value")
                     .outputFileSuffix("default-params")
+                    .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::opsWithSigv4a)
+                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
+                    .caseName("ops-auth-sigv4a-value")
+                    .outputFileSuffix("interceptor")
                     .build()
         );
     }
