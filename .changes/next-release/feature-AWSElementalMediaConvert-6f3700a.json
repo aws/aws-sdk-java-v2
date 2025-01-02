@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaConvert",
+    "contributor": "",
+    "description": "This release adds support for the AVC3 codec and fixes an alignment issue with Japanese vertical captions."
+}
