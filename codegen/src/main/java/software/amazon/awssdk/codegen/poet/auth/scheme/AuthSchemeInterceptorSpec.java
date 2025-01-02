@@ -158,7 +158,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                      AwsExecutionAttribute.class);
                 builder.addStatement("builder.region(region)");
             }
-            addRegionSet(builder);
+            generateSigv4aRegionSet(builder);
             builder.addStatement("return builder.build()");
             return builder.build();
         }
@@ -449,7 +449,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         return result;
     }
 
-    private void addRegionSet(MethodSpec.Builder builder) {
+    private void generateSigv4aRegionSet(MethodSpec.Builder builder) {
         if (authSchemeSpecUtils.usesSigV4a()) {
             builder.addStatement(
                 "$T regionSet = executionAttributes.getOptionalAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)\n" +
