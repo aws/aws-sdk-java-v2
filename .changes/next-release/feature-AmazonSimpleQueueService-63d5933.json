@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Queue Service",
+    "contributor": "",
+    "description": "In-flight message typo fix from 20k to 120k."
+}
