@@ -182,6 +182,17 @@ public final class EmfMetricPublisher implements MetricPublisher {
         }
 
         /**
+         * Configure the LogGroupName key that will be put into the emf log to this publisher. This is a required key for
+         * using the CloudWatch agent to send embedded metric format logs that tells the agent which log group to use.
+         *
+         * <p>If this is not specified, {@code /aws/emf/metrics} will be used.
+         */
+        public Builder logGroupName(String logGroupName) {
+            this.logGroupName = logGroupName;
+            return this;
+        }
+
+        /**
          * Configure the {@link MetricLevel} that should be uploaded to CloudWatch.
          *
          * <p>If this is not specified, {@link MetricLevel#INFO} is used.
@@ -196,17 +207,6 @@ public final class EmfMetricPublisher implements MetricPublisher {
          */
         public Builder metricLevel(MetricLevel metricLevel) {
             this.metricLevel = metricLevel;
-            return this;
-        }
-
-        /**
-         * Configure the LogGroupName key that will be put into the emf log to this publisher. This is a required key for
-         * using the CloudWatch agent to send embedded metric format logs that tells the agent which log group to use.
-         *
-         * <p>If this is not specified, {@code /aws/emf/metrics} will be used.
-         */
-        public Builder logGroupName(String logGroupName) {
-            this.logGroupName = logGroupName;
             return this;
         }
 

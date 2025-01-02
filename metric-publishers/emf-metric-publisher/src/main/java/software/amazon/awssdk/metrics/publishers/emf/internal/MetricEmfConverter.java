@@ -178,8 +178,8 @@ public class MetricEmfConverter {
             List<MetricRecord<?>> records = entry.getValue();
 
             if (records.size() > 100) {
-                records = records.subList(0, 100);
                 int size = records.size();
+                records = records.subList(0, 100);
                 logger.warn(() -> "Some AWS SDK client-side metric data have been dropped because it exceeds the cloudwatch "
                                  + "requirements. There are " + size + " values for metric " + metricName);
             }
@@ -344,7 +344,6 @@ public class MetricEmfConverter {
         }
         jsonWriter.writeEndArray();
     }
-
 
 
     private boolean isDimension(String metricName) {

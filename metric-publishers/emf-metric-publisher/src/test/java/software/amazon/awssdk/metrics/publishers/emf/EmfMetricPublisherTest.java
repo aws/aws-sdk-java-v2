@@ -20,7 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.testutils.LogCaptor;
 
 
@@ -36,7 +38,7 @@ public class EmfMetricPublisherTest extends LogCaptor.LogCaptorTestBase{
 
     @Test
     void Publish_multipleMetrics() {
-        EmfMetricPublisher publisher = publisherBuilder.build();
+        EmfMetricPublisher publisher = EmfMetricPublisher.create();
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
         metricCollector.reportMetric(HttpMetric.CONCURRENCY_ACQUIRE_DURATION, java.time.Duration.ofMillis(100));
@@ -45,8 +47,19 @@ public class EmfMetricPublisherTest extends LogCaptor.LogCaptorTestBase{
     }
 
     @Test
+    void Publish_nullMetrics() {
+        EmfMetricPublisher publisher = EmfMetricPublisher.create();
+        publisher.publish(null);
+        assertThat(loggedEvents()).hasSize(1);
+    }
+
+    @Test
     void Publish_EmptyMetrics() {
         EmfMetricPublisher publisher = publisherBuilder.dimensions(HttpMetric.HTTP_CLIENT_NAME)
+                                                       .logGroupName("/aws/lambda/emfMetricTest")
+                                                       .namespace("ExampleSDKV2MetricsEmf")
+                                                       .metricLevel(MetricLevel.INFO)
+                                                       .metricCategories(MetricCategory.HTTP_CLIENT)
                                                        .build();
 
         MetricCollector metricCollector = MetricCollector.create("test");
