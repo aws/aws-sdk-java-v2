@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS AppSync",
-    "contributor": "",
-    "description": "Modify UpdateGraphQLAPI operation and flag authenticationType as required."
-}
