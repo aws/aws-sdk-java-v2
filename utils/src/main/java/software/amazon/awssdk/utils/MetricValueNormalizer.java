@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.metrics.publishers.cloudwatch.internal.transform;
+package software.amazon.awssdk.utils;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
-class MetricValueNormalizer {
+@SdkProtectedApi
+public final class MetricValueNormalizer {
     /**
      * Really small values (close to 0) result in CloudWatch failing with an "unsupported value" error. Make sure that we floor
      * those values to 0 to prevent that error.

@@ -31,6 +31,7 @@ import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricRecord;
 import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.MetricValueNormalizer;
 
 /**
  * Converts {@link MetricCollection} into List of Amazon CloudWatch Embedded Metric Format (EMF) Strings.
@@ -47,7 +48,6 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 public class MetricEmfConverter {
     private static final Logger logger = Logger.loggerFor(MetricEmfConverter.class);
-    private static final double ZERO_THRESHOLD = 0.0001;
     private final List<String> realDimensionStrings = new ArrayList<>();
     private final EmfMetricConfiguration config;
     private final boolean metricCategoriesContainsAll;
@@ -155,12 +155,7 @@ public class MetricEmfConverter {
             double millisValue = duration.toMillis();
             jsonWriter.writeValue(millisValue);
         } else if (Double.class.isAssignableFrom(valueClass)) {
-            double doubleValue = (Double) value;
-            if (Math.abs(doubleValue) < ZERO_THRESHOLD) {
-                jsonWriter.writeValue(0.0);
-            } else {
-                jsonWriter.writeValue(doubleValue);
-            }
+            jsonWriter.writeValue(MetricValueNormalizer.normalize((Double) value));
         } else if (Integer.class.isAssignableFrom(valueClass)) {
             jsonWriter.writeValue((Integer) value);
         } else if (Long.class.isAssignableFrom(valueClass)) {
