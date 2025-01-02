@@ -37,8 +37,18 @@ public class EmfMetricPublisherTest extends LogCaptor.LogCaptorTestBase{
     }
 
     @Test
+    void Publish_NoLogGroupName() {
+        try {
+            EmfMetricPublisher publisher = publisherBuilder.build();
+            publisher.publish(null);
+        } catch (Exception e) {
+            assertThat(e).hasMessage("logGroupName must be configured for publishing emf format log");
+        }
+    }
+
+    @Test
     void Publish_multipleMetrics() {
-        EmfMetricPublisher publisher = EmfMetricPublisher.create();
+        EmfMetricPublisher publisher = publisherBuilder.logGroupName("/aws/lambda/emfMetricTest").build();
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
         metricCollector.reportMetric(HttpMetric.CONCURRENCY_ACQUIRE_DURATION, java.time.Duration.ofMillis(100));
@@ -48,7 +58,7 @@ public class EmfMetricPublisherTest extends LogCaptor.LogCaptorTestBase{
 
     @Test
     void Publish_nullMetrics() {
-        EmfMetricPublisher publisher = EmfMetricPublisher.create();
+        EmfMetricPublisher publisher = publisherBuilder.logGroupName("/aws/lambda/emfMetricTest").build();
         publisher.publish(null);
         assertThat(loggedEvents()).hasSize(1);
     }

@@ -28,11 +28,11 @@ import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.SdkMetric;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public class EmfMetricConfiguration {
     private static final String DEFAULT_NAMESPACE = "AwsSdk/JavaSdk2";
-    private static final String DEFAULT_LOG_GROUP_NAME = "/aws/emf/metrics";
     private static final Set<SdkMetric<String>> DEFAULT_DIMENSIONS = Stream.of(CoreMetric.SERVICE_ID,
                                                                                CoreMetric.OPERATION_NAME)
                                                                            .collect(Collectors.toSet());
@@ -48,7 +48,7 @@ public class EmfMetricConfiguration {
 
     private EmfMetricConfiguration(Builder builder) {
         this.namespace = builder.namespace == null ? DEFAULT_NAMESPACE : builder.namespace;
-        this.logGroupName = builder.logGroupName == null ? DEFAULT_LOG_GROUP_NAME : builder.logGroupName;
+        this.logGroupName = builder.logGroupName; // This is a required field
         this.dimensions = builder.dimensions == null ? DEFAULT_DIMENSIONS : new HashSet<>(builder.dimensions);
         this.metricCategories = builder.metricCategories == null ? DEFAULT_CATEGORIES : new HashSet<>(builder.metricCategories);
         this.metricLevel = builder.metricLevel == null ? DEFAULT_METRIC_LEVEL : builder.metricLevel;
@@ -102,6 +102,7 @@ public class EmfMetricConfiguration {
         }
 
         public EmfMetricConfiguration build() {
+            Validate.notNull(logGroupName, "logGroupName must be configured for publishing emf format log");
             return new EmfMetricConfiguration(this);
         }
     }

@@ -32,6 +32,8 @@ import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.metrics.publishers.emf.internal.EmfMetricConfiguration;
 import software.amazon.awssdk.metrics.publishers.emf.internal.MetricEmfConverter;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
+
 /**
  * A metric publisher implementation that converts metrics into CloudWatch Embedded Metric Format (EMF).
  * EMF allows metrics to be published through CloudWatch Logs using a structured JSON format, which
@@ -91,10 +93,6 @@ public final class EmfMetricPublisher implements MetricPublisher {
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    public static EmfMetricPublisher create() {
-        return builder().build();
     }
 
 
@@ -215,6 +213,7 @@ public final class EmfMetricPublisher implements MetricPublisher {
          * Build a {@link EmfMetricPublisher} using the configuration currently configured on this publisher.
          */
         public EmfMetricPublisher build() {
+            Validate.notNull(logGroupName, "logGroupName must be configured for publishing emf format log");
             return new EmfMetricPublisher(this);
         }
 
