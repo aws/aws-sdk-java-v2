@@ -19,6 +19,7 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.bearerAuthSer
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.composedClientJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.internalConfigModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.operationWithNoAuth;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.opsWithSigv4a;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModelsEndpointAuthParamsWithAllowList;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
@@ -87,6 +88,11 @@ public class BaseClientBuilderClassTest {
     @Test
     void baseClientBuilderClassWithNoAuthOperation_sra() {
         validateBaseClientBuilderClassGeneration(operationWithNoAuth(), "test-no-auth-ops-client-builder-class.java", true);
+    }
+
+    @Test
+    void baseClientBuilderClassWithMultiAuthSigv4a() {
+        validateBaseClientBuilderClassGeneration(opsWithSigv4a(), "test-multi-auth-sigv4a-client-builder-class.java", true);
     }
 
     @Test
