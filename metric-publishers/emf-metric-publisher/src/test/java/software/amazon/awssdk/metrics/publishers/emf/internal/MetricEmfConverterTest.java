@@ -206,7 +206,6 @@ public class MetricEmfConverterTest {
 
     @Test
     void ConvertMetricCollectionToEMF_shouldConformToSchema() throws Exception {
-        String jsonSchema = IoUtils.toUtf8String(Objects.requireNonNull(getClass().getResourceAsStream("/emfSchema.json")));
 
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
@@ -224,6 +223,7 @@ public class MetricEmfConverterTest {
 
         List<String> emfLogs = metricEmfConverterDefault.convertMetricCollectionToEmf(metricCollector.collect());
 
+        String jsonSchema = IoUtils.toUtf8String(Objects.requireNonNull(getClass().getResourceAsStream("/emfSchema.json")));
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
         JsonSchema schema = factory.getSchema(jsonSchema);
 
