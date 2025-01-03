@@ -16,6 +16,7 @@
 package software.amazon.awssdk.metrics.publishers.emf;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,13 +39,14 @@ public class EmfMetricPublisherTest extends LogCaptor.LogCaptorTestBase{
 
     @Test
     void Publish_NoLogGroupName() {
-        try {
+        assertThatThrownBy(() -> {
             EmfMetricPublisher publisher = publisherBuilder.build();
             publisher.publish(null);
-        } catch (Exception e) {
-            assertThat(e).hasMessage("logGroupName must be configured for publishing emf format log");
-        }
+        })
+            .isInstanceOf(Exception.class)
+            .hasMessage("logGroupName must not be null.");
     }
+
 
     @Test
     void Publish_multipleMetrics() {

@@ -56,10 +56,10 @@ import software.amazon.awssdk.utils.Validate;
  * <pre>
  * // Create a CloudWatchMetricPublisher using a custom namespace.
  * MetricPublisher metricPublisher = EmfMetricPublisher.builder()
- *                                                     .namespace("MyApplication")
+ *                                                     .logGroupName("myLogGroupName")
+ *                                                     .namespace("myApplication")
  *                                                     .build();
  * </pre>
- *
  *
  * @see MetricPublisher The base interface for metric publishers
  * @see MetricCollection For the collection of metrics to be published
@@ -78,14 +78,15 @@ public final class EmfMetricPublisher implements MetricPublisher {
 
 
     private EmfMetricPublisher(Builder builder) {
+        Validate.paramNotNull(builder.logGroupName, "logGroupName");
+
         EmfMetricConfiguration config = new EmfMetricConfiguration.Builder()
             .namespace(builder.namespace)
             .logGroupName(builder.logGroupName)
             .dimensions(builder.dimensions)
             .metricLevel(builder.metricLevel)
             .metricCategories(builder.metricCategories)
-            .build()
-        ;
+            .build();
 
         this.metricConverter = new MetricEmfConverter(config);
     }
@@ -148,6 +149,9 @@ public final class EmfMetricPublisher implements MetricPublisher {
             return this;
         }
 
+        /**
+         * @see #dimensions(SdkMetric[])
+         */
         @SafeVarargs
         public final Builder dimensions(SdkMetric<String>... dimensions) {
             return dimensions(Arrays.asList(dimensions));
@@ -183,7 +187,8 @@ public final class EmfMetricPublisher implements MetricPublisher {
          * Configure the LogGroupName key that will be put into the emf log to this publisher. This is a required key for
          * using the CloudWatch agent to send embedded metric format logs that tells the agent which log group to use.
          *
-         * <p>If this is not specified, {@code /aws/emf/metrics} will be used.
+         * <p> This field is required and must not be null or empty.
+         * @throws NullPointerException if logGroupName is null
          */
         public Builder logGroupName(String logGroupName) {
             this.logGroupName = logGroupName;
@@ -213,7 +218,6 @@ public final class EmfMetricPublisher implements MetricPublisher {
          * Build a {@link EmfMetricPublisher} using the configuration currently configured on this publisher.
          */
         public EmfMetricPublisher build() {
-            Validate.notNull(logGroupName, "logGroupName must be configured for publishing emf format log");
             return new EmfMetricPublisher(this);
         }
 

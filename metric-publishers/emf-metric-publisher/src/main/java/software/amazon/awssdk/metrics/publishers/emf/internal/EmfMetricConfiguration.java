@@ -15,11 +15,9 @@
 
 package software.amazon.awssdk.metrics.publishers.emf.internal;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,7 +29,7 @@ import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-public class EmfMetricConfiguration {
+public final class EmfMetricConfiguration {
     private static final String DEFAULT_NAMESPACE = "AwsSdk/JavaSdk2";
     private static final Set<SdkMetric<String>> DEFAULT_DIMENSIONS = Stream.of(CoreMetric.SERVICE_ID,
                                                                                CoreMetric.OPERATION_NAME)
@@ -41,33 +39,18 @@ public class EmfMetricConfiguration {
 
     private final String namespace;
     private final String logGroupName;
-    private final Collection<SdkMetric<String>> dimensions;
+    private final Set<SdkMetric<String>> dimensions;
     private final Collection<MetricCategory> metricCategories;
     private final MetricLevel metricLevel;
-    private final List<String> dimensionStrings;
 
     private EmfMetricConfiguration(Builder builder) {
         this.namespace = builder.namespace == null ? DEFAULT_NAMESPACE : builder.namespace;
-        this.logGroupName = builder.logGroupName; // This is a required field
+        this.logGroupName = builder.logGroupName;
         this.dimensions = builder.dimensions == null ? DEFAULT_DIMENSIONS : new HashSet<>(builder.dimensions);
         this.metricCategories = builder.metricCategories == null ? DEFAULT_CATEGORIES : new HashSet<>(builder.metricCategories);
         this.metricLevel = builder.metricLevel == null ? DEFAULT_METRIC_LEVEL : builder.metricLevel;
-        this.dimensionStrings = resolveDimensionStrings(builder.dimensions);
     }
 
-    private static List<String> resolveDimensionStrings(Collection<SdkMetric<String>> dimensions) {
-        List<String> dimensionStrings = new ArrayList<>();
-        if (dimensions != null) {
-            for (SdkMetric<String> dimension : dimensions) {
-                dimensionStrings.add(dimension.name());
-            }
-        } else {
-            for (SdkMetric<String> dimension : DEFAULT_DIMENSIONS) {
-                dimensionStrings.add(dimension.name());
-            }
-        }
-        return dimensionStrings;
-    }
 
     public static class Builder {
         private String namespace;
@@ -107,29 +90,25 @@ public class EmfMetricConfiguration {
         }
     }
 
-    // Existing getter methods remain the same
-    public String getNamespace() {
+    public String namespace() {
         return namespace;
     }
 
-    public String getLogGroupName() {
+    public String logGroupName() {
         return logGroupName;
     }
 
-    public Collection<SdkMetric<String>> getDimensions() {
+    public Collection<SdkMetric<String>> dimensions() {
         return dimensions;
     }
 
-    public Collection<MetricCategory> getMetricCategories() {
+    public Collection<MetricCategory> metricCategories() {
         return metricCategories;
     }
 
-    public MetricLevel getMetricLevel() {
+    public MetricLevel metricLevel() {
         return metricLevel;
     }
 
-    public List<String> getDimensionStrings() {
-        return dimensionStrings;
-    }
 }
 
