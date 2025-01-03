@@ -1,4 +1,4 @@
-package software.amazon.awssdk.services.query.auth.scheme.internal;
+package software.amazon.awssdk.services.database.auth.scheme.internal;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -20,6 +20,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
@@ -32,15 +33,15 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
-import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
+import software.amazon.awssdk.services.database.auth.scheme.DatabaseAuthSchemeParams;
+import software.amazon.awssdk.services.database.auth.scheme.DatabaseAuthSchemeProvider;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
-    private static Logger LOG = Logger.loggerFor(QueryAuthSchemeInterceptor.class);
+public final class DatabaseAuthSchemeInterceptor implements ExecutionInterceptor {
+    private static Logger LOG = Logger.loggerFor(DatabaseAuthSchemeInterceptor.class);
 
     @Override
     public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
@@ -50,10 +51,10 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
     }
 
     private List<AuthSchemeOption> resolveAuthOptions(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
-        QueryAuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(QueryAuthSchemeProvider.class,
-                                                                           executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
-                                                                           "Expected an instance of QueryAuthSchemeProvider");
-        QueryAuthSchemeParams params = authSchemeParams(context.request(), executionAttributes);
+        DatabaseAuthSchemeProvider authSchemeProvider = Validate.isInstanceOf(DatabaseAuthSchemeProvider.class,
+                                                                              executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
+                                                                              "Expected an instance of DatabaseAuthSchemeProvider");
+        DatabaseAuthSchemeParams params = authSchemeParams(context.request(), executionAttributes);
         return authSchemeProvider.resolveAuthScheme(params);
     }
 
@@ -82,13 +83,22 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
                 + discardedReasons.stream().map(Supplier::get).collect(Collectors.joining(", "))).build();
     }
 
-    private QueryAuthSchemeParams authSchemeParams(SdkRequest request, ExecutionAttributes executionAttributes) {
+    private DatabaseAuthSchemeParams authSchemeParams(SdkRequest request, ExecutionAttributes executionAttributes) {
         String operation = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
-        QueryAuthSchemeParams.Builder builder = QueryAuthSchemeParams.builder().operation(operation);
+        DatabaseAuthSchemeParams.Builder builder = DatabaseAuthSchemeParams.builder().operation(operation);
         Region region = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
         builder.region(region);
+        RegionSet regionSet = executionAttributes.getOptionalAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET)
+                                                 .filter(regions -> !regions.isEmpty()).map(regions -> RegionSet.create(String.join(", ", regions)))
+                                                 .orElseGet(() -> {
+                                                     Region fallbackRegion = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
+                                                     return fallbackRegion != null ? RegionSet.create(fallbackRegion.toString()) : null;
+                                                 });
+        ;
+        builder.regionSet(regionSet);
         return builder.build();
     }
+
     private <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(AuthSchemeOption authOption, AuthScheme<T> authScheme,
                                                                            IdentityProviders identityProviders, List<Supplier<String>> discardedReasons, MetricCollector metricCollector,
                                                                            ExecutionAttributes executionAttributes) {
