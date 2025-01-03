@@ -53,13 +53,12 @@ import software.amazon.awssdk.utils.Validate;
  * monitoring and alerting.
  * </p>
  *
- * <pre>
+ * @snippet
  * // Create a CloudWatchMetricPublisher using a custom namespace.
- * MetricPublisher metricPublisher = EmfMetricPublisher.builder()
+ * MetricPublisher emfMetricPublisher = EmfMetricPublisher.builder()
  *                                                     .logGroupName("myLogGroupName")
  *                                                     .namespace("myApplication")
  *                                                     .build();
- * </pre>
  *
  * @see MetricPublisher The base interface for metric publishers
  * @see MetricCollection For the collection of metrics to be published

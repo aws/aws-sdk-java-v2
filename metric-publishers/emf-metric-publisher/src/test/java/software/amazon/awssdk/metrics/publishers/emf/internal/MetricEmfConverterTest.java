@@ -17,12 +17,22 @@ package software.amazon.awssdk.metrics.publishers.emf.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
+import com.networknt.schema.ValidationMessage;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.metrics.CoreMetric;
@@ -58,7 +68,7 @@ public class MetricEmfConverterTest {
     }
 
     @Test
-    void ConvertMetricCollectionToEMF_EmptyCollection() {
+    void ConvertMetricCollectionToEMF_emptyCollection() {
         List<String> emfLogs = metricEmfConverterDefault.convertMetricCollectionToEmf(MetricCollector.create("test").collect());
 
         assertThat(emfLogs).containsOnly("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"my_log_group_name\","
@@ -67,7 +77,7 @@ public class MetricEmfConverterTest {
     }
 
     @Test
-    void ConvertMetricCollectionToEMF_MultipleMetrics(){
+    void ConvertMetricCollectionToEMF_multipleMetrics() {
 
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
@@ -81,7 +91,7 @@ public class MetricEmfConverterTest {
 
 
     @Test
-    void ConvertMetricCollectionToEMF_Dimensions(){
+    void ConvertMetricCollectionToEMF_oneDimension() {
 
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(CoreMetric.OPERATION_NAME, "operationName");
@@ -98,9 +108,10 @@ public class MetricEmfConverterTest {
     }
 
     @Test
-    void ConvertMetricCollectionToEMF_metricCategory(){
+    void ConvertMetricCollectionToEMF_metricCategoryConfigured_onlyHttpMetric() {
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+        metricCollector.reportMetric(CoreMetric.SERVICE_ID, "serviceId");
         List<String> emfLogs = metricEmfConverterCustom.convertMetricCollectionToEmf(metricCollector.collect());
 
         assertThat(emfLogs).containsOnly("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"my_log_group_name\",\"CloudWatchMetrics\":[{\"Namespace\":"
@@ -109,7 +120,7 @@ public class MetricEmfConverterTest {
     }
 
     @Test
-    void ConvertMetricCollectionToEMF_metricLevel(){
+    void convertMetricCollectionToEmf_traceEnabled_shouldIncludeTrace() {
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
         metricCollector.reportMetric(HttpMetric.HTTP_STATUS_CODE, 404);
@@ -123,7 +134,7 @@ public class MetricEmfConverterTest {
 
 
     @Test
-    void ConvertMetricCollectionToEMF_MultiChildCollections(){
+    void ConvertMetricCollectionToEMF_multiChildCollections_recordList() {
 
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(HttpMetric.HTTP_CLIENT_NAME, "apache-http-client");
@@ -144,7 +155,7 @@ public class MetricEmfConverterTest {
     }
 
     @Test
-    void ConvertMetricCollectionToEMF_OverSizedRecords(){
+    void ConvertMetricCollectionToEMF_recordsExceedsMaxSize_shouldDrop() {
 
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(HttpMetric.HTTP_CLIENT_NAME, "apache-http-client");
@@ -167,7 +178,7 @@ public class MetricEmfConverterTest {
     }
 
     @Test
-    void ConvertMetricCollectionToEMF_LargeCollection(){
+    void ConvertMetricCollectionToEMF_metricCollectionExceedsMaxSize_shouldSplit() {
 
         MetricCollector metricCollector = MetricCollector.create("test");
         for (int i = 0; i < 220; i++) {
@@ -178,4 +189,46 @@ public class MetricEmfConverterTest {
         assertThat(emfLogs).hasSize(3);
     }
 
+    @Test
+    void ConvertMetricCollectionToEMF_dropNonNumericMetrics() {
+
+        MetricCollector metricCollector = MetricCollector.create("test");
+        metricCollector.reportMetric(CoreMetric.SERVICE_ID, "serviceId");
+        metricCollector.reportMetric(CoreMetric.OPERATION_NAME, "operationName");
+        metricCollector.reportMetric(SdkMetric.create("stringMetric", String.class, MetricLevel.INFO, MetricCategory.CORE),
+                                     "stringMetricValue");
+        metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+        List<String> emfLogs = metricEmfConverterDefault.convertMetricCollectionToEmf(metricCollector.collect());
+
+        assertThat(emfLogs).containsOnly("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"my_log_group_name\",\"CloudWatchMetrics\":[{\"Namespace\":"
+                                         + "\"AwsSdk/JavaSdk2\",\"Dimensions\":[[\"OperationName\",\"ServiceId\"]],\"Metrics\":[{\"Name\":\"AvailableConcurrency\"}]}]},"
+                                         + "\"AvailableConcurrency\":5,\"OperationName\":\"operationName\",\"ServiceId\":\"serviceId\"}");
+    }
+
+    @Test
+    void ConvertMetricCollectionToEMF_shouldConformToSchema() {
+        try {
+            String jsonSchema = IOUtils.toString(
+                Objects.requireNonNull(getClass().getResourceAsStream("/emfSchema.json")),
+                StandardCharsets.UTF_8
+            );
+
+            MetricCollector metricCollector = MetricCollector.create("test");
+            metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+            metricCollector.reportMetric(CoreMetric.SERVICE_ID, "serviceId");
+
+            List<String> emfLogs = metricEmfConverterDefault.convertMetricCollectionToEmf(metricCollector.collect());
+
+            JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
+            JsonSchema schema = factory.getSchema(jsonSchema);
+
+
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode jsonNode = mapper.readTree(emfLogs.get(0));
+                Set<ValidationMessage> errors = schema.validate(jsonNode);
+
+                assertThat(errors).isEmpty();
+        } catch (Exception e){
+        }
+    }
 }

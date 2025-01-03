@@ -38,24 +38,13 @@ public class EmfMetricPublisherTest extends LogCaptor.LogCaptorTestBase{
     }
 
     @Test
-    void Publish_NoLogGroupName() {
+    void Publish_noLogGroupName_throwException() {
         assertThatThrownBy(() -> {
             EmfMetricPublisher publisher = publisherBuilder.build();
             publisher.publish(null);
         })
-            .isInstanceOf(Exception.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessage("logGroupName must not be null.");
-    }
-
-
-    @Test
-    void Publish_multipleMetrics() {
-        EmfMetricPublisher publisher = publisherBuilder.logGroupName("/aws/lambda/emfMetricTest").build();
-        MetricCollector metricCollector = MetricCollector.create("test");
-        metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
-        metricCollector.reportMetric(HttpMetric.CONCURRENCY_ACQUIRE_DURATION, java.time.Duration.ofMillis(100));
-        publisher.publish(metricCollector.collect());
-        assertThat(loggedEvents()).hasSize(2);
     }
 
     @Test
@@ -66,7 +55,7 @@ public class EmfMetricPublisherTest extends LogCaptor.LogCaptorTestBase{
     }
 
     @Test
-    void Publish_EmptyMetrics() {
+    void Publish_metricCollectionWithChild() {
         EmfMetricPublisher publisher = publisherBuilder.dimensions(HttpMetric.HTTP_CLIENT_NAME)
                                                        .logGroupName("/aws/lambda/emfMetricTest")
                                                        .namespace("ExampleSDKV2MetricsEmf")
@@ -84,6 +73,16 @@ public class EmfMetricPublisherTest extends LogCaptor.LogCaptorTestBase{
         childMetricCollector2.reportMetric(HttpMetric.CONCURRENCY_ACQUIRE_DURATION, java.time.Duration.ofMillis(200));
         publisher.publish(metricCollector.collect());
         assertThat(loggedEvents()).hasSize(4);
+    }
+
+    @Test
+    void Publish_multipleMetrics() {
+        EmfMetricPublisher publisher = publisherBuilder.logGroupName("/aws/lambda/emfMetricTest").build();
+        MetricCollector metricCollector = MetricCollector.create("test");
+        metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+        metricCollector.reportMetric(HttpMetric.CONCURRENCY_ACQUIRE_DURATION, java.time.Duration.ofMillis(100));
+        publisher.publish(metricCollector.collect());
+        assertThat(loggedEvents()).hasSize(2);
     }
 
 }

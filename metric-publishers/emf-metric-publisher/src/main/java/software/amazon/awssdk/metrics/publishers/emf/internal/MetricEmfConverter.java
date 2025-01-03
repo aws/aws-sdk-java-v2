@@ -50,7 +50,15 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public class MetricEmfConverter {
+    /**
+     * EMF allows up to 100 elements in an array
+     * <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Embedded_Metric_Format_Specification.html">...</a>
+     */
     private static final int MAX_RECORD_SIZE = 100;
+
+    /**
+     * EMF allows up to 100 MetricDefinition objects in one emf string
+     */
     private static final int MAX_METRIC_NUM = 100;
 
     private static final Logger logger = Logger.loggerFor(MetricEmfConverter.class);
@@ -78,7 +86,7 @@ public class MetricEmfConverter {
      * CloudWatch's EMF specification.
      * </p>
      * Example Output
-     * <pre>
+     * @snippet
      * {
      *   "_aws": {
      *     "Timestamp": 1672963200,
@@ -93,7 +101,6 @@ public class MetricEmfConverter {
      *   "ServiceId": "DynamoDB",
      *   "AvailableConcurrency": 5
      * }
-     * </pre>
      *
      * @param metricCollection Collection of SDK metrics to be converted
      * @return List of EMF-formatted metrics ready for CloudWatch
