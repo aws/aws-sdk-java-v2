@@ -1,4 +1,72 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.44__ __2025-01-02__
+## __AWS AppSync__
+  - ### Features
+    - Modify UpdateGraphQLAPI operation and flag authenticationType as required.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds support for the AVC3 codec and fixes an alignment issue with Japanese vertical captions.
+
+## __AWS MediaConnect__
+  - ### Features
+    - AWS Elemental MediaConnect now supports Content Quality Analysis for enhanced source stream monitoring. This enables you to track specific audio and video metrics in transport stream source flows, ensuring your content meets quality standards.
+
+## __AWS Organizations__
+  - ### Features
+    - Added ALL_FEATURES_MIGRATION_ORGANIZATION_SIZE_LIMIT_EXCEEDED to ConstraintViolationException for the EnableAllFeatures operation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift releases a new game session shutdown feature. Use the Amazon GameLift console or AWS CLI to terminate an in-progress game session that's entered a bad state or is no longer needed.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding ETag information with Model Artifacts for Model Registry
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - In-flight message typo fix from 20k to 120k.
+
+# __2.29.43__ __2024-12-27__
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Restoring custom endpoint functionality for ECR
+
+## __Amazon Elastic Container Registry Public__
+  - ### Features
+    - Restoring custom endpoint functionality for ECR Public
+
+# __2.29.42__ __2024-12-27__
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation to correct various descriptions.
+
+# __2.29.41__ __2024-12-26__
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Added ConflictException to DeleteBillEstimate.
+
+## __AWS Network Firewall__
+  - ### Features
+    - Dual-stack endpoints are now supported.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Add support for Dualstack Endpoints
+
 # __2.29.40__ __2024-12-23__
 ## __AWS Glue__
   - ### Features
