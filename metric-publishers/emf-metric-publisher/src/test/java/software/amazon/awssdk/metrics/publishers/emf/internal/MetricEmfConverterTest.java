@@ -23,7 +23,6 @@ import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
-import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -32,7 +31,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.metrics.CoreMetric;
@@ -41,6 +39,7 @@ import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.SdkMetric;
+import software.amazon.awssdk.utils.IoUtils;
 
 public class MetricEmfConverterTest {
 
@@ -206,29 +205,32 @@ public class MetricEmfConverterTest {
     }
 
     @Test
-    void ConvertMetricCollectionToEMF_shouldConformToSchema() {
-        try {
-            String jsonSchema = IOUtils.toString(
-                Objects.requireNonNull(getClass().getResourceAsStream("/emfSchema.json")),
-                StandardCharsets.UTF_8
-            );
+    void ConvertMetricCollectionToEMF_shouldConformToSchema() throws Exception {
+        String jsonSchema = IoUtils.toUtf8String(Objects.requireNonNull(getClass().getResourceAsStream("/emfSchema.json")));
 
-            MetricCollector metricCollector = MetricCollector.create("test");
-            metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
-            metricCollector.reportMetric(CoreMetric.SERVICE_ID, "serviceId");
+        MetricCollector metricCollector = MetricCollector.create("test");
+        metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+        metricCollector.reportMetric(CoreMetric.API_CALL_SUCCESSFUL, true);
+        metricCollector.reportMetric(CoreMetric.API_CALL_DURATION, java.time.Duration.ofMillis(100));
+        metricCollector.reportMetric(CoreMetric.SERVICE_ID, "serviceId");
+        metricCollector.reportMetric(CoreMetric.OPERATION_NAME, "operationName");
+        metricCollector.reportMetric(HttpMetric.HTTP_CLIENT_NAME, "apache-http-client");
+        MetricCollector childMetricCollector1 = metricCollector.createChild("child1");
+        childMetricCollector1.reportMetric(HttpMetric.CONCURRENCY_ACQUIRE_DURATION, java.time.Duration.ofMillis(100));
+        MetricCollector childMetricCollector2 = metricCollector.createChild("child2");
+        childMetricCollector2.reportMetric(HttpMetric.CONCURRENCY_ACQUIRE_DURATION, java.time.Duration.ofMillis(200));
+        MetricCollector childMetricCollector3 = metricCollector.createChild("child3");
+        childMetricCollector3.reportMetric(HttpMetric.CONCURRENCY_ACQUIRE_DURATION, java.time.Duration.ofMillis(200));
 
-            List<String> emfLogs = metricEmfConverterDefault.convertMetricCollectionToEmf(metricCollector.collect());
+        List<String> emfLogs = metricEmfConverterDefault.convertMetricCollectionToEmf(metricCollector.collect());
 
-            JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
-            JsonSchema schema = factory.getSchema(jsonSchema);
+        JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
+        JsonSchema schema = factory.getSchema(jsonSchema);
 
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNode = mapper.readTree(emfLogs.get(0));
+        Set<ValidationMessage> errors = schema.validate(jsonNode);
 
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode jsonNode = mapper.readTree(emfLogs.get(0));
-                Set<ValidationMessage> errors = schema.validate(jsonNode);
-
-                assertThat(errors).isEmpty();
-        } catch (Exception e){
-        }
+        assertThat(errors).isEmpty();
     }
 }
