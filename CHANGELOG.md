@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.45__ __2025-01-03__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Adding SDK reference examples for Amazon ECS operations.
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Doc only update for Route 53 Domains that fixes several customer-reported issues
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This change is only for updating the model regexp of CopySource which is not for validation but only for documentation and user guide change.
+
 # __2.29.44__ __2025-01-02__
 ## __AWS AppSync__
   - ### Features
