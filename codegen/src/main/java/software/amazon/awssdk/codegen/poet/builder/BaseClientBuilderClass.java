@@ -69,6 +69,7 @@ import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
@@ -190,6 +191,10 @@ public class BaseClientBuilderClass implements ClassSpec {
         endpointParamsKnowledgeIndex.resolveAccountIdEndpointModeMethod().ifPresent(builder::addMethod);
 
         builder.addMethod(validateClientOptionsMethod());
+
+        if (authSchemeSpecUtils.usesSigV4a()) {
+            builder.addMethod(sigv4aRegionSetMethod());
+        }
 
         return builder.build();
     }
@@ -717,6 +722,18 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addParameter(authSchemeSpecUtils.providerInterfaceName(), "authSchemeProvider")
                          .addStatement("clientConfiguration.option($T.AUTH_SCHEME_PROVIDER, authSchemeProvider)",
                                        SdkClientOption.class)
+                         .addStatement("return thisBuilder()")
+                         .build();
+    }
+
+    private MethodSpec sigv4aRegionSetMethod() {
+        return MethodSpec.methodBuilder("sigv4aRegionSet")
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(TypeVariableName.get("B"))
+                         .addParameter(RegionSet.class, "sigv4aRegionSet")
+                         .addStatement("clientConfiguration.option($T.AWS_SIGV4A_SIGNING_REGION_SET, sigv4aRegionSet == null ? "
+                                       + "$T.emptySet() : sigv4aRegionSet.asSet())",
+                                       AwsClientOption.class, Collections.class)
                          .addStatement("return thisBuilder()")
                          .build();
     }

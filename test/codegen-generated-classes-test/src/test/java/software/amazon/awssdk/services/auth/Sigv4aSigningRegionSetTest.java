@@ -32,98 +32,138 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.protocolrestjsonwithconfig.ProtocolRestJsonWithConfigClient;
-import software.amazon.awssdk.services.protocolrestjsonwithconfig.ProtocolRestJsonWithConfigClientBuilder;
+import software.amazon.awssdk.services.multiauth.MultiauthClient;
+import software.amazon.awssdk.services.multiauth.MultiauthClientBuilder;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.StringInputStream;
 
 class Sigv4aSigningRegionSetTest {
 
-    private EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
+    private final EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
 
     static Stream<Arguments> testCases() {
-
-        //TODO: ClientBuilder option test cases will be added after we add regionSet option in clientBuilder in new PR.
         return Stream.of(
-            Arguments.of(new SuccessCase(null,
-                                         null,
-                                         null,
-                                         Collections.emptySet(),
-                                         "No values set anywhere")),
+            Arguments.of(new SuccessCase(
+                null,
+                null,
+                null,
+                null,
+                setOf(),
+                "No values set anywhere")),
 
-            Arguments.of(new SuccessCase("us-west-2",
-                                         null,
-                                         null,
-                                         Collections.unmodifiableSet(new HashSet<>(Collections.singletonList("us-west-2"))),
-                                         "System Property value takes precedence")),
+            Arguments.of(new SuccessCase(
+                null,
+                null,
+                null,
+                "us-west-2",
+                setOf("us-west-2"),
+                "System Property value takes precedence")),
 
-            Arguments.of(new SuccessCase(null,
-                                         "us-west-2",
-                                         null,
-                                         Collections.unmodifiableSet(new HashSet<>(Collections.singletonList("us-west-2"))),
-                                         "Environment used when System Property null")),
+            Arguments.of(new SuccessCase(
+                null,
+                "us-west-2",
+                null,
+                null,
+                setOf("us-west-2"),
+                "Environment used when System Property null")),
 
-            Arguments.of(new SuccessCase(null,
-                                         null,
-                                         "us-west-2",
-                                         Collections.unmodifiableSet(new HashSet<>(Collections.singletonList("us-west-2"))),
-                                         "Config file used when others null")),
+            Arguments.of(new SuccessCase(
+                null,
+                null,
+                "us-west-2",
+                null,
+                setOf("us-west-2"),
+                "Config file used when others null")),
 
-            Arguments.of(new SuccessCase("us-west-2",
-                                         "us-east-1", null,
-                                         Collections.unmodifiableSet(new HashSet<>(Collections.singletonList("us-west-2")))
-                , "System Property overrides Environment")),
+            Arguments.of(new SuccessCase(
+                null,
+                "us-east-1",
+                "us-west-2",
+                "us-west-1",
+                setOf("us-west-1"),
+                "System Property overrides Environment")),
 
-            Arguments.of(new SuccessCase("us-west-2",
-                                         null,
-                                         "us-east-1",
-                                         Collections.unmodifiableSet(new HashSet<>(Collections.singletonList("us-west-2"))),
-                                         "System Property overrides Config File")),
+            Arguments.of(new SuccessCase(
+                null,
+                null,
+                "us-east-1",
+                "us-west-2",
+                setOf("us-west-2"),
+                "System Property overrides Config File")),
 
-            Arguments.of(new SuccessCase(null,
-                                         "us-west-2",
-                                         "us-east-1",
-                                         Collections.unmodifiableSet(new HashSet<>(Collections.singletonList("us-west-2"))),
-                                         "Environment overrides Config File")),
+            Arguments.of(new SuccessCase(
+                null,
+                "us-west-2",
+                "us-east-1",
+                null,
+                setOf("us-west-2"),
+                "Environment overrides Config File")),
 
-            Arguments.of(new SuccessCase("us-west-2",
-                                         "us-east-1",
-                                         "us-north-1",
-                                         Collections.unmodifiableSet(new HashSet<>(Collections.singletonList("us-west-2"))),
-                                         "SystemProperty highest precedence")),
+            Arguments.of(new SuccessCase(
+                null,
+                "us-east-1",
+                "us-west-2",
+                "us-west-1",
+                setOf("us-west-1"),
+                "SystemProperty highest precedence")),
 
-            Arguments.of(new SuccessCase("*",
-                                         "us-west-2",
-                                         null,
-                                         Collections.unmodifiableSet(new HashSet<>(Collections.singletonList("*"))),
-                                         "Wildcard in System Property overrides specific value")),
+            Arguments.of(new SuccessCase(
+                null,
+                null,
+                null,
+                "*",
+                setOf("*"),
+                "Wildcard in System Property overrides specific value")),
 
-            Arguments.of(new SuccessCase("us-west-2",
-                                         "*",
-                                         null,
-                                         Collections.unmodifiableSet(new HashSet<>(Collections.singletonList("us-west-2"))),
-                                         "Specific Environment overrides wildcard")),
+            Arguments.of(new SuccessCase(
+                null,
+                "*",
+                null,
+                null,
+                setOf("*"),
+                "Specific Environment overrides wildcard")),
 
-            Arguments.of(new SuccessCase(null,
-                                         "*",
-                                         "us-west-2",
-                                         Collections.unmodifiableSet(new HashSet<>(Collections.singletonList("*")))
-                , "Wildcard in Environment overrides Config")),
+            Arguments.of(new SuccessCase(
+                null,
+                "*",
+                "us-west-2",
+                null,
+                setOf("*"),
+                "Wildcard in Environment overrides Config")),
 
-            Arguments.of(new SuccessCase("us-west-1,us-east-1",
-                                         null, "us-west-2",
-                                         Collections.unmodifiableSet(new HashSet<>(Arrays.asList("us-west-1", "us-east-1"))),
-                                         "Multi-region System Property overrides Config")),
+            Arguments.of(new SuccessCase(
+                null,
+                null,
+                "us-west-2,us-east-1",
+                "us-west-1,us-east-2",
+                setOf("us-west-1", "us-east-2"),
+                "Multi-region System Property overrides Config")),
 
-            Arguments.of(new SuccessCase(null,
-                                         "us-west-1,us-east-1",
-                                         "us-west-2",
-                                         Collections.unmodifiableSet(new HashSet<>(Arrays.asList("us-west-1", "us-east-1"))),
-                                         "Multi-region Environment overrides Config"))
+            Arguments.of(new SuccessCase(
+                RegionSet.GLOBAL,
+                "us-west-2,us-east-1",
+                "us-west-4",
+                "us-west-5",
+                setOf("*"),
+                "sigv4aRegionSet set to GLOBAL value, takes highest precedence")),
+
+            Arguments.of(new SuccessCase(
+                RegionSet.create("us-west-3"),
+                "us-west-2,us-east-1",
+                "us-west-4",
+                "us-west-5",
+                setOf("us-west-3"),
+                "sigv4aRegionSet set to different value, takes highest precedence"))
         );
+    }
+
+
+    private static Set<String> setOf(String... s) {
+        return new HashSet<>(Arrays.asList(s));
     }
 
     @AfterEach
@@ -136,10 +176,13 @@ class Sigv4aSigningRegionSetTest {
     @MethodSource("testCases")
     void resolvesSigv4aSigningRegionSet(TestCase testCase) {
         try {
-            ProtocolRestJsonWithConfigClientBuilder builder =
-                ProtocolRestJsonWithConfigClient.builder()
-                                                .region(Region.US_WEST_2)
-                                                .credentialsProvider(AnonymousCredentialsProvider.create());
+            MultiauthClientBuilder builder =
+                MultiauthClient.builder()
+                               .region(Region.US_WEST_2)
+                               .credentialsProvider(AnonymousCredentialsProvider.create());
+            if (testCase.regionSet != null) {
+                builder.sigv4aRegionSet(testCase.regionSet);
+            }
             if (testCase.systemPropSetting != null) {
                 System.setProperty(SdkSystemSetting.AWS_SIGV4A_SIGNING_REGION_SET.property(), testCase.systemPropSetting);
             }
@@ -161,10 +204,10 @@ class Sigv4aSigningRegionSetTest {
                                                 .defaultProfileName("default")
                                                 .addExecutionInterceptor(interceptor));
 
-            ProtocolRestJsonWithConfigClient client = builder.build();
+            MultiauthClient client = builder.build();
 
             try {
-                client.allTypes();
+                client.sigv4AndSigv4aOperation(b -> b.stringMember("test").build());
             } catch (EndpointCapturingInterceptor.CaptureCompletedException e) {
                 // Expected
             }
@@ -177,17 +220,19 @@ class Sigv4aSigningRegionSetTest {
     }
 
     public static class TestCase {
-        private final String systemPropSetting;
+        private final RegionSet regionSet;
         private final String envVarSetting;
         private final String profileSetting;
+        private final String systemPropSetting;
         private final Set<String> expectedValues;
         private final String caseName;
 
-        public TestCase(String systemPropSetting, String envVarSetting, String profileSetting, Set<String> expectedValues,
+        public TestCase(RegionSet regionSet, String envVarSetting, String profileSetting, String systemPropSetting, Set<String> expectedValues,
                         String caseName) {
-            this.systemPropSetting = systemPropSetting;
+            this.regionSet = regionSet;
             this.envVarSetting = envVarSetting;
             this.profileSetting = profileSetting;
+            this.systemPropSetting = systemPropSetting;
             this.expectedValues = expectedValues;
             this.caseName = caseName;
         }
@@ -199,9 +244,9 @@ class Sigv4aSigningRegionSetTest {
     }
 
     public static class SuccessCase extends TestCase {
-        public SuccessCase(String systemPropSetting, String envVarSetting, String profileSetting, Set<String> expectedValues,
+        public SuccessCase(RegionSet regionSet, String envVarSetting, String profileSetting, String systemPropSetting, Set<String> expectedValues,
                            String caseName) {
-            super(systemPropSetting, envVarSetting, profileSetting, expectedValues, caseName);
+            super(regionSet, envVarSetting, profileSetting, systemPropSetting, expectedValues, caseName);
         }
     }
 
