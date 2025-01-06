@@ -90,6 +90,8 @@ public final class InstanceProfileCredentialsProvider
 
     private final Duration staleTime;
 
+    private final InstanceProfileCredentialsRetryPolicy retryPolicy;
+
     /**
      * @see #builder()
      */
@@ -111,6 +113,8 @@ public final class InstanceProfileCredentialsProvider
                                      .build();
 
         this.staleTime = Validate.getOrDefault(builder.staleTime, () -> Duration.ofSeconds(1));
+
+        this.retryPolicy = Validate.getOrDefault(builder.retryPolicy, () -> InstanceProfileCredentialsRetryPolicy.NO_RETRY);
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
@@ -213,6 +217,9 @@ public final class InstanceProfileCredentialsProvider
         String[] securityCredentials = getSecurityCredentials(imdsHostname, token);
 
         return StaticResourcesEndpointProvider.builder()
+                                              .retryPolicy(
+                                                  (retriesAttempted, param) -> retryPolicy.shouldRetry(
+                                                      retriesAttempted, param.getStatusCode(), param.getException()))
                                               .endpoint(URI.create(imdsHostname + SECURITY_CREDENTIALS_RESOURCE
                                                                    + securityCredentials[0]))
                                               .headers(getTokenHeaders(token))
@@ -234,6 +241,9 @@ public final class InstanceProfileCredentialsProvider
         ResourcesEndpointProvider tokenEndpoint =
             StaticResourcesEndpointProvider.builder()
                                            .endpoint(getTokenEndpoint(imdsHostname))
+                                           .retryPolicy(
+                                               (retriesAttempted, param) -> retryPolicy.shouldRetry(
+                                                   retriesAttempted, param.getStatusCode(), param.getException()))
                                            .headers(tokenTtlHeaders)
                                            .connectionTimeout(Duration.ofMillis(
                                                this.configProvider.serviceTimeout()))
@@ -287,6 +297,9 @@ public final class InstanceProfileCredentialsProvider
     private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {
         ResourcesEndpointProvider securityCredentialsEndpoint =
             StaticResourcesEndpointProvider.builder()
+                                           .retryPolicy(
+                                               (retriesAttempted, param) -> retryPolicy.shouldRetry(
+                                                   retriesAttempted, param.getStatusCode(), param.getException()))
                                            .endpoint(URI.create(imdsHostname + SECURITY_CREDENTIALS_RESOURCE))
                                            .headers(getTokenHeaders(metadataToken))
                 .connectionTimeout(Duration.ofMillis(this.configProvider.serviceTimeout()))
@@ -352,6 +365,13 @@ public final class InstanceProfileCredentialsProvider
         Builder staleTime(Duration duration);
 
         /**
+         * Configure the retry policy to be used when calling the instance metadata service. Will not retry by default.
+         * Configuring multiple retries may increase latency.
+         * @param retryPolicy the retry policy to be used.
+         */
+        Builder retryPolicy(InstanceProfileCredentialsRetryPolicy retryPolicy);
+
+        /**
          * Build a {@link InstanceProfileCredentialsProvider} from the provided configuration.
          */
         @Override
@@ -367,6 +387,7 @@ public final class InstanceProfileCredentialsProvider
         private Supplier<ProfileFile> profileFile;
         private String profileName;
         private Duration staleTime;
+        private InstanceProfileCredentialsRetryPolicy retryPolicy;
 
         private BuilderImpl() {
             asyncThreadName("instance-profile-credentials-provider");
@@ -380,6 +401,7 @@ public final class InstanceProfileCredentialsProvider
             this.profileFile = provider.profileFile;
             this.profileName = provider.profileName;
             this.staleTime = provider.staleTime;
+            this.retryPolicy = provider.retryPolicy;
         }
 
         Builder clock(Clock clock) {
@@ -457,6 +479,17 @@ public final class InstanceProfileCredentialsProvider
         public void setStaleTime(Duration duration) {
             staleTime(duration);
         }
+
+        @Override
+        public Builder retryPolicy(InstanceProfileCredentialsRetryPolicy retryPolicy) {
+            this.retryPolicy = retryPolicy;
+            return this;
+        }
+
+        public void setRetryPolicy(InstanceProfileCredentialsRetryPolicy retryPolicy) {
+            retryPolicy(retryPolicy);
+        }
+
 
         @Override
         public InstanceProfileCredentialsProvider build() {
