@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Secure Tunneling",
+    "contributor": "",
+    "description": "Adds dualstack endpoint support for IoT Secure Tunneling"
+}
