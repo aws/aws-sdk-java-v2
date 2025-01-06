@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Supply Chain",
-    "contributor": "",
-    "description": "Allow vanity DNS domain when creating a new ASC instance"
-}
