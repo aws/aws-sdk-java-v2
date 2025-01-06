@@ -21,6 +21,7 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildSocketOptions;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveCipherPreference;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.net.URI;
 import java.util.LinkedList;
@@ -64,6 +65,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private final HttpProxyOptions proxyOptions;
     private final HttpMonitoringOptions monitoringOptions;
     private final long maxConnectionIdleInMilliseconds;
+    private final long connectionAcquisitionTimeout;
     private final int maxConnectionsPerEndpoint;
     private boolean isClosed = false;
 
@@ -90,6 +92,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
             this.maxConnectionsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
             this.monitoringOptions = resolveHttpMonitoringOptions(builder.getConnectionHealthConfiguration()).orElse(null);
             this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
+            this.connectionAcquisitionTimeout = config.get(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT).toMillis();
             this.proxyOptions = resolveProxy(builder.getProxyConfiguration(), tlsContext).orElse(null);
         }
     }
@@ -126,7 +129,8 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
                 .withManualWindowManagement(true)
                 .withProxyOptions(proxyOptions)
                 .withMonitoringOptions(monitoringOptions)
-                .withMaxConnectionIdleInMilliseconds(maxConnectionIdleInMilliseconds);
+                .withMaxConnectionIdleInMilliseconds(maxConnectionIdleInMilliseconds)
+                .withConnectionAcquisitionTimeoutInMilliseconds(saturatedCast(connectionAcquisitionTimeout));
 
         return HttpClientConnectionManager.create(options);
     }
