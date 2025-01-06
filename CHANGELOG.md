@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.46__ __2025-01-06__
+## __AWS IoT Secure Tunneling__
+  - ### Features
+    - Adds dualstack endpoint support for IoT Secure Tunneling
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Supply Chain__
+  - ### Features
+    - Allow vanity DNS domain when creating a new ASC instance
+
+## __S3 Event Notifications__
+  - ### Bugfixes
+    - Fixed a bug where null values are not handled properly when `S3EventNotification#fromJson` is invoked, throwing `IllegalArgumentException`. See [#5730](https://github.com/aws/aws-sdk-java-v2/issues/5730)
+
 # __2.29.45__ __2025-01-03__
 ## __AWS SDK for Java v2__
   - ### Features
