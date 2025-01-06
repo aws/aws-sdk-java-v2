@@ -14,6 +14,7 @@ Class <software.amazon.awssdk.core.internal.util.MetricUtils> does not reside ou
 Class <software.amazon.awssdk.core.internal.waiters.ResponseOrException> does not reside outside of package '..internal..' in (ResponseOrException.java:0)
 Class <software.amazon.awssdk.core.internal.waiters.WaiterAttribute> does not reside outside of package '..internal..' in (WaiterAttribute.java:0)
 Class <software.amazon.awssdk.http.nio.netty.internal.DnsResolverLoader> does not reside outside of package '..internal..' in (DnsResolverLoader.java:0)
+Class <software.amazon.awssdk.protocols.jsoncore.internal.NullJsonNode> does not reside outside of package '..internal..' in (NullJsonNode.java:0)
 Class <software.amazon.awssdk.retries.api.internal.backoff.ExponentialDelayWithHalfJitter> does not reside outside of package '..internal..' in (ExponentialDelayWithHalfJitter.java:0)
 Class <software.amazon.awssdk.retries.internal.DefaultAwareRetryStrategy> does not reside outside of package '..internal..' in (DefaultAwareRetryStrategy.java:0)
 Class <software.amazon.awssdk.retries.internal.RetryStrategyDefaults> does not reside outside of package '..internal..' in (RetryStrategyDefaults.java:0)
