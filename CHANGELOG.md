@@ -1,4 +1,71 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.46__ __2025-01-06__
+## __AWS IoT Secure Tunneling__
+  - ### Features
+    - Adds dualstack endpoint support for IoT Secure Tunneling
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Supply Chain__
+  - ### Features
+    - Allow vanity DNS domain when creating a new ASC instance
+
+## __S3 Event Notifications__
+  - ### Bugfixes
+    - Fixed a bug where null values are not handled properly when `S3EventNotification#fromJson` is invoked, throwing `IllegalArgumentException`. See [#5730](https://github.com/aws/aws-sdk-java-v2/issues/5730)
+
+# __2.29.45__ __2025-01-03__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Adding SDK reference examples for Amazon ECS operations.
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Doc only update for Route 53 Domains that fixes several customer-reported issues
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This change is only for updating the model regexp of CopySource which is not for validation but only for documentation and user guide change.
+
+# __2.29.44__ __2025-01-02__
+## __AWS AppSync__
+  - ### Features
+    - Modify UpdateGraphQLAPI operation and flag authenticationType as required.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds support for the AVC3 codec and fixes an alignment issue with Japanese vertical captions.
+
+## __AWS MediaConnect__
+  - ### Features
+    - AWS Elemental MediaConnect now supports Content Quality Analysis for enhanced source stream monitoring. This enables you to track specific audio and video metrics in transport stream source flows, ensuring your content meets quality standards.
+
+## __AWS Organizations__
+  - ### Features
+    - Added ALL_FEATURES_MIGRATION_ORGANIZATION_SIZE_LIMIT_EXCEEDED to ConstraintViolationException for the EnableAllFeatures operation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift releases a new game session shutdown feature. Use the Amazon GameLift console or AWS CLI to terminate an in-progress game session that's entered a bad state or is no longer needed.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding ETag information with Model Artifacts for Model Registry
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - In-flight message typo fix from 20k to 120k.
+
 # __2.29.43__ __2024-12-27__
 ## __Amazon Elastic Container Registry__
   - ### Features
