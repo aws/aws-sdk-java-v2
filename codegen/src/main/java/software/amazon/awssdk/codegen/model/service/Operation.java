@@ -80,8 +80,8 @@ public class Operation {
         return deprecated;
     }
 
-    public void setUnsignedPayload(boolean unsignedPayload) {
-        this.unsignedPayload = unsignedPayload;
+    public void setDeprecated(boolean deprecated) {
+        this.deprecated = deprecated;
     }
 
     public String getDeprecatedMessage() {
@@ -234,7 +234,7 @@ public class Operation {
         return unsignedPayload;
     }
 
-    public void setDeprecated(boolean deprecated) {
-        this.deprecated = deprecated;
+    public void setUnsignedPayload(boolean unsignedPayload) {
+        this.unsignedPayload = unsignedPayload;
     }
 }

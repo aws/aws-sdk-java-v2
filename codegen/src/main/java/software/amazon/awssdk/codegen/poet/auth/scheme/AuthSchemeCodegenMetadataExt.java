@@ -26,12 +26,12 @@ import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeCodegenMetadata.SignerPropertyValueProvider;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
-import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 
 /**
@@ -198,7 +198,7 @@ public final class AuthSchemeCodegenMetadataExt {
 
     private static SignerPropertyValueProvider from(String name,
                                                     Supplier<Object> valueSupplier,
-                                                    Class<? extends HttpSigner> containingClass) {
+                                                    Class<? extends AwsV4FamilyHttpSigner> containingClass) {
         return SignerPropertyValueProvider.builder()
                                           .containingClass(containingClass)
                                           .fieldName(name)
