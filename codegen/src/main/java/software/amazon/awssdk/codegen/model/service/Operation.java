@@ -61,6 +61,8 @@ public class Operation {
 
     private Map<String, OperationContextParam> operationContextParams;
 
+    private boolean unsignedPayload;
+
     public String getName() {
         return name;
     }
@@ -78,8 +80,8 @@ public class Operation {
         return deprecated;
     }
 
-    public void setDeprecated(boolean deprecated) {
-        this.deprecated = deprecated;
+    public void setUnsignedPayload(boolean unsignedPayload) {
+        this.unsignedPayload = unsignedPayload;
     }
 
     public String getDeprecatedMessage() {
@@ -226,5 +228,13 @@ public class Operation {
 
     public void setOperationContextParams(Map<String, OperationContextParam> operationContextParams) {
         this.operationContextParams = operationContextParams;
+    }
+
+    public boolean isUnsignedPayload() {
+        return unsignedPayload;
+    }
+
+    public void setDeprecated(boolean deprecated) {
+        this.deprecated = deprecated;
     }
 }
