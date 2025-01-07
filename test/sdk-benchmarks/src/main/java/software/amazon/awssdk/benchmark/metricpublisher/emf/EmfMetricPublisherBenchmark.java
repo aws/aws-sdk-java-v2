@@ -28,12 +28,12 @@ import software.amazon.awssdk.metrics.publishers.emf.EmfMetricPublisher;
 public class EmfMetricPublisherBenchmark extends MetricsEnabledBenchmark {
 
     @Override
-    protected <T extends SdkClientBuilder<T, ?>> T enableMetrics(T syncClientBuilder) {
+    protected <T extends SdkClientBuilder<T, ?>> T enableMetrics(T clientBuilder) {
         EmfMetricPublisher emfMetricPublisher = EmfMetricPublisher.builder()
                                                                   .namespace("EmfMetricPublisherBenchmark")
                                                                   .logGroupName("LogGroupName")
                                                                   .build();
 
-        return syncClientBuilder.overrideConfiguration(c -> c.addMetricPublisher(emfMetricPublisher));
+        return clientBuilder.overrideConfiguration(c -> c.addMetricPublisher(emfMetricPublisher));
     }
 }
