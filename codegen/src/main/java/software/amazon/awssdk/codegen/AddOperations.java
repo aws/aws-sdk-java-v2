@@ -182,6 +182,7 @@ final class AddOperations {
             operationModel.setStaticContextParams(op.getStaticContextParams());
             operationModel.setOperationContextParams(op.getOperationContextParams());
             operationModel.setAuth(getAuthFromOperation(op));
+            operationModel.setUnsignedPayload(op.isUnsignedPayload());
 
             Input input = op.getInput();
             if (input != null) {

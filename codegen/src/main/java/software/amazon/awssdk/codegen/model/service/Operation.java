@@ -26,6 +26,7 @@ public class Operation {
     private String name;
 
     private boolean deprecated;
+    private boolean unsignedPayload;
 
     private String deprecatedMessage;
 
@@ -78,8 +79,16 @@ public class Operation {
         return deprecated;
     }
 
+    public boolean isUnsignedPayload() {
+        return unsignedPayload;
+    }
+
     public void setDeprecated(boolean deprecated) {
         this.deprecated = deprecated;
+    }
+
+    public void setUnsignedPayload(boolean unsignedPayload) {
+        this.unsignedPayload = unsignedPayload;
     }
 
     public String getDeprecatedMessage() {

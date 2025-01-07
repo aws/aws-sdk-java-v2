@@ -32,8 +32,7 @@
                     "shape": "InvalidInputException"
                 }
             ],
-            "documentation": "<p>Performs a get row operation no output</p>"
-        },
+            "documentation": "<p>Performs a GET request to get-row with default payload signing.</p>"        },
         "PutRow": {
             "name": "PutRow",
             "auth": ["v4"],
@@ -52,7 +51,7 @@
                     "shape": "InvalidInputException"
                 }
             ],
-            "documentation": "<p>Performs a get row operation no output</p>"
+            "documentation": "<p>Performs a PUT request to put-row with auth as sigv4.</p>"
         },
         "DeleteRow": {
             "name": "DeleteRow",
@@ -72,7 +71,150 @@
                     "shape": "InvalidInputException"
                 }
             ],
-            "documentation": "<p>Performs a get row operation no output</p>"
+            "documentation": "<p>Performs a DELETE request to delete-row with auth as sigv4.</p>"
+        },
+        "opWithSigv4aSignedPayload": {
+            "name": "OpWithSigv4aSignedPayload",
+            "http": {
+                "method": "GET",
+                "requestUri": "/get-row/"
+            },
+            "input": {
+                "shape": "GetRowRequest"
+            },
+            "output": {
+                "shape": "GetRowResponse"
+            },
+            "errors": [
+                {
+                    "shape": "InvalidInputException"
+                }
+            ],
+            "auth": ["aws.auth#sigv4a"],
+            "documentation": "<p>Performs a GET request to get-row with signed payload and auth as sigv4a.</p>"
+        },
+        "opWithSigv4aUnSignedPayload": {
+            "name": "opWithSigv4aUnSignedPayload",
+            "http": {
+                "method": "GET",
+                "requestUri": "/get-row/"
+            },
+            "input": {
+                "shape": "GetRowRequest"
+            },
+            "output": {
+                "shape": "GetRowResponse"
+            },
+            "errors": [
+                {
+                    "shape": "InvalidInputException"
+                }
+            ],
+            "auth": ["aws.auth#sigv4a"],
+            "unsignedPayload": true,
+            "documentation": "<p>Performs a GET request to get-row with unsigned payload and auth as sigv4a.</p>"
+        },
+        "opWithSigv4SignedPayload": {
+            "name": "OpWithSigv4SignedPayload",
+            "http": {
+                "method": "GET",
+                "requestUri": "/get-row/"
+            },
+            "input": {
+                "shape": "GetRowRequest"
+            },
+            "output": {
+                "shape": "GetRowResponse"
+            },
+            "errors": [
+                {
+                    "shape": "InvalidInputException"
+                }
+            ],
+            "auth": ["aws.auth#sigv4"],
+            "documentation": "<p>Performs a GET request to get-row with signed payload and auth as sigv4.</p>"
+        },
+        "opWithSigv4UnSignedPayload": {
+            "name": "opWithSigv4UnSignedPayload",
+            "http": {
+                "method": "GET",
+                "requestUri": "/get-row/"
+            },
+            "input": {
+                "shape": "GetRowRequest"
+            },
+            "output": {
+                "shape": "GetRowResponse"
+            },
+            "errors": [
+                {
+                    "shape": "InvalidInputException"
+                }
+            ],
+            "auth": ["aws.auth#sigv4"],
+            "unsignedPayload": true,
+            "documentation": "<p>Performs a GET request to get-row with unsigned payload and auth as sigv4.</p>"
+        },
+        "opsWithSigv4andSigv4aSignedPayload": {
+            "name": "opsWithSigv4andSigv4aSignedPayload",
+            "http": {
+                "method": "GET",
+                "requestUri": "/get-row/"
+            },
+            "input": {
+                "shape": "GetRowRequest"
+            },
+            "output": {
+                "shape": "GetRowResponse"
+            },
+            "errors": [
+                {
+                    "shape": "InvalidInputException"
+                }
+            ],
+            "auth": ["aws.auth#sigv4","aws.auth#sigv4a"],
+            "documentation": "<p>Performs a GET request to get-row with signed payload and auth as sigv4 and sigv4a.</p>"
+        },
+        "secondOpsWithSigv4andSigv4aSignedPayload": {
+            "name": "secondOpsWithSigv4andSigv4aSignedPayload",
+            "http": {
+                "method": "GET",
+                "requestUri": "/get-row/"
+            },
+            "input": {
+                "shape": "GetRowRequest"
+            },
+            "output": {
+                "shape": "GetRowResponse"
+            },
+            "errors": [
+                {
+                    "shape": "InvalidInputException"
+                }
+            ],
+            "auth": ["aws.auth#sigv4","aws.auth#sigv4a"],
+            "documentation": "<p>Performs a GET request to get-row with signed payload and auth as sigv4 and sigv4a.</p>"
+        },
+        "opWithSigv4AndSigv4aUnSignedPayload": {
+            "name": "opWithSigv4AndSigv4aUnSignedPayload",
+            "http": {
+                "method": "GET",
+                "requestUri": "/get-row/"
+            },
+            "input": {
+                "shape": "GetRowRequest"
+            },
+            "output": {
+                "shape": "GetRowResponse"
+            },
+            "errors": [
+                {
+                    "shape": "InvalidInputException"
+                }
+            ],
+            "auth": ["aws.auth#sigv4","aws.auth#sigv4a"],
+            "unsignedPayload": true,
+            "documentation": "<p>Performs a GET request to get-row with unsigned payload and auth as sigv4 and sigv4a.</p>"
         }
     },
     "shapes": {

@@ -72,9 +72,9 @@ public final class ModelAuthSchemeKnowledgeIndex {
      * {@link Collections#emptyList()}.
      */
     private Map<List<String>, List<AuthSchemeCodegenMetadata>> operationsToModeledMetadata() {
-        Map<List<String>, List<AuthType>> operationsToAuthType = operationsToAuthType();
+        Map<List<String>, List<AuthOption>> operationsToAuthOption = operationsToAuthOptions();
         Map<List<String>, List<AuthSchemeCodegenMetadata>> operationsToMetadata = new LinkedHashMap<>();
-        operationsToAuthType.forEach((k, v) -> operationsToMetadata.put(k, authTypeToCodegenMetadata(v)));
+        operationsToAuthOption.forEach((k, v) -> operationsToMetadata.put(k, authOptionToCodegenMetadata(v)));
         return operationsToMetadata;
     }
 
@@ -82,16 +82,19 @@ public final class ModelAuthSchemeKnowledgeIndex {
      * Returns a map from list of operations to the list of auth-types modeled for those operations. The values are taken directly
      * from the model {@link OperationModel#getAuth()} method.
      */
-    private Map<List<String>, List<AuthType>> operationsToAuthType() {
-        Map<List<AuthType>, List<String>> authSchemesToOperations =
+    private Map<List<String>, List<AuthOption>> operationsToAuthOptions() {
+        // Create a map from lists of AuthOption to lists of operation names
+        Map<List<AuthOption>, List<String>> authOptionToOperations =
             intermediateModel.getOperations()
                              .entrySet()
                              .stream()
                              .filter(kvp -> !kvp.getValue().getAuth().isEmpty())
-                             .collect(Collectors.groupingBy(kvp -> kvp.getValue().getAuth(),
-                                                            Collectors.mapping(Map.Entry::getKey, Collectors.toList())));
+                             .collect(Collectors.groupingBy(
+                                 kvp -> toAuthOptions(kvp.getValue()),
+                                 Collectors.mapping(Map.Entry::getKey, Collectors.toList())
+                             ));
 
-        Map<List<String>, List<AuthType>> operationsToAuthType = authSchemesToOperations
+        Map<List<String>, List<AuthOption>> operationsToAuthOption = authOptionToOperations
             .entrySet()
             .stream()
             .sorted(Comparator.comparing(kvp -> kvp.getValue().get(0)))
@@ -99,15 +102,26 @@ public final class ModelAuthSchemeKnowledgeIndex {
                                       Map.Entry::getKey, (a, b) -> b,
                                       LinkedHashMap::new));
 
-        List<AuthType> serviceDefaults = serviceDefaultAuthTypes();
+        List<AuthOption> serviceDefaults = serviceDefaultAuthOption();
 
-        // Get the list of operations that share the same auth schemes as the system defaults and remove it from the result. We
-        // will take care of all of these in the fallback `default` case.
-        List<String> operationsWithDefaults = authSchemesToOperations.remove(serviceDefaults);
-        operationsToAuthType.remove(operationsWithDefaults);
-        operationsToAuthType.put(Collections.emptyList(), serviceDefaults);
-        return operationsToAuthType;
+        // Handle operations with defaults
+        List<String> operationsWithDefaults = authOptionToOperations.remove(serviceDefaults);
+        if (operationsWithDefaults != null) {
+            operationsToAuthOption.remove(operationsWithDefaults);
+        }
+        operationsToAuthOption.put(Collections.emptyList(), serviceDefaults);
+        return operationsToAuthOption;
     }
+
+    private List<AuthOption> toAuthOptions(OperationModel operation) {
+        return operation.getAuth().stream()
+                        .map(authType -> AuthOption.builder()
+                                                   .authType(authType)
+                                                   .unsignedPayload(operation.isUnsignedPayload())
+                                                   .build())
+                        .collect(Collectors.toList());
+    }
+
 
 
     /**
@@ -153,7 +167,18 @@ public final class ModelAuthSchemeKnowledgeIndex {
         return Collections.singletonList(intermediateModel.getMetadata().getAuthType());
     }
 
-    private List<AuthSchemeCodegenMetadata> authTypeToCodegenMetadata(List<AuthType> authTypes) {
+    /**
+     * Returns the list of modeled top-level auth-options.
+     */
+    private List<AuthOption> serviceDefaultAuthOption() {
+        List<AuthType> modeled = intermediateModel.getMetadata().getAuth();
+        if (!modeled.isEmpty()) {
+            return modeled.stream().map(r -> AuthOption.builder().authType(r).build()).collect(Collectors.toList());
+        }
+        return Collections.singletonList(AuthOption.builder().authType(intermediateModel.getMetadata().getAuthType()).build());
+    }
+
+    private List<AuthSchemeCodegenMetadata> authOptionToCodegenMetadata(List<AuthOption> authTypes) {
         return authTypes.stream().map(AuthSchemeCodegenMetadataExt::fromAuthType).collect(Collectors.toList());
     }
 

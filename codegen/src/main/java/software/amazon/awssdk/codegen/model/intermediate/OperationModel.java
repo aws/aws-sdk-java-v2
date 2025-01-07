@@ -41,6 +41,9 @@ public class OperationModel extends DocumentationModel {
 
     private String deprecatedMessage;
 
+    private boolean unsignedPayload;
+
+
     private VariableModel input;
 
     private ReturnTypeModel returnType;
@@ -111,8 +114,16 @@ public class OperationModel extends DocumentationModel {
         return deprecated;
     }
 
+    public boolean isUnsignedPayload() {
+        return unsignedPayload;
+    }
+
     public void setDeprecated(boolean deprecated) {
         this.deprecated = deprecated;
+    }
+
+    public void setUnsignedPayload(boolean unsignedPayload) {
+        this.unsignedPayload = unsignedPayload;
     }
 
     public String getDeprecatedMessage() {
