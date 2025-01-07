@@ -97,9 +97,13 @@ public class BenchmarkRunner {
             EnhancedClientQueryV1MapperComparisonBenchmark.class.getSimpleName()
     );
 
-    private static final List<String> METRIC_BENCHMARKS = Arrays.asList(MetricsEnabledBenchmark.class.getSimpleName());
+    private static final List<String> METRIC_BENCHMARKS = Arrays.asList(
+        MetricsEnabledBenchmark.class.getSimpleName()
+    );
 
-    private static final List<String> METRIC_PUBLISHER_BENCHMARKS = Arrays.asList(EmfMetricPublisherBenchmark.class.getSimpleName());
+    private static final List<String> METRIC_PUBLISHER_BENCHMARKS = Arrays.asList(
+        EmfMetricPublisherBenchmark.class.getSimpleName()
+    );
 
     private static final Logger log = Logger.loggerFor(BenchmarkRunner.class);
 
