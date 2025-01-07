@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CloudHSM V2",
-    "contributor": "",
-    "description": "Adds support to ModifyCluster for modifying a Cluster's Hsm Type."
-}

@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.47__ __2025-01-07__
+## __AWS CloudHSM V2__
+  - ### Features
+    - Adds support to ModifyCluster for modifying a Cluster's Hsm Type.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This release makes Amazon DynamoDB point-in-time-recovery (PITR) to be configurable. You can set PITR recovery period for each table individually to between 1 and 35 days.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds support for importing images from ISO disk files. Added new ImportDiskImage API operation.
+
 # __2.29.46__ __2025-01-06__
 ## __AWS IoT Secure Tunneling__
   - ### Features

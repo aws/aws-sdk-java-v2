@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "EC2 Image Builder",
-    "contributor": "",
-    "description": "This release adds support for importing images from ISO disk files. Added new ImportDiskImage API operation."
-}
