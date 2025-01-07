@@ -41,6 +41,75 @@ import software.amazon.awssdk.thirdparty.jackson.core.JsonParseException;
 class S3EventNotificationReaderTest {
 
     @Test
+    void fromJson_containsNullValues_shouldSucceed() {
+        S3EventNotification eventNotification = new S3EventNotification(
+            Collections.singletonList(new S3EventNotificationRecord(
+                "us-west-2",
+                "ObjectCreated:Put",
+                "aws:s3",
+                "1970-01-01T00:00:00.000Z",
+                "2.1",
+                null,
+                new ResponseElements(
+                    null, null),
+                new S3(
+                    "testConfigRule",
+                    new S3Bucket(
+                        "mybucket",
+                        new UserIdentity("A3NL1KOZZKExample"),
+                        "arn:aws:s3:::mybucket"),
+                    new S3Object(
+                        "HappyFace.jpg",
+                        null,
+                        "d41d8cd98f00b204e9800998ecf8427e",
+                        null,
+                        "0055AED6DCD90281E5"),
+                    "1.0"
+                ),
+                new UserIdentity("AIDAJDPLRKLG7UEXAMPLE"),
+                null, null, null, null)
+            ));
+        String json = eventNotification.toJsonPretty();
+        assertThat(json).isEqualTo("{\n"
+                                   + "  \"Records\" : [ {\n"
+                                   + "    \"eventVersion\" : \"2.1\",\n"
+                                   + "    \"eventSource\" : \"aws:s3\",\n"
+                                   + "    \"awsRegion\" : \"us-west-2\",\n"
+                                   + "    \"eventTime\" : \"1970-01-01T00:00:00Z\",\n"
+                                   + "    \"eventName\" : \"ObjectCreated:Put\",\n"
+                                   + "    \"userIdentity\" : {\n"
+                                   + "      \"principalId\" : \"AIDAJDPLRKLG7UEXAMPLE\"\n"
+                                   + "    },\n"
+                                   + "    \"requestParameters\" : null,\n"
+                                   + "    \"responseElements\" : {\n"
+                                   + "      \"x-amz-request-id\" : null,\n"
+                                   + "      \"x-amz-id-2\" : null\n"
+                                   + "    },\n"
+                                   + "    \"s3\" : {\n"
+                                   + "      \"s3SchemaVersion\" : \"1.0\",\n"
+                                   + "      \"configurationId\" : \"testConfigRule\",\n"
+                                   + "      \"bucket\" : {\n"
+                                   + "        \"name\" : \"mybucket\",\n"
+                                   + "        \"ownerIdentity\" : {\n"
+                                   + "          \"principalId\" : \"A3NL1KOZZKExample\"\n"
+                                   + "        },\n"
+                                   + "        \"arn\" : \"arn:aws:s3:::mybucket\"\n"
+                                   + "      },\n"
+                                   + "      \"object\" : {\n"
+                                   + "        \"key\" : \"HappyFace.jpg\",\n"
+                                   + "        \"size\" : null,\n"
+                                   + "        \"eTag\" : \"d41d8cd98f00b204e9800998ecf8427e\",\n"
+                                   + "        \"versionId\" : null,\n"
+                                   + "        \"sequencer\" : \"0055AED6DCD90281E5\"\n"
+                                   + "      }\n"
+                                   + "    }\n"
+                                   + "  } ]\n"
+                                   + "}");
+        S3EventNotification actual = S3EventNotification.fromJson(json);
+        assertThat(actual).isEqualTo(eventNotification);
+    }
+
+    @Test
     void givenEventWithoutOptionalFields_whenReadingJson_expectOnlyRequiredFields() {
         String eventJson = "{  "
                            + "   \"Records\":[  "

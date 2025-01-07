@@ -70,7 +70,7 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
     }
 
     private List<S3EventNotificationRecord> readRecords(JsonNode node) {
-        if (node == null || node.isNull()) {
+        if (isNull(node)) {
             return null;
         }
         List<JsonNode> recordArray = expectArrayOrNull(node, "Records");
@@ -274,15 +274,19 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
     }
 
     private String expectStringOrNull(JsonNode node, String name) {
-        if (node == null) {
+        if (isNull(node)) {
             return null;
         }
         Validate.isTrue(node.isString(), "'%s' was not a string", name);
         return node.asString();
     }
 
+    private static boolean isNull(JsonNode node) {
+        return node == null || node.isNull();
+    }
+
     private List<JsonNode> expectArrayOrNull(JsonNode node, String name) {
-        if (node == null) {
+        if (isNull(node)) {
             return null;
         }
         Validate.isTrue(node.isArray(), "expected '%s' to be an array, but was not.", name);
@@ -290,7 +294,7 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
     }
 
     private Map<String, JsonNode> expectObjectOrNull(JsonNode node, String name) {
-        if (node == null) {
+        if (isNull(node)) {
             return null;
         }
         return expectObject(node, name);
@@ -302,7 +306,7 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
     }
 
     private Long expectLong(JsonNode node, String name) {
-        if (node == null) {
+        if (isNull(node)) {
             return null;
         }
         Validate.isTrue(node.isNumber(), "expected '%s' to be numeric, but was not", name);
