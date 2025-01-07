@@ -59,6 +59,7 @@ import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientPutV1Map
 import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientQueryV1MapperComparisonBenchmark;
 import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientScanV1MapperComparisonBenchmark;
 import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientUpdateV1MapperComparisonBenchmark;
+import software.amazon.awssdk.benchmark.metricpublisher.emf.EmfMetricPublisherBenchmark;
 import software.amazon.awssdk.benchmark.stats.SdkBenchmarkResult;
 import software.amazon.awssdk.benchmark.utils.BenchmarkProcessorOutput;
 import software.amazon.awssdk.utils.Logger;
@@ -98,6 +99,8 @@ public class BenchmarkRunner {
 
     private static final List<String> METRIC_BENCHMARKS = Arrays.asList(MetricsEnabledBenchmark.class.getSimpleName());
 
+    private static final List<String> METRIC_PUBLISHER_BENCHMARKS = Arrays.asList(EmfMetricPublisherBenchmark.class.getSimpleName());
+
     private static final Logger log = Logger.loggerFor(BenchmarkRunner.class);
 
     private final List<String> benchmarksToRun;
@@ -116,6 +119,7 @@ public class BenchmarkRunner {
         benchmarksToRun.addAll(ASYNC_BENCHMARKS);
         benchmarksToRun.addAll(PROTOCOL_BENCHMARKS);
         benchmarksToRun.addAll(COLD_START_BENCHMARKS);
+        benchmarksToRun.addAll(METRIC_PUBLISHER_BENCHMARKS);
         log.info(() -> "Skipping tests, to reduce benchmark times: \n" + MAPPER_BENCHMARKS + "\n" + METRIC_BENCHMARKS);
 
         BenchmarkRunner runner = new BenchmarkRunner(benchmarksToRun, parseOptions(args));
