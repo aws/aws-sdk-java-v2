@@ -85,7 +85,7 @@ public final class ModelAuthSchemeKnowledgeIndex {
     private Map<List<String>, List<AuthTrait>> operationsToAuthOptions() {
         // Group operations by their shared AuthTraits.
         // The map's keys are AuthTrait lists, and the values are lists of operation names.
-        Map<List<AuthTrait>, List<String>> authTraitToOperations =
+        Map<List<AuthTrait>, List<String>> authSchemesToOperations =
             intermediateModel.getOperations()
                              .entrySet()
                              .stream()
@@ -97,7 +97,7 @@ public final class ModelAuthSchemeKnowledgeIndex {
 
         // Convert the map to have operation names as keys and AuthTrait options as values,
         // sorted by the first operation name in each group.
-        Map<List<String>, List<AuthTrait>> operationsToAuthOption = authTraitToOperations
+        Map<List<String>, List<AuthTrait>> operationsToAuthTrait = authSchemesToOperations
             .entrySet()
             .stream()
             .sorted(Comparator.comparing(kvp -> kvp.getValue().get(0)))
@@ -108,12 +108,12 @@ public final class ModelAuthSchemeKnowledgeIndex {
         List<AuthTrait> serviceDefaults = serviceDefaultAuthOption();
 
         // Handle operations with defaults
-        List<String> operationsWithDefaults = authTraitToOperations.remove(serviceDefaults);
+        List<String> operationsWithDefaults = authSchemesToOperations.remove(serviceDefaults);
         if (operationsWithDefaults != null) {
-            operationsToAuthOption.remove(operationsWithDefaults);
+            operationsToAuthTrait.remove(operationsWithDefaults);
         }
-        operationsToAuthOption.put(Collections.emptyList(), serviceDefaults);
-        return operationsToAuthOption;
+        operationsToAuthTrait.put(Collections.emptyList(), serviceDefaults);
+        return operationsToAuthTrait;
     }
 
     /**
