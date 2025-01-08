@@ -26,6 +26,7 @@ import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeCodegenMetadata.SignerPropertyValueProvider;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
@@ -91,22 +92,32 @@ public final class AuthSchemeCodegenMetadataExt {
     /**
      * Creates a new auth scheme codegen metadata instance using the defaults for the given {@link AuthType} defaults.
      */
-    public static AuthSchemeCodegenMetadata fromAuthType(AuthType type) {
-        switch (type) {
+    public static AuthSchemeCodegenMetadata fromAuthType(AuthTrait authTrait) {
+        switch (authTrait.authType()) {
             case BEARER:
                 return BEARER;
             case NONE:
                 return NO_AUTH;
             case V4A:
-                return SIGV4A;
+                return getSigv4aAuthSchemeBuilder(authTrait).build();
             default:
-                String authTypeName = type.value();
-                SigV4SignerDefaults defaults = AuthTypeToSigV4Default.authTypeToDefaults().get(authTypeName);
-                if (defaults == null) {
-                    throw new IllegalArgumentException("Unknown auth type: " + type);
-                }
-                return fromConstants(defaults);
+                return resolveAuthSchemeForType(authTrait);
         }
+    }
+
+    private static AuthSchemeCodegenMetadata resolveAuthSchemeForType(AuthTrait authTrait) {
+        String authTypeName = authTrait.authType().value();
+        SigV4SignerDefaults defaults = AuthTypeToSigV4Default.authTypeToDefaults().get(authTypeName);
+
+        if (defaults == null) {
+            throw new IllegalArgumentException("Unknown auth option: " + authTrait + " with type " + authTypeName);
+        }
+        if (authTrait.isUnsignedPayload()) {
+            defaults = defaults.toBuilder()
+                               .payloadSigningEnabled(false)
+                               .build();
+        }
+        return fromConstants(defaults);
     }
 
     /**
@@ -171,25 +182,54 @@ public final class AuthSchemeCodegenMetadataExt {
     private static List<SignerPropertyValueProvider> propertiesFromConstants(SigV4SignerDefaults constants) {
         List<SignerPropertyValueProvider> properties = new ArrayList<>();
         if (constants.payloadSigningEnabled() != null) {
-            properties.add(from("PAYLOAD_SIGNING_ENABLED", constants::payloadSigningEnabled));
+            properties.add(from("PAYLOAD_SIGNING_ENABLED", constants::payloadSigningEnabled, AwsV4HttpSigner.class));
         }
         if (constants.doubleUrlEncode() != null) {
-            properties.add(from("DOUBLE_URL_ENCODE", constants::doubleUrlEncode));
+            properties.add(from("DOUBLE_URL_ENCODE", constants::doubleUrlEncode, AwsV4HttpSigner.class));
         }
         if (constants.normalizePath() != null) {
-            properties.add(from("NORMALIZE_PATH", constants::normalizePath));
+            properties.add(from("NORMALIZE_PATH", constants::normalizePath, AwsV4HttpSigner.class));
         }
         if (constants.chunkEncodingEnabled() != null) {
-            properties.add(from("CHUNK_ENCODING_ENABLED", constants::chunkEncodingEnabled));
+            properties.add(from("CHUNK_ENCODING_ENABLED", constants::chunkEncodingEnabled, AwsV4HttpSigner.class));
         }
         return properties;
     }
 
-    private static SignerPropertyValueProvider from(String name, Supplier<Object> valueSupplier) {
+    private static SignerPropertyValueProvider from(String name,
+                                                    Supplier<Object> valueSupplier,
+                                                    Class<? extends AwsV4FamilyHttpSigner> containingClass) {
         return SignerPropertyValueProvider.builder()
-                                          .containingClass(AwsV4HttpSigner.class)
+                                          .containingClass(containingClass)
                                           .fieldName(name)
                                           .constantValueSupplier(valueSupplier)
                                           .build();
     }
+
+    private static Builder getSigv4aAuthSchemeBuilder(AuthTrait authTrait) {
+        Builder sigv4aBuilder = builder()
+            .schemeId(AwsV4aAuthScheme.SCHEME_ID)
+            .authSchemeClass(AwsV4aAuthScheme.class);
+
+        addCommonSigv4aProperties(sigv4aBuilder);
+
+        if (authTrait.isUnsignedPayload()) {
+            sigv4aBuilder.addProperty(from("PAYLOAD_SIGNING_ENABLED", () -> false, AwsV4aHttpSigner.class));
+        }
+        return sigv4aBuilder;
+    }
+
+    private static void addCommonSigv4aProperties(Builder builder) {
+        builder.addProperty(SignerPropertyValueProvider.builder()
+                                                       .containingClass(AwsV4aHttpSigner.class)
+                                                       .fieldName("SERVICE_SIGNING_NAME")
+                                                       .valueEmitter((spec, utils) -> spec.add("$S", utils.signingName()))
+                                                       .build())
+               .addProperty(SignerPropertyValueProvider.builder()
+                                                       .containingClass(AwsV4aHttpSigner.class)
+                                                       .fieldName("REGION_SET")
+                                                       .valueEmitter((spec, utils) -> spec.add("$L", "params.regionSet()"))
+                                                       .build());
+    }
+
 }
