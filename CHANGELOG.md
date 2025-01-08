@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.48__ __2025-01-08__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation to clarify the RestoreDBClusterToPointInTime description.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Asia Pacific (Thailand) Region (ap-southeast-7) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds support for IPv6 for SageMaker HyperPod cluster nodes.
+
 # __2.29.47__ __2025-01-07__
 ## __AWS CloudHSM V2__
   - ### Features
