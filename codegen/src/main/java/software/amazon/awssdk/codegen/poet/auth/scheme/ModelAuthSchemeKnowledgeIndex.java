@@ -79,22 +79,25 @@ public final class ModelAuthSchemeKnowledgeIndex {
     }
 
     /**
-     * Returns a map from list of operations to the list of auth-types modeled for those operations. The values are taken directly
-     * from the model {@link OperationModel#getAuth()} method.
+     * Returns a map from a list of operations to the list of auth-types modeled for those operations.
+     * The {@link AuthTrait} values are taken directly from the {@link OperationModel}
      */
     private Map<List<String>, List<AuthTrait>> operationsToAuthOptions() {
-        // Create a map from lists of AuthTrait to lists of operation names
-        Map<List<AuthTrait>, List<String>> authOptionToOperations =
+        // Group operations by their shared AuthTraits.
+        // The map's keys are AuthTrait lists, and the values are lists of operation names.
+        Map<List<AuthTrait>, List<String>> authTraitToOperations =
             intermediateModel.getOperations()
                              .entrySet()
                              .stream()
                              .filter(kvp -> !kvp.getValue().getAuth().isEmpty())
                              .collect(Collectors.groupingBy(
-                                 kvp -> toAuthOptions(kvp.getValue()),
+                                 kvp -> toAuthTrait(kvp.getValue()),
                                  Collectors.mapping(Map.Entry::getKey, Collectors.toList())
                              ));
 
-        Map<List<String>, List<AuthTrait>> operationsToAuthOption = authOptionToOperations
+        // Convert the map to have operation names as keys and AuthTrait options as values,
+        // sorted by the first operation name in each group.
+        Map<List<String>, List<AuthTrait>> operationsToAuthOption = authTraitToOperations
             .entrySet()
             .stream()
             .sorted(Comparator.comparing(kvp -> kvp.getValue().get(0)))
@@ -105,7 +108,7 @@ public final class ModelAuthSchemeKnowledgeIndex {
         List<AuthTrait> serviceDefaults = serviceDefaultAuthOption();
 
         // Handle operations with defaults
-        List<String> operationsWithDefaults = authOptionToOperations.remove(serviceDefaults);
+        List<String> operationsWithDefaults = authTraitToOperations.remove(serviceDefaults);
         if (operationsWithDefaults != null) {
             operationsToAuthOption.remove(operationsWithDefaults);
         }
@@ -113,7 +116,11 @@ public final class ModelAuthSchemeKnowledgeIndex {
         return operationsToAuthOption;
     }
 
-    private List<AuthTrait> toAuthOptions(OperationModel operation) {
+    /**
+     * Converts an {@link OperationModel} to a list of {@link AuthTrait} instances based on the authentication related traits
+     * defined in the {@link OperationModel}.
+     */
+    private List<AuthTrait> toAuthTrait(OperationModel operation) {
         return operation.getAuth().stream()
                         .map(authType -> AuthTrait.builder()
                                                   .authType(authType)
@@ -121,8 +128,6 @@ public final class ModelAuthSchemeKnowledgeIndex {
                                                   .build())
                         .collect(Collectors.toList());
     }
-
-
 
     /**
      * Similar to {@link #operationsToModeledMetadata()} computes a map from operations to codegen metadata objects. The service
