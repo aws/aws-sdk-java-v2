@@ -109,12 +109,6 @@ recipeList:
       newVersion: 2.29.48
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-iot1clickdevices
-      newGroupId: software.amazon.awssdk
-      newArtifactId: iot1clickdevices
-      newVersion: 2.29.48
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-pcaconnectorscep
       newGroupId: software.amazon.awssdk
       newArtifactId: pcaconnectorscep
@@ -1582,12 +1576,6 @@ recipeList:
       oldArtifactId: aws-java-sdk-batch
       newGroupId: software.amazon.awssdk
       newArtifactId: batch
-      newVersion: 2.29.48
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-iot1clickprojects
-      newGroupId: software.amazon.awssdk
-      newArtifactId: iot1clickprojects
       newVersion: 2.29.48
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: com.amazonaws
