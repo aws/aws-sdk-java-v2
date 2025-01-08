@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Adds support for IPv6 for SageMaker HyperPod cluster nodes."
+}
