@@ -107,9 +107,15 @@ public class UploadDirectoryHelper {
         iterablePublisher.subscribe(bufferingSubscriber);
         CompletableFutureUtils.forwardExceptionTo(returnFuture, allOfFutures);
 
-        allOfFutures.whenComplete((r, t) -> returnFuture.complete(CompletedDirectoryUpload.builder()
-                                                                                  .failedTransfers(failedFileUploads)
-                                                                                  .build()));
+        allOfFutures.whenComplete((r, t) -> {
+            if (t != null) {
+                returnFuture.completeExceptionally(SdkClientException.create("Failed to send request", t));
+                return;
+            }
+            returnFuture.complete(CompletedDirectoryUpload.builder()
+                                                          .failedTransfers(failedFileUploads)
+                                                          .build());
+        });
     }
 
     private void validateDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
