@@ -72,8 +72,20 @@ public class S3EventNotification {
      * Any extra fields will be ignored.
      * @param json the notification message in json format
      * @return an instance of notification message S3EventNotification
+     * @see S3EventNotification#fromInputStream
      */
     public S3EventNotification fromJson(InputStream json) {
+        return S3EventNotificationReader.create().read(json);
+    }
+
+    /**
+     * Converts a json representation of the notification message to an instance of S3EventNotification. Any missing fields
+     * of the json will be null in the resulting object.
+     * Any extra fields will be ignored.
+     * @param json the notification message in json format
+     * @return an instance of notification message S3EventNotification
+     */
+    public static S3EventNotification fromInputStream(InputStream json) {
         return S3EventNotificationReader.create().read(json);
     }
 
