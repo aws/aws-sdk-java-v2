@@ -1,4 +1,72 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.48__ __2025-01-08__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation to clarify the RestoreDBClusterToPointInTime description.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Asia Pacific (Thailand) Region (ap-southeast-7) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds support for IPv6 for SageMaker HyperPod cluster nodes.
+
+# __2.29.47__ __2025-01-07__
+## __AWS CloudHSM V2__
+  - ### Features
+    - Adds support to ModifyCluster for modifying a Cluster's Hsm Type.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This release makes Amazon DynamoDB point-in-time-recovery (PITR) to be configurable. You can set PITR recovery period for each table individually to between 1 and 35 days.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds support for importing images from ISO disk files. Added new ImportDiskImage API operation.
+
+# __2.29.46__ __2025-01-06__
+## __AWS IoT Secure Tunneling__
+  - ### Features
+    - Adds dualstack endpoint support for IoT Secure Tunneling
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Supply Chain__
+  - ### Features
+    - Allow vanity DNS domain when creating a new ASC instance
+
+## __S3 Event Notifications__
+  - ### Bugfixes
+    - Fixed a bug where null values are not handled properly when `S3EventNotification#fromJson` is invoked, throwing `IllegalArgumentException`. See [#5730](https://github.com/aws/aws-sdk-java-v2/issues/5730)
+
+# __2.29.45__ __2025-01-03__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Adding SDK reference examples for Amazon ECS operations.
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Doc only update for Route 53 Domains that fixes several customer-reported issues
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This change is only for updating the model regexp of CopySource which is not for validation but only for documentation and user guide change.
+
 # __2.29.44__ __2025-01-02__
 ## __AWS AppSync__
   - ### Features

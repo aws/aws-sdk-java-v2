@@ -98,8 +98,6 @@ public final class NamingConversionUtils {
         CLIENT_MAPPING.put("IAMRolesAnywhere", "RolesAnywhere");
         CLIENT_MAPPING.put("IdentityManagement", "Iam");
         CLIENT_MAPPING.put("IdentityStore", "Identitystore");
-        CLIENT_MAPPING.put("IoT1ClickDevices", "Iot1ClickDevices");
-        CLIENT_MAPPING.put("IoT1ClickProjects", "Iot1ClickProjects");
         CLIENT_MAPPING.put("IoTDeviceAdvisor", "IotDeviceAdvisor");
         CLIENT_MAPPING.put("IoTEvents", "IotEvents");
         CLIENT_MAPPING.put("IoTEventsData", "IotEventsData");
