@@ -16,7 +16,7 @@
         "aws-xml-protocol": { "packageName": "AwsJavaSdk-Core-AwsXmlProtocol" },
         "smithy-rpcv2-protocol": { "packageName": "AwsJavaSdk-Core-SmithyRpcV2Protocol" },
         "cloudwatch-metric-publisher": { "packageName": "AwsJavaSdk-MetricPublisher-CloudWatch" },
-        "emf-metric-publisher": { "packageName": "AwsJavaSdk-MetricPublisher-Emf" },
+        "emf-metric-logging-publisher": { "packageName": "AwsJavaSdk-MetricPublisher-Emf" },
         "codegen": { "packageName": "AwsJavaSdk-Codegen" },
         "dynamodb-enhanced": { "packageName": "AwsJavaSdk-DynamoDb-Enhanced" },
         "http-client-spi": { "packageName": "AwsJavaSdk-HttpClient" },

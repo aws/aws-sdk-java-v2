@@ -1785,7 +1785,7 @@ Amazon AutoScaling, etc).</description>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>emf-metric-publisher</artifactId>
+            <artifactId>emf-metric-logging-publisher</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
