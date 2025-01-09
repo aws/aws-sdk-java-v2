@@ -20,22 +20,43 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Properties;
-import org.junit.BeforeClass;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
+import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class AbstractTestCase extends AwsTestBase {
     protected static KinesisClient client;
     protected static KinesisAsyncClient asyncClient;
+    protected static KinesisAsyncClient asyncClientAlpnH2;
 
-    @BeforeClass
+    @BeforeAll
     public static void init() throws IOException {
         setUpCredentials();
         KinesisClientBuilder builder = KinesisClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
         setEndpoint(builder);
         client = builder.build();
         asyncClient = KinesisAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        asyncClientAlpnH2 = KinesisAsyncClient.builder()
+                                        .httpClient(NettyNioAsyncHttpClient.builder()
+                                                                           .protocol(Protocol.ALPN_H2)
+                                                                           .build())
+                                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+    }
+
+    @AfterAll
+    public static void cleanUp() {
+        client.close();
+        asyncClient.close();
+        asyncClientAlpnH2.close();
+    }
+
+    protected static Stream<KinesisAsyncClient> asyncClients() {
+        return Stream.of(asyncClient, asyncClientAlpnH2);
     }
 
     private static void setEndpoint(KinesisClientBuilder builder) throws IOException {

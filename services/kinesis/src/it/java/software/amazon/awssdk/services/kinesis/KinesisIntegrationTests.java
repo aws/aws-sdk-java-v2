@@ -15,16 +15,14 @@
 
 package software.amazon.awssdk.services.kinesis;
 
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import org.hamcrest.Matchers;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.kinesis.model.CreateStreamRequest;
@@ -53,7 +51,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
     public void testDescribeBogusStream() {
         try {
             client.describeStream(DescribeStreamRequest.builder().streamName("bogus-stream-name").build());
-            Assert.fail("Expected ResourceNotFoundException");
+            fail("Expected ResourceNotFoundException");
         } catch (ResourceNotFoundException exception) {
             // Ignored or expected.
         }
@@ -63,7 +61,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
     public void testDeleteBogusStream() {
         try {
             client.deleteStream(DeleteStreamRequest.builder().streamName("bogus-stream-name").build());
-            Assert.fail("Expected ResourceNotFoundException");
+            fail("Expected ResourceNotFoundException");
         } catch (ResourceNotFoundException exception) {
             // Ignored or expected.
         }
@@ -77,7 +75,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
                                                            .shardId("bogus-shard-id")
                                                            .shardIteratorType(ShardIteratorType.LATEST)
                                                            .build());
-            Assert.fail("Expected ResourceNotFoundException");
+            fail("Expected ResourceNotFoundException");
         } catch (ResourceNotFoundException exception) {
             // Ignored or expected.
         }
@@ -87,7 +85,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
     public void testGetFromNullIterator() {
         try {
             client.getRecords(GetRecordsRequest.builder().build());
-            Assert.fail("Expected InvalidArgumentException");
+            fail("Expected InvalidArgumentException");
         } catch (SdkServiceException exception) {
             // Ignored or expected.
         }
@@ -97,7 +95,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
     public void testGetFromBogusIterator() {
         try {
             client.getRecords(GetRecordsRequest.builder().shardIterator("bogusmonkeys").build());
-            Assert.fail("Expected InvalidArgumentException");
+            fail("Expected InvalidArgumentException");
         } catch (InvalidArgumentException exception) {
             // Ignored or expected.
         }
@@ -118,7 +116,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
             List<Shard> shards = waitForStream(streamName);
             Thread.sleep(1000);
 
-            Assert.assertEquals(1, shards.size());
+            assertThat(shards.size()).isEqualTo(1);
             Shard shard = shards.get(0);
 
             putRecord(streamName, "See No Evil");
@@ -133,7 +131,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
         }
     }
 
-    private void testGets(final String streamName, final Shard shard) throws InterruptedException {
+    private void testGets(String streamName, Shard shard) {
         // Wait for the shard to be in an active state
         // Get an iterator for the first shard.
         GetShardIteratorResponse iteratorResult = client.getShardIterator(
@@ -143,10 +141,10 @@ public class KinesisIntegrationTests extends AbstractTestCase {
                                        .shardIteratorType(ShardIteratorType.AT_SEQUENCE_NUMBER)
                                        .startingSequenceNumber(shard.sequenceNumberRange().startingSequenceNumber())
                                        .build());
-        Assert.assertNotNull(iteratorResult);
+        assertThat(iteratorResult).isNotNull();
 
         String iterator = iteratorResult.shardIterator();
-        Assert.assertNotNull(iterator);
+        assertThat(iterator).isNotNull();
 
         GetRecordsResponse result = getOneRecord(iterator);
         validateRecord(result.records().get(0), "See No Evil");
@@ -157,7 +155,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
         result = client.getRecords(GetRecordsRequest.builder()
                                                     .shardIterator(result.nextShardIterator())
                                                     .build());
-        assertTrue(result.records().isEmpty());
+        assertThat(result.records()).isEmpty();
     }
 
     private GetRecordsResponse getOneRecord(String iterator) {
@@ -170,23 +168,23 @@ public class KinesisIntegrationTests extends AbstractTestCase {
         while (true) {
             tries += 1;
             if (tries > 100) {
-                Assert.fail("Failed to read any records after 100 seconds");
+                fail("Failed to read any records after 100 seconds");
             }
 
             result = client.getRecords(GetRecordsRequest.builder()
                                                         .shardIterator(iterator)
                                                         .limit(1)
                                                         .build());
-            Assert.assertNotNull(result);
-            Assert.assertNotNull(result.records());
-            Assert.assertNotNull(result.nextShardIterator());
+            assertThat(result).isNotNull();
+            assertThat(result.records()).isNotNull();
+            assertThat(result.nextShardIterator()).isNotNull();
 
             records = result.records();
             if (records.size() > 0) {
                 long arrivalTime = records.get(0).approximateArrivalTimestamp().toEpochMilli();
                 Long delta = Math.abs(Instant.now().minusMillis(arrivalTime).toEpochMilli());
                 // Assert that the arrival date is within 5 minutes of the current date to make sure it unmarshalled correctly.
-                assertThat(delta, Matchers.lessThan(60 * 5000L));
+                assertThat(delta).isLessThan(60 * 5000L);
                 break;
             }
 
@@ -201,26 +199,25 @@ public class KinesisIntegrationTests extends AbstractTestCase {
         return result;
     }
 
-    private void validateRecord(final Record record, String data) {
-        Assert.assertNotNull(record);
+    private void validateRecord(Record record, String data) {
+        assertThat(record).isNotNull();
+        assertThat(record.sequenceNumber()).isNotNull();
 
-        Assert.assertNotNull(record.sequenceNumber());
         new BigInteger(record.sequenceNumber());
 
         String value = record.data() == null ? null : record.data().asUtf8String();
-        Assert.assertEquals(data, value);
+        assertThat(value).isEqualTo(data);
 
-        Assert.assertNotNull(record.partitionKey());
+        assertThat(record.partitionKey()).isNotNull();
 
         // The timestamp should be relatively recent
-        Assert.assertTrue(Duration.between(record.approximateArrivalTimestamp(), Instant.now()).toMinutes() < 5);
+        assertThat(Duration.between(record.approximateArrivalTimestamp(), Instant.now()).toMinutes()).isLessThan(5);
     }
 
 
 
 
-    private PutRecordResponse putRecord(final String streamName,
-                                      final String data) {
+    private PutRecordResponse putRecord(String streamName, String data) {
 
         PutRecordResponse result = client.putRecord(
                 PutRecordRequest.builder()
@@ -228,31 +225,28 @@ public class KinesisIntegrationTests extends AbstractTestCase {
                                 .partitionKey("foobar")
                                 .data(SdkBytes.fromUtf8String(data))
                                 .build());
-        Assert.assertNotNull(result);
-
-        Assert.assertNotNull(result.shardId());
-        Assert.assertNotNull(result.sequenceNumber());
+        assertThat(result).isNotNull();
+        assertThat(result.shardId()).isNotNull();
+        assertThat(result.sequenceNumber()).isNotNull();
 
         return result;
     }
 
 
-    private List<Shard> waitForStream(final String streamName)
-            throws InterruptedException {
+    private List<Shard> waitForStream(String streamName) throws InterruptedException {
 
         while (true) {
             DescribeStreamResponse result = client.describeStream(DescribeStreamRequest.builder().streamName(streamName).build());
-            Assert.assertNotNull(result);
+            assertThat(result).isNotNull();
 
             StreamDescription description = result.streamDescription();
-            Assert.assertNotNull(description);
-
-            Assert.assertEquals(streamName, description.streamName());
-            Assert.assertNotNull(description.streamARN());
-            Assert.assertFalse(description.hasMoreShards());
+            assertThat(description).isNotNull();
+            assertThat(description.streamName()).isEqualTo(streamName);
+            assertThat(description.streamARN()).isNotNull();
+            assertThat(description.hasMoreShards()).isFalse();
 
             StreamStatus status = description.streamStatus();
-            Assert.assertNotNull(status);
+            assertThat(status).isNotNull();
 
             if (status == StreamStatus.ACTIVE) {
                 List<Shard> shards = description.shards();
@@ -264,49 +258,44 @@ public class KinesisIntegrationTests extends AbstractTestCase {
             if (!(status == StreamStatus.CREATING
                   || status == StreamStatus.UPDATING)) {
 
-                Assert.fail("Unexpected status '" + status + "'");
+                fail("Unexpected status '" + status + "'");
             }
 
             Thread.sleep(1000);
         }
     }
 
-    private void validateShards(final List<Shard> shards) {
-        Assert.assertNotNull(shards);
-        Assert.assertFalse(shards.isEmpty());
+    private void validateShards(List<Shard> shards) {
+        assertThat(shards).isNotNull().isNotEmpty();
 
         for (Shard shard : shards) {
-            Assert.assertNotNull(shard);
-            Assert.assertNotNull(shard.shardId());
+            assertThat(shard).isNotNull();
+            assertThat(shard.shardId()).isNotNull();
 
             validateHashKeyRange(shard.hashKeyRange());
             validateSQNRange(shard.sequenceNumberRange());
         }
-
     }
 
-    private void validateHashKeyRange(final HashKeyRange range) {
-
-        Assert.assertNotNull(range);
-        Assert.assertNotNull(range.startingHashKey());
-        Assert.assertNotNull(range.endingHashKey());
+    private void validateHashKeyRange(HashKeyRange range) {
+        assertThat(range).isNotNull();
+        assertThat(range.startingHashKey()).isNotNull();
+        assertThat(range.endingHashKey()).isNotNull();
 
         BigInteger start = new BigInteger(range.startingHashKey());
         BigInteger end = new BigInteger(range.endingHashKey());
-        Assert.assertTrue(start.compareTo(end) <= 0);
+        assertThat(start).isLessThanOrEqualTo(end);
     }
 
-    private void validateSQNRange(final SequenceNumberRange range) {
-        Assert.assertNotNull(range);
-        Assert.assertNotNull(range.startingSequenceNumber());
+    private void validateSQNRange(SequenceNumberRange range) {
+        assertThat(range).isNotNull();
+        assertThat(range.startingSequenceNumber()).isNotNull();
 
         BigInteger start = new BigInteger(range.startingSequenceNumber());
 
         if (range.endingSequenceNumber() != null) {
             BigInteger end = new BigInteger(range.endingSequenceNumber());
-
-            Assert.assertTrue(start.compareTo(end) <= 0);
+            assertThat(start).isLessThanOrEqualTo(end);
         }
     }
-
 }

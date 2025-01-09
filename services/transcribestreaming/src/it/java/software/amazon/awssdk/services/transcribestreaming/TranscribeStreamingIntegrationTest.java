@@ -15,7 +15,6 @@
 package software.amazon.awssdk.services.transcribestreaming;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
@@ -27,9 +26,9 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -41,6 +40,8 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
@@ -60,41 +61,58 @@ import software.amazon.awssdk.utils.Logger;
  */
 public class TranscribeStreamingIntegrationTest {
     private static final Logger log = Logger.loggerFor(TranscribeStreamingIntegrationTest.class);
+    private TranscribeStreamingAsyncClient client;
+    private MetricPublisher mockPublisher;
 
-    private static TranscribeStreamingAsyncClient client;
-
-    private static MetricPublisher mockPublisher;
-
-    @BeforeClass
-    public static void setup() {
-        mockPublisher = mock(MetricPublisher.class);
-        client = TranscribeStreamingAsyncClient.builder()
-                                               .region(Region.US_EAST_1)
-                                               .overrideConfiguration(b -> b.addExecutionInterceptor(new VerifyHeaderInterceptor())
-                                               .addMetricPublisher(mockPublisher))
-                                               .credentialsProvider(getCredentials())
-                                               .build();
+    private static Stream<Protocol> h2Protocols() {
+        return Stream.of(Protocol.HTTP2, Protocol.ALPN_H2, Protocol.ALPN_AUTO);
     }
 
-    @Test
-    public void testFileWith16kRate() throws InterruptedException {
-        CompletableFuture<Void> result = client.startStreamTranscription(getRequest(16_000),
-                                                                         new AudioStreamPublisher(
-                                                                             getInputStream("silence_16kHz_s16le.wav")),
-                                                                         TestResponseHandlers.responseHandlerBuilder_Classic());
+    @ParameterizedTest
+    @MethodSource("h2Protocols")
+    public void testFileWith16kRate(Protocol protocol) throws Exception {
+        initClient(protocol);
+
+        CompletableFuture<Void> result = client.startStreamTranscription(
+            getRequest(16_000),
+            new AudioStreamPublisher(getInputStream("silence_16kHz_s16le.wav")),
+            TestResponseHandlers.responseHandlerBuilder_Classic());
 
         result.join();
         verifyMetrics();
     }
 
-    @Test
-    public void testFileWith8kRate() throws ExecutionException, InterruptedException {
-        CompletableFuture<Void> result = client.startStreamTranscription(getRequest(8_000),
-                                                                         new AudioStreamPublisher(
-                                                                             getInputStream("silence_8kHz_s16le.wav")),
-                                                                         TestResponseHandlers.responseHandlerBuilder_Consumer());
+    @ParameterizedTest
+    @MethodSource("h2Protocols")
+    public void testFileWith8kRate(Protocol protocol) throws Exception {
+        initClient(protocol);
+
+        CompletableFuture<Void> result = client.startStreamTranscription(
+            getRequest(8_000),
+            new AudioStreamPublisher(getInputStream("silence_8kHz_s16le.wav")),
+            TestResponseHandlers.responseHandlerBuilder_Consumer());
 
         result.get();
+    }
+
+    private void initClient(Protocol protocol) {
+        if (client != null) {
+            client.close();
+        }
+        if (mockPublisher != null) {
+            mockPublisher.close();
+        }
+
+        mockPublisher = mock(MetricPublisher.class);
+        client = TranscribeStreamingAsyncClient.builder()
+                                               .region(Region.US_EAST_1)
+                                               .overrideConfiguration(b -> b.addExecutionInterceptor(new VerifyHeaderInterceptor())
+                                                                            .addMetricPublisher(mockPublisher))
+                                               .credentialsProvider(getCredentials())
+                                               .httpClient(NettyNioAsyncHttpClient.builder()
+                                                                                  .protocol(protocol)
+                                                                                  .build())
+                                               .build();
     }
 
     private static AwsCredentialsProvider getCredentials() {
@@ -112,15 +130,14 @@ public class TranscribeStreamingIntegrationTest {
     private InputStream getInputStream(String audioFileName) {
         try {
             File inputFile = new File(getClass().getClassLoader().getResource(audioFileName).getFile());
-            assertTrue(inputFile.exists());
-            InputStream audioStream = new FileInputStream(inputFile);
-            return audioStream;
+            assertThat(inputFile).exists();
+            return new FileInputStream(inputFile);
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private class AudioStreamPublisher implements Publisher<AudioStream> {
+    private static final class AudioStreamPublisher implements Publisher<AudioStream> {
         private final InputStream inputStream;
 
         private AudioStreamPublisher(InputStream inputStream) {
@@ -170,5 +187,4 @@ public class TranscribeStreamingIntegrationTest {
         assertThat(attemptCollection.metricValues(CoreMetric.SERVICE_CALL_DURATION).get(0))
             .isGreaterThanOrEqualTo(Duration.ofMillis(100));
     }
-
 }

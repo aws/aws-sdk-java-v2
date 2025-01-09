@@ -17,7 +17,9 @@ package software.amazon.awssdk.services.kinesis;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.services.kinesis.model.DescribeLimitsResponse;
 import software.amazon.awssdk.services.kinesis.model.KinesisResponse;
 
@@ -29,9 +31,10 @@ public class KinesisResponseMetadataIntegrationTest extends AbstractTestCase {
         verifyResponseMetadata(response);
     }
 
-    @Test
-    public void async_shouldContainResponseMetadata() {
-        DescribeLimitsResponse response = asyncClient.describeLimits().join();
+    @ParameterizedTest
+    @MethodSource("asyncClients")
+    public void async_shouldContainResponseMetadata(KinesisAsyncClient kinesisAsyncClient) {
+        DescribeLimitsResponse response = kinesisAsyncClient.describeLimits().join();
         verifyResponseMetadata(response);
     }
 

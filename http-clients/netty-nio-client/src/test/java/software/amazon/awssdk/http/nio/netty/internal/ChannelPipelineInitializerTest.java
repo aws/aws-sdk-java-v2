@@ -17,59 +17,138 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.channel.pool.ChannelPool;
-import io.netty.handler.codec.http2.Http2SecurityUtil;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http2.Http2MultiplexHandler;
+import io.netty.handler.ssl.ApplicationProtocolNames;
+import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.SslHandshakeCompletionEvent;
 import io.netty.handler.ssl.SslProvider;
-import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.net.ssl.SSLException;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.http.Protocol;
 
 public class ChannelPipelineInitializerTest {
 
-    private ChannelPipelineInitializer pipelineInitializer;
-
-    private URI targetUri;
+    private final URI TARGET_URI = URI.create("https://some-awesome-service-1234.amazonaws.com:8080");
 
     @Test
-    public void channelConfigOptionCheck() throws SSLException {
-        targetUri = URI.create("https://some-awesome-service-1234.amazonaws.com:8080");
-
-        SslContext sslContext = SslContextBuilder.forClient()
-                                                 .sslProvider(SslProvider.JDK)
-                                                 .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
-                                                 .build();
-
-        AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
-
-        NettyConfiguration nettyConfiguration = new NettyConfiguration(GLOBAL_HTTP_DEFAULTS);
-
-        pipelineInitializer = new ChannelPipelineInitializer(Protocol.HTTP1_1,
-                                                             sslContext,
-                                                             SslProvider.JDK,
-                                                             100,
-                                                             1024,
-                                                             Duration.ZERO,
-                                                             channelPoolRef,
-                                                             nettyConfiguration,
-                                                             targetUri);
-
+    public void channelConfigOptionCheck() {
+        ChannelPipelineInitializer pipelineInitializer = createChannelPipelineInitializer(Protocol.HTTP1_1);
         Channel channel = new EmbeddedChannel();
-
         pipelineInitializer.channelCreated(channel);
 
         assertThat(channel.config().getOption(ChannelOption.ALLOCATOR), is(UnpooledByteBufAllocator.DEFAULT));
+    }
+
+    @Test
+    public void protocolAlpnAuto_shouldUseAlpn() {
+        ChannelPipelineInitializer pipelineInitializer = createChannelPipelineInitializer(Protocol.ALPN_AUTO);
+        Channel channel = new EmbeddedChannel();
+        pipelineInitializer.channelCreated(channel);
+
+        assertNotNull(channel.pipeline().get(ApplicationProtocolNegotiationHandler.class));
+    }
+
+    @Test
+    public void protocolAlpnAuto_serverDoesNotSupportAlpn_shouldDefaultToHttp11() throws Exception {
+        ChannelPipelineInitializer pipelineInitializer = createChannelPipelineInitializer(Protocol.ALPN_AUTO);
+        Channel channel = new EmbeddedChannel();
+        pipelineInitializer.channelCreated(channel);
+
+        simulateServerAlpnUnsupported(channel);
+
+        assertTrue(channel.attr(PROTOCOL_FUTURE).get().isDone());
+        assertEquals(Protocol.HTTP1_1, channel.attr(PROTOCOL_FUTURE).get().join());
+    }
+
+    private void simulateServerAlpnUnsupported(Channel channel) throws Exception {
+        SslHandler mockSslHandler = mock(SslHandler.class);
+        when(mockSslHandler.applicationProtocol()).thenReturn(null);
+        channel.pipeline().replace(SslHandler.class, "MockSslHandler", mockSslHandler);
+
+        assertNotNull(channel.pipeline().get(ApplicationProtocolNegotiationHandler.class));
+
+        ChannelHandlerContext ctx = channel.pipeline().context(ApplicationProtocolNegotiationHandler.class);
+        channel.pipeline().get(ApplicationProtocolNegotiationHandler.class).userEventTriggered(ctx, SslHandshakeCompletionEvent.SUCCESS);
+    }
+
+    @Test
+    public void protocolAlpnAuto_shouldSetupPipelineCorrectlyForHttp11() throws Exception {
+        ChannelPipelineInitializer pipelineInitializer = createChannelPipelineInitializer(Protocol.ALPN_AUTO);
+        Channel channel = new EmbeddedChannel();
+        pipelineInitializer.channelCreated(channel);
+
+        simulateServerAlpnSuccess(channel, ApplicationProtocolNames.HTTP_1_1);
+
+        assertTrue(channel.attr(PROTOCOL_FUTURE).get().isDone());
+        assertEquals(Protocol.HTTP1_1, channel.attr(PROTOCOL_FUTURE).get().join());
+        assertNotNull(channel.pipeline().get(HttpClientCodec.class));
+    }
+
+    private static Stream<Protocol> alpnProtocols() {
+        return Stream.of(Protocol.ALPN_AUTO, Protocol.ALPN_H2);
+    }
+
+    @ParameterizedTest
+    @MethodSource("alpnProtocols")
+    public void protocolAlpn_shouldSetupPipelineCorrectlyForHttp2(Protocol protocol) throws Exception {
+        ChannelPipelineInitializer pipelineInitializer = createChannelPipelineInitializer(protocol);
+        Channel channel = new EmbeddedChannel();
+        pipelineInitializer.channelCreated(channel);
+
+        simulateServerAlpnSuccess(channel, ApplicationProtocolNames.HTTP_2);
+
+        assertNotNull(channel.pipeline().get(Http2MultiplexHandler.class));
+    }
+
+    private void simulateServerAlpnSuccess(Channel channel, String protocol) throws Exception {
+        SslHandler mockSslHandler = mock(SslHandler.class);
+        when(mockSslHandler.applicationProtocol()).thenReturn(protocol);
+        channel.pipeline().replace(SslHandler.class, "MockSslHandler", mockSslHandler);
+
+        assertNotNull(channel.pipeline().get(ApplicationProtocolNegotiationHandler.class));
+
+        ChannelHandlerContext ctx = channel.pipeline().context(ApplicationProtocolNegotiationHandler.class);
+        channel.pipeline().get(ApplicationProtocolNegotiationHandler.class).userEventTriggered(ctx, SslHandshakeCompletionEvent.SUCCESS);
+    }
+
+    private ChannelPipelineInitializer createChannelPipelineInitializer(Protocol protocol) {
+        AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
+        NettyConfiguration nettyConfiguration = new NettyConfiguration(GLOBAL_HTTP_DEFAULTS);
+        SslContextProvider sslContextProvider = new SslContextProvider(nettyConfiguration,
+                                                                       protocol,
+                                                                       SslProvider.JDK);
+
+        return new ChannelPipelineInitializer(protocol,
+                                              sslContextProvider.sslContext(),
+                                              SslProvider.JDK,
+                                              100,
+                                              1024,
+                                              Duration.ZERO,
+                                              channelPoolRef,
+                                              nettyConfiguration,
+                                              TARGET_URI);
 
     }
 }

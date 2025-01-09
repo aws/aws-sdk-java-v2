@@ -22,9 +22,13 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TLS_TRUST_M
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
 import io.netty.handler.codec.http2.Http2SecurityUtil;
+import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.SslProvider;
+import java.util.stream.Stream;
 import javax.net.ssl.TrustManager;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -34,19 +38,28 @@ import software.amazon.awssdk.utils.AttributeMap;
 
 public class SslContextProviderTest {
 
-    @Test
-    public void sslContext_h2WithJdk_h2CiphersShouldBeUsed() {
+    private static Stream<Protocol> h2Protocols() {
+        return Stream.of(Protocol.HTTP2,
+                         Protocol.ALPN_AUTO,
+                         Protocol.ALPN_H2);
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("h2Protocols")
+    public void sslContext_h2WithJdk_h2CiphersShouldBeUsed(Protocol protocol) {
         SslContextProvider sslContextProvider = new SslContextProvider(new NettyConfiguration(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS),
-                                                                       Protocol.HTTP2,
+                                                                       protocol,
                                                                        SslProvider.JDK);
 
         assertThat(sslContextProvider.sslContext().cipherSuites()).isSubsetOf(Http2SecurityUtil.CIPHERS);
     }
 
-    @Test
-    public void sslContext_h2WithOpenSsl_h2CiphersShouldBeUsed() {
+    @ParameterizedTest
+    @MethodSource("h2Protocols")
+    public void sslContext_h2WithOpenSsl_h2CiphersShouldBeUsed(Protocol protocol) {
         SslContextProvider sslContextProvider = new SslContextProvider(new NettyConfiguration(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS),
-                                                                       Protocol.HTTP2,
+                                                                       protocol,
                                                                        SslProvider.OPENSSL);
 
         assertThat(sslContextProvider.sslContext().cipherSuites()).isSubsetOf(Http2SecurityUtil.CIPHERS);
@@ -106,5 +119,26 @@ public class SslContextProviderTest {
                                                                                                + "TrustAllCertificates is also "
                                                                                                + "set");
 
+    }
+
+    @Test
+    public void protocolAlpnAuto_shouldUseAlpnWithH2AndHttp1() {
+        SslContextProvider sslContextProvider = new SslContextProvider(new NettyConfiguration(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS),
+                                                                       Protocol.ALPN_AUTO,
+                                                                       SslProvider.JDK);
+
+        assertThat(sslContextProvider.sslContext().applicationProtocolNegotiator()).isNotNull();
+        assertThat(sslContextProvider.sslContext().applicationProtocolNegotiator().protocols()).contains(ApplicationProtocolNames.HTTP_2, ApplicationProtocolNames.HTTP_1_1);
+    }
+
+    @Test
+    public void protocolAlpnH2_shouldUseAlpnWithH2Only() {
+        SslContextProvider sslContextProvider = new SslContextProvider(new NettyConfiguration(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS),
+                                                                       Protocol.ALPN_H2,
+                                                                       SslProvider.JDK);
+
+        assertThat(sslContextProvider.sslContext().applicationProtocolNegotiator()).isNotNull();
+        assertThat(sslContextProvider.sslContext().applicationProtocolNegotiator().protocols()).contains(ApplicationProtocolNames.HTTP_2);
+        assertThat(sslContextProvider.sslContext().applicationProtocolNegotiator().protocols()).doesNotContain(ApplicationProtocolNames.HTTP_1_1);
     }
 }
