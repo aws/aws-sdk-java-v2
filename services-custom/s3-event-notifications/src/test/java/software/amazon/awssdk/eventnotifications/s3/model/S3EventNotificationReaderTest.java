@@ -498,7 +498,7 @@ class S3EventNotificationReaderTest {
                            + "   ]"
                            + "}";
 
-        S3EventNotification event = S3EventNotification.fromInputStream(new ByteArrayInputStream(eventJson.getBytes()));
+        S3EventNotification event = S3EventNotification.fromJson(new ByteArrayInputStream(eventJson.getBytes()));
 
         assertThat(event.getRecords()).hasSize(1);
 
