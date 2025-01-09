@@ -16,6 +16,8 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.handler.codec.http2.Http2SecurityUtil;
+import io.netty.handler.ssl.ApplicationProtocolConfig;
+import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
@@ -50,27 +52,49 @@ public final class SslContextProvider {
 
     public SslContext sslContext() {
         try {
-            return SslContextBuilder.forClient()
-                                    .sslProvider(sslProvider)
-                                    .ciphers(getCiphers(), SupportedCipherSuiteFilter.INSTANCE)
-                                    .trustManager(trustManagerFactory)
-                                    .keyManager(keyManagerFactory)
-                                    .build();
+            SslContextBuilder builder = SslContextBuilder.forClient()
+                                                         .sslProvider(sslProvider)
+                                                         .ciphers(getCiphers(), SupportedCipherSuiteFilter.INSTANCE)
+                                                         .trustManager(trustManagerFactory)
+                                                         .keyManager(keyManagerFactory);
+
+            if (protocol == Protocol.ALPN_AUTO || protocol == Protocol.ALPN_H2) {
+                builder.applicationProtocolConfig(
+                    new ApplicationProtocolConfig(ApplicationProtocolConfig.Protocol.ALPN,
+                                                  ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
+                                                  ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
+                                                  getAlpnProtocols()));
+            }
+
+            return builder.build();
         } catch (SSLException e) {
             throw new RuntimeException(e);
         }
     }
 
+    private String[] getAlpnProtocols() {
+        if (protocol == Protocol.ALPN_AUTO) {
+            return new String[]{ApplicationProtocolNames.HTTP_2, ApplicationProtocolNames.HTTP_1_1};
+        }
+        if (protocol == Protocol.ALPN_H2) {
+            return new String[]{ApplicationProtocolNames.HTTP_2};
+        }
+        return null;
+    }
+
     /**
-     * HTTP/2: per Rfc7540, there is a blocked list of cipher suites for HTTP/2, so setting
+     * HTTP/2 and ALPN_H2: per Rfc7540, there is a blocked list of cipher suites for HTTP/2, so setting
      * the recommended cipher suites directly here
      *
-     * HTTP/1.1: return null so that the default ciphers suites will be used
+     * HTTP/1.1 and ALPN_AUTO: return null so that the default ciphers suites will be used
      * https://github.com/netty/netty/blob/0dc246eb129796313b58c1dbdd674aa289f72cad/handler/src/main/java/io/netty/handler/ssl
      * /SslUtils.java
      */
     private List<String> getCiphers() {
-        return protocol == Protocol.HTTP2 ? Http2SecurityUtil.CIPHERS : null;
+        if (protocol == Protocol.HTTP2 || protocol == Protocol.ALPN_H2) {
+            return Http2SecurityUtil.CIPHERS;
+        }
+        return null;
     }
 
     private TrustManagerFactory getTrustManager(NettyConfiguration configuration) {

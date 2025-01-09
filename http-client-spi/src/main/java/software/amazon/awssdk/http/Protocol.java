@@ -17,6 +17,29 @@ package software.amazon.awssdk.http;
 
 public enum Protocol {
 
+    /**
+     * Uses HTTP/1.1 with prior knowledge.
+     */
     HTTP1_1,
-    HTTP2
+
+    /**
+     * Uses HTTP/2 with prior knowledge.
+     */
+    HTTP2,
+
+    /**
+     * Uses ALPN (Application-Layer Protocol Negotiation) to determine the protocol.
+     * Prefers HTTP/2 over HTTP/1.1, but the server's protocol preference takes precedence.
+     * <p>
+     * Note: For Java 8, ALPN is only supported in versions 1.8.0_251 and newer.
+     */
+    ALPN_AUTO,
+
+    /**
+     * Uses ALPN (Application-Layer Protocol Negotiation) to enforce HTTP/2 only.
+     * Does not allow fallback to HTTP/1.1; the connection will fail if HTTP/2 is not supported by the server.
+     * <p>
+     * Note: For Java 8, ALPN is only supported in versions 1.8.0_251 and newer.
+     */
+    ALPN_H2
 }

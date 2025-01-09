@@ -68,9 +68,14 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private boolean isClosed = false;
 
     AwsCrtHttpClientBase(AwsCrtClientBuilderBase builder, AttributeMap config) {
-        if (config.get(PROTOCOL) == Protocol.HTTP2) {
+        Protocol protocol = config.get(PROTOCOL);
+        if (protocol == Protocol.HTTP2) {
             throw new UnsupportedOperationException("HTTP/2 is not supported in AwsCrtHttpClient yet. Use "
                                                + "NettyNioAsyncHttpClient instead.");
+        }
+        if (protocol == Protocol.ALPN_AUTO || protocol == Protocol.ALPN_H2) {
+            throw new UnsupportedOperationException("ALPN is not supported in AwsCrtHttpClient yet. Use "
+                                                    + "NettyNioAsyncHttpClient instead.");
         }
 
         try (ClientBootstrap clientBootstrap = new ClientBootstrap(null, null);
