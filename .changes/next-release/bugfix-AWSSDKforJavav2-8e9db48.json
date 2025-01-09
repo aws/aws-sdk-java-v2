@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "add missing static method for creating S3EventNotification from input stream directly"
+    "description": "add static modifier to fromJson(InputStream) method of S3EventNotification"
 }
