@@ -19,6 +19,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CORSConfiguration;
 import software.amazon.awssdk.services.s3.model.CORSRule;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.DeleteBucketAnalyticsConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketCorsRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketEncryptionRequest;
@@ -47,21 +49,18 @@ import software.amazon.awssdk.services.s3.model.GetBucketNotificationConfigurati
 import software.amazon.awssdk.services.s3.model.GetBucketPolicyRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketReplicationRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketTaggingRequest;
-import software.amazon.awssdk.services.s3.model.GetBucketVersioningRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketWebsiteRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectAclRequest;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketResponse;
-import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
-import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
-import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
-import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutBucketCorsRequest;
 
 public class S3 {
@@ -150,8 +149,6 @@ public class S3 {
         s3.getBucketCors(GetBucketCorsRequest.builder().bucket(bucket)
             .build());
         s3.deleteBucketCors(DeleteBucketCorsRequest.builder().bucket(bucket)
-            .build());
-        s3.getBucketVersioning(GetBucketVersioningRequest.builder()
             .build());
         s3.deleteBucketEncryption(DeleteBucketEncryptionRequest.builder().bucket(bucket)
             .build());

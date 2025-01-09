@@ -45,8 +45,7 @@ public class EnumGettersToV2Test implements RewriteTest {
             throw new RuntimeException(e);
         }
 
-        spec.parser(Java8Parser.builder().classpath("sns"))
-            .expectedCyclesThatMakeChanges(2);
+        spec.parser(Java8Parser.builder().classpath("sns"));
     }
 
     @Test

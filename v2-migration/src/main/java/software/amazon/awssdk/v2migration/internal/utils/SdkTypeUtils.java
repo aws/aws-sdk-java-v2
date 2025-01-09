@@ -37,12 +37,14 @@ import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithWebIdentityCredentialsProvider;
 import software.amazon.awssdk.services.sts.auth.StsGetSessionTokenCredentialsProvider;
 import software.amazon.awssdk.utils.ImmutableMap;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Type creation and checking utilities.
  */
 @SdkInternalApi
 public final class SdkTypeUtils {
+
     /**
      * V2 core classes with a static factory method
      */
@@ -54,6 +56,8 @@ public final class SdkTypeUtils {
                     .put(AwsSessionCredentials.class.getCanonicalName(), 3)
                     .put(StaticCredentialsProvider.class.getCanonicalName(), 1)
                     .build();
+
+    private static Logger logger = Logger.loggerFor(SdkTypeUtils.class);
 
     private static final Pattern V1_SERVICE_CLASS_PATTERN =
         Pattern.compile("com\\.amazonaws\\.services\\.[a-zA-Z0-9]+\\.[a-zA-Z0-9]+");
@@ -78,21 +82,44 @@ public final class SdkTypeUtils {
     /**
      * V2 core classes with a builder
      */
-    private static final Set<String> V2_CORE_CLASSES_WITH_BUILDER =
-        new HashSet<>(Arrays.asList(ClientOverrideConfiguration.class.getCanonicalName(),
-                                    DefaultCredentialsProvider.class.getCanonicalName(),
-                                    ProfileCredentialsProvider.class.getCanonicalName(),
-                                    ContainerCredentialsProvider.class.getCanonicalName(),
-                                    InstanceProfileCredentialsProvider.class.getCanonicalName(),
-                                    StsAssumeRoleCredentialsProvider.class.getCanonicalName(),
-                                    StsGetSessionTokenCredentialsProvider.class.getCanonicalName(),
-                                    StsAssumeRoleWithWebIdentityCredentialsProvider.class.getCanonicalName(),
-                                    ProcessCredentialsProvider.class.getCanonicalName()));
+    private static final Map<String, String> V2_CORE_CLASS_TO_BUILDER =
+        ImmutableMap.<String, String>builder()
+                    .put(ClientOverrideConfiguration.class.getCanonicalName(),
+                         ClientOverrideConfiguration.Builder.class.getCanonicalName())
+                    .put(AwsBasicCredentials.class.getCanonicalName(),
+                         AwsBasicCredentials.Builder.class.getCanonicalName())
+                    .put(AwsSessionCredentials.class.getCanonicalName(),
+                         AwsSessionCredentials.Builder.class.getCanonicalName())
+                    .put(DefaultCredentialsProvider.class.getCanonicalName(),
+                         DefaultCredentialsProvider.class.getCanonicalName())
+                    .put(ProfileCredentialsProvider.class.getCanonicalName(),
+                         ProfileCredentialsProvider.class.getCanonicalName())
+                    .put(ContainerCredentialsProvider.class.getCanonicalName(),
+                         ContainerCredentialsProvider.class.getCanonicalName())
+                    .put(InstanceProfileCredentialsProvider.class.getCanonicalName(),
+                         InstanceProfileCredentialsProvider.Builder.class.getCanonicalName())
+                    .put(StsAssumeRoleCredentialsProvider.class.getCanonicalName(),
+                         StsAssumeRoleCredentialsProvider.Builder.class.getCanonicalName())
+                    .put(StsGetSessionTokenCredentialsProvider.class.getCanonicalName(),
+                         StsGetSessionTokenCredentialsProvider.Builder.class.getCanonicalName())
+                    .put(StsAssumeRoleWithWebIdentityCredentialsProvider.class.getCanonicalName(),
+                         StsAssumeRoleWithWebIdentityCredentialsProvider.Builder.class.getCanonicalName())
+                    .put(ProcessCredentialsProvider.class.getCanonicalName(),
+                         ProcessCredentialsProvider.Builder.class.getCanonicalName())
+                    .build();
+
+    private static final Set<String> V2_CORE_CLASS_BUILDERS =
+        new HashSet<>(V2_CORE_CLASS_TO_BUILDER.values());
 
     private static final Pattern V2_CLIENT_BUILDER_PATTERN = Pattern.compile(
         "software\\.amazon\\.awssdk\\.services\\.[a-zA-Z0-9]+\\.[a-zA-Z0-9]+Builder");
 
     private static final Set<String> V1_SERVICES_PACKAGE_NAMES = new HashSet<>();
+
+    private static final Set<String> PACKAGES_TO_SKIP = new HashSet<>(
+        Arrays.asList("com.amazonaws.services.s3.transfer",
+                      "com.amazonaws.services.dynamodbv2.datamodeling",
+                      "com.amazonaws.services.lambda.invoke"));
 
     static {
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.sagemakeredgemanager");
@@ -478,28 +505,40 @@ public final class SdkTypeUtils {
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.kms");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.robomaker");
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.applicationinsights");
-        V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.s3.transfer");
-        V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.dynamodbv2.datamodeling");
-        V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.lambda.invoke");
     }
 
     private SdkTypeUtils() {
     }
 
-    public static boolean isV1Class(JavaType type) {
-        return type != null && type.isAssignableFrom(V1_SERVICE_CLASS_PATTERN);
+    public static boolean isCustomSdk(String fullyQualifiedName) {
+        String rootPackage = findRootPackage(fullyQualifiedName, "com.amazonaws.services.");
+
+        return !V1_SERVICES_PACKAGE_NAMES.contains(rootPackage);
     }
 
-    public static boolean isCustomSdk(String fullyQualifiedName) {
-        int lastIndexOfDot = fullyQualifiedName.lastIndexOf('.');
-        // i.e.., com.amazonaws.services.SERVICE.CLASSNAME
-        String packagePrefix = fullyQualifiedName.substring(0, lastIndexOfDot);
+    public static boolean isSupportedV1Class(JavaType.FullyQualified fullyQualified) {
+        String fullyQualifiedName = fullyQualified.getFullyQualifiedName();
 
-        int lastIndexOfDotModelClass = packagePrefix.lastIndexOf('.');
-        // i.e., com.amazonaws.services.SERVICE.model.CLASSNAME
-        String packagePrefixModelClass = packagePrefix.substring(0, lastIndexOfDotModelClass);
+        if (!fullyQualifiedName.startsWith("com.amazonaws.") ||
+            PACKAGES_TO_SKIP.stream().anyMatch(fullyQualifiedName::startsWith)) {
+            return false;
+        }
 
-        return !V1_SERVICES_PACKAGE_NAMES.contains(packagePrefix) && !V1_SERVICES_PACKAGE_NAMES.contains(packagePrefixModelClass);
+        if (fullyQualifiedName.startsWith("com.amazonaws.services.")) {
+            if (isCustomSdk(fullyQualifiedName)) {
+                logger.info(() -> String.format("Skipping transformation for %s because it is a custom SDK", fullyQualifiedName));
+                return false;
+            }
+
+            return true;
+        }
+
+        return isV1ModelClass(fullyQualified) || isV1ClientClass(fullyQualified);
+    }
+
+    private static String findRootPackage(String pkg, String packagePrefix) {
+        int mayBeModuleLength = pkg.substring(packagePrefix.length(), pkg.length()).indexOf(".");
+        return mayBeModuleLength == -1 ? pkg : pkg.substring(0, packagePrefix.length() + mayBeModuleLength);
     }
 
     public static boolean isV1ModelClass(JavaType type) {
@@ -550,8 +589,12 @@ public final class SdkTypeUtils {
         return type != null && V2_CORE_CLASSES_WITH_STATIC_FACTORY.containsKey(type.getFullyQualifiedName());
     }
 
-    private static boolean isV2CoreClassesWithBuilder(String fqcn) {
-        return V2_CORE_CLASSES_WITH_BUILDER.contains(fqcn);
+    public static boolean isV2CoreClassesWithBuilder(String fqcn) {
+        return V2_CORE_CLASS_TO_BUILDER.containsKey(fqcn);
+    }
+
+    public static boolean isV2CoreClassBuilder(String fqcn) {
+        return V2_CORE_CLASS_BUILDERS.contains(fqcn);
     }
 
     public static JavaType.FullyQualified v2Builder(JavaType.FullyQualified type) {
@@ -561,6 +604,8 @@ public final class SdkTypeUtils {
         String fqcn;
         if (isV2ModelClass(type)) {
             fqcn = String.format("%s.%s", type.getFullyQualifiedName(), "Builder");
+        } else if (V2_CORE_CLASS_TO_BUILDER.containsKey(type.getFullyQualifiedName())) {
+            fqcn = V2_CORE_CLASS_TO_BUILDER.get(type.getFullyQualifiedName());
         } else {
             fqcn = String.format("%s%s", type.getFullyQualifiedName(), "Builder");
         }

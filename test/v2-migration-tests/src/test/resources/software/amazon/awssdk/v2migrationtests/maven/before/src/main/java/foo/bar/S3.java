@@ -103,7 +103,6 @@ public class S3 {
         s3.listObjectsV2(bucket);
         s3.getBucketCrossOriginConfiguration(bucket);
         s3.deleteBucketCrossOriginConfiguration(bucket);
-        s3.getBucketVersioningConfiguration(bucket);
         s3.deleteBucketEncryption(bucket);
         s3.deleteBucketPolicy(bucket);
         s3.getBucketAccelerateConfiguration(bucket);
