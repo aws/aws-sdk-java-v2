@@ -21,7 +21,7 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import software.amazon.awssdk.benchmark.apicall.MetricsEnabledBenchmark;
 import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
-import software.amazon.awssdk.metrics.publishers.emf.EmfMetricPublisher;
+import software.amazon.awssdk.metrics.publishers.emf.EmfMetricLoggingPublisher;
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
@@ -29,11 +29,11 @@ public class EmfMetricPublisherBenchmark extends MetricsEnabledBenchmark {
 
     @Override
     protected <T extends SdkClientBuilder<T, ?>> T enableMetrics(T clientBuilder) {
-        EmfMetricPublisher emfMetricPublisher = EmfMetricPublisher.builder()
-                                                                  .namespace("EmfMetricPublisherBenchmark")
-                                                                  .logGroupName("LogGroupName")
-                                                                  .build();
+        EmfMetricLoggingPublisher emfMetricLoggingPublisher = EmfMetricLoggingPublisher.builder()
+                                                                                       .namespace("EmfMetricPublisherBenchmark")
+                                                                                       .logGroupName("LogGroupName")
+                                                                                       .build();
 
-        return clientBuilder.overrideConfiguration(c -> c.addMetricPublisher(emfMetricPublisher));
+        return clientBuilder.overrideConfiguration(c -> c.addMetricPublisher(emfMetricLoggingPublisher));
     }
 }

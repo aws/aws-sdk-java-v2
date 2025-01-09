@@ -48,14 +48,14 @@ import software.amazon.awssdk.utils.Validate;
  *
  * <p>
  * The EMF publisher converts metric collections into JSON-formatted log entries that conform to the
- * CloudWatch EMF specification. These logs are written to the "/aws/emf/metrics" log group by default.
+ * CloudWatch EMF specification. The logGroupName field is required for EMF to work.
  * CloudWatch automatically processes these logs to generate corresponding metrics that can be used for
  * monitoring and alerting.
  * </p>
  *
  * @snippet
- * // Create a CloudWatchMetricPublisher using a custom namespace.
- * MetricPublisher emfMetricPublisher = EmfMetricPublisher.builder()
+ * // Create a EmfMetricLoggingPublisher using a custom namespace.
+ * MetricPublisher emfMetricLoggingPublisher = EmfMetricLoggingPublisher.builder()
  *                                                     .logGroupName("myLogGroupName")
  *                                                     .namespace("myApplication")
  *                                                     .build();
@@ -70,13 +70,13 @@ import software.amazon.awssdk.utils.Validate;
 @ThreadSafe
 @Immutable
 @SdkPublicApi
-public final class EmfMetricPublisher implements MetricPublisher {
+public final class EmfMetricLoggingPublisher implements MetricPublisher {
 
-    private static final Logger logger = Logger.loggerFor(EmfMetricPublisher.class);
+    private static final Logger logger = Logger.loggerFor(EmfMetricLoggingPublisher.class);
     private final MetricEmfConverter metricConverter;
 
 
-    private EmfMetricPublisher(Builder builder) {
+    private EmfMetricLoggingPublisher(Builder builder) {
         Validate.paramNotNull(builder.logGroupName, "logGroupName");
 
         EmfMetricConfiguration config = new EmfMetricConfiguration.Builder()
@@ -108,10 +108,14 @@ public final class EmfMetricPublisher implements MetricPublisher {
                 logger.info(() -> emfString);
             }
         } catch (Exception e) {
-            logger.warn(() -> "Failed to log metrics in EMF format", e);
+            logger.error(() -> "Failed to log metrics in EMF format", e);
         }
     }
 
+    /**
+     * Closes this metric publisher. This implementation is empty as the EMF metric logging publisher
+     * does not maintain any resources that require explicit cleanup.
+     */
     @Override
     public void close() {
     }
@@ -214,10 +218,10 @@ public final class EmfMetricPublisher implements MetricPublisher {
 
 
         /**
-         * Build a {@link EmfMetricPublisher} using the configuration currently configured on this publisher.
+         * Build a {@link EmfMetricLoggingPublisher} using the configuration currently configured on this publisher.
          */
-        public EmfMetricPublisher build() {
-            return new EmfMetricPublisher(this);
+        public EmfMetricLoggingPublisher build() {
+            return new EmfMetricLoggingPublisher(this);
         }
 
     }

@@ -24,7 +24,7 @@
         <version>2.29.35-SNAPSHOT</version>
     </parent>
 
-    <artifactId>emf-metric-publisher</artifactId>
+    <artifactId>emf-metric-logging-publisher</artifactId>
     <name>AWS Java SDK :: Metric Publishers :: Emf</name>
     <packaging>jar</packaging>
 

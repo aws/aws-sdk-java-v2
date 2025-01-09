@@ -27,20 +27,20 @@ import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.testutils.LogCaptor;
 
 
-public class EmfMetricPublisherTest extends LogCaptor.LogCaptorTestBase{
+public class EmfMetricLoggingPublisherTest extends LogCaptor.LogCaptorTestBase{
 
-    private EmfMetricPublisher.Builder publisherBuilder;
+    private EmfMetricLoggingPublisher.Builder publisherBuilder;
 
 
     @BeforeEach
     void setUp() {
-        publisherBuilder = EmfMetricPublisher.builder();
+        publisherBuilder = EmfMetricLoggingPublisher.builder();
     }
 
     @Test
     void Publish_noLogGroupName_throwException() {
         assertThatThrownBy(() -> {
-            EmfMetricPublisher publisher = publisherBuilder.build();
+            EmfMetricLoggingPublisher publisher = publisherBuilder.build();
             publisher.publish(null);
         })
             .isInstanceOf(NullPointerException.class)
@@ -49,19 +49,19 @@ public class EmfMetricPublisherTest extends LogCaptor.LogCaptorTestBase{
 
     @Test
     void Publish_nullMetrics() {
-        EmfMetricPublisher publisher = publisherBuilder.logGroupName("/aws/lambda/emfMetricTest").build();
+        EmfMetricLoggingPublisher publisher = publisherBuilder.logGroupName("/aws/lambda/emfMetricTest").build();
         publisher.publish(null);
         assertThat(loggedEvents()).hasSize(1);
     }
 
     @Test
     void Publish_metricCollectionWithChild() {
-        EmfMetricPublisher publisher = publisherBuilder.dimensions(HttpMetric.HTTP_CLIENT_NAME)
-                                                       .logGroupName("/aws/lambda/emfMetricTest")
-                                                       .namespace("ExampleSDKV2MetricsEmf")
-                                                       .metricLevel(MetricLevel.INFO)
-                                                       .metricCategories(MetricCategory.HTTP_CLIENT)
-                                                       .build();
+        EmfMetricLoggingPublisher publisher = publisherBuilder.dimensions(HttpMetric.HTTP_CLIENT_NAME)
+                                                              .logGroupName("/aws/lambda/emfMetricTest")
+                                                              .namespace("ExampleSDKV2MetricsEmf")
+                                                              .metricLevel(MetricLevel.INFO)
+                                                              .metricCategories(MetricCategory.HTTP_CLIENT)
+                                                              .build();
 
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(HttpMetric.HTTP_CLIENT_NAME, "apache-http-client");
@@ -77,7 +77,7 @@ public class EmfMetricPublisherTest extends LogCaptor.LogCaptorTestBase{
 
     @Test
     void Publish_multipleMetrics() {
-        EmfMetricPublisher publisher = publisherBuilder.logGroupName("/aws/lambda/emfMetricTest").build();
+        EmfMetricLoggingPublisher publisher = publisherBuilder.logGroupName("/aws/lambda/emfMetricTest").build();
         MetricCollector metricCollector = MetricCollector.create("test");
         metricCollector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
         metricCollector.reportMetric(HttpMetric.CONCURRENCY_ACQUIRE_DURATION, java.time.Duration.ofMillis(100));
