@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeBuild",
+    "contributor": "",
+    "description": "AWS CodeBuild Now Supports BuildBatch in Reserved Capacity and Lambda"
+}
