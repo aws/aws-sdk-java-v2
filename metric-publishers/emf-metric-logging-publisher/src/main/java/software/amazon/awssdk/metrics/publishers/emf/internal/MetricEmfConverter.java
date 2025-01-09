@@ -120,7 +120,7 @@ public class MetricEmfConverter {
             current.stream().forEach(metricRecord -> {
                 SdkMetric<?> metric = metricRecord.metric();
                 String metricName = metric.name();
-                if (isDimension(metric)) {
+                if (isDimension(metric) && !dimensions.contains(metricName)) {
                     dimensions.add(metricName);
                 }
 

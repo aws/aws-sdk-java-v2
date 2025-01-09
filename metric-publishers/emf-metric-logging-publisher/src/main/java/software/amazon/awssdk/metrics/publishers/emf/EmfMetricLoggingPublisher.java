@@ -48,14 +48,14 @@ import software.amazon.awssdk.utils.Validate;
  *
  * <p>
  * The EMF publisher converts metric collections into JSON-formatted log entries that conform to the
- * CloudWatch EMF specification. These logs are written to the "/aws/emf/metrics" log group by default.
+ * CloudWatch EMF specification. The logGroupName field is required for EMF to work.
  * CloudWatch automatically processes these logs to generate corresponding metrics that can be used for
  * monitoring and alerting.
  * </p>
  *
  * @snippet
- * // Create a CloudWatchMetricPublisher using a custom namespace.
- * MetricPublisher emfMetricPublisher = EmfMetricPublisher.builder()
+ * // Create a EmfMetricLoggingPublisher using a custom namespace.
+ * MetricPublisher emfMetricLoggingPublisher = EmfMetricLoggingPublisher.builder()
  *                                                     .logGroupName("myLogGroupName")
  *                                                     .namespace("myApplication")
  *                                                     .build();
