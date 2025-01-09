@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Firewall Management Service",
-    "contributor": "",
-    "description": "AWS Firewall Manager now lets you combine multiple resource tags using the logical AND operator or the logical OR operator."
-}

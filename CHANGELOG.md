@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.49__ __2025-01-09__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild Now Supports BuildBatch in Reserved Capacity and Lambda
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release expands AWS Compute Optimizer rightsizing recommendation support for Amazon EC2 Auto Scaling groups to include those with scaling policies and multiple instance types.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager now lets you combine multiple resource tags using the logical AND operator or the logical OR operator.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix an issue where if the request transformation function given to UploadDirectoryRequest throws an error when it is invoked, the error would be silently swallowed. Now, the completion future will be completed exceptionally if the function throws.
+
 # __2.29.48__ __2025-01-08__
 ## __AWS SDK for Java v2__
   - ### Features
