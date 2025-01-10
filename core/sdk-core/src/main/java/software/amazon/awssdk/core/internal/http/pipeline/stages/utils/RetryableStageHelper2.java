@@ -162,9 +162,11 @@ public final class RetryableStageHelper2 {
                                   .message("Request attempt " + (i + 1) + " failure: " + exceptionMessageHistory.get(i))
                                   .writableStackTrace(false)
                                   .build();
+
             lastException.addSuppressed(pastException);
         }
-        return lastException.toBuilder().retryCount(retriesAttemptedSoFar()).build();
+        lastException.setAttempts(retriesAttemptedSoFar() + 1);
+        return lastException;
     }
 
     /**
@@ -221,11 +223,12 @@ public final class RetryableStageHelper2 {
             setLastException(lastException.getCause());
         } else if (lastException instanceof SdkException) {
             this.lastException = (SdkException) lastException;
-            exceptionMessageHistory.add(this.lastException.getMessage());
+            exceptionMessageHistory.add(this.lastException.getRawMessage());
         } else {
             this.lastException = SdkClientException.create("Unable to execute HTTP request: " + lastException.getMessage(),
                                                            lastException);
-            exceptionMessageHistory.add(this.lastException.getMessage());
+            this.lastException.setAttempts(retriesAttemptedSoFar());
+            exceptionMessageHistory.add(this.lastException.getRawMessage());
         }
     }
 
