@@ -18,6 +18,7 @@ package software.amazon.awssdk.metrics.publishers.emf.internal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.SdkMetric;
+import software.amazon.awssdk.utils.LambdaSystemSetting;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -45,10 +47,12 @@ public final class EmfMetricConfiguration {
 
     private EmfMetricConfiguration(Builder builder) {
         this.namespace = builder.namespace == null ? DEFAULT_NAMESPACE : builder.namespace;
-        this.logGroupName = builder.logGroupName;
+        this.logGroupName = resolveLogGroupName(builder);
         this.dimensions = builder.dimensions == null ? DEFAULT_DIMENSIONS : new HashSet<>(builder.dimensions);
         this.metricCategories = builder.metricCategories == null ? DEFAULT_CATEGORIES : new HashSet<>(builder.metricCategories);
         this.metricLevel = builder.metricLevel == null ? DEFAULT_METRIC_LEVEL : builder.metricLevel;
+
+        Validate.paramNotNull(this.logGroupName, "logGroupName");
     }
 
 
@@ -85,7 +89,6 @@ public final class EmfMetricConfiguration {
         }
 
         public EmfMetricConfiguration build() {
-            Validate.notNull(logGroupName, "logGroupName must be configured for publishing emf format log");
             return new EmfMetricConfiguration(this);
         }
     }
@@ -108,6 +111,20 @@ public final class EmfMetricConfiguration {
 
     public MetricLevel metricLevel() {
         return metricLevel;
+    }
+
+    private String resolveLogGroupName(Builder builder) {
+        boolean hasLogGroupName = builder.logGroupName != null;
+        Optional<String> functionName = LambdaSystemSetting.AWS_LAMBDA_FUNCTION_NAME.getStringValue();
+        boolean isLambdaEnvironment = functionName.isPresent();
+
+        if (hasLogGroupName) {
+            return builder.logGroupName;
+        }
+        if (isLambdaEnvironment) {
+            return "/aws/lambda/" + functionName.get();
+        }
+        return null;
     }
 
 }
