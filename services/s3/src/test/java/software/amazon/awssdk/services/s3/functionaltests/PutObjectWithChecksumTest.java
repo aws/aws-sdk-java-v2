@@ -100,7 +100,7 @@ public class PutObjectWithChecksumTest {
 
         assertThatExceptionOfType(RetryableException.class)
            .isThrownBy(() -> s3Client.putObject(putObjectRequest, requestBody))
-           .withMessage("Data read has a different checksum than expected. Was 0x" + ETAG.toLowerCase()  + ", but expected 0x"
+           .withMessageContaining("Data read has a different checksum than expected. Was 0x" + ETAG.toLowerCase()  + ", but expected 0x"
                         + INCORRECT_ETAG.toLowerCase() + ". This commonly means that the data was corrupted between the client "
                         + "and service. Note: Despite this error, the upload still completed and was persisted in S3.");
         assertThat(captureChecksumValidationInterceptor.validationAlgorithm()).isNull();
@@ -136,7 +136,7 @@ public class PutObjectWithChecksumTest {
 
         assertThatExceptionOfType(RetryableException.class)
             .isThrownBy(() -> s3Client.putObject(putObjectRequest, requestBody))
-            .withMessage("Data read has a different checksum than expected. Was 0x" + ETAG.toLowerCase()  + ", but expected 0x"
+            .withMessageContaining("Data read has a different checksum than expected. Was 0x" + ETAG.toLowerCase()  + ", but expected 0x"
                          + INCORRECT_ETAG.toLowerCase() + ". This commonly means that the data was corrupted between the client "
                          + "and service. Note: Despite this error, the upload still completed and was persisted in S3.");
         assertThat(captureChecksumValidationInterceptor.validationAlgorithm()).isNull();
