@@ -49,6 +49,7 @@ import software.amazon.awssdk.services.s3.model.GetBucketNotificationConfigurati
 import software.amazon.awssdk.services.s3.model.GetBucketPolicyRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketReplicationRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketTaggingRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketVersioningRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketWebsiteRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectAclRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -149,6 +150,8 @@ public class S3 {
         s3.getBucketCors(GetBucketCorsRequest.builder().bucket(bucket)
             .build());
         s3.deleteBucketCors(DeleteBucketCorsRequest.builder().bucket(bucket)
+            .build());
+        s3.getBucketVersioning(GetBucketVersioningRequest.builder().bucket(bucket)
             .build());
         s3.deleteBucketEncryption(DeleteBucketEncryptionRequest.builder().bucket(bucket)
             .build());
