@@ -28,15 +28,23 @@ import software.amazon.awssdk.utils.builder.Buildable;
 public class SdkException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
-    private final int retryCount;
+    private int attempts;
 
     protected SdkException(Builder builder) {
         super(messageFromBuilder(builder), builder.cause(), true, writableStackTraceFromBuilder(builder));
-        this.retryCount = builder.retryCount();
+        this.attempts = builder.attemptCount();
     }
 
-    public int getRetryCount() {
-        return retryCount;
+    public int getAttempts() {
+        return attempts;
+    }
+
+    public void setAttempts(int attempts) {
+        this.attempts = attempts;
+    }
+    
+    public String getRawMessage() {
+        return super.getMessage();
     }
 
     /**
@@ -52,6 +60,17 @@ public class SdkException extends RuntimeException {
         }
 
         return null;
+    }
+
+    @Override
+    public String getMessage() {
+        String message = super.getMessage();
+        if (attempts > 0) {
+            StringBuilder formattedMessage = new StringBuilder();
+            formattedMessage.append(message).append(" ").append("(Attempts: ").append(attempts).append(")");
+            return formattedMessage.toString();
+        }
+        return message;
     }
 
     private static boolean writableStackTraceFromBuilder(Builder builder) {
@@ -118,16 +137,16 @@ public class SdkException extends RuntimeException {
 
         /**
          *
-         * @param retryCount The retry count
+         * @param attemptCount The attempt count
          * @return This method for object chaining
          */
-        Builder retryCount(int retryCount);
+        Builder attemptCount(int attemptCount);
 
         /**
-         * The number of times a request was retried before this exception was thrown
-         * @return the retry count
+         * The number of times a request was attempted before this exception was thrown
+         * @return the attempt count
          */
-        int retryCount();
+        int attemptCount();
 
         /**
          * Specifies whether the stack trace in this exception can be written.
@@ -155,7 +174,7 @@ public class SdkException extends RuntimeException {
 
         protected Throwable cause;
         protected String message;
-        protected int retryCount = 1;
+        protected int attemptCount;
         protected Boolean writableStackTrace;
 
         protected BuilderImpl() {
@@ -164,7 +183,7 @@ public class SdkException extends RuntimeException {
         protected BuilderImpl(SdkException ex) {
             this.cause = ex.getCause();
             this.message = ex.getMessage();
-            this.retryCount = ex.getRetryCount();
+            this.attemptCount = ex.attempts;
         }
 
 
@@ -206,23 +225,23 @@ public class SdkException extends RuntimeException {
             return message;
         }
 
-        public int getRetryCount() {
-            return retryCount;
+        public int getAttemptCount() {
+            return attemptCount;
         }
 
-        public void setRetryCount(int retryCount) {
-            this.retryCount = retryCount;
+        public void setAttemptCount(int attemptCount) {
+            this.attemptCount = attemptCount;
         }
 
         @Override
-        public Builder retryCount(int retryCount) {
-            this.retryCount = retryCount;
+        public Builder attemptCount(int attemptCount) {
+            this.attemptCount = attemptCount;
             return this;
         }
 
         @Override
-        public int retryCount() {
-            return retryCount;
+        public int attemptCount() {
+            return attemptCount;
         }
 
         @Override

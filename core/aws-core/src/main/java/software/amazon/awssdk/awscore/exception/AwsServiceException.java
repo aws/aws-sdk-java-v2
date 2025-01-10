@@ -60,6 +60,7 @@ public class AwsServiceException extends SdkServiceException {
 
     @Override
     public String getMessage() {
+        String message = getRawMessage();
         if (awsErrorDetails != null) {
             StringJoiner details = new StringJoiner(", ", "(", ")");
             details.add("Service: " + awsErrorDetails().serviceName());
@@ -68,17 +69,22 @@ public class AwsServiceException extends SdkServiceException {
             if (extendedRequestId() != null) {
                 details.add("Extended Request ID: " + extendedRequestId());
             }
-            String message = super.getMessage();
             if (message == null) {
                 message = awsErrorDetails().errorMessage();
             }
             if (message == null) {
                 return details.toString();
             }
-            return message + " " + details;
+            StringBuilder formattedMessage = new StringBuilder(message);
+            if (getAttempts() > 0) {
+                formattedMessage.append(" ").append(details).append(" ").append("(Attempts: ").append(getAttempts()).append(")");
+                return formattedMessage.toString();
+            }
+            formattedMessage.append(" ").append(details);
+            return formattedMessage.toString();
         }
 
-        return super.getMessage();
+        return message;
     }
 
     @Override
@@ -174,6 +180,12 @@ public class AwsServiceException extends SdkServiceException {
         Builder message(String message);
 
         @Override
+        Builder attemptCount(int attemptCount);
+
+
+
+
+        @Override
         Builder cause(Throwable t);
 
         @Override
@@ -235,6 +247,12 @@ public class AwsServiceException extends SdkServiceException {
         @Override
         public Builder message(String message) {
             this.message = message;
+            return this;
+        }
+
+        @Override
+        public Builder attemptCount(int attemptCount) {
+            this.attemptCount = attemptCount;
             return this;
         }
 
