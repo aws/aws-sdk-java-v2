@@ -59,7 +59,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
     protected final int exceptionCost;
     protected final TokenBucketStore tokenBucketStore;
     protected final Set<String> defaultsAdded;
-    protected final Boolean useClientDefaults;
+    protected final boolean useClientDefaults;
 
     BaseRetryStrategy(Logger log, Builder builder) {
         this.log = log;

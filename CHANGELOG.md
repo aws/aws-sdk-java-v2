@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.50__ __2025-01-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Fixed typos in the descriptions.
+
+## __Amazon Redshift__
+  - ### Features
+    - Additions to the PubliclyAccessible and Encrypted parameters clarifying what the defaults are.
+
+## __Amazon Security Lake__
+  - ### Features
+    - Doc only update for ServiceName that fixes several customer-reported issues
+
 # __2.29.49__ __2025-01-09__
 ## __AWS CodeBuild__
   - ### Features
