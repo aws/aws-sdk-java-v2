@@ -223,7 +223,7 @@ public final class RetryableStageHelper2 {
             setLastException(lastException.getCause());
         } else if (lastException instanceof SdkException) {
             this.lastException = (SdkException) lastException;
-            exceptionMessageHistory.add(this.lastException.getRawMessage());
+            exceptionMessageHistory.add(this.lastException.getMessage());
         } else {
             this.lastException = SdkClientException.create("Unable to execute HTTP request: " + lastException.getMessage(),
                                                            lastException);
