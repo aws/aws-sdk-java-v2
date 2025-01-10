@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Redshift",
-    "contributor": "",
-    "description": "Additions to the PubliclyAccessible and Encrypted parameters clarifying what the defaults are."
-}
