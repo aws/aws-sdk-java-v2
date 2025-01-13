@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Service",
-    "contributor": "",
-    "description": "This update provides tagging support for Transcribe's Call Analytics Jobs and Call Analytics Categories."
-}
