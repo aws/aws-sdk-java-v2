@@ -1,4 +1,67 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.51__ __2025-01-13__
+## __AWS Artifact__
+  - ### Features
+    - Support resolving regional API calls to partition's leader region endpoint.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - With this release, Bedrock Evaluation will now support latency-optimized inference for foundation models.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add support for DisconnectOnSessionTimeout flag in CreateClientVpnEndpoint and ModifyClientVpnEndpoint requests and DescribeClientVpnEndpoints responses
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This update provides tagging support for Transcribe's Call Analytics Jobs and Call Analytics Categories.
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Support updating connector configuration via UpdateConnector API. Release Operations API to monitor the status of the connector operation.
+
+# __2.29.50__ __2025-01-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Fixed typos in the descriptions.
+
+## __Amazon Redshift__
+  - ### Features
+    - Additions to the PubliclyAccessible and Encrypted parameters clarifying what the defaults are.
+
+## __Amazon Security Lake__
+  - ### Features
+    - Doc only update for ServiceName that fixes several customer-reported issues
+
+# __2.29.49__ __2025-01-09__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild Now Supports BuildBatch in Reserved Capacity and Lambda
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release expands AWS Compute Optimizer rightsizing recommendation support for Amazon EC2 Auto Scaling groups to include those with scaling policies and multiple instance types.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager now lets you combine multiple resource tags using the logical AND operator or the logical OR operator.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix an issue where if the request transformation function given to UploadDirectoryRequest throws an error when it is invoked, the error would be silently swallowed. Now, the completion future will be completed exceptionally if the function throws.
+
 # __2.29.48__ __2025-01-08__
 ## __AWS SDK for Java v2__
   - ### Features

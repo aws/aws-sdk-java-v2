@@ -8457,6 +8457,12 @@
               "tags" : [ "fips" ]
             } ]
           },
+          "ap-southeast-7" : {
+            "variants" : [ {
+              "hostname" : "elasticfilesystem-fips.ap-southeast-7.amazonaws.com",
+              "tags" : [ "fips" ]
+            } ]
+          },
           "ca-central-1" : {
             "variants" : [ {
               "hostname" : "elasticfilesystem-fips.ca-central-1.amazonaws.com",
@@ -8600,6 +8606,13 @@
             },
             "deprecated" : true,
             "hostname" : "elasticfilesystem-fips.ap-southeast-5.amazonaws.com"
+          },
+          "fips-ap-southeast-7" : {
+            "credentialScope" : {
+              "region" : "ap-southeast-7"
+            },
+            "deprecated" : true,
+            "hostname" : "elasticfilesystem-fips.ap-southeast-7.amazonaws.com"
           },
           "fips-ca-central-1" : {
             "credentialScope" : {
@@ -11232,6 +11245,7 @@
           "ap-southeast-2" : { },
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
+          "ap-southeast-5" : { },
           "ca-central-1" : { },
           "ca-west-1" : { },
           "eu-central-1" : { },
@@ -13801,6 +13815,7 @@
           "ap-southeast-2" : { },
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
+          "ap-southeast-5" : { },
           "ca-central-1" : { },
           "ca-west-1" : { },
           "eu-central-1" : { },
@@ -21604,76 +21619,211 @@
       },
       "snowball" : {
         "endpoints" : {
-          "af-south-1" : { },
-          "ap-east-1" : { },
+          "af-south-1" : {
+            "variants" : [ {
+              "hostname" : "snowball-fips.af-south-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.af-south-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.af-south-1.api.aws",
+              "tags" : [ "dualstack" ]
+            } ]
+          },
+          "ap-east-1" : {
+            "variants" : [ {
+              "hostname" : "snowball-fips.ap-east-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.ap-east-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.ap-east-1.api.aws",
+              "tags" : [ "dualstack" ]
+            } ]
+          },
           "ap-northeast-1" : {
             "variants" : [ {
               "hostname" : "snowball-fips.ap-northeast-1.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.ap-northeast-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.ap-northeast-1.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
           },
           "ap-northeast-2" : {
             "variants" : [ {
               "hostname" : "snowball-fips.ap-northeast-2.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.ap-northeast-2.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.ap-northeast-2.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
           },
           "ap-northeast-3" : {
             "variants" : [ {
               "hostname" : "snowball-fips.ap-northeast-3.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.ap-northeast-3.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.ap-northeast-3.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
           },
           "ap-south-1" : {
             "variants" : [ {
               "hostname" : "snowball-fips.ap-south-1.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.ap-south-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.ap-south-1.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
           },
           "ap-southeast-1" : {
             "variants" : [ {
               "hostname" : "snowball-fips.ap-southeast-1.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.ap-southeast-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.ap-southeast-1.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
           },
           "ap-southeast-2" : {
             "variants" : [ {
               "hostname" : "snowball-fips.ap-southeast-2.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.ap-southeast-2.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.ap-southeast-2.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
           },
-          "ap-southeast-3" : { },
+          "ap-southeast-3" : {
+            "variants" : [ {
+              "hostname" : "snowball-fips.ap-southeast-3.amazonaws.com",
+              "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.ap-southeast-3.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.ap-southeast-3.api.aws",
+              "tags" : [ "dualstack" ]
+            } ]
+          },
           "ca-central-1" : {
             "variants" : [ {
               "hostname" : "snowball-fips.ca-central-1.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.ca-central-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.ca-central-1.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
           },
           "eu-central-1" : {
             "variants" : [ {
               "hostname" : "snowball-fips.eu-central-1.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.eu-central-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.eu-central-1.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
           },
-          "eu-north-1" : { },
-          "eu-south-1" : { },
+          "eu-north-1" : {
+            "variants" : [ {
+              "hostname" : "snowball-fips.eu-north-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.eu-north-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.eu-north-1.api.aws",
+              "tags" : [ "dualstack" ]
+            } ]
+          },
+          "eu-south-1" : {
+            "variants" : [ {
+              "hostname" : "snowball-fips.eu-south-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.eu-south-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.eu-south-1.api.aws",
+              "tags" : [ "dualstack" ]
+            } ]
+          },
           "eu-west-1" : {
             "variants" : [ {
               "hostname" : "snowball-fips.eu-west-1.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.eu-west-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.eu-west-1.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
           },
           "eu-west-2" : {
             "variants" : [ {
               "hostname" : "snowball-fips.eu-west-2.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.eu-west-2.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.eu-west-2.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
           },
           "eu-west-3" : {
             "variants" : [ {
               "hostname" : "snowball-fips.eu-west-3.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.eu-west-3.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.eu-west-3.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
+          },
+          "fips-af-south-1" : {
+            "credentialScope" : {
+              "region" : "af-south-1"
+            },
+            "deprecated" : true,
+            "hostname" : "snowball-fips.af-south-1.amazonaws.com"
+          },
+          "fips-ap-east-1" : {
+            "credentialScope" : {
+              "region" : "ap-east-1"
+            },
+            "deprecated" : true,
+            "hostname" : "snowball-fips.ap-east-1.amazonaws.com"
           },
           "fips-ap-northeast-1" : {
             "credentialScope" : {
@@ -21717,6 +21867,13 @@
             "deprecated" : true,
             "hostname" : "snowball-fips.ap-southeast-2.amazonaws.com"
           },
+          "fips-ap-southeast-3" : {
+            "credentialScope" : {
+              "region" : "ap-southeast-3"
+            },
+            "deprecated" : true,
+            "hostname" : "snowball-fips.ap-southeast-3.amazonaws.com"
+          },
           "fips-ca-central-1" : {
             "credentialScope" : {
               "region" : "ca-central-1"
@@ -21730,6 +21887,20 @@
             },
             "deprecated" : true,
             "hostname" : "snowball-fips.eu-central-1.amazonaws.com"
+          },
+          "fips-eu-north-1" : {
+            "credentialScope" : {
+              "region" : "eu-north-1"
+            },
+            "deprecated" : true,
+            "hostname" : "snowball-fips.eu-north-1.amazonaws.com"
+          },
+          "fips-eu-south-1" : {
+            "credentialScope" : {
+              "region" : "eu-south-1"
+            },
+            "deprecated" : true,
+            "hostname" : "snowball-fips.eu-south-1.amazonaws.com"
           },
           "fips-eu-west-1" : {
             "credentialScope" : {
@@ -21751,6 +21922,20 @@
             },
             "deprecated" : true,
             "hostname" : "snowball-fips.eu-west-3.amazonaws.com"
+          },
+          "fips-il-central-1" : {
+            "credentialScope" : {
+              "region" : "il-central-1"
+            },
+            "deprecated" : true,
+            "hostname" : "snowball-fips.il-central-1.amazonaws.com"
+          },
+          "fips-me-central-1" : {
+            "credentialScope" : {
+              "region" : "me-central-1"
+            },
+            "deprecated" : true,
+            "hostname" : "snowball-fips.me-central-1.amazonaws.com"
           },
           "fips-sa-east-1" : {
             "credentialScope" : {
@@ -21787,36 +21972,88 @@
             "deprecated" : true,
             "hostname" : "snowball-fips.us-west-2.amazonaws.com"
           },
-          "il-central-1" : { },
-          "me-central-1" : { },
+          "il-central-1" : {
+            "variants" : [ {
+              "hostname" : "snowball-fips.il-central-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.il-central-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.il-central-1.api.aws",
+              "tags" : [ "dualstack" ]
+            } ]
+          },
+          "me-central-1" : {
+            "variants" : [ {
+              "hostname" : "snowball-fips.me-central-1.amazonaws.com",
+              "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.me-central-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.me-central-1.api.aws",
+              "tags" : [ "dualstack" ]
+            } ]
+          },
           "sa-east-1" : {
             "variants" : [ {
               "hostname" : "snowball-fips.sa-east-1.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.sa-east-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.sa-east-1.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
           },
           "us-east-1" : {
             "variants" : [ {
               "hostname" : "snowball-fips.us-east-1.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.us-east-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.us-east-1.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
           },
           "us-east-2" : {
             "variants" : [ {
               "hostname" : "snowball-fips.us-east-2.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.us-east-2.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.us-east-2.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
           },
           "us-west-1" : {
             "variants" : [ {
               "hostname" : "snowball-fips.us-west-1.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.us-west-1.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.us-west-1.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
           },
           "us-west-2" : {
             "variants" : [ {
               "hostname" : "snowball-fips.us-west-2.amazonaws.com",
               "tags" : [ "fips" ]
+            }, {
+              "hostname" : "snowball-fips.us-west-2.api.aws",
+              "tags" : [ "dualstack", "fips" ]
+            }, {
+              "hostname" : "snowball.us-west-2.api.aws",
+              "tags" : [ "dualstack" ]
             } ]
           }
         }
@@ -32417,6 +32654,24 @@
           },
           "us-iso-east-1" : { }
         }
+      },
+      "budgets" : {
+        "endpoints" : {
+          "aws-iso-global" : {
+            "credentialScope" : {
+              "region" : "us-iso-east-1"
+            },
+            "hostname" : "budgets.c2s.ic.gov"
+          },
+          "us-iso-east-1" : {
+            "credentialScope" : {
+              "region" : "us-iso-east-1"
+            },
+            "hostname" : "budgets.c2s.ic.gov"
+          }
+        },
+        "isRegionalized" : false,
+        "partitionEndpoint" : "aws-iso-global"
       },
       "cloudcontrolapi" : {
         "endpoints" : {
