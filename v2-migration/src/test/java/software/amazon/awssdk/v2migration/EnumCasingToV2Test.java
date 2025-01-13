@@ -30,6 +30,7 @@ public class EnumCasingToV2Test implements RewriteTest {
         spec.recipes(new ChangeSdkType(),
                      new EnumCasingToV2())
             .parser(Java8Parser.builder().classpath("sqs"))
+            //TODO: remove expectedCyclesThatMakeChanges(2) and fix
             .expectedCyclesThatMakeChanges(2);
     }
 

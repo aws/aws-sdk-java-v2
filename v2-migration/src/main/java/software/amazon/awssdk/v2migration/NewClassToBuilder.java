@@ -31,6 +31,7 @@ import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Space;
 import org.openrewrite.marker.Markers;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.v2migration.internal.utils.IdentifierUtils;
 import software.amazon.awssdk.v2migration.internal.utils.NamingUtils;
 import software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils;
 
@@ -104,7 +105,8 @@ public class NewClassToBuilder extends Recipe {
 
             JavaType.FullyQualified classType = (JavaType.FullyQualified) newClass.getType();
 
-            if (!isEligibleToConvertToBuilder(classType)) {
+            if (!isEligibleToConvertToBuilder(classType) ||
+                !newClass.getConstructorType().getParameterNames().isEmpty()) {
                 return newClass;
             }
 
@@ -120,16 +122,6 @@ public class NewClassToBuilder extends Recipe {
                 null
             );
 
-            J.Identifier builderMethod = new J.Identifier(
-                Tree.randomId(),
-                Space.EMPTY,
-                Markers.EMPTY,
-                Collections.emptyList(),
-                "builder",
-                null,
-                null
-            );
-
             JavaType.Method methodType = new JavaType.Method(
                 null,
                 0L,
@@ -142,6 +134,8 @@ public class NewClassToBuilder extends Recipe {
                 Collections.emptyList()
             );
 
+            J.Identifier builderMethod = IdentifierUtils.makeId("builder", methodType);
+
             J.MethodInvocation builderInvoke = new J.MethodInvocation(
                 Tree.randomId(),
                 Space.EMPTY,
@@ -151,16 +145,6 @@ public class NewClassToBuilder extends Recipe {
                 builderMethod,
                 JContainer.empty(),
                 methodType
-            );
-
-            J.Identifier buildName = new J.Identifier(
-                Tree.randomId(),
-                Space.EMPTY,
-                Markers.EMPTY,
-                Collections.emptyList(),
-                "build",
-                null,
-                null
             );
 
             JavaType.Method buildMethodType = new JavaType.Method(
@@ -174,6 +158,8 @@ public class NewClassToBuilder extends Recipe {
                 Collections.emptyList(),
                 Collections.emptyList()
             );
+
+            J.Identifier buildName = IdentifierUtils.makeId("build", buildMethodType);
 
             J.MethodInvocation buildInvoke = new J.MethodInvocation(
                 Tree.randomId(),
