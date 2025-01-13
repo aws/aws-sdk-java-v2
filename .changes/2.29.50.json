@@ -1,0 +1,30 @@
+{
+    "version": "2.29.50",
+    "date": "2025-01-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Security Token Service",
+            "contributor": "",
+            "description": "Fixed typos in the descriptions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Additions to the PubliclyAccessible and Encrypted parameters clarifying what the defaults are."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Security Lake",
+            "contributor": "",
+            "description": "Doc only update for ServiceName that fixes several customer-reported issues"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

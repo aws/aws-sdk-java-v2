@@ -199,7 +199,7 @@ public class HttpSettingsToHttpClient extends Recipe {
 
         private static boolean isClientOverrideConfigurationBuilder(J.MethodInvocation method) {
             return Optional.ofNullable(method.getMethodType()).map(mt -> mt.getDeclaringType())
-                           .filter(t -> t.isAssignableTo(ClientOverrideConfiguration.class.getCanonicalName()))
+                           .filter(t -> t.isAssignableTo(ClientOverrideConfiguration.Builder.class.getCanonicalName()))
                            .isPresent();
         }
 
@@ -275,8 +275,7 @@ public class HttpSettingsToHttpClient extends Recipe {
             JavaType.FullyQualified builderType = SdkTypeUtils.v2Builder(classType);
             Expression expressionBeforeOverrideConfiguration = method.getSelect();
 
-            if (expressionBeforeOverrideConfiguration == null ||
-                !(expressionBeforeOverrideConfiguration instanceof J.MethodInvocation ||
+            if (!(expressionBeforeOverrideConfiguration instanceof J.MethodInvocation ||
                   expressionBeforeOverrideConfiguration instanceof J.Identifier)) {
                 return method;
             }
@@ -298,9 +297,6 @@ public class HttpSettingsToHttpClient extends Recipe {
             List<JavaType> parametersTypes = new ArrayList<>();
             parametersTypes.add(JavaType.buildType(httpClientClassNamePair.right().getCanonicalName()));
 
-            J.Identifier httpClientBuilderName =
-                IdentifierUtils.makeId("httpClientBuilder", builderType);
-
             JavaType.Method httpClientBuilderMethod = new JavaType.Method(
                 null,
                 0L,
@@ -312,6 +308,9 @@ public class HttpSettingsToHttpClient extends Recipe {
                 Collections.emptyList(),
                 Collections.emptyList()
             );
+
+            J.Identifier httpClientBuilderName =
+                IdentifierUtils.makeId("httpClientBuilder", httpClientBuilderMethod);
 
             J.MethodInvocation httpClientBuilderMethodInvoke = new J.MethodInvocation(
                 Tree.randomId(),
@@ -351,8 +350,7 @@ public class HttpSettingsToHttpClient extends Recipe {
             JavaType.FullyQualified httpClientBuilderType =
                 TypeUtils.asFullyQualified(JavaType.buildType(httpClientBuilderClassName.getCanonicalName()));
 
-
-            JavaType.Method httpClientBuilder = new JavaType.Method(
+            JavaType.Method httpClientBuilderMethodType = new JavaType.Method(
                 null,
                 0L,
                 httpClientType,
@@ -368,7 +366,7 @@ public class HttpSettingsToHttpClient extends Recipe {
                 IdentifierUtils.makeId(httpClientClassName.getSimpleName(), httpClientType);
 
             J.Identifier httpClientBuilderName =
-                IdentifierUtils.makeId("builder", httpClientBuilderType);
+                IdentifierUtils.makeId("builder", httpClientBuilderMethodType);
 
             J.MethodInvocation httpClientBuilderMethodInvoke = new J.MethodInvocation(
                 Tree.randomId(),
@@ -378,7 +376,7 @@ public class HttpSettingsToHttpClient extends Recipe {
                 null,
                 httpClientBuilderName,
                 JContainer.empty(),
-                httpClientBuilder
+                httpClientBuilderMethodType
             );
 
             for (Map.Entry<String, Expression> entry : httpSettings.entrySet()) {
@@ -394,10 +392,6 @@ public class HttpSettingsToHttpClient extends Recipe {
 
             String settingName = entry.getKey();
             Expression value = entry.getValue();
-
-            J.Identifier settingBuilderName =
-                IdentifierUtils.makeId(settingName, httpClientBuilderType);
-
             List<JavaType> parametersTypes = Collections.singletonList(value.getType());
 
             JavaType.Method settingMethod = new JavaType.Method(
@@ -411,6 +405,9 @@ public class HttpSettingsToHttpClient extends Recipe {
                 Collections.emptyList(),
                 Collections.emptyList()
             );
+
+            J.Identifier settingBuilderName =
+                IdentifierUtils.makeId(settingName, settingMethod);
 
             JContainer argument = JContainer.build(Arrays.asList(JRightPadded.build(value)));
 

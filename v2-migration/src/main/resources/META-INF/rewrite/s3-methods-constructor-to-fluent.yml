@@ -145,6 +145,12 @@ recipeList:
       fluentNames:
         - withBucket
   - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketVersioningConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.DeleteBucketLifecycleConfigurationRequest
       parameterTypes:
         - java.lang.String

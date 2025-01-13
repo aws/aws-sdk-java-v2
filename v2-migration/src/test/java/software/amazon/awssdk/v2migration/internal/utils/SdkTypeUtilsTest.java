@@ -18,6 +18,8 @@ package software.amazon.awssdk.v2migration.internal.utils;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import java.util.stream.Stream;
@@ -107,16 +109,23 @@ public class SdkTypeUtilsTest {
         assertThat(SdkTypeUtils.isV1ModelClass(sqs)).isFalse();
     }
 
-    @Test
-    public void isV1Class_v1Request_returnsFalse() {
-        JavaType sendMessage = JavaType.buildType(SendMessageRequest.class.getCanonicalName());
-        assertThat(SdkTypeUtils.isV1Class(sendMessage)).isFalse();
+    public static Stream<Arguments> isSupportedV1ClassParams() {
+        return Stream.of(Arguments.of("v1ModelClass_shouldReturnTrue", SendMessageRequest.class.getCanonicalName(), true),
+                         Arguments.of("v1ClientClass_shouldReturnTrue", AmazonSQS.class.getCanonicalName(), true),
+                         Arguments.of("tmClass_shouldReturnFalse", TransferManager.class.getCanonicalName(), false),
+                         Arguments.of("ddbMapper_shouldReturnFalse", DynamoDBMapper.class.getCanonicalName(), false),
+                         Arguments.of("customSdk_shouldReturnFalse", "com.amazonaws.services.foobar.model.FooBarRequest", false),
+                         Arguments.of("customSdk_shouldReturnFalse", "com.amazonaws.services.foobar.FooBarClient", false)
+                         );
     }
 
-    @Test
-    public void isV1Class_v1ServiceClass_returnsTrue() {
-        JavaType sqs = JavaType.buildType(AmazonSQS.class.getCanonicalName());
-        assertThat(SdkTypeUtils.isV1Class(sqs)).isTrue();
+
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("isSupportedV1ClassParams")
+    public void isSupportedV1Class(String description, String fqcn, boolean expected) {
+        JavaType.FullyQualified type =
+            TypeUtils.asFullyQualified(JavaType.buildType(fqcn));
+        assertThat(SdkTypeUtils.isSupportedV1Class(type)).isEqualTo(expected);
     }
 
     @Test
