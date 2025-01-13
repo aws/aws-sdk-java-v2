@@ -38,3 +38,4 @@ recipeList:
   - software.amazon.awssdk.v2migration.HttpSettingsToHttpClient
   - software.amazon.awssdk.v2migration.WrapSdkClientBuilderRegionStr
   - software.amazon.awssdk.v2migration.EnumCasingToV2
+  - software.amazon.awssdk.v2migration.SdkBytesToByteBuffer
