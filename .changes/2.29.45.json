@@ -1,0 +1,30 @@
+{
+    "version": "2.29.45",
+    "date": "2025-01-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Adding SDK reference examples for Amazon ECS operations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Domains",
+            "contributor": "",
+            "description": "Doc only update for Route 53 Domains that fixes several customer-reported issues"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "This change is only for updating the model regexp of CopySource which is not for validation but only for documentation and user guide change."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

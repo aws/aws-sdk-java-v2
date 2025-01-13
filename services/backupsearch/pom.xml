@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
   ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
@@ -12,21 +12,17 @@
   ~ on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
   ~ express or implied. See the License for the specific language governing
   ~ permissions and limitations under the License.
-  -->
-
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.29.35-SNAPSHOT</version>
+        <version>2.29.51-SNAPSHOT</version>
     </parent>
-    <artifactId>iot1clickprojects</artifactId>
-    <name>AWS Java SDK :: Services :: IoT 1Click Projects</name>
-    <description>The AWS Java SDK for IoT 1Click Projects module holds the client classes that are used for
-        communicating with IoT 1Click Projects.
+    <artifactId>backupsearch</artifactId>
+    <name>AWS Java SDK :: Services :: Backup Search</name>
+    <description>The AWS Java SDK for Backup Search module holds the client classes that are used for
+        communicating with Backup Search.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
     <build>
@@ -37,14 +33,13 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>software.amazon.awssdk.services.iot1clickprojects</Automatic-Module-Name>
+                            <Automatic-Module-Name>software.amazon.awssdk.services.backupsearch</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
