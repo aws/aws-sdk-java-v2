@@ -18,9 +18,13 @@ package software.amazon.awssdk.core.internal.interceptor.trait;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
+/**
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
+ */
+@SdkProtectedApi
 public final class RequestCompression {
 
     private List<String> encodings;

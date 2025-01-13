@@ -20,6 +20,10 @@ import software.amazon.awssdk.retries.api.RetryStrategy;
 
 /**
  * The set of retry predicates that are by default added to a retry strategy.
+ *
+ * <p>
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
  */
 @SdkProtectedApi
 public interface RetryStrategyDefaults {

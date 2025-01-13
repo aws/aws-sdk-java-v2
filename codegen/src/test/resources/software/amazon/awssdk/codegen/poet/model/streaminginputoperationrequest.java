@@ -17,10 +17,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class StreamingInputOperationRequest extends JsonProtocolTestsRequest implements
-        ToCopyableBuilder<StreamingInputOperationRequest.Builder, StreamingInputOperationRequest> {
+                                                                                   ToCopyableBuilder<StreamingInputOperationRequest.Builder, StreamingInputOperationRequest> {
     private static final List<SdkField<?>> SDK_FIELDS = Collections.emptyList();
 
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections.emptyMap();
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private StreamingInputOperationRequest(BuilderImpl builder) {
         super(builder);
@@ -88,8 +88,12 @@ public final class StreamingInputOperationRequest extends JsonProtocolTestsReque
         return SDK_NAME_TO_FIELD;
     }
 
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        return Collections.emptyMap();
+    }
+
     public interface Builder extends JsonProtocolTestsRequest.Builder, SdkPojo,
-            CopyableBuilder<Builder, StreamingInputOperationRequest> {
+                                     CopyableBuilder<Builder, StreamingInputOperationRequest> {
         @Override
         Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
 
