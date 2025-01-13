@@ -17,7 +17,6 @@ package software.amazon.awssdk.archtests;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
-import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -38,6 +37,7 @@ import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
 import software.amazon.awssdk.utils.internal.EnumUtils;
+import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 
 /**
  * Ensure classes annotated with SdkInternalApis are not accessible outside the module.
@@ -52,7 +52,7 @@ public class InternalApiBoundaryTest {
      */
     private static final Set<Class<?>> ALLOWED_INTERNAL_API_ACROSS_MODULE_SUPPRESSION = new HashSet<>(
         Arrays.asList(WaiterAttribute.class, RequestCompression.class, RequestCompression.Builder.class, EnumUtils.class,
-                      AwsServiceProtocol.class, AwsProtocolMetadata.class, MetricUtils.class));
+                      AwsServiceProtocol.class, AwsProtocolMetadata.class, MetricUtils.class, SystemSettingUtils.class));
 
     @Test
     void internalApi_shouldNotUsedAcrossModule() {
