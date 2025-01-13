@@ -188,7 +188,7 @@ public final class EmfMetricLoggingPublisher implements MetricPublisher {
          * the CloudWatch agent to send embedded metric format logs that tells the agent which log
          * group to use.
          *
-         * <p> If this is not specified, for AWS lambda environments, {@code "/aws/lambda/" + "AWS_LAMBDA_LOG_GROUP_NAME"}
+         * <p> If this is not specified, for AWS lambda environments, {@code AWS_LAMBDA_LOG_GROUP_NAME}
          * is used.
          * This field is required and must not be null or empty for non-lambda environments.
          * @throws NullPointerException if non-lambda environment and logGroupName is null
