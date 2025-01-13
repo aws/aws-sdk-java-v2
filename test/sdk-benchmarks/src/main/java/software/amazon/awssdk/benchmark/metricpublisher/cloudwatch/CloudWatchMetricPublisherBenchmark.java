@@ -16,9 +16,12 @@
 package software.amazon.awssdk.benchmark.metricpublisher.cloudwatch;
 
 import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
 import software.amazon.awssdk.benchmark.apicall.MetricsEnabledBenchmark;
 import software.amazon.awssdk.benchmark.utils.NoOpCloudWatchAsyncClient;
 import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
@@ -28,18 +31,28 @@ import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
 public class CloudWatchMetricPublisherBenchmark extends MetricsEnabledBenchmark {
+    private CloudWatchMetricPublisher cwPublisher;
+
+    @Override
+    @Setup(Level.Trial)
+    public void setup() throws Exception {
+        super.setup();
+        CloudWatchAsyncClient noOpClient = new NoOpCloudWatchAsyncClient();
+        cwPublisher = CloudWatchMetricPublisher.builder()
+                                               .cloudWatchClient(noOpClient)
+                                               .namespace("CloudWatchMetricPublisherBenchmark")
+                                               .build();
+    }
 
     @Override
     protected <T extends SdkClientBuilder<T, ?>> T enableMetrics(T clientBuilder) {
-
-        CloudWatchAsyncClient noOpClient = new NoOpCloudWatchAsyncClient();
-
-        CloudWatchMetricPublisher cwPublisher = CloudWatchMetricPublisher.builder()
-                                                                         .cloudWatchClient(noOpClient)
-                                                                         .namespace("CloudWatchMetricPublisherBenchmark")
-                                                                         .build();
-
         return clientBuilder.overrideConfiguration(c -> c.addMetricPublisher(cwPublisher));
     }
 
+    @Override
+    @TearDown(Level.Trial)
+    public void tearDown() throws Exception {
+        super.tearDown();
+        cwPublisher.close();
+    }
 }

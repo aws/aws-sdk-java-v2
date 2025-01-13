@@ -16,9 +16,12 @@
 package software.amazon.awssdk.benchmark.metricpublisher.logging;
 
 import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
 import software.amazon.awssdk.benchmark.apicall.MetricsEnabledBenchmark;
 import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
 import software.amazon.awssdk.metrics.LoggingMetricPublisher;
@@ -26,11 +29,24 @@ import software.amazon.awssdk.metrics.LoggingMetricPublisher;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
 public class LoggingMetricPublisherBenchmark extends MetricsEnabledBenchmark {
+    private LoggingMetricPublisher loggingMetricPublisher;
+
+    @Override
+    @Setup(Level.Trial)
+    public void setup() throws Exception {
+        loggingMetricPublisher = LoggingMetricPublisher.create();
+        super.setup();
+    }
 
     @Override
     protected <T extends SdkClientBuilder<T, ?>> T enableMetrics(T clientBuilder) {
-        LoggingMetricPublisher loggingMetricPublisher = LoggingMetricPublisher.create();
-
         return clientBuilder.overrideConfiguration(c -> c.addMetricPublisher(loggingMetricPublisher));
+    }
+
+    @Override
+    @TearDown(Level.Trial)
+    public void tearDown() throws Exception {
+        super.tearDown();
+        loggingMetricPublisher.close();
     }
 }
