@@ -88,13 +88,13 @@ public class H2ServerErrorTest {
     }
 
     @Test
-    public void serviceReturn500_newRequestShouldUseNewConnection() {
+    public void serviceReturn500_newRequestShouldReuseConnection() {
         server.return500OnFirstRequest = true;
         CompletableFuture<?> firstRequest = sendGetRequest(server.port(), netty);
         firstRequest.join();
 
         sendGetRequest(server.port(), netty).join();
-        assertThat(server.h2ConnectionCount.get()).isEqualTo(2);
+        assertThat(server.h2ConnectionCount.get()).isEqualTo(1);
     }
 
     @Test

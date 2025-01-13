@@ -129,7 +129,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
             completionFuture.complete(null);
         });
 
-        responseHandlerHelper.cleanUpConnectionBasedOnStatusCode(stream);
+        responseHandlerHelper.releaseConnection(stream);
     }
 
     private void handlePublisherError(HttpStream stream, Throwable failure) {
