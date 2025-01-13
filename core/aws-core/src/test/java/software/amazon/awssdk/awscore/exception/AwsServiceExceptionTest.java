@@ -64,7 +64,7 @@ public class AwsServiceExceptionTest {
                                                    .requestId("requestId")
                                                    .extendedRequestId("extendedRequestId")
                                                    .build();
-        assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId, " 
+        assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId, "
                                              + "Extended Request ID: extendedRequestId)");
     }
 
@@ -80,6 +80,61 @@ public class AwsServiceExceptionTest {
                                                    .requestId("requestId")
                                                    .build();
         assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId)");
+    }
+
+    @Test
+    public void exceptionMessage_withAttempts() {
+        AwsServiceException e = AwsServiceException.builder()
+                                                   .message("errorMessage")
+                                                   .attemptCount(6)
+                                                   .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                   .errorMessage("errorMessage")
+                                                                                   .serviceName("serviceName")
+                                                                                   .errorCode("errorCode")
+                                                                                   .build())
+                                                   .statusCode(500)
+                                                   .requestId("requestId")
+                                                   .build();
+
+        assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, " +
+                                             "Request ID: requestId) (Attempts: 6)");
+        assertThat(e.getAttempts()).isEqualTo(6);
+    }
+
+    @Test
+    public void exceptionMessage_zeroAttempts() {
+        AwsServiceException e = (AwsServiceException) AwsServiceException.builder()
+                                                                         .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                   .errorMessage("errorMessage")
+                                                                                   .serviceName("serviceName")
+                                                                                   .errorCode("errorCode")
+                                                                                   .build())
+                                                                         .statusCode(500)
+                                                                         .requestId("requestId")
+                                                                         .attemptCount(0)
+                                                                         .build();
+
+        assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, " +
+                                             "Request ID: requestId)");
+        assertThat(e.getAttempts()).isEqualTo(0);
+    }
+
+    @Test
+    public void setAttempts_modifiesMessage() {
+        AwsServiceException e = AwsServiceException.builder()
+                                                   .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                   .errorMessage("errorMessage")
+                                                                                   .serviceName("serviceName")
+                                                                                   .errorCode("errorCode")
+                                                                                   .build())
+                                                   .statusCode(500)
+                                                   .requestId("requestId")
+                                                   .build();
+
+        e.setAttempts(3);
+        assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, " +
+                                             "Request ID: requestId) (Attempts: 3)");
+        assertThat(e.getAttempts()).isEqualTo(3);
     }
 
     @Test

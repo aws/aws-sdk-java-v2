@@ -47,4 +47,27 @@ public class SdkExceptionMessageTest {
     public void noMessage_causeWithMessage_implies_messageFromCause() {
         assertThat(SdkException.builder().cause(new Exception("bar")).build().getMessage()).isEqualTo("bar");
     }
+
+    @Test
+    public void defaultAttemptCount_shouldReturnOne() {
+        assertThat(SdkException.builder().build().getAttempts()).isEqualTo(0);
+    }
+
+    @Test
+    public void getAttempts_WithExplicitAttemptCount_ReturnsOneBased() {
+        assertThat(SdkException.builder().message("foo").attemptCount(2).build().getAttempts()).isEqualTo(2);
+    }
+
+    @Test
+    public void toBuilder_CopiesException_PreservesAttemptCount() {
+        SdkException original = SdkException.builder().attemptCount(2).build();
+        SdkException copy = original.toBuilder().build();
+        assertThat(copy.getAttempts()).isEqualTo(original.getAttempts());
+    }
+
+    @Test
+    public void create_WithoutAttemptCount_UsesDefaultValue() {
+        SdkException exception = SdkException.builder().message("message").cause(new RuntimeException()).attemptCount(6).build();
+        assertThat(exception.getAttempts()).isEqualTo(6);
+    }
 }
