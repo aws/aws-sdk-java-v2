@@ -164,7 +164,7 @@ public final class RetryableStageHelper2 {
                                   .build();
             lastException.addSuppressed(pastException);
         }
-        return lastException;
+        return lastException.toBuilder().retryCount(retriesAttemptedSoFar()).build();
     }
 
     /**

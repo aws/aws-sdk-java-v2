@@ -28,9 +28,15 @@ import software.amazon.awssdk.utils.builder.Buildable;
 public class SdkException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
+    private final int retryCount;
 
     protected SdkException(Builder builder) {
         super(messageFromBuilder(builder), builder.cause(), true, writableStackTraceFromBuilder(builder));
+        this.retryCount = builder.retryCount();
+    }
+
+    public int getRetryCount() {
+        return retryCount;
     }
 
     /**
@@ -111,6 +117,19 @@ public class SdkException extends RuntimeException {
         String message();
 
         /**
+         *
+         * @param retryCount The retry count
+         * @return This method for object chaining
+         */
+        Builder retryCount(int retryCount);
+
+        /**
+         * The number of times a request was retried before this exception was thrown
+         * @return the retry count
+         */
+        int retryCount();
+
+        /**
          * Specifies whether the stack trace in this exception can be written.
          *
          * @param writableStackTrace Whether the stack trace can be written.
@@ -136,6 +155,7 @@ public class SdkException extends RuntimeException {
 
         protected Throwable cause;
         protected String message;
+        protected int retryCount = 1;
         protected Boolean writableStackTrace;
 
         protected BuilderImpl() {
@@ -144,6 +164,7 @@ public class SdkException extends RuntimeException {
         protected BuilderImpl(SdkException ex) {
             this.cause = ex.getCause();
             this.message = ex.getMessage();
+            this.retryCount = ex.getRetryCount();
         }
 
 
@@ -183,6 +204,25 @@ public class SdkException extends RuntimeException {
         @Override
         public String message() {
             return message;
+        }
+
+        public int getRetryCount() {
+            return retryCount;
+        }
+
+        public void setRetryCount(int retryCount) {
+            this.retryCount = retryCount;
+        }
+
+        @Override
+        public Builder retryCount(int retryCount) {
+            this.retryCount = retryCount;
+            return this;
+        }
+
+        @Override
+        public int retryCount() {
+            return retryCount;
         }
 
         @Override
