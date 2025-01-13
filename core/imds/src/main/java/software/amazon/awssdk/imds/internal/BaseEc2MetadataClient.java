@@ -36,11 +36,6 @@ import software.amazon.awssdk.utils.Validate;
 public abstract class BaseEc2MetadataClient {
 
     protected static final Duration DEFAULT_TOKEN_TTL = Duration.of(21_600, ChronoUnit.SECONDS);
-    protected static final AttributeMap IMDS_HTTP_DEFAULTS =
-        AttributeMap.builder()
-                    .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofSeconds(1))
-                    .put(SdkHttpConfigurationOption.READ_TIMEOUT, Duration.ofSeconds(1))
-                    .build();
 
     private static final Logger log = Logger.loggerFor(BaseEc2MetadataClient.class);
 
@@ -72,10 +67,10 @@ public abstract class BaseEc2MetadataClient {
             return builderEndpoint;
         }
         if (builderEndpointMode != null) {
-            return URI.create(Ec2MetadataEndpointProvider.instance().resolveEndpoint(builderEndpointMode));
+            return URI.create(Ec2MetadataConfigProvider.instance().resolveEndpoint(builderEndpointMode));
         }
-        EndpointMode resolvedEndpointMode = Ec2MetadataEndpointProvider.instance().resolveEndpointMode();
-        return URI.create(Ec2MetadataEndpointProvider.instance().resolveEndpoint(resolvedEndpointMode));
+        EndpointMode resolvedEndpointMode = Ec2MetadataConfigProvider.instance().resolveEndpointMode();
+        return URI.create(Ec2MetadataConfigProvider.instance().resolveEndpoint(resolvedEndpointMode));
     }
 
     protected static String uncheckedInputStreamToUtf8(AbortableInputStream inputStream) {
@@ -96,4 +91,11 @@ public abstract class BaseEc2MetadataClient {
         return error instanceof RetryableException || error.getCause() instanceof RetryableException;
     }
 
+    protected AttributeMap imdsHttpDefaults() {
+        Duration metadataServiceTimeout = Ec2MetadataConfigProvider.instance().resolveServiceTimeout();
+        return AttributeMap.builder()
+                           .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, metadataServiceTimeout)
+                           .put(SdkHttpConfigurationOption.READ_TIMEOUT, metadataServiceTimeout)
+                           .build();
+    }
 }

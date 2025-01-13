@@ -18,6 +18,7 @@ package software.amazon.awssdk.imds.internal;
 import static software.amazon.awssdk.imds.EndpointMode.IPV4;
 import static software.amazon.awssdk.imds.EndpointMode.IPV6;
 
+import java.time.Duration;
 import java.util.EnumMap;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -28,15 +29,16 @@ import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
+import software.amazon.awssdk.utils.OptionalUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
  * Endpoint Provider Class which contains methods for endpoint resolution.
  */
 @SdkInternalApi
-public final class Ec2MetadataEndpointProvider {
+public final class Ec2MetadataConfigProvider {
 
-    private static final Ec2MetadataEndpointProvider DEFAULT_ENDPOINT_PROVIDER = builder().build();
+    private static final Ec2MetadataConfigProvider DEFAULT_ENDPOINT_PROVIDER = builder().build();
 
     private static final EnumMap<EndpointMode, String> DEFAULT_ENDPOINT_MODE;
 
@@ -49,12 +51,12 @@ public final class Ec2MetadataEndpointProvider {
     private final Supplier<ProfileFile> profileFile;
     private final String profileName;
 
-    private Ec2MetadataEndpointProvider(Builder builder) {
+    private Ec2MetadataConfigProvider(Builder builder) {
         this.profileFile = builder.profileFile;
         this.profileName = builder.profileName;
     }
 
-    public static Ec2MetadataEndpointProvider instance() {
+    public static Ec2MetadataConfigProvider instance() {
         return DEFAULT_ENDPOINT_PROVIDER;
     }
 
@@ -119,6 +121,52 @@ public final class Ec2MetadataEndpointProvider {
         return profileFileToUse.profile(profileNameToUse);
     }
 
+    /**
+     * Resolve the service timeout value to be used for the {@link DefaultEc2MetadataClient}.
+     * Users may provide the timeout value through the `AWS_METADATA_SERVICE_TIMEOUT` environment variable
+     * or the `metadata_service_timeout` key in their AWS config file.
+     *
+     * @return the resolved service timeout as a {@link Duration}.
+     */
+    public Duration resolveServiceTimeout() {
+        return OptionalUtils.firstPresent(
+            fromSystemSettingsServiceTimeout(),
+            () -> fromProfileFileServiceTimeout(profileFile, profileName)
+        ).orElseGet(() -> parseTimeoutValue(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT.defaultValue()));
+    }
+
+    // System settings resolution for Service Timeout
+    private static Optional<Duration> fromSystemSettingsServiceTimeout() {
+        return SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT.getNonDefaultStringValue()
+                                                            .map(Ec2MetadataConfigProvider::parseTimeoutValue);
+    }
+
+    // Profile file resolution for Service Timeout
+    private static Optional<Duration> fromProfileFileServiceTimeout(Supplier<ProfileFile> profileFile, String profileName) {
+        return profileFile.get()
+                          .profile(profileName)
+                          .flatMap(p -> p.property(ProfileProperty.METADATA_SERVICE_TIMEOUT))
+                          .map(Ec2MetadataConfigProvider::parseTimeoutValue);
+    }
+
+    // Parses a timeout value from a string to a Duration
+    private static Duration parseTimeoutValue(String timeoutValue) {
+        try {
+            int timeoutSeconds = Integer.parseInt(timeoutValue);
+            return Duration.ofSeconds(timeoutSeconds);
+        } catch (NumberFormatException e) {
+            try {
+                double timeoutSeconds = Double.parseDouble(timeoutValue);
+                return Duration.ofMillis(Math.round(timeoutSeconds * 1000));
+            } catch (NumberFormatException ignored) {
+                throw new IllegalStateException(String.format(
+                    "Timeout value '%s' is not a valid integer or double.",
+                    timeoutValue
+                ));
+            }
+        }
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -142,8 +190,8 @@ public final class Ec2MetadataEndpointProvider {
             return this;
         }
 
-        public Ec2MetadataEndpointProvider build() {
-            return new Ec2MetadataEndpointProvider(this);
+        public Ec2MetadataConfigProvider build() {
+            return new Ec2MetadataConfigProvider(this);
         }
     }
 
