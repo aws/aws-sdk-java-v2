@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.29.44-SNAPSHOT</version>
+        <version>2.29.53-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>bom</artifactId>
@@ -636,16 +636,6 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>iot</artifactId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>iot1clickdevices</artifactId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>iot1clickprojects</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>

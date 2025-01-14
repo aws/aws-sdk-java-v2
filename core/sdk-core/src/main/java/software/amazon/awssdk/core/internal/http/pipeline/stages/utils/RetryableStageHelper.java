@@ -15,72 +15,76 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages.utils;
 
+import static software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute.EXECUTION_ATTEMPT;
+import static software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute.RETRY_TOKEN;
+import static software.amazon.awssdk.core.metrics.CoreMetric.RETRY_COUNT;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.OptionalDouble;
+import java.util.Optional;
 import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
-import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncRetryableStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage;
 import software.amazon.awssdk.core.internal.retry.ClockSkewAdjuster;
-import software.amazon.awssdk.core.internal.retry.RateLimitingTokenBucket;
-import software.amazon.awssdk.core.metrics.CoreMetric;
-import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.internal.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
-import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
+import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
+import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
+import software.amazon.awssdk.retries.api.RecordSuccessRequest;
+import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
+import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
+import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.retries.api.RetryToken;
+import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
 
 /**
  * Contains the logic shared by {@link RetryableStage} and {@link AsyncRetryableStage} when querying and interacting with a
- * {@link RetryPolicy}.
+ * {@link RetryStrategy}.
  */
 @SdkInternalApi
-public class RetryableStageHelper {
+public final class RetryableStageHelper {
     public static final String SDK_RETRY_INFO_HEADER = "amz-sdk-request";
-
     public static final ExecutionAttribute<Duration> LAST_BACKOFF_DELAY_DURATION =
         new ExecutionAttribute<>("LastBackoffDuration");
 
     private final SdkHttpFullRequest request;
     private final RequestExecutionContext context;
-    private final RetryPolicy retryPolicy;
-    private final RateLimitingTokenBucket rateLimitingTokenBucket;
+    private RetryPolicyAdapter retryPolicyAdapter;
+    private final RetryStrategy retryStrategy;
     private final HttpClientDependencies dependencies;
     private final List<String> exceptionMessageHistory = new ArrayList<>();
-
     private int attemptNumber = 0;
-    private SdkHttpResponse lastResponse = null;
-    private SdkException lastException = null;
+    private SdkHttpResponse lastResponse;
+    private SdkException lastException;
 
     public RetryableStageHelper(SdkHttpFullRequest request,
                                 RequestExecutionContext context,
-                                RateLimitingTokenBucket rateLimitingTokenBucket,
                                 HttpClientDependencies dependencies) {
         this.request = request;
         this.context = context;
-        this.retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
-        this.dependencies = dependencies;
-
-        if (rateLimitingTokenBucket != null) {
-            this.rateLimitingTokenBucket = rateLimitingTokenBucket;
-        } else if (isRateLimitingEnabled()) {
-            this.rateLimitingTokenBucket = new RateLimitingTokenBucket();
-        } else {
-            this.rateLimitingTokenBucket = null;
+        RetryPolicy retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
+        RetryStrategy retryStrategy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_STRATEGY);
+        if (retryPolicy != null) {
+            retryPolicyAdapter = RetryPolicyAdapter.builder()
+                                                   .retryPolicy(retryPolicy)
+                                                   .build();
+        } else if (retryStrategy instanceof RetryPolicyAdapter) {
+            retryPolicyAdapter = (RetryPolicyAdapter) retryStrategy;
         }
+        this.retryStrategy = retryStrategy;
+        this.dependencies = dependencies;
     }
 
     /**
@@ -88,37 +92,71 @@ public class RetryableStageHelper {
      */
     public void startingAttempt() {
         ++attemptNumber;
-        context.executionAttributes().putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, attemptNumber);
+        context.executionAttributes().putAttribute(EXECUTION_ATTEMPT, attemptNumber);
     }
 
     /**
-     * Returns true if the retry policy allows this attempt. This will always return true if the current attempt is not a retry
-     * (i.e. it's the first request in the execution).
+     * Invoke when starting the first attempt. This method will acquire the initial token and store it as an execution attribute.
+     * This method returns a delay that the caller have to wait before attempting the first request. If this method returns
+     * {@link Duration#ZERO} if the calling code does not have to wait. As of today the only strategy that might return a non-zero
+     * value is {@link AdaptiveRetryStrategy}.
      */
-    public boolean retryPolicyAllowsRetry() {
-        if (isInitialAttempt()) {
-            return true;
-        }
-
-        if (lastException instanceof NonRetryableException) {
-            return false;
-        }
-
-        RetryPolicyContext context = retryPolicyContext(true);
-
-        boolean willRetry = retryPolicy.aggregateRetryCondition().shouldRetry(context);
-        if (!willRetry) {
-            retryPolicy.aggregateRetryCondition().requestWillNotBeRetried(context);
-        }
-
-        return willRetry;
+    public Duration acquireInitialToken() {
+        String scope = "GLOBAL";
+        AcquireInitialTokenRequest acquireRequest = AcquireInitialTokenRequest.create(scope);
+        AcquireInitialTokenResponse acquireResponse = retryStrategy().acquireInitialToken(acquireRequest);
+        RetryToken retryToken = acquireResponse.token();
+        Duration delay = acquireResponse.delay();
+        context.executionAttributes().putAttribute(RETRY_TOKEN, retryToken);
+        context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, delay);
+        return delay;
     }
 
     /**
-     * Return the exception that should be thrown, because the retry policy did not allow the request to be retried.
+     * Notify the retry strategy that the request attempt succeeded.
+     */
+    public void recordAttemptSucceeded() {
+        RetryToken retryToken = context.executionAttributes().getAttribute(RETRY_TOKEN);
+        RecordSuccessRequest recordSuccessRequest = RecordSuccessRequest.create(retryToken);
+        retryStrategy().recordSuccess(recordSuccessRequest);
+        context.executionContext().metricCollector().reportMetric(RETRY_COUNT, retriesAttemptedSoFar());
+    }
+
+    /**
+     * Invoked after a failed attempt and before retrying. The returned optional will be non-empty if the client can retry or
+     * empty if the retry-strategy disallows the retry. The calling code is expected to wait the delay represented in the duration
+     * if present before retrying the request.
+     *
+     * @param suggestedDelay A suggested delay, presumably coming from the server response. The response when present will be at
+     *                       least this amount.
+     * @return An optional time to wait. If the value is not present the retry strategy disallowed the retry and the calling code
+     * should not retry.
+     */
+    public Optional<Duration> tryRefreshToken(Duration suggestedDelay) {
+        RetryToken retryToken = context.executionAttributes().getAttribute(RETRY_TOKEN);
+        RefreshRetryTokenResponse refreshResponse;
+        try {
+            RefreshRetryTokenRequest refreshRequest = RefreshRetryTokenRequest.builder()
+                                                                              .failure(this.lastException)
+                                                                              .token(retryToken)
+                                                                              .suggestedDelay(suggestedDelay)
+                                                                              .build();
+            refreshResponse = retryStrategy().refreshRetryToken(refreshRequest);
+        } catch (TokenAcquisitionFailedException e) {
+            context.executionAttributes().putAttribute(RETRY_TOKEN, e.token());
+            return Optional.empty();
+        }
+        Duration delay = refreshResponse.delay();
+        context.executionAttributes().putAttribute(RETRY_TOKEN, refreshResponse.token());
+        context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, delay);
+        return Optional.of(delay);
+    }
+
+    /**
+     * Return the exception that should be thrown, because the retry strategy did not allow the request to be retried.
      */
     public SdkException retryPolicyDisallowedRetryException() {
-        context.executionContext().metricCollector().reportMetric(CoreMetric.RETRY_COUNT, retriesAttemptedSoFar(true));
+        context.executionContext().metricCollector().reportMetric(RETRY_COUNT, retriesAttemptedSoFar());
         for (int i = 0; i < exceptionMessageHistory.size() - 1; i++) {
             SdkClientException pastException =
                 SdkClientException.builder()
@@ -127,27 +165,8 @@ public class RetryableStageHelper {
                                   .build();
             lastException.addSuppressed(pastException);
         }
+        lastException.setAttempts(retriesAttemptedSoFar() + 1);
         return lastException;
-    }
-
-    /**
-     * Get the amount of time that the request should be delayed before being sent. This may be {@link Duration#ZERO}, such as
-     * for the first request in the request series.
-     */
-    public Duration getBackoffDelay() {
-        Duration result;
-        if (isInitialAttempt()) {
-            result = Duration.ZERO;
-        } else {
-            RetryPolicyContext context = retryPolicyContext(true);
-            if (RetryUtils.isThrottlingException(lastException)) {
-                result = retryPolicy.throttlingBackoffStrategy().computeDelayBeforeNextRetry(context);
-            } else {
-                result = retryPolicy.backoffStrategy().computeDelayBeforeNextRetry(context);
-            }
-        }
-        context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, result);
-        return result;
     }
 
     /**
@@ -164,7 +183,8 @@ public class RetryableStageHelper {
      */
     public SdkHttpFullRequest requestToSend() {
         return request.toBuilder()
-                      .putHeader(SDK_RETRY_INFO_HEADER, "attempt=" + attemptNumber + "; max=" + (retryPolicy.numRetries() + 1))
+                      .putHeader(SDK_RETRY_INFO_HEADER, "attempt=" + attemptNumber
+                                                        + "; max=" + retryStrategy().maxAttempts())
                       .build();
     }
 
@@ -187,21 +207,6 @@ public class RetryableStageHelper {
     }
 
     /**
-     * Notify the retry policy that the request attempt succeeded.
-     */
-    public void attemptSucceeded() {
-        retryPolicy.aggregateRetryCondition().requestSucceeded(retryPolicyContext(false));
-        context.executionContext().metricCollector().reportMetric(CoreMetric.RETRY_COUNT, retriesAttemptedSoFar(false));
-    }
-
-    /**
-     * Retrieve the current attempt number, updated whenever {@link #startingAttempt()} is invoked.
-     */
-    public int getAttemptNumber() {
-        return attemptNumber;
-    }
-
-    /**
      * Retrieve the last call failure exception encountered by this execution, updated whenever {@link #setLastException} is
      * invoked.
      */
@@ -210,8 +215,8 @@ public class RetryableStageHelper {
     }
 
     /**
-     * Update the {@link #getLastException()} value for this helper. This will be used to determine whether the request should
-     * be retried.
+     * Update the {@link #getLastException()} value for this helper. This will be used to determine whether the request should be
+     * retried.
      */
     public void setLastException(Throwable lastException) {
         if (lastException instanceof CompletionException) {
@@ -222,7 +227,8 @@ public class RetryableStageHelper {
         } else {
             this.lastException = SdkClientException.create("Unable to execute HTTP request: " + lastException.getMessage(),
                                                            lastException);
-            exceptionMessageHistory.add(this.lastException.getMessage());
+            this.lastException.setAttempts(retriesAttemptedSoFar());
+            exceptionMessageHistory.add(this.lastException.getRawMessage());
         }
     }
 
@@ -234,109 +240,58 @@ public class RetryableStageHelper {
     }
 
     /**
-     * Whether rate limiting is enabled. Only {@link RetryMode#ADAPTIVE} enables rate limiting.
+     * Returns true if this is the first attempt.
      */
-    private boolean isRateLimitingEnabled() {
-        return retryPolicy.retryMode() == RetryMode.ADAPTIVE;
-    }
-
-    /**
-     * Whether rate limiting should fast fail.
-     */
-    public boolean isFastFailRateLimiting() {
-        return Boolean.TRUE.equals(retryPolicy.isFastFailRateLimiting());
-    }
-
-    public boolean isLastExceptionThrottlingException() {
-        if (lastException == null) {
-            return false;
-        }
-
-        return RetryUtils.isThrottlingException(lastException);
-    }
-
-    /**
-     * Acquire a send token from the rate limiter. Returns immediately if rate limiting is not enabled.
-     */
-    public void getSendToken() {
-        if (!isRateLimitingEnabled()) {
-            return;
-        }
-
-        boolean acquired = rateLimitingTokenBucket.acquire(1.0, isFastFailRateLimiting());
-
-        if (!acquired) {
-            String errorMessage = "Unable to acquire a send token immediately without waiting. This indicates that ADAPTIVE "
-                                  + "retry mode is enabled, fast fail rate limiting is enabled, and that rate limiting is "
-                                  + "engaged because of prior throttled requests. The request will not be executed.";
-            throw SdkClientException.create(errorMessage);
-        }
-    }
-
-    /**
-     * Acquire a send token from the rate limiter in a non blocking manner. See
-     * {@link RateLimitingTokenBucket#acquireNonBlocking(double, boolean)} for documentation on how to interpret the returned
-     * value.
-     */
-    public OptionalDouble getSendTokenNonBlocking() {
-        if (!isRateLimitingEnabled()) {
-            return OptionalDouble.of(0.0);
-        }
-
-        return rateLimitingTokenBucket.acquireNonBlocking(1.0, isFastFailRateLimiting());
-    }
-
-    /**
-     * Conditionally updates the sending rate of the rate limiter when an error response is received. This operation is a noop
-     * if rate limiting is not enabled.
-     */
-    public void updateClientSendingRateForErrorResponse() {
-        if (!isRateLimitingEnabled()) {
-            return;
-        }
-        // Only throttling errors affect the sending rate. For non error
-        // responses, they're handled by
-        // updateClientSendingRateForSuccessResponse()
-        if (isLastExceptionThrottlingException()) {
-            rateLimitingTokenBucket.updateClientSendingRate(true);
-        }
-    }
-
-    /**
-     * Conditionally updates the sending rate of the rate limiter when an error response is received. This operation is a noop
-     * if rate limiting is not enabled.
-     */
-    public void updateClientSendingRateForSuccessResponse() {
-        if (!isRateLimitingEnabled()) {
-            return;
-        }
-        rateLimitingTokenBucket.updateClientSendingRate(false);
-    }
-
     private boolean isInitialAttempt() {
         return attemptNumber == 1;
     }
 
-    private RetryPolicyContext retryPolicyContext(boolean isBeforeAttemptSent) {
+    /**
+     * Retrieve the current attempt number, updated whenever {@link #startingAttempt()} is invoked.
+     */
+    public int getAttemptNumber() {
+        return attemptNumber;
+    }
+
+    /**
+     * Retrieve the number of retries sent so far in the request execution.
+     */
+    private int retriesAttemptedSoFar() {
+        return Math.max(0, attemptNumber - 1);
+    }
+
+    /**
+     * Returns the {@link RetryStrategy} to be used by this class. If there's a client configured retry-policy then an adapter to
+     * wrap it is returned. This allows this code to be backwards compatible with previously configured retry-policies by the
+     * calling code.
+     */
+    private RetryStrategy retryStrategy() {
+        if (retryPolicyAdapter != null) {
+            if (retryPolicyAdapter.isInitialized()) {
+                retryPolicyAdapter = retryPolicyAdapter.toBuilder()
+                                                       .retryPolicyContext(retryPolicyContext())
+                                                       .build();
+            } else {
+                retryPolicyAdapter = retryPolicyAdapter.toBuilder()
+                                                       .initialize(retryPolicyContext())
+                                                       .build();
+            }
+            return retryPolicyAdapter;
+        }
+        return retryStrategy;
+    }
+
+    /**
+     * Creates a RetryPolicyContext to be used when the using the retry policy to strategy adapter.
+     */
+    private RetryPolicyContext retryPolicyContext() {
         return RetryPolicyContext.builder()
                                  .request(request)
                                  .originalRequest(context.originalRequest())
                                  .exception(lastException)
-                                 .retriesAttempted(retriesAttemptedSoFar(isBeforeAttemptSent))
+                                 .retriesAttempted(retriesAttemptedSoFar())
                                  .executionAttributes(context.executionAttributes())
                                  .httpStatusCode(lastResponse == null ? null : lastResponse.statusCode())
                                  .build();
-    }
-
-    /**
-     * Retrieve the number of retries sent so far in the request execution. This depends on whether or not we've actually
-     * sent the request yet during this attempt.
-     *
-     * Assuming we're executing attempt 3, the number of retries attempted varies based on whether the request has been sent to
-     * the service yet. Before we send the request, the number of retries is 1 (from attempt 2). After we send the request, the
-     * number of retries is 2 (from attempt 2 and attempt 3).
-     */
-    private int retriesAttemptedSoFar(boolean isBeforeAttemptSent) {
-        return Math.max(0, isBeforeAttemptSent ? attemptNumber - 2 : attemptNumber - 1);
     }
 }
