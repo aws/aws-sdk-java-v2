@@ -24,6 +24,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.transcribestreaming.TranscribeStreamingAsyncClient;
@@ -68,6 +69,7 @@ public class TranscribeStreamingStabilityTest extends AwsTestBase {
                                              .httpClientBuilder(NettyNioAsyncHttpClient.builder()
                                                                                        .connectionAcquisitionTimeout(Duration.ofSeconds(30))
                                                                                        .maxConcurrency(CONCURRENCY)
+                                                                                       .protocol(Protocol.HTTP2)
                                                                                        .protocolNegotiation(protocolNegotiation))
                                              .build();
     }

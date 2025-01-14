@@ -40,6 +40,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
@@ -110,6 +111,7 @@ public class TranscribeStreamingIntegrationTest {
                                                                             .addMetricPublisher(mockPublisher))
                                                .credentialsProvider(getCredentials())
                                                .httpClient(NettyNioAsyncHttpClient.builder()
+                                                                                  .protocol(Protocol.HTTP2)
                                                                                   .protocolNegotiation(protocolNegotiation)
                                                                                   .build())
                                                .build();
