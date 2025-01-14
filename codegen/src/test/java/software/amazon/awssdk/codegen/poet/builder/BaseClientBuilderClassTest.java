@@ -22,6 +22,8 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.operationWith
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModelsEndpointAuthParamsWithAllowList;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.serviceWithH2;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.serviceWithH2SkipAlpn;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.serviceWithNoAuth;
 import static software.amazon.awssdk.codegen.poet.builder.BuilderClassTestUtils.validateGeneration;
 
@@ -115,6 +117,16 @@ public class BaseClientBuilderClassTest {
     void syncComposedDefaultClientBuilderClass_sra() {
         validateBaseClientBuilderClassGeneration(composedClientJsonServiceModels(),
                                                  "test-composed-sync-default-client-builder.java", true);
+    }
+
+    @Test
+    void baseClientBuilderClassWithH2() {
+        validateBaseClientBuilderClassGeneration(serviceWithH2(), "test-h2-service-client-builder-class.java");
+    }
+
+    @Test
+    void baseClientBuilderClassWithH2SkipAlpn() {
+        validateBaseClientBuilderClassGeneration(serviceWithH2SkipAlpn(), "test-h2-skipAlpn-service-client-builder-class.java");
     }
 
     private void validateBaseClientBuilderClassGeneration(IntermediateModel model, String expectedClassName) {

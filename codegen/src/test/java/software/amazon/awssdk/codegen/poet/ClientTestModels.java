@@ -320,6 +320,36 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
+    public static IntermediateModel serviceWithH2() {
+        File serviceModel =
+            new File(ClientTestModels.class.getResource("client/c2j/service-with-h2/service-2.json").getFile());
+        File customizationModel =
+            new File(ClientTestModels.class.getResource("client/c2j/service-with-h2/customization.config")
+                                           .getFile());
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
+    public static IntermediateModel serviceWithH2SkipAlpn() {
+        File serviceModel =
+            new File(ClientTestModels.class.getResource("client/c2j/service-with-h2-skipAlpn/service-2.json").getFile());
+        File customizationModel =
+            new File(ClientTestModels.class.getResource("client/c2j/service-with-h2-skipAlpn/customization.config")
+                                           .getFile());
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
     public static IntermediateModel serviceMiniS3() {
         File serviceModel =
             new File(ClientTestModels.class.getResource("client/c2j/mini-s3/service-2.json").getFile());

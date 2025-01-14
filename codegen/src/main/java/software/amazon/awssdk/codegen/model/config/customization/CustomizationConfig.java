@@ -259,6 +259,11 @@ public class CustomizationConfig {
     private boolean generateEndpointClientTests;
 
     /**
+     * Whether to skip using ALPN for H2 service.
+     */
+    private boolean skipAlpn;
+
+    /**
      * A mapping from the skipped test's description to the reason why it's being skipped.
      */
     private Map<String, String> skipEndpointTests;
@@ -744,6 +749,14 @@ public class CustomizationConfig {
 
     public void setGenerateEndpointClientTests(boolean generateEndpointClientTests) {
         this.generateEndpointClientTests = generateEndpointClientTests;
+    }
+
+    public boolean isSkipAlpn() {
+        return skipAlpn;
+    }
+
+    public void setSkipAlpn(boolean skipAlpn) {
+        this.skipAlpn = skipAlpn;
     }
 
     public boolean useGlobalEndpoint() {
