@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.benchmark.metricpublisher.emf;
+package software.amazon.awssdk.benchmark.metricpublisher.logging;
 
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
@@ -24,32 +24,29 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import software.amazon.awssdk.benchmark.apicall.MetricsEnabledBenchmark;
 import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
-import software.amazon.awssdk.metrics.publishers.emf.EmfMetricLoggingPublisher;
+import software.amazon.awssdk.metrics.LoggingMetricPublisher;
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
-public class EmfMetricPublisherBenchmark extends MetricsEnabledBenchmark {
-    private EmfMetricLoggingPublisher emfMetricLoggingPublisher;
+public class LoggingMetricPublisherBenchmark extends MetricsEnabledBenchmark {
+    private LoggingMetricPublisher loggingMetricPublisher;
 
     @Override
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        emfMetricLoggingPublisher = EmfMetricLoggingPublisher.builder()
-                                                             .namespace("EmfMetricPublisherBenchmark")
-                                                             .logGroupName("LogGroupName")
-                                                             .build();
+        loggingMetricPublisher = LoggingMetricPublisher.create();
         super.setup();
     }
 
     @Override
     protected <T extends SdkClientBuilder<T, ?>> T enableMetrics(T clientBuilder) {
-        return clientBuilder.overrideConfiguration(c -> c.addMetricPublisher(emfMetricLoggingPublisher));
+        return clientBuilder.overrideConfiguration(c -> c.addMetricPublisher(loggingMetricPublisher));
     }
 
     @Override
     @TearDown(Level.Trial)
     public void tearDown() throws Exception {
         super.tearDown();
-        emfMetricLoggingPublisher.close();
+        loggingMetricPublisher.close();
     }
 }

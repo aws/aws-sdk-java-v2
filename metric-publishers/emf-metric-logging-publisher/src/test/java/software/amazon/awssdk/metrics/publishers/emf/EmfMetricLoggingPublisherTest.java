@@ -25,6 +25,7 @@ import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.testutils.LogCaptor;
+import software.amazon.awssdk.utils.internal.SystemSettingUtilsTestBackdoor;
 
 
 public class EmfMetricLoggingPublisherTest extends LogCaptor.LogCaptorTestBase{
@@ -45,6 +46,17 @@ public class EmfMetricLoggingPublisherTest extends LogCaptor.LogCaptorTestBase{
         })
             .isInstanceOf(NullPointerException.class)
             .hasMessage("logGroupName must not be null.");
+    }
+
+    @Test
+    void Publish_noLogGroupNameInLambda_defaultLogGroupName() {
+        SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride("AWS_LAMBDA_LOG_GROUP_NAME", "/aws/lambda/testFunction");
+        EmfMetricLoggingPublisher publisher = publisherBuilder.build();
+        MetricCollector metricCollector = MetricCollector.create("test");
+        publisher.publish(metricCollector.collect());
+        assertThat(loggedEvents()).hasSize(2);
+        assertThat(loggedEvents().get(1).toString()).contains("/aws/lambda/testFunction");
+        SystemSettingUtilsTestBackdoor.clearEnvironmentVariableOverrides();
     }
 
     @Test
