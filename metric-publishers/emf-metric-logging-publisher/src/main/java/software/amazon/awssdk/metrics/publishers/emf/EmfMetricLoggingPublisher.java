@@ -32,7 +32,6 @@ import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.metrics.publishers.emf.internal.EmfMetricConfiguration;
 import software.amazon.awssdk.metrics.publishers.emf.internal.MetricEmfConverter;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * A metric publisher implementation that converts metrics into CloudWatch Embedded Metric Format (EMF).
@@ -77,8 +76,6 @@ public final class EmfMetricLoggingPublisher implements MetricPublisher {
 
 
     private EmfMetricLoggingPublisher(Builder builder) {
-        Validate.paramNotNull(builder.logGroupName, "logGroupName");
-
         EmfMetricConfiguration config = new EmfMetricConfiguration.Builder()
             .namespace(builder.namespace)
             .logGroupName(builder.logGroupName)
@@ -187,11 +184,14 @@ public final class EmfMetricLoggingPublisher implements MetricPublisher {
         }
 
         /**
-         * Configure the LogGroupName key that will be put into the emf log to this publisher. This is a required key for
-         * using the CloudWatch agent to send embedded metric format logs that tells the agent which log group to use.
+         * Configure the LogGroupName key that will be put into the emf log to this publisher. This is required when using
+         * the CloudWatch agent to send embedded metric format logs that tells the agent which log
+         * group to use.
          *
-         * <p> This field is required and must not be null or empty.
-         * @throws NullPointerException if logGroupName is null
+         * <p> If this is not specified, for AWS lambda environments, {@code AWS_LAMBDA_LOG_GROUP_NAME}
+         * is used.
+         * This field is required and must not be null or empty for non-lambda environments.
+         * @throws NullPointerException if non-lambda environment and logGroupName is null
          */
         public Builder logGroupName(String logGroupName) {
             this.logGroupName = logGroupName;

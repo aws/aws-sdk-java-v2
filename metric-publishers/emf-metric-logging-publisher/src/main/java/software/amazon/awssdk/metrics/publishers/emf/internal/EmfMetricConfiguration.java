@@ -27,6 +27,7 @@ import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 
 @SdkInternalApi
 public final class EmfMetricConfiguration {
@@ -45,7 +46,7 @@ public final class EmfMetricConfiguration {
 
     private EmfMetricConfiguration(Builder builder) {
         this.namespace = builder.namespace == null ? DEFAULT_NAMESPACE : builder.namespace;
-        this.logGroupName = builder.logGroupName;
+        this.logGroupName = Validate.paramNotNull(resolveLogGroupName(builder), "logGroupName");
         this.dimensions = builder.dimensions == null ? DEFAULT_DIMENSIONS : new HashSet<>(builder.dimensions);
         this.metricCategories = builder.metricCategories == null ? DEFAULT_CATEGORIES : new HashSet<>(builder.metricCategories);
         this.metricLevel = builder.metricLevel == null ? DEFAULT_METRIC_LEVEL : builder.metricLevel;
@@ -85,7 +86,6 @@ public final class EmfMetricConfiguration {
         }
 
         public EmfMetricConfiguration build() {
-            Validate.notNull(logGroupName, "logGroupName must be configured for publishing emf format log");
             return new EmfMetricConfiguration(this);
         }
     }
@@ -108,6 +108,11 @@ public final class EmfMetricConfiguration {
 
     public MetricLevel metricLevel() {
         return metricLevel;
+    }
+
+    private String resolveLogGroupName(Builder builder) {
+        return builder.logGroupName != null ? builder.logGroupName :
+               SystemSettingUtils.resolveEnvironmentVariable("AWS_LAMBDA_LOG_GROUP_NAME").orElse(null);
     }
 
 }
