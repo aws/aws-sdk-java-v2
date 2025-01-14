@@ -173,8 +173,8 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         if (userSetValue == ProtocolNegotiation.ALPN) {
             // TODO - remove once we implement support for ALPN with HTTP1
             if (protocol == Protocol.HTTP1_1) {
-                throw new UnsupportedOperationException("ALPN with HTTP1 is not yet supported, use prior knowledge instead with "
-                                                        + "ProtocolNegotiation.ASSUME_PROTOCOL, or use ALPN with H2.");
+                throw new UnsupportedOperationException("ALPN with HTTP/1.1 is not yet supported, use prior knowledge instead "
+                                                        + "with ProtocolNegotiation.ASSUME_PROTOCOL, or use ALPN with H2.");
             }
 
             // throw error if not supported and user set ALPN
@@ -411,8 +411,8 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * If set to {@code ProtocolNegotiation.ALPN}, the request will be made using ALPN, without a fallback protocol.
          * If ALPN is not supported by the server an exception will be thrown.
          * <p>
-         * Default value is true for services with H2 protocol setting, with the exception of the following services:
-         * Kinesis, TranscribeStreaming, Lex Runtime v2, Q Business
+         * Default value is {@code ProtocolNegotiation.ALPN} for services with H2 protocol setting, with the exception of the
+         * following services: Kinesis, TranscribeStreaming, Lex Runtime v2, Q Business
          * <p>
          * Note: For Java 8, ALPN is only supported in versions 1.8.0_251 and newer.
          * If on unsupported Java version:

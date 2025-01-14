@@ -119,20 +119,33 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     }
 
     private void configureProtocolHandlers(Channel ch, ChannelPipeline pipeline, Protocol protocol) {
-        if (protocolNegotiation == ProtocolNegotiation.ASSUME_PROTOCOL) {
-            if (protocol == Protocol.HTTP1_1) {
-                configureHttp11(ch, pipeline);
-            } else if (protocol == Protocol.HTTP2) {
-                configureHttp2(ch, pipeline);
-            }
-        } else if (protocolNegotiation == ProtocolNegotiation.ALPN) {
-            if (protocol == Protocol.HTTP1_1) {
-                // TODO - verify functionality once we implement ALPN with H1
-                // we will never reach here since we throw error in NettyNioAsyncHttpClient for ALPN + H1
-                configureAlpnH1(pipeline);
-            } else if (protocol == Protocol.HTTP2) {
-                configureAlpnH2(pipeline);
-            }
+        switch (protocolNegotiation) {
+            case ASSUME_PROTOCOL:
+                configureAssumeProtocol(ch, pipeline, protocol);
+                break;
+            case ALPN:
+                configureAlpn(pipeline, protocol);
+                break;
+            default:
+                throw new UnsupportedOperationException("");
+        }
+    }
+
+    private void configureAlpn(ChannelPipeline pipeline, Protocol protocol) {
+        if (protocol == Protocol.HTTP1_1) {
+            // TODO - remove once we implement support for ALPN with HTTP1
+            throw new UnsupportedOperationException("ALPN with HTTP1 is not yet supported, use prior knowledge instead with "
+                                                    + "ProtocolNegotiation.ASSUME_PROTOCOL, or use ALPN with H2.");
+        } else if (protocol == Protocol.HTTP2) {
+            configureAlpnH2(pipeline);
+        }
+    }
+
+    private void configureAssumeProtocol(Channel ch, ChannelPipeline pipeline, Protocol protocol) {
+        if (protocol == Protocol.HTTP1_1) {
+            configureHttp11(ch, pipeline);
+        } else if (protocol == Protocol.HTTP2) {
+            configureHttp2(ch, pipeline);
         }
     }
 
@@ -174,19 +187,10 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         pipeline.addLast(new ApplicationProtocolNegotiationHandler("") {
             @Override
             protected void configurePipeline(ChannelHandlerContext ctx, String protocol) {
-                if (ApplicationProtocolNames.HTTP_2.equals(protocol)) {
+                if (protocol.equals(ApplicationProtocolNames.HTTP_2)) {
                     configureHttp2(ctx.channel(), ctx.pipeline());
-                }
-            }
-        });
-    }
-
-    private void configureAlpnH1(ChannelPipeline pipeline) {
-        pipeline.addLast(new ApplicationProtocolNegotiationHandler("") {
-            @Override
-            protected void configurePipeline(ChannelHandlerContext ctx, String protocol) {
-                if (ApplicationProtocolNames.HTTP_1_1.equals(protocol)) {
-                    configureHttp11(ctx.channel(), ctx.pipeline());
+                } else {
+                    throw new UnsupportedOperationException("The server does not support ALPN with H2");
                 }
             }
         });

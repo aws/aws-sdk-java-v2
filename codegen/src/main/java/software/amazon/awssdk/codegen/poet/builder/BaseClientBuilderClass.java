@@ -639,23 +639,25 @@ public class BaseClientBuilderClass implements ClassSpec {
     private void addServiceHttpConfigIfNeeded(TypeSpec.Builder builder, IntermediateModel model) {
         String serviceDefaultFqcn = model.getCustomizationConfig().getServiceSpecificHttpConfig();
         boolean supportsH2 = model.getMetadata().supportsH2();
-        boolean skipAlpn = model.getCustomizationConfig().isSkipAlpn();
+        boolean usePriorKnowledgeForH2 = model.getCustomizationConfig().isUsePriorKnowledgeForH2();
 
         if (serviceDefaultFqcn != null || supportsH2) {
-            builder.addMethod(serviceSpecificHttpConfigMethod(serviceDefaultFqcn, supportsH2, skipAlpn));
+            builder.addMethod(serviceSpecificHttpConfigMethod(serviceDefaultFqcn, supportsH2, usePriorKnowledgeForH2));
         }
     }
 
-    private MethodSpec serviceSpecificHttpConfigMethod(String serviceDefaultFqcn, boolean supportsH2, boolean skipAlpn) {
+    private MethodSpec serviceSpecificHttpConfigMethod(String serviceDefaultFqcn, boolean supportsH2,
+                                                       boolean usePriorKnowledgeForH2) {
         return MethodSpec.methodBuilder("serviceHttpConfig")
                          .addAnnotation(Override.class)
                          .addModifiers(PROTECTED, FINAL)
                          .returns(AttributeMap.class)
-                         .addCode(serviceSpecificHttpConfigMethodBody(serviceDefaultFqcn, supportsH2, skipAlpn))
+                         .addCode(serviceSpecificHttpConfigMethodBody(serviceDefaultFqcn, supportsH2, usePriorKnowledgeForH2))
                          .build();
     }
 
-    private CodeBlock serviceSpecificHttpConfigMethodBody(String serviceDefaultFqcn, boolean supportsH2, boolean skipAlpn) {
+    private CodeBlock serviceSpecificHttpConfigMethodBody(String serviceDefaultFqcn, boolean supportsH2,
+                                                          boolean usePriorKnowledgeForH2) {
         CodeBlock.Builder builder = CodeBlock.builder();
 
         if (serviceDefaultFqcn != null) {
@@ -671,7 +673,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                         + ".put($T.PROTOCOL, $T.HTTP2)",
                         SdkHttpConfigurationOption.class, Protocol.class);
 
-            if (!skipAlpn) {
+            if (!usePriorKnowledgeForH2) {
                 builder.add(".put($T.PROTOCOL_NEGOTIATION, $T.ALPN)",
                             SdkHttpConfigurationOption.class, ProtocolNegotiation.class);
             }

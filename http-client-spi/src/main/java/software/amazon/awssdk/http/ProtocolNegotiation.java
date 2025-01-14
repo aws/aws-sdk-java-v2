@@ -18,7 +18,7 @@ package software.amazon.awssdk.http;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * The protocol negotiation used by the HTTP client to establish connections
+ * The protocol negotiation selection scheme used by the HTTP client to establish connections
  */
 @SdkPublicApi
 public enum ProtocolNegotiation {

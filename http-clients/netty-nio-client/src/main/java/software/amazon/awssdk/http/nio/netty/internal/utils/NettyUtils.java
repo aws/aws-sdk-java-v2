@@ -392,20 +392,12 @@ public final class NettyUtils {
     //  ALPN supported backported in u251
     //  https://bugs.openjdk.org/browse/JDK-8242894
     public static boolean isAlpnSupported() {
-        String javaVersion = getJavaVersion();
-        String[] versionComponents = javaVersion.split("_");
-        if (versionComponents.length == 2) {
-            try {
-                int buildNumber = Integer.parseInt(versionComponents[1].split("-")[0]);
-                if (javaVersion.startsWith("1.8.0") && buildNumber < 251) {
-                    return false;
-                }
-            } catch (NumberFormatException e) {
-                log.error(() -> "Invalid Java version format: " + javaVersion);
-                throw e;
-            }
+        try {
+            Class.forName("sun.security.ssl.ALPNExtension", true, null);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
         }
-        return true;
     }
 
     public static String getJavaVersion() {

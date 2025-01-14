@@ -1,6 +1,6 @@
 {
     "type": "feature",
-    "category": "AWS SDK for Java v2",
+    "category": "Netty NIO HTTP Client",
     "contributor": "",
     "description": "Adds ALPN H2 support for Netty client"
 }

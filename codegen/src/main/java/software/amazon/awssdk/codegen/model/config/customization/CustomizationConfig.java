@@ -259,9 +259,9 @@ public class CustomizationConfig {
     private boolean generateEndpointClientTests;
 
     /**
-     * Whether to skip using ALPN for H2 service.
+     * Whether to use prior knowledge protocol negotiation for H2
      */
-    private boolean skipAlpn;
+    private boolean usePriorKnowledgeForH2;
 
     /**
      * A mapping from the skipped test's description to the reason why it's being skipped.
@@ -751,12 +751,12 @@ public class CustomizationConfig {
         this.generateEndpointClientTests = generateEndpointClientTests;
     }
 
-    public boolean isSkipAlpn() {
-        return skipAlpn;
+    public boolean isUsePriorKnowledgeForH2() {
+        return usePriorKnowledgeForH2;
     }
 
-    public void setSkipAlpn(boolean skipAlpn) {
-        this.skipAlpn = skipAlpn;
+    public void setUsePriorKnowledgeForH2(boolean usePriorKnowledgeForH2) {
+        this.usePriorKnowledgeForH2 = usePriorKnowledgeForH2;
     }
 
     public boolean useGlobalEndpoint() {

@@ -65,8 +65,8 @@ public final class SslContextProvider {
             if (protocolNegotiation == ProtocolNegotiation.ALPN) {
                 builder.applicationProtocolConfig(
                     new ApplicationProtocolConfig(ApplicationProtocolConfig.Protocol.ALPN,
-                                                  ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
-                                                  ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
+                                                  ApplicationProtocolConfig.SelectorFailureBehavior.FATAL_ALERT,
+                                                  ApplicationProtocolConfig.SelectedListenerFailureBehavior.FATAL_ALERT,
                                                   resolveNettyProtocol(protocol)));
             }
 

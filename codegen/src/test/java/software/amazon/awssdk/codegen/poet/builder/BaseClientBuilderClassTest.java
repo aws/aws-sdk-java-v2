@@ -23,7 +23,7 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceM
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModelsEndpointAuthParamsWithAllowList;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.serviceWithH2;
-import static software.amazon.awssdk.codegen.poet.ClientTestModels.serviceWithH2SkipAlpn;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.serviceWithH2UsePriorKnowledgeForH2;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.serviceWithNoAuth;
 import static software.amazon.awssdk.codegen.poet.builder.BuilderClassTestUtils.validateGeneration;
 
@@ -125,8 +125,8 @@ public class BaseClientBuilderClassTest {
     }
 
     @Test
-    void baseClientBuilderClassWithH2SkipAlpn() {
-        validateBaseClientBuilderClassGeneration(serviceWithH2SkipAlpn(), "test-h2-skipAlpn-service-client-builder-class.java");
+    void baseClientBuilderClassWithH2_usePriorKnowledgeForH2() {
+        validateBaseClientBuilderClassGeneration(serviceWithH2UsePriorKnowledgeForH2(), "test-h2-usePriorKnowledgeForH2-service-client-builder-class.java");
     }
 
     private void validateBaseClientBuilderClassGeneration(IntermediateModel model, String expectedClassName) {
