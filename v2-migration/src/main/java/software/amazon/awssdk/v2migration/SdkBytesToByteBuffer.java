@@ -27,7 +27,6 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType.FullyQualified;
 import org.openrewrite.java.tree.JavaType.Method;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils;
 
 @SdkInternalApi
