@@ -19,7 +19,6 @@ import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.DEFAULT_J
 import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.OPEN_SSL_PROVIDER;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.getSslProvider;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.trustAllTlsAttributeMapBuilder;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 
 import io.netty.handler.ssl.SslProvider;
 import java.util.Collection;
@@ -41,20 +40,21 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.benchmark.utils.MockH2Server;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 
 /**
- * Using netty client to test against local http2 server.
+ * Using netty client with ALPN to test against local http2 server with ALPN support.
  */
 @State(Scope.Benchmark)
 @Warmup(iterations = 3, time = 15, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @Fork(2) // To reduce difference between each run
 @BenchmarkMode(Mode.Throughput)
-public class NettyHttpClientH2Benchmark extends BaseNettyBenchmark {
+public class NettyHttpClientAlpnBenchmark extends BaseNettyBenchmark {
 
     private MockH2Server mockServer;
     private SdkAsyncHttpClient sdkHttpClient;
@@ -64,7 +64,7 @@ public class NettyHttpClientH2Benchmark extends BaseNettyBenchmark {
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        boolean usingAlpn = false;
+        boolean usingAlpn = true;
         mockServer = new MockH2Server(usingAlpn);
         mockServer.start();
 
@@ -73,6 +73,7 @@ public class NettyHttpClientH2Benchmark extends BaseNettyBenchmark {
         sdkHttpClient = NettyNioAsyncHttpClient.builder()
                                                .sslProvider(sslProvider)
                                                .protocol(Protocol.HTTP2)
+                                               .protocolNegotiation(ProtocolNegotiation.ALPN)
                                                .buildWithDefaults(trustAllTlsAttributeMapBuilder().build());
         client = ProtocolRestJsonAsyncClient.builder()
                                             .endpointOverride(mockServer.getHttpsUri())
