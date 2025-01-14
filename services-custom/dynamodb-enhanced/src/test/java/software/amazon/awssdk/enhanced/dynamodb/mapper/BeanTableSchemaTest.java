@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -54,6 +55,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EmptyConverterP
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EnumBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ExtendedBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedBeanBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedBeanImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedImmutableBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.IgnoredAttributeBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
@@ -178,18 +180,57 @@ public class BeanTableSchemaTest {
     @Test
     public void dynamoDbFlatten_correctlyFlattensBeanAttributes() {
         BeanTableSchema<FlattenedBeanBean> beanTableSchema = BeanTableSchema.create(FlattenedBeanBean.class);
+
+        assertThat(beanTableSchema.attributeNames(), containsInAnyOrder("id", "attribute1", "attribute2",
+                "prefix-attribute2", "autoPrefixBean.attribute2", "custom.attribute2"));
+
         AbstractBean abstractBean = new AbstractBean();
         abstractBean.setAttribute2("two");
         FlattenedBeanBean flattenedBeanBean = new FlattenedBeanBean();
         flattenedBeanBean.setId("id-value");
         flattenedBeanBean.setAttribute1("one");
         flattenedBeanBean.setAbstractBean(abstractBean);
+        flattenedBeanBean.setExplicitPrefixBean(abstractBean);
+        flattenedBeanBean.setAutoPrefixBean(abstractBean);
+        flattenedBeanBean.setCustomPrefixBean(abstractBean);
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedBeanBean, false);
-        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap.size(), is(6));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
         assertThat(itemMap, hasEntry("attribute2", stringValue("two")));
+        assertThat(itemMap, hasEntry("prefix-attribute2", stringValue("two")));
+        assertThat(itemMap, hasEntry("autoPrefixBean.attribute2", stringValue("two")));
+        assertThat(itemMap, hasEntry("custom.attribute2", stringValue("two")));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyGetFlattenedBeanAttributes() {
+        BeanTableSchema<FlattenedBeanBean> tableSchema = BeanTableSchema.create(FlattenedBeanBean.class);
+
+        AbstractBean abstractBean = new AbstractBean();
+        abstractBean.setAttribute2("two");
+        AbstractBean explicitPrefixBean = new AbstractBean();
+        explicitPrefixBean.setAttribute2("three");
+        AbstractBean autoPrefixBean = new AbstractBean();
+        autoPrefixBean.setAttribute2("four");
+        AbstractBean customPrefixBean = new AbstractBean();
+        customPrefixBean.setAttribute2("five");
+
+        FlattenedBeanBean bean = new FlattenedBeanBean();
+        bean.setId("id-value");
+        bean.setAttribute1("one");
+        bean.setAbstractBean(abstractBean);
+        bean.setExplicitPrefixBean(explicitPrefixBean);
+        bean.setAutoPrefixBean(autoPrefixBean);
+        bean.setCustomPrefixBean(customPrefixBean);
+
+        assertThat(tableSchema.attributeValue(bean, "id"), equalTo(stringValue("id-value")));
+        assertThat(tableSchema.attributeValue(bean, "attribute1"), equalTo(stringValue("one")));
+        assertThat(tableSchema.attributeValue(bean, "attribute2"), equalTo(stringValue("two")));
+        assertThat(tableSchema.attributeValue(bean, "prefix-attribute2"), equalTo(stringValue("three")));
+        assertThat(tableSchema.attributeValue(bean, "autoPrefixBean.attribute2"), equalTo(stringValue("four")));
+        assertThat(tableSchema.attributeValue(bean, "custom.attribute2"), equalTo(stringValue("five")));
     }
 
     @Test
@@ -248,12 +289,18 @@ public class BeanTableSchemaTest {
         flattenedImmutableBean.setId("id-value");
         flattenedImmutableBean.setAttribute1("one");
         flattenedImmutableBean.setAbstractImmutable(abstractImmutable);
+        flattenedImmutableBean.setExplicitPrefixImmutable(abstractImmutable);
+        flattenedImmutableBean.setAutoPrefixImmutable(abstractImmutable);
+        flattenedImmutableBean.setCustomPrefixImmutable(abstractImmutable);
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedImmutableBean, false);
-        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap.size(), is(6));
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
         assertThat(itemMap, hasEntry("attribute2", stringValue("two")));
+        assertThat(itemMap, hasEntry("prefix-attribute2", stringValue("two")));
+        assertThat(itemMap, hasEntry("autoPrefixImmutable.attribute2", stringValue("two")));
+        assertThat(itemMap, hasEntry("custom.attribute2", stringValue("two")));
     }
 
     @Test

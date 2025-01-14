@@ -178,6 +178,19 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
         }
 
         /**
+         * Flattens all the attributes defined in another {@link StaticTableSchema} into the database record this schema
+         * maps to. Functions to get and set an object that the flattened schema maps to is required.
+         * Applies the given prefix to all flattened attributes.
+         */
+        public <R> Builder<T> flatten(TableSchema<R> otherTableSchema,
+                                      Function<T, R> otherItemGetter,
+                                      BiConsumer<T, R> otherItemSetter,
+                                      String attributesPrefix) {
+            this.delegateBuilder.flatten(otherTableSchema, otherItemGetter, otherItemSetter, attributesPrefix);
+            return this;
+        }
+
+        /**
          * Extends the {@link StaticTableSchema} of a super-class, effectively rolling all the attributes modelled by
          * the super-class into the {@link StaticTableSchema} of the sub-class.
          */
