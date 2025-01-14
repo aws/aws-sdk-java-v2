@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.29.51__ __2025-01-13__
+## __AWS Artifact__
+  - ### Features
+    - Support resolving regional API calls to partition's leader region endpoint.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - With this release, Bedrock Evaluation will now support latency-optimized inference for foundation models.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add support for DisconnectOnSessionTimeout flag in CreateClientVpnEndpoint and ModifyClientVpnEndpoint requests and DescribeClientVpnEndpoints responses
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This update provides tagging support for Transcribe's Call Analytics Jobs and Call Analytics Categories.
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Support updating connector configuration via UpdateConnector API. Release Operations API to monitor the status of the connector operation.
+
 # __2.29.50__ __2025-01-10__
 ## __AWS SDK for Java v2__
   - ### Features
