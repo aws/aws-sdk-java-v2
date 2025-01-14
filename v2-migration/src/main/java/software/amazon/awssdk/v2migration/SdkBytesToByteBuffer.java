@@ -45,29 +45,7 @@ public class SdkBytesToByteBuffer extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new JavaIsoVisitor<ExecutionContext>() {
-            @Override
-            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation originalMethod,
-                ExecutionContext executionContext) {
-                J.MethodInvocation method = super.visitMethodInvocation(originalMethod, executionContext);
-                if (!isV2ModelGetterReturningByteBuffer(method)) {
-                    return method;
-                }
-
-                String methodName = method.getSimpleName();
-                JavaTemplate template = JavaTemplate
-                    .builder(method.getSelect() + "." + methodName + "()." + "asByteBuffer()")
-                    .contextSensitive()
-                    .build();
-
-                method = template.apply(
-                    updateCursor(method),
-                    method.getCoordinates().replace()
-                );
-
-                return method;
-            }
-        };
+        return new SdkBytesToBufferVisitor();
     }
 
     private static boolean isV2ModelGetterReturningByteBuffer(J.MethodInvocation method) {
@@ -83,4 +61,28 @@ public class SdkBytesToByteBuffer extends Recipe {
         return false;
     }
 
+    private static final class SdkBytesToBufferVisitor extends JavaIsoVisitor<ExecutionContext> {
+        @Override
+        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation originalMethod,
+                                                        ExecutionContext executionContext) {
+            J.MethodInvocation method =
+                super.visitMethodInvocation(originalMethod, executionContext);
+            if (!isV2ModelGetterReturningByteBuffer(method)) {
+                return method;
+            }
+
+            String methodName = method.getSimpleName();
+            JavaTemplate template = JavaTemplate
+                .builder(method.getSelect() + "." + methodName + "()." + "asByteBuffer()")
+                .contextSensitive()
+                .build();
+
+            method = template.apply(
+                updateCursor(method),
+                method.getCoordinates().replace()
+            );
+
+            return method;
+        }
+    }
 }
