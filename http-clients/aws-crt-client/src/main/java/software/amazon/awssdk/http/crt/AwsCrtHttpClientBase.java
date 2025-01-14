@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.crt;
 import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveHttpMonitoringOptions;
 import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL_NEGOTIATION;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildSocketOptions;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveCipherPreference;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.crt.internal.AwsCrtClientBuilderBase;
@@ -71,6 +73,11 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
         if (config.get(PROTOCOL) == Protocol.HTTP2) {
             throw new UnsupportedOperationException("HTTP/2 is not supported in AwsCrtHttpClient yet. Use "
                                                + "NettyNioAsyncHttpClient instead.");
+        }
+
+        if (config.get(PROTOCOL_NEGOTIATION) == ProtocolNegotiation.ALPN) {
+            throw new UnsupportedOperationException("LPN is not supported in AwsCrtHttpClient yet. Use "
+                                                    + "NettyNioAsyncHttpClient instead.");
         }
 
         try (ClientBootstrap clientBootstrap = new ClientBootstrap(null, null);

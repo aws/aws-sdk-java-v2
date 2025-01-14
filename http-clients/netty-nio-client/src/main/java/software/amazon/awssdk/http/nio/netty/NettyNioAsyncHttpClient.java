@@ -19,7 +19,9 @@ import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_QUIET_PERIOD_SECONDS;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_TIMEOUT_SECONDS;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.isAlpnSupported;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.runAndLogError;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.validateAlpnSupported;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import io.netty.channel.ChannelOption;
@@ -37,6 +39,7 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SystemPropertyTlsKeyManagersProvider;
@@ -86,6 +89,8 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private NettyNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
         this.configuration = new NettyConfiguration(serviceDefaultsMap);
         Protocol protocol = serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL);
+        ProtocolNegotiation protocolNegotiation = resolveProtocolNegotiation(builder.protocolNegotiation, serviceDefaultsMap,
+                                                                             protocol);
         this.sdkEventLoopGroup = eventLoopGroup(builder);
 
         Http2Configuration http2Configuration = builder.http2Configuration;
@@ -97,6 +102,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                                              .sdkChannelOptions(builder.sdkChannelOptions)
                                              .configuration(configuration)
                                              .protocol(protocol)
+                                             .protocolNegotiation(protocolNegotiation)
                                              .maxStreams(maxStreams)
                                              .initialWindowSize(initialWindowSize)
                                              .healthCheckPingPeriod(resolveHealthCheckPingPeriod(http2Configuration))
@@ -160,6 +166,36 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         return SslContext.defaultClientProvider();
+    }
+
+    private ProtocolNegotiation resolveProtocolNegotiation(ProtocolNegotiation userSetValue, AttributeMap serviceDefaultsMap,
+                                                           Protocol protocol) {
+        if (userSetValue == ProtocolNegotiation.ALPN) {
+            // TODO - remove once we implement support for ALPN with HTTP1
+            if (protocol == Protocol.HTTP1_1) {
+                throw new UnsupportedOperationException("ALPN with HTTP1 is not yet supported, use prior knowledge instead with "
+                                                        + "ProtocolNegotiation.ASSUME_PROTOCOL, or use ALPN with H2.");
+            }
+
+            // throw error if not supported and user set ALPN
+            validateAlpnSupported();
+            return ProtocolNegotiation.ALPN;
+        }
+        if (userSetValue == ProtocolNegotiation.ASSUME_PROTOCOL) {
+            return ProtocolNegotiation.ASSUME_PROTOCOL;
+        }
+
+        ProtocolNegotiation protocolNegotiation = serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL_NEGOTIATION);
+        if (protocolNegotiation == ProtocolNegotiation.ALPN) {
+            if (!isAlpnSupported()) {
+                // fallback to prior knowledge if not supported and SDK defaults to ALPN
+                protocolNegotiation = ProtocolNegotiation.ASSUME_PROTOCOL;
+                log.warn(null, () -> "ALPN is not supported in the current Java version, falling back to prior knowledge for "
+                                     + "protocol negotiation");
+            }
+        }
+
+        return protocolNegotiation;
     }
 
     private long resolveMaxHttp2Streams(Integer topLevelValue, Http2Configuration http2Configuration) {
@@ -372,6 +408,20 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         Builder protocol(Protocol protocol);
 
         /**
+         * If set to {@code ProtocolNegotiation.ALPN}, the request will be made using ALPN, without a fallback protocol.
+         * If ALPN is not supported by the server an exception will be thrown.
+         * <p>
+         * Default value is true for services with H2 protocol setting, with the exception of the following services:
+         * Kinesis, TranscribeStreaming, Lex Runtime v2, Q Business
+         * <p>
+         * Note: For Java 8, ALPN is only supported in versions 1.8.0_251 and newer.
+         * If on unsupported Java version:
+         *  1) Default SDK setting of true -> SDK will fallback to prior knowledge and not use ALPN
+         *  2) User explicitly sets value of true -> Exception will be thrown
+         */
+        Builder protocolNegotiation(ProtocolNegotiation protocolNegotiation);
+
+        /**
          * Configure whether to enable or disable TCP KeepAlive.
          * The configuration will be passed to the socket option {@link SocketOptions#SO_KEEPALIVE}.
          * <p>
@@ -503,6 +553,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         private SslProvider sslProvider;
         private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
         private Boolean useNonBlockingDnsResolver;
+        private ProtocolNegotiation protocolNegotiation;
 
         private DefaultBuilder() {
         }
@@ -640,8 +691,14 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             return this;
         }
 
-        public void setProtocol(Protocol protocol) {
-            protocol(protocol);
+        @Override
+        public Builder protocolNegotiation(ProtocolNegotiation protocolNegotiation) {
+            this.protocolNegotiation = protocolNegotiation;
+            return this;
+        }
+
+        public void setProtocolNegotiation(ProtocolNegotiation protocolNegotiation) {
+            protocolNegotiation(protocolNegotiation);
         }
 
         @Override
