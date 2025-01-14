@@ -48,7 +48,7 @@ public class SdkBytesToByteBuffer extends Recipe {
         return new JavaIsoVisitor<ExecutionContext>() {
             @Override
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation originalMethod,
-            ExecutionContext executionContext) {
+                ExecutionContext executionContext) {
                 J.MethodInvocation method = super.visitMethodInvocation(originalMethod, executionContext);
                 if (!isV2ModelGetterReturningByteBuffer(method)) {
                     return method;
