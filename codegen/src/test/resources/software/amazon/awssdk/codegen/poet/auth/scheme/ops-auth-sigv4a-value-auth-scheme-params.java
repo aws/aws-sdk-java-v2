@@ -36,6 +36,14 @@ public interface DatabaseAuthSchemeParams extends ToCopyableBuilder<DatabaseAuth
      */
     RegionSet regionSet();
 
+    Boolean useDualStackEndpoint();
+
+    Boolean useFipsEndpoint();
+
+    String accountId();
+
+    String operationContextParam();
+
     /**
      * Returns a {@link Builder} to customize the parameters.
      */
@@ -59,6 +67,14 @@ public interface DatabaseAuthSchemeParams extends ToCopyableBuilder<DatabaseAuth
          * Set the RegionSet. The regionSet parameter may be used with the "aws.auth#sigv4a" auth scheme.
          */
         Builder regionSet(RegionSet regionSet);
+
+        Builder useDualStackEndpoint(Boolean useDualStackEndpoint);
+
+        Builder useFipsEndpoint(Boolean useFIPSEndpoint);
+
+        Builder accountId(String accountId);
+
+        Builder operationContextParam(String operationContextParam);
 
         /**
          * Returns a {@link DatabaseAuthSchemeParams} object that is created from the properties that have been set on

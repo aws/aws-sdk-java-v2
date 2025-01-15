@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Set;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 
@@ -125,7 +126,7 @@ public final class AuthSchemeSpecUtils {
     }
 
     public boolean generateEndpointBasedParams() {
-        return intermediateModel.getCustomizationConfig().isEnableEndpointAuthSchemeParams();
+        return intermediateModel.getCustomizationConfig().isEndpointBasedAuthSchemeParamsLegacy();
     }
 
     public boolean includeParam(String name) {
@@ -145,6 +146,24 @@ public final class AuthSchemeSpecUtils {
             return allowedEndpointAuthSchemeParams.contains(name);
         }
         return true;
+    }
+
+    public boolean hasMultiAuthSigvOrSigv4a() {
+        List<AuthType> authList = intermediateModel.getMetadata().getAuth();
+
+        return (authList.size() > 1 &&
+                authList.stream().anyMatch(authType -> authType == AuthType.V4 || authType == AuthType.V4A))
+               ||
+               intermediateModel.getOperations()
+                                .values()
+                                .stream()
+                                .flatMap(operationModel -> operationModel.getAuth().stream())
+                                .anyMatch(authType -> authType == AuthType.V4 || authType == AuthType.V4A);
+    }
+
+    //Include Endpoint params in Auth Schemes to resolve the Endpoint for obtaining Signing properties in Multi Auth.
+    public boolean useEndpointParamsInAuthScheme() {
+        return generateEndpointBasedParams() || hasMultiAuthSigvOrSigv4a();
     }
 
     public String serviceName() {

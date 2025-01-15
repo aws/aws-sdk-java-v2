@@ -35,8 +35,9 @@ public final class ModelAuthSchemeClassesKnowledgeIndex {
 
     private ModelAuthSchemeClassesKnowledgeIndex(IntermediateModel intermediateModel) {
         this.serviceConcreteAuthSchemeClasses =
-            getServiceConcreteAuthSchemeClasses(ModelAuthSchemeKnowledgeIndex.of(intermediateModel).operationsToMetadata(),
-                                                intermediateModel.getCustomizationConfig().isEnableEndpointAuthSchemeParams());
+            getServiceConcreteAuthSchemeClasses(
+                ModelAuthSchemeKnowledgeIndex.of(intermediateModel).operationsToMetadata(),
+                intermediateModel.getCustomizationConfig().isEndpointBasedAuthSchemeParamsLegacy());
     }
 
     /**

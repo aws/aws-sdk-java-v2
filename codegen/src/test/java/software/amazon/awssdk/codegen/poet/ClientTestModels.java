@@ -341,10 +341,15 @@ public class ClientTestModels {
         File customizationModel =
             new File(ClientTestModels.class.getResource("client/c2j/ops-with-auth-sigv4a-value/customization.config")
                                            .getFile());
+
+        File endpointRuleSetModel =
+            new File(ClientTestModels.class.getResource("client/c2j/ops-with-auth-sigv4a-value/endpoint-rule-set.json").getFile());
+
         C2jModels models = C2jModels
             .builder()
             .serviceModel(getServiceModel(serviceModel))
             .customizationConfig(getCustomizationConfig(customizationModel))
+            .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSetModel))
             .build();
 
         return new IntermediateModelBuilder(models).build();

@@ -60,7 +60,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                                       .addMethod(builderMethod())
                                       .addType(builderImplSpec());
 
-        if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
+        if (authSchemeSpecUtils.useEndpointBasedAuthProvider() || authSchemeSpecUtils.hasMultiAuthSigvOrSigv4a()) {
             b.addSuperinterface(authSchemeSpecUtils.parametersEndpointAwareDefaultImplName());
         }
 
@@ -84,7 +84,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
             b.addStatement("this.regionSet = builder.regionSet");
         }
 
-        if (authSchemeSpecUtils.generateEndpointBasedParams()) {
+        if (authSchemeSpecUtils.useEndpointParamsInAuthScheme()) {
             parameters().forEach((name, model) -> {
                 if (authSchemeSpecUtils.includeParam(name)) {
                     String fieldName = authSchemeSpecUtils.paramMethodName(name);
@@ -122,7 +122,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                                      .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                                      .addSuperinterface(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName());
 
-        if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
+        if (authSchemeSpecUtils.useEndpointParamsInAuthScheme()) {
             b.addSuperinterface(authSchemeSpecUtils.parametersEndpointAwareDefaultImplName().nestedClass("Builder"));
         }
 
@@ -153,7 +153,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.usesSigV4a()) {
             builderFromInstance.addStatement("this.regionSet = params.regionSet");
         }
-        if (authSchemeSpecUtils.generateEndpointBasedParams()) {
+        if (authSchemeSpecUtils.useEndpointParamsInAuthScheme()) {
             parameters().forEach((name, model) -> {
                 if (authSchemeSpecUtils.includeParam(name)) {
                     builderFromInstance.addStatement("this.$1N = params.$1N", endpointRulesSpecUtils.variableName(name));
@@ -202,7 +202,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                                   .build());
         }
 
-        if (authSchemeSpecUtils.generateEndpointBasedParams()) {
+        if (authSchemeSpecUtils.useEndpointParamsInAuthScheme()) {
             parameters().forEach((name, model) -> {
                 if (authSchemeSpecUtils.includeParam(name)) {
                     b.addField(endpointRulesSpecUtils.parameterClassField(name, model));
@@ -255,7 +255,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
             b.addMethod(builderSetterMethod("regionSet", TypeName.get(RegionSet.class)));
         }
 
-        if (authSchemeSpecUtils.generateEndpointBasedParams()) {
+        if (authSchemeSpecUtils.useEndpointParamsInAuthScheme()) {
             parameters().forEach((name, model) -> {
                 if (authSchemeSpecUtils.includeParam(name)) {
                     b.addField(endpointRulesSpecUtils.parameterBuilderFieldSpec(name, model));
