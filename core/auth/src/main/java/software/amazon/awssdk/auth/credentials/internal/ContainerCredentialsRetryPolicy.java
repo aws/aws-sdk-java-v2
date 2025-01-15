@@ -17,10 +17,15 @@ package software.amazon.awssdk.auth.credentials.internal;
 
 import java.io.IOException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.regions.util.ResourcesEndpointRetryParameters;
 import software.amazon.awssdk.regions.util.ResourcesEndpointRetryPolicy;
 
+/**
+ * Retry policy shared by {@link InstanceProfileCredentialsProvider} and {@link ContainerCredentialsProvider#}.
+ */
 @SdkInternalApi
 public final class ContainerCredentialsRetryPolicy implements ResourcesEndpointRetryPolicy {
 
