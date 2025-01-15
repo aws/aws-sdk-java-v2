@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Security Incident Response",
+    "contributor": "",
+    "description": "Increase minimum length of Threat Actor IP 'userAgent' to 1."
+}
