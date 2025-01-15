@@ -24,6 +24,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.transcribestreaming.TranscribeStreamingAsyncClient;
 import software.amazon.awssdk.services.transcribestreaming.model.AudioStream;
@@ -45,17 +47,14 @@ public class TranscribeStreamingStabilityTest extends AwsTestBase {
     private static final Logger log = Logger.loggerFor(TranscribeStreamingStabilityTest.class.getSimpleName());
     public static final int CONCURRENCY = 2;
     public static final int TOTAL_RUNS = 1;
-    private static TranscribeStreamingAsyncClient transcribeStreamingClient;
+    private static TranscribeStreamingAsyncClient asyncClient;
+    private static TranscribeStreamingAsyncClient asyncClientAlpn;
     private static InputStream audioFileInputStream;
 
     @BeforeAll
     public static void setup() {
-        transcribeStreamingClient = TranscribeStreamingAsyncClient.builder()
-                                                                  .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                                  .httpClientBuilder(NettyNioAsyncHttpClient.builder()
-                                                                                                            .connectionAcquisitionTimeout(Duration.ofSeconds(30))
-                                                                                                            .maxConcurrency(CONCURRENCY))
-                                                                  .build();
+        asyncClient = initClient(ProtocolNegotiation.ASSUME_PROTOCOL);
+        asyncClientAlpn = initClient(ProtocolNegotiation.ALPN);
 
         audioFileInputStream = getInputStream();
 
@@ -64,19 +63,47 @@ public class TranscribeStreamingStabilityTest extends AwsTestBase {
         }
     }
 
+    private static TranscribeStreamingAsyncClient initClient(ProtocolNegotiation protocolNegotiation) {
+        return TranscribeStreamingAsyncClient.builder()
+                                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                             .httpClientBuilder(NettyNioAsyncHttpClient.builder()
+                                                                                       .connectionAcquisitionTimeout(Duration.ofSeconds(30))
+                                                                                       .maxConcurrency(CONCURRENCY)
+                                                                                       .protocol(Protocol.HTTP2)
+                                                                                       .protocolNegotiation(protocolNegotiation))
+                                             .build();
+    }
+
     @AfterAll
     public static void tearDown() {
-        transcribeStreamingClient.close();
+        asyncClient.close();
+        asyncClientAlpn.close();
     }
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
     public void startTranscription() {
         IntFunction<CompletableFuture<?>> futureIntFunction = i ->
-            transcribeStreamingClient.startStreamTranscription(b -> b.mediaSampleRateHertz(8_000)
-                                                                     .languageCode(LanguageCode.EN_US)
-                                                                     .mediaEncoding(MediaEncoding.PCM),
-                                                               new AudioStreamPublisher(),
-                                                               new TestStartStreamTranscriptionResponseHandler());
+            asyncClient.startStreamTranscription(b -> b.mediaSampleRateHertz(8_000)
+                                                       .languageCode(LanguageCode.EN_US)
+                                                       .mediaEncoding(MediaEncoding.PCM),
+                                                 new AudioStreamPublisher(),
+                                                 new TestStartStreamTranscriptionResponseHandler());
+        StabilityTestRunner.newRunner()
+                           .futureFactory(futureIntFunction)
+                           .totalRuns(TOTAL_RUNS)
+                           .requestCountPerRun(CONCURRENCY)
+                           .testName("TranscribeStreamingStabilityTest.startTranscription")
+                           .run();
+    }
+
+    @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
+    public void startTranscription_alpnEnabled() {
+        IntFunction<CompletableFuture<?>> futureIntFunction = i ->
+            asyncClientAlpn.startStreamTranscription(b -> b.mediaSampleRateHertz(8_000)
+                                                           .languageCode(LanguageCode.EN_US)
+                                                           .mediaEncoding(MediaEncoding.PCM),
+                                                     new AudioStreamPublisher(),
+                                                     new TestStartStreamTranscriptionResponseHandler());
         StabilityTestRunner.newRunner()
                            .futureFactory(futureIntFunction)
                            .totalRuns(TOTAL_RUNS)
@@ -89,7 +116,7 @@ public class TranscribeStreamingStabilityTest extends AwsTestBase {
         return TranscribeStreamingStabilityTest.class.getResourceAsStream("silence_8kHz.wav");
     }
 
-    private class AudioStreamPublisher implements Publisher<AudioStream> {
+    private static class AudioStreamPublisher implements Publisher<AudioStream> {
 
         @Override
         public void subscribe(Subscriber<? super AudioStream> s) {

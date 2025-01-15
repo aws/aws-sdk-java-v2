@@ -259,6 +259,11 @@ public class CustomizationConfig {
     private boolean generateEndpointClientTests;
 
     /**
+     * Whether to use prior knowledge protocol negotiation for H2
+     */
+    private boolean usePriorKnowledgeForH2;
+
+    /**
      * A mapping from the skipped test's description to the reason why it's being skipped.
      */
     private Map<String, String> skipEndpointTests;
@@ -744,6 +749,14 @@ public class CustomizationConfig {
 
     public void setGenerateEndpointClientTests(boolean generateEndpointClientTests) {
         this.generateEndpointClientTests = generateEndpointClientTests;
+    }
+
+    public boolean isUsePriorKnowledgeForH2() {
+        return usePriorKnowledgeForH2;
+    }
+
+    public void setUsePriorKnowledgeForH2(boolean usePriorKnowledgeForH2) {
+        this.usePriorKnowledgeForH2 = usePriorKnowledgeForH2;
     }
 
     public boolean useGlobalEndpoint() {

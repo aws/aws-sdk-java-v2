@@ -74,6 +74,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -718,22 +719,25 @@ public class BaseClientBuilderClass implements ClassSpec {
     private void addServiceHttpConfigIfNeeded(TypeSpec.Builder builder, IntermediateModel model) {
         String serviceDefaultFqcn = model.getCustomizationConfig().getServiceSpecificHttpConfig();
         boolean supportsH2 = model.getMetadata().supportsH2();
+        boolean usePriorKnowledgeForH2 = model.getCustomizationConfig().isUsePriorKnowledgeForH2();
 
         if (serviceDefaultFqcn != null || supportsH2) {
-            builder.addMethod(serviceSpecificHttpConfigMethod(serviceDefaultFqcn, supportsH2));
+            builder.addMethod(serviceSpecificHttpConfigMethod(serviceDefaultFqcn, supportsH2, usePriorKnowledgeForH2));
         }
     }
 
-    private MethodSpec serviceSpecificHttpConfigMethod(String serviceDefaultFqcn, boolean supportsH2) {
+    private MethodSpec serviceSpecificHttpConfigMethod(String serviceDefaultFqcn, boolean supportsH2,
+                                                       boolean usePriorKnowledgeForH2) {
         return MethodSpec.methodBuilder("serviceHttpConfig")
                          .addAnnotation(Override.class)
                          .addModifiers(PROTECTED, FINAL)
                          .returns(AttributeMap.class)
-                         .addCode(serviceSpecificHttpConfigMethodBody(serviceDefaultFqcn, supportsH2))
+                         .addCode(serviceSpecificHttpConfigMethodBody(serviceDefaultFqcn, supportsH2, usePriorKnowledgeForH2))
                          .build();
     }
 
-    private CodeBlock serviceSpecificHttpConfigMethodBody(String serviceDefaultFqcn, boolean supportsH2) {
+    private CodeBlock serviceSpecificHttpConfigMethodBody(String serviceDefaultFqcn, boolean supportsH2,
+                                                          boolean usePriorKnowledgeForH2) {
         CodeBlock.Builder builder = CodeBlock.builder();
 
         if (serviceDefaultFqcn != null) {
@@ -745,10 +749,16 @@ public class BaseClientBuilderClass implements ClassSpec {
         }
 
         if (supportsH2) {
-            builder.addStatement("return result.merge(AttributeMap.builder()"
-                                 + ".put($T.PROTOCOL, $T.HTTP2)"
-                                 + ".build())",
-                                 SdkHttpConfigurationOption.class, Protocol.class);
+            builder.add("return result.merge(AttributeMap.builder()"
+                        + ".put($T.PROTOCOL, $T.HTTP2)",
+                        SdkHttpConfigurationOption.class, Protocol.class);
+
+            if (!usePriorKnowledgeForH2) {
+                builder.add(".put($T.PROTOCOL_NEGOTIATION, $T.ALPN)",
+                            SdkHttpConfigurationOption.class, ProtocolNegotiation.class);
+            }
+
+            builder.addStatement(".build())");
         } else {
             builder.addStatement("return result");
         }

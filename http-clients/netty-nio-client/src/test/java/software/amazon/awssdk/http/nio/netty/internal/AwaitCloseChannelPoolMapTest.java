@@ -43,6 +43,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
 import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
 import software.amazon.awssdk.http.nio.netty.RecordingNetworkTrafficListener;
@@ -275,6 +276,7 @@ public class AwaitCloseChannelPoolMapTest {
                                                  .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
                                                  .configuration(new NettyConfiguration(GLOBAL_HTTP_DEFAULTS))
                                                  .protocol(Protocol.HTTP1_1)
+                                                 .protocolNegotiation(ProtocolNegotiation.ASSUME_PROTOCOL)
                                                  .maxStreams(100)
                                                  .sslProvider(SslProvider.OPENSSL)
                                                  .build();
@@ -293,6 +295,7 @@ public class AwaitCloseChannelPoolMapTest {
                                                  .sdkEventLoopGroup(SdkEventLoopGroup.builder().build())
                                                  .configuration(new NettyConfiguration(GLOBAL_HTTP_DEFAULTS))
                                                  .protocol(Protocol.HTTP1_1)
+                                                 .protocolNegotiation(ProtocolNegotiation.ASSUME_PROTOCOL)
                                                  .maxStreams(100)
                                                  .sslProvider(SslProvider.OPENSSL)
                                                  .build();

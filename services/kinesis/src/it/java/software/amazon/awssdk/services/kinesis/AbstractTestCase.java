@@ -20,28 +20,48 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Properties;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
+import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.ProtocolNegotiation;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class AbstractTestCase extends AwsTestBase {
     protected static KinesisClient client;
     protected static KinesisAsyncClient asyncClient;
+    protected static KinesisAsyncClient asyncClientAlpn;
 
-    @BeforeClass
+    @BeforeAll
     public static void init() throws IOException {
         setUpCredentials();
         KinesisClientBuilder builder = KinesisClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
         setEndpoint(builder);
         client = builder.build();
-        asyncClient = KinesisAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        asyncClient = KinesisAsyncClient.builder()
+                                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                        .build();
+        asyncClientAlpn = KinesisAsyncClient.builder()
+                                            .httpClient(NettyNioAsyncHttpClient.builder()
+                                                                               .protocol(Protocol.HTTP2)
+                                                                               .protocolNegotiation(ProtocolNegotiation.ALPN)
+                                                                               .build())
+                                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                            .build();
+    }
+
+    @AfterAll
+    public static void cleanUp() {
+        client.close();
+        asyncClient.close();
     }
 
     private static void setEndpoint(KinesisClientBuilder builder) throws IOException {
         File endpointOverrides = new File(
-                new File(System.getProperty("user.home")),
-                ".aws/awsEndpointOverrides.properties"
+            new File(System.getProperty("user.home")),
+            ".aws/awsEndpointOverrides.properties"
         );
 
         if (endpointOverrides.exists()) {

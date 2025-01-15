@@ -22,6 +22,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutException;
 import io.netty.util.AttributeKey;
@@ -386,6 +387,41 @@ public final class NettyUtils {
             runnable.run();
         } catch (Exception e) {
             log.error(null, () -> errorMsg, e);
+        }
+    }
+
+    //  ALPN supported backported in u251
+    //  https://bugs.openjdk.org/browse/JDK-8242894
+    public static boolean isAlpnSupported(SslProvider sslProvider) {
+        if (sslProvider != SslProvider.JDK) {
+            return true;
+        }
+        String javaVersion = getJavaVersion();
+        String[] versionComponents = javaVersion.split("_");
+        if (versionComponents.length == 2) {
+            try {
+                int buildNumber = Integer.parseInt(versionComponents[1].split("-")[0]);
+                if (javaVersion.startsWith("1.8.0") && buildNumber < 251) {
+                    return false;
+                }
+            } catch (NumberFormatException e) {
+                log.info(() -> "Invalid Java version format: " + javaVersion);
+                throw e;
+            }
+        }
+        return true;
+    }
+
+    public static String getJavaVersion() {
+        // CHECKSTYLE:OFF
+        return System.getProperty("java.version");
+        // CHECKSTYLE:ON
+    }
+
+    public static void validateAlpnSupported(SslProvider sslProvider) {
+        if (!isAlpnSupported(sslProvider)) {
+            throw new UnsupportedOperationException("ALPN is not supported in the current Java Version: " + getJavaVersion()
+                                                    + "Use SslProvider.OPENSSL or ProtocolNegotiation.ASSUME_PROTOCOL.");
         }
     }
 }
