@@ -131,7 +131,6 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
                                   .build());
         }
 
-        // Include Endpoint params in Auth Schemes to resolve the Endpoint for obtaining Signing properties in Multi Auth.
         if (authSchemeSpecUtils.useEndpointParamsInAuthScheme()) {
             parameters().forEach((name, model) -> {
                 if (authSchemeSpecUtils.includeParam(name)) {

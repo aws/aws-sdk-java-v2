@@ -28,6 +28,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 public final class AuthSchemeSpecUtils {
     private static final Set<String> DEFAULT_AUTH_SCHEME_PARAMS = setOf("region", "operation");
@@ -148,10 +149,11 @@ public final class AuthSchemeSpecUtils {
         return true;
     }
 
+    // New Multi Auth determined by "auth" triat on Service model or operation model.
     public boolean hasMultiAuthSigvOrSigv4a() {
         List<AuthType> authList = intermediateModel.getMetadata().getAuth();
 
-        return (authList.size() > 1 &&
+        return (!CollectionUtils.isNullOrEmpty(authList) &&
                 authList.stream().anyMatch(authType -> authType == AuthType.V4 || authType == AuthType.V4A))
                ||
                intermediateModel.getOperations()
