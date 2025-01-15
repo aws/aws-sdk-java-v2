@@ -54,6 +54,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     private final AtomicBoolean failureActionInitiated = new AtomicBoolean(false);
     private final AtomicInteger partNumber = new AtomicInteger(1);
     private final MultipartUploadHelper multipartUploadHelper;
+    private final long contentLength;
     private final long partSize;
     private final int partCount;
     private final int numExistingParts;
@@ -76,8 +77,9 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     KnownContentLengthAsyncRequestBodySubscriber(MpuRequestContext mpuRequestContext,
                                                  CompletableFuture<PutObjectResponse> returnFuture,
                                                  MultipartUploadHelper multipartUploadHelper) {
+        this.contentLength = mpuRequestContext.contentLength();
         this.partSize = mpuRequestContext.partSize();
-        this.partCount = determinePartCount(mpuRequestContext.contentLength(), partSize);
+        this.partCount = determinePartCount(contentLength, partSize);
         this.putObjectRequest = mpuRequestContext.request().left();
         this.returnFuture = returnFuture;
         this.uploadId = mpuRequestContext.uploadId();
@@ -210,7 +212,8 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
                 // List of CompletedParts needs to be in ascending order
                 parts = mergeCompletedParts();
             }
-            completeMpuFuture = multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest);
+            completeMpuFuture = multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest,
+                                                                              contentLength);
         }
     }
 

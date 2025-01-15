@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -51,7 +52,9 @@ public class S3AsyncClientDecorator {
             isMultipartEnable(clientContextParams),
             client -> {
                 MultipartConfiguration multipartConfiguration = clientContextParams.get(MULTIPART_CONFIGURATION_KEY);
-                return MultipartS3AsyncClient.create(client, multipartConfiguration);
+                boolean checksumEnabled = clientConfiguration.option(SdkClientOption.REQUEST_CHECKSUM_CALCULATION)
+                                          == RequestChecksumCalculation.WHEN_SUPPORTED;
+                return MultipartS3AsyncClient.create(client, multipartConfiguration, checksumEnabled);
             }));
         return ConditionalDecorator.decorate(base, decorators);
     }

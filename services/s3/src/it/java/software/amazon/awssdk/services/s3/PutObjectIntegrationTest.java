@@ -27,10 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.junit.AfterClass;
@@ -65,28 +62,6 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
     @AfterClass
     public static void tearDown() {
         deleteBucketAndAllContents(BUCKET);
-    }
-
-    @Test
-    public void putObject_withUserCalculatedChecksum_doesNotPerformMd5Validation() throws NoSuchAlgorithmException {
-        CapturingInterceptor capturingInterceptor = new CapturingInterceptor();
-        S3Client s3Client = s3ClientBuilder()
-            .overrideConfiguration(o -> o.addExecutionInterceptor(capturingInterceptor))
-            .build();
-
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
-        md.update(CONTENT);
-        byte[] checksum = md.digest();
-        String checksumVal = Base64.getEncoder().encodeToString(checksum);
-
-        PutObjectRequest request = PutObjectRequest.builder()
-                                                   .bucket(BUCKET)
-                                                   .key(SYNC_KEY)
-                                                   .checksumSHA1(checksumVal)
-                                                   .build();
-
-        s3Client.putObject(request, RequestBody.fromString("Hello"));
-        assertThat(capturingInterceptor.isMd5Enabled).isFalse();
     }
 
     @Test

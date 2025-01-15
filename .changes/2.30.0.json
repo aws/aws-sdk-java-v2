@@ -1,0 +1,78 @@
+{
+    "version": "2.30.0",
+    "date": "2025-01-15",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "S3 Event Notification",
+            "contributor": "",
+            "description": "add static modifier to fromJson(InputStream) method of S3EventNotification"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2 Migration Tool",
+            "contributor": "",
+            "description": "Transform the getter methods on the service model classes that return SdkBytes to return ByteBuffer to be compatible with v1 style getters"
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Now supports streaming for inline agents."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon API Gateway",
+            "contributor": "",
+            "description": "Documentation updates for Amazon API Gateway"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity",
+            "contributor": "",
+            "description": "corrects the dual-stack endpoint configuration"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "This release introduces a new recommendation in Virtual Deliverability Manager Advisor, which detects elevated complaint rates for customer sending identities."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "This change enhances integrity protections for new SDK requests to S3. S3 SDKs now support the CRC64NVME checksum algorithm, full object checksums for multipart S3 objects, and new default integrity protections for S3 requests."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Added GeneralPurpose.4xlarge & GeneralPurpose.8xlarge ComputeTypes."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Thin Client",
+            "contributor": "",
+            "description": "Mark type in MaintenanceWindow as required."
+        },
+        {
+            "type": "feature",
+            "category": "Partner Central Selling API",
+            "contributor": "",
+            "description": "Add Tagging support for ResourceSnapshotJob resources"
+        },
+        {
+            "type": "feature",
+            "category": "Security Incident Response",
+            "contributor": "",
+            "description": "Increase minimum length of Threat Actor IP 'userAgent' to 1."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
