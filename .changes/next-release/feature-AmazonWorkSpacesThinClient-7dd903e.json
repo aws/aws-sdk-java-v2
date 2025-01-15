@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkSpaces Thin Client",
+    "contributor": "",
+    "description": "Mark type in MaintenanceWindow as required."
+}
