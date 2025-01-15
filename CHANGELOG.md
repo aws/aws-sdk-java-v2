@@ -27,7 +27,7 @@
 ## __Amazon Simple Storage Service__
   - ### Features
     - This change enhances integrity protections for new SDK requests to S3. S3 SDKs now support the CRC64NVME checksum algorithm, full object checksums for multipart S3 objects, and new default integrity protections for S3 requests.
-
+    - S3 client behavior is updated to always calculate a checksum by default for operations that support it (such as PutObject or UploadPart), or require it (such as DeleteObjects). The checksum algorithm used by default is CRC32. The S3 client attempts to validate response checksums for all S3 API operations that support checksums. However, if the SDK has not implemented the specified checksum algorithm then this validation is skipped. See [Dev Guide](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/s3-checksums.html) for more information
 ## __Amazon WorkSpaces__
   - ### Features
     - Added GeneralPurpose.4xlarge & GeneralPurpose.8xlarge ComputeTypes.
