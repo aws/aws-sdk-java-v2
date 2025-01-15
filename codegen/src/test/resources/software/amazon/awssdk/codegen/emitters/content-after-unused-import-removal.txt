@@ -25,6 +25,9 @@ import java.util.Set;
 import java.time.*;
 import java.time.format.*;
 
+/*
+ * import something in the doc;
+ */
 public class FileWithUnusedImports implements Predicate<Set<String> {
     private final List<Date> dates;
     public FileWithUnusedImports() {
