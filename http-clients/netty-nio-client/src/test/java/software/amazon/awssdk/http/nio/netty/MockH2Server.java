@@ -83,7 +83,6 @@ public class MockH2Server extends BaseMockServer {
 
         // HTTP/2 Connection Factory
         HTTP2ServerConnectionFactory h2 = new HTTP2ServerConnectionFactory(https);
-        h2.setMaxConcurrentStreams(50);
 
         // SSL Connection Factory
         SslConnectionFactory ssl;

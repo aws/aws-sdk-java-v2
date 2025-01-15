@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.CHANNEL_DIAGNOSTICS;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.HTTP2_CONNECTION;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.HTTP2_INITIAL_WINDOW_SIZE;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.MAX_CONCURRENT_STREAMS;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.HTTP2_CONNECTION_PING_TIMEOUT_SECONDS;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.newSslHandler;
@@ -189,6 +190,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
             protected void configurePipeline(ChannelHandlerContext ctx, String protocol) {
                 if (protocol.equals(ApplicationProtocolNames.HTTP_2)) {
                     configureHttp2(ctx.channel(), ctx.pipeline());
+                    ctx.channel().attr(MAX_CONCURRENT_STREAMS).set(clientMaxStreams);
                     ctx.channel().attr(PROTOCOL_FUTURE).get().complete(Protocol.HTTP2);
                 } else {
                     ctx.channel().attr(PROTOCOL_FUTURE).get()
