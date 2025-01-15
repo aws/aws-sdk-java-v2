@@ -124,7 +124,7 @@
         <rxjava.version>2.2.21</rxjava.version>
         <commons-codec.verion>1.17.1</commons-codec.verion>
         <jmh.version>1.37</jmh.version>
-        <awscrt.version>0.33.3</awscrt.version>
+        <awscrt.version>0.33.6</awscrt.version>
 
         <!--Test dependencies -->
         <junit5.version>5.10.0</junit5.version>
@@ -667,7 +667,7 @@
                             <includeModule>s3-event-notifications</includeModule>
 
                             <!-- Service modules that are heavily customized should be included -->
-                            <includeModule>s3</includeModule>
+                             <includeModule>s3</includeModule>
                             <includeModule>s3-control</includeModule>
                             <includeModule>sqs</includeModule>
                             <includeModule>rds</includeModule>

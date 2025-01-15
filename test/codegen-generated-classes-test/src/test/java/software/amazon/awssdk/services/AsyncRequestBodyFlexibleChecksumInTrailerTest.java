@@ -116,8 +116,7 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
     public void asyncStreaming_NoSigner_shouldContainChecksum_fromInterceptors() {
         stubResponseWithHeaders();
         asyncClient.putOperationWithChecksum(b -> b.checksumAlgorithm(ChecksumAlgorithm.CRC32), AsyncRequestBody.fromString(
-                                                 "abc"),
-                                             AsyncResponseTransformer.toBytes()).join();
+                                                 "abc")).join();
         //payload would in json form as  "{"StringMember":"foo"}x-amz-checksum-crc32:tcUDMQ==[\r][\n]"
         verifyHeadersForPutRequest("44", "3", "x-amz-checksum-crc32");
         verify(putRequestedFor(anyUrl()).withHeader("Content-Encoding", equalTo("aws-chunked")));
@@ -133,8 +132,7 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
         stubResponseWithHeaders();
         asyncClient.putOperationWithChecksum(b -> b.checksumAlgorithm(ChecksumAlgorithm.CRC32).contentEncoding("deflate"),
                                              AsyncRequestBody.fromString(
-                                                 "abc"),
-                                             AsyncResponseTransformer.toBytes()).join();
+                                                 "abc")).join();
         //payload would in json form as  "{"StringMember":"foo"}x-amz-checksum-crc32:tcUDMQ==[\r][\n]"
         verifyHeadersForPutRequest("44", "3", "x-amz-checksum-crc32");
         verify(putRequestedFor(anyUrl()).withHeader("Content-Encoding", equalTo("aws-chunked")));
@@ -157,8 +155,7 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
             + "x-amz-checksum-sha256:ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0=" + CRLF + CRLF;
 
         asyncClient.putOperationWithChecksum(b -> b.checksumAlgorithm(ChecksumAlgorithm.SHA256), AsyncRequestBody.fromString(
-                                                 "abc"),
-                                             AsyncResponseTransformer.toBytes()).join();
+                                                 "abc")).join();
         List<LoggedRequest> requests = getRecordedRequests();
         assertThat(requests.size()).isEqualTo(2);
         assertThat(requests.get(0).getBody()).contains(expectedRequestBody.getBytes());
@@ -183,8 +180,7 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
         asyncClient.putOperationWithChecksum(b -> b.checksumAlgorithm(ChecksumAlgorithm.CRC32),
                                              FileAsyncRequestBody.builder().path(randomFileOfFixedLength.toPath())
                                                                  .chunkSizeInBytes(16 * KB)
-                                                                 .build(),
-                                             AsyncResponseTransformer.toBytes()).join();
+                                                                 .build()).join();
         verifyHeadersForPutRequest("37948", "37888", "x-amz-checksum-crc32");
         verify(putRequestedFor(anyUrl()).withRequestBody(
             containing(
@@ -207,8 +203,7 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
         asyncClient.putOperationWithChecksum(b -> b.checksumAlgorithm(ChecksumAlgorithm.CRC32),
                                              FileAsyncRequestBody.builder().path(randomFileOfFixedLength.toPath())
                                                                  .chunkSizeInBytes(16 * KB)
-                                                                 .build(),
-                                             AsyncResponseTransformer.toBytes()).join();
+                                                                 .build()).join();
         verifyHeadersForPutRequest("37948", "37888", "x-amz-checksum-crc32");
         verify(putRequestedFor(anyUrl()).withRequestBody(
             containing(
