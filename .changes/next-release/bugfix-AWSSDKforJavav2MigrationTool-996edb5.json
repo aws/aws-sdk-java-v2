@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2 Migration Tool",
-    "contributor": "",
-    "description": "Transform the getter methods on the service model classes that return SdkBytes to return ByteBuffer to be compatible with v1 style getters"
-}
