@@ -190,7 +190,8 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
                 if (protocol.equals(ApplicationProtocolNames.HTTP_2)) {
                     configureHttp2(ctx.channel(), ctx.pipeline());
                 } else {
-                    throw new UnsupportedOperationException("The server does not support ALPN with H2");
+                    ctx.fireExceptionCaught(new UnsupportedOperationException("The server does not support ALPN with H2"));
+                    ctx.close();
                 }
             }
         });
