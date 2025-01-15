@@ -32,6 +32,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.metrics.publishers.emf.EmfMetricLoggingPublisher;
+import software.amazon.awssdk.metrics.publishers.emf.internal.MetricEmfConverter;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -48,7 +50,9 @@ public class CodingConventionWithSuppressionTest {
      * <p>
      * DO NOT ADD NEW EXCEPTIONS
      */
-    private static final Set<Pattern> ALLOWED_WARN_LOG_SUPPRESSION = new HashSet<>();
+    private static final Set<Pattern> ALLOWED_WARN_LOG_SUPPRESSION = new HashSet<>(
+        Arrays.asList(ArchUtils.classNameToPattern(EmfMetricLoggingPublisher.class), ArchUtils.classNameToPattern(MetricEmfConverter.class))
+    );
 
     /**
      * Suppressions for APIs used in generated code to avoid having to update archunit_store for new services. Unfortunately, we
@@ -56,7 +60,9 @@ public class CodingConventionWithSuppressionTest {
      * <p>
      * DO NOT ADD NEW EXCEPTIONS
      */
-    private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>();
+    private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>(
+        Arrays.asList(ArchUtils.classNameToPattern(EmfMetricLoggingPublisher.class))
+    );
 
     @Test
     void shouldNotAbuseWarnLog() {
