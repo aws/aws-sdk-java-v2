@@ -19,7 +19,6 @@ import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.DEFAULT_J
 import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.OPEN_SSL_PROVIDER;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.getSslProvider;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.trustAllTlsAttributeMapBuilder;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 
 import io.netty.handler.ssl.SslProvider;
 import java.util.Collection;

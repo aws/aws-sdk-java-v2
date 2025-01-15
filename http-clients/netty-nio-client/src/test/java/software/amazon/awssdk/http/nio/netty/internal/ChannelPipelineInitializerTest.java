@@ -48,6 +48,7 @@ import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 public class ChannelPipelineInitializerTest {
 
     private final URI TARGET_URI = URI.create("https://some-awesome-service-1234.amazonaws.com:8080");
+    private static final SslProvider SSL_PROVIDER = SslProvider.JDK;
 
     @Test
     public void channelConfigOptionCheck() {
@@ -120,12 +121,12 @@ public class ChannelPipelineInitializerTest {
         SslContextProvider sslContextProvider = new SslContextProvider(nettyConfiguration,
                                                                        protocol,
                                                                        protocolNegotiation,
-                                                                       SslProvider.JDK);
+                                                                       SSL_PROVIDER);
 
         return new ChannelPipelineInitializer(protocol,
                                               protocolNegotiation,
                                               sslContextProvider.sslContext(),
-                                              SslProvider.JDK,
+                                              SSL_PROVIDER,
                                               100,
                                               1024,
                                               Duration.ZERO,
@@ -136,6 +137,6 @@ public class ChannelPipelineInitializerTest {
     }
 
     private static boolean alpnSupported(){
-        return NettyUtils.isAlpnSupported();
+        return NettyUtils.isAlpnSupported(SSL_PROVIDER);
     }
 }

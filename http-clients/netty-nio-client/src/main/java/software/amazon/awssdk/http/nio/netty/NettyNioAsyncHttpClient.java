@@ -89,8 +89,9 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private NettyNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
         this.configuration = new NettyConfiguration(serviceDefaultsMap);
         Protocol protocol = serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL);
+        SslProvider sslProvider = resolveSslProvider(builder);
         ProtocolNegotiation protocolNegotiation = resolveProtocolNegotiation(builder.protocolNegotiation, serviceDefaultsMap,
-                                                                             protocol);
+                                                                             protocol, sslProvider);
         this.sdkEventLoopGroup = eventLoopGroup(builder);
 
         Http2Configuration http2Configuration = builder.http2Configuration;
@@ -107,7 +108,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                                              .initialWindowSize(initialWindowSize)
                                              .healthCheckPingPeriod(resolveHealthCheckPingPeriod(http2Configuration))
                                              .sdkEventLoopGroup(sdkEventLoopGroup)
-                                             .sslProvider(resolveSslProvider(builder))
+                                             .sslProvider(sslProvider)
                                              .proxyConfiguration(builder.proxyConfiguration)
                                              .useNonBlockingDnsResolver(builder.useNonBlockingDnsResolver)
                                              .build();
@@ -169,7 +170,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     private ProtocolNegotiation resolveProtocolNegotiation(ProtocolNegotiation userSetValue, AttributeMap serviceDefaultsMap,
-                                                           Protocol protocol) {
+                                                           Protocol protocol, SslProvider sslProvider) {
         if (userSetValue == ProtocolNegotiation.ALPN) {
             // TODO - remove once we implement support for ALPN with HTTP1
             if (protocol == Protocol.HTTP1_1) {
@@ -178,7 +179,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             }
 
             // throw error if not supported and user set ALPN
-            validateAlpnSupported();
+            validateAlpnSupported(sslProvider);
             return ProtocolNegotiation.ALPN;
         }
         if (userSetValue == ProtocolNegotiation.ASSUME_PROTOCOL) {
@@ -187,7 +188,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         ProtocolNegotiation protocolNegotiation = serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL_NEGOTIATION);
         if (protocolNegotiation == ProtocolNegotiation.ALPN) {
-            if (!isAlpnSupported()) {
+            if (!isAlpnSupported(sslProvider)) {
                 // fallback to prior knowledge if not supported and SDK defaults to ALPN
                 protocolNegotiation = ProtocolNegotiation.ASSUME_PROTOCOL;
                 log.warn(null, () -> "ALPN is not supported in the current Java version, falling back to prior knowledge for "

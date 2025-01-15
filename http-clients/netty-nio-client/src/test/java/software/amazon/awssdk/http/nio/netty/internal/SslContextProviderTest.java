@@ -132,6 +132,6 @@ public class SslContextProviderTest {
     }
 
     private static boolean alpnSupported(){
-        return NettyUtils.isAlpnSupported();
+        return NettyUtils.isAlpnSupported(SslProvider.JDK);
     }
 }
