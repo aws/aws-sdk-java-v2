@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Event Notification",
+    "contributor": "",
+    "description": "add static modifier to fromJson(InputStream) method of S3EventNotification"
+}
