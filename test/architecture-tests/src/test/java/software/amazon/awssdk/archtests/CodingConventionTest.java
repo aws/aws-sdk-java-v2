@@ -33,6 +33,7 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaParameter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchIgnore;
 import com.tngtech.archunit.junit.ArchTest;
@@ -48,8 +49,9 @@ import java.util.concurrent.Future;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
-@AnalyzeClasses(packages = "software.amazon.awssdk..")
-@ArchIgnore(reason = "CI keeps crashing when running the tests. Ignoring them for now")
+@AnalyzeClasses(packages = "software.amazon.awssdk",
+    importOptions = ImportOption.DoNotIncludeTests.class)
+@ArchIgnore
 public class CodingConventionTest {
 
     @ArchTest
@@ -60,10 +62,12 @@ public class CodingConventionTest {
             .because("public APIs SHOULD be final");
 
     @ArchTest
+    @ArchIgnore(reason = "Ignoring it for now to avoid tests crashing")
     static final ArchRule mustNotUseJavaLogging =
         NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING;
 
     @ArchTest
+    @ArchIgnore(reason = "Ignoring it for now to avoid tests crashing")
     static final ArchRule mustNotUseSlfLoggerDirectly =
         freeze(noClasses().should(setFieldWhere(assignableFrom(org.slf4j.Logger.class)
                                                     .onResultOf(JavaAccess.Functions.Get.<JavaFieldAccess,
@@ -71,6 +75,7 @@ public class CodingConventionTest {
                                       .as("use org.slf4j.Logger")).because("use software.amazon.awssdk.utils.Logger instead"));
 
     @ArchTest
+    @ArchIgnore
     static final ArchRule mustNotUseJodaTime =
         NO_CLASSES_SHOULD_USE_JODATIME;
 
@@ -107,6 +112,7 @@ public class CodingConventionTest {
                           .because("public APIs MUST NOT throw checked exception"));
 
     @ArchTest
+    @ArchIgnore(reason = "Ignoring it for now to avoid tests crashing")
     static final ArchRule shouldNotHaveMoreThanFourParams =
         freeze(noClasses().that().areAnnotatedWith(SdkProtectedApi.class).or().areAnnotatedWith(SdkPublicApi.class)
                    .should(new HasMoreThanFourParams())
