@@ -284,7 +284,7 @@ public class CustomizationConfig {
     /**
      * Whether to generate auth scheme params based on endpoint params.
      */
-    private boolean endpointBasedAuthSchemeParamsLegacy = false;
+    private boolean enableEndpointAuthSchemeParams = false;
 
     /**
      * List of endpoint params to be used for the auth scheme params
@@ -812,12 +812,12 @@ public class CustomizationConfig {
         return useSraAuth;
     }
 
-    public void setEndpointBasedAuthSchemeParamsLegacy(boolean endpointBasedAuthSchemeParamsLegacy) {
-        this.endpointBasedAuthSchemeParamsLegacy = endpointBasedAuthSchemeParamsLegacy;
+    public void setEnableEndpointAuthSchemeParams(boolean enableEndpointAuthSchemeParams) {
+        this.enableEndpointAuthSchemeParams = enableEndpointAuthSchemeParams;
     }
 
-    public boolean isEndpointBasedAuthSchemeParamsLegacy() {
-        return endpointBasedAuthSchemeParamsLegacy;
+    public boolean isEnableEndpointAuthSchemeParams() {
+        return enableEndpointAuthSchemeParams;
     }
 
     public void setAllowedEndpointAuthSchemeParams(List<String> allowedEndpointAuthSchemeParams) {

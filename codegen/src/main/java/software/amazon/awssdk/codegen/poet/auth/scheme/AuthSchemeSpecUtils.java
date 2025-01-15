@@ -126,7 +126,7 @@ public final class AuthSchemeSpecUtils {
     }
 
     public boolean generateEndpointBasedParams() {
-        return intermediateModel.getCustomizationConfig().isEndpointBasedAuthSchemeParamsLegacy();
+        return intermediateModel.getCustomizationConfig().isEnableEndpointAuthSchemeParams();
     }
 
     public boolean includeParam(String name) {
