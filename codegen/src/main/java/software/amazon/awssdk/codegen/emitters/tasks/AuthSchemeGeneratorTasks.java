@@ -48,6 +48,8 @@ public final class AuthSchemeGeneratorTasks extends BaseGeneratorTasks {
         tasks.add(generateAuthSchemeInterceptor());
         if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
             tasks.add(generateEndpointBasedProvider());
+        }
+        if (authSchemeSpecUtils.useEndpointParamsInAuthScheme()) {
             tasks.add(generateEndpointAwareAuthSchemeParams());
         }
         return tasks;

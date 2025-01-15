@@ -131,7 +131,7 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
                                   .build());
         }
 
-        if (authSchemeSpecUtils.generateEndpointBasedParams()) {
+        if (authSchemeSpecUtils.useEndpointParamsInAuthScheme()) {
             parameters().forEach((name, model) -> {
                 if (authSchemeSpecUtils.includeParam(name)) {
                     MethodSpec accessor = endpointRulesSpecUtils.parameterInterfaceAccessorMethod(name, model);
@@ -184,7 +184,7 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
 
         }
 
-        if (authSchemeSpecUtils.generateEndpointBasedParams()) {
+        if (authSchemeSpecUtils.useEndpointParamsInAuthScheme()) {
             parameters().forEach((name, model) -> {
                 if (authSchemeSpecUtils.includeParam(name)) {
                     ClassName parametersInterfaceName = authSchemeSpecUtils.parametersInterfaceName();
