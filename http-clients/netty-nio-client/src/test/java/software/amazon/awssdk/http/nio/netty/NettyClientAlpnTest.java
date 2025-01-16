@@ -53,8 +53,15 @@ public class NettyClientAlpnTest {
 
     @Test
     @EnabledIf("alpnSupported")
-    public void alpnClient_serverWithAlpnSupport_requestSucceeds() throws Exception {
-        initClient(ProtocolNegotiation.ALPN);
+    public void alpnClientJdkProvider_serverWithAlpnSupport_requestSucceeds() throws Exception {
+        initClient(ProtocolNegotiation.ALPN, SslProvider.JDK);
+        initServer(true);
+        makeSimpleRequest();
+    }
+
+    @Test
+    public void alpnClientOpenSslProvider_serverWithAlpnSupport_requestSucceeds() throws Exception {
+        initClient(ProtocolNegotiation.ALPN, SslProvider.OPENSSL);
         initServer(true);
         makeSimpleRequest();
     }
@@ -62,7 +69,7 @@ public class NettyClientAlpnTest {
     @Test
     @EnabledIf("alpnSupported")
     public void alpnClient_serverWithoutAlpnSupport_throwsException() throws Exception {
-        initClient(ProtocolNegotiation.ALPN);
+        initClient(ProtocolNegotiation.ALPN, SslProvider.JDK);
         initServer(false);
         ExecutionException e = assertThrows(ExecutionException.class, this::makeSimpleRequest);
         assertThat(e).hasCauseInstanceOf(UnsupportedOperationException.class);
@@ -71,15 +78,15 @@ public class NettyClientAlpnTest {
 
     @Test
     @EnabledIf("alpnSupported")
-    public void priorKnowledgeClient_serverWithAlpnSupport_() throws Exception {
-        initClient(ProtocolNegotiation.ASSUME_PROTOCOL);
+    public void priorKnowledgeClient_serverWithAlpnSupport_requestSucceeds() throws Exception {
+        initClient(ProtocolNegotiation.ASSUME_PROTOCOL, SslProvider.JDK);
         initServer(true);
         makeSimpleRequest();
     }
 
     @Test
-    public void priorKnowledgeClient_serverWithoutAlpnSupport_() throws Exception {
-        initClient(ProtocolNegotiation.ASSUME_PROTOCOL);
+    public void priorKnowledgeClient_serverWithoutAlpnSupport_requestSucceeds() throws Exception {
+        initClient(ProtocolNegotiation.ASSUME_PROTOCOL, SslProvider.JDK);
         initServer(false);
         makeSimpleRequest();
     }
@@ -91,9 +98,9 @@ public class NettyClientAlpnTest {
         recorder.completeFuture.get(5, TimeUnit.SECONDS);
     }
 
-    private static void initClient(ProtocolNegotiation protocolNegotiation) {
+    private static void initClient(ProtocolNegotiation protocolNegotiation, SslProvider sslProvider) {
         sdkHttpClient =  NettyNioAsyncHttpClient.builder()
-                                                .sslProvider(SslProvider.JDK)
+                                                .sslProvider(sslProvider)
                                                 .protocol(Protocol.HTTP2)
                                                 .protocolNegotiation(protocolNegotiation)
                                                 .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true)

@@ -120,11 +120,23 @@ public class SslContextProviderTest {
 
     @Test
     @EnabledIf("alpnSupported")
-    public void protocolH2AlpnEnabled_shouldUseAlpn() {
+    public void protocolH2AlpnEnabled_jdkProvider_shouldUseAlpn() {
         SslContextProvider sslContextProvider = new SslContextProvider(new NettyConfiguration(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS),
                                                                        Protocol.HTTP2,
                                                                        ProtocolNegotiation.ALPN,
                                                                        SslProvider.JDK);
+
+        assertThat(sslContextProvider.sslContext().applicationProtocolNegotiator()).isNotNull();
+        assertThat(sslContextProvider.sslContext().applicationProtocolNegotiator().protocols()).contains(ApplicationProtocolNames.HTTP_2);
+        assertThat(sslContextProvider.sslContext().applicationProtocolNegotiator().protocols()).doesNotContain(ApplicationProtocolNames.HTTP_1_1);
+    }
+
+    @Test
+    public void protocolH2AlpnEnabled_openSslProvider_shouldUseAlpn() {
+        SslContextProvider sslContextProvider = new SslContextProvider(new NettyConfiguration(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS),
+                                                                       Protocol.HTTP2,
+                                                                       ProtocolNegotiation.ALPN,
+                                                                       SslProvider.OPENSSL);
 
         assertThat(sslContextProvider.sslContext().applicationProtocolNegotiator()).isNotNull();
         assertThat(sslContextProvider.sslContext().applicationProtocolNegotiator().protocols()).contains(ApplicationProtocolNames.HTTP_2);

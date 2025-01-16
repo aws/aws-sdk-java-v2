@@ -62,18 +62,36 @@ public final class SslContextProvider {
                                                          .trustManager(trustManagerFactory)
                                                          .keyManager(keyManagerFactory);
 
-            if (protocolNegotiation == ProtocolNegotiation.ALPN) {
-                builder.applicationProtocolConfig(
-                    new ApplicationProtocolConfig(ApplicationProtocolConfig.Protocol.ALPN,
-                                                  ApplicationProtocolConfig.SelectorFailureBehavior.FATAL_ALERT,
-                                                  ApplicationProtocolConfig.SelectedListenerFailureBehavior.FATAL_ALERT,
-                                                  resolveNettyProtocol(protocol)));
-            }
+            addAlpnConfigIfEnabled(builder);
 
             return builder.build();
         } catch (SSLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private SslContextBuilder addAlpnConfigIfEnabled(SslContextBuilder builder) {
+        if (protocolNegotiation != ProtocolNegotiation.ALPN) {
+            return builder;
+        }
+
+        ApplicationProtocolConfig.SelectorFailureBehavior selectorFailureBehavior;
+        ApplicationProtocolConfig.SelectedListenerFailureBehavior selectedListenerFailureBehavior;
+
+        if (sslProvider == SslProvider.OPENSSL || sslProvider == SslProvider.OPENSSL_REFCNT) {
+            // OpenSSL does not support FATAL_ALERT
+            selectorFailureBehavior = ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE;
+            selectedListenerFailureBehavior = ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT;
+        } else {
+            selectorFailureBehavior = ApplicationProtocolConfig.SelectorFailureBehavior.FATAL_ALERT;
+            selectedListenerFailureBehavior = ApplicationProtocolConfig.SelectedListenerFailureBehavior.FATAL_ALERT;
+        }
+
+        return builder.applicationProtocolConfig(
+            new ApplicationProtocolConfig(ApplicationProtocolConfig.Protocol.ALPN,
+                                          selectorFailureBehavior,
+                                          selectedListenerFailureBehavior,
+                                          resolveNettyProtocol(protocol)));
     }
 
     private String resolveNettyProtocol(Protocol protocol) {
