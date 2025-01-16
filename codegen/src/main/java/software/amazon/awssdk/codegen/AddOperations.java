@@ -243,13 +243,15 @@ final class AddOperations {
      * If neither is available, an empty list is returned.
      */
     private List<AuthType> getAuthFromOperation(Operation op) {
-        List<String> opAuth = op.getAuth();
-        if (opAuth != null) {
-            return opAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
-        }
+
+        // First we check for legacy AuthType to support backward compatibility
         AuthType legacyAuthType = op.getAuthtype();
         if (legacyAuthType != null) {
             return Collections.singletonList(legacyAuthType);
+        }
+        List<String> opAuth = op.getAuth();
+        if (opAuth != null) {
+            return opAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
         }
         return Collections.emptyList();
     }
