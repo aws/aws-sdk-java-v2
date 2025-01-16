@@ -165,6 +165,13 @@ public final class ModelAuthSchemeKnowledgeIndex {
      * Returns the list of modeled top-level auth-types.
      */
     private List<AuthType> serviceDefaultAuthTypes() {
+
+        // First, look at legacy signature versions.
+        if (intermediateModel.getMetadata().getAuthType() != null
+            && intermediateModel.getMetadata().getAuthType() != AuthType.V4) {
+            return Collections.singletonList(intermediateModel.getMetadata().getAuthType());
+        }
+
         List<AuthType> modeled = intermediateModel.getMetadata().getAuth();
         if (!modeled.isEmpty()) {
             return modeled;
