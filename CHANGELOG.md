@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.1__ __2025-01-16__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - The release addresses Amazon ECS documentation tickets.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added support for ml.trn1.32xlarge instance type in Reserved Capacity Offering
+
 # __2.30.0__ __2025-01-15__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -26,6 +39,7 @@
 
 ## __Amazon Simple Storage Service__
   - ### Features
+    - S3 client behavior is updated to always calculate a checksum by default for operations that support it (such as PutObject or UploadPart), or require it (such as DeleteObjects). The checksum algorithm used by default is CRC32. The S3 client attempts to validate response checksums for all S3 API operations that support checksums. However, if the SDK has not implemented the specified checksum algorithm then this validation is skipped. See [Dev Guide](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/s3-checksums.html) for more information
     - This change enhances integrity protections for new SDK requests to S3. S3 SDKs now support the CRC64NVME checksum algorithm, full object checksums for multipart S3 objects, and new default integrity protections for S3 requests.
 
 ## __Amazon WorkSpaces__
