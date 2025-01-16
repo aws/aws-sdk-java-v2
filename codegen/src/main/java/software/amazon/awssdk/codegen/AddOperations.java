@@ -47,14 +47,12 @@ final class AddOperations {
     private final NamingStrategy namingStrategy;
     private final Map<String, PaginatorDefinition> paginators;
     private final List<String> deprecatedShapes;
-    private final boolean useMultiAuth;
 
     AddOperations(IntermediateModelBuilder builder) {
         this.serviceModel = builder.getService();
         this.namingStrategy = builder.getNamingStrategy();
         this.paginators = builder.getPaginators().getPagination();
         this.deprecatedShapes = builder.getCustomConfig().getDeprecatedShapes();
-        this.useMultiAuth = builder.getCustomConfig().useMultiAuth();
     }
 
     private static boolean isAuthenticated(Operation op) {
@@ -238,20 +236,22 @@ final class AddOperations {
     }
 
     /**
-     * Returns the list of authTypes defined for an operation. If useMultiAuth is enabled, then
-     * {@code operation.auth} will be used in the conversion if present. Otherwise, use
-     * {@code operation.authtype} if present.
+     * Retrieves the list of {@link AuthType} for the given operation.
+     * <p>
+     * If {@link Operation#getAuth()}is available, it is converted to a list of {@link AuthType}.
+     * Otherwise, {@link Operation#getAuthtype()} is returned as a single-element list if present.
+     * If neither is available, an empty list is returned.
      */
     private List<AuthType> getAuthFromOperation(Operation op) {
-        if (useMultiAuth) {
-            List<String> opAuth = op.getAuth();
-            if (opAuth != null) {
-                return opAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
-            }
-        }
+
+        // First we check for legacy AuthType to support backward compatibility
         AuthType legacyAuthType = op.getAuthtype();
         if (legacyAuthType != null) {
             return Collections.singletonList(legacyAuthType);
+        }
+        List<String> opAuth = op.getAuth();
+        if (opAuth != null) {
+            return opAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
         }
         return Collections.emptyList();
     }
