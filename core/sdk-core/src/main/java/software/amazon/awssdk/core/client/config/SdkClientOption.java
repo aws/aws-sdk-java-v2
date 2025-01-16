@@ -28,6 +28,8 @@ import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.CompressionConfiguration;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.ServiceConfiguration;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.useragent.SdkClientUserAgentProperties;
@@ -329,11 +331,23 @@ public final class SdkClientOption<T> extends ClientOption<T> {
         new SdkClientOption<>(CompressionConfiguration.class);
 
     /**
-     * An optional identification value to be appended to the user agent header.
-     * The value should be less than 50 characters in length and is null by default.
+     * The request checksum calculation setting. The default value is WHEN_SUPPORTED.
+     */
+    public static final SdkClientOption<RequestChecksumCalculation> REQUEST_CHECKSUM_CALCULATION =
+        new SdkClientOption<>(RequestChecksumCalculation.class);
+
+    /**
+     * The response checksum validation setting. The default value is WHEN_SUPPORTED.
+     */
+    public static final SdkClientOption<ResponseChecksumValidation> RESPONSE_CHECKSUM_VALIDATION =
+        new SdkClientOption<>(ResponseChecksumValidation.class);
+
+    /**
+     * An optional identification value to be appended to the user agent header. The value should be less than 50 characters in
+     * length and is null by default.
      * <p>
-     * Users can additionally supply the appId value through environment and JVM settings, and
-     * it will be resolved using the following order of precedence (highest first):
+     * Users can additionally supply the appId value through environment and JVM settings, and it will be resolved using the
+     * following order of precedence (highest first):
      * <ol>
      *  <li>This client option configuration </li>
      *  <li>The {@code AWS_SDK_UA_APP_ID} environment variable</li>

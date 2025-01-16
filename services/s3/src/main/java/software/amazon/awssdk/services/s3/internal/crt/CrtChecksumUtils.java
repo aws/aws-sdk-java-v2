@@ -18,6 +18,8 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import java.util.List;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.s3.ChecksumAlgorithm;
 import software.amazon.awssdk.crt.s3.ChecksumConfig;
@@ -31,40 +33,35 @@ public final class CrtChecksumUtils {
     }
 
     /**
-     * CRT checksum is only enabled for PUT_OBJECT and GET_OBJECT, for everything else,
-     * we rely on SDK checksum implementation
+     * Rely on CRT for checksums, we disable SDK checksum implementation in DefaultS3CrtAsyncClient
      */
     public static ChecksumConfig checksumConfig(HttpChecksum httpChecksum,
-                                                 S3MetaRequestOptions.MetaRequestType requestType,
-                                                boolean checksumValidationEnabled) {
-        if (checksumNotApplicable(requestType, httpChecksum)) {
+                                                S3MetaRequestOptions.MetaRequestType requestType,
+                                                RequestChecksumCalculation requestChecksumCalculation,
+                                                ResponseChecksumValidation responseChecksumValidation) {
+        if (httpChecksum == null) {
             return new ChecksumConfig();
         }
 
-        ChecksumAlgorithm checksumAlgorithm =
-            crtChecksumAlgorithm(httpChecksum, requestType, checksumValidationEnabled);
+        ChecksumAlgorithm checksumAlgorithm = crtChecksumAlgorithm(httpChecksum, requestChecksumCalculation);
 
-        boolean validateChecksum =
-            validateResponseChecksum(httpChecksum, requestType,  checksumValidationEnabled);
+        boolean validateChecksum = validateResponseChecksum(httpChecksum, requestType, responseChecksumValidation);
 
-        ChecksumConfig.ChecksumLocation checksumLocation = checksumAlgorithm == ChecksumAlgorithm.NONE ?
-                                                           ChecksumConfig.ChecksumLocation.NONE :
-                                                           ChecksumConfig.ChecksumLocation.TRAILER;
+        ChecksumConfig.ChecksumLocation checksumLocation;
+
+        if (checksumAlgorithm == ChecksumAlgorithm.NONE) {
+            checksumLocation = ChecksumConfig.ChecksumLocation.NONE;
+        } else if (httpChecksum.isRequestStreaming()) {
+            checksumLocation = ChecksumConfig.ChecksumLocation.TRAILER;
+        } else {
+            checksumLocation = ChecksumConfig.ChecksumLocation.HEADER;
+        }
 
         return new ChecksumConfig()
             .withChecksumAlgorithm(checksumAlgorithm)
             .withValidateChecksum(validateChecksum)
             .withChecksumLocation(checksumLocation)
             .withValidateChecksumAlgorithmList(checksumAlgorithmList(httpChecksum));
-    }
-
-    private static boolean checksumNotApplicable(S3MetaRequestOptions.MetaRequestType requestType, HttpChecksum httpChecksum) {
-        if (requestType != S3MetaRequestOptions.MetaRequestType.PUT_OBJECT &&
-            requestType != S3MetaRequestOptions.MetaRequestType.GET_OBJECT) {
-            return true;
-        }
-
-        return httpChecksum == null;
     }
 
     private static List<ChecksumAlgorithm> checksumAlgorithmList(HttpChecksum httpChecksum) {
@@ -78,14 +75,13 @@ public final class CrtChecksumUtils {
     }
 
     private static ChecksumAlgorithm crtChecksumAlgorithm(HttpChecksum httpChecksum,
-                                                         S3MetaRequestOptions.MetaRequestType requestType,
-                                                         boolean checksumValidationEnabled) {
-        if (requestType != S3MetaRequestOptions.MetaRequestType.PUT_OBJECT) {
-            return ChecksumAlgorithm.NONE;
-        }
+                                                          RequestChecksumCalculation requestChecksumCalculation) {
 
         if (httpChecksum.requestAlgorithm() == null) {
-            return checksumValidationEnabled ? DEFAULT_CHECKSUM_ALGO : ChecksumAlgorithm.NONE;
+            if (requestChecksumCalculation == RequestChecksumCalculation.WHEN_REQUIRED) {
+                return ChecksumAlgorithm.NONE;
+            }
+            return DEFAULT_CHECKSUM_ALGO;
         }
 
         return toCrtChecksumAlgorithm(httpChecksum.requestAlgorithm());
@@ -97,16 +93,17 @@ public final class CrtChecksumUtils {
 
     /**
      * Only validate response checksum if this is getObject operation AND it supports checksum validation AND if either of the
-     * following applies: 1. checksum validation is enabled at request level via request validation mode OR 2. checksum validation
-     * is enabled at client level
+     * following applies: 1. checksum validation is enabled at request level via request validation mode OR 2. response checksum
+     * validation is enabled at client level
      */
     private static boolean validateResponseChecksum(HttpChecksum httpChecksum,
-                                                   S3MetaRequestOptions.MetaRequestType requestType,
-                                                   boolean checksumValidationEnabled) {
+                                                    S3MetaRequestOptions.MetaRequestType requestType,
+                                                    ResponseChecksumValidation responseChecksumValidation) {
         if (requestType != S3MetaRequestOptions.MetaRequestType.GET_OBJECT) {
             return false;
         }
 
-        return checksumValidationEnabled || httpChecksum.requestValidationMode() != null;
+        return responseChecksumValidation == ResponseChecksumValidation.WHEN_SUPPORTED ||
+               httpChecksum.requestValidationMode() != null;
     }
 }

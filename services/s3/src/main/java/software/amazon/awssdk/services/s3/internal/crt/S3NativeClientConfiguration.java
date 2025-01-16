@@ -56,7 +56,6 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final double targetThroughputInGbps;
     private final int maxConcurrency;
     private final URI endpointOverride;
-    private final boolean checksumValidationEnabled;
     private final Long readBufferSizeInBytes;
     private final TlsContext tlsContext;
     private final TlsContextOptions clientTlsContextOptions;
@@ -101,7 +100,6 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         this.endpointOverride = builder.endpointOverride;
 
-        this.checksumValidationEnabled = builder.checksumValidationEnabled == null || builder.checksumValidationEnabled;
         this.readBufferSizeInBytes = builder.readBufferSizeInBytes == null ?
                                      partSizeInBytes * 10 : builder.readBufferSizeInBytes;
 
@@ -191,10 +189,6 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return endpointOverride;
     }
 
-    public boolean checksumValidationEnabled() {
-        return checksumValidationEnabled;
-    }
-
     public Long readBufferSizeInBytes() {
         return readBufferSizeInBytes;
     }
@@ -215,7 +209,6 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
         private URI endpointOverride;
-        private Boolean checksumValidationEnabled;
 
         private S3CrtHttpConfiguration httpConfiguration;
         private StandardRetryOptions standardRetryOptions;
@@ -257,14 +250,6 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public Builder endpointOverride(URI endpointOverride) {
             this.endpointOverride = endpointOverride;
-            return this;
-        }
-
-        /**
-         * Option to disable checksum validation of an object stored in S3.
-         */
-        public Builder checksumValidationEnabled(Boolean checksumValidationEnabled) {
-            this.checksumValidationEnabled = checksumValidationEnabled;
             return this;
         }
 

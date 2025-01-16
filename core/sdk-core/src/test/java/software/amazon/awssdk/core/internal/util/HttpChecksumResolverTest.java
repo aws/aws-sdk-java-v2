@@ -29,7 +29,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 
 public class HttpChecksumResolverTest {
 
-    HttpChecksum CRC32_STREAMING_CHECKSUM = HttpChecksum.builder()
+    private static final HttpChecksum CRC32_STREAMING_CHECKSUM = HttpChecksum.builder()
                                                         .requestChecksumRequired(true)
                                                         .responseAlgorithms("crc32c", "crc32")
                                                         .requestAlgorithm("crc32")

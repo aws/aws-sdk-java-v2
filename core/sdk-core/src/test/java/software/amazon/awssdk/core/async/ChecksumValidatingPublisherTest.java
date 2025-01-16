@@ -20,8 +20,9 @@ import org.junit.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.core.checksums.Algorithm;
-import software.amazon.awssdk.core.checksums.SdkChecksum;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
+import software.amazon.awssdk.checksums.SdkChecksum;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.core.internal.async.ChecksumValidatingPublisher;
 
 import java.nio.ByteBuffer;
@@ -49,7 +50,8 @@ public class ChecksumValidatingPublisherTest {
         final TestPublisher driver = new TestPublisher();
         final TestSubscriber s = new TestSubscriber(Arrays.copyOfRange(testData, 0, testData.length));
         final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver,
-                SdkChecksum.forAlgorithm(Algorithm.SHA256), SHA256_OF_HELLO_WORLD);
+                                                                              SdkChecksum.forAlgorithm(DefaultChecksumAlgorithm.SHA256),
+                                                                              SHA256_OF_HELLO_WORLD);
         p.subscribe(s);
 
         driver.doOnNext(ByteBuffer.wrap(testData));
@@ -64,7 +66,7 @@ public class ChecksumValidatingPublisherTest {
         for (int i = 1; i < testData.length - 1; i++) {
             final TestPublisher driver = new TestPublisher();
             final TestSubscriber s = new TestSubscriber(Arrays.copyOfRange(testData, 0, testData.length));
-            final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, SdkChecksum.forAlgorithm(Algorithm.SHA256), SHA256_OF_HELLO_WORLD);
+            final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, SdkChecksum.forAlgorithm(DefaultChecksumAlgorithm.SHA256), SHA256_OF_HELLO_WORLD);
             p.subscribe(s);
 
             driver.doOnNext(ByteBuffer.wrap(testData, 0, i));
@@ -81,7 +83,7 @@ public class ChecksumValidatingPublisherTest {
         for (int packetSize = 1; packetSize < 2; packetSize++) {
             final TestPublisher driver = new TestPublisher();
             final TestSubscriber s = new TestSubscriber(Arrays.copyOfRange(testData, 0, testData.length));
-            final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, SdkChecksum.forAlgorithm(Algorithm.SHA256),
+            final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, SdkChecksum.forAlgorithm(DefaultChecksumAlgorithm.SHA256),
                     SHA256_OF_HELLO_WORLD);
             p.subscribe(s);
             int currOffset = 0;
@@ -100,7 +102,7 @@ public class ChecksumValidatingPublisherTest {
     public void testUnknownLength() {
         final TestPublisher driver = new TestPublisher();
         final TestSubscriber s = new TestSubscriber(Arrays.copyOfRange(testData, 0, testData.length));
-        final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, SdkChecksum.forAlgorithm(Algorithm.SHA256), SHA256_OF_HELLO_WORLD);
+        final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, SdkChecksum.forAlgorithm(DefaultChecksumAlgorithm.SHA256), SHA256_OF_HELLO_WORLD);
         p.subscribe(s);
         byte[] randomChecksumData = new byte[testData.length];
         System.arraycopy(testData, 0, randomChecksumData, 0, testData.length);
@@ -117,7 +119,7 @@ public class ChecksumValidatingPublisherTest {
     public void checksumValidationFailure_throwsSdkClientException() {
         final TestPublisher driver = new TestPublisher();
         final TestSubscriber s = new TestSubscriber(Arrays.copyOfRange(testData, 0, testData.length));
-        final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, SdkChecksum.forAlgorithm(Algorithm.SHA256),
+        final ChecksumValidatingPublisher p = new ChecksumValidatingPublisher(driver, SdkChecksum.forAlgorithm(DefaultChecksumAlgorithm.SHA256),
                 "someInvalidData");
         p.subscribe(s);
         driver.doOnNext(ByteBuffer.wrap(testData));
