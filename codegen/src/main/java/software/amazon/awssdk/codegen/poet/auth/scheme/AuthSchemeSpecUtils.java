@@ -149,7 +149,7 @@ public final class AuthSchemeSpecUtils {
         return true;
     }
 
-    // New Multi Auth determined by "auth" triat on Service model or operation model.
+    //Multi-Auth option determined by "auth" trait on Service model or operation model.
     public boolean hasMultiAuthSigvOrSigv4a() {
         List<AuthType> authList = intermediateModel.getMetadata().getAuth();
 

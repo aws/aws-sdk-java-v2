@@ -1,6 +1,6 @@
 {
   "version": "1.2",
-  "serviceId": "query",
+  "serviceId": "Database Service",
   "parameters": {
     "region": {
       "type": "string",

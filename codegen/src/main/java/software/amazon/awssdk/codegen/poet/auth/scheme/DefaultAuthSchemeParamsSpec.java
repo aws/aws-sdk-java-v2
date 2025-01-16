@@ -60,7 +60,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                                       .addMethod(builderMethod())
                                       .addType(builderImplSpec());
 
-        if (authSchemeSpecUtils.useEndpointBasedAuthProvider() || authSchemeSpecUtils.hasMultiAuthSigvOrSigv4a()) {
+        if (authSchemeSpecUtils.useEndpointParamsInAuthScheme()) {
             b.addSuperinterface(authSchemeSpecUtils.parametersEndpointAwareDefaultImplName());
         }
 
