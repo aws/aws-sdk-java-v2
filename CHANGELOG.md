@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.2__ __2025-01-17__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS User Notifications__
+  - ### Features
+    - Added support for Managed Notifications, integration with AWS Organization and added aggregation summaries for Aggregate Notifications
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Allow hyphens in tool name for Converse and ConverseStream APIs
+
+## __Amazon Detective__
+  - ### Features
+    - Doc only update for Detective documentation.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Release u7i-6tb.112xlarge, u7i-8tb.112xlarge, u7inh-32tb.480xlarge, p5e.48xlarge, p5en.48xlarge, f2.12xlarge, f2.48xlarge, trn2.48xlarge instance types.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Correction of docs for "Added support for ml.trn1.32xlarge instance type in Reserved Capacity Offering"
+
 # __2.30.1__ __2025-01-16__
 ## __AWS SDK for Java v2__
   - ### Features

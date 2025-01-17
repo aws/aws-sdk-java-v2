@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "Correction of docs for \"Added support for ml.trn1.32xlarge instance type in Reserved Capacity Offering\""
-}
