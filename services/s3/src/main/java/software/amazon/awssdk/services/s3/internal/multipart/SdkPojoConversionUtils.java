@@ -51,7 +51,7 @@ public final class SdkPojoConversionUtils {
 
     protected static final Set<String> PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE =
         new HashSet<>(Arrays.asList("ChecksumSHA1", "ChecksumSHA256", "ContentMD5", "ChecksumCRC32C", "ChecksumCRC32",
-                                    "ChecksumCRC64NVME"));
+                                    "ChecksumCRC64NVME", "ContentLength"));
 
     private SdkPojoConversionUtils() {
     }
