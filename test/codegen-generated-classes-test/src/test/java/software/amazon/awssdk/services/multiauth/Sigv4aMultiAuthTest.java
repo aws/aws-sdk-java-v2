@@ -91,10 +91,11 @@ class Sigv4aMultiAuthTest {
         MultiauthAuthSchemeParams resolvedAuthSchemeParams = paramsCaptor.getValue();
         assertThat(resolvedAuthSchemeParams.regionSet())
             .isEqualTo(RegionSet.create(Arrays.asList("us-west-2", "us-west-1")));
+        assertThat(resolvedAuthSchemeParams.apiType()).isEqualTo("NoAuthProperties");
     }
 
     @Test
-    void requestHasRegionSetSdkSystemSettings() {
+    void authSchemeParamsPassedAsNullIfClientIsNotConfiguredWithRegionSet() {
         MultiauthClient multiauthClient = MultiauthClient.builder()
                                                          .httpClient(mockHttpClient)
                                                          .authSchemeProvider(multiauthAuthSchemeProvider)
@@ -109,8 +110,8 @@ class Sigv4aMultiAuthTest {
         verify(multiauthAuthSchemeProvider).resolveAuthScheme(paramsCaptor.capture());
 
         MultiauthAuthSchemeParams resolvedAuthSchemeParams = paramsCaptor.getValue();
-        assertThat(resolvedAuthSchemeParams.regionSet())
-            .isEqualTo(RegionSet.create(Region.US_WEST_2.toString()));
+        assertThat(resolvedAuthSchemeParams.regionSet()).isNull();
+        assertThat(resolvedAuthSchemeParams.apiType()).isEqualTo("NoAuthProperties");
     }
 
     @Test
@@ -123,6 +124,7 @@ class Sigv4aMultiAuthTest {
         assertThatThrownBy(() -> multiauthClient.sigv4aOperation(r -> r.stringMember("")))
             .hasMessageContaining("You must add a dependency on the 'software.amazon.awssdk:http-auth-aws-crt' "
                                   + "module to enable the CRT-V4a signing feature");
+
     }
 
     @Test
@@ -139,5 +141,35 @@ class Sigv4aMultiAuthTest {
         verify(mockHttpClient).prepareRequest(httpRequestCaptor.capture());
         SdkHttpRequest request = httpRequestCaptor.getAllValues().get(0).httpRequest();
         assertThat(request.firstMatchingHeader("Authorization")).isPresent();
+    }
+
+
+    @Test
+    void authSchemesParamsUpdatedWithStaticContextAndDefaultEndpointParams() {
+        environmentVariableHelper.set(SdkSystemSetting.AWS_SIGV4A_SIGNING_REGION_SET, "us-west-2,us-west-1");
+
+        MultiauthClient multiauthClient = MultiauthClient.builder()
+                                                         .httpClient(mockHttpClient)
+                                                         .authSchemeProvider(multiauthAuthSchemeProvider)
+                                                         .region(Region.EU_CENTRAL_1)
+                                                         .build();
+
+        assertThatThrownBy(() -> multiauthClient.operationWithOnlyRegionEndpointParams(r -> r.stringMember("")))
+            .hasMessageContaining("expected exception");
+
+        ArgumentCaptor<MultiauthAuthSchemeParams> paramsCaptor =
+            ArgumentCaptor.forClass(MultiauthAuthSchemeParams.class);
+        verify(multiauthAuthSchemeProvider).resolveAuthScheme(paramsCaptor.capture());
+
+        MultiauthAuthSchemeParams resolvedAuthSchemeParams = paramsCaptor.getValue();
+        assertThat(resolvedAuthSchemeParams.regionSet())
+            .isEqualTo(RegionSet.create(Arrays.asList("us-west-2", "us-west-1")));
+        assertThat(resolvedAuthSchemeParams.apiType())
+            .isEqualTo("RegionDefinedInRules");
+        assertThat(resolvedAuthSchemeParams.operation())
+            .isEqualTo("operationWithOnlyRegionEndpointParams");
+        assertThat(resolvedAuthSchemeParams.region()).isEqualTo(Region.EU_CENTRAL_1);
+        assertThat(resolvedAuthSchemeParams.useFips()).isFalse();
+        assertThat(resolvedAuthSchemeParams.useDualStack()).isFalse();
     }
 }

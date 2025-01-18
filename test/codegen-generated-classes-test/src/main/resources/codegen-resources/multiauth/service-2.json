@@ -21,7 +21,10 @@
         "requestUri":"/2016-03-11/sigv4aoperation"
       },
       "input":{"shape":"sigv4aShape"},
-      "auth": ["aws.auth#sigv4a"]
+      "auth": ["aws.auth#sigv4a"],
+      "staticContextParams":{
+        "ApiType":{"value":"NoAuthProperties"}
+      }
     },
     "sigv4AndSigv4aOperation":{
       "name":"sigv4a",
@@ -30,7 +33,23 @@
         "requestUri":"/2016-03-11/sigv4andsigv4aoperation"
       },
       "input":{"shape":"sigv4aShape"},
-      "auth": ["aws.auth#sigv4a", "aws.auth#sigv4"]
+      "auth": ["aws.auth#sigv4a", "aws.auth#sigv4"],
+      "staticContextParams":{
+        "ApiType":{"value":"NoAuthProperties"}
+      }
+    },
+    "operationWithOnlyRegionEndpointParams":{
+      "name":"operationWithOnlyRegionEndpointParams",
+      "http":{
+        "method":"GET",
+        "requestUri":"/operations-with-endpointparams",
+        "responseCode":200
+      },
+      "input":{"shape":"sigv4aShape"},
+      "documentation":"<p>Operation with EndpointParams w</p>",
+      "staticContextParams":{
+        "ApiType":{"value":"RegionDefinedInRules"}
+      }
     }
   },
   "shapes": {

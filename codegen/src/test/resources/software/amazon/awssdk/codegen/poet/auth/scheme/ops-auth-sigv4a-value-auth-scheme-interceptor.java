@@ -20,6 +20,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
@@ -32,9 +33,12 @@ import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.SdkMetric;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.database.auth.scheme.DatabaseAuthSchemeParams;
 import software.amazon.awssdk.services.database.auth.scheme.DatabaseAuthSchemeProvider;
+import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointParams;
+import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointProvider;
+import software.amazon.awssdk.services.database.endpoints.internal.DatabaseResolveEndpointInterceptor;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -84,18 +88,24 @@ public final class DatabaseAuthSchemeInterceptor implements ExecutionInterceptor
     }
 
     private DatabaseAuthSchemeParams authSchemeParams(SdkRequest request, ExecutionAttributes executionAttributes) {
+        DatabaseEndpointParams endpointParams = DatabaseResolveEndpointInterceptor.ruleParams(request, executionAttributes);
+        DatabaseAuthSchemeParams.Builder builder = DatabaseAuthSchemeParams.builder();
+        builder.region(endpointParams.region());
+        builder.useDualStackEndpoint(endpointParams.useDualStackEndpoint());
+        builder.useFipsEndpoint(endpointParams.useFipsEndpoint());
+        builder.accountId(endpointParams.accountId());
+        builder.operationContextParam(endpointParams.operationContextParam());
         String operation = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
-        DatabaseAuthSchemeParams.Builder builder = DatabaseAuthSchemeParams.builder().operation(operation);
-        Region region = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
-        builder.region(region);
-        RegionSet regionSet = executionAttributes.getOptionalAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET)
-                                                 .filter(regions -> !regions.isEmpty()).map(regions -> RegionSet.create(String.join(", ", regions)))
-                                                 .orElseGet(() -> {
-                                                     Region fallbackRegion = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
-                                                     return fallbackRegion != null ? RegionSet.create(fallbackRegion.toString()) : null;
-                                                 });
-        ;
-        builder.regionSet(regionSet);
+        builder.operation(operation);
+        if (builder instanceof DatabaseEndpointResolverAware.Builder) {
+            EndpointProvider endpointProvider = executionAttributes.getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+            if (endpointProvider instanceof DatabaseEndpointProvider) {
+                ((DatabaseEndpointResolverAware.Builder) builder).endpointProvider((DatabaseEndpointProvider) endpointProvider);
+            }
+        }
+        executionAttributes.getOptionalAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET)
+                           .filter(regionSet -> !CollectionUtils.isNullOrEmpty(regionSet))
+                           .ifPresent(nonEmptyRegionSet -> builder.regionSet(RegionSet.create(nonEmptyRegionSet)));
         return builder.build();
     }
 

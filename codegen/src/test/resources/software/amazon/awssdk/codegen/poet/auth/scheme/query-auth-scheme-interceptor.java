@@ -84,11 +84,10 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
 
     private QueryAuthSchemeParams authSchemeParams(SdkRequest request, ExecutionAttributes executionAttributes) {
         String operation = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
-        QueryAuthSchemeParams.Builder builder = QueryAuthSchemeParams.builder().operation(operation);
         Region region = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
-        builder.region(region);
-        return builder.build();
+        return QueryAuthSchemeParams.builder().operation(operation).region(region).build();
     }
+
     private <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(AuthSchemeOption authOption, AuthScheme<T> authScheme,
                                                                            IdentityProviders identityProviders, List<Supplier<String>> discardedReasons, MetricCollector metricCollector,
                                                                            ExecutionAttributes executionAttributes) {

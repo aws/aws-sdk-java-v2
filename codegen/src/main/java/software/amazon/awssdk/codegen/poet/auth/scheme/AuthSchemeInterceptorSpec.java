@@ -63,6 +63,7 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -146,20 +147,23 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                                .addParameter(SdkRequest.class, "request")
                                                .addParameter(ExecutionAttributes.class, "executionAttributes");
 
-        if (!authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
+        if (!authSchemeSpecUtils.useEndpointParamsInAuthScheme()) {
             builder.addStatement("$T operation = executionAttributes.getAttribute($T.OPERATION_NAME)", String.class,
                                  SdkExecutionAttribute.class);
-            builder.addStatement("$T.Builder builder = $T.builder().operation(operation)",
-                                 authSchemeSpecUtils.parametersInterfaceName(),
-                                 authSchemeSpecUtils.parametersInterfaceName());
-
             if (authSchemeSpecUtils.usesSigV4()) {
                 builder.addStatement("$T region = executionAttributes.getAttribute($T.AWS_REGION)", Region.class,
                                      AwsExecutionAttribute.class);
-                builder.addStatement("builder.region(region)");
+                builder.addStatement("return $T.builder()"
+                                     + ".operation(operation)"
+                                     + ".region(region)"
+                                     + ".build()",
+                                     authSchemeSpecUtils.parametersInterfaceName());
+            } else {
+                builder.addStatement("return $T.builder()"
+                                     + ".operation(operation)"
+                                     + ".build()",
+                                     authSchemeSpecUtils.parametersInterfaceName());
             }
-            generateSigv4aRegionSet(builder);
-            builder.addStatement("return builder.build()");
             return builder.build();
         }
 
@@ -196,7 +200,9 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         builder.addStatement("(($T)builder).endpointProvider(($T)endpointProvider)", paramsBuilderClass, endpointProviderClass);
         builder.endControlFlow();
         builder.endControlFlow();
-        // TODO: Implement addRegionSet() for legacy services that resolve authentication from endpoints in one of next PRs.
+        if (authSchemeSpecUtils.hasMultiAuthSigvOrSigv4a()) {
+            generateSigv4aRegionSet(builder);
+        }
         builder.addStatement("return builder.build()");
         return builder.build();
     }
@@ -452,19 +458,13 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
     private void generateSigv4aRegionSet(MethodSpec.Builder builder) {
         if (authSchemeSpecUtils.usesSigV4a()) {
             builder.addStatement(
-                "$T regionSet = executionAttributes.getOptionalAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)\n" +
-                "    .filter(regions -> !regions.isEmpty())\n" +
-                "    .map(regions -> $T.create(String.join(\", \", regions)))\n" +
-                "    .orElseGet(() -> {\n" +
-                "        $T fallbackRegion = executionAttributes.getAttribute($T.AWS_REGION);\n" +
-                "        return fallbackRegion != null ? $T.create(fallbackRegion.toString()) : null;\n" +
-                "    });",
-                RegionSet.class, AwsExecutionAttribute.class,
-                RegionSet.class, Region.class, AwsExecutionAttribute.class,
+                "executionAttributes.getOptionalAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)\n" +
+                "                   .filter(regionSet -> !$T.isNullOrEmpty(regionSet))\n" +
+                "                   .ifPresent(nonEmptyRegionSet -> builder.regionSet($T.create(nonEmptyRegionSet)))",
+                AwsExecutionAttribute.class,
+                CollectionUtils.class,
                 RegionSet.class
             );
-
-            builder.addStatement("builder.regionSet(regionSet)");
         }
     }
 }
