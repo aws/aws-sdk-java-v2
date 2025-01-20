@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -141,11 +142,12 @@ public class HttpChecksumTrait {
      * with the fastest-to-calculate algorithms first.
      */
     private static void addResponseAlgorithmsCodeBlock(List<String> responseAlgorithms, CodeBlock.Builder codeBuilder) {
-        responseAlgorithms.sort(Comparator.comparingInt(o -> CHECKSUM_ALGORITHM_PRIORITY.getOrDefault(
-            o.toUpperCase(Locale.US), Integer.MAX_VALUE)));
+        List<String> sortedResponseAlgorithms =
+            responseAlgorithms.stream().sorted(Comparator.comparingInt(o -> CHECKSUM_ALGORITHM_PRIORITY.getOrDefault(
+            o.toUpperCase(Locale.US), Integer.MAX_VALUE))).collect(Collectors.toList());
 
         codeBuilder.add(CodeBlock.of(".responseAlgorithmsV2("));
-        List<CodeBlock> responseAlgorithmsCodeBlocks = responseAlgorithmsCodeBlocks(responseAlgorithms);
+        List<CodeBlock> responseAlgorithmsCodeBlocks = responseAlgorithmsCodeBlocks(sortedResponseAlgorithms);
         for (int i = 0; i < responseAlgorithmsCodeBlocks.size(); i++) {
             CodeBlock code = responseAlgorithmsCodeBlocks.get(i);
             codeBuilder.add(code);
