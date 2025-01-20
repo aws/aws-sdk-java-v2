@@ -37,6 +37,12 @@
             "category": "AWS SDK for Java v2",
             "contributor": "",
             "description": "Updated endpoint and partition metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Fixed contentLength mismatch issue thrown from putObject when multipartEnabled is true and a contentLength is provided in PutObjectRequest. See [#5807](https://github.com/aws/aws-sdk-java-v2/issues/5807)"
         }
     ]
 }

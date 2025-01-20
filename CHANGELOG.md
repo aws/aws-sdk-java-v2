@@ -24,6 +24,10 @@
   - ### Features
     - Correction of docs for "Added support for ml.trn1.32xlarge instance type in Reserved Capacity Offering"
 
+## __Amazon Simple Storage Service__
+- ### Bugfixes
+    - Fixed contentLength mismatch issue thrown from putObject when multipartEnabled is true and a contentLength is provided in PutObjectRequest. See [#5807](https://github.com/aws/aws-sdk-java-v2/issues/5807)
+
 # __2.30.1__ __2025-01-16__
 ## __AWS SDK for Java v2__
   - ### Features
