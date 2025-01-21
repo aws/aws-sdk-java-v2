@@ -326,6 +326,42 @@ class JmesPathAcceptorGeneratorTest {
         testConversion("foo[-10]", "input.field(\"foo\").index(-10)");
     }
 
+    @Test
+    void testNumberLiterals() {
+        testConversion("`42`", "input.constant(42)");
+
+        testConversion("`42.5`", "input.constant(42.5)");
+
+        testConversion("`9223372036854775807`", "input.constant(9223372036854775807)");
+
+        // testConversion("`123.456789012345678901123123123123`", "input.constant(new BigDecimal(\"123.456789012345678901123123123123\"))");
+    }
+
+    @Test
+    void testFloatPrecision() {
+        testConversion("`123.4567`", "input.constant(123.4567f)");
+    }
+
+    @Test
+    void testDoublePrecision() {
+        testConversion("`123.456789012345`", "input.constant(123.456789012345)");
+    }
+
+    @Test
+    void testFloatScientificNotation() {
+        testConversion("`1.23e-4`", "input.constant(1.23E-4)");
+    }
+
+    @Test
+    void testFloatMaxValue() {
+        testConversion("`3.4028235E38`", "input.constant(3.4028235E38)");
+    }
+
+    @Test
+    void testDoubleMaxValue() {
+        testConversion("`1.7976931348623157E308`", "input.constant(1.7976931348623157E308)");
+    }
+
     private void testConversion(String jmesPathString, String expectedCode) {
         assertThat(acceptorGenerator.interpret(jmesPathString, "input").toString()).isEqualTo((expectedCode));
     }

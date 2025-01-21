@@ -15,10 +15,13 @@
 
 package software.amazon.awssdk.codegen.poet.waiters;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsValue;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -273,7 +276,30 @@ public class JmesPathAcceptorGenerator {
         public void visitLiteral(Literal input) {
             JrsValue jsonValue = input.jsonValue();
             if (jsonValue.isNumber()) {
-                codeBlock.add(".constant($L)", Integer.parseInt(jsonValue.asText()));
+                JsonParser.NumberType numberType = jsonValue.numberType();
+                System.out.println("Number type: " + numberType);
+                switch (numberType) {
+                    case INT:
+                        codeBlock.add(".constant($L)", Integer.parseInt(jsonValue.asText()));
+                        break;
+                    case LONG:
+                        codeBlock.add(".constant($L)", Long.parseLong(jsonValue.asText()));
+                        break;
+                    case FLOAT:
+                        codeBlock.add(".constant($L)", Float.parseFloat(jsonValue.asText()));
+                        break;
+                    case DOUBLE:
+                        codeBlock.add(".constant($L)", Double.parseDouble(jsonValue.asText()));
+                        break;
+                    case BIG_DECIMAL:
+                        codeBlock.add(".constant(new $T($S))", BigDecimal.class, jsonValue.asText());
+                        break;
+                    case BIG_INTEGER:
+                        codeBlock.add(".constant(new $T($S))", BigInteger.class, jsonValue.asText());
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unsupported number type: " + numberType);
+                }
             } else if (jsonValue instanceof JrsBoolean) {
                 codeBlock.add(".constant($L)", ((JrsBoolean) jsonValue).booleanValue());
             } else {
