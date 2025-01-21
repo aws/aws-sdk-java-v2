@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "Added DeleteContactFlowVersion API and the CAMPAIGN flow type"
+}
