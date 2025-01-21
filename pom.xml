@@ -680,8 +680,6 @@
                             <exclude>software.amazon.awssdk.regions.*</exclude>
                             <!-- TODO revert - Temporarily disable because system setting USER_REGION was removed -->
                             <exclude>software.amazon.awssdk.utils.JavaSystemSetting</exclude>
-                            <!-- TODO revert when s3EventNotification changes to static method is merged -->
-                            <exclude>software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
