@@ -26,6 +26,7 @@
 
     <modules>
         <module>cloudwatch-metric-publisher</module>
+        <module>emf-metric-logging-publisher</module>
     </modules>
 
     <dependencyManagement>

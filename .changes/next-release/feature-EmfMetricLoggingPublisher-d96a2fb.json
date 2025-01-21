@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Emf Metric Logging Publisher",
+    "contributor": "",
+    "description": "Added a new EmfMetricLoggingPublisher class that transforms SdkMetricCollection to emf format string and logs it, which will be automatically collected by cloudwatch."
+}
