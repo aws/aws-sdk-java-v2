@@ -10,6 +10,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
 import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
@@ -315,9 +316,9 @@ final class DefaultJsonClient implements JsonClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .putExecutionAttribute(
                                     SdkInternalExecutionAttribute.HTTP_CHECKSUM,
-                                    HttpChecksum.builder().requestChecksumRequired(true)
+                                    HttpChecksum.builder().requestChecksumRequired(true).isRequestStreaming(false)
                                             .requestAlgorithm(getOperationWithChecksumRequest.checksumAlgorithmAsString())
-                                            .isRequestStreaming(false).build())
+                                            .requestAlgorithmHeader("x-amz-sdk-checksum-algorithm").build())
                             .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -596,11 +597,11 @@ final class DefaultJsonClient implements JsonClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     * 
+     *
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     * 
+     *
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows '
      *        <p>
@@ -663,10 +664,14 @@ final class DefaultJsonClient implements JsonClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .putExecutionAttribute(
                                     SdkInternalExecutionAttribute.HTTP_CHECKSUM,
-                                    HttpChecksum.builder().requestChecksumRequired(false)
+                                    HttpChecksum
+                                            .builder()
+                                            .requestChecksumRequired(false)
+                                            .isRequestStreaming(true)
                                             .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
-                                            .responseAlgorithms("CRC32C", "CRC32", "SHA1", "SHA256").isRequestStreaming(true)
-                                            .build())
+                                            .responseAlgorithmsV2(DefaultChecksumAlgorithm.CRC32C,
+                                                    DefaultChecksumAlgorithm.CRC32, DefaultChecksumAlgorithm.SHA1,
+                                                    DefaultChecksumAlgorithm.SHA256).build())
                             .withRequestBody(requestBody)
                             .withMarshaller(
                                     StreamingRequestMarshaller.builder()

@@ -18,6 +18,8 @@ package software.amazon.awssdk.codegen.poet.builder;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PROTECTED;
+import static software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait.hasRequestAlgorithmMember;
+import static software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait.hasResponseAlgorithms;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -59,6 +61,10 @@ import software.amazon.awssdk.codegen.poet.rules.EndpointParamsKnowledgeIndex;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculationResolver;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidationResolver;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -158,6 +164,14 @@ public class BaseClientBuilderClass implements ClassSpec {
             builder.addMethod(authSchemesMethod());
         }
 
+        if (hasRequestAlgorithmMember(model)) {
+            builder.addMethod(requestChecksumCalculationMethod());
+        }
+
+        if (hasResponseAlgorithms(model)) {
+            builder.addMethod(responseChecksumValidationMethod());
+        }
+
         if (hasClientContextParams()) {
             model.getClientContextParams().forEach((n, m) -> {
                 builder.addMethod(clientContextParamSetter(n, m));
@@ -189,6 +203,14 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addMethod(internalPluginsMethod());
 
         endpointParamsKnowledgeIndex.resolveAccountIdEndpointModeMethod().ifPresent(builder::addMethod);
+
+        if (hasRequestAlgorithmMember(model)) {
+            builder.addMethod(resolveRequestChecksumCalculationMethod());
+        }
+
+        if (hasResponseAlgorithms(model)) {
+            builder.addMethod(resolveResponseChecksumValidationMethod());
+        }
 
         builder.addMethod(validateClientOptionsMethod());
 
@@ -488,6 +510,19 @@ public class BaseClientBuilderClass implements ClassSpec {
             }
         }
 
+        if (hasRequestAlgorithmMember(model) || hasResponseAlgorithms(model)) {
+            builder.addStatement("$T clientConfig = config", SdkClientConfiguration.class);
+
+            if (hasRequestAlgorithmMember(model)) {
+                builder.addStatement("builder.lazyOption($T.REQUEST_CHECKSUM_CALCULATION, "
+                                     + "c -> resolveRequestChecksumCalculation(clientConfig))", SdkClientOption.class);
+            }
+            if (hasResponseAlgorithms(model)) {
+                builder.addStatement("builder.lazyOption($T.RESPONSE_CHECKSUM_VALIDATION, "
+                                     + "c -> resolveResponseChecksumValidation(clientConfig))", SdkClientOption.class);
+            }
+        }
+
         builder.addStatement("return builder.build()");
         return builder.build();
     }
@@ -575,6 +610,51 @@ public class BaseClientBuilderClass implements ClassSpec {
                             + ".ACCELERATE));",
                             endpointRulesSpecUtils.clientContextParamsName())
                    .addCode("}");
+        }
+
+        boolean hasRequestAlgorithmMember = hasRequestAlgorithmMember(model);
+        boolean hasResponseAlgorithms = hasResponseAlgorithms(model);
+        if (model.getCustomizationConfig().getServiceConfig().hasChecksumValidationEnabledProperty()
+            && (hasRequestAlgorithmMember || hasResponseAlgorithms)) {
+            builder.addStatement("$T checksumValidationEnabled = serviceConfigBuilder.checksumValidationEnabled()", Boolean.class)
+                   .beginControlFlow("if (checksumValidationEnabled != null)");
+            if (hasRequestAlgorithmMember) {
+                builder.addCode("$T.validState(config.option($T.REQUEST_CHECKSUM_CALCULATION) == null, ",
+                                Validate.class, SdkClientOption.class)
+                       .addStatement("\"Checksum behavior has been configured on both $L and the client/global level. Please "
+                                     + "limit checksum behavior configuration to one location.\")", clientConfigClassName);
+            }
+            if (hasResponseAlgorithms) {
+                builder.addCode("$T.validState(config.option($T.RESPONSE_CHECKSUM_VALIDATION) == null, ",
+                                Validate.class, SdkClientOption.class)
+                       .addStatement("\"Checksum behavior has been configured on both $L and the client/global level. Please "
+                                     + "limit checksum behavior configuration to one location.\")", clientConfigClassName);
+            }
+            builder.beginControlFlow("if (checksumValidationEnabled)")
+                   .addCode("config = config.toBuilder()");
+            if (hasRequestAlgorithmMember) {
+                builder.addCode(".option($T.REQUEST_CHECKSUM_CALCULATION, $T.WHEN_SUPPORTED)",
+                                SdkClientOption.class, RequestChecksumCalculation.class);
+            }
+            if (hasResponseAlgorithms) {
+                builder.addCode(".option($T.RESPONSE_CHECKSUM_VALIDATION, $T.WHEN_SUPPORTED)",
+                                SdkClientOption.class, ResponseChecksumValidation.class);
+            }
+            builder.addStatement(".build()")
+                   .nextControlFlow("else")
+                   .addCode("config = config.toBuilder()");
+
+            if (hasRequestAlgorithmMember) {
+                builder.addCode(".option($T.REQUEST_CHECKSUM_CALCULATION, $T.WHEN_REQUIRED)",
+                                SdkClientOption.class, RequestChecksumCalculation.class);
+            }
+            if (hasResponseAlgorithms) {
+                builder.addCode(".option($T.RESPONSE_CHECKSUM_VALIDATION, $T.WHEN_REQUIRED)",
+                                SdkClientOption.class, ResponseChecksumValidation.class);
+            }
+            builder.addStatement(".build()")
+                   .endControlFlow()
+                   .endControlFlow();
         }
 
         builder.addStatement("$T finalServiceConfig = serviceConfigBuilder.build()", clientConfigClass);
@@ -750,6 +830,28 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .build();
     }
 
+    private MethodSpec requestChecksumCalculationMethod() {
+        return MethodSpec.methodBuilder("requestChecksumCalculation")
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(TypeVariableName.get("B"))
+                         .addParameter(RequestChecksumCalculation.class, "requestChecksumCalculation")
+                         .addStatement("clientConfiguration.option($T.REQUEST_CHECKSUM_CALCULATION, requestChecksumCalculation)",
+                                       SdkClientOption.class)
+                         .addStatement("return thisBuilder()")
+                         .build();
+    }
+
+    private MethodSpec responseChecksumValidationMethod() {
+        return MethodSpec.methodBuilder("responseChecksumValidation")
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(TypeVariableName.get("B"))
+                         .addParameter(ResponseChecksumValidation.class, "responseChecksumValidation")
+                         .addStatement("clientConfiguration.option($T.RESPONSE_CHECKSUM_VALIDATION, responseChecksumValidation)",
+                                       SdkClientOption.class)
+                         .addStatement("return thisBuilder()")
+                         .build();
+    }
+
     private MethodSpec clientContextParamSetter(String name, ClientContextParam param) {
         String setterName = endpointRulesSpecUtils.paramMethodName(name);
         String keyName = model.getNamingStrategy().getEnumValueName(name);
@@ -861,6 +963,50 @@ public class BaseClientBuilderClass implements ClassSpec {
         }
 
         builder.addStatement("return internalPlugins");
+        return builder.build();
+    }
+
+    private MethodSpec resolveRequestChecksumCalculationMethod() {
+
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("resolveRequestChecksumCalculation")
+                                               .addModifiers(PRIVATE)
+                                               .addParameter(SdkClientConfiguration.class, "config")
+                                               .returns(RequestChecksumCalculation.class);
+
+        builder.addStatement("$T configuredChecksumCalculation = config.option($T.REQUEST_CHECKSUM_CALCULATION)",
+                             RequestChecksumCalculation.class, SdkClientOption.class);
+
+        builder.beginControlFlow("if (configuredChecksumCalculation == null)");
+        builder.addCode("configuredChecksumCalculation = $T.create()", RequestChecksumCalculationResolver.class);
+        builder.addCode(".profileFile(config.option($T.PROFILE_FILE_SUPPLIER))", SdkClientOption.class);
+        builder.addCode(".profileName(config.option($T.PROFILE_NAME))", SdkClientOption.class);
+        builder.addCode(".defaultChecksumCalculation($T.WHEN_SUPPORTED)", RequestChecksumCalculation.class);
+        builder.addStatement(".resolve()");
+        builder.endControlFlow();
+
+        builder.addStatement("return configuredChecksumCalculation");
+        return builder.build();
+    }
+
+    private MethodSpec resolveResponseChecksumValidationMethod() {
+
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("resolveResponseChecksumValidation")
+                                               .addModifiers(PRIVATE)
+                                               .addParameter(SdkClientConfiguration.class, "config")
+                                               .returns(ResponseChecksumValidation.class);
+
+        builder.addStatement("$T configuredChecksumValidation = config.option($T.RESPONSE_CHECKSUM_VALIDATION)",
+                             ResponseChecksumValidation.class, SdkClientOption.class);
+
+        builder.beginControlFlow("if (configuredChecksumValidation == null)");
+        builder.addCode("configuredChecksumValidation = $T.create()", ResponseChecksumValidationResolver.class);
+        builder.addCode(".profileFile(config.option($T.PROFILE_FILE_SUPPLIER))", SdkClientOption.class);
+        builder.addCode(".profileName(config.option($T.PROFILE_NAME))", SdkClientOption.class);
+        builder.addCode(".defaultChecksumValidation($T.WHEN_SUPPORTED)", ResponseChecksumValidation.class);
+        builder.addStatement(".resolve()");
+        builder.endControlFlow();
+
+        builder.addStatement("return configuredChecksumValidation");
         return builder.build();
     }
 

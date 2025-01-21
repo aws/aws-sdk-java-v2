@@ -80,9 +80,10 @@ public final class MultipartUploadHelper {
     CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(CompletableFuture<PutObjectResponse> returnFuture,
                                  String uploadId,
                                  CompletedPart[] completedParts,
-                                 PutObjectRequest putObjectRequest) {
+                                 PutObjectRequest putObjectRequest,
+                                 long contentLength) {
         CompletableFuture<CompleteMultipartUploadResponse> future =
-            genericMultipartHelper.completeMultipartUpload(putObjectRequest, uploadId, completedParts);
+            genericMultipartHelper.completeMultipartUpload(putObjectRequest, uploadId, completedParts, contentLength);
 
         future.handle(genericMultipartHelper.handleExceptionOrResponse(putObjectRequest, returnFuture, uploadId))
               .exceptionally(throwable -> {

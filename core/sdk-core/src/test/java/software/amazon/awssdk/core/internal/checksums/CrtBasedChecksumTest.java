@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.checksum;
+package software.amazon.awssdk.core.internal.checksums;
 
 
 import static org.assertj.core.api.Assertions.assertThat;

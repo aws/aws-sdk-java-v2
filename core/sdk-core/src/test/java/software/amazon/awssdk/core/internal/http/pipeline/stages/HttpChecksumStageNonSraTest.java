@@ -26,9 +26,9 @@ import static software.amazon.awssdk.http.Header.CONTENT_MD5;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
@@ -38,12 +38,13 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
-public class HttpChecksumStageTest {
+public class HttpChecksumStageNonSraTest {
     private static final String CHECKSUM_SPECS_HEADER = "x-amz-checksum-sha256";
     private static final RequestBody REQUEST_BODY = RequestBody.fromString("TestBody");
     private static final AsyncRequestBody ASYNC_REQUEST_BODY = AsyncRequestBody.fromString("TestBody");
@@ -98,6 +99,42 @@ public class HttpChecksumStageTest {
 
         assertThat(exception.getMessage()).isEqualTo("This operation requires a content-MD5 checksum, but one cannot be "
                                                      + "calculated for non-blocking content.");
+    }
+
+    @Test
+    public void syncWithCustomSigner_flexibleChecksumInTrailerRequired_addsFlexibleChecksumInTrailer() throws Exception {
+        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
+
+        RequestExecutionContext ctx = noOpSignerRequestContext(ClientType.SYNC);
+
+        syncStage.execute(requestBuilder, ctx);
+
+        assertThat(requestBuilder.headers().get(HEADER_FOR_TRAILER_REFERENCE)).containsExactly(CHECKSUM_SPECS_HEADER);
+        assertThat(requestBuilder.headers().get("Content-encoding")).containsExactly("aws-chunked");
+        assertThat(requestBuilder.headers().get("x-amz-content-sha256")).containsExactly("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
+        assertThat(requestBuilder.headers().get("x-amz-decoded-content-length")).containsExactly("8");
+        assertThat(requestBuilder.headers().get(CONTENT_LENGTH)).containsExactly("86");
+
+        assertThat(requestBuilder.firstMatchingHeader(CONTENT_MD5)).isEmpty();
+        assertThat(requestBuilder.firstMatchingHeader(CHECKSUM_SPECS_HEADER)).isEmpty();
+    }
+
+    @Test
+    public void asyncWithCustomSigner_flexibleChecksumInTrailerRequired_addsFlexibleChecksumInTrailer() throws Exception {
+        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
+
+        RequestExecutionContext ctx = noOpSignerRequestContext(ClientType.ASYNC);
+
+        asyncStage.execute(requestBuilder, ctx);
+
+        assertThat(requestBuilder.headers().get(HEADER_FOR_TRAILER_REFERENCE)).containsExactly(CHECKSUM_SPECS_HEADER);
+        assertThat(requestBuilder.headers().get("Content-encoding")).containsExactly("aws-chunked");
+        assertThat(requestBuilder.headers().get("x-amz-content-sha256")).containsExactly("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
+        assertThat(requestBuilder.headers().get("x-amz-decoded-content-length")).containsExactly("8");
+        assertThat(requestBuilder.headers().get(CONTENT_LENGTH)).containsExactly("86");
+
+        assertThat(requestBuilder.firstMatchingHeader(CONTENT_MD5)).isEmpty();
+        assertThat(requestBuilder.firstMatchingHeader(CHECKSUM_SPECS_HEADER)).isEmpty();
     }
 
     @Test
@@ -197,7 +234,7 @@ public class HttpChecksumStageTest {
                                                    .headerName(CHECKSUM_SPECS_HEADER)
                                                    // true = trailer, false = header
                                                    .isRequestStreaming(isStreaming)
-                                                   .algorithm(Algorithm.SHA256)
+                                                   .algorithmV2(DefaultChecksumAlgorithm.SHA256)
                                                    .build();
 
         ExecutionAttributes executionAttributes =
@@ -222,7 +259,7 @@ public class HttpChecksumStageTest {
                                                    .headerName(CHECKSUM_SPECS_HEADER)
                                                    // true = trailer, false = header
                                                    .isRequestStreaming(isStreaming)
-                                                   .algorithm(Algorithm.SHA256)
+                                                   .algorithmV2(DefaultChecksumAlgorithm.SHA256)
                                                    .build();
 
         ExecutionAttributes executionAttributes =
@@ -248,10 +285,18 @@ public class HttpChecksumStageTest {
     private RequestExecutionContext createRequestExecutionContext(ExecutionAttributes executionAttributes,
                                                                   InterceptorContext interceptorContext,
                                                                   boolean isAsyncStreaming) {
-        ExecutionContext executionContext = ExecutionContext.builder()
-                                                            .executionAttributes(executionAttributes)
-                                                            .interceptorContext(interceptorContext)
-                                                            .build();
+        return createRequestExecutionContext(executionAttributes, interceptorContext, isAsyncStreaming,
+                                             ExecutionContext.builder());
+    }
+
+    private RequestExecutionContext createRequestExecutionContext(ExecutionAttributes executionAttributes,
+                                                                  InterceptorContext interceptorContext,
+                                                                  boolean isAsyncStreaming,
+                                                                  ExecutionContext.Builder executionContextBuilder) {
+        ExecutionContext executionContext = executionContextBuilder
+            .executionAttributes(executionAttributes)
+            .interceptorContext(interceptorContext)
+            .build();
         RequestExecutionContext.Builder builder = RequestExecutionContext.builder()
                                                                          .executionContext(executionContext)
                                                                          .originalRequest(NoopTestRequest.builder().build());
@@ -260,4 +305,36 @@ public class HttpChecksumStageTest {
         }
         return builder.build();
     }
+
+    private RequestExecutionContext noOpSignerRequestContext(ClientType clientType) {
+        ChecksumSpecs checksumSpecs = ChecksumSpecs.builder()
+                                                   .headerName(CHECKSUM_SPECS_HEADER)
+                                                   .isRequestStreaming(true)
+                                                   .algorithmV2(DefaultChecksumAlgorithm.SHA256)
+                                                   .build();
+
+        ExecutionAttributes executionAttributes =
+            ExecutionAttributes.builder()
+                               .put(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS, checksumSpecs)
+                               .put(SdkExecutionAttribute.CLIENT_TYPE, clientType)
+                               .put(SIGNING_METHOD, UNSIGNED_PAYLOAD)
+                               .build();
+
+        InterceptorContext.Builder interceptorContext =
+            InterceptorContext.builder()
+                              .request(NoopTestRequest.builder().build())
+                              .httpRequest(ValidSdkObjects.sdkHttpFullRequest().build());
+
+        if (clientType == ClientType.ASYNC) {
+            interceptorContext.asyncRequestBody(ASYNC_REQUEST_BODY);
+        } else {
+            interceptorContext.requestBody(REQUEST_BODY);
+        }
+
+        RequestExecutionContext ctx = createRequestExecutionContext(executionAttributes, interceptorContext.build(),
+                                                                    clientType == ClientType.SYNC ? false : true,
+                                                                    ExecutionContext.builder().signer(new NoOpSigner()));
+        return ctx;
+    }
+
 }

@@ -31,6 +31,7 @@ public enum Algorithm {
 
     CRC32C("crc32c", 8),
     CRC32("crc32", 8),
+    CRC64NVME("crc64nvme", 12),
     SHA256("sha256", 44),
     SHA1("sha1", 28),
     ;

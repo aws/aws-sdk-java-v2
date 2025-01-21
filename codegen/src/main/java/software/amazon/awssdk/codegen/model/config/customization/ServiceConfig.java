@@ -49,6 +49,8 @@ public class ServiceConfig {
 
     private boolean hasCrossRegionAccessEnabledProperty = false;
 
+    private boolean hasChecksumValidationEnabledProperty = false;
+
     public String getClassName() {
         return className;
     }
@@ -111,5 +113,13 @@ public class ServiceConfig {
 
     public void setHasAccelerateModeEnabledProperty(boolean hasAccelerateModeEnabledProperty) {
         this.hasAccelerateModeEnabledProperty = hasAccelerateModeEnabledProperty;
+    }
+
+    public boolean hasChecksumValidationEnabledProperty() {
+        return hasChecksumValidationEnabledProperty;
+    }
+
+    public void setHasChecksumValidationEnabledProperty(boolean hasChecksumValidationEnabledProperty) {
+        this.hasChecksumValidationEnabledProperty = hasChecksumValidationEnabledProperty;
     }
 }
