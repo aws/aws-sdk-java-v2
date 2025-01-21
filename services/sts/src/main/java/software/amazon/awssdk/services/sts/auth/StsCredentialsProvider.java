@@ -222,7 +222,6 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
             return (B) this;
         }
 
-
         /**
          * Build the credentials provider using the configuration applied to this builder.
          */

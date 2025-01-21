@@ -26,7 +26,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.internal.AssumeRoleWithWebIdentityRequestSupplier;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityResponse;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -49,7 +51,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsAssumeRoleWithWebIdentityCredentialsProvider.Builder,
                                  StsAssumeRoleWithWebIdentityCredentialsProvider> {
-    private static final String PROVIDER_NAME = "StsAssumeRoleWithWebIdentityCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE_WEB_ID.value();
     private final Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequest;
 
     /**
@@ -75,7 +77,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
         notNull(request, "AssumeRoleWithWebIdentityRequest can't be null");
         AssumeRoleWithWebIdentityResponse assumeRoleResponse = stsClient.assumeRoleWithWebIdentity(request);
         return fromStsCredentials(assumeRoleResponse.credentials(),
-                                  PROVIDER_NAME,
+                                  providerName(),
                                   accountIdFromArn(assumeRoleResponse.assumedRoleUser()));
     }
 
@@ -86,7 +88,14 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
 
     @Override
     String providerName() {
-        return PROVIDER_NAME;
+        String providerName = PROVIDER_NAME;
+        if (assumeRoleWithWebIdentityRequest instanceof AssumeRoleWithWebIdentityRequestSupplier) {
+            String source = ((AssumeRoleWithWebIdentityRequestSupplier) assumeRoleWithWebIdentityRequest).source();
+            if (source != null && !source.isEmpty()) {
+                providerName = String.format("%s,%s", source, providerName);
+            }
+        }
+        return providerName;
     }
 
     /**

@@ -25,11 +25,13 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sso.SsoClient;
 import software.amazon.awssdk.services.sso.internal.SessionCredentialsHolder;
 import software.amazon.awssdk.services.sso.model.GetRoleCredentialsRequest;
 import software.amazon.awssdk.services.sso.model.RoleCredentials;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
@@ -51,7 +53,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 @SdkPublicApi
 public final class SsoCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable,
                                                      ToCopyableBuilder<SsoCredentialsProvider.Builder, SsoCredentialsProvider> {
-    private static final String PROVIDER_NAME = "SsoCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_SSO.value();
 
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
     private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
@@ -59,6 +61,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
     private static final String ASYNC_THREAD_NAME = "sdk-sso-credentials-provider";
 
     private final Supplier<GetRoleCredentialsRequest> getRoleCredentialsRequestSupplier;
+    private final String source;
 
     private final SsoClient ssoClient;
     private final Duration staleTime;
@@ -77,6 +80,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
 
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
+        this.source = builder.source;
 
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<SessionCredentialsHolder> cacheBuilder =
@@ -95,11 +99,11 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
      */
     private RefreshResult<SessionCredentialsHolder> updateSsoCredentials() {
         SessionCredentialsHolder credentials = getUpdatedCredentials(ssoClient);
-        Instant acutalTokenExpiration = credentials.sessionCredentialsExpiration();
+        Instant actualTokenExpiration = credentials.sessionCredentialsExpiration();
 
         return RefreshResult.builder(credentials)
-                            .staleTime(acutalTokenExpiration.minus(staleTime))
-                            .prefetchTime(acutalTokenExpiration.minus(prefetchTime))
+                            .staleTime(actualTokenExpiration.minus(staleTime))
+                            .prefetchTime(actualTokenExpiration.minus(prefetchTime))
                             .build();
     }
 
@@ -112,9 +116,17 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
                                                                         .secretAccessKey(roleCredentials.secretAccessKey())
                                                                         .sessionToken(roleCredentials.sessionToken())
                                                                         .accountId(request.accountId())
-                                                                        .providerName(PROVIDER_NAME)
+                                                                        .providerName(providerName())
                                                                         .build();
         return new SessionCredentialsHolder(sessionCredentials, Instant.ofEpochMilli(roleCredentials.expiration()));
+    }
+
+    private String providerName() {
+        String providerName = PROVIDER_NAME;
+        if (!StringUtils.isEmpty(this.source)) {
+            providerName = String.format("%s,%s", this.source, providerName);
+        }
+        return providerName;
     }
 
     /**
@@ -207,6 +219,12 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         Builder refreshRequest(Supplier<GetRoleCredentialsRequest> getRoleCredentialsRequestSupplier);
 
         /**
+         * An optional string list of {@link software.amazon.awssdk.core.useragent.BusinessMetricFeatureId} denoting previous
+         * credentials providers that are chained with this one.
+         */
+        Builder source(String source);
+
+        /**
          * Create a {@link SsoCredentialsProvider} using the configuration applied to this builder.
          * @return
          */
@@ -220,6 +238,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         private Duration staleTime;
         private Duration prefetchTime;
         private Supplier<GetRoleCredentialsRequest> getRoleCredentialsRequestSupplier;
+        private String source;
 
         BuilderImpl() {
 
@@ -231,6 +250,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
             this.staleTime = provider.staleTime;
             this.prefetchTime = provider.prefetchTime;
             this.getRoleCredentialsRequestSupplier = provider.getRoleCredentialsRequestSupplier;
+            this.source = provider.source;
         }
 
         @Override
@@ -265,6 +285,12 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         @Override
         public Builder refreshRequest(Supplier<GetRoleCredentialsRequest> getRoleCredentialsRequestSupplier) {
             this.getRoleCredentialsRequestSupplier = getRoleCredentialsRequestSupplier;
+            return this;
+        }
+
+        @Override
+        public Builder source(String source) {
+            this.source = source;
             return this;
         }
 

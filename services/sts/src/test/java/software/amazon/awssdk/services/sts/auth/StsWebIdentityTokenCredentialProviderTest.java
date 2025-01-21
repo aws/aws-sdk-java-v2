@@ -45,7 +45,7 @@ class StsWebIdentityTokenCredentialProviderTest {
 
 
     @BeforeEach
-    public   void setUp() {
+    public void setUp() {
         String webIdentityTokenPath = Paths.get("src/test/resources/token.jwt").toAbsolutePath().toString();
         ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_ROLE_ARN.environmentVariable(), "someRole");
         ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_WEB_IDENTITY_TOKEN_FILE.environmentVariable(), webIdentityTokenPath);
@@ -59,7 +59,6 @@ class StsWebIdentityTokenCredentialProviderTest {
 
     @Test
     void createAssumeRoleWithWebIdentityTokenCredentialsProviderWithoutStsClient_throws_Exception() {
-
         Assert.assertThrows(NullPointerException.class,
                             () -> StsWebIdentityTokenFileCredentialsProvider.builder().refreshRequest(r -> r.build()).build());
     }

@@ -87,6 +87,7 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
                 AssumeRoleWithWebIdentityRequestSupplier.builder()
                                                         .assumeRoleWithWebIdentityRequest(requestBuilder.build())
                                                         .webIdentityTokenFile(credentialProperties.webIdentityTokenFile())
+                                                        .source(credentialProperties.source())
                                                         .build();
 
             StsAssumeRoleWithWebIdentityCredentialsProvider.Builder builder =

@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Platform;
@@ -133,7 +134,7 @@ public class ProcessCredentialsProviderTest {
     }
 
     @Test
-    public void staticCredentials_commandAsListOfStrings_CanBeLoaded() {
+    void staticCredentials_commandAsListOfStrings_CanBeLoaded() {
         AwsCredentials credentials =
             ProcessCredentialsProvider.builder()
                                       .command(Arrays.asList(scriptLocation, "accessKeyId", "secretAccessKey"))
@@ -143,7 +144,7 @@ public class ProcessCredentialsProviderTest {
         assertThat(credentials).isInstanceOf(AwsBasicCredentials.class);
         assertThat(credentials.accessKeyId()).isEqualTo("accessKeyId");
         assertThat(credentials.secretAccessKey()).isEqualTo("secretAccessKey");
-        assertThat(credentials.providerName()).isPresent().contains("ProcessCredentialsProvider");
+        assertThat(credentials.providerName()).isPresent().hasValue(BusinessMetricFeatureId.CREDENTIALS_PROCESS.value());
     }
  
     @Test
@@ -186,11 +187,13 @@ public class ProcessCredentialsProviderTest {
                                                              scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, expiration))
                                       .credentialRefreshThreshold(Duration.ofSeconds(1))
                                       .staticAccountId("staticAccountId")
+                                      .source("v")
                                       .build();
 
         AwsCredentials credentials = credentialsProvider.resolveCredentials();
         verifySessionCredentials(credentials, expiration);
         assertThat(credentials.accountId()).isPresent().hasValue("staticAccountId");
+        assertThat(credentials.providerName()).isPresent().hasValue("v,w");
     }
 
     private void verifySessionCredentials(AwsCredentials credentials, String expiration) {

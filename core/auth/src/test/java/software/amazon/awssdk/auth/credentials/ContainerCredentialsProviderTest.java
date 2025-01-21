@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
@@ -86,7 +87,7 @@ public class ContainerCredentialsProviderTest {
         assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
         assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
         assertThat(credentials.sessionToken()).isEqualTo(TOKEN);
-        assertThat(credentials.providerName()).isPresent().contains("ContainerCredentialsProvider");
+        assertThat(credentials.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_HTTP.value());
     }
 
     /**

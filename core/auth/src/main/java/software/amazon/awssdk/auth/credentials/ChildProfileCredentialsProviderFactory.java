@@ -38,7 +38,9 @@ public interface ChildProfileCredentialsProviderFactory {
      * provider. This credentials provider should be closed when it is no longer used.
      * @param profile The profile that should be used to load the configuration necessary to create the child credentials
      * provider.
+     * @param source A string list of {@link software.amazon.awssdk.core.useragent.BusinessMetricFeatureId} denoting
+     * previous credentials providers that are chained with this one.
      * @return The credentials provider with permissions derived from the source credentials provider and profile.
      */
-    AwsCredentialsProvider create(AwsCredentialsProvider sourceCredentialsProvider, Profile profile);
+    AwsCredentialsProvider create(AwsCredentialsProvider sourceCredentialsProvider, Profile profile, String source);
 }
