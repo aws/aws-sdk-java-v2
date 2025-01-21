@@ -21,7 +21,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.Logger;
@@ -44,12 +43,11 @@ public class DownloadObjectHelper {
             logSinglePartMessage(getObjectRequest);
             return s3AsyncClient.getObject(getObjectRequest, asyncResponseTransformer);
         }
-        GetObjectRequest requestToPerform = getObjectRequest.toBuilder().checksumMode(ChecksumMode.ENABLED).build();
         AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split =
             asyncResponseTransformer.split(SplittingTransformerConfiguration.builder()
                                                                             .bufferSizeInBytes(bufferSizeInBytes)
                                                                             .build());
-        MultipartDownloaderSubscriber subscriber = subscriber(requestToPerform);
+        MultipartDownloaderSubscriber subscriber = subscriber(getObjectRequest);
         split.publisher().subscribe(subscriber);
         return split.resultFuture();
     }

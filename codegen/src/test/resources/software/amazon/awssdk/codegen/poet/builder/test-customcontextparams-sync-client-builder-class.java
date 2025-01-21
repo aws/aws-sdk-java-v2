@@ -5,6 +5,8 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.services.json.auth.scheme.JsonAuthSchemeProvider;
@@ -71,6 +73,20 @@ public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C>
      * default it is {@link software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner}.
      */
     default B tokenProvider(IdentityProvider<? extends TokenIdentity> tokenProvider) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Configures the client behavior for request checksum calculation.
+     */
+    default B requestChecksumCalculation(RequestChecksumCalculation requestChecksumCalculation) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Configures the client behavior for response checksum validation.
+     */
+    default B responseChecksumValidation(ResponseChecksumValidation responseChecksumValidation) {
         throw new UnsupportedOperationException();
     }
 }
