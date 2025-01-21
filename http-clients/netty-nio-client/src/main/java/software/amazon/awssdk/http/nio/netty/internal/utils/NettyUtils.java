@@ -32,7 +32,12 @@ import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.SucceededFuture;
 import java.io.IOException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.nio.channels.ClosedChannelException;
+import java.security.AccessController;
+import java.security.PrivilegedExceptionAction;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +45,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -396,20 +402,26 @@ public final class NettyUtils {
         if (sslProvider != SslProvider.JDK) {
             return true;
         }
-        String javaVersion = getJavaVersion();
-        String[] versionComponents = javaVersion.split("_");
-        if (versionComponents.length == 2) {
-            try {
-                int buildNumber = Integer.parseInt(versionComponents[1].split("-")[0]);
-                if (javaVersion.startsWith("1.8.0") && buildNumber < 251) {
-                    return false;
-                }
-            } catch (NumberFormatException e) {
-                log.info(() -> "Invalid Java version format: " + javaVersion);
-                throw e;
-            }
+
+        try {
+            SSLContext context = SSLContext.getInstance("TLS");
+            context.init(null, null, null);
+            SSLEngine engine = context.createSSLEngine();
+            MethodHandles.Lookup lookup = MethodHandles.lookup();
+
+            MethodHandle getApplicationProtocol = AccessController.doPrivileged(
+                (PrivilegedExceptionAction<MethodHandle>) () ->
+                lookup.findVirtual(SSLEngine.class, "getApplicationProtocol", MethodType.methodType(String.class)));
+
+            getApplicationProtocol.invoke(engine);
+            return true;
+        } catch (NoSuchMethodException e) {
+            log.info(() -> "ALPN not supported: SSLEngine.getApplicationProtocol() method not found.");
+            return false;
+        } catch (Throwable t) {
+            log.info(() -> "ALPN support check failed: " + t.getMessage());
+            return false;
         }
-        return true;
     }
 
     public static String getJavaVersion() {
