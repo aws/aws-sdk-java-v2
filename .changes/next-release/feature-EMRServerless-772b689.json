@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "EMR Serverless",
-    "contributor": "",
-    "description": "Increasing entryPoint in SparkSubmit to accept longer script paths. New limit is 4kb."
-}

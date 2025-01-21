@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Batch",
-    "contributor": "",
-    "description": "Documentation-only update: clarified the description of the shareDecaySeconds parameter of the FairsharePolicy data type, clarified the description of the priority parameter of the JobQueueDetail data type."
-}

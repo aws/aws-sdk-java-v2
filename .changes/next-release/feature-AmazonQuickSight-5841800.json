@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon QuickSight",
-    "contributor": "",
-    "description": "Added `DigitGroupingStyle` in ThousandsSeparator to allow grouping by `LAKH`( Indian Grouping system ) currency. Support LAKH and `CRORE` currency types in Column Formatting."
-}
