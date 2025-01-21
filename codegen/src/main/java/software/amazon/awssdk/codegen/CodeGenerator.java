@@ -26,9 +26,10 @@ import software.amazon.awssdk.codegen.emitters.tasks.AwsGeneratorTasks;
 import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.utils.Logger;
 
 public class CodeGenerator {
-
+    private static final Logger log = Logger.loggerFor(CodeGenerator.class);
     private static final String MODEL_DIR_NAME = "models";
 
     private final C2jModels models;
@@ -85,6 +86,7 @@ public class CodeGenerator {
             emitCode(intermediateModel);
 
         } catch (Exception e) {
+            log.error(() -> "Failed to generate code. ", e);
             throw new RuntimeException(
                     "Failed to generate code. Exception message : " + e.getMessage(), e);
 

@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.30.2</version>
+        <version>2.30.3</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>bom</artifactId>
@@ -210,6 +210,11 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>cloudwatch-metric-publisher</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>emf-metric-logging-publisher</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
