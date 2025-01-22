@@ -642,78 +642,13 @@ public class InstanceProfileCredentialsProviderTest {
     @Test
     void shouldNotRetry_whenSucceeds() {
         stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
-        InstanceProfileCredentialsProvider provider =
-            InstanceProfileCredentialsProvider.builder()
-                                              .retryPolicy((retriesAttempted, statusCode, exception) -> retriesAttempted < 3 && statusCode != 200)
-                                              .build();
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
         AwsCredentials credentials = provider.resolveCredentials();
         assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
         assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
         assertThat(credentials.providerName()).isPresent().contains("InstanceProfileCredentialsProvider");
         verifyImdsCallWithToken();
         WireMock.verify(exactly(1), getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")));
-    }
-
-    @ParameterizedTest
-    @ValueSource(ints = {0, 1, 2, 3, 4, 5})
-    void shouldRetryAndFail_whenFails_basedOnRetryPolicy(int retries) {
-        InstanceProfileCredentialsProvider provider =
-            InstanceProfileCredentialsProvider.builder()
-                                              .retryPolicy((retriesAttempted, statusCode, exception) -> retriesAttempted < retries && statusCode != 200)
-                                              .build();
-
-        String errorMessage = "some error msg";
-        String credentialsResponse =
-            "{"
-            + "\"code\": \"InternalServiceException\","
-            + "\"message\": \"" + errorMessage + "\""
-            + "}";
-
-        stubSecureCredentialsResponse(aResponse().withStatus(500)
-                                                 .withBody(credentialsResponse));
-        assertThatThrownBy(provider::resolveCredentials).hasRootCauseMessage("some error msg");
-        WireMock.verify(retries + 1, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")));
-    }
-
-    @Test
-    void shouldRetryThenSucceed_basedOnRetryPolicy() {
-        String errorMessage = "some error msg";
-        String credentialsResponse =
-            "{"
-            + "\"code\": \"InternalServiceException\","
-            + "\"message\": \"" + errorMessage + "\""
-            + "}";
-
-        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
-                                   .inScenario("Retry")
-                                   .whenScenarioStateIs(STARTED)
-                                   .willReturn(aResponse().withBody(TOKEN_STUB).withStatus(200)));
-        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH))
-                                   .inScenario("Retry")
-                                   .willReturn(aResponse().withBody(PROFILE_NAME).withStatus(200))
-                                   .whenScenarioStateIs(STARTED)
-                                   .willSetStateTo("error"));
-        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + PROFILE_NAME))
-                                   .inScenario("Retry")
-                                   .whenScenarioStateIs("error")
-                                   .willReturn(aResponse().withBody(credentialsResponse).withStatus(500))
-                                   .willSetStateTo("success"));
-
-        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + PROFILE_NAME))
-                                   .inScenario("Retry")
-                                   .willReturn(aResponse().withBody(STUB_CREDENTIALS).withStatus(200))
-                                   .whenScenarioStateIs("success"));
-
-        InstanceProfileCredentialsProvider provider =
-            InstanceProfileCredentialsProvider.builder()
-                                              .retryPolicy((retriesAttempted, statusCode, exception) -> retriesAttempted < 3 && statusCode != 200)
-                                              .build();
-
-        provider.resolveCredentials();
-
-        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)));
-        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
-        WireMock.verify(2, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")));
     }
 
     private AwsCredentialsProvider credentialsProviderWithClock(Clock clock) {
