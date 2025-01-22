@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.3__ __2025-01-21__
+## __AWS Batch__
+  - ### Features
+    - Documentation-only update: clarified the description of the shareDecaySeconds parameter of the FairsharePolicy data type, clarified the description of the priority parameter of the JobQueueDetail data type.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - AWS IoT SiteWise now supports ingestion and querying of Null (all data types) and NaN (double type) values of bad or uncertain data quality. New partial error handling prevents data loss during ingestion. Enabled by default for new customers; existing customers can opt-in.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Documentation-only update to address doc errors
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - corrects the dual-stack endpoint configuration for cognitoidp
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added DeleteContactFlowVersion API and the CAMPAIGN flow type
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added `DigitGroupingStyle` in ThousandsSeparator to allow grouping by `LAKH`( Indian Grouping system ) currency. Support LAKH and `CRORE` currency types in Column Formatting.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - This release adds support for the topic attribute FifoThroughputScope for SNS FIFO topics. For details, see the documentation history in the Amazon Simple Notification Service Developer Guide.
+
+## __EMR Serverless__
+  - ### Features
+    - Increasing entryPoint in SparkSubmit to accept longer script paths. New limit is 4kb.
+
+## __Emf Metric Logging Publisher__
+  - ### Features
+    - Added a new EmfMetricLoggingPublisher class that transforms SdkMetricCollection to emf format string and logs it, which will be automatically collected by cloudwatch.
+
 # __2.30.2__ __2025-01-17__
 ## __AWS SDK for Java v2__
   - ### Features
@@ -25,7 +66,7 @@
     - Correction of docs for "Added support for ml.trn1.32xlarge instance type in Reserved Capacity Offering"
 
 ## __Amazon Simple Storage Service__
-- ### Bugfixes
+  - ### Bugfixes
     - Fixed contentLength mismatch issue thrown from putObject when multipartEnabled is true and a contentLength is provided in PutObjectRequest. See [#5807](https://github.com/aws/aws-sdk-java-v2/issues/5807)
 
 # __2.30.1__ __2025-01-16__
