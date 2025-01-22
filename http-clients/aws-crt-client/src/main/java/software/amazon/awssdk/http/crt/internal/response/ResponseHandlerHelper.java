@@ -20,7 +20,6 @@ import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpHeaderBlock;
 import software.amazon.awssdk.crt.http.HttpStream;
-import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpResponse;
 
 /**
@@ -86,15 +85,6 @@ public class ResponseHandlerHelper {
                 connection.close();
                 stream.close();
             }
-        }
-    }
-
-    public void cleanUpConnectionBasedOnStatusCode(HttpStream stream) {
-        // always close the connection on a 5XX response code.
-        if (HttpStatusFamily.of(responseBuilder.statusCode()) == HttpStatusFamily.SERVER_ERROR) {
-            closeConnection(stream);
-        } else {
-            releaseConnection(stream);
         }
     }
 }
