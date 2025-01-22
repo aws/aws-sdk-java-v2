@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.Optional;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -54,14 +55,14 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
     private static final int SESSION_DURATION = 60 * 60;
 
-    private static final String USER_NAME = "assume-role-integration-test-user";
+    private static final String USER_NAME = "assume-role-integration-test-user-" + RandomStringUtils.randomAlphanumeric(10);
     private static final String USER_ARN_FORMAT = "arn:aws:iam::%s:user/" + USER_NAME;
     private static String USER_ARN;
 
     private static final String POLICY_NAME = "AssumeRoleIntegrationTestPolicy";
     private static final String POLICY_ARN_FORMAT = "arn:aws:iam::%s:policy/" + POLICY_NAME;
 
-    private static final String ROLE_NAME = "assume-role-integration-test-role";
+    private static final String ROLE_NAME = "assume-role-integration-test-role-" + RandomStringUtils.randomAlphanumeric(10);
     private static final String ROLE_ARN_FORMAT = "arn:aws:iam::%s:role/" + ROLE_NAME;
     private static String ROLE_ARN;
     private static String accountId;
