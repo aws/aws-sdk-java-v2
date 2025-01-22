@@ -52,6 +52,7 @@ import javax.net.ssl.SSLParameters;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelDiagnostics;
 import software.amazon.awssdk.utils.FunctionalUtils;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
@@ -69,7 +70,7 @@ public final class NettyUtils {
                                                               + "read or written in a timely manner.";
     private static final Logger log = Logger.loggerFor(NettyUtils.class);
 
-    private static volatile Boolean alpnSupported;
+    private static final Lazy<Boolean> ALPN_SUPPORTED = new Lazy<>(NettyUtils::checkAlpnSupport);
 
     private NettyUtils() {
     }
@@ -406,17 +407,7 @@ public final class NettyUtils {
             return true;
         }
 
-        Boolean supported = alpnSupported;
-        if (supported != null) {
-            return supported;
-        }
-
-        synchronized (NettyUtils.class) {
-            if (alpnSupported == null) {
-                alpnSupported = checkAlpnSupport();
-            }
-            return alpnSupported;
-        }
+        return ALPN_SUPPORTED.getValue();
     }
 
     private static boolean checkAlpnSupport() {
