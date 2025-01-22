@@ -13,10 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.benchmark.utils;
+package software.amazon.awssdk.http.nio.netty;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
+import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.http2.HTTP2Cipher;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
@@ -41,7 +46,6 @@ public class MockH2Server extends BaseMockServer {
     private final Server server;
 
     public MockH2Server(boolean usingAlpn) throws IOException {
-        super();
         server = new Server();
         ServerConnector connector = new ServerConnector(server);
         connector.setPort(httpPort);
@@ -74,7 +78,7 @@ public class MockH2Server extends BaseMockServer {
         sslContextFactory.setValidatePeerCerts(false);
         sslContextFactory.setCipherComparator(HTTP2Cipher.COMPARATOR);
         sslContextFactory.setKeyStorePassword("password");
-        sslContextFactory.setKeyStorePath(MockServer.class.getResource("mock-keystore.jks").toExternalForm());
+        sslContextFactory.setKeyStorePath("src/test/resources/software.amazon.awssdk.http.nio.netty/mock-keystore.jks");
 
 
         // HTTP/2 Connection Factory
@@ -109,4 +113,18 @@ public class MockH2Server extends BaseMockServer {
     public void stop() throws Exception {
         server.stop();
     }
+
+    static class AlwaysSuccessServlet extends HttpServlet {
+
+        public static final String JSON_BODY = "{\"StringMember\":\"foo\",\"IntegerMember\":123}";
+
+        @Override
+        public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+            response.setStatus(HttpStatus.OK_200);
+            response.setContentType("application/json");
+            response.setContentLength(JSON_BODY.getBytes(StandardCharsets.UTF_8).length);
+            response.getOutputStream().print(JSON_BODY);
+        }
+    }
+
 }
