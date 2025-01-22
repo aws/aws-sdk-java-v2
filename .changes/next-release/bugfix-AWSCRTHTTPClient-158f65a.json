@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS CRT HTTP Client",
+    "contributor": "",
+    "description": "Reuse connections that receive a 5xx service response."
+}
