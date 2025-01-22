@@ -88,11 +88,14 @@ public class H2ServerErrorTest {
     }
 
     @Test
-    public void serviceReturn500_newRequestShouldReuseConnection() {
+    public void serviceReturn500_newRequestShouldReuseConnection() throws InterruptedException {
         server.return500OnFirstRequest = true;
         CompletableFuture<?> firstRequest = sendGetRequest(server.port(), netty);
         firstRequest.join();
 
+        // The request-complete-future does not await the channel-release-future
+        // Wait a small amount to allow the channel release to complete
+        Thread.sleep(100);
         sendGetRequest(server.port(), netty).join();
         assertThat(server.h2ConnectionCount.get()).isEqualTo(1);
     }
