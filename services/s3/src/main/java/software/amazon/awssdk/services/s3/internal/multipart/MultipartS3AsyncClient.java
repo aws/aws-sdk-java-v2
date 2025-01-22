@@ -16,19 +16,15 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.UserAgentUtils;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
@@ -56,8 +52,10 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     private final UploadObjectHelper mpuHelper;
     private final CopyObjectHelper copyObjectHelper;
     private final DownloadObjectHelper downloadObjectHelper;
+    private final boolean checksumEnabled;
 
-    private MultipartS3AsyncClient(S3AsyncClient delegate, MultipartConfiguration multipartConfiguration) {
+    private MultipartS3AsyncClient(S3AsyncClient delegate, MultipartConfiguration multipartConfiguration,
+                                   boolean checksumEnabled) {
         super(delegate);
         MultipartConfiguration validConfiguration = Validate.getOrDefault(multipartConfiguration,
                                                                           MultipartConfiguration.builder()::build);
@@ -68,42 +66,21 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
         mpuHelper = new UploadObjectHelper(delegate, resolver);
         copyObjectHelper = new CopyObjectHelper(delegate, minPartSizeInBytes, threshold);
         downloadObjectHelper = new DownloadObjectHelper(delegate, apiCallBufferSize);
+        this.checksumEnabled = checksumEnabled;
     }
 
     @Override
     public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, AsyncRequestBody requestBody) {
-        if (shouldEnableCrc32(putObjectRequest)) {
+
+        Optional<ChecksumAlgorithm> checksumAlgorithm = S3ChecksumUtils.checksumAlgorithmFromPutObjectRequest(putObjectRequest);
+
+        if (checksumAlgorithm.isPresent()) {
+            putObjectRequest = putObjectRequest.toBuilder().checksumAlgorithm(checksumAlgorithm.get()).build();
+        } else if (checksumEnabled) {
             putObjectRequest = putObjectRequest.toBuilder().checksumAlgorithm(ChecksumAlgorithm.CRC32).build();
         }
 
         return mpuHelper.uploadObject(putObjectRequest, requestBody);
-    }
-
-    private boolean shouldEnableCrc32(PutObjectRequest putObjectRequest) {
-        return !checksumSetOnRequest(putObjectRequest) && checksumEnabledPerConfig(putObjectRequest);
-    }
-
-    private boolean checksumSetOnRequest(PutObjectRequest putObjectRequest) {
-        if (putObjectRequest.checksumAlgorithm() != null) {
-            return true;
-        }
-
-        return Stream.of("ChecksumCRC32", "ChecksumCRC32C", "ChecksumSHA1", "ChecksumSHA256")
-                     .anyMatch(s -> putObjectRequest.getValueForField(s, String.class).isPresent());
-    }
-
-    private boolean checksumEnabledPerConfig(PutObjectRequest putObjectRequest) {
-        ExecutionAttributes executionAttributes =
-            putObjectRequest.overrideConfiguration().map(RequestOverrideConfiguration::executionAttributes).orElse(null);
-
-        if (executionAttributes == null) {
-            return true;
-        }
-
-        S3Configuration serviceConfiguration =
-            (S3Configuration) executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_CONFIG);
-
-        return serviceConfiguration == null || serviceConfiguration.checksumValidationEnabled();
     }
 
     @Override
@@ -122,7 +99,8 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
         delegate().close();
     }
 
-    public static MultipartS3AsyncClient create(S3AsyncClient client, MultipartConfiguration multipartConfiguration) {
+    public static MultipartS3AsyncClient create(S3AsyncClient client, MultipartConfiguration multipartConfiguration,
+                                                boolean checksumEnabled) {
         S3AsyncClient clientWithUserAgent = new DelegatingS3AsyncClient(client) {
             @Override
             protected <T extends S3Request, ReturnT> CompletableFuture<ReturnT> invokeOperation(T request, Function<T,
@@ -131,6 +109,6 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
                 return operation.apply(requestWithUserAgent);
             }
         };
-        return new MultipartS3AsyncClient(clientWithUserAgent, multipartConfiguration);
+        return new MultipartS3AsyncClient(clientWithUserAgent, multipartConfiguration, checksumEnabled);
     }
 }

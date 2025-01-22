@@ -180,9 +180,15 @@ public final class ProfileProperty {
     public static final String ENDPOINT_URL = "endpoint_url";
 
     /**
-     * Configure an optional identification value to be appended to the user agent header.
-     * The value should be less than 50 characters in length and is null by default.
+     * The request checksum calculation setting. The default value is WHEN_SUPPORTED.
      */
+    public static final String REQUEST_CHECKSUM_CALCULATION = "request_checksum_calculation";
+
+    /**
+     * The response checksum validation setting. The default value is WHEN_SUPPORTED.
+     */
+    public static final String RESPONSE_CHECKSUM_VALIDATION = "response_checksum_validation";
+
     public static final String SDK_UA_APP_ID = "sdk_ua_app_id";
 
     private ProfileProperty() {

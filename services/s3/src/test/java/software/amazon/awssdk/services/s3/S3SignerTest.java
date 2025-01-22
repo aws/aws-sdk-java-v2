@@ -39,7 +39,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
-import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -53,11 +53,11 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 @RunWith(MockitoJUnitRunner.class)
 public class S3SignerTest {
 
-    public static final ChecksumSpecs CRC32_TRAILER = ChecksumSpecs.builder().algorithm(Algorithm.CRC32)
+    public static final ChecksumSpecs CRC32_TRAILER = ChecksumSpecs.builder().algorithmV2(DefaultChecksumAlgorithm.CRC32)
                                                                    .isRequestStreaming(true)
                                                                    .headerName("x-amz-checksum-crc32").build();
 
-    public static final ChecksumSpecs SHA256_HEADER = ChecksumSpecs.builder().algorithm(Algorithm.SHA256)
+    public static final ChecksumSpecs SHA256_HEADER = ChecksumSpecs.builder().algorithmV2(DefaultChecksumAlgorithm.SHA256)
                                                                    .isRequestStreaming(false)
                                                                    .headerName("x-amz-checksum-sha256").build();
 

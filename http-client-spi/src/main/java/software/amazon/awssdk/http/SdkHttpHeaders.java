@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -55,6 +56,16 @@ public interface SdkHttpHeaders {
      */
     default Optional<String> firstMatchingHeader(String header) {
         return SdkHttpUtils.firstMatchingHeader(headers(), header);
+    }
+
+    /**
+     * Returns whether any header key matches the provided predicate.
+     *
+     * @param predicate the predicate to apply to all header keys
+     * @return true if any header key matches the provided predicate, otherwise {@code false}
+     */
+    default boolean anyMatchingHeader(Predicate<String> predicate) {
+        return headers().keySet().stream().anyMatch(predicate);
     }
 
     default Optional<String> firstMatchingHeader(Collection<String> headersToFind) {

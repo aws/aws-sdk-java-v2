@@ -23,6 +23,8 @@ import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.SdkProtocolMetadata;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
@@ -174,6 +176,18 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
 
     public static final ExecutionAttribute<SdkClient> SDK_CLIENT =
         new ExecutionAttribute<>("SdkClient");
+
+    /**
+     * The request checksum calculation setting.
+     */
+    public static final ExecutionAttribute<RequestChecksumCalculation> REQUEST_CHECKSUM_CALCULATION = new ExecutionAttribute<>(
+        "RequestChecksumCalculation");
+
+    /**
+     * The response checksum validation setting.
+     */
+    public static final ExecutionAttribute<ResponseChecksumValidation> RESPONSE_CHECKSUM_VALIDATION = new ExecutionAttribute<>(
+        "ResponseChecksumValidation");
 
     /**
      * The backing attribute for RESOLVED_CHECKSUM_SPECS.

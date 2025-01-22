@@ -237,6 +237,16 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_PARTITIONS_FILE("aws.partitionsFile", null),
 
     /**
+     * The request checksum calculation setting. The default value is WHEN_SUPPORTED.
+     */
+    AWS_REQUEST_CHECKSUM_CALCULATION("aws.requestChecksumCalculation", null),
+
+    /**
+     * The response checksum validation setting. The default value is WHEN_SUPPORTED.
+     */
+    AWS_RESPONSE_CHECKSUM_VALIDATION("aws.responseChecksumValidation", null),
+
+    /**
      * Configure an optional identification value to be appended to the user agent header.
      * The value should be less than 50 characters in length and is null by default.
      */

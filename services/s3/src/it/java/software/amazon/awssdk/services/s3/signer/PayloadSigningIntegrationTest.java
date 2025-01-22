@@ -48,8 +48,8 @@ public class PayloadSigningIntegrationTest extends S3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(PayloadSigningIntegrationTest.class);
     private static final String KEY = "key";
 
-    private static final String SIGNED_PAYLOAD_HEADER_VALUE = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD";
-    private static final String UNSIGNED_PAYLOAD_HEADER_VALUE = "UNSIGNED-PAYLOAD";
+    private static final String SIGNED_PAYLOAD_TAILER_HEADER_VALUE = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER";
+    private static final String UNSIGNED_PAYLOAD_TRAILER_HEADER_VALUE = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
 
     private static final CapturingInterceptor capturingInterceptor = new CapturingInterceptor();
 
@@ -78,7 +78,7 @@ public class PayloadSigningIntegrationTest extends S3IntegrationTestBase {
         assertThat(syncClient.putObject(b -> b.bucket(BUCKET).key(KEY),
                                         RequestBody.fromBytes("helloworld".getBytes()))).isNotNull();
         List<String> capturedSha256Values = getSha256Values();
-        assertThat(capturedSha256Values).containsExactly(UNSIGNED_PAYLOAD_HEADER_VALUE);
+        assertThat(capturedSha256Values).containsExactly(UNSIGNED_PAYLOAD_TRAILER_HEADER_VALUE);
         syncClient.close();
     }
 
@@ -91,7 +91,7 @@ public class PayloadSigningIntegrationTest extends S3IntegrationTestBase {
         assertThat(syncClient.putObject(b -> b.bucket(BUCKET).key(KEY),
                                         RequestBody.fromBytes("helloworld".getBytes()))).isNotNull();
         List<String> capturedSha256Values = getSha256Values();
-        assertThat(capturedSha256Values).containsExactly(SIGNED_PAYLOAD_HEADER_VALUE);
+        assertThat(capturedSha256Values).containsExactly(SIGNED_PAYLOAD_TAILER_HEADER_VALUE);
         syncClient.close();
     }
 
@@ -105,7 +105,7 @@ public class PayloadSigningIntegrationTest extends S3IntegrationTestBase {
         assertThat(syncClient.putObject(b -> b.bucket(BUCKET).key(KEY),
                                         RequestBody.fromBytes("helloworld".getBytes()))).isNotNull();
         List<String> capturedSha256Values = getSha256Values();
-        assertThat(capturedSha256Values).containsExactly(SIGNED_PAYLOAD_HEADER_VALUE);
+        assertThat(capturedSha256Values).containsExactly(SIGNED_PAYLOAD_TAILER_HEADER_VALUE);
         syncClient.close();
     }
 

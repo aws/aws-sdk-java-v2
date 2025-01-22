@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.services.s3.utils;
 
-import software.amazon.awssdk.core.checksums.Algorithm;
+import java.util.List;
+import java.util.Map;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -23,7 +25,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 
 public class CaptureChecksumValidationInterceptor implements ExecutionInterceptor {
-    private Algorithm validationAlgorithm;
+    private ChecksumAlgorithm validationAlgorithm;
     private ChecksumValidation responseValidation;
     private String requestChecksumInTrailer;
     private String requestChecksumInHeader;
@@ -31,12 +33,13 @@ public class CaptureChecksumValidationInterceptor implements ExecutionIntercepto
     private String responseTransferEncodingHeader;
     private String responseFlexibleChecksumHeader;
     private String contentEncoding;
+    private Map<String, List<String>> requestHeaders;
 
     public String contentEncoding() {
         return contentEncoding;
     }
 
-    public Algorithm validationAlgorithm() {
+    public ChecksumAlgorithm validationAlgorithm() {
         return validationAlgorithm;
     }
 
@@ -64,6 +67,10 @@ public class CaptureChecksumValidationInterceptor implements ExecutionIntercepto
         return responseFlexibleChecksumHeader;
     }
 
+    public Map<String, List<String>> requestHeaders() {
+        return requestHeaders;
+    }
+
     public void reset() {
         validationAlgorithm = null;
         responseValidation = null;
@@ -76,6 +83,7 @@ public class CaptureChecksumValidationInterceptor implements ExecutionIntercepto
 
     @Override
     public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+        requestHeaders = context.httpRequest().headers();
         requestChecksumInTrailer =
             context.httpRequest().firstMatchingHeader("x-amz-trailer").orElse(null);
         requestChecksumInHeader =
@@ -87,7 +95,7 @@ public class CaptureChecksumValidationInterceptor implements ExecutionIntercepto
     @Override
     public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
         validationAlgorithm =
-            executionAttributes.getOptionalAttribute(SdkExecutionAttribute.HTTP_CHECKSUM_VALIDATION_ALGORITHM).orElse(null);
+            executionAttributes.getOptionalAttribute(SdkExecutionAttribute.HTTP_CHECKSUM_VALIDATION_ALGORITHM_V2).orElse(null);
         responseValidation =
             executionAttributes.getOptionalAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION).orElse(null);
         contentEncoding = String.join(",", context.httpRequest().matchingHeaders("content-encoding"));
@@ -100,7 +108,7 @@ public class CaptureChecksumValidationInterceptor implements ExecutionIntercepto
     @Override
     public void onExecutionFailure(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
         validationAlgorithm =
-            executionAttributes.getOptionalAttribute(SdkExecutionAttribute.HTTP_CHECKSUM_VALIDATION_ALGORITHM).orElse(null);
+            executionAttributes.getOptionalAttribute(SdkExecutionAttribute.HTTP_CHECKSUM_VALIDATION_ALGORITHM_V2).orElse(null);
         responseValidation =
             executionAttributes.getOptionalAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION).orElse(null);
     }

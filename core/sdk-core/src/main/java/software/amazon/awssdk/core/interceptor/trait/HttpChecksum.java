@@ -18,21 +18,25 @@ package software.amazon.awssdk.core.interceptor.trait;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import java.util.stream.Collectors;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 
-@SdkInternalApi
+@SdkProtectedApi
 public class HttpChecksum {
-
 
     private final boolean requestChecksumRequired;
 
     private final String requestAlgorithm;
 
+    private final String requestAlgorithmHeader;
+
     private final String requestValidationMode;
 
     private final boolean isRequestStreaming;
 
-    private final List<String> responseAlgorithms;
+    private final List<ChecksumAlgorithm> responseAlgorithms;
 
     private HttpChecksum(Builder builder) {
         this.requestChecksumRequired = builder.requestChecksumRequired;
@@ -40,8 +44,8 @@ public class HttpChecksum {
         this.requestValidationMode = builder.requestValidationMode;
         this.responseAlgorithms = builder.responseAlgorithms;
         this.isRequestStreaming = builder.isRequestStreaming;
+        this.requestAlgorithmHeader = builder.requestAlgorithmHeader;
     }
-
 
     public boolean isRequestChecksumRequired() {
         return requestChecksumRequired;
@@ -51,7 +55,23 @@ public class HttpChecksum {
         return requestAlgorithm;
     }
 
+    public String requestAlgorithmHeader() {
+        return requestAlgorithmHeader;
+    }
+
+    /**
+     * @deprecated use {@link #responseAlgorithmsV2()} instead
+     */
+    @Deprecated
     public List<String> responseAlgorithms() {
+        if (responseAlgorithms == null) {
+            return null;
+        }
+
+        return responseAlgorithms.stream().map(ChecksumAlgorithm::algorithmId).collect(Collectors.toList());
+    }
+
+    public List<ChecksumAlgorithm> responseAlgorithmsV2() {
         return responseAlgorithms;
     }
 
@@ -76,10 +96,11 @@ public class HttpChecksum {
 
         private String requestValidationMode;
 
-        private List<String> responseAlgorithms;
+        private List<ChecksumAlgorithm> responseAlgorithms;
 
         private boolean isRequestStreaming;
 
+        private String requestAlgorithmHeader;
 
         public Builder requestChecksumRequired(boolean requestChecksumRequired) {
             this.requestChecksumRequired = requestChecksumRequired;
@@ -91,23 +112,44 @@ public class HttpChecksum {
             return this;
         }
 
+        public Builder requestAlgorithmHeader(String requestAlgorithmHeader) {
+            this.requestAlgorithmHeader = requestAlgorithmHeader;
+            return this;
+        }
+
         public Builder requestValidationMode(String requestValidationMode) {
             this.requestValidationMode = requestValidationMode;
             return this;
         }
 
+        /**
+         * @deprecated use {@link #responseAlgorithmsV2(ChecksumAlgorithm...)} instead
+         */
+        @Deprecated
         public Builder responseAlgorithms(List<String> responseAlgorithms) {
-            this.responseAlgorithms = responseAlgorithms;
+            this.responseAlgorithms = responseAlgorithms.stream()
+                                                        .map(algo -> DefaultChecksumAlgorithm.fromValue(algo))
+                                                        .collect(Collectors.toList());
             return this;
         }
 
+        /**
+         * @deprecated use {@link #responseAlgorithmsV2(ChecksumAlgorithm...)} instead
+         */
+        @Deprecated
         public Builder responseAlgorithms(String... responseAlgorithms) {
+            if (responseAlgorithms != null) {
+                return responseAlgorithms(Arrays.asList(responseAlgorithms));
+            }
+            return this;
+        }
+
+        public Builder responseAlgorithmsV2(ChecksumAlgorithm... responseAlgorithms) {
             if (responseAlgorithms != null) {
                 this.responseAlgorithms = Arrays.asList(responseAlgorithms);
             }
             return this;
         }
-
 
         public Builder isRequestStreaming(boolean isRequestStreaming) {
             this.isRequestStreaming = isRequestStreaming;

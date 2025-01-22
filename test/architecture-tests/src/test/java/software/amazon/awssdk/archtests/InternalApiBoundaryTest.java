@@ -37,6 +37,7 @@ import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
+import software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil;
 import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
@@ -52,7 +53,7 @@ public class InternalApiBoundaryTest {
      */
     private static final Set<Class<?>> ALLOWED_INTERNAL_API_ACROSS_MODULE_SUPPRESSION = new HashSet<>(
         Arrays.asList(WaiterAttribute.class, RequestCompression.class, RequestCompression.Builder.class, EnumUtils.class,
-                      AwsServiceProtocol.class, AwsProtocolMetadata.class, MetricUtils.class));
+                      AwsServiceProtocol.class, AwsProtocolMetadata.class, MetricUtils.class, ChecksumUtil.class));
 
     @Test
     void internalApi_shouldNotUsedAcrossModule() {

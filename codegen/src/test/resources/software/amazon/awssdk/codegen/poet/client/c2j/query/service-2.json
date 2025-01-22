@@ -423,7 +423,7 @@
         "ChecksumAlgorithm":{
           "shape":"ChecksumAlgorithm",
           "location":"header",
-          "locationName":"x-amz-checksum-algorithm"
+          "locationName":"x-amz-sdk-checksum-algorithm"
         }
       },
       "payload":"Body"
@@ -441,7 +441,7 @@
         "ChecksumAlgorithm":{
           "shape":"ChecksumAlgorithm",
           "location":"header",
-          "locationName":"x-amz-checksum-algorithm"
+          "locationName":"x-amz-sdk-checksum-algorithm"
         }
       },
       "payload":"Body"
