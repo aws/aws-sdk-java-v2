@@ -22,6 +22,7 @@ import static software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClientTestU
 import static software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClientTestUtils.createRequest;
 
 import io.netty.handler.ssl.SslProvider;
+import java.net.URI;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
@@ -56,14 +57,14 @@ public class NettyClientAlpnTest {
     public void alpnClientJdkProvider_serverWithAlpnSupport_requestSucceeds() throws Exception {
         initClient(ProtocolNegotiation.ALPN, SslProvider.JDK);
         initServer(true);
-        makeSimpleRequest();
+        makeHttpsRequest();
     }
 
     @Test
     public void alpnClientOpenSslProvider_serverWithAlpnSupport_requestSucceeds() throws Exception {
         initClient(ProtocolNegotiation.ALPN, SslProvider.OPENSSL);
         initServer(true);
-        makeSimpleRequest();
+        makeHttpsRequest();
     }
 
     @Test
@@ -71,7 +72,7 @@ public class NettyClientAlpnTest {
     public void alpnClient_serverWithoutAlpnSupport_throwsException() throws Exception {
         initClient(ProtocolNegotiation.ALPN, SslProvider.JDK);
         initServer(false);
-        ExecutionException e = assertThrows(ExecutionException.class, this::makeSimpleRequest);
+        ExecutionException e = assertThrows(ExecutionException.class, this::makeHttpsRequest);
         assertThat(e).hasCauseInstanceOf(UnsupportedOperationException.class);
         assertThat(e.getMessage()).contains("The server does not support ALPN with H2");
     }
@@ -81,18 +82,35 @@ public class NettyClientAlpnTest {
     public void priorKnowledgeClient_serverWithAlpnSupport_requestSucceeds() throws Exception {
         initClient(ProtocolNegotiation.ASSUME_PROTOCOL, SslProvider.JDK);
         initServer(true);
-        makeSimpleRequest();
+        makeHttpsRequest();
     }
 
     @Test
     public void priorKnowledgeClient_serverWithoutAlpnSupport_requestSucceeds() throws Exception {
         initClient(ProtocolNegotiation.ASSUME_PROTOCOL, SslProvider.JDK);
         initServer(false);
-        makeSimpleRequest();
+        makeHttpsRequest();
     }
 
-    private void makeSimpleRequest() throws Exception {
-        SdkHttpRequest request = createRequest(mockServer.getHttpsUri());
+    @Test
+    @EnabledIf("alpnSupported")
+    public void alpnClient_httpRequest_throwsException() throws Exception {
+        initClient(ProtocolNegotiation.ALPN, SslProvider.JDK);
+        initServer(true);
+        UnsupportedOperationException e = assertThrows(UnsupportedOperationException.class, this::makeHttpRequest);
+        assertThat(e.getMessage()).isEqualTo("ALPN can only be used with HTTPS, not HTTP.");
+    }
+
+    private void makeHttpsRequest() throws Exception {
+        makeSimpleRequest(mockServer.getHttpsUri());
+    }
+
+    private void makeHttpRequest() throws Exception {
+        makeSimpleRequest(mockServer.getHttpUri());
+    }
+
+    private void makeSimpleRequest(URI uri) throws Exception {
+        SdkHttpRequest request = createRequest(uri);
         RecordingResponseHandler recorder = new RecordingResponseHandler();
         sdkHttpClient.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
         recorder.completeFuture.get(5, TimeUnit.SECONDS);

@@ -127,7 +127,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
                 configureAlpn(pipeline, protocol);
                 break;
             default:
-                throw new UnsupportedOperationException("");
+                throw new UnsupportedOperationException("Unsupported ProtocolNegotiation: " + protocolNegotiation);
         }
     }
 

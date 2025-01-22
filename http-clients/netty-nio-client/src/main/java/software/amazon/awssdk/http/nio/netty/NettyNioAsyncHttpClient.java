@@ -85,13 +85,14 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private final SdkEventLoopGroup sdkEventLoopGroup;
     private final SdkChannelPoolMap<URI, ? extends SdkChannelPool> pools;
     private final NettyConfiguration configuration;
+    private final ProtocolNegotiation protocolNegotiation;
 
     private NettyNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
         this.configuration = new NettyConfiguration(serviceDefaultsMap);
         Protocol protocol = serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL);
         SslProvider sslProvider = resolveSslProvider(builder);
-        ProtocolNegotiation protocolNegotiation = resolveProtocolNegotiation(builder.protocolNegotiation, serviceDefaultsMap,
-                                                                             protocol, sslProvider);
+        this.protocolNegotiation = resolveProtocolNegotiation(builder.protocolNegotiation, serviceDefaultsMap,
+                                                              protocol, sslProvider);
         this.sdkEventLoopGroup = eventLoopGroup(builder);
 
         Http2Configuration http2Configuration = builder.http2Configuration;
@@ -117,17 +118,27 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     @SdkTestInternalApi
     NettyNioAsyncHttpClient(SdkEventLoopGroup sdkEventLoopGroup,
                             SdkChannelPoolMap<URI, ? extends SdkChannelPool> pools,
-                            NettyConfiguration configuration) {
+                            NettyConfiguration configuration,
+                            ProtocolNegotiation protocolNegotiation) {
         this.sdkEventLoopGroup = sdkEventLoopGroup;
         this.pools = pools;
         this.configuration = configuration;
+        this.protocolNegotiation = protocolNegotiation;
     }
 
     @Override
     public CompletableFuture<Void> execute(AsyncExecuteRequest request) {
+        failIfAlpnUsedWithHttp(request);
         RequestContext ctx = createRequestContext(request);
         ctx.metricCollector().reportMetric(HTTP_CLIENT_NAME, clientName()); // TODO: Can't this be done in core?
         return new NettyRequestExecutor(ctx).execute();
+    }
+
+    private void failIfAlpnUsedWithHttp(AsyncExecuteRequest request) {
+        if (protocolNegotiation == ProtocolNegotiation.ALPN
+            && "http".equals(request.request().protocol())) {
+            throw new UnsupportedOperationException("ALPN can only be used with HTTPS, not HTTP.");
+        }
     }
 
     public static Builder builder() {
@@ -410,15 +421,20 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         /**
          * If set to {@code ProtocolNegotiation.ALPN}, the request will be made using ALPN, without a fallback protocol.
-         * If ALPN is not supported by the server an exception will be thrown.
-         * <p>
-         * Default value is {@code ProtocolNegotiation.ALPN} for services with H2 protocol setting, with the exception of the
-         * following services: Kinesis, TranscribeStreaming, Lex Runtime v2, Q Business
-         * <p>
+         * If ALPN is not supported by the server, an exception will be thrown.
+         * <p>Default values:</p>
+         * <ol>
+         *   <li>For services with H2 protocol setting, the default value is {@code ProtocolNegotiation.ALPN},
+         *       with the exception of the following services: Kinesis, Transcribe Streaming, Lex Runtime v2, Q Business.</li>
+         *   <li>For all other services, the default value is {@code ProtocolNegotiation.ASSUME_PROTOCOL}, in which case the SDK
+         *       will use prior knowledge to establish connections.</li>
+         * </ol>
          * Note: For Java 8, ALPN is only supported in versions 1.8.0_251 and newer.
-         * If on unsupported Java version:
-         *  1) Default SDK setting of true -> SDK will fallback to prior knowledge and not use ALPN
-         *  2) User explicitly sets value of true -> Exception will be thrown
+         * If on an unsupported Java version and using {@code SslProvider.JDK}:
+         * <ol>
+         *   <li>Default SDK setting of ALPN → SDK will fallback to prior knowledge and not use ALPN.</li>
+         *   <li>User explicitly sets value of ALPN → Exception will be thrown.</li>
+         * </ol>
          */
         Builder protocolNegotiation(ProtocolNegotiation protocolNegotiation);
 

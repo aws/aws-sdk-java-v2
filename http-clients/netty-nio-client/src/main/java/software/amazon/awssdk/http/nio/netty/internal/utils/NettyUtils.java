@@ -37,6 +37,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.nio.channels.ClosedChannelException;
 import java.security.AccessController;
+import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -67,6 +68,8 @@ public final class NettyUtils {
                                                               + "If this is a streaming operation, validate that data is being "
                                                               + "read or written in a timely manner.";
     private static final Logger log = Logger.loggerFor(NettyUtils.class);
+
+    private static volatile Boolean alpnSupported;
 
     private NettyUtils() {
     }
@@ -403,6 +406,20 @@ public final class NettyUtils {
             return true;
         }
 
+        Boolean supported = alpnSupported;
+        if (supported != null) {
+            return supported;
+        }
+
+        synchronized (NettyUtils.class) {
+            if (alpnSupported == null) {
+                alpnSupported = checkAlpnSupport();
+            }
+            return alpnSupported;
+        }
+    }
+
+    private static boolean checkAlpnSupport() {
         try {
             SSLContext context = SSLContext.getInstance("TLS");
             context.init(null, null, null);
@@ -411,15 +428,15 @@ public final class NettyUtils {
 
             MethodHandle getApplicationProtocol = AccessController.doPrivileged(
                 (PrivilegedExceptionAction<MethodHandle>) () ->
-                lookup.findVirtual(SSLEngine.class, "getApplicationProtocol", MethodType.methodType(String.class)));
+                    lookup.findVirtual(SSLEngine.class, "getApplicationProtocol", MethodType.methodType(String.class)));
 
             getApplicationProtocol.invoke(engine);
             return true;
-        } catch (NoSuchMethodException e) {
-            log.info(() -> "ALPN not supported: SSLEngine.getApplicationProtocol() method not found.");
+        } catch (PrivilegedActionException e) {
+            log.debug(() -> "ALPN not supported: SSLEngine.getApplicationProtocol() method not found: " + e);
             return false;
         } catch (Throwable t) {
-            log.info(() -> "ALPN support check failed: " + t.getMessage());
+            log.debug(() -> "ALPN support check failed: " + t);
             return false;
         }
     }
