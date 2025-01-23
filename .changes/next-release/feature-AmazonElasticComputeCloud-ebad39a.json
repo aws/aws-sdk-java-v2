@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "Added \"future\" allocation type for future dated capacity reservation"
-}

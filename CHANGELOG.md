@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.5__ __2025-01-23__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added "future" allocation type for future dated capacity reservation
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Adds ALPN H2 support for Netty client
+
 # __2.30.4__ __2025-01-22__
 ## __AWS CRT HTTP Client__
   - ### Bugfixes
