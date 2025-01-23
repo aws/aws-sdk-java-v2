@@ -77,5 +77,10 @@
             <artifactId>http-auth-aws</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
