@@ -44,7 +44,7 @@ public final class StaticResourcesEndpointProvider implements ResourcesEndpointP
             this.headers.putAll(additionalHeaders);
         }
         this.connectionTimeout = customTimeout;
-        this.retryPolicy = retryPolicy;
+        this.retryPolicy = Validate.getOrDefault(retryPolicy, () -> ResourcesEndpointRetryPolicy.NO_RETRY);
     }
 
     @Override
@@ -71,7 +71,7 @@ public final class StaticResourcesEndpointProvider implements ResourcesEndpointP
         private URI endpoint;
         private Map<String, String> additionalHeaders = new HashMap<>();
         private Duration customTimeout;
-        private ResourcesEndpointRetryPolicy retryPolicy = ResourcesEndpointRetryPolicy.NO_RETRY;
+        private ResourcesEndpointRetryPolicy retryPolicy;
 
         public Builder endpoint(URI endpoint) {
             this.endpoint = Validate.paramNotNull(endpoint, "endpoint");
