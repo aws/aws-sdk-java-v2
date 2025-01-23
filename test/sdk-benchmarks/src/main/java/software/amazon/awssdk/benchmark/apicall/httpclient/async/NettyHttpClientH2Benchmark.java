@@ -19,7 +19,6 @@ import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.DEFAULT_J
 import static software.amazon.awssdk.benchmark.utils.BenchmarkConstant.OPEN_SSL_PROVIDER;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.getSslProvider;
 import static software.amazon.awssdk.benchmark.utils.BenchmarkUtils.trustAllTlsAttributeMapBuilder;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 
 import io.netty.handler.ssl.SslProvider;
 import java.util.Collection;
@@ -43,6 +42,7 @@ import software.amazon.awssdk.benchmark.utils.MockH2Server;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 
 /**
@@ -63,19 +63,20 @@ public class NettyHttpClientH2Benchmark extends BaseNettyBenchmark {
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        mockServer = new MockH2Server(false);
+        boolean usingAlpn = false;
+        mockServer = new MockH2Server(usingAlpn);
         mockServer.start();
 
         SslProvider sslProvider = getSslProvider(sslProviderValue);
 
         sdkHttpClient = NettyNioAsyncHttpClient.builder()
                                                .sslProvider(sslProvider)
-                                               .buildWithDefaults(trustAllTlsAttributeMapBuilder()
-                                                                      .put(PROTOCOL, Protocol.HTTP2)
-                                                                      .build());
+                                               .protocol(Protocol.HTTP2)
+                                               .buildWithDefaults(trustAllTlsAttributeMapBuilder().build());
         client = ProtocolRestJsonAsyncClient.builder()
                                             .endpointOverride(mockServer.getHttpsUri())
                                             .httpClient(sdkHttpClient)
+                                            .region(Region.US_EAST_1)
                                             .build();
 
         // Making sure the request actually succeeds

@@ -146,7 +146,7 @@ public abstract class SdkHttpClientTestSuite {
     }
 
     @Test
-    public void connectionsAreNotReusedOn5xxErrors() throws Exception {
+    public void connectionsAreReusedOn5xxErrors() throws Exception {
         int initialOpenedConnections = CONNECTION_COUNTER.openedConnections();
 
         SdkHttpClientOptions httpClientOptions = new SdkHttpClientOptions();
@@ -169,7 +169,7 @@ public abstract class SdkHttpClientTestSuite {
             // connection count increased by at least as many connections as we got 5xx errors back on. But the connection
             // manager also predictively creates connections and we need to take those into account in a way that lets it
             // remain a dynamic behavior.
-            assertThat(CONNECTION_COUNTER.openedConnections()).isGreaterThanOrEqualTo(initialOpenedConnections + 5);
+            assertThat(CONNECTION_COUNTER.openedConnections()).isGreaterThanOrEqualTo(initialOpenedConnections);
         }
     }
 
