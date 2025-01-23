@@ -22,6 +22,7 @@ import java.util.StringJoiner;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.internal.AwsErrorCode;
 import software.amazon.awssdk.awscore.internal.AwsStatusCode;
+import software.amazon.awssdk.core.exception.SdkDiagnostics;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.ClockSkew;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -60,31 +61,32 @@ public class AwsServiceException extends SdkServiceException {
 
     @Override
     public String getMessage() {
-        String message = getRawMessage();
+        String message = rawMessage();
         if (awsErrorDetails != null) {
-            StringJoiner details = new StringJoiner(", ", "(", ")");
-            details.add("Service: " + awsErrorDetails().serviceName());
-            details.add("Status Code: " + statusCode());
-            details.add("Request ID: " + requestId());
-            if (extendedRequestId() != null) {
-                details.add("Extended Request ID: " + extendedRequestId());
+            String serviceDiagnostics = serviceDiagnostics();
+            if (message != null) {
+                message = message + serviceDiagnostics;
+            } else {
+                message = serviceDiagnostics;
             }
-            if (message == null) {
-                message = awsErrorDetails().errorMessage();
-            }
-            if (message == null) {
-                return details.toString();
-            }
-            StringBuilder formattedMessage = new StringBuilder(message);
-            if (getAttempts() > 0) {
-                formattedMessage.append(" ").append(details).append(" ").append("(Attempts: ").append(getAttempts()).append(")");
-                return formattedMessage.toString();
-            }
-            formattedMessage.append(" ").append(details);
-            return formattedMessage.toString();
         }
 
+        if (numAttempts() != null) {
+            SdkDiagnostics sdkDiagnostics = new SdkDiagnostics(numAttempts());
+            message = message + " " + sdkDiagnostics;
+        }
         return message;
+    }
+
+    private String serviceDiagnostics() {
+        StringJoiner details = new StringJoiner(", ", "(", ")");
+        details.add("Service: " + awsErrorDetails().serviceName());
+        details.add("Status Code: " + statusCode());
+        details.add("Request ID: " + requestId());
+        if (extendedRequestId() != null) {
+            details.add("Extended Request ID: " + extendedRequestId());
+        }
+        return details.toString();
     }
 
     @Override
@@ -180,10 +182,7 @@ public class AwsServiceException extends SdkServiceException {
         Builder message(String message);
 
         @Override
-        Builder attemptCount(int attemptCount);
-
-
-
+        Builder numAttempts(Integer numAttempts);
 
         @Override
         Builder cause(Throwable t);
@@ -251,8 +250,8 @@ public class AwsServiceException extends SdkServiceException {
         }
 
         @Override
-        public Builder attemptCount(int attemptCount) {
-            this.attemptCount = attemptCount;
+        public Builder numAttempts(Integer numAttempts) {
+            this.numAttempts = numAttempts;
             return this;
         }
 

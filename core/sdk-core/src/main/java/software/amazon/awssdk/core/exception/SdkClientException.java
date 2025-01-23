@@ -47,6 +47,16 @@ public class SdkClientException extends SdkException {
         return SdkClientException.builder().message(message).cause(cause).build();
     }
 
+    @Override
+    public String getMessage() {
+        String message = rawMessage();
+        if (numAttempts() != null) {
+            SdkDiagnostics sdkDiagnostics = new SdkDiagnostics(numAttempts());
+            message = message + " (" + sdkDiagnostics + ")";
+        }
+        return message;
+    }
+
     /**
      * Create a {@link Builder} initialized with the properties of this {@code SdkClientException}.
      *

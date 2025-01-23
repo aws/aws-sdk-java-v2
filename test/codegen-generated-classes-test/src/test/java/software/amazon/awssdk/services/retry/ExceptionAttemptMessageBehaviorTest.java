@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.net.URI;
 import java.util.concurrent.CompletionException;
@@ -33,7 +34,10 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClientBuilder;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
@@ -73,15 +77,16 @@ public abstract class ExceptionAttemptMessageBehaviorTest<ClientT, BuilderT exte
     }
 
     @Test
-    public void exceptionMessage_whenRetryable_includesMultipleAttempts() {
-        wireMock.stubFor(post(anyUrl()).willReturn(aResponse().withStatus(429)));
+    public void exceptionMessage_ioException_includesMultipleAttempts() {
+        wireMock.stubFor(post(anyUrl()).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
 
         ClientT client = clientBuilder()
             .overrideConfiguration(o -> o.retryStrategy(
                 b -> b.retryOnException(AwsServiceException.class)))
             .build();
 
-        AwsServiceException exception = assertThrows(AwsServiceException.class,
+        callAllTypes(client);
+        SdkClientException exception = assertThrows(SdkClientException.class,
                                                      () -> callAllTypes(client));
 
         assertThat(exception.getMessage()).contains("(Attempts: 4)");

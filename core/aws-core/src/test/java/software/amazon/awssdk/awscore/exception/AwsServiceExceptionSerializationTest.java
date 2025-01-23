@@ -51,7 +51,7 @@ public class AwsServiceExceptionSerializationTest {
         assertThat(result.toBuilder().clockSkew()).isEqualTo(expected.toBuilder().clockSkew());
         assertThat(result.toBuilder().cause().getMessage()).isEqualTo(expected.toBuilder().cause().getMessage());
         assertThat(result.awsErrorDetails()).isEqualTo(expected.awsErrorDetails());
-        assertThat(result.getAttempts()).isEqualTo(expected.getAttempts());
+        assertThat(result.numAttempts()).isEqualTo(expected.numAttempts());
     }
 
     private AwsServiceException createException() {
@@ -75,7 +75,7 @@ public class AwsServiceExceptionSerializationTest {
                                   .requestId("requestId")
                                   .extendedRequestId("extendedRequestId")
                                   .message("message")
-                                  .attemptCount(3)
+                                  .numAttempts(3)
                                   .build();
     }
 
