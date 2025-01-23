@@ -1,0 +1,54 @@
+{
+    "version": "2.30.4",
+    "date": "2025-01-22",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS CRT HTTP Client",
+            "contributor": "",
+            "description": "Reuse connections that receive a 5xx service response."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "Reuse connections that receive a 5xx service response."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "AWS Elemental MediaLive adds a new feature, ID3 segment tagging, in CMAF Ingest output groups. It allows customers to insert ID3 tags into every output segment, controlled by a newly added channel schedule action Id3SegmentTagging."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Docs Update for timeout changes"
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Adds multi-turn input support for an Agent node in an Amazon Bedrock Flow"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Thin Client",
+            "contributor": "",
+            "description": "Rename WorkSpaces Web to WorkSpaces Secure Browser"
+        },
+        {
+            "type": "bugfix",
+            "category": "Apache HTTP Client",
+            "contributor": "",
+            "description": "Reuse connections that receive a 5xx service response."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

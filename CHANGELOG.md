@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.4__ __2025-01-22__
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Reuse connections that receive a 5xx service response.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive adds a new feature, ID3 segment tagging, in CMAF Ingest output groups. It allows customers to insert ID3 tags into every output segment, controlled by a newly added channel schedule action Id3SegmentTagging.
+
+## __AWS Glue__
+  - ### Features
+    - Docs Update for timeout changes
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Adds multi-turn input support for an Agent node in an Amazon Bedrock Flow
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Rename WorkSpaces Web to WorkSpaces Secure Browser
+
+## __Apache HTTP Client__
+  - ### Bugfixes
+    - Reuse connections that receive a 5xx service response.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Reuse connections that receive a 5xx service response.
+
 # __2.30.3__ __2025-01-21__
 ## __AWS Batch__
   - ### Features

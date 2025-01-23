@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Netty NIO HTTP Client",
-    "contributor": "",
-    "description": "Reuse connections that receive a 5xx service response."
-}
