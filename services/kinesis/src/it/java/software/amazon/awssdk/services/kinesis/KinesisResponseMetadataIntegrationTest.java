@@ -18,6 +18,10 @@ package software.amazon.awssdk.services.kinesis;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
+import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.ProtocolNegotiation;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.kinesis.model.DescribeLimitsResponse;
 import software.amazon.awssdk.services.kinesis.model.KinesisResponse;
 
@@ -36,7 +40,13 @@ public class KinesisResponseMetadataIntegrationTest extends AbstractTestCase {
     }
 
     @Test
+    @EnabledIf("alpnSupported")
     public void asyncAlpn_shouldContainResponseMetadata() {
+        KinesisAsyncClient asyncClientAlpn = kinesisAsyncClientBuilder().httpClient(NettyNioAsyncHttpClient.builder()
+                                                                                                           .protocol(Protocol.HTTP2)
+                                                                                                           .protocolNegotiation(ProtocolNegotiation.ALPN)
+                                                                                                           .build())
+                                                                        .build();
         DescribeLimitsResponse response = asyncClientAlpn.describeLimits().join();
         verifyResponseMetadata(response);
     }
