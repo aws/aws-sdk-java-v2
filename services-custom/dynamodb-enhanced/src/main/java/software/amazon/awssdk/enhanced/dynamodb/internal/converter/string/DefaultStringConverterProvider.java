@@ -33,6 +33,7 @@ import software.amazon.awssdk.utils.Validate;
  * <p>
  * Included converters:
  * <ul>
+ *     <li>{@link ArnStringConverter}</li>
  *     <li>{@link AtomicIntegerStringConverter}</li>
  *     <li>{@link AtomicLongStringConverter}</li>
  *     <li>{@link BigDecimalStringConverter}</li>
@@ -106,6 +107,7 @@ public class DefaultStringConverterProvider implements StringConverterProvider {
 
     public static DefaultStringConverterProvider create() {
         return DefaultStringConverterProvider.builder()
+                                             .addConverter(ArnStringConverter.create())
                                              .addConverter(ByteArrayStringConverter.create())
                                              .addConverter(CharacterArrayStringConverter.create())
                                              .addConverter(BooleanStringConverter.create())
