@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Transfer Family",
+    "contributor": "",
+    "description": "Added CustomDirectories as a new directory option for storing inbound AS2 messages, MDN files and Status files."
+}
