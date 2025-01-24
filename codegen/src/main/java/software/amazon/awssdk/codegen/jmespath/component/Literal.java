@@ -24,12 +24,19 @@ import com.fasterxml.jackson.jr.stree.JrsValue;
  */
 public class Literal {
     private final JrsValue jsonValue;
+    private final String rawValue;
 
-    public Literal(JrsValue jsonValue) {
+    public Literal(JrsValue jsonValue, String rawValue) {
         this.jsonValue = jsonValue;
+        this.rawValue = rawValue;
+
     }
 
     public JrsValue jsonValue() {
         return jsonValue;
+    }
+
+    public String rawValue() {
+        return rawValue;
     }
 }

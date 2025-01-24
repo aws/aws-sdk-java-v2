@@ -32,6 +32,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -557,15 +558,34 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
 
     private CodeBlock pathAcceptorBody(Acceptor acceptor) {
         String expected = acceptor.getExpected().asText();
-        String expectedType = acceptor.getExpected() instanceof JrsString ? "$S" : "$L";
-        return CodeBlock.builder()
+        boolean isString = acceptor.getExpected() instanceof JrsString;
+        boolean isNumber = acceptor.getExpected().isNumber();
+        CodeBlock.Builder builder = CodeBlock.builder()
                         .add("response -> {")
                         .add("$1T input = new $1T(response);", poetExtensions.jmesPathRuntimeClass().nestedClass("Value"))
                         .add("return $T.equals(", Objects.class)
                         .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
-                        .add(".value(), " + expectedType + ");", expected)
-                        .add("}")
-                        .build();
+                        .add(".value(), ");
+        if(isNumber || (isString && isNumeric(expected))) {
+            builder.add("new $T($S)", BigDecimal.class, expected);
+        } else if (isString) {
+            builder.add("$S", expected);
+        } else {
+            builder.add("$L", expected);
+        }
+        builder.add(");")
+               .add("}");
+
+        return builder.build();
+    }
+
+    private boolean isNumeric(String str) {
+        try {
+            new BigDecimal(str);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private CodeBlock pathAllAcceptorBody(Acceptor acceptor) {
