@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon HealthLake",
-    "contributor": "",
-    "description": "Added new authorization strategy value 'SMART_ON_FHIR' for CreateFHIRDatastore API to support Smart App 2.0"
-}
