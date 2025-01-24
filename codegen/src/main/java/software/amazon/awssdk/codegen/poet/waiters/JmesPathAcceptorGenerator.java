@@ -15,13 +15,10 @@
 
 package software.amazon.awssdk.codegen.poet.waiters;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsValue;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -60,6 +57,7 @@ import software.amazon.awssdk.utils.Validate;
  * this interpreter make heavy use of the {@code JmesPathRuntime}.
  */
 public class JmesPathAcceptorGenerator {
+    private static final ClassName BIG_DECIMAL = ClassName.get("java.math", "BigDecimal");
     private final ClassName runtimeClass;
 
     public JmesPathAcceptorGenerator(ClassName runtimeClass) {
@@ -276,30 +274,7 @@ public class JmesPathAcceptorGenerator {
         public void visitLiteral(Literal input) {
             JrsValue jsonValue = input.jsonValue();
             if (jsonValue.isNumber()) {
-                JsonParser.NumberType numberType = jsonValue.numberType();
-                System.out.println("Number type: " + numberType);
-                switch (numberType) {
-                    case INT:
-                        codeBlock.add(".constant($L)", Integer.parseInt(jsonValue.asText()));
-                        break;
-                    case LONG:
-                        codeBlock.add(".constant($L)", Long.parseLong(jsonValue.asText()));
-                        break;
-                    case FLOAT:
-                        codeBlock.add(".constant($L)", Float.parseFloat(jsonValue.asText()));
-                        break;
-                    case DOUBLE:
-                        codeBlock.add(".constant($L)", Double.parseDouble(jsonValue.asText()));
-                        break;
-                    case BIG_DECIMAL:
-                        codeBlock.add(".constant(new $T($S))", BigDecimal.class, jsonValue.asText());
-                        break;
-                    case BIG_INTEGER:
-                        codeBlock.add(".constant(new $T($S))", BigInteger.class, jsonValue.asText());
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unsupported number type: " + numberType);
-                }
+                codeBlock.add(".constant(new $T($S))", BIG_DECIMAL, input.rawValue());
             } else if (jsonValue instanceof JrsBoolean) {
                 codeBlock.add(".constant($L)", ((JrsBoolean) jsonValue).booleanValue());
             } else {

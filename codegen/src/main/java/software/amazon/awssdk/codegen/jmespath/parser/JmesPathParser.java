@@ -781,7 +781,7 @@ public class JmesPathParser {
         }
 
         try {
-            return ParseResult.success(new Literal(Jackson.readJrsValue(jsonString.toString())));
+            return ParseResult.success(new Literal(Jackson.readJrsValue(jsonString.toString()), jsonString.toString()));
         } catch (IOException e) {
             logError("literal", "Invalid JSON: " + e.getMessage(), startPosition);
             return ParseResult.error();

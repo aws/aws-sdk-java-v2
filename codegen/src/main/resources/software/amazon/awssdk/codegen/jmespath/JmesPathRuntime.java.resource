@@ -1,6 +1,7 @@
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,9 +48,9 @@ public final class JmesPathRuntime {
         private SdkPojo pojoValue;
 
         /**
-         * The value if this is an {@link Type#INTEGER} (or null otherwise).
+         * The value if this is an {@link Type#NUMBER} (or null otherwise).
          */
-        private Integer integerValue;
+        private BigDecimal numberValue;
 
         /**
          * The value if this is an {@link Type#STRING} (or null otherwise).
@@ -105,9 +106,9 @@ public final class JmesPathRuntime {
             } else if (value instanceof String) {
                 this.type = Type.STRING;
                 this.stringValue = (String) value;
-            } else if (value instanceof Integer) {
-                this.type = Type.INTEGER;
-                this.integerValue = (Integer) value;
+            } else if (value instanceof BigDecimal) {
+                this.type = Type.NUMBER;
+                this.numberValue = (BigDecimal) value;
             } else if (value instanceof Collection) {
                 this.type = Type.LIST;
                 this.listValue = new ArrayList<>(((Collection<?>) value));
@@ -143,7 +144,7 @@ public final class JmesPathRuntime {
             switch (type) {
                 case NULL: return null;
                 case POJO: return pojoValue;
-                case INTEGER: return integerValue;
+                case NUMBER: return numberValue;
                 case STRING: return stringValue;
                 case BOOLEAN: return booleanValue;
                 case LIST: return listValue;
@@ -207,8 +208,8 @@ public final class JmesPathRuntime {
             switch (type) {
                 case NULL:
                     return null;
-                case INTEGER:
-                    return integerValue.toString();
+                case NUMBER:
+                    return numberValue.toString();
                 case STRING:
                     return stringValue;
                 case BOOLEAN:
@@ -490,14 +491,14 @@ public final class JmesPathRuntime {
                 return new Value(false);
             }
 
-            if (type == Type.INTEGER) {
+            if (type == Type.NUMBER) {
                 switch (comparison) {
-                    case "<": return new Value(integerValue < rhs.integerValue);
-                    case "<=": return new Value(integerValue <= rhs.integerValue);
-                    case ">": return new Value(integerValue > rhs.integerValue);
-                    case ">=": return new Value(integerValue >= rhs.integerValue);
-                    case "==": return new Value(Objects.equals(integerValue, rhs.integerValue));
-                    case "!=": return new Value(!Objects.equals(integerValue, rhs.integerValue));
+                    case "<": return new Value(numberValue.compareTo(rhs.numberValue) < 0);
+                    case "<=": return new Value(numberValue.compareTo(rhs.numberValue) <= 0);
+                    case ">": return new Value(numberValue.compareTo(rhs.numberValue) > 0);
+                    case ">=": return new Value(numberValue.compareTo(rhs.numberValue) >= 0);
+                    case "==": return new Value(numberValue.compareTo(rhs.numberValue) == 0);
+                    case "!=": return new Value(numberValue.compareTo(rhs.numberValue) != 0);
                     default: throw new IllegalArgumentException("Unsupported comparison: " + comparison);
                 }
             }
@@ -635,7 +636,7 @@ public final class JmesPathRuntime {
             MAP,
             BOOLEAN,
             STRING,
-            INTEGER,
+            NUMBER,
             NULL
         }
 

@@ -22,6 +22,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.squareup.javapoet.ClassName;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class JmesPathAcceptorGeneratorTest {
     private JmesPathAcceptorGenerator acceptorGenerator;
@@ -42,9 +44,10 @@ class JmesPathAcceptorGeneratorTest {
     @Test
     void testEcsComplexExpression() {
         testConversion("length(services[?!(length(deployments) == `1` && runningCount == desiredCount)]) == `0`",
-                       "input.field(\"services\").filter(x0 -> x0.constant(x0.field(\"deployments\").length().compare(\"==\", "
-                       + "x0.constant(1)).and(x0.field(\"runningCount\").compare(\"==\", x0.field(\"desiredCount\"))).not()))"
-                       + ".length().compare(\"==\", input.constant(0))");
+                       "input.field(\"services\").filter(x0 -> x0.constant(x0.field(\"deployments\")"
+                       + ".length().compare(\"==\", x0.constant(new java.math.BigDecimal(\"1\")))"
+                       + ".and(x0.field(\"runningCount\").compare(\"==\", x0.field(\"desiredCount\")))"
+                       + ".not())).length().compare(\"==\", input.constant(new java.math.BigDecimal(\"0\")))");
     }
 
     @Test
@@ -326,40 +329,22 @@ class JmesPathAcceptorGeneratorTest {
         testConversion("foo[-10]", "input.field(\"foo\").index(-10)");
     }
 
-    @Test
-    void testNumberLiterals() {
-        testConversion("`42`", "input.constant(42)");
-
-        testConversion("`42.5`", "input.constant(42.5)");
-
-        testConversion("`9223372036854775807`", "input.constant(9223372036854775807)");
-
-        // testConversion("`123.456789012345678901123123123123`", "input.constant(new BigDecimal(\"123.456789012345678901123123123123\"))");
-    }
-
-    @Test
-    void testFloatPrecision() {
-        testConversion("`123.4567`", "input.constant(123.4567f)");
-    }
-
-    @Test
-    void testDoublePrecision() {
-        testConversion("`123.456789012345`", "input.constant(123.456789012345)");
-    }
-
-    @Test
-    void testFloatScientificNotation() {
-        testConversion("`1.23e-4`", "input.constant(1.23E-4)");
-    }
-
-    @Test
-    void testFloatMaxValue() {
-        testConversion("`3.4028235E38`", "input.constant(3.4028235E38)");
-    }
-
-    @Test
-    void testDoubleMaxValue() {
-        testConversion("`1.7976931348623157E308`", "input.constant(1.7976931348623157E308)");
+    @ParameterizedTest
+    @CsvSource({
+        "42,                    42",
+        "127,                   127",
+        "32767,                 32767",
+        "9223372036854775807,   9223372036854775807",
+        "42.5,                  42.5",
+        "1.7976931348623157E308, 1.7976931348623157E308",
+        "-42,                   -42",
+        "0,                     0",
+        "1e-10,                 1e-10"
+    })
+    void testNumericValues(String input, String expectedNumber) {
+        String jmesPath = String.format("value == `%s`", input);
+        String expected = String.format("input.field(\"value\").compare(\"==\", input.constant(new java.math.BigDecimal(\"%s\")))", expectedNumber);
+        testConversion(jmesPath, expected);
     }
 
     private void testConversion(String jmesPathString, String expectedCode) {
