@@ -212,8 +212,6 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
             public void channelActive(ChannelHandlerContext ctx) throws Exception {
                 System.out.println("Client ALPN Handler :: channelActive(): channel ID == " + ctx.channel().id());
                 //ctx.channel().attr(PROTOCOL_FUTURE).get().complete(Protocol.HTTP1_1);
-                System.out.println("Firing ctx.read()");
-                ctx.read();
                 super.channelActive(ctx);
             }
 

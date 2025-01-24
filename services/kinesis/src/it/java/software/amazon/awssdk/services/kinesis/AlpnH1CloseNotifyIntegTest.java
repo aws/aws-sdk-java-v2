@@ -15,12 +15,14 @@
 
 package software.amazon.awssdk.services.kinesis;
 
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.services.kinesis.model.DescribeLimitsResponse;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class AlpnH1CloseNotifyIntegTest extends AwsTestBase {
@@ -75,10 +77,35 @@ public class AlpnH1CloseNotifyIntegTest extends AwsTestBase {
     }
 
     @Test
-    public void alpnH1_requestAfterReceivingCloseNotify_concurrent() {
-        asyncClientAlpn.describeLimits();
-        asyncClientAlpn.describeLimits();
+    public void alpnH1_concurrentRequests_joinInOrder() {
+        CompletableFuture<DescribeLimitsResponse> r1 = asyncClientAlpn.describeLimits();
+        CompletableFuture<DescribeLimitsResponse> r2 = asyncClientAlpn.describeLimits();
+        CompletableFuture<DescribeLimitsResponse> r3 = asyncClientAlpn.describeLimits();
 
 
+        System.out.println("Joining 1st request");
+        r1.join();
+        // prints
+        System.out.println("Joining 2nd request");
+        r2.join();
+        // Hangs, never prints
+        System.out.println("Joining 3rd request");
+        r3.join();
+    }
+
+    @Test
+    public void alpnH1_concurrentRequests_joinOutOfOrder() {
+        CompletableFuture<DescribeLimitsResponse> r1 = asyncClientAlpn.describeLimits();
+        CompletableFuture<DescribeLimitsResponse> r2 = asyncClientAlpn.describeLimits();
+        CompletableFuture<DescribeLimitsResponse> r3 = asyncClientAlpn.describeLimits();
+
+
+        System.out.println("Joining 2nd request");
+        r2.join();
+        // Hangs, Never prints
+        System.out.println("Joining 1st request");
+        r1.join();
+        System.out.println("Joining 3rd request");
+        r3.join();
     }
 }
