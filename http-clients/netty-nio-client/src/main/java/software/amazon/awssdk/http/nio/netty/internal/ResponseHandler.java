@@ -228,6 +228,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
      * @param ctx Context for channel
      */
     private static void closeAndRelease(ChannelHandlerContext ctx) {
+        System.out.println("ResponseHandler :: closing channel() : channel ID == " + ctx.channel().id());
         Channel channel = ctx.channel();
         channel.attr(KEEP_ALIVE).set(false);
         RequestContext requestContext = channel.attr(REQUEST_CONTEXT_KEY).get();

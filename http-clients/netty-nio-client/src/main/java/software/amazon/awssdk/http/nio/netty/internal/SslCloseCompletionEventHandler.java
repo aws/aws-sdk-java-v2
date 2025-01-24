@@ -21,6 +21,10 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.ssl.SslCloseCompletionEvent;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.SslHandshakeCompletionEvent;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSession;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
@@ -49,9 +53,37 @@ public final class SslCloseCompletionEventHandler extends ChannelInboundHandlerA
         boolean channelInUse = getAttribute(ctx.channel(), ChannelAttributeKey.IN_USE).orElse(false);
 
         if (!channelInUse && evt instanceof SslCloseCompletionEvent) {
+            System.out.println("SslCloseCompletionEventHandler :: ctx.close() : channel ID == " + ctx.channel().id());
+            System.out.println("Type of Event == " + evt.getClass());
+            System.out.println();
+
             ctx.close();
         } else {
+            System.out.println("SslCloseCompletionEventHandler :: fireUserEventTriggered() : channel ID == " + ctx.channel().id());
+            System.out.println("Type of Event == " + evt.getClass());
+            System.out.println();
             ctx.fireUserEventTriggered(evt);
+
+            /*if (evt instanceof SslCloseCompletionEvent && !(evt instanceof SslHandshakeCompletionEvent)) {
+                // Resumable session in mock ResponseCompletionTest, but not in Kinesis integ test
+                // Works in removing resumable session, but still HANGS ...
+
+                // PreSharedKeyExtension.java:677|Found resumable session. Preparing PSK message.
+                // to
+                // PreSharedKeyExtension.java:631|No session to resume.
+                //
+                // Removes extension from 2nd ClientHello
+                // pre_shared_key (41)
+
+                SslHandler sslHandler = ctx.pipeline().get(SslHandler.class);
+                if (sslHandler != null) {
+                    SSLEngine sslEngine = sslHandler.engine();
+                    SSLSession sslSession = sslEngine.getSession();
+                    System.out.println("Invalidating SSLSession @@@@@@@@@@@@@@@@@@");
+                    sslSession.invalidate();
+                }
+            }*/
+
         }
     }
 

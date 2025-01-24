@@ -135,7 +135,25 @@ public final class ChannelAttributeKey {
      */
     static Protocol getProtocolNow(Channel channel) {
         // For HTTP/2 the protocol future will be on the parent socket channel
-        return (channel.parent() == null ? channel : channel.parent())
-            .attr(ChannelAttributeKey.PROTOCOL_FUTURE).get().join();
+        CompletableFuture<Protocol> o  = (channel.parent() == null ? channel : channel.parent()).attr(PROTOCOL_FUTURE).get();
+
+        // Hangs here and times out, when sending request AFTER close_notify received
+        //  Doesn't work - try to force protocol future completion -> SSLHandshake fails
+        // io.netty.handler.codec.UnsupportedMessageTypeException: io.netty.handler.codec.http.LastHttpContent$1 (expected: io.netty.buffer.ByteBuf)
+        /*if (!o.isDone()) {
+            System.out.println("Protocol future is not complete -> forcing completion with HTTP1_1 @@@@@@@@@@@@@@@@@");
+            o.complete(Protocol.HTTP1_1);
+            return Protocol.HTTP1_1;
+        }*/
+
+        if (!o.isDone()) {
+            System.out.println("Protocol future is not complete -> something went wrong ****************************");
+        }
+
+        return o.join();
+
+        // original code
+        /*return (channel.parent() == null ? channel : channel.parent())
+            .attr(ChannelAttributeKey.PROTOCOL_FUTURE).get().join();*/
     }
 }

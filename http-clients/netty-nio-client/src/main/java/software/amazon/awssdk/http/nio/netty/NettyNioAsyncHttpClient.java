@@ -183,12 +183,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private ProtocolNegotiation resolveProtocolNegotiation(ProtocolNegotiation userSetValue, AttributeMap serviceDefaultsMap,
                                                            Protocol protocol, SslProvider sslProvider) {
         if (userSetValue == ProtocolNegotiation.ALPN) {
-            // TODO - remove once we implement support for ALPN with HTTP1
-            if (protocol == Protocol.HTTP1_1) {
-                throw new UnsupportedOperationException("ALPN with HTTP/1.1 is not yet supported, use prior knowledge instead "
-                                                        + "with ProtocolNegotiation.ASSUME_PROTOCOL, or use ALPN with H2.");
-            }
-
             // throw error if not supported and user set ALPN
             validateAlpnSupported(sslProvider);
             return ProtocolNegotiation.ALPN;

@@ -88,6 +88,7 @@ public final class NettyRequestExecutor {
 
     @SuppressWarnings("unchecked")
     public CompletableFuture<Void> execute() {
+        // TODO - something left over from 1st request : ordering of channel handlers?
         Promise<Channel> channelFuture = context.eventLoopGroup().next().newPromise();
         executeFuture = createExecutionFuture(channelFuture);
         acquireChannel(channelFuture);
@@ -201,6 +202,7 @@ public final class NettyRequestExecutor {
     }
 
     private void configurePipeline() throws IOException {
+        System.out.println("NettyRequestExecutor :: configurePipeline() -> getting Protocol future");
         Protocol protocol = ChannelAttributeKey.getProtocolNow(channel);
         ChannelPipeline pipeline = channel.pipeline();
 

@@ -63,7 +63,7 @@ import software.amazon.awssdk.http.nio.netty.internal.http2.Http2SettingsFrameHa
 public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
     private final Protocol protocol;
     private final ProtocolNegotiation protocolNegotiation;
-    private final SslContext sslCtx;
+    private SslContext sslCtx;
     private final SslProvider sslProvider;
     private final long clientMaxStreams;
     private final int clientInitialWindowSize;
@@ -71,6 +71,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     private final AtomicReference<ChannelPool> channelPoolRef;
     private final NettyConfiguration configuration;
     private final URI poolKey;
+    private final SslContextProvider sslContextProvider;
 
     public ChannelPipelineInitializer(Protocol protocol,
                                       ProtocolNegotiation protocolNegotiation,
@@ -92,10 +93,17 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         this.channelPoolRef = channelPoolRef;
         this.configuration = configuration;
         this.poolKey = poolKey;
+        this.sslContextProvider = new SslContextProvider(configuration, protocol, protocolNegotiation, sslProvider);
     }
 
     @Override
     public void channelCreated(Channel ch) {
+
+        // Doesn't work - try to create new SslContext
+        /*if (protocolNegotiation == ProtocolNegotiation.ALPN) {
+            sslCtx = sslContextProvider.sslContext();
+        }*/
+
         ch.attr(CHANNEL_DIAGNOSTICS).set(new ChannelDiagnostics(ch));
         ch.attr(PROTOCOL_FUTURE).set(new CompletableFuture<>());
         ChannelPipeline pipeline = ch.pipeline();
@@ -133,9 +141,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
 
     private void configureAlpn(ChannelPipeline pipeline, Protocol protocol) {
         if (protocol == Protocol.HTTP1_1) {
-            // TODO - remove once we implement support for ALPN with HTTP1
-            throw new UnsupportedOperationException("ALPN with HTTP1 is not yet supported, use prior knowledge instead with "
-                                                    + "ProtocolNegotiation.ASSUME_PROTOCOL, or use ALPN with H2.");
+            configureAlpnH1(pipeline);
         } else if (protocol == Protocol.HTTP2) {
             configureAlpnH2(pipeline);
         }
@@ -192,6 +198,34 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
                 } else {
                     ctx.channel().attr(PROTOCOL_FUTURE).get()
                        .completeExceptionally(new UnsupportedOperationException("The server does not support ALPN with H2"));
+                    ctx.close();
+                }
+            }
+        });
+    }
+
+    private void configureAlpnH1(ChannelPipeline pipeline) {
+        System.out.println("ChannelPipelineInitializer :: configureAlpnH1()");
+        pipeline.addLast(new ApplicationProtocolNegotiationHandler(ApplicationProtocolNames.HTTP_1_1) {
+
+            @Override
+            public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                System.out.println("Client ALPN Handler :: channelActive(): channel ID == " + ctx.channel().id());
+                //ctx.channel().attr(PROTOCOL_FUTURE).get().complete(Protocol.HTTP1_1);
+                System.out.println("Firing ctx.read()");
+                ctx.read();
+                super.channelActive(ctx);
+            }
+
+            @Override
+            protected void configurePipeline(ChannelHandlerContext ctx, String protocol) {
+                if (protocol.equals(ApplicationProtocolNames.HTTP_1_1)) {
+                    System.out.println("ALPN Handler :: configurePipeline(): channel ID == " + ctx.channel().id());
+                    // complete future
+                    configureHttp11(ctx.channel(), ctx.pipeline());
+                } else {
+                    ctx.channel().attr(PROTOCOL_FUTURE).get()
+                       .completeExceptionally(new UnsupportedOperationException("The server does not support ALPN with H1"));
                     ctx.close();
                 }
             }

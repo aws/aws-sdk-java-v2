@@ -41,20 +41,29 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.ApplicationProtocolConfig;
+import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import javax.net.ssl.SSLEngine;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.http.EmptyPublisher;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -72,6 +81,10 @@ public class ResponseCompletionTest {
 
     @AfterEach
     public void teardown() throws InterruptedException {
+        System.out.println();
+        System.out.println("Teardown() !!!!!!!!!");
+        System.out.println();
+
         if (server != null) {
             server.shutdown();
         }
@@ -85,16 +98,36 @@ public class ResponseCompletionTest {
 
     @Test
     public void connectionCloseAfterResponse_shouldNotReuseConnection() throws Exception {
+        System.setProperty("javax.net.debug", "ssl,handshake");
+
+        /*System.setProperty("jdk.tls.client.protocols", "TLSv1.2");
+        System.setProperty("jdk.tls.client.enableSessionTicketExtension", "false");
+        System.setProperty("jdk.tls.client.enableSessionResumption", "false");
+        System.setProperty("jdk.tls.client.sessionCacheSize", "0");*/
+
         server = new Server();
         server.init();
 
         netty = NettyNioAsyncHttpClient.builder()
                                        .eventLoopGroup(SdkEventLoopGroup.builder().numberOfThreads(2).build())
                                        .protocol(Protocol.HTTP1_1)
+                                       // doesn't work
+                                       //.maxConcurrency(1)
+                                       // TODO
+                                       .connectionAcquisitionTimeout(Duration.ofMinutes(1))
+                                       .sslProvider(SslProvider.JDK)
+                                       .protocolNegotiation(ProtocolNegotiation.ALPN)
                                        .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
 
         sendGetRequest().join();
-        sendGetRequest().join();
+        // TODO - hangs in this second request
+        System.out.println();
+        System.out.println("First request completed, sending second request");
+        System.out.println();
+
+        sendGetRequest().get(60, TimeUnit.SECONDS);
+
+        System.out.println("Finished 2nd request");
 
         assertThat(server.channels.size()).isEqualTo(2);
     }
@@ -142,7 +175,13 @@ public class ResponseCompletionTest {
 
         public void init() throws Exception {
             SelfSignedCertificate ssc = new SelfSignedCertificate();
-            sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
+            sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey())
+                                      /*.applicationProtocolConfig(
+                                          new ApplicationProtocolConfig(ApplicationProtocolConfig.Protocol.ALPN,
+                                                                        ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
+                                                                        ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
+                                                                        ApplicationProtocolNames.HTTP_1_1))*/
+                                      .build();
 
             bootstrap = new ServerBootstrap()
                 .channel(NioServerSocketChannel.class)
@@ -155,9 +194,27 @@ public class ResponseCompletionTest {
 
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
+            System.out.println("Server :: Initializing channel: " + ch.id());
             channels.add(ch);
             ChannelPipeline pipeline = ch.pipeline();
-            pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+            //pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+
+            SslHandler sslHandler = sslCtx.newHandler(ch.alloc());
+            // TODO
+            sslHandler.setHandshakeTimeout(60, TimeUnit.SECONDS);
+            sslHandler.handshakeFuture().addListener(
+                future -> {
+                    if (future.isSuccess()) {
+                        System.out.println("Server SSLHandler :: SSL handshake completed successfully for channel ID == " + ch.id());
+                    } else {
+                        System.out.println("Server SSLHandler :: SSL handshake failed for channel ID ==  " + ch.id()
+                                           + " cause: " + future.cause());
+                    }
+                }
+            );
+
+            pipeline.addLast(sslHandler);
+
             pipeline.addLast(new HttpServerCodec());
             pipeline.addLast(new AlwaysCloseConnectionChannelHandler());
         }
@@ -182,7 +239,8 @@ public class ResponseCompletionTest {
                             .set(CONTENT_TYPE, TEXT_PLAIN)
                             .set(CONNECTION, CLOSE)
                             .setInt(CONTENT_LENGTH, response.content().readableBytes());
-                    ctx.writeAndFlush(response).addListener(i -> ctx.channel().close());
+                    ctx.writeAndFlush(response)
+                       .addListener(i -> ctx.channel().close());
                 }
             }
         }

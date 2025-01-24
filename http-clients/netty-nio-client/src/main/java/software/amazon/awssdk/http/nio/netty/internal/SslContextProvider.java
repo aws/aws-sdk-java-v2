@@ -87,6 +87,11 @@ public final class SslContextProvider {
             selectedListenerFailureBehavior = ApplicationProtocolConfig.SelectedListenerFailureBehavior.FATAL_ALERT;
         }
 
+        // Doesn't work - try to prevent session resumption
+        //System.out.println("Setting session timeout");
+        //builder.sessionCacheSize(0);
+        //builder.sessionTimeout(0);
+
         return builder.applicationProtocolConfig(
             new ApplicationProtocolConfig(ApplicationProtocolConfig.Protocol.ALPN,
                                           selectorFailureBehavior,
