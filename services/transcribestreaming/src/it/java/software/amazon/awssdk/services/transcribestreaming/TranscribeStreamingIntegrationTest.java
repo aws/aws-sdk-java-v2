@@ -19,6 +19,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
+import io.netty.handler.ssl.SslProvider;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -27,6 +28,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
@@ -43,6 +45,7 @@ import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
@@ -69,8 +72,13 @@ public class TranscribeStreamingIntegrationTest {
         return Stream.of(ProtocolNegotiation.ASSUME_PROTOCOL, ProtocolNegotiation.ALPN);
     }
 
+    private static boolean alpnSupported(){
+        return NettyUtils.isAlpnSupported(SslProvider.JDK);
+    }
+
     @ParameterizedTest
     @MethodSource("protocolNegotiations")
+    @EnabledIf("alpnSupported")
     public void testFileWith16kRate(ProtocolNegotiation protocolNegotiation) throws Exception {
         initClient(protocolNegotiation);
 
@@ -85,6 +93,7 @@ public class TranscribeStreamingIntegrationTest {
 
     @ParameterizedTest
     @MethodSource("protocolNegotiations")
+    @EnabledIf("alpnSupported")
     public void testFileWith8kRate(ProtocolNegotiation protocolNegotiation) throws Exception {
         initClient(protocolNegotiation);
 
