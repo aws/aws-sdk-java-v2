@@ -56,7 +56,6 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -96,7 +95,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                                                              .build();
             channelContext.channel().attr(RESPONSE_STATUS_CODE).set(response.status().code());
             channelContext.channel().attr(RESPONSE_CONTENT_LENGTH).set(responseContentLength(response));
-            channelContext.channel().attr(KEEP_ALIVE).set(shouldKeepAlive(response));
+            channelContext.channel().attr(KEEP_ALIVE).set(HttpUtil.isKeepAlive(response));
             ChannelUtils.getAttribute(channelContext.channel(), CHANNEL_DIAGNOSTICS)
                         .ifPresent(ChannelDiagnostics::incrementResponseCount);
             requestContext.handler().onHeaders(sdkResponse);
@@ -201,13 +200,6 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         } else {
             requestContext.channelPool().release(channelContext.channel());
         }
-    }
-
-    private boolean shouldKeepAlive(HttpResponse response) {
-        if (HttpStatusFamily.of(response.status().code()) == HttpStatusFamily.SERVER_ERROR) {
-            return false;
-        }
-        return HttpUtil.isKeepAlive(response);
     }
 
     @Override

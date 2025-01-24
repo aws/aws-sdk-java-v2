@@ -66,8 +66,9 @@ import software.amazon.awssdk.utils.StringInputStream;
 public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
     private static final Logger log = Logger.loggerFor(S3MrapIntegrationTest.class);
 
-    private static final String SIGV4A_CHUNKED_PAYLOAD_SIGNING = "STREAMING-AWS4-ECDSA-P256-SHA256-PAYLOAD";
-    private static final String SIGV4_CHUNKED_PAYLOAD_SIGNING = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD";
+    private static final String SIGV4A_CHUNKED_PAYLOAD_SIGNING = "STREAMING-AWS4-ECDSA-P256-SHA256-PAYLOAD-TRAILER";
+    private static final String SIGV4_CHUNKED_PAYLOAD_SIGNING = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER";
+    private static final String STREAMING_UNSIGNED_PAYLOAD_TRAILER = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
     private static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
     private static final Region REGION = Region.US_WEST_2;
     private static String bucket;
@@ -113,7 +114,7 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
     @ParameterizedTest(name = "{index}:key = {1},       {0}")
     @MethodSource("keys")
     public void when_callingMrapWithDifferentPaths_unsignedPayload_requestIsAccepted(String name, String key, String expected) {
-        putGetDeleteObjectMrap(s3Client, UNSIGNED_PAYLOAD, key, expected);
+        putGetDeleteObjectMrap(s3Client, STREAMING_UNSIGNED_PAYLOAD_TRAILER, key, expected);
     }
 
     @ParameterizedTest(name = "{index}:key = {1},       {0}")
@@ -125,7 +126,7 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
     @ParameterizedTest(name = "{index}:key = {1},       {0}")
     @MethodSource("keys")
     public void when_callingS3WithDifferentPaths_unsignedPayload_requestIsAccepted(String name, String key, String expected) {
-        putGetDeleteObjectStandard(s3Client, UNSIGNED_PAYLOAD, key, expected);
+        putGetDeleteObjectStandard(s3Client, STREAMING_UNSIGNED_PAYLOAD_TRAILER, key, expected);
     }
 
     @ParameterizedTest(name = "{index}:key = {1},       {0}")
@@ -146,7 +147,7 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
 
         String object = applyPresignedUrl(presignedGetObjectRequest, null);
         assertEquals(CONTENT, object);
-        verifySigv4aRequest(captureInterceptor.request(), UNSIGNED_PAYLOAD);
+        verifySigv4aRequest(captureInterceptor.request(), STREAMING_UNSIGNED_PAYLOAD_TRAILER);
     }
 
     public void putGetDeleteObjectMrap(S3Client testClient, String payloadSigningTag, String key, String expected) {

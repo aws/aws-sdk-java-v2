@@ -22,6 +22,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
 import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.Response;
@@ -428,9 +429,10 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .putExecutionAttribute(
                                     SdkInternalExecutionAttribute.HTTP_CHECKSUM,
-                                    HttpChecksum.builder().requestChecksumRequired(true)
+                                    HttpChecksum.builder().requestChecksumRequired(true).isRequestStreaming(false)
                                             .requestAlgorithm(getOperationWithChecksumRequest.checksumAlgorithmAsString())
-                                            .isRequestStreaming(false).build()).withInput(getOperationWithChecksumRequest));
+                                            .requestAlgorithmHeader("x-amz-sdk-checksum-algorithm").build())
+                            .withInput(getOperationWithChecksumRequest));
             CompletableFuture<GetOperationWithChecksumResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -699,10 +701,14 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .putExecutionAttribute(
                                     SdkInternalExecutionAttribute.HTTP_CHECKSUM,
-                                    HttpChecksum.builder().requestChecksumRequired(false)
+                                    HttpChecksum
+                                            .builder()
+                                            .requestChecksumRequired(false)
+                                            .isRequestStreaming(true)
                                             .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
-                                            .responseAlgorithms("CRC32C", "CRC32", "SHA1", "SHA256").isRequestStreaming(true)
-                                            .build()).withAsyncRequestBody(requestBody)
+                                            .responseAlgorithmsV2(DefaultChecksumAlgorithm.CRC32C,
+                                                    DefaultChecksumAlgorithm.CRC32, DefaultChecksumAlgorithm.SHA1,
+                                                    DefaultChecksumAlgorithm.SHA256).build()).withAsyncRequestBody(requestBody)
                             .withInput(putOperationWithChecksumRequest), asyncResponseTransformer);
             CompletableFuture<ReturnT> whenCompleteFuture = null;
             AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;

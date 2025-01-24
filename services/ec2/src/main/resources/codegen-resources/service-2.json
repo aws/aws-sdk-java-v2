@@ -7676,7 +7676,10 @@
     },
     "AllocationType":{
       "type":"string",
-      "enum":["used"]
+      "enum":[
+        "used",
+        "future"
+      ]
     },
     "AllowedImagesSettingsDisabledState":{
       "type":"string",
@@ -12155,6 +12158,11 @@
           "shape":"ClientLoginBannerResponseOptions",
           "documentation":"<p>Options for enabling a customizable text banner that will be displayed on Amazon Web Services provided clients when a VPN session is established.</p>",
           "locationName":"clientLoginBannerOptions"
+        },
+        "DisconnectOnSessionTimeout":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the client VPN session is disconnected after the maximum <code>sessionTimeoutHours</code> is reached. If <code>true</code>, users are prompted to reconnect client VPN. If <code>false</code>, client VPN attempts to reconnect automatically. The default value is <code>false</code>.</p>",
+          "locationName":"disconnectOnSessionTimeout"
         }
       },
       "documentation":"<p>Describes a Client VPN endpoint.</p>"
@@ -13404,6 +13412,10 @@
         "ClientLoginBannerOptions":{
           "shape":"ClientLoginBannerOptions",
           "documentation":"<p>Options for enabling a customizable text banner that will be displayed on Amazon Web Services provided clients when a VPN session is established.</p>"
+        },
+        "DisconnectOnSessionTimeout":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the client VPN session is disconnected after the maximum timeout specified in <code>SessionTimeoutHours</code> is reached. If <code>true</code>, users are prompted to reconnect client VPN. If <code>false</code>, client VPN attempts to reconnect automatically. The default value is <code>false</code>.</p>"
         }
       }
     },
@@ -39698,7 +39710,15 @@
         "i8g.12xlarge",
         "i8g.16xlarge",
         "i8g.24xlarge",
-        "i8g.metal-24xl"
+        "i8g.metal-24xl",
+        "u7i-6tb.112xlarge",
+        "u7i-8tb.112xlarge",
+        "u7inh-32tb.480xlarge",
+        "p5e.48xlarge",
+        "p5en.48xlarge",
+        "f2.12xlarge",
+        "f2.48xlarge",
+        "trn2.48xlarge"
       ]
     },
     "InstanceTypeHypervisor":{
@@ -44871,6 +44891,10 @@
         "ClientLoginBannerOptions":{
           "shape":"ClientLoginBannerOptions",
           "documentation":"<p>Options for enabling a customizable text banner that will be displayed on Amazon Web Services provided clients when a VPN session is established.</p>"
+        },
+        "DisconnectOnSessionTimeout":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the client VPN session is disconnected after the maximum timeout specified in <code>sessionTimeoutHours</code> is reached. If <code>true</code>, users are prompted to reconnect client VPN. If <code>false</code>, client VPN attempts to reconnect automatically. The default value is <code>false</code>.</p>"
         }
       }
     },
