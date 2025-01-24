@@ -239,6 +239,13 @@ public class SdkHttpUtilsTest {
     }
 
     @Test
+    public void uriParamsWithSingleEqualQuery() throws URISyntaxException {
+        URI uri = URI.create("http://example.com?=");
+        Map<String, List<String>> uriParams = SdkHttpUtils.uriParams(uri);
+        assertThat(uriParams).isEmpty();
+    }
+
+    @Test
     void parseSingleNonProxyHost(){
         String singleHostName = "singleHost" ;
         ENVIRONMENT_VARIABLE_HELPER.set("no_proxy", singleHostName);
