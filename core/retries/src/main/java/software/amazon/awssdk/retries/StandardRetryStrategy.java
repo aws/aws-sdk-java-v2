@@ -33,8 +33,8 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
  *     <li>Retries 2 times (3 total attempts). Adjust with {@link Builder#maxAttempts(int)}
  *     <li>Uses the {@link BackoffStrategy#exponentialDelay} backoff strategy, with a base delay of
  *     1 second and max delay of 20 seconds. Adjust with {@link Builder#backoffStrategy}
- *     <li>Circuit breaking (disabling retries) in the event of high downstream failures across the scope of
- *     the strategy. The circuit breaking will never prevent a successful first attempt. Adjust with
+ *     <li>Circuit breaking (disabling retries) in the event of high downstream failures within an individual scope. The
+ *     circuit breaking will never prevent the first attempt. Adjust with
  *     {@link Builder#circuitBreakerEnabled}.
  * </ol>
  *
