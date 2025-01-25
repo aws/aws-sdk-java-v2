@@ -242,7 +242,7 @@ public class SdkHttpUtilsTest {
     public void uriParamsWithSingleEqualQuery() throws URISyntaxException {
         URI uri = URI.create("http://example.com?=");
         Map<String, List<String>> uriParams = SdkHttpUtils.uriParams(uri);
-        assertThat(uriParams).isEmpty();
+        assertThat(uriParams).contains(entry("", Arrays.asList((String)null)));
     }
 
     @Test
