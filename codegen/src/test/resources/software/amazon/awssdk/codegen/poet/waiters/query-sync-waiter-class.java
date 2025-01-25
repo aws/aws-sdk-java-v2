@@ -166,7 +166,8 @@ final class DefaultQueryWaiter implements QueryWaiter {
         List<WaiterAcceptor<? super APostOperationResponse>> result = new ArrayList<>();
         result.add(WaiterAcceptor.successOnResponseAcceptor(response -> {
             JmesPathRuntime.Value input = new JmesPathRuntime.Value(response);
-            return Objects.equals(input.field("BigDecimalValue").value(), new BigDecimal("123.456789012345678901"));
+            return Objects.equals(input.field("BigDecimalValue").value(), new BigDecimal(
+                "123132.81289319837183771465876127837183719837123"));
         }));
         result.addAll(WaitersRuntime.DEFAULT_ACCEPTORS);
         return result;
@@ -186,7 +187,7 @@ final class DefaultQueryWaiter implements QueryWaiter {
         List<WaiterAcceptor<? super APostOperationResponse>> result = new ArrayList<>();
         result.add(WaiterAcceptor.successOnResponseAcceptor(response -> {
             JmesPathRuntime.Value input = new JmesPathRuntime.Value(response);
-            return Objects.equals(input.field("DoubleValue").value(), new BigDecimal("1.7976931348623157E308"));
+            return Objects.equals(input.field("DoubleValue").value(), new BigDecimal("1.7976931348623157E+308"));
         }));
         result.addAll(WaitersRuntime.DEFAULT_ACCEPTORS);
         return result;

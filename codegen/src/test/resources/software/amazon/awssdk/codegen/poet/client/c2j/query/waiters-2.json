@@ -44,7 +44,7 @@
       "acceptors": [
         {
           "matcher": "path",
-          "expected": "123.456789012345678901",
+          "expected": 123132.81289319837183771465876127837183719837123,
           "argument": "BigDecimalValue",
           "state": "success"
         }

@@ -106,9 +106,13 @@ public final class JmesPathRuntime {
             } else if (value instanceof String) {
                 this.type = Type.STRING;
                 this.stringValue = (String) value;
-            } else if (value instanceof BigDecimal) {
+            } else if (value instanceof Number) {
                 this.type = Type.NUMBER;
-                this.numberValue = (BigDecimal) value;
+                if (value instanceof BigDecimal) {
+                    this.numberValue = (BigDecimal) value;
+                } else {
+                    this.numberValue = new BigDecimal(value.toString());
+                }
             } else if (value instanceof Collection) {
                 this.type = Type.LIST;
                 this.listValue = new ArrayList<>(((Collection<?>) value));
