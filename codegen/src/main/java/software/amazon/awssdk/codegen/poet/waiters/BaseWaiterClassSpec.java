@@ -566,7 +566,7 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                         .add("return $T.equals(", Objects.class)
                         .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
                         .add(".value(), ");
-        if(isNumber || (isString && isNumeric(expected))) {
+        if (isNumber) {
             builder.add("new $T($S)", BigDecimal.class, expected);
         } else if (isString) {
             builder.add("$S", expected);
@@ -577,15 +577,6 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
                .add("}");
 
         return builder.build();
-    }
-
-    private boolean isNumeric(String str) {
-        try {
-            new BigDecimal(str);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
     }
 
     private CodeBlock pathAllAcceptorBody(Acceptor acceptor) {

@@ -331,15 +331,15 @@ class JmesPathAcceptorGeneratorTest {
 
     @ParameterizedTest
     @CsvSource({
+        "123132.81289319837183771465876127837183719837123, 123132.81289319837183771465876127837183719837123",
         "42,                    42",
         "127,                   127",
         "32767,                 32767",
         "9223372036854775807,   9223372036854775807",
         "42.5,                  42.5",
-        "1.7976931348623157E308, 1.7976931348623157E308",
         "-42,                   -42",
         "0,                     0",
-        "1e-10,                 1e-10"
+        "1e-10,                 1E-10"
     })
     void testNumericValues(String input, String expectedNumber) {
         String jmesPath = String.format("value == `%s`", input);

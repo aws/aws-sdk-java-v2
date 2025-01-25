@@ -274,7 +274,7 @@ public class JmesPathAcceptorGenerator {
         public void visitLiteral(Literal input) {
             JrsValue jsonValue = input.jsonValue();
             if (jsonValue.isNumber()) {
-                codeBlock.add(".constant(new $T($S))", BIG_DECIMAL, input.rawValue());
+                codeBlock.add(".constant(new $T($S))", BIG_DECIMAL, jsonValue.asText());
             } else if (jsonValue instanceof JrsBoolean) {
                 codeBlock.add(".constant($L)", ((JrsBoolean) jsonValue).booleanValue());
             } else {
