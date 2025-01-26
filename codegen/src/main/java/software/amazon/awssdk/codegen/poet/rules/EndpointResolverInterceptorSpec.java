@@ -99,6 +99,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
     private final JmesPathAcceptorGenerator jmesPathGenerator;
     private final boolean dependsOnHttpAuthAws;
     private final boolean useSraAuth;
+    private final boolean multiAuthSigv4a;
 
 
     public EndpointResolverInterceptorSpec(IntermediateModel model) {
@@ -116,6 +117,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                                     supportedAuthSchemes.contains(AwsV4aAuthScheme.class);
 
         this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
+        this.multiAuthSigv4a = new AuthSchemeSpecUtils(model).usesSigV4a();
     }
 
     @Override
@@ -155,6 +157,10 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
             b.addMethod(signerProviderMethod());
         }
 
+        if (multiAuthSigv4a) {
+            b.addMethod(createHasRegionSetMethod());
+            b.addMethod(createUpdateAuthSchemeWithRegionSetMethod());
+        }
         endpointParamsKnowledgeIndex.addAccountIdMethodsIfPresent(b);
         return b.build();
     }
@@ -192,7 +198,9 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                        endpointRulesSpecUtils.providerInterfaceName(), providerVar, SdkInternalExecutionAttribute.class);
         b.beginControlFlow("try");
         b.addStatement("long resolveEndpointStart = $T.nanoTime()", System.class);
-        b.addStatement("$T endpoint = $N.resolveEndpoint(ruleParams(result, executionAttributes)).join()",
+        b.addStatement("$T endpointParams = ruleParams(result, executionAttributes)",
+                       endpointRulesSpecUtils.parametersClassName());
+        b.addStatement("$T endpoint = $N.resolveEndpoint(endpointParams).join()",
                        Endpoint.class, providerVar);
         b.addStatement("$1T resolveEndpointDuration = $1T.ofNanos($2T.nanoTime() - resolveEndpointStart)", Duration.class,
                        System.class);
@@ -219,7 +227,11 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                        SelectedAuthScheme.class, SdkInternalExecutionAttribute.class);
         b.beginControlFlow("if (endpointAuthSchemes != null && selectedAuthScheme != null)");
         b.addStatement("selectedAuthScheme = authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme)");
-
+        if (multiAuthSigv4a) {
+            b.beginControlFlow("if(!hasRegionSet(selectedAuthScheme))");
+            b.addStatement("selectedAuthScheme = updateAuthSchemeWithRegionSet(selectedAuthScheme, endpointParams)");
+            b.endControlFlow();
+        }
         b.addStatement("executionAttributes.putAttribute($T.SELECTED_AUTH_SCHEME, selectedAuthScheme)",
                        SdkInternalExecutionAttribute.class);
         b.endControlFlow();
@@ -774,7 +786,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         return code.build();
     }
 
-    private static CodeBlock copyV4aEndpointSignerPropertiesToAuth() {
+    private  CodeBlock copyV4aEndpointSignerPropertiesToAuth() {
         CodeBlock.Builder code = CodeBlock.builder();
 
         code.beginControlFlow("if (endpointAuthScheme instanceof $T)", SigV4aAuthScheme.class);
@@ -784,10 +796,12 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         code.addStatement("option.putSignerProperty($T.DOUBLE_URL_ENCODE, !v4aAuthScheme.disableDoubleEncoding())",
                           AwsV4aHttpSigner.class);
         code.endControlFlow();
-
-        code.beginControlFlow("if (v4aAuthScheme.signingRegionSet() != null)");
+        if (multiAuthSigv4a) {
+            code.beginControlFlow("if (!hasRegionSet(selectedAuthScheme) && v4aAuthScheme.signingRegionSet() != null)");
+        } else {
+            code.beginControlFlow("if (v4aAuthScheme.signingRegionSet() != null)");
+        }
         code.addStatement("$1T regionSet = $1T.create(v4aAuthScheme.signingRegionSet())", RegionSet.class);
-
         code.addStatement("option.putSignerProperty($T.REGION_SET, regionSet)", AwsV4aHttpSigner.class);
         code.endControlFlow();
 
@@ -880,6 +894,53 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         }
         b.addStatement("this.$N = $N.endpointAuthSchemeStrategy()", endpointAuthSchemeFieldName, factoryLocalVarName);
         return b.build();
+    }
+
+    private MethodSpec createHasRegionSetMethod() {
+        TypeVariableName tExtendsIdentity = TypeVariableName.get("T", Identity.class);
+        TypeName selectedAuthSchemeOfT = ParameterizedTypeName.get(ClassName.get(SelectedAuthScheme.class),
+                                                                   TypeVariableName.get("T"));
+
+        return
+            MethodSpec.methodBuilder("hasRegionSet")
+                      .addModifiers(Modifier.PRIVATE)
+                      .addTypeVariable(tExtendsIdentity)
+                      .returns(boolean.class)
+                      .addParameter(selectedAuthSchemeOfT, "selectedAuthScheme")
+                      .addCode(
+                          CodeBlock.builder()
+                                   .addStatement("return selectedAuthScheme.authSchemeOption().schemeId().equals($T.SCHEME_ID)"
+                                                 + " && selectedAuthScheme.authSchemeOption().signerProperty($T.REGION_SET) != "
+                                                 + "null", AwsV4aAuthScheme.class, AwsV4aHttpSigner.class)
+                                   .build())
+                      .build();
+    }
+
+    private MethodSpec createUpdateAuthSchemeWithRegionSetMethod() {
+        TypeVariableName tExtendsIdentity = TypeVariableName.get("T", Identity.class);
+        TypeName selectedAuthSchemeOfT = ParameterizedTypeName.get(
+            ClassName.get(SelectedAuthScheme.class),
+            TypeVariableName.get("T")
+        );
+
+        return MethodSpec.methodBuilder("updateAuthSchemeWithRegionSet")
+                         .addModifiers(Modifier.PRIVATE)
+                         .addTypeVariable(tExtendsIdentity)
+                         .returns(selectedAuthSchemeOfT)
+                         .addParameter(selectedAuthSchemeOfT, "selectedAuthScheme")
+                         .addParameter(endpointRulesSpecUtils.parametersClassName(), "endpointParams")
+                         .addCode(CodeBlock.builder()
+                                           .addStatement("$T optionBuilder = selectedAuthScheme.authSchemeOption().toBuilder()",
+                                                         ClassName.get(AuthSchemeOption.Builder.class))
+                                           .addStatement("$T regionSet = $T.create(endpointParams.region().id())",
+                                                         RegionSet.class, RegionSet.class)
+                                           .addStatement("optionBuilder.putSignerProperty($T.REGION_SET, regionSet)",
+                                                         AwsV4aHttpSigner.class)
+                                           .addStatement("return new $T<>(selectedAuthScheme.identity(), " +
+                                                         "selectedAuthScheme.signer(), optionBuilder.build())",
+                                                         SelectedAuthScheme.class)
+                                           .build())
+                         .build();
     }
 
 }

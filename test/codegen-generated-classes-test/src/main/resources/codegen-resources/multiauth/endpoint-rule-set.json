@@ -46,9 +46,70 @@
         },
         "StringClientContextParam": {
             "type": "String"
+        },
+        "ApiType": {
+            "required": true,
+            "documentation": "Parameter to determine whether current API is a control plane or dataplane API",
+            "type": "String"
         }
     },
     "rules": [
+        {
+            "conditions": [
+                {
+                    "fn": "stringEquals",
+                    "argv": [
+                        {
+                            "ref": "ApiType"
+                        },
+                        "onlySigv4a"
+                    ]
+                }
+            ],
+            "endpoint": {
+                "url": "https://only-region.{Region}.on.aws",
+                "properties": {
+                    "authSchemes": [
+                        {
+                            "name": "sigv4a",
+                            "signingName": "from-endpoint-params",
+                            "signingRegionSet": [
+                                "*"
+                            ]
+                        }
+                    ]
+                },
+                "headers": {}
+            },
+            "type": "endpoint"
+        },
+        {
+            "conditions": [
+                {
+                    "fn": "stringEquals",
+                    "argv": [
+                        {
+                            "ref": "ApiType"
+                        },
+                        "RegionDefinedInRules"
+                    ]
+                }
+            ],
+            "endpoint": {
+                "url": "https://only-region.{Region}.on.aws",
+                "properties": {
+                    "authSchemes": [
+                        {
+                            "name": "sigv4",
+                            "signingName": "greengrass",
+                            "signingRegion": "us-gov-east-1"
+                        }
+                    ]
+                },
+                "headers": {}
+            },
+            "type": "endpoint"
+        },
         {
             "conditions": [
                 {
@@ -66,81 +127,29 @@
                 {
                     "conditions": [
                         {
-                            "fn": "isSet",
+                            "fn": "stringEquals",
                             "argv": [
                                 {
-                                    "ref": "Endpoint"
-                                }
+                                    "ref": "ApiType"
+                                },
+                                "OnlyRegion"
                             ]
-                        },
-                        {
-                            "fn": "parseURL",
-                            "argv": [
-                                {
-                                    "ref": "Endpoint"
-                                }
-                            ],
-                            "assign": "url"
                         }
                     ],
-                    "type": "tree",
-                    "rules": [
-                        {
-                            "conditions": [
+                    "endpoint": {
+                        "url": "https://only-region.{Region}.on.aws",
+                        "properties": {
+                            "authSchemes": [
                                 {
-                                    "fn": "booleanEquals",
-                                    "argv": [
-                                        {
-                                            "ref": "UseFIPS"
-                                        },
-                                        true
-                                    ]
-                                }
-                            ],
-                            "error": "Invalid Configuration: FIPS and custom endpoint are not supported",
-                            "type": "error"
-                        },
-                        {
-                            "conditions": [],
-                            "type": "tree",
-                            "rules": [
-                                {
-                                    "conditions": [
-                                        {
-                                            "fn": "booleanEquals",
-                                            "argv": [
-                                                {
-                                                    "ref": "UseDualStack"
-                                                },
-                                                true
-                                            ]
-                                        }
-                                    ],
-                                    "error": "Invalid Configuration: Dualstack and custom endpoint are not supported",
-                                    "type": "error"
-                                },
-                                {
-                                    "conditions": [],
-                                    "endpoint": {
-                                        "url": {
-                                            "ref": "Endpoint"
-                                        },
-                                        "properties": {
-                                            "authSchemes": [
-                                                {
-                                                    "name": "sigv4",
-                                                    "signingRegion": "{Region}",
-                                                    "signingName": "restjson"
-                                                }
-                                            ]
-                                        },
-                                        "headers": {}
-                                    },
-                                    "type": "endpoint"
+                                    "name": "sigv4",
+                                    "signingName": "onlyRegion",
+                                    "signingRegion": "us-east-2"
                                 }
                             ]
-                        }
-                    ]
+                        },
+                        "headers": {}
+                    },
+                    "type": "endpoint"
                 },
                 {
                     "conditions": [

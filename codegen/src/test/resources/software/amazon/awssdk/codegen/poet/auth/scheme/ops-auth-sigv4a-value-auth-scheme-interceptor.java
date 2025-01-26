@@ -35,6 +35,7 @@ import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.database.auth.scheme.DatabaseAuthSchemeParams;
 import software.amazon.awssdk.services.database.auth.scheme.DatabaseAuthSchemeProvider;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -88,14 +89,9 @@ public final class DatabaseAuthSchemeInterceptor implements ExecutionInterceptor
         DatabaseAuthSchemeParams.Builder builder = DatabaseAuthSchemeParams.builder().operation(operation);
         Region region = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
         builder.region(region);
-        RegionSet regionSet = executionAttributes.getOptionalAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET)
-                                                 .filter(regions -> !regions.isEmpty()).map(regions -> RegionSet.create(String.join(", ", regions)))
-                                                 .orElseGet(() -> {
-                                                     Region fallbackRegion = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
-                                                     return fallbackRegion != null ? RegionSet.create(fallbackRegion.toString()) : null;
-                                                 });
-        ;
-        builder.regionSet(regionSet);
+        executionAttributes.getOptionalAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET)
+                           .filter(regionSet -> !CollectionUtils.isNullOrEmpty(regionSet))
+                           .ifPresent(nonEmptyRegionSet -> builder.regionSet(RegionSet.create(nonEmptyRegionSet)));
         return builder.build();
     }
 

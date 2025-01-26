@@ -56,7 +56,8 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
             long resolveEndpointStart = System.nanoTime();
-            Endpoint endpoint = provider.resolveEndpoint(ruleParams(result, executionAttributes)).join();
+            QueryEndpointParams endpointParams = ruleParams(result, executionAttributes);
+            Endpoint endpoint = provider.resolveEndpoint(endpointParams).join();
             Duration resolveEndpointDuration = Duration.ofNanos(System.nanoTime() - resolveEndpointStart);
             Optional<MetricCollector> metricCollector = executionAttributes
                 .getOptionalAttribute(SdkExecutionAttribute.API_CALL_METRIC_COLLECTOR);

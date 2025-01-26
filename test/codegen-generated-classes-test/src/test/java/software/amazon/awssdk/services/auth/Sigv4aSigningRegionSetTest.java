@@ -207,9 +207,8 @@ class Sigv4aSigningRegionSetTest {
             MultiauthClient client = builder.build();
 
             try {
-                client.sigv4AndSigv4aOperation(b -> b.stringMember("test").build());
+                client.multiAuthWithOnlySigv4aAndSigv4(b -> b.stringMember("test").build());
             } catch (EndpointCapturingInterceptor.CaptureCompletedException e) {
-                // Expected
             }
             assertThat(interceptor.sigv4aSigningRegionSet())
                 .containsExactlyInAnyOrderElementsOf(testCase.expectedValues);

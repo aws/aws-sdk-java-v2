@@ -63,6 +63,7 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -452,19 +453,13 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
     private void generateSigv4aRegionSet(MethodSpec.Builder builder) {
         if (authSchemeSpecUtils.usesSigV4a()) {
             builder.addStatement(
-                "$T regionSet = executionAttributes.getOptionalAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)\n" +
-                "    .filter(regions -> !regions.isEmpty())\n" +
-                "    .map(regions -> $T.create(String.join(\", \", regions)))\n" +
-                "    .orElseGet(() -> {\n" +
-                "        $T fallbackRegion = executionAttributes.getAttribute($T.AWS_REGION);\n" +
-                "        return fallbackRegion != null ? $T.create(fallbackRegion.toString()) : null;\n" +
-                "    });",
-                RegionSet.class, AwsExecutionAttribute.class,
-                RegionSet.class, Region.class, AwsExecutionAttribute.class,
+                "executionAttributes.getOptionalAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)\n" +
+                "                   .filter(regionSet -> !$T.isNullOrEmpty(regionSet))\n" +
+                "                   .ifPresent(nonEmptyRegionSet -> builder.regionSet($T.create(nonEmptyRegionSet)))",
+                AwsExecutionAttribute.class,
+                CollectionUtils.class,
                 RegionSet.class
             );
-
-            builder.addStatement("builder.regionSet(regionSet)");
         }
     }
 }
