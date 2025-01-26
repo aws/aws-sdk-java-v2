@@ -74,7 +74,8 @@ final class AddMetadata {
                 .withJsonVersion(serviceMetadata.getJsonVersion())
                 .withEndpointPrefix(serviceMetadata.getEndpointPrefix())
                 .withSigningName(serviceMetadata.getSigningName())
-                .withAuthType(AuthType.fromValue(serviceMetadata.getSignatureVersion()))
+                .withAuthType(serviceMetadata.getSignatureVersion() !=null ?
+                              AuthType.fromValue(serviceMetadata.getSignatureVersion()) : null)
                 .withUid(serviceMetadata.getUid())
                 .withServiceId(serviceMetadata.getServiceId())
                 .withSupportsH2(supportsH2(serviceMetadata))

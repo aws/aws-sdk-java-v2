@@ -197,7 +197,6 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         builder.addStatement("(($T)builder).endpointProvider(($T)endpointProvider)", paramsBuilderClass, endpointProviderClass);
         builder.endControlFlow();
         builder.endControlFlow();
-        // TODO: Implement addRegionSet() for legacy services that resolve authentication from endpoints in one of next PRs.
         builder.addStatement("return builder.build()");
         return builder.build();
     }

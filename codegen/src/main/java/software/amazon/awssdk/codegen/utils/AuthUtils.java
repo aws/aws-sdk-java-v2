@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 public final class AuthUtils {
     private AuthUtils() {
@@ -76,6 +77,12 @@ public final class AuthUtils {
 
     private static boolean isServiceAwsAuthType(IntermediateModel model) {
         AuthType authType = model.getMetadata().getAuthType();
+        if (authType == null && !CollectionUtils.isNullOrEmpty(model.getMetadata().getAuth())) {
+            return model.getMetadata().getAuth().stream()
+                        .map(AuthType::value)
+                        .map(AuthType::fromValue)
+                        .anyMatch(AuthUtils::isAuthTypeAws);
+        }
         return isAuthTypeAws(authType);
     }
 
@@ -85,6 +92,7 @@ public final class AuthUtils {
         }
 
         switch (authType) {
+            case V4A:
             case V4:
             case S3:
             case S3V4:
