@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.7__ __2025-01-27__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds support for dynamic audio configuration and the ability to disable the deblocking filter for h265 encodes.
+
+## __AWS IoT__
+  - ### Features
+    - Raised the documentParameters size limit to 30 KB for AWS IoT Device Management - Jobs.
+
+## __AWS S3 Control__
+  - ### Features
+    - Minor fix to ARN validation for Lambda functions passed to S3 Batch Operations
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Add support for the prompt caching feature for Bedrock Prompt Management
+
 # __2.30.6__ __2025-01-24__
 ## __AWS CloudTrail__
   - ### Features
