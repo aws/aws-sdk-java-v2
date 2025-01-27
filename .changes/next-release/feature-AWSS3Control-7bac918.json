@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS S3 Control",
-    "contributor": "",
-    "description": "Minor fix to ARN validation for Lambda functions passed to S3 Batch Operations"
-}
