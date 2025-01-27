@@ -405,7 +405,7 @@ public final class SdkHttpUtils {
         return splitQueryString(uri.getRawQuery())
             .stream()
             .map(s -> s.split("="))
-            .map(s -> s.length == 0 ? new String[] {""}: s)
+            .map(s -> s.length == 0 ? new String[] {""} : s)
             .map(s -> s.length == 1 ? new String[] { s[0], null } : s)
             .collect(groupingBy(a -> urlDecode(a[0]), mapping(a -> urlDecode(a[1]), toList())));
     }
