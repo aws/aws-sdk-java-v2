@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaConvert",
+    "contributor": "",
+    "description": "This release adds support for dynamic audio configuration and the ability to disable the deblocking filter for h265 encodes."
+}
