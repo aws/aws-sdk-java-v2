@@ -587,7 +587,8 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
 
         CodeBlock.Builder builder = CodeBlock.builder()
                                              .add("response -> {")
-                                             .add("$1T input = new $1T(response);", poetExtensions.jmesPathRuntimeClass().nestedClass("Value"))
+                                             .add("$1T input = new $1T(response);", poetExtensions.jmesPathRuntimeClass()
+                                                                                                  .nestedClass("Value"))
                                              .add("$T<$T> resultValues = ", List.class, Object.class)
                                              .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
                                              .add(".values();")
