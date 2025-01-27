@@ -1,4 +1,38 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.6__ __2025-01-24__
+## __AWS CloudTrail__
+  - ### Features
+    - This release introduces the SearchSampleQueries API that allows users to search for CloudTrail Lake sample queries.
+
+## __AWS SSO OIDC__
+  - ### Features
+    - Fixed typos in the descriptions.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Added CustomDirectories as a new directory option for storing inbound AS2 messages, MDN files and Status files.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for UpdateStrategies in EKS Managed Node Groups.
+
+## __Amazon HealthLake__
+  - ### Features
+    - Added new authorization strategy value 'SMART_ON_FHIR' for CreateFHIRDatastore API to support Smart App 2.0
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Systems Manager doc-only update for January, 2025.
+
+# __2.30.5__ __2025-01-23__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added "future" allocation type for future dated capacity reservation
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Adds ALPN H2 support for Netty client
+
 # __2.30.4__ __2025-01-22__
 ## __AWS CRT HTTP Client__
   - ### Bugfixes

@@ -61,6 +61,7 @@ public class NettyClientAlpnTest {
     }
 
     @Test
+    @EnabledIf("alpnSupported")
     public void alpnClientOpenSslProvider_serverWithAlpnSupport_requestSucceeds() throws Exception {
         initClient(ProtocolNegotiation.ALPN, SslProvider.OPENSSL);
         initServer(true);
@@ -86,6 +87,7 @@ public class NettyClientAlpnTest {
     }
 
     @Test
+    @EnabledIf("alpnSupported")
     public void priorKnowledgeClient_serverWithoutAlpnSupport_requestSucceeds() throws Exception {
         initClient(ProtocolNegotiation.ASSUME_PROTOCOL, SslProvider.JDK);
         initServer(false);

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Netty NIO HTTP Client",
-    "contributor": "",
-    "description": "Adds ALPN H2 support for Netty client"
-}

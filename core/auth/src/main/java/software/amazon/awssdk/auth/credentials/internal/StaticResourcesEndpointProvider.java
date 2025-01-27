@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
+import software.amazon.awssdk.regions.util.ResourcesEndpointRetryPolicy;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -31,16 +32,19 @@ public final class StaticResourcesEndpointProvider implements ResourcesEndpointP
     private final URI endpoint;
     private final Map<String, String> headers;
     private final Duration connectionTimeout;
+    private final ResourcesEndpointRetryPolicy retryPolicy;
 
     private StaticResourcesEndpointProvider(URI endpoint,
-                                           Map<String, String> additionalHeaders,
-                                           Duration customTimeout) {
+                                            Map<String, String> additionalHeaders,
+                                            Duration customTimeout,
+                                            ResourcesEndpointRetryPolicy retryPolicy) {
         this.endpoint = Validate.paramNotNull(endpoint, "endpoint");
         this.headers = ResourcesEndpointProvider.super.headers();
         if (additionalHeaders != null) {
             this.headers.putAll(additionalHeaders);
         }
         this.connectionTimeout = customTimeout;
+        this.retryPolicy = Validate.getOrDefault(retryPolicy, () -> ResourcesEndpointRetryPolicy.NO_RETRY);
     }
 
     @Override
@@ -58,10 +62,16 @@ public final class StaticResourcesEndpointProvider implements ResourcesEndpointP
         return Collections.unmodifiableMap(headers);
     }
 
+    @Override
+    public ResourcesEndpointRetryPolicy retryPolicy() {
+        return this.retryPolicy;
+    }
+
     public static class Builder {
         private URI endpoint;
         private Map<String, String> additionalHeaders = new HashMap<>();
         private Duration customTimeout;
+        private ResourcesEndpointRetryPolicy retryPolicy;
 
         public Builder endpoint(URI endpoint) {
             this.endpoint = Validate.paramNotNull(endpoint, "endpoint");
@@ -80,8 +90,13 @@ public final class StaticResourcesEndpointProvider implements ResourcesEndpointP
             return this;
         }
 
+        public Builder retryPolicy(ResourcesEndpointRetryPolicy retryPolicy) {
+            this.retryPolicy = retryPolicy;
+            return this;
+        }
+
         public StaticResourcesEndpointProvider build() {
-            return new StaticResourcesEndpointProvider(endpoint, additionalHeaders, customTimeout);
+            return new StaticResourcesEndpointProvider(endpoint, additionalHeaders, customTimeout, retryPolicy);
         }
     }
 
