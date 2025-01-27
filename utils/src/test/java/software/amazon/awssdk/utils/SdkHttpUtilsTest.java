@@ -239,10 +239,33 @@ public class SdkHttpUtilsTest {
     }
 
     @Test
-    public void uriParamsWithSingleEqualQuery() throws URISyntaxException {
+    void uriParamsWithSingleEqualQuery()  {
         URI uri = URI.create("http://example.com?=");
         Map<String, List<String>> uriParams = SdkHttpUtils.uriParams(uri);
-        assertThat(uriParams).contains(entry("", Arrays.asList((String)null)));
+        assertThat(uriParams).containsKey("");
+        assertThat(uriParams.get(""))
+            .isNotNull()
+            .hasSize(1)
+            .containsNull();
+    }
+    @Test
+    void uriParamsWithSingleEqualWithValueQuery()  {
+        URI uri = URI.create("http://example.com?=nokeyvalue");
+        Map<String, List<String>> uriParams = SdkHttpUtils.uriParams(uri);
+        assertThat(uriParams).containsKey("");
+        assertThat(uriParams.get(""))
+            .isNotNull()
+            .hasSize(1)
+            .contains("nokeyvalue");
+    }
+    @Test
+    void uriParamsWithWithEmptyValueQuery()  {
+        URI uri = URI.create("http://example.com?novaluekey=");
+        Map<String, List<String>> uriParams = SdkHttpUtils.uriParams(uri);
+        assertThat(uriParams).containsKey("novaluekey");
+        assertThat(uriParams.get("novaluekey"))
+            .hasSize(1)
+            .containsNull();
     }
 
     @Test

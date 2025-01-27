@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Fixed the bug \"ArrayIndexOutOfBoundsException\" when single \"=\" as the query string"
+    "description": "Fixed an issue in SdkHttpUtils used in SdkHttpFullRequest where constructing with a query string consisting of a single \"=\" would throw an ArrayIndexOutOfBoundsException."
 }
