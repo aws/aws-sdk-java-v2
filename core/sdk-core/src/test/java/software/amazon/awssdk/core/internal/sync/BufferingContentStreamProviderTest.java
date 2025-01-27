@@ -16,12 +16,14 @@
 package software.amazon.awssdk.core.internal.sync;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -110,17 +112,38 @@ class BufferingContentStreamProviderTest {
     }
 
     @Test
-    void newStream_allDataBuffered_closesDelegateStream() throws IOException {
+    void newStream_allDataBuffered_doesNotCloseDelegate() throws IOException {
         InputStream delegateStream = Mockito.spy(new ByteArrayInputStream(TEST_DATA));
 
         requestBody = RequestBody.fromContentProvider(() -> delegateStream, "text/plain");
 
         IoUtils.drainInputStream(requestBody.contentStreamProvider().newStream());
         Mockito.verify(delegateStream, Mockito.atLeast(1)).read(any(), anyInt(), anyInt());
-        Mockito.verify(delegateStream).close();
-
-        IoUtils.drainInputStream(requestBody.contentStreamProvider().newStream());
         Mockito.verifyNoMoreInteractions(delegateStream);
+    }
+
+    @Test
+    public void newStream_delegateStreamClosedOnBufferingStreamClose() throws IOException {
+        InputStream delegateStream = Mockito.spy(new ByteArrayInputStream(TEST_DATA));
+
+        requestBody = RequestBody.fromContentProvider(() -> delegateStream, "text/plain");
+
+        InputStream stream = requestBody.contentStreamProvider().newStream();
+        IoUtils.drainInputStream(stream);
+        stream.close();
+
+        Mockito.verify(delegateStream).close();
+    }
+
+    @Test
+    public void newStream_contentKnown_closedPrematurely_doesNotCache() throws IOException {
+        requestBody = RequestBody.fromContentProvider(() -> new ByteArrayInputStream(TEST_DATA), TEST_DATA.length, "text/plain");
+
+        requestBody.contentStreamProvider().newStream().close();
+
+        assertThatThrownBy(() -> requestBody.contentStreamProvider().newStream())
+            .isInstanceOf(UncheckedIOException.class)
+            .hasRootCauseMessage("Stream closed");
     }
 
     private static String getCrc32(InputStream inputStream) {

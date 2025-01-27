@@ -34,19 +34,21 @@ import software.amazon.awssdk.utils.IoUtils;
 @NotThreadSafe
 public final class BufferingContentStreamProvider implements ContentStreamProvider {
     private final ContentStreamProvider delegate;
-    private InputStream bufferedStream;
+    private final Long expectedLength;
+    private BufferStream bufferedStream;
 
     private byte[] bufferedStreamData;
     private int count;
 
-    public BufferingContentStreamProvider(ContentStreamProvider delegate) {
+    public BufferingContentStreamProvider(ContentStreamProvider delegate, Long expectedLength) {
         this.delegate = delegate;
+        this.expectedLength = expectedLength;
     }
 
     @Override
     public InputStream newStream() {
         if (bufferedStreamData != null) {
-            return new ByteArrayInputStream(bufferedStreamData, 0, this.count);
+            return new ByteArrayStream(bufferedStreamData, 0, this.count);
         }
 
         if (bufferedStream == null) {
@@ -59,36 +61,60 @@ public final class BufferingContentStreamProvider implements ContentStreamProvid
         return bufferedStream;
     }
 
+    private class ByteArrayStream extends ByteArrayInputStream {
+
+        ByteArrayStream(byte[] buf, int offset, int length) {
+            super(buf, offset, length);
+        }
+
+        @Override
+        public void close() throws IOException {
+            super.close();
+            bufferedStream.close();
+        }
+    }
+
     private class BufferStream extends BufferedInputStream {
         BufferStream(InputStream in) {
             super(in);
         }
 
-        @Override
-        public synchronized int read() throws IOException {
-            int read = super.read();
-            if (read < 0) {
-                saveBuffer();
-            }
-            return read;
+        public byte[] getBuf() {
+            return this.buf;
+        }
+
+        public int getCount() {
+            return this.count;
         }
 
         @Override
-        public synchronized int read(byte[] b, int off, int len) throws IOException {
-            int read = super.read(b, off, len);
-            if (read < 0) {
-                saveBuffer();
-            }
-            return read;
+        public void close() throws IOException {
+            saveBufferIfAppropriate();
+            super.close();
+        }
+    }
+
+    private void saveBufferIfAppropriate() {
+        if (hasExpectedLength() && !expectedLengthReached()) {
+            return;
         }
 
-        private void saveBuffer() {
-            if (bufferedStreamData == null) {
-                IoUtils.closeQuietlyV2(in, null);
-                BufferingContentStreamProvider.this.bufferedStreamData = this.buf;
-                BufferingContentStreamProvider.this.count = this.count;
-            }
+        saveBuffer();
+    }
+
+    private void saveBuffer() {
+        if (bufferedStreamData == null) {
+            this.bufferedStreamData = bufferedStream.getBuf();
+            this.count = bufferedStream.getCount();
         }
+    }
+
+    private boolean expectedLengthReached() {
+        return hasExpectedLength() && bufferedStream.getCount() >= expectedLength;
+    }
+
+    private boolean hasExpectedLength() {
+        return this.expectedLength != null;
     }
 
 }

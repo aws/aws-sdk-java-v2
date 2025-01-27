@@ -209,6 +209,14 @@ public final class RequestBody {
 
     /**
      * Creates a {@link RequestBody} from the given {@link ContentStreamProvider}.
+     * <p>
+     * Important: Be aware that is implementation requires buffering the contents for {@code ContentStreamProvider}, which can
+     * cause increased memory usage.
+     * <p>
+     * If you are using this in conjunction with S3 and want to upload a stream with an unknown content length, you can refer
+     * S3's documentation for
+     * <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/s3_example_s3_Scenario_UploadStream_section.html">alternative
+     * methods</a>.
      *
      * @param provider The content provider.
      * @param contentLength The content length.
@@ -217,17 +225,14 @@ public final class RequestBody {
      * @return The created {@code RequestBody}.
      */
     public static RequestBody fromContentProvider(ContentStreamProvider provider, long contentLength, String mimeType) {
-        return new RequestBody(provider, contentLength, mimeType);
+        return new RequestBody(new BufferingContentStreamProvider(provider, contentLength), contentLength, mimeType);
     }
 
     /**
-     * Creates a {@link RequestBody} from the given {@link ContentStreamProvider} when the content length is unknown. If you
-     * are able to provide the content length at creation time, consider using {@link #fromInputStream(InputStream, long)} or
-     * {@link #fromContentProvider(ContentStreamProvider, long, String)} to negate the need to read through the stream to find
-     * the content length.
+     * Creates a {@link RequestBody} from the given {@link ContentStreamProvider} when the content length is unknown.
      * <p>
-     * Important: Be aware that this override requires the SDK to buffer the entirety of your content stream to compute the
-     * content length. This will cause increased memory usage.
+     * Important: Be aware that is implementation requires buffering the contents for {@code ContentStreamProvider}, which can
+     * cause increased memory usage.
      * <p>
      * If you are using this in conjunction with S3 and want to upload a stream with an unknown content length, you can refer
      * S3's documentation for
@@ -240,7 +245,7 @@ public final class RequestBody {
      * @return The created {@code RequestBody}.
      */
     public static RequestBody fromContentProvider(ContentStreamProvider provider, String mimeType) {
-        return new RequestBody(new BufferingContentStreamProvider(provider), null, mimeType);
+        return new RequestBody(new BufferingContentStreamProvider(provider, null), null, mimeType);
     }
 
     /**
