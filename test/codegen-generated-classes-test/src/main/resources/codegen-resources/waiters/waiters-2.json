@@ -151,6 +151,33 @@
           "expected": 99
         }
       ]
+    },
+
+    "FailureForPathAll": {
+      "delay": 1,
+      "operation": "AllTypes",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "state": "failure",
+          "matcher": "pathAll",
+          "argument": "SimpleList",
+          "expected": "UNEXPECTED_VALUE"
+        }
+      ]
+    },
+    "FailureForPathAllNumbers": {
+      "delay": 1,
+      "operation": "AllTypes",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "state": "failure",
+          "matcher": "pathAll",
+          "argument": "SimpleList",
+          "expected": 99
+        }
+      ]
     }
   }
 }
