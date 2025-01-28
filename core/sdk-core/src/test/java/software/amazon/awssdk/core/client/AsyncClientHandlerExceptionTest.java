@@ -122,7 +122,7 @@ public class AsyncClientHandlerExceptionTest {
     public void responseHandlerThrowsReportedThroughFuture() throws Exception {
         final SdkClientException e = SdkClientException.create("Could not handle response");
         when(responseHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class))).thenThrow(e);
-        doVerify(() -> clientHandler.execute(executionParams), e);
+        doVerify(() -> clientHandler.execute(executionParams), thrown -> thrown.getCause() instanceof SdkClientException);
     }
 
     @Test
