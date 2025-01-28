@@ -126,7 +126,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         private Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
             T1 otherItem = this.otherItemGetter.apply(item);
 
-            if (otherItem == null) {
+            if (otherItem == null && ignoreNulls) {
                 return Collections.emptyMap();
             }
 
@@ -515,7 +515,9 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
 
         attributeMappers.forEach(attributeMapper -> {
             String attributeKey = attributeMapper.attributeName();
-            AttributeValue attributeValue = attributeMapper.attributeGetterMethod().apply(item);
+            AttributeValue attributeValue = item == null ?
+                                            AttributeValue.fromNul(true) :
+                                            attributeMapper.attributeGetterMethod().apply(item);
 
             if (!ignoreNulls || !isNullAttributeValue(attributeValue)) {
                 attributeValueMap.put(attributeKey, attributeValue);
