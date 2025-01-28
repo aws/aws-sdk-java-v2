@@ -21,7 +21,6 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildSocketOptions;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveCipherPreference;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
-import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.net.URI;
 import java.util.LinkedList;
@@ -130,7 +129,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
                 .withProxyOptions(proxyOptions)
                 .withMonitoringOptions(monitoringOptions)
                 .withMaxConnectionIdleInMilliseconds(maxConnectionIdleInMilliseconds)
-                .withConnectionAcquisitionTimeoutInMilliseconds(saturatedCast(connectionAcquisitionTimeout));
+                .withConnectionAcquisitionTimeoutInMilliseconds(connectionAcquisitionTimeout);
 
         return HttpClientConnectionManager.create(options);
     }
