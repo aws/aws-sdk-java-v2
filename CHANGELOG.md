@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.8__ __2025-01-28__
+## __AWS AppSync__
+  - ### Features
+    - Add stash and outErrors to EvaluateCode/EvaluateMappingTemplate response
+
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports the Kerberos authentication protocol for SMB locations.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - feature: Deadline: Add support for limiting the concurrent usage of external resources, like floating licenses, using limits and the ability to constrain the maximum number of workers that work on a job
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release changes the CreateFleet CLI and SDK's such that if you do not specify a client token, a randomly generated token is used for the request to ensure idempotency.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - For AppendOnly streams, Firehose will automatically scale to match your throughput.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - Adds 'allocatedStorage' parameter to UpdateDbInstance API that allows increasing the database instance storage size and 'dbStorageType' parameter to UpdateDbInstance API that allows changing the storage type of the database instance
+
 # __2.30.7__ __2025-01-27__
 ## __AWS Elemental MediaConvert__
   - ### Features
