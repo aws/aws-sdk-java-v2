@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Firehose",
-    "contributor": "",
-    "description": "For AppendOnly streams, Firehose will automatically scale to match your throughput."
-}
