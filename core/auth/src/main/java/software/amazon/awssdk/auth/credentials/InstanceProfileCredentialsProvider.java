@@ -88,6 +88,8 @@ public final class InstanceProfileCredentialsProvider
 
     private final String profileName;
 
+    private final Duration staleTime;
+
     /**
      * @see #builder()
      */
@@ -107,6 +109,8 @@ public final class InstanceProfileCredentialsProvider
                                      .profileFile(profileFile)
                                      .profileName(profileName)
                                      .build();
+
+        this.staleTime = Validate.getOrDefault(builder.staleTime, () -> Duration.ofSeconds(1));
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
@@ -174,7 +178,7 @@ public final class InstanceProfileCredentialsProvider
             return null;
         }
 
-        return expiration.minusSeconds(1);
+        return expiration.minus(staleTime);
     }
 
     private Instant prefetchTime(Instant expiration) {
@@ -341,6 +345,18 @@ public final class InstanceProfileCredentialsProvider
         Builder profileName(String profileName);
 
         /**
+         * Configure the amount of time before the moment of expiration of credentials for which to consider the credentials to
+         * be stale. A higher value can lead to a higher rate of request being made to the Amazon EC2 Instance Metadata Service.
+         * The default is 1 sec.
+         * <p>Increasing this value to a higher value (10s or more) may help with situations where a higher load on the instance
+         * metadata service causes it to return 503s error, for which the SDK may not be able to recover fast enough and
+         * returns expired credentials.
+         *
+         * @param duration the amount of time before expiration for when to consider the credentials to be stale and need refresh
+         */
+        Builder staleTime(Duration duration);
+
+        /**
          * Build a {@link InstanceProfileCredentialsProvider} from the provided configuration.
          */
         @Override
@@ -355,6 +371,7 @@ public final class InstanceProfileCredentialsProvider
         private String asyncThreadName;
         private Supplier<ProfileFile> profileFile;
         private String profileName;
+        private Duration staleTime;
 
         private BuilderImpl() {
             asyncThreadName("instance-profile-credentials-provider");
@@ -367,6 +384,7 @@ public final class InstanceProfileCredentialsProvider
             this.asyncThreadName = provider.asyncThreadName;
             this.profileFile = provider.profileFile;
             this.profileName = provider.profileName;
+            this.staleTime = provider.staleTime;
         }
 
         Builder clock(Clock clock) {
@@ -433,6 +451,16 @@ public final class InstanceProfileCredentialsProvider
 
         public void setProfileName(String profileName) {
             profileName(profileName);
+        }
+
+        @Override
+        public Builder staleTime(Duration duration) {
+            this.staleTime = duration;
+            return this;
+        }
+
+        public void setStaleTime(Duration duration) {
+            staleTime(duration);
         }
 
         @Override

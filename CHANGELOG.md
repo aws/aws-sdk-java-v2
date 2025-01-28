@@ -1,4 +1,162 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.7__ __2025-01-27__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds support for dynamic audio configuration and the ability to disable the deblocking filter for h265 encodes.
+
+## __AWS IoT__
+  - ### Features
+    - Raised the documentParameters size limit to 30 KB for AWS IoT Device Management - Jobs.
+
+## __AWS S3 Control__
+  - ### Features
+    - Minor fix to ARN validation for Lambda functions passed to S3 Batch Operations
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Add support for the prompt caching feature for Bedrock Prompt Management
+
+# __2.30.6__ __2025-01-24__
+## __AWS CloudTrail__
+  - ### Features
+    - This release introduces the SearchSampleQueries API that allows users to search for CloudTrail Lake sample queries.
+
+## __AWS SSO OIDC__
+  - ### Features
+    - Fixed typos in the descriptions.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Added CustomDirectories as a new directory option for storing inbound AS2 messages, MDN files and Status files.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for UpdateStrategies in EKS Managed Node Groups.
+
+## __Amazon HealthLake__
+  - ### Features
+    - Added new authorization strategy value 'SMART_ON_FHIR' for CreateFHIRDatastore API to support Smart App 2.0
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Systems Manager doc-only update for January, 2025.
+
+# __2.30.5__ __2025-01-23__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added "future" allocation type for future dated capacity reservation
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Adds ALPN H2 support for Netty client
+
+# __2.30.4__ __2025-01-22__
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Reuse connections that receive a 5xx service response.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive adds a new feature, ID3 segment tagging, in CMAF Ingest output groups. It allows customers to insert ID3 tags into every output segment, controlled by a newly added channel schedule action Id3SegmentTagging.
+
+## __AWS Glue__
+  - ### Features
+    - Docs Update for timeout changes
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Adds multi-turn input support for an Agent node in an Amazon Bedrock Flow
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Rename WorkSpaces Web to WorkSpaces Secure Browser
+
+## __Apache HTTP Client__
+  - ### Bugfixes
+    - Reuse connections that receive a 5xx service response.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Reuse connections that receive a 5xx service response.
+
+# __2.30.3__ __2025-01-21__
+## __AWS Batch__
+  - ### Features
+    - Documentation-only update: clarified the description of the shareDecaySeconds parameter of the FairsharePolicy data type, clarified the description of the priority parameter of the JobQueueDetail data type.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - AWS IoT SiteWise now supports ingestion and querying of Null (all data types) and NaN (double type) values of bad or uncertain data quality. New partial error handling prevents data loss during ingestion. Enabled by default for new customers; existing customers can opt-in.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Documentation-only update to address doc errors
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - corrects the dual-stack endpoint configuration for cognitoidp
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added DeleteContactFlowVersion API and the CAMPAIGN flow type
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added `DigitGroupingStyle` in ThousandsSeparator to allow grouping by `LAKH`( Indian Grouping system ) currency. Support LAKH and `CRORE` currency types in Column Formatting.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - This release adds support for the topic attribute FifoThroughputScope for SNS FIFO topics. For details, see the documentation history in the Amazon Simple Notification Service Developer Guide.
+
+## __EMR Serverless__
+  - ### Features
+    - Increasing entryPoint in SparkSubmit to accept longer script paths. New limit is 4kb.
+
+## __Emf Metric Logging Publisher__
+  - ### Features
+    - Added a new EmfMetricLoggingPublisher class that transforms SdkMetricCollection to emf format string and logs it, which will be automatically collected by cloudwatch.
+
+# __2.30.2__ __2025-01-17__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS User Notifications__
+  - ### Features
+    - Added support for Managed Notifications, integration with AWS Organization and added aggregation summaries for Aggregate Notifications
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Allow hyphens in tool name for Converse and ConverseStream APIs
+
+## __Amazon Detective__
+  - ### Features
+    - Doc only update for Detective documentation.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Release u7i-6tb.112xlarge, u7i-8tb.112xlarge, u7inh-32tb.480xlarge, p5e.48xlarge, p5en.48xlarge, f2.12xlarge, f2.48xlarge, trn2.48xlarge instance types.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Correction of docs for "Added support for ml.trn1.32xlarge instance type in Reserved Capacity Offering"
+
+## __Amazon Simple Storage Service__
+  - ### Bugfixes
+    - Fixed contentLength mismatch issue thrown from putObject when multipartEnabled is true and a contentLength is provided in PutObjectRequest. See [#5807](https://github.com/aws/aws-sdk-java-v2/issues/5807)
+
 # __2.30.1__ __2025-01-16__
 ## __AWS SDK for Java v2__
   - ### Features

@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth.credentials;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
@@ -24,6 +25,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.SECONDS;
@@ -55,6 +57,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mockito;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.SdkUserAgent;
@@ -596,12 +599,73 @@ public class InstanceProfileCredentialsProviderTest {
         }
     }
 
+    @Test
+    void testErrorWhileCacheIsStale_shouldRecover() {
+        AdjustableClock clock = new AdjustableClock();
+
+        Instant now = Instant.now();
+        Instant expiration = now.plus(Duration.ofHours(6));
+
+        String successfulCredentialsResponse =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(expiration) + '"'
+            + "}";
+
+        String staleResponse =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID_2\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY_2\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(Instant.now()) + '"'
+            + "}";
+
+
+        Duration staleTime = Duration.ofMinutes(5);
+        AwsCredentialsProvider provider = credentialsProviderWithClock(clock, staleTime);
+
+        // cache expiration with expiration = 6 hours
+        clock.time = now;
+        stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse));
+        AwsCredentials validCreds = provider.resolveCredentials();
+
+        // failure while cache is stale
+        clock.time = expiration.minus(staleTime.minus(Duration.ofMinutes(2)));
+        stubTokenFetchErrorResponse(aResponse().withFixedDelay(2000).withBody(STUB_CREDENTIALS), 500);
+        stubSecureCredentialsResponse(aResponse().withBody(staleResponse));
+        AwsCredentials refreshedWhileStale = provider.resolveCredentials();
+
+        assertThat(refreshedWhileStale).isNotEqualTo(validCreds);
+        assertThat(refreshedWhileStale.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY_2");
+    }
+
+    @Test
+    void shouldNotRetry_whenSucceeds() {
+        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+        AwsCredentials credentials = provider.resolveCredentials();
+        assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+        assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(credentials.providerName()).isPresent().contains("InstanceProfileCredentialsProvider");
+        verifyImdsCallWithToken();
+        WireMock.verify(exactly(1), getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")));
+    }
+
     private AwsCredentialsProvider credentialsProviderWithClock(Clock clock) {
         InstanceProfileCredentialsProvider.BuilderImpl builder =
             (InstanceProfileCredentialsProvider.BuilderImpl) InstanceProfileCredentialsProvider.builder();
         builder.clock(clock);
         return builder.build();
     }
+
+    private AwsCredentialsProvider credentialsProviderWithClock(Clock clock, Duration staleTime) {
+        InstanceProfileCredentialsProvider.BuilderImpl builder =
+            (InstanceProfileCredentialsProvider.BuilderImpl) InstanceProfileCredentialsProvider.builder();
+        builder.clock(clock);
+        builder.staleTime(staleTime);
+        return builder.build();
+    }
+
 
     private static class AdjustableClock extends Clock {
         private Instant time;
