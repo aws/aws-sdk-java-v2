@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS AppSync",
+    "contributor": "",
+    "description": "Add stash and outErrors to EvaluateCode/EvaluateMappingTemplate response"
+}
