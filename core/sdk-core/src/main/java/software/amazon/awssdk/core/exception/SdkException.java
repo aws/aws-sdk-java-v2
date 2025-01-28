@@ -28,22 +28,30 @@ import software.amazon.awssdk.utils.builder.Buildable;
 public class SdkException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
-    private int attempts;
+    private Integer attempts;
 
     protected SdkException(Builder builder) {
         super(messageFromBuilder(builder), builder.cause(), true, writableStackTraceFromBuilder(builder));
-        this.attempts = builder.attemptCount();
+        this.attempts = builder.numAttempts();
     }
 
-    public int getAttempts() {
+    /**
+     * Returns the number of attempts made before this exception was thrown.
+     * This includes the initial attempt and any retries.
+     *
+     * @return The number of attempts made, or null if not set
+     */
+    public Integer numAttempts() {
         return attempts;
     }
 
-    public void setAttempts(int attempts) {
-        this.attempts = attempts;
-    }
-    
-    public String getRawMessage() {
+    /**
+     * Returns the raw message of this exception without any additional formatting.
+     * This is used internally to construct the complete exception message.
+     *
+     * @return The raw exception message
+     */
+    public String rawMessage() {
         return super.getMessage();
     }
 
@@ -60,17 +68,6 @@ public class SdkException extends RuntimeException {
         }
 
         return null;
-    }
-
-    @Override
-    public String getMessage() {
-        String message = super.getMessage();
-        if (attempts > 0) {
-            StringBuilder formattedMessage = new StringBuilder();
-            formattedMessage.append(message).append(" ").append("(Attempts: ").append(attempts).append(")");
-            return formattedMessage.toString();
-        }
-        return message;
     }
 
     private static boolean writableStackTraceFromBuilder(Builder builder) {
@@ -137,16 +134,16 @@ public class SdkException extends RuntimeException {
 
         /**
          *
-         * @param attemptCount The attempt count
+         * @param numAttempts The attempt count
          * @return This method for object chaining
          */
-        Builder attemptCount(int attemptCount);
+        Builder numAttempts(Integer numAttempts);
 
         /**
          * The number of times a request was attempted before this exception was thrown
          * @return the attempt count
          */
-        int attemptCount();
+        Integer numAttempts();
 
         /**
          * Specifies whether the stack trace in this exception can be written.
@@ -174,7 +171,7 @@ public class SdkException extends RuntimeException {
 
         protected Throwable cause;
         protected String message;
-        protected int attemptCount;
+        protected Integer numAttempts;
         protected Boolean writableStackTrace;
 
         protected BuilderImpl() {
@@ -182,8 +179,8 @@ public class SdkException extends RuntimeException {
 
         protected BuilderImpl(SdkException ex) {
             this.cause = ex.getCause();
-            this.message = ex.getMessage();
-            this.attemptCount = ex.attempts;
+            this.message = ex.rawMessage();
+            this.numAttempts = ex.numAttempts();
         }
 
 
@@ -225,23 +222,23 @@ public class SdkException extends RuntimeException {
             return message;
         }
 
-        public int getAttemptCount() {
-            return attemptCount;
+        public Integer getNumAttempts() {
+            return numAttempts;
         }
 
-        public void setAttemptCount(int attemptCount) {
-            this.attemptCount = attemptCount;
+        public void setAttemptCount(Integer attemptCount) {
+            this.numAttempts = attemptCount;
         }
 
         @Override
-        public Builder attemptCount(int attemptCount) {
-            this.attemptCount = attemptCount;
+        public Builder numAttempts(Integer numAttempts) {
+            this.numAttempts = numAttempts;
             return this;
         }
 
         @Override
-        public int attemptCount() {
-            return attemptCount;
+        public Integer numAttempts() {
+            return numAttempts;
         }
 
         @Override
