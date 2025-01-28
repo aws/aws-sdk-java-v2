@@ -86,7 +86,7 @@ public class AwsServiceExceptionTest {
     public void exceptionMessage_withAttempts() {
         AwsServiceException e = AwsServiceException.builder()
                                                    .message("errorMessage")
-                                                   .attemptCount(6)
+                                                   .numAttempts(6)
                                                    .awsErrorDetails(AwsErrorDetails.builder()
                                                                                    .errorMessage("errorMessage")
                                                                                    .serviceName("serviceName")
@@ -96,32 +96,32 @@ public class AwsServiceExceptionTest {
                                                    .requestId("requestId")
                                                    .build();
 
-        assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, " +
-                                             "Request ID: requestId) (Attempts: 6)");
-        assertThat(e.getAttempts()).isEqualTo(6);
+        assertThat(e.getMessage()).contains("(SDK Diagnostics: numAttempts = 6)");
+        assertThat(e.numAttempts()).isEqualTo(6);
     }
 
     @Test
     public void exceptionMessage_zeroAttempts() {
         AwsServiceException e = (AwsServiceException) AwsServiceException.builder()
                                                                          .awsErrorDetails(AwsErrorDetails.builder()
-                                                                                   .errorMessage("errorMessage")
-                                                                                   .serviceName("serviceName")
-                                                                                   .errorCode("errorCode")
-                                                                                   .build())
+                                                                                                         .errorMessage("errorMessage")
+                                                                                                         .serviceName("serviceName")
+                                                                                                         .errorCode("errorCode")
+                                                                                                         .build())
                                                                          .statusCode(500)
                                                                          .requestId("requestId")
-                                                                         .attemptCount(0)
+                                                                         .numAttempts(0)
                                                                          .build();
 
-        assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, " +
+        assertThat(e.getMessage()).contains("errorMessage (Service: serviceName, Status Code: 500, " +
                                              "Request ID: requestId)");
-        assertThat(e.getAttempts()).isEqualTo(0);
+        assertThat(e.numAttempts()).isEqualTo(0);
     }
 
     @Test
     public void setAttempts_modifiesMessage() {
         AwsServiceException e = AwsServiceException.builder()
+                                                   .numAttempts(3)
                                                    .awsErrorDetails(AwsErrorDetails.builder()
                                                                                    .errorMessage("errorMessage")
                                                                                    .serviceName("serviceName")
@@ -131,10 +131,9 @@ public class AwsServiceExceptionTest {
                                                    .requestId("requestId")
                                                    .build();
 
-        e.setAttempts(3);
         assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, " +
-                                             "Request ID: requestId) (Attempts: 3)");
-        assertThat(e.getAttempts()).isEqualTo(3);
+                                             "Request ID: requestId) (SDK Diagnostics: numAttempts = 3)");
+        assertThat(e.numAttempts()).isEqualTo(3);
     }
 
     @Test
@@ -170,19 +169,19 @@ public class AwsServiceExceptionTest {
 
     private AwsServiceException exception(int clientSideTimeOffset, String errorCode, int statusCode, String serverDate) {
         SdkHttpResponse httpResponse =
-                SdkHttpFullResponse.builder()
-                                   .statusCode(statusCode)
-                                   .applyMutation(r -> {
-                                       if (serverDate != null) {
-                                           r.putHeader("Date", serverDate);
-                                       }
-                                   })
-                                   .build();
-        AwsErrorDetails errorDetails =
-                AwsErrorDetails.builder()
-                               .errorCode(errorCode)
-                               .sdkHttpResponse(httpResponse)
+            SdkHttpFullResponse.builder()
+                               .statusCode(statusCode)
+                               .applyMutation(r -> {
+                                   if (serverDate != null) {
+                                       r.putHeader("Date", serverDate);
+                                   }
+                               })
                                .build();
+        AwsErrorDetails errorDetails =
+            AwsErrorDetails.builder()
+                           .errorCode(errorCode)
+                           .sdkHttpResponse(httpResponse)
+                           .build();
 
         return AwsServiceException.builder()
                                   .clockSkew(Duration.ofSeconds(clientSideTimeOffset))
