@@ -31,6 +31,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.internal.DigestAlgorithm;
+import software.amazon.awssdk.checksums.internal.DigestAlgorithm.CloseableMessageDigest;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -217,10 +218,6 @@ public final class SignerUtils {
         return Long.parseLong(decodedContentLength.get());
     }
 
-    private static MessageDigest getMessageDigestInstance() {
-        return DigestAlgorithm.SHA256.getDigest();
-    }
-
     public static InputStream getBinaryRequestPayloadStream(ContentStreamProvider streamProvider) {
         try {
             if (streamProvider == null) {
@@ -233,35 +230,35 @@ public final class SignerUtils {
     }
 
     public static byte[] hash(InputStream input) {
-        try {
-            MessageDigest md = getMessageDigestInstance();
+        try (CloseableMessageDigest cmd = getMessageDigestInstance()) {
+            MessageDigest md = cmd.messageDigest();
             byte[] buf = new byte[4096];
             int read = 0;
             while (read >= 0) {
                 read = input.read(buf);
                 md.update(buf, 0, read);
             }
-            return md.digest();
+            return cmd.digest();
         } catch (Exception e) {
             throw new RuntimeException("Unable to compute hash while signing request: ", e);
         }
     }
 
     public static byte[] hash(ByteBuffer input) {
-        try {
-            MessageDigest md = getMessageDigestInstance();
+        try  (CloseableMessageDigest cmd = getMessageDigestInstance()) {
+            MessageDigest md = cmd.messageDigest();
             md.update(input);
-            return md.digest();
+            return cmd.digest();
         } catch (Exception e) {
             throw new RuntimeException("Unable to compute hash while signing request: ", e);
         }
     }
 
     public static byte[] hash(byte[] data) {
-        try {
-            MessageDigest md = getMessageDigestInstance();
+        try  (CloseableMessageDigest cmd = getMessageDigestInstance()) {
+            MessageDigest md = cmd.messageDigest();
             md.update(data);
-            return md.digest();
+            return cmd.digest();
         } catch (Exception e) {
             throw new RuntimeException("Unable to compute hash while signing request: ", e);
         }
@@ -296,5 +293,9 @@ public final class SignerUtils {
         return requestBuilder.firstMatchingHeader(X_AMZ_CONTENT_SHA256).orElseThrow(
             () -> new IllegalArgumentException("Content hash must be present in the '" + X_AMZ_CONTENT_SHA256 + "' header!")
         );
+    }
+
+    private static CloseableMessageDigest getMessageDigestInstance() {
+        return DigestAlgorithm.SHA256.getDigest();
     }
 }
