@@ -682,6 +682,8 @@
                             <exclude>software.amazon.awssdk.regions.*</exclude>
                             <!-- TODO revert - Temporarily disable because system setting USER_REGION was removed -->
                             <exclude>software.amazon.awssdk.utils.JavaSystemSetting</exclude>
+                            <!-- TODO remove once S3ObjectSize is change is merged -->
+                            <exclude>software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
