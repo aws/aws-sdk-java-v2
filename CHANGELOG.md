@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.9__ __2025-01-29__
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Added ConflictException error type in DeleteBillScenario, BatchDeleteBillScenarioCommitmentModification, BatchDeleteBillScenarioUsageModification, BatchUpdateBillScenarioUsageModification, and BatchUpdateBillScenarioCommitmentModification API operations.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Add support for Dualstack and Dualstack-with-FIPS Endpoints
+
+## __Amazon Elastic Container Registry Public__
+  - ### Features
+    - Add support for Dualstack Endpoints
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Change the type of MpuObjectSize in CompleteMultipartUploadRequest from int to long.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - This release adds support for AWS HealthScribe Streaming APIs within Amazon Transcribe.
+
+## __MailManager__
+  - ### Features
+    - This release includes a new feature for Amazon SES Mail Manager which allows customers to specify known addresses and domains and make use of those in traffic policies and rules actions to distinguish between known and unknown entries.
+
 # __2.30.8__ __2025-01-28__
 ## __AWS AppSync__
   - ### Features
@@ -7,6 +32,10 @@
 ## __AWS DataSync__
   - ### Features
     - AWS DataSync now supports the Kerberos authentication protocol for SMB locations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Buffer input data from ContentStreamProvider to avoid the need to reread the stream after calculating its length.
 
 ## __AWSDeadlineCloud__
   - ### Features
@@ -23,10 +52,6 @@
 ## __Timestream InfluxDB__
   - ### Features
     - Adds 'allocatedStorage' parameter to UpdateDbInstance API that allows increasing the database instance storage size and 'dbStorageType' parameter to UpdateDbInstance API that allows changing the storage type of the database instance
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Buffer input data from ContentStreamProvider to avoid the need to reread the stream after calculating its length.
 
 # __2.30.7__ __2025-01-27__
 ## __AWS Elemental MediaConvert__
