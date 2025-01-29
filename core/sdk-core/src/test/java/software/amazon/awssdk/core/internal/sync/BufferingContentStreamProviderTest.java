@@ -135,17 +135,6 @@ class BufferingContentStreamProviderTest {
         Mockito.verify(delegateStream).close();
     }
 
-    @Test
-    public void newStream_contentKnown_closedPrematurely_doesNotCache() throws IOException {
-        requestBody = RequestBody.fromContentProvider(() -> new ByteArrayInputStream(TEST_DATA), TEST_DATA.length, "text/plain");
-
-        requestBody.contentStreamProvider().newStream().close();
-
-        assertThatThrownBy(() -> requestBody.contentStreamProvider().newStream())
-            .isInstanceOf(UncheckedIOException.class)
-            .hasRootCauseMessage("Stream closed");
-    }
-
     private static String getCrc32(InputStream inputStream) {
         byte[] buff = new byte[1024];
         int read;

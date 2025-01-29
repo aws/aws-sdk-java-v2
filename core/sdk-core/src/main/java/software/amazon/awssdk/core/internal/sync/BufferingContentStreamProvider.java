@@ -89,17 +89,11 @@ public final class BufferingContentStreamProvider implements ContentStreamProvid
 
         @Override
         public void close() throws IOException {
-            saveBufferIfAppropriate();
-            super.close();
+            if (!hasExpectedLength() || expectedLengthReached()) {
+                saveBuffer();
+                super.close();
+            }
         }
-    }
-
-    private void saveBufferIfAppropriate() {
-        if (hasExpectedLength() && !expectedLengthReached()) {
-            return;
-        }
-
-        saveBuffer();
     }
 
     private void saveBuffer() {
