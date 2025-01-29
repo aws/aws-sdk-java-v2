@@ -152,30 +152,55 @@
         }
       ]
     },
-
-    "FailureForPathAll": {
-      "delay": 1,
+    "FloatValueTest": {
+      "delay": 15,
       "operation": "AllTypes",
       "maxAttempts": 40,
       "acceptors": [
         {
-          "state": "failure",
-          "matcher": "pathAll",
-          "argument": "SimpleList",
-          "expected": "UNEXPECTED_VALUE"
+          "matcher": "path",
+          "expected": 42.5,
+          "argument": "FloatMember",
+          "state": "success"
         }
       ]
     },
-    "FailureForPathAllNumbers": {
-      "delay": 1,
+    "BigDecimalValueTest": {
+      "delay": 15,
       "operation": "AllTypes",
       "maxAttempts": 40,
       "acceptors": [
         {
-          "state": "failure",
-          "matcher": "pathAll",
-          "argument": "SimpleList",
-          "expected": 99
+          "matcher": "path",
+          "expected": 123132.81289319837183771465876127837183719837123,
+          "argument": "BigDecimalMember",
+          "state": "success"
+        }
+      ]
+    },
+    "LongValueTest": {
+      "delay": 15,
+      "operation": "AllTypes",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "matcher": "path",
+          "expected": 9223372036854775807,
+          "argument": "LongMember",
+          "state": "success"
+        }
+      ]
+    },
+    "DoubleValueTest": {
+      "delay": 15,
+      "operation": "AllTypes",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "matcher": "path",
+          "expected": 1.7976931348623157E308,
+          "argument": "DoubleMember",
+          "state": "success"
         }
       ]
     }
