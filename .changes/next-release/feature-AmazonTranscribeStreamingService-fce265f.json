@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Transcribe Streaming Service",
+    "contributor": "",
+    "description": "This release adds support for AWS HealthScribe Streaming APIs within Amazon Transcribe."
+}
