@@ -131,12 +131,13 @@ public final class RequestBody {
     public static RequestBody fromInputStream(InputStream inputStream, long contentLength) {
         IoUtils.markStreamWithMaxReadLimit(inputStream);
         InputStream nonCloseable = nonCloseableInputStream(inputStream);
-        return fromContentProvider(() -> {
+        ContentStreamProvider provider = () -> {
             if (nonCloseable.markSupported()) {
                 invokeSafely(nonCloseable::reset);
             }
             return nonCloseable;
-        }, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
+        };
+        return new RequestBody(provider, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     /**
@@ -210,7 +211,7 @@ public final class RequestBody {
     /**
      * Creates a {@link RequestBody} from the given {@link ContentStreamProvider}.
      * <p>
-     * Important: Be aware that is implementation requires buffering the contents for {@code ContentStreamProvider}, which can
+     * Important: Be aware that this implementation requires buffering the contents for {@code ContentStreamProvider}, which can
      * cause increased memory usage.
      * <p>
      * If you are using this in conjunction with S3 and want to upload a stream with an unknown content length, you can refer
@@ -231,7 +232,7 @@ public final class RequestBody {
     /**
      * Creates a {@link RequestBody} from the given {@link ContentStreamProvider} when the content length is unknown.
      * <p>
-     * Important: Be aware that is implementation requires buffering the contents for {@code ContentStreamProvider}, which can
+     * Important: Be aware that this implementation requires buffering the contents for {@code ContentStreamProvider}, which can
      * cause increased memory usage.
      * <p>
      * If you are using this in conjunction with S3 and want to upload a stream with an unknown content length, you can refer
@@ -259,7 +260,7 @@ public final class RequestBody {
      * Creates a {@link RequestBody} using the specified bytes (without copying).
      */
     private static RequestBody fromBytesDirect(byte[] bytes, String mimetype) {
-        return fromContentProvider(() -> new ByteArrayInputStream(bytes), bytes.length, mimetype);
+        return new RequestBody(() -> new ByteArrayInputStream(bytes), (long) bytes.length, mimetype);
     }
 
     private static InputStream nonCloseableInputStream(InputStream inputStream) {

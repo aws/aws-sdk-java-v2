@@ -89,6 +89,9 @@ public final class BufferingContentStreamProvider implements ContentStreamProvid
 
         @Override
         public void close() throws IOException {
+            // We only want to close the underlying stream if we're confident all its data is buffered. In some cases, the
+            // stream might be closed before we read everything, and we want to avoid closing in these cases if the request
+            // body is being reused.
             if (!hasExpectedLength() || expectedLengthReached()) {
                 saveBuffer();
                 super.close();
