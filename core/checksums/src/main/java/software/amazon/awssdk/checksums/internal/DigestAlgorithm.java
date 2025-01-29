@@ -21,15 +21,20 @@ import java.util.Deque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @SdkInternalApi
 public enum DigestAlgorithm {
-
     SHA1("SHA-1"),
+
     MD5("MD5"),
     SHA256("SHA-256")
     ;
+
+    private static final Supplier<MessageDigest> CLOSED_DIGEST = () -> {
+        throw new IllegalStateException("This message digest is closed.");
+    };
 
     private static final int MAX_CACHED_DIGESTS = 10_000;
     private final String algorithmName;
@@ -64,10 +69,15 @@ public enum DigestAlgorithm {
         }
     }
 
+    @SdkTestInternalApi
+    static void clearCaches() {
+        for (DigestAlgorithm value : values()) {
+            value.digestCache.clear();
+        }
+    }
+
     public final class CloseableMessageDigest implements SdkAutoCloseable, Cloneable {
-        private final Supplier<MessageDigest> closedDigest = () -> {
-            throw new IllegalStateException("This message digest is closed.");
-        };
+
         private Supplier<MessageDigest> digest;
         private byte[] messageDigest;
 
@@ -100,14 +110,14 @@ public enum DigestAlgorithm {
          */
         @Override
         public void close() {
-            if (digest == closedDigest) {
+            if (digest == CLOSED_DIGEST) {
                 return;
             }
 
             // Drop this digest is the cache is full.
             digestCache.offerFirst(digest.get());
 
-            digest = closedDigest;
+            digest = CLOSED_DIGEST;
         }
 
         @Override
