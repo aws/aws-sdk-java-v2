@@ -22,7 +22,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -30,8 +29,7 @@ import java.util.Optional;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.checksums.internal.DigestAlgorithm;
-import software.amazon.awssdk.checksums.internal.DigestAlgorithm.CloseableMessageDigest;
+import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -230,35 +228,35 @@ public final class SignerUtils {
     }
 
     public static byte[] hash(InputStream input) {
-        try (CloseableMessageDigest cmd = getMessageDigestInstance()) {
-            MessageDigest md = cmd.messageDigest();
+        try {
+            SdkChecksum md = sha256Checksum();
             byte[] buf = new byte[4096];
             int read = 0;
             while (read >= 0) {
                 read = input.read(buf);
                 md.update(buf, 0, read);
             }
-            return cmd.digest();
+            return md.getChecksumBytes();
         } catch (Exception e) {
             throw new RuntimeException("Unable to compute hash while signing request: ", e);
         }
     }
 
     public static byte[] hash(ByteBuffer input) {
-        try  (CloseableMessageDigest cmd = getMessageDigestInstance()) {
-            MessageDigest md = cmd.messageDigest();
+        try {
+            SdkChecksum md = sha256Checksum();
             md.update(input);
-            return cmd.digest();
+            return md.getChecksumBytes();
         } catch (Exception e) {
             throw new RuntimeException("Unable to compute hash while signing request: ", e);
         }
     }
 
     public static byte[] hash(byte[] data) {
-        try  (CloseableMessageDigest cmd = getMessageDigestInstance()) {
-            MessageDigest md = cmd.messageDigest();
+        try {
+            SdkChecksum md = sha256Checksum();
             md.update(data);
-            return cmd.digest();
+            return md.getChecksumBytes();
         } catch (Exception e) {
             throw new RuntimeException("Unable to compute hash while signing request: ", e);
         }
@@ -295,7 +293,7 @@ public final class SignerUtils {
         );
     }
 
-    private static CloseableMessageDigest getMessageDigestInstance() {
-        return DigestAlgorithm.SHA256.getDigest();
+    private static SdkChecksum sha256Checksum() {
+        return SdkChecksum.forAlgorithm(() -> "SHA256");
     }
 }
