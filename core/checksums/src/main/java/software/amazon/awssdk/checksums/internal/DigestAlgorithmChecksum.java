@@ -25,12 +25,19 @@ import software.amazon.awssdk.checksums.internal.DigestAlgorithm.CloseableMessag
 @SdkInternalApi
 public class DigestAlgorithmChecksum implements SdkChecksum {
 
+    private final DigestAlgorithm algorithm;
+
     private CloseableMessageDigest digest;
 
     private CloseableMessageDigest digestLastMarked;
 
     public DigestAlgorithmChecksum(DigestAlgorithm algorithm) {
-        this.digest = algorithm.getDigest();
+        this.algorithm = algorithm;
+        this.digest = newDigest();
+    }
+
+    private CloseableMessageDigest newDigest() {
+        return algorithm.getDigest();
     }
 
     @Override
@@ -50,10 +57,10 @@ public class DigestAlgorithmChecksum implements SdkChecksum {
 
     @Override
     public void reset() {
+        digest.close();
         if (digestLastMarked == null) {
-            digest.messageDigest().reset();
+            digest = newDigest();
         } else {
-            digest.close();
             digest = digestLastMarked;
         }
     }
