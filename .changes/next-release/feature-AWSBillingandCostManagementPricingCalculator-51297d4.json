@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Billing and Cost Management Pricing Calculator",
+    "contributor": "",
+    "description": "Added ConflictException error type in DeleteBillScenario, BatchDeleteBillScenarioCommitmentModification, BatchDeleteBillScenarioUsageModification, BatchUpdateBillScenarioUsageModification, and BatchUpdateBillScenarioCommitmentModification API operations."
+}
