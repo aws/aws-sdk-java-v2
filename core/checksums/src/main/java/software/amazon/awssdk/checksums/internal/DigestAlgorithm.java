@@ -18,7 +18,7 @@ package software.amazon.awssdk.checksums.internal;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Deque;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -33,7 +33,7 @@ public enum DigestAlgorithm {
 
     private static final int MAX_CACHED_DIGESTS = 10_000;
     private final String algorithmName;
-    private final Deque<MessageDigest> digestCache = new ConcurrentLinkedDeque<>(); // Used as LIFO for cache-friendliness
+    private final Deque<MessageDigest> digestCache = new LinkedBlockingDeque<>(MAX_CACHED_DIGESTS); // LIFO
 
     DigestAlgorithm(String algorithmName) {
         this.algorithmName = algorithmName;
@@ -91,6 +91,7 @@ public enum DigestAlgorithm {
                 return messageDigest;
             }
             messageDigest = messageDigest().digest();
+            close();
             return messageDigest;
         }
 
@@ -103,11 +104,9 @@ public enum DigestAlgorithm {
                 return;
             }
 
-            // Avoid over-caching after large traffic bursts. The maximum chosen here is arbitrary. It's also not strictly
-            // enforced, since these statements aren't synchronized.
-            if (digestCache.size() <= MAX_CACHED_DIGESTS) {
-                digestCache.addFirst(digest.get());
-            }
+            // Drop this digest is the cache is full.
+            digestCache.offerFirst(digest.get());
+
             digest = closedDigest;
         }
 
@@ -115,8 +114,8 @@ public enum DigestAlgorithm {
         public CloseableMessageDigest clone() {
             try {
                 return new CloseableMessageDigest((MessageDigest) digest.get().clone());
-            } catch (CloneNotSupportedException e) { // should never occur
-                throw new IllegalStateException("unexpected", e);
+            } catch (CloneNotSupportedException e) {
+                throw new IllegalStateException("Clone was not supported by this digest type.", e);
             }
         }
     }
