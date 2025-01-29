@@ -24,6 +24,10 @@
   - ### Features
     - Adds 'allocatedStorage' parameter to UpdateDbInstance API that allows increasing the database instance storage size and 'dbStorageType' parameter to UpdateDbInstance API that allows changing the storage type of the database instance
 
+## __AWS SDK for Java v2__
+  - ### Features
+    - Buffer input data from ContentStreamProvider to avoid the need to reread the stream after calculating its length.
+
 # __2.30.7__ __2025-01-27__
 ## __AWS Elemental MediaConvert__
   - ### Features
