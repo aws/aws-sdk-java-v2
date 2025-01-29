@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Container Registry",
-    "contributor": "",
-    "description": "Add support for Dualstack and Dualstack-with-FIPS Endpoints"
-}

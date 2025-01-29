@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Storage Service",
-    "contributor": "",
-    "description": "Change the type of MpuObjectSize in CompleteMultipartUploadRequest from int to long."
-}
