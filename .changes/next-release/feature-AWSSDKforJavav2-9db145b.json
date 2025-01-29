@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Buffer input data from ContentStreamProvider to avoid the need to reread the stream after calculating its length."
+}
