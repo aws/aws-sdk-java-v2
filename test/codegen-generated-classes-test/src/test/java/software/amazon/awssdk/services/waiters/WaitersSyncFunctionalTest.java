@@ -440,42 +440,4 @@ public class WaitersSyncFunctionalTest {
                                   + "(IntegerMember=99) and transitioned the waiter to failure state")
             .isInstanceOf(SdkClientException.class);
     }
-
-    @Test
-    public void failureResponse_withPathAllStringMatcher_shouldThrowException() {
-        List<String> list = new ArrayList<>();
-        list.add("UNEXPECTED_VALUE");
-        list.add("UNEXPECTED_VALUE");
-        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
-                                                                       .simpleList((list))
-                                                                       .sdkHttpResponse(SdkHttpResponse.builder().statusCode(200).build())
-                                                                       .build();
-
-        when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
-
-        assertThatThrownBy(() -> waiter.waitUntilFailureForPathAll(SdkBuilder::build))
-            .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("A waiter acceptor with the matcher (pathAll) was matched on parameter "
-                                  + "(SimpleList=UNEXPECTED_VALUE) and transitioned the waiter to failure state");
-    }
-
-    @Test
-    public void failureResponse_withPathAllIntegerMatcher_shouldThrowException() {
-        List<String> list = new ArrayList<>();
-        list.add("99");
-        list.add("99");
-        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
-                                                                       .simpleList(list)
-                                                                       .sdkHttpResponse(SdkHttpResponse.builder().statusCode(200).build())
-                                                                       .build();
-
-        when(client.allTypes(any(AllTypesRequest.class))).thenReturn(response);
-
-        assertThatThrownBy(() -> waiter.waitUntilFailureForPathAllNumbers(SdkBuilder::build))
-            .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("A waiter acceptor with the matcher (pathAll) was matched on parameter "
-                                  + "(SimpleList=99) and transitioned the waiter to failure state");
-    }
-
-
 }

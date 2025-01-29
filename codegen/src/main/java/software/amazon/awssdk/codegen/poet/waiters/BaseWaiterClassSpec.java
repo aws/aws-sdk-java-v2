@@ -582,32 +582,18 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
 
     private CodeBlock pathAllAcceptorBody(Acceptor acceptor) {
         String expected = acceptor.getExpected().asText();
-        boolean isString = acceptor.getExpected() instanceof JrsString;
-        boolean isNumber = acceptor.getExpected().isNumber();
-
-        CodeBlock.Builder builder = CodeBlock.builder()
-                                             .add("response -> {")
-                                             .add("$1T input = new $1T(response);", poetExtensions.jmesPathRuntimeClass()
-                                                                                                  .nestedClass("Value"))
-                                             .add("$T<$T> resultValues = ", List.class, Object.class)
-                                             .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
-                                             .add(".values();")
-                                             .add("return !resultValues.isEmpty() &&"
-                                                  + " resultValues.stream().allMatch(v " + "-> $T.equals"
-                                                  + "(", Objects.class);
-
-        if (isNumber) {
-            builder.add("new $T(String.valueOf(v)), new $T($L)", BigDecimal.class, BigDecimal.class, expected);
-        } else if (isString) {
-            builder.add("v, $S", expected);
-        } else {
-            builder.add("v, $L", expected);
-        }
-
-        builder.add("));")
-               .add("}");
-
-        return builder.build();
+        String expectedType = acceptor.getExpected() instanceof JrsString ? "$S" : "$L";
+        return CodeBlock.builder()
+                        .add("response -> {")
+                        .add("$1T input = new $1T(response);", poetExtensions.jmesPathRuntimeClass().nestedClass("Value"))
+                        .add("$T<$T> resultValues = ", List.class, Object.class)
+                        .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
+                        .add(".values();")
+                        .add("return !resultValues.isEmpty() && "
+                             + "resultValues.stream().allMatch(v -> $T.equals(v, " + expectedType + "));",
+                             Objects.class, expected)
+                        .add("}")
+                        .build();
     }
 
     private CodeBlock pathAnyAcceptorBody(Acceptor acceptor) {
