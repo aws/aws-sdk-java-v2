@@ -23,9 +23,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.assertj.core.util.Arrays;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -439,4 +436,5 @@ public class WaitersSyncFunctionalTest {
                                   + "(IntegerMember=99) and transitioned the waiter to failure state")
             .isInstanceOf(SdkClientException.class);
     }
+
 }
