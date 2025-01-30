@@ -53,8 +53,7 @@ public class RetryStrategySetupUsingRetryMode {
         ProtocolRestJsonClient client =
             client(b -> b.overrideConfiguration(o -> o.retryStrategy(SdkDefaultRetryStrategy.standardRetryStrategy())));
         assertThrows(ProtocolRestJsonException.class, () -> callAllTypes(client));
-        // One request, i.e.,ere were retries.
-        //         verifyRequestCount(3); no retries.
+        // One request, i.e., no retries.
         verifyRequestCount(1);
     }
 

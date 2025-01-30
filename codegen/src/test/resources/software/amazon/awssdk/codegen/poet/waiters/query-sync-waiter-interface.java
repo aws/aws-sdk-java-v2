@@ -47,7 +47,7 @@ public interface QueryWaiter extends SdkAutoCloseable {
      *         condition
      */
     default WaiterResponse<APostOperationResponse> waitUntilPostOperationSuccess(
-        Consumer<APostOperationRequest.Builder> aPostOperationRequest) {
+            Consumer<APostOperationRequest.Builder> aPostOperationRequest) {
         return waitUntilPostOperationSuccess(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build());
     }
 
@@ -63,7 +63,7 @@ public interface QueryWaiter extends SdkAutoCloseable {
      *         condition
      */
     default WaiterResponse<APostOperationResponse> waitUntilPostOperationSuccess(APostOperationRequest aPostOperationRequest,
-                                                                                 WaiterOverrideConfiguration overrideConfig) {
+            WaiterOverrideConfiguration overrideConfig) {
         throw new UnsupportedOperationException();
     }
 
@@ -82,10 +82,10 @@ public interface QueryWaiter extends SdkAutoCloseable {
      *         condition
      */
     default WaiterResponse<APostOperationResponse> waitUntilPostOperationSuccess(
-        Consumer<APostOperationRequest.Builder> aPostOperationRequest,
-        Consumer<WaiterOverrideConfiguration.Builder> overrideConfig) {
+            Consumer<APostOperationRequest.Builder> aPostOperationRequest,
+            Consumer<WaiterOverrideConfiguration.Builder> overrideConfig) {
         return waitUntilPostOperationSuccess(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build(),
-                                             WaiterOverrideConfiguration.builder().applyMutation(overrideConfig).build());
+                WaiterOverrideConfiguration.builder().applyMutation(overrideConfig).build());
     }
 
     /**

@@ -34,7 +34,7 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
      *         desired state.
      */
     default CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilPostOperationSuccess(
-        APostOperationRequest aPostOperationRequest) {
+            APostOperationRequest aPostOperationRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -51,7 +51,7 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
      *         with the waiter success condition
      */
     default CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilPostOperationSuccess(
-        Consumer<APostOperationRequest.Builder> aPostOperationRequest) {
+            Consumer<APostOperationRequest.Builder> aPostOperationRequest) {
         return waitUntilPostOperationSuccess(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build());
     }
 
@@ -67,7 +67,7 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
      *         condition
      */
     default CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilPostOperationSuccess(
-        APostOperationRequest aPostOperationRequest, WaiterOverrideConfiguration overrideConfig) {
+            APostOperationRequest aPostOperationRequest, WaiterOverrideConfiguration overrideConfig) {
         throw new UnsupportedOperationException();
     }
 
@@ -86,10 +86,10 @@ public interface QueryAsyncWaiter extends SdkAutoCloseable {
      *         condition
      */
     default CompletableFuture<WaiterResponse<APostOperationResponse>> waitUntilPostOperationSuccess(
-        Consumer<APostOperationRequest.Builder> aPostOperationRequest,
-        Consumer<WaiterOverrideConfiguration.Builder> overrideConfig) {
+            Consumer<APostOperationRequest.Builder> aPostOperationRequest,
+            Consumer<WaiterOverrideConfiguration.Builder> overrideConfig) {
         return waitUntilPostOperationSuccess(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build(),
-                                             WaiterOverrideConfiguration.builder().applyMutation(overrideConfig).build());
+                WaiterOverrideConfiguration.builder().applyMutation(overrideConfig).build());
     }
 
     /**

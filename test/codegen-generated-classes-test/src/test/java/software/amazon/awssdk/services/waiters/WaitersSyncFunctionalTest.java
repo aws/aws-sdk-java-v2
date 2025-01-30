@@ -23,7 +23,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import edu.emory.mathcs.backport.java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
 import org.assertj.core.util.Arrays;
