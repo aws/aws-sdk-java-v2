@@ -26,7 +26,8 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.checksums.internal.Crc32Checksum;
 import software.amazon.awssdk.checksums.internal.Crc64NvmeChecksum;
 import software.amazon.awssdk.checksums.SdkChecksum;
-import software.amazon.awssdk.checksums.internal.Sha256Checksum;
+import software.amazon.awssdk.checksums.internal.DigestAlgorithm;
+import software.amazon.awssdk.checksums.internal.DigestAlgorithmChecksum;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 class ChecksumInputStreamTest {
@@ -37,7 +38,7 @@ class ChecksumInputStreamTest {
         String expectedDigest = "004c6bbd87e7fe70109b3bc23c8b1ab8f18a8bede0ed38c9233f6cdfd4f7b5d6";
 
         ByteArrayInputStream backingStream = new ByteArrayInputStream(testString.getBytes(StandardCharsets.UTF_8));
-        SdkChecksum checksum = new Sha256Checksum();
+        SdkChecksum checksum = new DigestAlgorithmChecksum(DigestAlgorithm.SHA256);
         ChecksumInputStream inputStream = new ChecksumInputStream(backingStream, Collections.singleton(checksum));
 
         readAll(inputStream);
@@ -54,7 +55,7 @@ class ChecksumInputStreamTest {
         String expectedCrc64Digest = "7c05fe704e3e02bc";
 
         ByteArrayInputStream backingStream = new ByteArrayInputStream(testString.getBytes(StandardCharsets.UTF_8));
-        SdkChecksum sha256Checksum = new Sha256Checksum();
+        SdkChecksum sha256Checksum = new DigestAlgorithmChecksum(DigestAlgorithm.SHA256);
         SdkChecksum crc32Checksum = new Crc32Checksum();
         SdkChecksum crc64NvmeChecksum = new Crc64NvmeChecksum();
         ChecksumInputStream inputStream = new ChecksumInputStream(backingStream, Arrays.asList(sha256Checksum, crc32Checksum, crc64NvmeChecksum));

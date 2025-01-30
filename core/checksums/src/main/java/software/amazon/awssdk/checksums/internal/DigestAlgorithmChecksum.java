@@ -15,32 +15,39 @@
 
 package software.amazon.awssdk.checksums.internal;
 
-import java.security.MessageDigest;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.SdkChecksum;
+import software.amazon.awssdk.checksums.internal.DigestAlgorithm.CloseableMessageDigest;
 
 /**
- * Implementation of {@link SdkChecksum} to calculate an Sha-256 Checksum.
+ * An implementation of {@link SdkChecksum} that uses a {@link DigestAlgorithm}.
  */
 @SdkInternalApi
-public class Sha256Checksum implements SdkChecksum {
+public class DigestAlgorithmChecksum implements SdkChecksum {
 
-    private MessageDigest digest;
+    private final DigestAlgorithm algorithm;
 
-    private MessageDigest digestLastMarked;
+    private CloseableMessageDigest digest;
 
-    public Sha256Checksum() {
-        this.digest = getDigest();
+    private CloseableMessageDigest digestLastMarked;
+
+    public DigestAlgorithmChecksum(DigestAlgorithm algorithm) {
+        this.algorithm = algorithm;
+        this.digest = newDigest();
+    }
+
+    private CloseableMessageDigest newDigest() {
+        return algorithm.getDigest();
     }
 
     @Override
     public void update(int b) {
-        digest.update((byte) b);
+        digest.messageDigest().update((byte) b);
     }
 
     @Override
     public void update(byte[] b, int off, int len) {
-        digest.update(b, off, len);
+        digest.messageDigest().update(b, off, len);
     }
 
     @Override
@@ -50,15 +57,12 @@ public class Sha256Checksum implements SdkChecksum {
 
     @Override
     public void reset() {
-        digest = (digestLastMarked == null)
-                 // This is necessary so that should there be a reset without a
-                 // preceding mark, the Sha-256 would still be computed correctly.
-                 ? getDigest()
-                 : cloneFrom(digestLastMarked);
-    }
-
-    private MessageDigest getDigest() {
-        return DigestAlgorithm.SHA256.getDigest();
+        digest.close();
+        if (digestLastMarked == null) {
+            digest = newDigest();
+        } else {
+            digest = digestLastMarked;
+        }
     }
 
     @Override
@@ -68,14 +72,6 @@ public class Sha256Checksum implements SdkChecksum {
 
     @Override
     public void mark(int readLimit) {
-        digestLastMarked = cloneFrom(digest);
-    }
-
-    private MessageDigest cloneFrom(MessageDigest from) {
-        try {
-            return (MessageDigest) from.clone();
-        } catch (CloneNotSupportedException e) { // should never occur
-            throw new IllegalStateException("unexpected", e);
-        }
+        digestLastMarked = digest.clone();
     }
 }
