@@ -123,20 +123,28 @@ public final class RequestBody {
      * To support resetting via {@link ContentStreamProvider}, this uses {@link InputStream#reset()} and uses a read limit of
      * 128 KiB. If you need more control, use {@link #fromContentProvider(ContentStreamProvider, long, String)} or
      * {@link #fromContentProvider(ContentStreamProvider, String)}.
+     * <p>
+     * <b>Important:</b> If {@code inputStream} does not support mark and reset, the stream will be buffered.
      *
      * @param inputStream   Input stream to send to the service. The stream will not be closed by the SDK.
      * @param contentLength Content length of data in input stream.
      * @return RequestBody instance.
      */
     public static RequestBody fromInputStream(InputStream inputStream, long contentLength) {
+        // NOTE: does not have an effect if mark not supported
         IoUtils.markStreamWithMaxReadLimit(inputStream);
         InputStream nonCloseable = nonCloseableInputStream(inputStream);
-        ContentStreamProvider provider = () -> {
-            if (nonCloseable.markSupported()) {
+        ContentStreamProvider provider;
+        if (nonCloseable.markSupported()) {
+            // stream supports mark + reset
+            provider = () -> {
                 invokeSafely(nonCloseable::reset);
-            }
-            return nonCloseable;
-        };
+                return nonCloseable;
+            };
+        } else {
+            // stream doesn't support mark + reset, make sure to buffer it
+            provider = new BufferingContentStreamProvider(() -> nonCloseable, contentLength);
+        }
         return new RequestBody(provider, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
