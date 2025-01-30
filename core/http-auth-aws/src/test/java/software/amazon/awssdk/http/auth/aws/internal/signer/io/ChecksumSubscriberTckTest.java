@@ -19,7 +19,8 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.tck.TestEnvironment;
-import software.amazon.awssdk.checksums.internal.Sha256Checksum;
+import software.amazon.awssdk.checksums.internal.DigestAlgorithm;
+import software.amazon.awssdk.checksums.internal.DigestAlgorithmChecksum;
 
 /**
  * TCK verifiation test for {@link ChecksumSubscriber}.
@@ -32,7 +33,7 @@ public class ChecksumSubscriberTckTest extends org.reactivestreams.tck.Subscribe
 
     @Override
     public Subscriber<ByteBuffer> createSubscriber() {
-        return new ChecksumSubscriber(Collections.singleton(new Sha256Checksum()));
+        return new ChecksumSubscriber(Collections.singleton(new DigestAlgorithmChecksum(DigestAlgorithm.SHA256)));
     }
 
     @Override
