@@ -15,6 +15,8 @@
 ## __Amazon Simple Storage Service__
   - ### Features
     - Change the type of MpuObjectSize in CompleteMultipartUploadRequest from int to long.
+  - ### Bugfixes
+    - Fixed an issue that could cause checksum mismatch errors when performing parallel uploads with the async S3 client and the SHA1 or SHA256 checksum algorithms selected.
 
 ## __Amazon Transcribe Streaming Service__
   - ### Features
@@ -23,6 +25,10 @@
 ## __MailManager__
   - ### Features
     - This release includes a new feature for Amazon SES Mail Manager which allows customers to specify known addresses and domains and make use of those in traffic policies and rules actions to distinguish between known and unknown entries.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Buffer input data from ContentStreamProvider in cases where content length is known.
 
 # __2.30.8__ __2025-01-28__
 ## __AWS AppSync__

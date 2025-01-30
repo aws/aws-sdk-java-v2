@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Fixed an issue that could cause checksum mismatch errors when performing parallel uploads with the async S3 client and the SHA1 or SHA256 checksum algorithms selected."
-}
