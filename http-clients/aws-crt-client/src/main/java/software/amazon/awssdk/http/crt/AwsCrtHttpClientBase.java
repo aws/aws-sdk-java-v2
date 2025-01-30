@@ -64,7 +64,6 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private final HttpProxyOptions proxyOptions;
     private final HttpMonitoringOptions monitoringOptions;
     private final long maxConnectionIdleInMilliseconds;
-    private final long connectionAcquisitionTimeout;
     private final int maxConnectionsPerEndpoint;
     private boolean isClosed = false;
 
@@ -91,7 +90,6 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
             this.maxConnectionsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
             this.monitoringOptions = resolveHttpMonitoringOptions(builder.getConnectionHealthConfiguration()).orElse(null);
             this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
-            this.connectionAcquisitionTimeout = config.get(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT).toMillis();
             this.proxyOptions = resolveProxy(builder.getProxyConfiguration(), tlsContext).orElse(null);
         }
     }
@@ -128,8 +126,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
                 .withManualWindowManagement(true)
                 .withProxyOptions(proxyOptions)
                 .withMonitoringOptions(monitoringOptions)
-                .withMaxConnectionIdleInMilliseconds(maxConnectionIdleInMilliseconds)
-                .withConnectionAcquisitionTimeoutInMilliseconds(connectionAcquisitionTimeout);
+                .withMaxConnectionIdleInMilliseconds(maxConnectionIdleInMilliseconds);
 
         return HttpClientConnectionManager.create(options);
     }
