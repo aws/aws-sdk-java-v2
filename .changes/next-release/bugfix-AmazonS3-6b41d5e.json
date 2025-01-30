@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Stopped populating SessionMode by default for the SDK-created S3 express sessions. This value already matched the service-side default, and was already not sent by most SDK languages."
+}
