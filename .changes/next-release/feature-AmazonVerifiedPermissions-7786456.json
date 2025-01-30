@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Verified Permissions",
+    "contributor": "",
+    "description": "Adds Cedar JSON format support for entities and context data in authorization requests"
+}
