@@ -1,8 +1,68 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.30.8__ __2025-01-28__
+# __2.30.10__ __2025-01-30__
 ## __Amazon DynamoDB Enhanced Client__
-  - ### Bugfixes
+- ### Bugfixes
     - Fixed DynamoDbEnhancedClient TableSchema::itemToMap doesn't respect ignoreNulls with null @DynamoDbFlattened members. See [#2540](https://github.com/aws/aws-sdk-java-v2/issues/2540)
+
+# __2.30.9__ __2025-01-29__
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Added ConflictException error type in DeleteBillScenario, BatchDeleteBillScenarioCommitmentModification, BatchDeleteBillScenarioUsageModification, BatchUpdateBillScenarioUsageModification, and BatchUpdateBillScenarioCommitmentModification API operations.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Add support for Dualstack and Dualstack-with-FIPS Endpoints
+
+## __Amazon Elastic Container Registry Public__
+  - ### Features
+    - Add support for Dualstack Endpoints
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Change the type of MpuObjectSize in CompleteMultipartUploadRequest from int to long.
+  - ### Bugfixes
+    - Fixed an issue that could cause checksum mismatch errors when performing parallel uploads with the async S3 client and the SHA1 or SHA256 checksum algorithms selected.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - This release adds support for AWS HealthScribe Streaming APIs within Amazon Transcribe.
+
+## __MailManager__
+  - ### Features
+    - This release includes a new feature for Amazon SES Mail Manager which allows customers to specify known addresses and domains and make use of those in traffic policies and rules actions to distinguish between known and unknown entries.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Buffer input data from ContentStreamProvider in cases where content length is known.
+
+# __2.30.8__ __2025-01-28__
+## __AWS AppSync__
+  - ### Features
+    - Add stash and outErrors to EvaluateCode/EvaluateMappingTemplate response
+
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports the Kerberos authentication protocol for SMB locations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Buffer input data from ContentStreamProvider to avoid the need to reread the stream after calculating its length.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - feature: Deadline: Add support for limiting the concurrent usage of external resources, like floating licenses, using limits and the ability to constrain the maximum number of workers that work on a job
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release changes the CreateFleet CLI and SDK's such that if you do not specify a client token, a randomly generated token is used for the request to ensure idempotency.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - For AppendOnly streams, Firehose will automatically scale to match your throughput.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - Adds 'allocatedStorage' parameter to UpdateDbInstance API that allows increasing the database instance storage size and 'dbStorageType' parameter to UpdateDbInstance API that allows changing the storage type of the database instance
 
 # __2.30.7__ __2025-01-27__
 ## __AWS Elemental MediaConvert__

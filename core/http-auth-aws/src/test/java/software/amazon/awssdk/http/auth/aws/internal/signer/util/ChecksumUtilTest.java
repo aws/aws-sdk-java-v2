@@ -18,7 +18,6 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.util;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32C;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC64NVME;
@@ -38,9 +37,7 @@ import org.mockito.Mockito;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.checksums.internal.Crc32Checksum;
 import software.amazon.awssdk.checksums.internal.Crc64NvmeChecksum;
-import software.amazon.awssdk.checksums.internal.Md5Checksum;
-import software.amazon.awssdk.checksums.internal.Sha1Checksum;
-import software.amazon.awssdk.checksums.internal.Sha256Checksum;
+import software.amazon.awssdk.checksums.internal.DigestAlgorithmChecksum;
 
 public class ChecksumUtilTest {
 
@@ -56,12 +53,11 @@ public class ChecksumUtilTest {
 
     @Test
     public void fromChecksumAlgorithm_mapsToCorrectSdkChecksum() {
-        assertEquals(Sha256Checksum.class, fromChecksumAlgorithm(SHA256).getClass());
-        assertEquals(Sha1Checksum.class, fromChecksumAlgorithm(SHA1).getClass());
+        assertEquals(DigestAlgorithmChecksum.class, fromChecksumAlgorithm(SHA256).getClass());
+        assertEquals(DigestAlgorithmChecksum.class, fromChecksumAlgorithm(SHA1).getClass());
         assertEquals(Crc32Checksum.class, fromChecksumAlgorithm(CRC32).getClass());
         assertInstanceOf(SdkChecksum.class, fromChecksumAlgorithm(CRC32C));
-        assertEquals(Md5Checksum.class, fromChecksumAlgorithm(MD5).getClass());
-        assertEquals(Md5Checksum.class, fromChecksumAlgorithm(MD5).getClass());
+        assertEquals(DigestAlgorithmChecksum.class, fromChecksumAlgorithm(MD5).getClass());
         assertEquals(Crc64NvmeChecksum.class, fromChecksumAlgorithm(CRC64NVME).getClass());
     }
 

@@ -69,7 +69,7 @@ public final class SdkPojoConversionUtils {
         CompleteMultipartUploadRequest.Builder builder = CompleteMultipartUploadRequest.builder();
         setSdkFields(builder, putObjectRequest);
 
-        builder.mpuObjectSize(Math.toIntExact(contentLength));
+        builder.mpuObjectSize(contentLength);
 
         if (S3ChecksumUtils.checksumValueSpecified(putObjectRequest)) {
             builder.checksumType(ChecksumType.FULL_OBJECT);
