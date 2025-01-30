@@ -1,4 +1,9 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.10__ __2025-01-30__
+## __Amazon DynamoDB Enhanced Client__
+- ### Bugfixes
+    - Fixed DynamoDbEnhancedClient TableSchema::itemToMap doesn't respect ignoreNulls with null @DynamoDbFlattened members. See [#2540](https://github.com/aws/aws-sdk-java-v2/issues/2540)
+
 # __2.30.9__ __2025-01-29__
 ## __AWS Billing and Cost Management Pricing Calculator__
   - ### Features

@@ -1386,6 +1386,11 @@ public class StaticImmutableTableSchemaTest {
 
         assertThat(tableSchema.itemToMap(item, true),
                    is(singletonMap("documentString", AttributeValue.builder().s("test-string").build())));
+
+        Map<String, AttributeValue> attributeMapWithNulls = tableSchema.itemToMap(item, false);
+        assertThat(attributeMapWithNulls.size(), is(2));
+        assertThat(attributeMapWithNulls, hasEntry("documentString", AttributeValue.builder().s("test-string").build()));
+        assertThat(attributeMapWithNulls, hasEntry("documentInteger", AttributeValue.fromNul(true)));
     }
 
     @Test
