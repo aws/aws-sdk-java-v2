@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultHttpContent;
@@ -32,7 +31,6 @@ import io.netty.handler.codec.http2.Http2ResetFrame;
 import io.netty.handler.codec.http2.HttpConversionUtil;
 import java.io.IOException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 /**
@@ -62,20 +60,6 @@ public class Http2ToHttpInboundAdapter extends SimpleChannelInboundHandler<Http2
 
         HttpResponse httpResponse = HttpConversionUtil.toHttpResponse(headersFrame.stream().id(), headersFrame.headers(), true);
         ctx.fireChannelRead(httpResponse);
-
-        if (HttpStatusFamily.of(httpResponse.status().code()) == HttpStatusFamily.SERVER_ERROR) {
-            fireConnectionExceptionForServerError(ctx);
-        }
-    }
-
-    private void fireConnectionExceptionForServerError(ChannelHandlerContext ctx) {
-        if (ctx.channel().parent() != null) {
-            Channel parent = ctx.channel().parent();
-            log.debug(ctx.channel(),
-                      () -> "A 5xx server error occurred on an Http2 stream, notifying the connection channel " + ctx.channel());
-            parent.pipeline().fireExceptionCaught(new Http2ConnectionTerminatingException("A 5xx server error occurred on an "
-                                                                                          + "Http2 stream " + ctx.channel()));
-        }
     }
 
     private void onDataRead(Http2DataFrame dataFrame, ChannelHandlerContext ctx) throws Http2Exception {

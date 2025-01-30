@@ -33,7 +33,8 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.checksums.internal.Crc32Checksum;
 import software.amazon.awssdk.checksums.internal.Crc64NvmeChecksum;
 import software.amazon.awssdk.checksums.SdkChecksum;
-import software.amazon.awssdk.checksums.internal.Sha256Checksum;
+import software.amazon.awssdk.checksums.internal.DigestAlgorithm;
+import software.amazon.awssdk.checksums.internal.DigestAlgorithmChecksum;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 public class ChecksumSubscriberTest {
@@ -43,7 +44,7 @@ public class ChecksumSubscriberTest {
         String testString = "AWS SDK for Java";
         String expectedDigest = "004c6bbd87e7fe70109b3bc23c8b1ab8f18a8bede0ed38c9233f6cdfd4f7b5d6";
 
-        SdkChecksum checksum = new Sha256Checksum();
+        SdkChecksum checksum = new DigestAlgorithmChecksum(DigestAlgorithm.SHA256);
         ChecksumSubscriber subscriber = new ChecksumSubscriber(Collections.singleton(checksum));
         Flowable<ByteBuffer> publisher = Flowable.just(ByteBuffer.wrap(testString.getBytes(StandardCharsets.UTF_8)));
         publisher.subscribe(subscriber);
@@ -61,7 +62,7 @@ public class ChecksumSubscriberTest {
         String expectedCrc32Digest = "4ac37ece";
         String expectedCrc64Digest = "7c05fe704e3e02bc";
 
-        SdkChecksum sha256Checksum = new Sha256Checksum();
+        SdkChecksum sha256Checksum = new DigestAlgorithmChecksum(DigestAlgorithm.SHA256);
         SdkChecksum crc32Checksum = new Crc32Checksum();
         SdkChecksum crc64NvmeChecksum = new Crc64NvmeChecksum();
         ChecksumSubscriber subscriber = new ChecksumSubscriber(Arrays.asList(sha256Checksum, crc32Checksum, crc64NvmeChecksum));

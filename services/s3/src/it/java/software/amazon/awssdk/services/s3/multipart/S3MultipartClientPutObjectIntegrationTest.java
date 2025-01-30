@@ -36,6 +36,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.zip.CRC32;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.zip.CheckedInputStream;
 import javax.crypto.KeyGenerator;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -75,6 +77,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     private static final byte[] CONTENT = RandomStringUtils.randomAscii(OBJ_SIZE).getBytes(Charset.defaultCharset());
     private static File testFile;
     private static S3AsyncClient mpuS3Client;
+    private static ExecutorService executorService = Executors.newFixedThreadPool(2);
 
     @BeforeAll
     public static void setup() throws Exception {
@@ -97,6 +100,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
         mpuS3Client.close();
         testFile.delete();
         deleteBucketAndAllContents(TEST_BUCKET);
+        executorService.shutdown();
     }
 
     @BeforeEach
@@ -108,6 +112,27 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     void putObject_fileRequestBody_objectSentCorrectly() throws Exception {
         AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
         mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
+
+        assertThat(CAPTURING_INTERCEPTOR.createMpuChecksumAlgorithm).isEqualTo("CRC32");
+        assertThat(CAPTURING_INTERCEPTOR.uploadPartChecksumAlgorithm).isEqualTo("CRC32");
+
+        ResponseInputStream<GetObjectResponse> objContent = s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+                                                                         ResponseTransformer.toInputStream());
+
+        assertThat(objContent.response().contentLength()).isEqualTo(testFile.length());
+        byte[] expectedSum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
+        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
+    }
+
+    @Test
+    void putObject_inputStreamAsyncRequestBody_objectSentCorrectly() throws Exception {
+        AsyncRequestBody body = AsyncRequestBody.fromInputStream(
+            new ByteArrayInputStream(CONTENT),
+            Long.valueOf(OBJ_SIZE),
+            executorService);
+        mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET)
+                                    .key(TEST_KEY)
+                                    .contentLength(Long.valueOf(OBJ_SIZE)), body).join();
 
         assertThat(CAPTURING_INTERCEPTOR.createMpuChecksumAlgorithm).isEqualTo("CRC32");
         assertThat(CAPTURING_INTERCEPTOR.uploadPartChecksumAlgorithm).isEqualTo("CRC32");

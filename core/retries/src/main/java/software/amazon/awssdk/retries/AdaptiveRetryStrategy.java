@@ -41,8 +41,8 @@ import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterTokenBucke
  *     <li>Retries on the conditions configured in the {@link Builder}.
  *     <li>Retries 2 times (3 total attempts). Adjust with {@link Builder#maxAttempts}
  *     <li>Uses a dynamic backoff delay based on load currently perceived against the downstream resource
- *     <li>Circuit breaking (disabling retries) in the event of high downstream failures within an individual scope.
- *     Circuit breaking may prevent a first attempt in outage scenarios to protect the downstream service.
+ *     <li>Circuit breaking (disabling retries) in the event of high downstream failures within an individual scope. The
+ *     circuit breaking will never prevent the first attempt
  * </ol>
  *
  * @see StandardRetryStrategy
