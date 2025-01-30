@@ -16,13 +16,12 @@
 package software.amazon.awssdk.core.internal.sync;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Random;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -110,17 +109,89 @@ class BufferingContentStreamProviderTest {
     }
 
     @Test
-    void newStream_allDataBuffered_closesDelegateStream() throws IOException {
+    public void newStream_delegateStreamClosedOnBufferingStreamClose() throws IOException {
         InputStream delegateStream = Mockito.spy(new ByteArrayInputStream(TEST_DATA));
 
         requestBody = RequestBody.fromContentProvider(() -> delegateStream, "text/plain");
 
-        IoUtils.drainInputStream(requestBody.contentStreamProvider().newStream());
-        Mockito.verify(delegateStream, Mockito.atLeast(1)).read(any(), anyInt(), anyInt());
-        Mockito.verify(delegateStream).close();
+        InputStream stream = requestBody.contentStreamProvider().newStream();
+        IoUtils.drainInputStream(stream);
+        stream.close();
 
-        IoUtils.drainInputStream(requestBody.contentStreamProvider().newStream());
-        Mockito.verifyNoMoreInteractions(delegateStream);
+        Mockito.verify(delegateStream).close();
+    }
+
+    @Test
+    public void newStream_lengthKnown_readUpToLengthThenClosed_newStreamUsesBufferedData() throws IOException {
+        ByteArrayInputStream stream = new ByteArrayInputStream(TEST_DATA);
+        requestBody = RequestBody.fromContentProvider(() -> stream, TEST_DATA.length, "text/plain");
+
+        int totalRead = 0;
+        int read;
+
+        InputStream stream1 = requestBody.contentStreamProvider().newStream();
+        do {
+            read = stream1.read();
+            if (read != -1) {
+                ++totalRead;
+            }
+        } while (read != -1);
+
+        assertThat(totalRead).isEqualTo(TEST_DATA.length);
+
+        stream1.close();
+
+        assertThat(requestBody.contentStreamProvider().newStream())
+            .isInstanceOf(BufferingContentStreamProvider.ByteArrayStream.class);
+    }
+
+    @Test
+    public void newStream_lengthKnown_partialRead_close_doesNotBufferData() throws IOException {
+        // We need a large buffer because BufferedInputStream buffers data in chunks. If the buffer is small enough, a single
+        // read() on the BufferedInputStream might actually buffer all the delegate's data.
+
+        byte[] newData = new byte[16536];
+        new Random().nextBytes(newData);
+        ByteArrayInputStream stream = new ByteArrayInputStream(newData);
+        requestBody = RequestBody.fromContentProvider(() -> stream, newData.length, "text/plain");
+
+        InputStream stream1 = requestBody.contentStreamProvider().newStream();
+        int read = stream1.read();
+        assertThat(read).isNotEqualTo(-1);
+
+        stream1.close();
+
+        InputStream stream2 = requestBody.contentStreamProvider().newStream();
+        assertThat(stream2).isInstanceOf(BufferingContentStreamProvider.BufferStream.class);
+
+        assertThat(getCrc32(stream2)).isEqualTo(getCrc32(new ByteArrayInputStream(newData)));
+    }
+
+    @Test
+    public void newStream_bufferedDataStreamPartialRead_closed_bufferedDataIsNotReplaced() throws IOException {
+        byte[] newData = new byte[16536];
+        new Random().nextBytes(newData);
+        String newDataChecksum = getCrc32(new ByteArrayInputStream(newData));
+
+        ByteArrayInputStream stream = new ByteArrayInputStream(newData);
+
+        requestBody = RequestBody.fromContentProvider(() -> stream, "text/plain");
+        InputStream stream1 = requestBody.contentStreamProvider().newStream();
+        IoUtils.drainInputStream(stream1);
+        stream1.close();
+
+        InputStream stream2 = requestBody.contentStreamProvider().newStream();
+        assertThat(stream2).isInstanceOf(BufferingContentStreamProvider.ByteArrayStream.class);
+
+        int read = stream2.read();
+        assertThat(read).isNotEqualTo(-1);
+
+        stream2.close();
+
+        InputStream stream3 = requestBody.contentStreamProvider().newStream();
+        assertThat(stream3).isInstanceOf(BufferingContentStreamProvider.ByteArrayStream.class);
+
+        assertThat(getCrc32(stream3)).isEqualTo(newDataChecksum);
     }
 
     private static String getCrc32(InputStream inputStream) {

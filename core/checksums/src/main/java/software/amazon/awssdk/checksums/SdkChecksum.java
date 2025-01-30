@@ -21,9 +21,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.checksums.internal.Crc32Checksum;
 import software.amazon.awssdk.checksums.internal.Crc64NvmeChecksum;
 import software.amazon.awssdk.checksums.internal.CrcChecksumProvider;
-import software.amazon.awssdk.checksums.internal.Md5Checksum;
-import software.amazon.awssdk.checksums.internal.Sha1Checksum;
-import software.amazon.awssdk.checksums.internal.Sha256Checksum;
+import software.amazon.awssdk.checksums.internal.DigestAlgorithm;
+import software.amazon.awssdk.checksums.internal.DigestAlgorithmChecksum;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 
 /**
@@ -43,11 +42,11 @@ public interface SdkChecksum extends Checksum {
             case "CRC32":
                 return new Crc32Checksum();
             case "SHA1":
-                return new Sha1Checksum();
+                return new DigestAlgorithmChecksum(DigestAlgorithm.SHA1);
             case "SHA256":
-                return new Sha256Checksum();
+                return new DigestAlgorithmChecksum(DigestAlgorithm.SHA256);
             case "MD5":
-                return new Md5Checksum();
+                return new DigestAlgorithmChecksum(DigestAlgorithm.MD5);
             case "CRC64NVME":
                 return new Crc64NvmeChecksum();
             default:
