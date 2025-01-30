@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3 Tables",
-    "contributor": "",
-    "description": "You can now use the CreateTable API operation to create tables with schemas by adding an optional metadata argument."
-}

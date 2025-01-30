@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Agents for Amazon Bedrock Runtime",
-    "contributor": "",
-    "description": "Add a 'reason' field to InternalServerException"
-}
