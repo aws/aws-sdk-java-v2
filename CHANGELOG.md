@@ -1,8 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.10__ __2025-01-30__
+## __AWS MediaTailor__
+  - ### Features
+    - Adds options for configuring how MediaTailor conditions ads before inserting them into the content stream. Based on the new settings, MediaTailor will either transcode ads to match the content stream as it has in the past, or it will insert ads without first transcoding them.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Add a 'reason' field to InternalServerException
+
+## __Amazon AppStream__
+  - ### Features
+    - Add support for managing admin consent requirement on selected domains for OneDrive Storage Connectors in AppStream2.0.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Temporarily updating dualstack endpoint support
+
+## __Amazon Elastic Container Registry Public__
+  - ### Features
+    - Temporarily updating dualstack endpoint support
+
+## __Amazon S3 Tables__
+  - ### Features
+    - You can now use the CreateTable API operation to create tables with schemas by adding an optional metadata argument.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adds Cedar JSON format support for entities and context data in authorization requests
+
+## __QBusiness__
+  - ### Features
+    - Added APIs to manage QBusiness user subscriptions
+
 # __2.30.9__ __2025-01-29__
 ## __AWS Billing and Cost Management Pricing Calculator__
   - ### Features
     - Added ConflictException error type in DeleteBillScenario, BatchDeleteBillScenarioCommitmentModification, BatchDeleteBillScenarioUsageModification, BatchUpdateBillScenarioUsageModification, and BatchUpdateBillScenarioCommitmentModification API operations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Buffer input data from ContentStreamProvider in cases where content length is known.
 
 ## __Amazon Elastic Container Registry__
   - ### Features
@@ -12,11 +53,13 @@
   - ### Features
     - Add support for Dualstack Endpoints
 
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue that could cause checksum mismatch errors when performing parallel uploads with the async S3 client and the SHA1 or SHA256 checksum algorithms selected.
+
 ## __Amazon Simple Storage Service__
   - ### Features
     - Change the type of MpuObjectSize in CompleteMultipartUploadRequest from int to long.
-  - ### Bugfixes
-    - Fixed an issue that could cause checksum mismatch errors when performing parallel uploads with the async S3 client and the SHA1 or SHA256 checksum algorithms selected.
 
 ## __Amazon Transcribe Streaming Service__
   - ### Features
@@ -25,10 +68,6 @@
 ## __MailManager__
   - ### Features
     - This release includes a new feature for Amazon SES Mail Manager which allows customers to specify known addresses and domains and make use of those in traffic policies and rules actions to distinguish between known and unknown entries.
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Buffer input data from ContentStreamProvider in cases where content length is known.
 
 # __2.30.8__ __2025-01-28__
 ## __AWS AppSync__
