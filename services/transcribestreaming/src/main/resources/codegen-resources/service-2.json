@@ -14,6 +14,22 @@
     "auth":["aws.auth#sigv4"]
   },
   "operations":{
+    "GetMedicalScribeStream":{
+      "name":"GetMedicalScribeStream",
+      "http":{
+        "method":"GET",
+        "requestUri":"/medical-scribe-stream/{SessionId}"
+      },
+      "input":{"shape":"GetMedicalScribeStreamRequest"},
+      "output":{"shape":"GetMedicalScribeStreamResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"InternalFailureException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Provides details about the specified Amazon Web Services HealthScribe streaming session. To view the status of the streaming session, check the <code>StreamStatus</code> field in the response. To get the details of post-stream analytics, including its status, check the <code>PostStreamAnalyticsResult</code> field in the response. </p>"
+    },
     "StartCallAnalyticsStreamTranscription":{
       "name":"StartCallAnalyticsStreamTranscription",
       "http":{
@@ -30,6 +46,23 @@
         {"shape":"ServiceUnavailableException"}
       ],
       "documentation":"<p>Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application. Use this operation for <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/call-analytics.html\">Call Analytics</a> transcriptions.</p> <p>The following parameters are required:</p> <ul> <li> <p> <code>language-code</code> </p> </li> <li> <p> <code>media-encoding</code> </p> </li> <li> <p> <code>sample-rate</code> </p> </li> </ul> <p>For more information on streaming with Amazon Transcribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html\">Transcribing streaming audio</a>.</p>"
+    },
+    "StartMedicalScribeStream":{
+      "name":"StartMedicalScribeStream",
+      "http":{
+        "method":"POST",
+        "requestUri":"/medical-scribe-stream"
+      },
+      "input":{"shape":"StartMedicalScribeStreamRequest"},
+      "output":{"shape":"StartMedicalScribeStreamResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"InternalFailureException"},
+        {"shape":"ConflictException"},
+        {"shape":"ServiceUnavailableException"}
+      ],
+      "documentation":"<p>Starts a bidirectional HTTP/2 stream, where audio is streamed to Amazon Web Services HealthScribe and the transcription results are streamed to your application.</p> <p>When you start a stream, you first specify the stream configuration in a <code>MedicalScribeConfigurationEvent</code>. This event includes channel definitions, encryption settings, and post-stream analytics settings, such as the output configuration for aggregated transcript and clinical note generation. These are additional streaming session configurations beyond those provided in your initial start request headers. Whether you are starting a new session or resuming an existing session, your first event must be a <code>MedicalScribeConfigurationEvent</code>. </p> <p> After you send a <code>MedicalScribeConfigurationEvent</code>, you start <code>AudioEvents</code> and Amazon Web Services HealthScribe responds with real-time transcription results. When you are finished, to start processing the results with the post-stream analytics, send a <code>MedicalScribeSessionControlEvent</code> with a <code>Type</code> of <code>END_OF_SESSION</code> and Amazon Web Services HealthScribe starts the analytics. </p> <p>You can pause or resume streaming. To pause streaming, complete the input stream without sending the <code>MedicalScribeSessionControlEvent</code>. To resume streaming, call the <code>StartMedicalScribeStream</code> and specify the same SessionId you used to start the stream. </p> <p>The following parameters are required:</p> <ul> <li> <p> <code>language-code</code> </p> </li> <li> <p> <code>media-encoding</code> </p> </li> <li> <p> <code>media-sample-rate-hertz</code> </p> </li> </ul> <p/> <p>For more information on streaming with Amazon Web Services HealthScribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/health-scribe-streaming.html\">Amazon Web Services HealthScribe</a>. </p>"
     },
     "StartMedicalStreamTranscription":{
       "name":"StartMedicalStreamTranscription",
@@ -95,7 +128,7 @@
       "members":{
         "AudioChunk":{
           "shape":"AudioChunk",
-          "documentation":"<p>An audio blob that contains the next part of the audio that you want to transcribe. The maximum audio chunk size is 32 KB.</p>",
+          "documentation":"<p> An audio blob containing the next segment of audio from your application, with a maximum duration of 1 second. The maximum size in bytes varies based on audio properties. </p> <p>Find recommended size in <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html#best-practices\">Transcribing streaming best practices</a>. </p> <p> Size calculation: <code>Duration (s) * Sample Rate (Hz) * Number of Channels * 2 (Bytes per Sample)</code> </p> <p> For example, a 1-second chunk of 16 kHz, 2-channel, 16-bit audio would be <code>1 * 16000 * 2 * 2 = 64000 bytes</code>. </p> <p> For 8 kHz, 1-channel, 16-bit audio, a 1-second chunk would be <code>1 * 8000 * 1 * 2 = 16000 bytes</code>. </p>",
           "eventpayload":true
         }
       },
@@ -127,6 +160,11 @@
       "exception":true
     },
     "Boolean":{"type":"boolean"},
+    "BucketName":{
+      "type":"string",
+      "max":64,
+      "pattern":"[a-z0-9][\\.\\-a-z0-9]{1,61}[a-z0-9]"
+    },
     "CallAnalyticsEntity":{
       "type":"structure",
       "members":{
@@ -291,6 +329,47 @@
       },
       "documentation":"<p>Provides the location, using character count, in your transcript where a match is identified. For example, the location of an issue or a category match within a segment.</p>"
     },
+    "ClinicalNoteGenerationResult":{
+      "type":"structure",
+      "members":{
+        "ClinicalNoteOutputLocation":{
+          "shape":"Uri",
+          "documentation":"<p>Holds the Amazon S3 URI for the output Clinical Note. </p>"
+        },
+        "TranscriptOutputLocation":{
+          "shape":"Uri",
+          "documentation":"<p>Holds the Amazon S3 URI for the output Transcript. </p>"
+        },
+        "Status":{
+          "shape":"ClinicalNoteGenerationStatus",
+          "documentation":"<p>The status of the clinical note generation.</p> <p>Possible Values:</p> <ul> <li> <p> <code>IN_PROGRESS</code> </p> </li> <li> <p> <code>FAILED</code> </p> </li> <li> <p> <code>COMPLETED</code> </p> </li> </ul> <p> After audio streaming finishes, and you send a <code>MedicalScribeSessionControlEvent</code> event (with END_OF_SESSION as the Type), the status is set to <code>IN_PROGRESS</code>. If the status is <code>COMPLETED</code>, the analytics completed successfully, and you can find the results at the locations specified in <code>ClinicalNoteOutputLocation</code> and <code>TranscriptOutputLocation</code>. If the status is <code>FAILED</code>, <code>FailureReason</code> provides details about the failure. </p>"
+        },
+        "FailureReason":{
+          "shape":"String",
+          "documentation":"<p>If <code>ClinicalNoteGenerationResult</code> is <code>FAILED</code>, information about why it failed. </p>"
+        }
+      },
+      "documentation":"<p>The details for clinical note generation, including status, and output locations for clinical note and aggregated transcript if the analytics completed, or failure reason if the analytics failed. </p>"
+    },
+    "ClinicalNoteGenerationSettings":{
+      "type":"structure",
+      "required":["OutputBucketName"],
+      "members":{
+        "OutputBucketName":{
+          "shape":"BucketName",
+          "documentation":"<p>The name of the Amazon S3 bucket where you want the output of Amazon Web Services HealthScribe post-stream analytics stored. Don't include the <code>S3://</code> prefix of the specified bucket. </p> <p>HealthScribe outputs transcript and clinical note files under the prefix: <code>S3://$output-bucket-name/healthscribe-streaming/session-id/post-stream-analytics/clinical-notes</code> </p> <p>The role <code>ResourceAccessRoleArn</code> specified in the <code>MedicalScribeConfigurationEvent</code> must have permission to use the specified location. You can change Amazon S3 permissions using the <a href=\"https://console.aws.amazon.com/s3\"> Amazon Web Services Management Console </a>. See also <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/security_iam_id-based-policy-examples.html#auth-role-iam-user\">Permissions Required for IAM User Roles </a> . </p>"
+        }
+      },
+      "documentation":"<p>The output configuration for aggregated transcript and clinical note generation.</p>"
+    },
+    "ClinicalNoteGenerationStatus":{
+      "type":"string",
+      "enum":[
+        "IN_PROGRESS",
+        "FAILED",
+        "COMPLETED"
+      ]
+    },
     "Confidence":{"type":"double"},
     "ConfigurationEvent":{
       "type":"structure",
@@ -331,6 +410,7 @@
       "type":"string",
       "enum":["PII"]
     },
+    "DateTime":{"type":"timestamp"},
     "Double":{"type":"double"},
     "Entity":{
       "type":"structure",
@@ -365,6 +445,33 @@
     "EntityList":{
       "type":"list",
       "member":{"shape":"Entity"}
+    },
+    "GetMedicalScribeStreamRequest":{
+      "type":"structure",
+      "required":["SessionId"],
+      "members":{
+        "SessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The identifier of the HealthScribe streaming session you want information about.</p>",
+          "location":"uri",
+          "locationName":"SessionId"
+        }
+      }
+    },
+    "GetMedicalScribeStreamResponse":{
+      "type":"structure",
+      "members":{
+        "MedicalScribeStreamDetails":{
+          "shape":"MedicalScribeStreamDetails",
+          "documentation":"<p>Provides details about a HealthScribe streaming session.</p>"
+        }
+      }
+    },
+    "IamRoleArn":{
+      "type":"string",
+      "max":2048,
+      "min":20,
+      "pattern":"^arn:(aws|aws-cn|aws-us-gov|aws-iso-{0,1}[a-z]{0,1}):iam::[0-9]{0,63}:role/[A-Za-z0-9:_/+=,@.-]{0,1024}$"
     },
     "Integer":{"type":"integer"},
     "InternalFailureException":{
@@ -439,6 +546,19 @@
         "pronunciation",
         "punctuation"
       ]
+    },
+    "KMSEncryptionContextMap":{
+      "type":"map",
+      "key":{"shape":"NonEmptyString"},
+      "value":{"shape":"NonEmptyString"},
+      "max":10,
+      "min":1
+    },
+    "KMSKeyId":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"^[A-Za-z0-9][A-Za-z0-9:_/+=,@.-]{0,2048}$"
     },
     "LanguageCode":{
       "type":"string",
@@ -675,6 +795,364 @@
       "type":"list",
       "member":{"shape":"MedicalResult"}
     },
+    "MedicalScribeAudioEvent":{
+      "type":"structure",
+      "required":["AudioChunk"],
+      "members":{
+        "AudioChunk":{
+          "shape":"AudioChunk",
+          "documentation":"<p> An audio blob containing the next segment of audio from your application, with a maximum duration of 1 second. The maximum size in bytes varies based on audio properties. </p> <p>Find recommended size in <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html#best-practices\">Transcribing streaming best practices</a>. </p> <p> Size calculation: <code>Duration (s) * Sample Rate (Hz) * Number of Channels * 2 (Bytes per Sample)</code> </p> <p> For example, a 1-second chunk of 16 kHz, 2-channel, 16-bit audio would be <code>1 * 16000 * 2 * 2 = 64000 bytes</code>. </p> <p> For 8 kHz, 1-channel, 16-bit audio, a 1-second chunk would be <code>1 * 8000 * 1 * 2 = 16000 bytes</code>. </p>",
+          "eventpayload":true
+        }
+      },
+      "documentation":"<p>A wrapper for your audio chunks</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/event-stream.html\">Event stream encoding</a>. </p>",
+      "event":true
+    },
+    "MedicalScribeChannelDefinition":{
+      "type":"structure",
+      "required":[
+        "ChannelId",
+        "ParticipantRole"
+      ],
+      "members":{
+        "ChannelId":{
+          "shape":"MedicalScribeChannelId",
+          "documentation":"<p>Specify the audio channel you want to define.</p>"
+        },
+        "ParticipantRole":{
+          "shape":"MedicalScribeParticipantRole",
+          "documentation":"<p>Specify the participant that you want to flag. The allowed options are <code>CLINICIAN</code> and <code>PATIENT</code>. </p>"
+        }
+      },
+      "documentation":"<p>Makes it possible to specify which speaker is on which channel. For example, if the clinician is the first participant to speak, you would set the <code>ChannelId</code> of the first <code>ChannelDefinition</code> in the list to <code>0</code> (to indicate the first channel) and <code>ParticipantRole</code> to <code>CLINICIAN</code> (to indicate that it's the clinician speaking). Then you would set the <code>ChannelId</code> of the second <code>ChannelDefinition</code> in the list to <code>1</code> (to indicate the second channel) and <code>ParticipantRole</code> to <code>PATIENT</code> (to indicate that it's the patient speaking). </p> <p>If you don't specify a channel definition, HealthScribe will diarize the transcription and identify speaker roles for each speaker.</p>"
+    },
+    "MedicalScribeChannelDefinitions":{
+      "type":"list",
+      "member":{"shape":"MedicalScribeChannelDefinition"},
+      "max":2,
+      "min":2
+    },
+    "MedicalScribeChannelId":{
+      "type":"integer",
+      "max":1,
+      "min":0
+    },
+    "MedicalScribeConfigurationEvent":{
+      "type":"structure",
+      "required":[
+        "ResourceAccessRoleArn",
+        "PostStreamAnalyticsSettings"
+      ],
+      "members":{
+        "VocabularyName":{
+          "shape":"VocabularyName",
+          "documentation":"<p>Specify the name of the custom vocabulary you want to use for your streaming session. Custom vocabulary names are case-sensitive. </p>"
+        },
+        "VocabularyFilterName":{
+          "shape":"VocabularyFilterName",
+          "documentation":"<p>Specify the name of the custom vocabulary filter you want to include in your streaming session. Custom vocabulary filter names are case-sensitive. </p> <p>If you include <code>VocabularyFilterName</code> in the <code>MedicalScribeConfigurationEvent</code>, you must also include <code>VocabularyFilterMethod</code>. </p>"
+        },
+        "VocabularyFilterMethod":{
+          "shape":"MedicalScribeVocabularyFilterMethod",
+          "documentation":"<p>Specify how you want your custom vocabulary filter applied to the streaming session.</p> <p>To replace words with <code>***</code>, specify <code>mask</code>. </p> <p>To delete words, specify <code>remove</code>. </p> <p>To flag words without changing them, specify <code>tag</code>. </p>"
+        },
+        "ResourceAccessRoleArn":{
+          "shape":"IamRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of an IAM role that has permissions to access the Amazon S3 output bucket you specified, and use your KMS key if supplied. If the role that you specify doesn’t have the appropriate permissions, your request fails. </p> <p> IAM role ARNs have the format <code>arn:partition:iam::account:role/role-name-with-path</code>. For example: <code>arn:aws:iam::111122223333:role/Admin</code>. </p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/health-scribe-streaming.html\">Amazon Web Services HealthScribe</a>.</p>"
+        },
+        "ChannelDefinitions":{
+          "shape":"MedicalScribeChannelDefinitions",
+          "documentation":"<p>Specify which speaker is on which audio channel.</p>"
+        },
+        "EncryptionSettings":{
+          "shape":"MedicalScribeEncryptionSettings",
+          "documentation":"<p>Specify the encryption settings for your streaming session.</p>"
+        },
+        "PostStreamAnalyticsSettings":{
+          "shape":"MedicalScribePostStreamAnalyticsSettings",
+          "documentation":"<p>Specify settings for post-stream analytics.</p>"
+        }
+      },
+      "documentation":"<p>Specify details to configure the streaming session, including channel definitions, encryption settings, post-stream analytics settings, resource access role ARN and vocabulary settings. </p> <p>Whether you are starting a new session or resuming an existing session, your first event must be a <code>MedicalScribeConfigurationEvent</code>. If you are resuming a session, then this event must have the same configurations that you provided to start the session. </p>",
+      "event":true
+    },
+    "MedicalScribeEncryptionSettings":{
+      "type":"structure",
+      "required":["KmsKeyId"],
+      "members":{
+        "KmsEncryptionContext":{
+          "shape":"KMSEncryptionContextMap",
+          "documentation":"<p>A map of plain text, non-secret key:value pairs, known as encryption context pairs, that provide an added layer of security for your data. For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/key-management.html#kms-context\">KMSencryption context </a> and <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/symmetric-asymmetric.html\">Asymmetric keys in KMS </a>. </p>"
+        },
+        "KmsKeyId":{
+          "shape":"KMSKeyId",
+          "documentation":"<p>The ID of the KMS key you want to use for your streaming session. You can specify its KMS key ID, key Amazon Resource Name (ARN), alias name, or alias ARN. When using an alias name, prefix it with <code>\"alias/\"</code>. To specify a KMS key in a different Amazon Web Services account, you must use the key ARN or alias ARN.</p> <p>For example:</p> <ul> <li> <p>Key ID: 1234abcd-12ab-34cd-56ef-1234567890ab</p> </li> <li> <p>Key ARN: arn:aws:kms:us-east-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab</p> </li> <li> <p> Alias name: alias/ExampleAlias</p> </li> <li> <p> Alias ARN: arn:aws:kms:us-east-2:111122223333:alias/ExampleAlias </p> </li> </ul> <p> To get the key ID and key ARN for a KMS key, use the <a href=\"https://docs.aws.amazon.com/kms/latest/APIReference/API_ListKeys.html\">ListKeys</a> or <a href=\"https://docs.aws.amazon.com/kms/latest/APIReference/API_DescribeKey.html\">DescribeKey</a> KMS API operations. To get the alias name and alias ARN, use <a href=\"https://docs.aws.amazon.com/kms/latest/APIReference/API_ListAliases.html\">ListKeys</a> API operation. </p>"
+        }
+      },
+      "documentation":"<p>Contains encryption related settings to be used for data encryption with Key Management Service, including KmsEncryptionContext and KmsKeyId. The KmsKeyId is required, while KmsEncryptionContext is optional for additional layer of security. </p> <p>By default, Amazon Web Services HealthScribe provides encryption at rest to protect sensitive customer data using Amazon S3-managed keys. HealthScribe uses the KMS key you specify as a second layer of encryption.</p> <p> Your <code>ResourceAccessRoleArn</code> must permission to use your KMS key. For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/health-scribe-encryption.html\">Data Encryption at rest for Amazon Web Services HealthScribe</a>. </p>"
+    },
+    "MedicalScribeInputStream":{
+      "type":"structure",
+      "members":{
+        "AudioEvent":{"shape":"MedicalScribeAudioEvent"},
+        "SessionControlEvent":{
+          "shape":"MedicalScribeSessionControlEvent",
+          "documentation":"<p>Specify the lifecycle of your streaming session, such as ending the session.</p>"
+        },
+        "ConfigurationEvent":{
+          "shape":"MedicalScribeConfigurationEvent",
+          "documentation":"<p>Specify additional streaming session configurations beyond those provided in your initial start request headers. For example, specify channel definitions, encryption settings, and post-stream analytics settings. </p> <p>Whether you are starting a new session or resuming an existing session, your first event must be a <code>MedicalScribeConfigurationEvent</code>. </p>"
+        }
+      },
+      "documentation":"<p>An encoded stream of events. The stream is encoded as HTTP/2 data frames.</p> <p>An input stream consists of the following types of events. The first element of the input stream must be the <code>MedicalScribeConfigurationEvent</code> event type.</p> <ul> <li> <p> <code>MedicalScribeConfigurationEvent</code> </p> </li> <li> <p> <code>MedicalScribeAudioEvent</code> </p> </li> <li> <p> <code>MedicalScribeSessionControlEvent</code> </p> </li> </ul>",
+      "eventstream":true
+    },
+    "MedicalScribeLanguageCode":{
+      "type":"string",
+      "enum":["en-US"]
+    },
+    "MedicalScribeMediaEncoding":{
+      "type":"string",
+      "enum":[
+        "pcm",
+        "ogg-opus",
+        "flac"
+      ]
+    },
+    "MedicalScribeMediaSampleRateHertz":{
+      "type":"integer",
+      "max":48000,
+      "min":16000
+    },
+    "MedicalScribeParticipantRole":{
+      "type":"string",
+      "enum":[
+        "PATIENT",
+        "CLINICIAN"
+      ]
+    },
+    "MedicalScribePostStreamAnalyticsResult":{
+      "type":"structure",
+      "members":{
+        "ClinicalNoteGenerationResult":{
+          "shape":"ClinicalNoteGenerationResult",
+          "documentation":"<p>Provides the Clinical Note Generation result for post-stream analytics.</p>"
+        }
+      },
+      "documentation":"<p>Contains details for the result of post-stream analytics. </p>"
+    },
+    "MedicalScribePostStreamAnalyticsSettings":{
+      "type":"structure",
+      "required":["ClinicalNoteGenerationSettings"],
+      "members":{
+        "ClinicalNoteGenerationSettings":{
+          "shape":"ClinicalNoteGenerationSettings",
+          "documentation":"<p>Specify settings for the post-stream clinical note generation.</p>"
+        }
+      },
+      "documentation":"<p>The settings for post-stream analytics. </p>"
+    },
+    "MedicalScribeResultStream":{
+      "type":"structure",
+      "members":{
+        "TranscriptEvent":{
+          "shape":"MedicalScribeTranscriptEvent",
+          "documentation":"<p>The transcript event that contains real-time transcription results. </p>"
+        },
+        "BadRequestException":{"shape":"BadRequestException"},
+        "LimitExceededException":{"shape":"LimitExceededException"},
+        "InternalFailureException":{"shape":"InternalFailureException"},
+        "ConflictException":{"shape":"ConflictException"},
+        "ServiceUnavailableException":{"shape":"ServiceUnavailableException"}
+      },
+      "documentation":"<p>Result stream where you will receive the output events. The details are provided in the <code>MedicalScribeTranscriptEvent</code> object. </p>",
+      "eventstream":true
+    },
+    "MedicalScribeSessionControlEvent":{
+      "type":"structure",
+      "required":["Type"],
+      "members":{
+        "Type":{
+          "shape":"MedicalScribeSessionControlEventType",
+          "documentation":"<p>The type of <code>MedicalScribeSessionControlEvent</code>. </p> <p>Possible Values:</p> <ul> <li> <p> <code>END_OF_SESSION</code> - Indicates the audio streaming is complete. After you send an END_OF_SESSION event, Amazon Web Services HealthScribe starts the post-stream analytics. The session can't be resumed after this event is sent. After Amazon Web Services HealthScribe processes the event, the real-time <code>StreamStatus</code> is <code>COMPLETED</code>. You get the <code>StreamStatus</code> and other stream details with the <a href=\"https://docs.aws.amazon.com/transcribe/latest/APIReference/API_streaming_GetMedicalScribeStream.html\">GetMedicalScribeStream</a> API operation. For more information about different streaming statuses, see the <code>StreamStatus</code> description in the <a href=\"https://docs.aws.amazon.com/transcribe/latest/APIReference/API_streaming_MedicalScribeStreamDetails.html\">MedicalScribeStreamDetails</a>. </p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Specify the lifecycle of your streaming session.</p>",
+      "event":true
+    },
+    "MedicalScribeSessionControlEventType":{
+      "type":"string",
+      "enum":["END_OF_SESSION"]
+    },
+    "MedicalScribeStreamDetails":{
+      "type":"structure",
+      "members":{
+        "SessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The identifier of the HealthScribe streaming session.</p>"
+        },
+        "StreamCreatedAt":{
+          "shape":"DateTime",
+          "documentation":"<p>The date and time when the HealthScribe streaming session was created.</p>"
+        },
+        "StreamEndedAt":{
+          "shape":"DateTime",
+          "documentation":"<p>The date and time when the HealthScribe streaming session was ended.</p>"
+        },
+        "LanguageCode":{
+          "shape":"MedicalScribeLanguageCode",
+          "documentation":"<p>The Language Code of the HealthScribe streaming session.</p>"
+        },
+        "MediaSampleRateHertz":{
+          "shape":"MedicalScribeMediaSampleRateHertz",
+          "documentation":"<p>The sample rate (in hertz) of the HealthScribe streaming session.</p>"
+        },
+        "MediaEncoding":{
+          "shape":"MedicalScribeMediaEncoding",
+          "documentation":"<p>The Media Encoding of the HealthScribe streaming session.</p>"
+        },
+        "VocabularyName":{
+          "shape":"VocabularyName",
+          "documentation":"<p>The vocabulary name of the HealthScribe streaming session.</p>"
+        },
+        "VocabularyFilterName":{
+          "shape":"VocabularyFilterName",
+          "documentation":"<p>The name of the vocabulary filter used for the HealthScribe streaming session .</p>"
+        },
+        "VocabularyFilterMethod":{
+          "shape":"MedicalScribeVocabularyFilterMethod",
+          "documentation":"<p>The method of the vocabulary filter for the HealthScribe streaming session.</p>"
+        },
+        "ResourceAccessRoleArn":{
+          "shape":"IamRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the role used in the HealthScribe streaming session.</p>"
+        },
+        "ChannelDefinitions":{
+          "shape":"MedicalScribeChannelDefinitions",
+          "documentation":"<p>The Channel Definitions of the HealthScribe streaming session.</p>"
+        },
+        "EncryptionSettings":{
+          "shape":"MedicalScribeEncryptionSettings",
+          "documentation":"<p>The Encryption Settings of the HealthScribe streaming session.</p>"
+        },
+        "StreamStatus":{
+          "shape":"MedicalScribeStreamStatus",
+          "documentation":"<p>The streaming status of the HealthScribe streaming session.</p> <p>Possible Values:</p> <ul> <li> <p> <code>IN_PROGRESS</code> </p> </li> <li> <p> <code>PAUSED</code> </p> </li> <li> <p> <code>FAILED</code> </p> </li> <li> <p> <code>COMPLETED</code> </p> </li> </ul> <note> <p>This status is specific to real-time streaming. A <code>COMPLETED</code> status doesn't mean that the post-stream analytics is complete. To get status of an analytics result, check the <code>Status</code> field for the analytics result within the <code>MedicalScribePostStreamAnalyticsResult</code>. For example, you can view the status of the <code>ClinicalNoteGenerationResult</code>. </p> </note>"
+        },
+        "PostStreamAnalyticsSettings":{
+          "shape":"MedicalScribePostStreamAnalyticsSettings",
+          "documentation":"<p>The post-stream analytics settings of the HealthScribe streaming session.</p>"
+        },
+        "PostStreamAnalyticsResult":{
+          "shape":"MedicalScribePostStreamAnalyticsResult",
+          "documentation":"<p>The result of post-stream analytics for the HealthScribe streaming session.</p>"
+        }
+      },
+      "documentation":"<p>Contains details about a Amazon Web Services HealthScribe streaming session.</p>"
+    },
+    "MedicalScribeStreamStatus":{
+      "type":"string",
+      "enum":[
+        "IN_PROGRESS",
+        "PAUSED",
+        "FAILED",
+        "COMPLETED"
+      ]
+    },
+    "MedicalScribeTranscriptEvent":{
+      "type":"structure",
+      "members":{
+        "TranscriptSegment":{
+          "shape":"MedicalScribeTranscriptSegment",
+          "documentation":"<p>The <code>TranscriptSegment</code> associated with a <code>MedicalScribeTranscriptEvent</code>. </p>"
+        }
+      },
+      "documentation":"<p>The event associated with <code>MedicalScribeResultStream</code>. </p> <p>Contains <code>MedicalScribeTranscriptSegment</code>, which contains segment related information. </p>",
+      "event":true
+    },
+    "MedicalScribeTranscriptItem":{
+      "type":"structure",
+      "members":{
+        "BeginAudioTime":{
+          "shape":"Double",
+          "documentation":"<p>The start time, in milliseconds, of the transcribed item.</p>"
+        },
+        "EndAudioTime":{
+          "shape":"Double",
+          "documentation":"<p>The end time, in milliseconds, of the transcribed item.</p>"
+        },
+        "Type":{
+          "shape":"MedicalScribeTranscriptItemType",
+          "documentation":"<p>The type of item identified. Options are: <code>PRONUNCIATION</code> (spoken words) and <code>PUNCTUATION</code>. </p>"
+        },
+        "Confidence":{
+          "shape":"Confidence",
+          "documentation":"<p>The confidence score associated with a word or phrase in your transcript.</p> <p>Confidence scores are values between 0 and 1. A larger value indicates a higher probability that the identified item correctly matches the item spoken in your media. </p>"
+        },
+        "Content":{
+          "shape":"String",
+          "documentation":"<p>The word, phrase or punctuation mark that was transcribed.</p>"
+        },
+        "VocabularyFilterMatch":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Indicates whether the specified item matches a word in the vocabulary filter included in your configuration event. If <code>true</code>, there is a vocabulary filter match. </p>"
+        }
+      },
+      "documentation":"<p>A word, phrase, or punctuation mark in your transcription output, along with various associated attributes, such as confidence score, type, and start and end times. </p>"
+    },
+    "MedicalScribeTranscriptItemList":{
+      "type":"list",
+      "member":{"shape":"MedicalScribeTranscriptItem"}
+    },
+    "MedicalScribeTranscriptItemType":{
+      "type":"string",
+      "enum":[
+        "pronunciation",
+        "punctuation"
+      ]
+    },
+    "MedicalScribeTranscriptSegment":{
+      "type":"structure",
+      "members":{
+        "SegmentId":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the segment.</p>"
+        },
+        "BeginAudioTime":{
+          "shape":"Double",
+          "documentation":"<p>The start time, in milliseconds, of the segment.</p>"
+        },
+        "EndAudioTime":{
+          "shape":"Double",
+          "documentation":"<p>The end time, in milliseconds, of the segment.</p>"
+        },
+        "Content":{
+          "shape":"String",
+          "documentation":"<p>Contains transcribed text of the segment.</p>"
+        },
+        "Items":{
+          "shape":"MedicalScribeTranscriptItemList",
+          "documentation":"<p>Contains words, phrases, or punctuation marks in your segment.</p>"
+        },
+        "IsPartial":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates if the segment is complete.</p> <p>If <code>IsPartial</code> is <code>true</code>, the segment is not complete. If <code>IsPartial</code> is <code>false</code>, the segment is complete. </p>"
+        },
+        "ChannelId":{
+          "shape":"String",
+          "documentation":"<p>Indicates which audio channel is associated with the <code>MedicalScribeTranscriptSegment</code>. </p> <p>If <code>MedicalScribeChannelDefinition</code> is not provided in the <code>MedicalScribeConfigurationEvent</code>, then this field will not be included. </p>"
+        }
+      },
+      "documentation":"<p>Contains a set of transcription results, along with additional information of the segment.</p>"
+    },
+    "MedicalScribeVocabularyFilterMethod":{
+      "type":"string",
+      "enum":[
+        "remove",
+        "mask",
+        "tag"
+      ]
+    },
     "MedicalTranscript":{
       "type":"structure",
       "members":{
@@ -717,6 +1195,16 @@
       "max":200,
       "min":1,
       "pattern":"^[0-9a-zA-Z._-]+"
+    },
+    "NonEmptyString":{
+      "type":"string",
+      "max":2000,
+      "min":1,
+      "pattern":".*\\S.*"
+    },
+    "NullableBoolean":{
+      "type":"boolean",
+      "box":true
     },
     "NumberOfChannels":{
       "type":"integer",
@@ -780,6 +1268,15 @@
       "documentation":"<p>Allows you to specify additional settings for your Call Analytics post-call request, including output locations for your redacted transcript, which IAM role to use, and which encryption key to use.</p> <p> <code>DataAccessRoleArn</code> and <code>OutputLocation</code> are required fields.</p> <p> <code>PostCallAnalyticsSettings</code> provides you with the same insights as a Call Analytics post-call transcription. Refer to <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/tca-post-call.html\">Post-call analytics</a> for more information on this feature.</p>"
     },
     "RequestId":{"type":"string"},
+    "ResourceNotFoundException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The request references a resource which doesn't exist.</p>",
+      "error":{"httpStatusCode":404},
+      "exception":true
+    },
     "Result":{
       "type":"structure",
       "members":{
@@ -1045,6 +1542,86 @@
         }
       },
       "payload":"CallAnalyticsTranscriptResultStream"
+    },
+    "StartMedicalScribeStreamRequest":{
+      "type":"structure",
+      "required":[
+        "LanguageCode",
+        "MediaSampleRateHertz",
+        "MediaEncoding",
+        "InputStream"
+      ],
+      "members":{
+        "SessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>Specify an identifier for your streaming session (in UUID format). If you don't include a SessionId in your request, Amazon Web Services HealthScribe generates an ID and returns it in the response. </p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-session-id"
+        },
+        "LanguageCode":{
+          "shape":"MedicalScribeLanguageCode",
+          "documentation":"<p>Specify the language code for your HealthScribe streaming session.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-language-code"
+        },
+        "MediaSampleRateHertz":{
+          "shape":"MedicalScribeMediaSampleRateHertz",
+          "documentation":"<p>Specify the sample rate of the input audio (in hertz). Amazon Web Services HealthScribe supports a range from 16,000 Hz to 48,000 Hz. The sample rate you specify must match that of your audio. </p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-sample-rate"
+        },
+        "MediaEncoding":{
+          "shape":"MedicalScribeMediaEncoding",
+          "documentation":"<p>Specify the encoding used for the input audio.</p> <p>Supported formats are:</p> <ul> <li> <p>FLAC</p> </li> <li> <p>OPUS-encoded audio in an Ogg container</p> </li> <li> <p>PCM (only signed 16-bit little-endian audio formats, which does not include WAV) </p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/how-input.html#how-input-audio\">Media formats</a>. </p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-media-encoding"
+        },
+        "InputStream":{
+          "shape":"MedicalScribeInputStream",
+          "documentation":"<p>Specify the input stream where you will send events in real time.</p> <p>The first element of the input stream must be a <code>MedicalScribeConfigurationEvent</code>. </p>"
+        }
+      },
+      "payload":"InputStream"
+    },
+    "StartMedicalScribeStreamResponse":{
+      "type":"structure",
+      "members":{
+        "SessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The identifier (in UUID format) for your streaming session.</p> <p>If you already started streaming, this is same ID as the one you specified in your initial <code>StartMedicalScribeStreamRequest</code>. </p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-session-id"
+        },
+        "RequestId":{
+          "shape":"RequestId",
+          "documentation":"<p>The unique identifier for your streaming request. </p>",
+          "location":"header",
+          "locationName":"x-amzn-request-id"
+        },
+        "LanguageCode":{
+          "shape":"MedicalScribeLanguageCode",
+          "documentation":"<p>The Language Code that you specified in your request. Same as provided in the <code>StartMedicalScribeStreamRequest</code>. </p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-language-code"
+        },
+        "MediaSampleRateHertz":{
+          "shape":"MedicalScribeMediaSampleRateHertz",
+          "documentation":"<p>The sample rate (in hertz) that you specified in your request. Same as provided in the <code>StartMedicalScribeStreamRequest</code> </p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-sample-rate"
+        },
+        "MediaEncoding":{
+          "shape":"MedicalScribeMediaEncoding",
+          "documentation":"<p>The Media Encoding you specified in your request. Same as provided in the <code>StartMedicalScribeStreamRequest</code> </p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-media-encoding"
+        },
+        "ResultStream":{
+          "shape":"MedicalScribeResultStream",
+          "documentation":"<p>The result stream where you will receive the output events. </p>"
+        }
+      },
+      "payload":"ResultStream"
     },
     "StartMedicalStreamTranscriptionRequest":{
       "type":"structure",
@@ -1586,6 +2163,12 @@
         "DICTATION"
       ]
     },
+    "Uri":{
+      "type":"string",
+      "max":2000,
+      "min":1,
+      "pattern":"(s3://|http(s*)://).+"
+    },
     "UtteranceEvent":{
       "type":"structure",
       "members":{
@@ -1666,5 +2249,5 @@
       "pattern":"^[a-zA-Z0-9,-._]+"
     }
   },
-  "documentation":"<p>Amazon Transcribe streaming offers three main types of real-time transcription: <b>Standard</b>, <b>Medical</b>, and <b>Call Analytics</b>.</p> <ul> <li> <p> <b>Standard transcriptions</b> are the most common option. Refer to for details.</p> </li> <li> <p> <b>Medical transcriptions</b> are tailored to medical professionals and incorporate medical terms. A common use case for this service is transcribing doctor-patient dialogue in real time, so doctors can focus on their patient instead of taking notes. Refer to for details.</p> </li> <li> <p> <b>Call Analytics transcriptions</b> are designed for use with call center audio on two different channels; if you're looking for insight into customer service calls, use this option. Refer to for details.</p> </li> </ul>"
+  "documentation":"<p>Amazon Transcribe streaming offers four main types of real-time transcription: <b>Standard</b>, <b>Medical</b>, <b>Call Analytics</b>, and <b>Health Scribe</b>.</p> <ul> <li> <p> <b>Standard transcriptions</b> are the most common option. Refer to for details.</p> </li> <li> <p> <b>Medical transcriptions</b> are tailored to medical professionals and incorporate medical terms. A common use case for this service is transcribing doctor-patient dialogue in real time, so doctors can focus on their patient instead of taking notes. Refer to for details.</p> </li> <li> <p> <b>Call Analytics transcriptions</b> are designed for use with call center audio on two different channels; if you're looking for insight into customer service calls, use this option. Refer to for details.</p> </li> <li> <p> <b>HealthScribe transcriptions</b> are designed to automatically create clinical notes from patient-clinician conversations using generative AI. Refer to [here] for details.</p> </li> </ul>"
 }
