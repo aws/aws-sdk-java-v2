@@ -17,9 +17,11 @@ package software.amazon.awssdk.core.exception;
 
 import java.util.StringJoiner;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @SdkProtectedApi
-public class SdkDiagnostics {
+public class SdkDiagnostics implements ToCopyableBuilder<SdkDiagnostics.Builder, SdkDiagnostics> {
     private final Integer numAttempts;
 
     private SdkDiagnostics(Builder builder) {
@@ -38,10 +40,10 @@ public class SdkDiagnostics {
     }
 
     public SdkDiagnostics.Builder toBuilder() {
-        return new SdkDiagnostics.BuilderImpl();
+        return new BuilderImpl().numAttempts(numAttempts);
     }
 
-    public interface Builder {
+    public interface Builder extends CopyableBuilder<Builder, SdkDiagnostics> {
         /**
          * Sets the number of attempts.
          *

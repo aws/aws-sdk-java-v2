@@ -137,8 +137,9 @@ public class SdkException extends RuntimeException {
          * @param numAttempts The attempt count
          * @return This method for object chaining
          */
-        Builder numAttempts(Integer numAttempts);
-
+        default Builder numAttempts(Integer numAttempts) {
+            throw new UnsupportedOperationException();
+        }
         /**
          * The number of times a request was attempted before this exception was thrown
          * @return the attempt count
@@ -168,7 +169,6 @@ public class SdkException extends RuntimeException {
     }
 
     protected static class BuilderImpl implements Builder {
-
         protected Throwable cause;
         protected String message;
         protected Integer numAttempts;
