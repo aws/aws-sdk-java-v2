@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.11__ __2025-01-31__
+## __AWS CodeBuild__
+  - ### Features
+    - Added support for CodeBuild self-hosted Buildkite runner builds
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue in SdkHttpUtils used in SdkHttpFullRequest where constructing with a query string consisting of a single "=" would throw an ArrayIndexOutOfBoundsException.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This change is to deprecate the existing citation field under RetrieveAndGenerateStream API response in lieu of GeneratedResponsePart and RetrievedReferences
+
+## __Amazon Location Service Routes V2__
+  - ### Features
+    - The OptimizeWaypoints API now supports 50 waypoints per request (20 with constraints like AccessHours or AppointmentTime). It adds waypoint clustering via Clustering and ClusteringIndex for better optimization. Also, total distance validation is removed for greater flexibility.
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Add support for sending metrics to cross account and CMCK AMP workspaces through RoleConfiguration on Create/Update Scraper.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates to Aurora MySQL and Aurora PostgreSQL API pages with instance log type in the create and modify DB Cluster.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Stopped populating SessionMode by default for the SDK-created S3 express sessions. This value already matched the service-side default, and was already not sent by most SDK languages.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release introduces a new valid value in InstanceType parameter: p5en.48xlarge, in ProductionVariant.
+
 # __2.30.10__ __2025-01-30__
 ## __AWS MediaTailor__
   - ### Features
