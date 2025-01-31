@@ -69,11 +69,16 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
     }
 
     static long initTotalBytes(AsyncRequestBody wrapped, Long contentLengthHeader) {
+
+        if (wrapped.contentLength().isPresent()) {
+            return wrapped.contentLength().get();
+        }
+
         if (contentLengthHeader != null) {
             return contentLengthHeader;
         }
-        return wrapped.contentLength()
-                      .orElseThrow(() -> new UnsupportedOperationException("Content length must be supplied."));
+
+        throw new UnsupportedOperationException("Content length must be supplied.");
     }
 
     /**
