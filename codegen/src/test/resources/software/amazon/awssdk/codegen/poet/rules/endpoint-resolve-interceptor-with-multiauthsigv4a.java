@@ -61,10 +61,15 @@ public final class DatabaseResolveEndpointInterceptor implements ExecutionInterc
             List<EndpointAuthScheme> endpointAuthSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
             SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
                 .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
-            if (endpointAuthSchemes != null && selectedAuthScheme != null) {
+            if (endpointAuthSchemes != null) {
                 selectedAuthScheme = authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme);
-                if (!hasRegionSet(selectedAuthScheme)) {
-                    selectedAuthScheme = updateAuthSchemeWithRegionSet(selectedAuthScheme, endpointParams);
+                if (selectedAuthScheme.authSchemeOption().schemeId().equals(AwsV4aAuthScheme.SCHEME_ID)
+                    && selectedAuthScheme.authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_SET) == null) {
+                    AuthSchemeOption.Builder optionBuilder = selectedAuthScheme.authSchemeOption().toBuilder();
+                    RegionSet regionSet = RegionSet.create(endpointParams.region().id());
+                    optionBuilder.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet);
+                    selectedAuthScheme = new SelectedAuthScheme(selectedAuthScheme.identity(), selectedAuthScheme.signer(),
+                                                                optionBuilder.build());
                 }
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
             }
@@ -134,7 +139,9 @@ public final class DatabaseResolveEndpointInterceptor implements ExecutionInterc
                 if (v4aAuthScheme.isDisableDoubleEncodingSet()) {
                     option.putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, !v4aAuthScheme.disableDoubleEncoding());
                 }
-                if (!hasRegionSet(selectedAuthScheme) && v4aAuthScheme.signingRegionSet() != null) {
+                if (!(selectedAuthScheme.authSchemeOption().schemeId().equals(AwsV4aAuthScheme.SCHEME_ID)
+                      && selectedAuthScheme.authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_SET) != null)
+                    && v4aAuthScheme.signingRegionSet() != null) {
                     RegionSet regionSet = RegionSet.create(v4aAuthScheme.signingRegionSet());
                     option.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet);
                 }
@@ -156,16 +163,4 @@ public final class DatabaseResolveEndpointInterceptor implements ExecutionInterc
         return Optional.empty();
     }
 
-    private <T extends Identity> boolean hasRegionSet(SelectedAuthScheme<T> selectedAuthScheme) {
-        return selectedAuthScheme.authSchemeOption().schemeId().equals(AwsV4aAuthScheme.SCHEME_ID)
-               && selectedAuthScheme.authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_SET) != null;
-    }
-
-    private <T extends Identity> SelectedAuthScheme<T> updateAuthSchemeWithRegionSet(SelectedAuthScheme<T> selectedAuthScheme,
-                                                                                     DatabaseEndpointParams endpointParams) {
-        AuthSchemeOption.Builder optionBuilder = selectedAuthScheme.authSchemeOption().toBuilder();
-        RegionSet regionSet = RegionSet.create(endpointParams.region().id());
-        optionBuilder.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet);
-        return new SelectedAuthScheme<>(selectedAuthScheme.identity(), selectedAuthScheme.signer(), optionBuilder.build());
-    }
 }
