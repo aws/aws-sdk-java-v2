@@ -26,8 +26,10 @@ import static org.testng.Assert.fail;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
@@ -41,6 +43,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SdkAsyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -120,9 +123,10 @@ public class AsyncClientHandlerExceptionTest {
 
     @Test
     public void responseHandlerThrowsReportedThroughFuture() throws Exception {
-        final SdkClientException e = SdkClientException.create("Could not handle response");
+        final SdkException e = SdkClientException.builder().message("Could not handle response").numAttempts(1).build();
+
         when(responseHandler.handle(any(SdkHttpFullResponse.class), any(ExecutionAttributes.class))).thenThrow(e);
-        doVerify(() -> clientHandler.execute(executionParams), thrown -> thrown.getCause() instanceof SdkClientException);
+        doVerify(() -> clientHandler.execute(executionParams), e);
     }
 
     @Test
@@ -141,7 +145,9 @@ public class AsyncClientHandlerExceptionTest {
     }
 
     private void doVerify(Supplier<CompletableFuture<?>> s, final Throwable expectedException) {
-        doVerify(s, (thrown) -> thrown.getCause() == expectedException);
+        Assertions.assertThatExceptionOfType(ExecutionException.class).isThrownBy(() -> s.get().get())
+                  .withCauseInstanceOf(expectedException.getClass())
+                  .withMessageContaining(expectedException.getMessage());
     }
 
     private void doVerify(Supplier<CompletableFuture<?>> s, Predicate<Throwable> assertFn) {
