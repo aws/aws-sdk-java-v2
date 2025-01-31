@@ -1,4 +1,9 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.11__ __2025-01-31__
+## __Amazon DynamoDB Enhanced Client__
+- ### Bugfixes
+    - Fixed DefaultDynamoDbAsyncTable: createTable() doesn't create secondary indices that are defined on annotations of the POJO class.
+
 # __2.30.10__ __2025-01-30__
 ## __AWS MediaTailor__
   - ### Features
