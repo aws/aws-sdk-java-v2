@@ -221,9 +221,10 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                        List.class, EndpointAuthScheme.class, AwsEndpointAttribute.class);
         b.addStatement("$T<?> selectedAuthScheme = executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME)",
                        SelectedAuthScheme.class, SdkInternalExecutionAttribute.class);
-        b.beginControlFlow("if (endpointAuthSchemes != null)");
+        b.beginControlFlow("if (endpointAuthSchemes != null && selectedAuthScheme != null)");
         b.addStatement("selectedAuthScheme = authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme)");
         if (multiAuthSigv4a) {
+            b.addComment("Precedence of SigV4a RegionSet is set according to multi-auth SigV4a specifications");
             b.beginControlFlow("if(selectedAuthScheme.authSchemeOption().schemeId().equals($T.SCHEME_ID) "
                                + "&& selectedAuthScheme.authSchemeOption().signerProperty($T.REGION_SET) == null)",
                                AwsV4aAuthScheme.class, AwsV4aHttpSigner.class);

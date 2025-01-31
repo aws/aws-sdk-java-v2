@@ -84,7 +84,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             List<EndpointAuthScheme> endpointAuthSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
             SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
                 .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
-            if (endpointAuthSchemes != null) {
+            if (endpointAuthSchemes != null && selectedAuthScheme != null) {
                 selectedAuthScheme = authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme);
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
             }

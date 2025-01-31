@@ -61,8 +61,9 @@ public final class DatabaseResolveEndpointInterceptor implements ExecutionInterc
             List<EndpointAuthScheme> endpointAuthSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
             SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
                 .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
-            if (endpointAuthSchemes != null) {
+            if (endpointAuthSchemes != null && selectedAuthScheme != null) {
                 selectedAuthScheme = authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme);
+                // Precedence of SigV4a RegionSet is set according to multi-auth SigV4a specifications
                 if (selectedAuthScheme.authSchemeOption().schemeId().equals(AwsV4aAuthScheme.SCHEME_ID)
                     && selectedAuthScheme.authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_SET) == null) {
                     AuthSchemeOption.Builder optionBuilder = selectedAuthScheme.authSchemeOption().toBuilder();
