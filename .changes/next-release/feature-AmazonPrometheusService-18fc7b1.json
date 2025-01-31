@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Prometheus Service",
+    "contributor": "",
+    "description": "Add support for sending metrics to cross account and CMCK AMP workspaces through RoleConfiguration on Create/Update Scraper."
+}
