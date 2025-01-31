@@ -140,6 +140,7 @@ public class SdkException extends RuntimeException {
         default Builder numAttempts(Integer numAttempts) {
             throw new UnsupportedOperationException();
         }
+
         /**
          * The number of times a request was attempted before this exception was thrown
          * @return the attempt count
