@@ -99,7 +99,9 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         ch.attr(CHANNEL_DIAGNOSTICS).set(new ChannelDiagnostics(ch));
         ch.attr(PROTOCOL_FUTURE).set(new CompletableFuture<>());
         ChannelPipeline pipeline = ch.pipeline();
-        if (sslCtx != null) {
+
+        boolean sslCtxPresent = sslCtx != null;
+        if (sslCtxPresent) {
 
             SslHandler sslHandler = newSslHandler(sslCtx, ch.alloc(), poolKey.getHost(), poolKey.getPort(),
                                                   configuration.tlsHandshakeTimeout());
@@ -114,11 +116,16 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
             }
         }
 
-        configureProtocolHandlers(ch, pipeline, protocol);
+        configureProtocolHandlers(ch, pipeline, protocol, sslCtxPresent);
         configurePostProtocolHandlers(pipeline, protocol);
     }
 
-    private void configureProtocolHandlers(Channel ch, ChannelPipeline pipeline, Protocol protocol) {
+    private void configureProtocolHandlers(Channel ch, ChannelPipeline pipeline, Protocol protocol, boolean sslContextPresent) {
+        if (!sslContextPresent) {
+            configureAssumeProtocol(ch, pipeline, protocol);
+            return;
+        }
+
         switch (protocolNegotiation) {
             case ASSUME_PROTOCOL:
                 configureAssumeProtocol(ch, pipeline, protocol);
@@ -184,7 +191,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     }
 
     private void configureAlpnH2(ChannelPipeline pipeline) {
-        pipeline.addLast(new ApplicationProtocolNegotiationHandler("") {
+        pipeline.addLast(new ApplicationProtocolNegotiationHandler(ApplicationProtocolNames.HTTP_2) {
             @Override
             protected void configurePipeline(ChannelHandlerContext ctx, String protocol) {
                 if (protocol.equals(ApplicationProtocolNames.HTTP_2)) {
