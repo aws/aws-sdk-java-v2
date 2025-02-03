@@ -138,6 +138,12 @@ public class SdkServiceException extends SdkException implements SdkPojo {
         @Override
         Builder writableStackTrace(Boolean writableStackTrace);
 
+        @Override
+        Builder numAttempts(Integer numAttempts);
+
+        @Override
+        Integer numAttempts();
+
         /**
          * Specifies the requestId returned by the called service.
          *
@@ -223,6 +229,17 @@ public class SdkServiceException extends SdkException implements SdkPojo {
         public Builder writableStackTrace(Boolean writableStackTrace) {
             this.writableStackTrace = writableStackTrace;
             return this;
+        }
+
+        @Override
+        public Builder numAttempts(Integer numAttempts) {
+            super.numAttempts(numAttempts);
+            return this;
+        }
+
+        @Override
+        public Integer numAttempts() {
+            return super.numAttempts();
         }
 
         @Override
