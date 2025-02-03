@@ -1,0 +1,51 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"internalconfig",
+    "jsonVersion":"1.1",
+    "protocol":"rest-json",
+    "serviceAbbreviation":"AwsSigv4aMultiAuthService",
+    "serviceFullName":"AWS Multi Auth Service",
+    "serviceId":"Sigv4aauth",
+    "targetPrefix":"Sigv4aauth",
+    "auth":["aws.auth#sigv4a"],
+    "timestampFormat":"unixTimestamp",
+    "uid":"restjson-2016-03-11"
+  },
+  "operations":{
+    "simpleOperationWithNoEndpointParams":{
+      "name":"simpleOperationWithNoEndpointParams",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/simpleOperationWithNoEndpointParams"
+      },
+      "input":{"shape":"sampleRequest"},
+      "staticContextParams":{
+        "ApiType":{"value":"NoEndpointSigningProperties"}
+      }
+    },
+    "simpleOperationWithEndpointParams":{
+      "name":"simpleOperationWithEndpointParams",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/multiAuthWithOnlySigv4aAndSigv4"
+      },
+      "input":{"shape":"sampleRequest"},
+      "staticContextParams":{
+        "ApiType":{"value":"onlySigv4a"}
+      }
+    }
+  },
+  "shapes": {
+    "sampleRequest": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "String":{"type":"string"}
+  }
+}

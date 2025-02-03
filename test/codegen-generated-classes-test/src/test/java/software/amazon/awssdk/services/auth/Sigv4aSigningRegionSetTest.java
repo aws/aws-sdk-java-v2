@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -206,11 +207,9 @@ class Sigv4aSigningRegionSetTest {
 
             MultiauthClient client = builder.build();
 
-            try {
-                client.sigv4AndSigv4aOperation(b -> b.stringMember("test").build());
-            } catch (EndpointCapturingInterceptor.CaptureCompletedException e) {
-                // Expected
-            }
+            assertThatExceptionOfType(CaptureCompletedException.class)
+                .isThrownBy(() -> client.multiAuthWithOnlySigv4aAndSigv4(b -> b.stringMember("test").build()));
+
             assertThat(interceptor.sigv4aSigningRegionSet())
                 .containsExactlyInAnyOrderElementsOf(testCase.expectedValues);
 
@@ -268,8 +267,7 @@ class Sigv4aSigningRegionSetTest {
         public void reset() {
             sigv4aSigningRegionSet = Collections.emptySet();
         }
-
-        public static class CaptureCompletedException extends RuntimeException {
-        }
+    }
+    public static class CaptureCompletedException extends RuntimeException {
     }
 }

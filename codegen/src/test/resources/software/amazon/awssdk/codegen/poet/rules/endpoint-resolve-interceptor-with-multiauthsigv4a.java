@@ -1,4 +1,4 @@
-package software.amazon.awssdk.services.query.endpoints.internal;
+package software.amazon.awssdk.services.database.endpoints.internal;
 
 import java.time.Duration;
 import java.util.List;
@@ -7,12 +7,10 @@ import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
-import software.amazon.awssdk.awscore.internal.useragent.BusinessMetricsUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -22,41 +20,32 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
-import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
-import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
-import software.amazon.awssdk.services.query.jmespath.internal.JmesPathRuntime;
-import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
-import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperationContextParamRequest;
-import software.amazon.awssdk.services.query.model.OperationWithMapOperationContextParamRequest;
-import software.amazon.awssdk.services.query.model.OperationWithOperationContextParamRequest;
-import software.amazon.awssdk.utils.AttributeMap;
-import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointParams;
+import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointProvider;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public final class QueryResolveEndpointInterceptor implements ExecutionInterceptor {
+public final class DatabaseResolveEndpointInterceptor implements ExecutionInterceptor {
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
         SdkRequest result = context.request();
         if (AwsEndpointProviderUtils.endpointIsDiscovered(executionAttributes)) {
             return result;
         }
-        QueryEndpointProvider provider = (QueryEndpointProvider) executionAttributes
+        DatabaseEndpointProvider provider = (DatabaseEndpointProvider) executionAttributes
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
             long resolveEndpointStart = System.nanoTime();
-            QueryEndpointParams endpointParams = ruleParams(result, executionAttributes);
+            DatabaseEndpointParams endpointParams = ruleParams(result, executionAttributes);
             Endpoint endpoint = provider.resolveEndpoint(endpointParams).join();
             Duration resolveEndpointDuration = Duration.ofNanos(System.nanoTime() - resolveEndpointStart);
             Optional<MetricCollector> metricCollector = executionAttributes
@@ -74,6 +63,15 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
             if (endpointAuthSchemes != null && selectedAuthScheme != null) {
                 selectedAuthScheme = authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme);
+                // Precedence of SigV4a RegionSet is set according to multi-auth SigV4a specifications
+                if (selectedAuthScheme.authSchemeOption().schemeId().equals(AwsV4aAuthScheme.SCHEME_ID)
+                    && selectedAuthScheme.authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_SET) == null) {
+                    AuthSchemeOption.Builder optionBuilder = selectedAuthScheme.authSchemeOption().toBuilder();
+                    RegionSet regionSet = RegionSet.create(endpointParams.region().id());
+                    optionBuilder.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet);
+                    selectedAuthScheme = new SelectedAuthScheme(selectedAuthScheme.identity(), selectedAuthScheme.signer(),
+                                                                optionBuilder.build());
+                }
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
             }
             executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, endpoint);
@@ -101,46 +99,20 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         return httpRequestBuilder.build();
     }
 
-    public static QueryEndpointParams ruleParams(SdkRequest request, ExecutionAttributes executionAttributes) {
-        QueryEndpointParams.Builder builder = QueryEndpointParams.builder();
+    public static DatabaseEndpointParams ruleParams(SdkRequest request, ExecutionAttributes executionAttributes) {
+        DatabaseEndpointParams.Builder builder = DatabaseEndpointParams.builder();
         builder.region(AwsEndpointProviderUtils.regionBuiltIn(executionAttributes));
-        builder.useDualStackEndpoint(AwsEndpointProviderUtils.dualStackEnabledBuiltIn(executionAttributes));
-        builder.useFipsEndpoint(AwsEndpointProviderUtils.fipsEnabledBuiltIn(executionAttributes));
-        builder.accountId(resolveAndRecordAccountIdFromIdentity(executionAttributes));
-        builder.accountIdEndpointMode(recordAccountIdEndpointMode(executionAttributes));
-        setClientContextParams(builder, executionAttributes);
+        builder.endpoint(AwsEndpointProviderUtils.endpointBuiltIn(executionAttributes));
         setContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), request);
         setStaticContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME));
         setOperationContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), request);
         return builder.build();
     }
 
-    private static void setContextParams(QueryEndpointParams.Builder params, String operationName, SdkRequest request) {
-        switch (operationName) {
-            case "OperationWithContextParam":
-                setContextParams(params, (OperationWithContextParamRequest) request);
-                break;
-            default:
-                break;
-        }
+    private static void setContextParams(DatabaseEndpointParams.Builder params, String operationName, SdkRequest request) {
     }
 
-    private static void setContextParams(QueryEndpointParams.Builder params, OperationWithContextParamRequest request) {
-        params.operationContextParam(request.stringMember());
-    }
-
-    private static void setStaticContextParams(QueryEndpointParams.Builder params, String operationName) {
-        switch (operationName) {
-            case "OperationWithStaticContextParams":
-                operationWithStaticContextParamsStaticContextParams(params);
-                break;
-            default:
-                break;
-        }
-    }
-
-    private static void operationWithStaticContextParamsStaticContextParams(QueryEndpointParams.Builder params) {
-        params.staticStringParam("hello");
+    private static void setStaticContextParams(DatabaseEndpointParams.Builder params, String operationName) {
     }
 
     private <T extends Identity> SelectedAuthScheme<T> authSchemeWithEndpointSignerProperties(
@@ -168,7 +140,9 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 if (v4aAuthScheme.isDisableDoubleEncodingSet()) {
                     option.putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, !v4aAuthScheme.disableDoubleEncoding());
                 }
-                if (v4aAuthScheme.signingRegionSet() != null) {
+                if (!(selectedAuthScheme.authSchemeOption().schemeId().equals(AwsV4aAuthScheme.SCHEME_ID)
+                      && selectedAuthScheme.authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_SET) != null)
+                    && v4aAuthScheme.signingRegionSet() != null) {
                     RegionSet regionSet = RegionSet.create(v4aAuthScheme.signingRegionSet());
                     option.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet);
                 }
@@ -183,79 +157,11 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         return selectedAuthScheme;
     }
 
-    private static void setClientContextParams(QueryEndpointParams.Builder params, ExecutionAttributes executionAttributes) {
-        AttributeMap clientContextParams = executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS);
-        Optional.ofNullable(clientContextParams.get(QueryClientContextParams.BOOLEAN_CONTEXT_PARAM)).ifPresent(
-            params::booleanContextParam);
-        Optional.ofNullable(clientContextParams.get(QueryClientContextParams.STRING_CONTEXT_PARAM)).ifPresent(
-            params::stringContextParam);
-    }
-
-    private static void setOperationContextParams(QueryEndpointParams.Builder params, String operationName, SdkRequest request) {
-        switch (operationName) {
-            case "OperationWithCustomizedOperationContextParam":
-                setOperationContextParams(params, (OperationWithCustomizedOperationContextParamRequest) request);
-                break;
-            case "OperationWithMapOperationContextParam":
-                setOperationContextParams(params, (OperationWithMapOperationContextParamRequest) request);
-                break;
-            case "OperationWithOperationContextParam":
-                setOperationContextParams(params, (OperationWithOperationContextParamRequest) request);
-                break;
-            default:
-                break;
-        }
-    }
-
-    private static void setOperationContextParams(QueryEndpointParams.Builder params,
-                                                  OperationWithCustomizedOperationContextParamRequest request) {
-        JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
-        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString").stringValues());
-    }
-
-    private static void setOperationContextParams(QueryEndpointParams.Builder params,
-                                                  OperationWithMapOperationContextParamRequest request) {
-        JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
-        params.arnList(input.field("RequestMap").keys().stringValues());
-    }
-
-    private static void setOperationContextParams(QueryEndpointParams.Builder params,
-                                                  OperationWithOperationContextParamRequest request) {
-        JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
-        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString").stringValues());
+    private static void setOperationContextParams(DatabaseEndpointParams.Builder params, String operationName, SdkRequest request) {
     }
 
     private static Optional<String> hostPrefix(String operationName, SdkRequest request) {
-        switch (operationName) {
-            case "APostOperation": {
-                return Optional.of("foo-");
-            }
-            default:
-                return Optional.empty();
-        }
+        return Optional.empty();
     }
 
-    private static String resolveAndRecordAccountIdFromIdentity(ExecutionAttributes executionAttributes) {
-        String accountId = accountIdFromIdentity(executionAttributes
-                                                     .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
-        executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(
-            BusinessMetricFeatureId.RESOLVED_ACCOUNT_ID.value());
-        return accountId;
-    }
-
-    private static <T extends Identity> String accountIdFromIdentity(SelectedAuthScheme<T> selectedAuthScheme) {
-        T identity = CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity());
-        String accountId = null;
-        if (identity instanceof AwsCredentialsIdentity) {
-            accountId = ((AwsCredentialsIdentity) identity).accountId().orElse(null);
-        }
-        return accountId;
-    }
-
-    private static String recordAccountIdEndpointMode(ExecutionAttributes executionAttributes) {
-        AccountIdEndpointMode mode = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE);
-        BusinessMetricsUtils.resolveAccountIdEndpointModeMetric(mode).ifPresent(
-            m -> executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(m));
-        return mode.name().toLowerCase();
-    }
 }
