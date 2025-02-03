@@ -50,7 +50,6 @@ Class <software.amazon.awssdk.http.FileStoreTlsKeyManagersProvider> depends on a
 Class <software.amazon.awssdk.http.SystemPropertyTlsKeyManagersProvider> depends on an internal API from a different module (Class <software.amazon.awssdk.internal.http.AbstractFileStoreTlsKeyManagersProvider>)
 Class <software.amazon.awssdk.http.TlsKeyManagersProvider> depends on an internal API from a different module (Class <software.amazon.awssdk.internal.http.NoneTlsKeyManagersProvider>)
 Class <software.amazon.awssdk.http.auth.aws.eventstream.internal.io.SigV4DataFramePublisher> depends on an internal API from a different module (Class <software.amazon.awssdk.utils.internal.MappingSubscriber>)
-Class <software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils> depends on an internal API from a different module (Class <software.amazon.awssdk.checksums.internal.DigestAlgorithm>)
 Class <software.amazon.awssdk.imds.internal.AsyncHttpRequestHelper> depends on an internal API from a different module (Class <software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler>)
 Class <software.amazon.awssdk.imds.internal.AsyncHttpRequestHelper> depends on an internal API from a different module (Class <software.amazon.awssdk.core.internal.http.async.AsyncResponseHandler>)
 Class <software.amazon.awssdk.imds.internal.AsyncHttpRequestHelper> depends on an internal API from a different module (Class <software.amazon.awssdk.core.internal.http.async.SimpleHttpContentPublisher>)

@@ -264,7 +264,7 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
 
     private static void verifySessionHeaders() {
         verify(1, getRequestedFor(urlMatching("/.*session"))
-            .withHeader("x-amz-create-session-mode", equalTo("ReadWrite"))
+            .withoutHeader("x-amz-create-session-mode")
             .withHeader("x-amz-content-sha256", equalTo("UNSIGNED-PAYLOAD")));
     }
 
