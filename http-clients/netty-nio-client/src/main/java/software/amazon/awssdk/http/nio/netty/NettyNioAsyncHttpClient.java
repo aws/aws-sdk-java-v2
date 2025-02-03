@@ -86,7 +86,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private final SdkChannelPoolMap<URI, ? extends SdkChannelPool> pools;
     private final NettyConfiguration configuration;
     private final ProtocolNegotiation protocolNegotiation;
-    private boolean userSetAlpn;
+    private boolean isAlpnUserConfigured;
 
     private NettyNioAsyncHttpClient(DefaultBuilder builder, AttributeMap serviceDefaultsMap) {
         this.configuration = new NettyConfiguration(serviceDefaultsMap);
@@ -137,7 +137,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     private void failIfAlpnUsedWithHttp(AsyncExecuteRequest request) {
         if ("http".equals(request.request().protocol())) {
-            if (userSetAlpn) {
+            if (isAlpnUserConfigured) {
                 throw new UnsupportedOperationException("ALPN can only be used with HTTPS, not HTTP.");
             }
             if (protocolNegotiation == ProtocolNegotiation.ALPN) {
@@ -189,7 +189,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private ProtocolNegotiation resolveProtocolNegotiation(ProtocolNegotiation userSetValue, AttributeMap serviceDefaultsMap,
                                                            Protocol protocol, SslProvider sslProvider) {
         if (userSetValue == ProtocolNegotiation.ALPN) {
-            this.userSetAlpn = true;
+            this.isAlpnUserConfigured = true;
             // TODO - remove once we implement support for ALPN with HTTP1
             if (protocol == Protocol.HTTP1_1) {
                 throw new UnsupportedOperationException("ALPN with HTTP/1.1 is not yet supported, use prior knowledge instead "
