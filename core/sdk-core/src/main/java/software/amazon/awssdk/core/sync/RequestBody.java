@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.internal.sync.BufferingContentStreamProvider;
 import software.amazon.awssdk.core.internal.sync.FileContentStreamProvider;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.io.ReleasableInputStream;
@@ -122,20 +123,29 @@ public final class RequestBody {
      * To support resetting via {@link ContentStreamProvider}, this uses {@link InputStream#reset()} and uses a read limit of
      * 128 KiB. If you need more control, use {@link #fromContentProvider(ContentStreamProvider, long, String)} or
      * {@link #fromContentProvider(ContentStreamProvider, String)}.
+     * <p>
+     * <b>Important:</b> If {@code inputStream} does not support mark and reset, the stream will be buffered.
      *
      * @param inputStream   Input stream to send to the service. The stream will not be closed by the SDK.
      * @param contentLength Content length of data in input stream.
      * @return RequestBody instance.
      */
     public static RequestBody fromInputStream(InputStream inputStream, long contentLength) {
+        // NOTE: does not have an effect if mark not supported
         IoUtils.markStreamWithMaxReadLimit(inputStream);
         InputStream nonCloseable = nonCloseableInputStream(inputStream);
-        return fromContentProvider(() -> {
-            if (nonCloseable.markSupported()) {
+        ContentStreamProvider provider;
+        if (nonCloseable.markSupported()) {
+            // stream supports mark + reset
+            provider = () -> {
                 invokeSafely(nonCloseable::reset);
-            }
-            return nonCloseable;
-        }, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
+                return nonCloseable;
+            };
+        } else {
+            // stream doesn't support mark + reset, make sure to buffer it
+            provider = new BufferingContentStreamProvider(() -> nonCloseable, contentLength);
+        }
+        return new RequestBody(provider, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     /**
@@ -208,6 +218,14 @@ public final class RequestBody {
 
     /**
      * Creates a {@link RequestBody} from the given {@link ContentStreamProvider}.
+     * <p>
+     * Important: Be aware that this implementation requires buffering the contents for {@code ContentStreamProvider}, which can
+     * cause increased memory usage.
+     * <p>
+     * If you are using this in conjunction with S3 and want to upload a stream with an unknown content length, you can refer
+     * S3's documentation for
+     * <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/s3_example_s3_Scenario_UploadStream_section.html">alternative
+     * methods</a>.
      *
      * @param provider The content provider.
      * @param contentLength The content length.
@@ -216,11 +234,19 @@ public final class RequestBody {
      * @return The created {@code RequestBody}.
      */
     public static RequestBody fromContentProvider(ContentStreamProvider provider, long contentLength, String mimeType) {
-        return new RequestBody(provider, contentLength, mimeType);
+        return new RequestBody(new BufferingContentStreamProvider(provider, contentLength), contentLength, mimeType);
     }
 
     /**
-     * Creates a {@link RequestBody} from the given {@link ContentStreamProvider}.
+     * Creates a {@link RequestBody} from the given {@link ContentStreamProvider} when the content length is unknown.
+     * <p>
+     * Important: Be aware that this implementation requires buffering the contents for {@code ContentStreamProvider}, which can
+     * cause increased memory usage.
+     * <p>
+     * If you are using this in conjunction with S3 and want to upload a stream with an unknown content length, you can refer
+     * S3's documentation for
+     * <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/s3_example_s3_Scenario_UploadStream_section.html">alternative
+     * methods</a>.
      *
      * @param provider The content provider.
      * @param mimeType The MIME type of the content.
@@ -228,7 +254,7 @@ public final class RequestBody {
      * @return The created {@code RequestBody}.
      */
     public static RequestBody fromContentProvider(ContentStreamProvider provider, String mimeType) {
-        return new RequestBody(provider, null, mimeType);
+        return new RequestBody(new BufferingContentStreamProvider(provider, null), null, mimeType);
     }
 
     /**
@@ -242,7 +268,7 @@ public final class RequestBody {
      * Creates a {@link RequestBody} using the specified bytes (without copying).
      */
     private static RequestBody fromBytesDirect(byte[] bytes, String mimetype) {
-        return fromContentProvider(() -> new ByteArrayInputStream(bytes), bytes.length, mimetype);
+        return new RequestBody(() -> new ByteArrayInputStream(bytes), (long) bytes.length, mimetype);
     }
 
     private static InputStream nonCloseableInputStream(InputStream inputStream) {
