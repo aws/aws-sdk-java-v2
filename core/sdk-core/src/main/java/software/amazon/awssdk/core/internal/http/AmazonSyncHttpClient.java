@@ -32,6 +32,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptM
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptTimeoutTrackingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallTimeoutTrackingStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplySdkLengthAwareStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeTransmissionExecutionInterceptorsStage;
@@ -185,6 +186,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                .then(MergeCustomHeadersStage::new)
                                .then(MergeCustomQueryParamsStage::new)
                                .then(QueryParametersToBodyStage::new)
+                               .then(ApplySdkLengthAwareStage::new)
                                .then(() -> new CompressRequestStage(httpClientDependencies))
                                .then(() -> new HttpChecksumStage(ClientType.SYNC))
                                .then(MakeRequestImmutableStage::new)

@@ -400,6 +400,15 @@
             <property name="ignoreComments" value="true"/>
         </module>
 
+        <!-- Checks that we don't use RequestBody.fromContentProvider in the SDK core -->
+        <module name="Regexp">
+            <property name="format" value="RequestBody\.fromContentProvider"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message" value="DO NOT use fromContentProvider for streaming operations because it will buffer the entire content.
+            Add suppression if it's for a non-streaming operation"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
         <!-- Checks that we don't use Thread.currentThread().getContextClassLoader() directly -->
         <module name="Regexp">
             <property name="format" value="Thread\s*\.\s*currentThread\s*\(\s*\)\s*(\.|::)\s*getContextClassLoader"/>

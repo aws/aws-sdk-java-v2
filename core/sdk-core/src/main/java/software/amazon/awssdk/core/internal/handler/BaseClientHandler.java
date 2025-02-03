@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.handler;
 
+import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
+
 import java.net.URI;
 import java.time.Duration;
 import java.util.Optional;
@@ -37,12 +39,12 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
-import software.amazon.awssdk.core.internal.io.SdkLengthAwareInputStream;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -78,7 +80,7 @@ public abstract class BaseClientHandler {
 
         request = modifyEndpointHostIfNeeded(request, clientConfiguration, executionParams);
 
-        addHttpRequest(executionContext, request);
+        addHttpRequest(executionContext, request, executionParams.getRequestBody());
         runAfterMarshallingInterceptors(executionContext);
         return runModifyHttpRequestAndHttpContentInterceptors(executionContext);
     }
@@ -111,13 +113,29 @@ public abstract class BaseClientHandler {
                               .build();
     }
 
-    private static void addHttpRequest(ExecutionContext executionContext, SdkHttpFullRequest request) {
+    /**
+     * Add SdkHttpFullRequest to the ExecutionContext and RequestBody for sync streaming and non-streaming operations
+     * and async non-streaming operation.
+     *
+     * For RequestBody:
+     *
+     * Sync:
+     *  - streaming operation : RequestBody is the same as RequestBody from the input.
+     *  - non-streaming operation: use fromContentProvider to create a RequestBody
+     * Async:
+     *  - streaming operation: use fromContentProvider to create one
+     *  - non-streaming operation: N/A (contentStreamingProvider would be null)
+     */
+    private static void addHttpRequest(ExecutionContext executionContext, SdkHttpFullRequest request, RequestBody requestBody) {
         InterceptorContext interceptorContext = executionContext.interceptorContext();
 
         Optional<ContentStreamProvider> contentStreamProvider = request.contentStreamProvider();
+
         if (contentStreamProvider.isPresent()) {
             interceptorContext = interceptorContext.copy(b -> b.httpRequest(request)
-                                                               .requestBody(getBody(request)));
+                                                               .requestBody(getBody(request,
+                                                                                    contentStreamProvider.get(),
+                                                                                    requestBody)));
         } else {
             interceptorContext = interceptorContext.copy(b -> b.httpRequest(request));
         }
@@ -125,27 +143,23 @@ public abstract class BaseClientHandler {
         executionContext.interceptorContext(interceptorContext);
     }
 
-    private static RequestBody getBody(SdkHttpFullRequest request) {
-        Optional<ContentStreamProvider> contentStreamProviderOptional = request.contentStreamProvider();
-        if (contentStreamProviderOptional.isPresent()) {
-            Optional<String> contentLengthOptional = request.firstMatchingHeader("Content-Length");
-            long contentLength = Long.parseLong(contentLengthOptional.orElse("0"));
-            String contentType = request.firstMatchingHeader("Content-Type").orElse("");
-
-            // Enforce the content length specified only if it was present on the request (and not the default).
-            ContentStreamProvider streamProvider = contentStreamProviderOptional.get();
-            if (contentLengthOptional.isPresent()) {
-                ContentStreamProvider toWrap = contentStreamProviderOptional.get();
-                streamProvider = () -> new SdkLengthAwareInputStream(toWrap.newStream(), contentLength);
-            }
-
-            return RequestBody.fromContentProvider(streamProvider,
+    private static RequestBody getBody(SdkHttpFullRequest request,
+                                       ContentStreamProvider contentStreamProvider,
+                                       RequestBody requestBody) {
+        if (requestBody == null && request.firstMatchingHeader(Header.CONTENT_LENGTH).isPresent()) {
+            long contentLength = Long.parseLong(request.firstMatchingHeader(Header.CONTENT_LENGTH).get());
+            String contentType = request.firstMatchingHeader(CONTENT_TYPE).orElse("");
+            // CHECKSTYLE:OFF - Avoid flagging the use of fromContentProvider. This is fine here because it's non-streaming
+            // operation
+            return RequestBody.fromContentProvider(contentStreamProvider,
                                                    contentLength,
                                                    contentType);
+            // CHECKSTYLE:ON
         }
 
-        return null;
+        return requestBody;
     }
+
 
     private static void runAfterMarshallingInterceptors(ExecutionContext executionContext) {
         executionContext.interceptorChain().afterMarshalling(executionContext.interceptorContext(),

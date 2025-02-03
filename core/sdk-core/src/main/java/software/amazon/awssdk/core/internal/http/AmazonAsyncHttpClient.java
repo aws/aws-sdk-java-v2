@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionInterceptorsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplySdkLengthAwareStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallAttemptMetricCollectionStage;
@@ -197,6 +198,7 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                 .then(MergeCustomHeadersStage::new)
                                 .then(MergeCustomQueryParamsStage::new)
                                 .then(QueryParametersToBodyStage::new)
+                                .then(ApplySdkLengthAwareStage::new)
                                 .then(() -> new CompressRequestStage(httpClientDependencies))
                                 .then(() -> new HttpChecksumStage(ClientType.ASYNC))
                                 .then(MakeRequestImmutableStage::new)
