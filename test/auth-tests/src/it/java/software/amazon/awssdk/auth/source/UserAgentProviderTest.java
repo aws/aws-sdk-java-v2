@@ -16,7 +16,6 @@
 package software.amazon.awssdk.auth.source;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage.HEADER_USER_AGENT;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -68,7 +67,7 @@ class UserAgentProviderTest {
         SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
         assertThat(lastRequest).isNotNull();
 
-        List<String> userAgentHeaders = lastRequest.headers().get(HEADER_USER_AGENT);
+        List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
         assertThat(userAgentHeaders.get(0)).contains(expected);
     }

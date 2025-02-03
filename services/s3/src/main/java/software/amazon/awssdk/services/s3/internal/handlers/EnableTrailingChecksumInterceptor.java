@@ -81,7 +81,7 @@ public final class EnableTrailingChecksumInterceptor implements ExecutionInterce
         SdkResponse response = context.response();
         SdkHttpResponse httpResponse = context.httpResponse();
 
-        if (getObjectChecksumEnabledPerResponse(context.request(), httpResponse)) {
+        if (getObjectChecksumEnabledPerResponse(context.request(), httpResponse, executionAttributes)) {
             GetObjectResponse getResponse = (GetObjectResponse) response;
             Long contentLength = getResponse.contentLength();
             Validate.notNull(contentLength, "Service returned null 'Content-Length'.");

@@ -36,8 +36,16 @@ class TokenizerTest {
         assertTrue(tokenizer.isIndexedAccess());
         tokenizer.consumeIndexed((name, index) -> {
             assertEquals("foobar", name);
-            assertEquals(index, 123);
+            assertEquals(123, index);
         });
+        assertTrue(tokenizer.atEof());
+    }
+
+    @Test
+    public void recognizesDirectIndexedExpression() {
+        Tokenizer tokenizer = new Tokenizer("[123]");
+        assertTrue(tokenizer.isDirectIndexedAccess());
+        tokenizer.consumeDirectIndexed(i -> assertEquals(123, i));
         assertTrue(tokenizer.atEof());
     }
 

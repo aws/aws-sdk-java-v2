@@ -118,7 +118,6 @@ public class ChangeConfigTypesTest implements RewriteTest {
     void configurationWithHttpSettings_localVariable_shouldRemoveAndSetOnSdkClient() {
 
         rewriteRun(
-            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
             java(
                 "import com.amazonaws.ClientConfiguration;\n"
                 + "import com.amazonaws.services.sqs.AmazonSQS;\n"
@@ -141,9 +140,9 @@ public class ChangeConfigTypesTest implements RewriteTest {
                 + "                                       .build();\n"
                 + "    }\n"
                 + "}",
-                "import software.amazon.awssdk.http.apache.ApacheHttpClient;\n"
+                "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
+                + "import software.amazon.awssdk.http.apache.ApacheHttpClient;\n"
                 + "import software.amazon.awssdk.services.sqs.SqsClient;\n"
-                + "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
                 + "\n"
                 + "import java.time.Duration;\n"
                 + "\n"
@@ -175,7 +174,6 @@ public class ChangeConfigTypesTest implements RewriteTest {
     void configurationWithHttpSettings_memberVariable_shouldRemoveAndSetOnSdkClient() {
 
         rewriteRun(
-            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
             java(
                 "import com.amazonaws.ClientConfiguration;\n"
                 + "import com.amazonaws.services.sqs.AmazonSQS;\n"
@@ -197,9 +195,9 @@ public class ChangeConfigTypesTest implements RewriteTest {
                 + "                                       .build();\n"
                 + "    }\n"
                 + "}",
-                "import software.amazon.awssdk.http.apache.ApacheHttpClient;\n"
+                "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
+                + "import software.amazon.awssdk.http.apache.ApacheHttpClient;\n"
                 + "import software.amazon.awssdk.services.sqs.SqsClient;\n"
-                + "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
                 + "\n"
                 + "import java.time.Duration;\n"
                 + "\n"
@@ -230,7 +228,6 @@ public class ChangeConfigTypesTest implements RewriteTest {
     void configurationWithHttpSettings_usedByMultipleSdkClients_shouldRemoveAndSetOnSdkClients() {
 
         rewriteRun(
-            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
             java(
                 "import com.amazonaws.ClientConfiguration;\n"
                 + "import com.amazonaws.services.sqs.AmazonSQS;\n"
@@ -255,9 +252,9 @@ public class ChangeConfigTypesTest implements RewriteTest {
                 + "                                       .build();\n"
                 + "    }\n"
                 + "}",
-                "import software.amazon.awssdk.http.apache.ApacheHttpClient;\n"
+                "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
+                + "import software.amazon.awssdk.http.apache.ApacheHttpClient;\n"
                 + "import software.amazon.awssdk.services.sqs.SqsClient;\n"
-                + "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
                 + "\n"
                 + "import java.time.Duration;\n"
                 + "\n"
@@ -297,7 +294,6 @@ public class ChangeConfigTypesTest implements RewriteTest {
     @EnabledOnJre({JRE.JAVA_8})
     void sdkClientBuilderWithHttpSettings_noBuild_shouldRewrite() {
         rewriteRun(
-            spec -> spec.expectedCyclesThatMakeChanges(2),
             java(
                 "import com.amazonaws.ClientConfiguration;\n"
                 + "import com.amazonaws.services.sqs.AmazonSQSClient;\n"
@@ -311,10 +307,10 @@ public class ChangeConfigTypesTest implements RewriteTest {
                 + "        clientBuilder.withClientConfiguration(configuration);\n"
                 + "    }\n"
                 + "}",
-                "import software.amazon.awssdk.http.apache.ApacheHttpClient;\n"
+                "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
+                + "import software.amazon.awssdk.http.apache.ApacheHttpClient;\n"
                 + "import software.amazon.awssdk.services.sqs.SqsClient;\n"
                 + "import software.amazon.awssdk.services.sqs.SqsClientBuilder;\n"
-                + "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
                 + "\n"
                 + "public class Example {\n"
                 + "\n"
@@ -335,7 +331,6 @@ public class ChangeConfigTypesTest implements RewriteTest {
     void configurationWithHttpSettings_methodReference_shouldRemoveAndSetOnSdkClient() {
 
         rewriteRun(
-            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
             java(
                 "import com.amazonaws.ClientConfiguration;\n"
                 + "import com.amazonaws.services.sqs.AmazonSQS;\n"
@@ -355,9 +350,9 @@ public class ChangeConfigTypesTest implements RewriteTest {
                 + "                                       .build();\n"
                 + "    }\n"
                 + "}",
-                "import software.amazon.awssdk.http.apache.ApacheHttpClient;\n"
+                "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
+                + "import software.amazon.awssdk.http.apache.ApacheHttpClient;\n"
                 + "import software.amazon.awssdk.services.sqs.SqsClient;\n"
-                + "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
                 + "\n"
                 + "import java.time.Duration;\n"
                 + "\n"
@@ -386,7 +381,6 @@ public class ChangeConfigTypesTest implements RewriteTest {
     void configurationWithHttpSettings_asyncSdkClient_shouldRemoveAndSetOnSdkClient() {
 
         rewriteRun(
-            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
             java(
                 "import com.amazonaws.ClientConfiguration;\n"
                 + "import com.amazonaws.services.sqs.AmazonSQSAsync;\n"
@@ -409,9 +403,9 @@ public class ChangeConfigTypesTest implements RewriteTest {
                 + "\n"
                 + "    }\n"
                 + "}",
-                "import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;\n"
+                "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
+                + "import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;\n"
                 + "import software.amazon.awssdk.services.sqs.SqsAsyncClient;\n"
-                + "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
                 + "\n"
                 + "import java.time.Duration;\n"
                 + "\n"
@@ -443,7 +437,6 @@ public class ChangeConfigTypesTest implements RewriteTest {
     void multipleSdkClients_shouldSetHttpClientCorrectly() {
 
         rewriteRun(
-            recipeSpec -> recipeSpec.expectedCyclesThatMakeChanges(2),
             java(
                 "import com.amazonaws.ClientConfiguration;\n"
                 + "import com.amazonaws.services.sqs.AmazonSQS;\n"
@@ -467,9 +460,9 @@ public class ChangeConfigTypesTest implements RewriteTest {
                 + "                                       .build();\n"
                 + "    }\n"
                 + "}",
-                "import software.amazon.awssdk.http.apache.ApacheHttpClient;\n"
+                "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
+                + "import software.amazon.awssdk.http.apache.ApacheHttpClient;\n"
                 + "import software.amazon.awssdk.services.sqs.SqsClient;\n"
-                + "import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;\n"
                 + "\n"
                 + "import java.time.Duration;\n"
                 + "\n"

@@ -19,11 +19,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * A mark-and-resettable input stream that can be used on files or file input
@@ -43,7 +42,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 @NotThreadSafe
 @SdkProtectedApi
 public class ResettableInputStream extends ReleasableInputStream {
-    private static final Logger log = LoggerFactory.getLogger(ResettableInputStream.class);
+    private static final Logger log = Logger.loggerFor(ResettableInputStream.class);
     private final File file; // null if the file is not known
     private FileInputStream fis; // never null
     private FileChannel fileChannel; // never null
@@ -241,9 +240,7 @@ public class ResettableInputStream extends ReleasableInputStream {
         } catch (IOException e) {
             throw SdkClientException.builder().message("Failed to mark the file position").cause(e).build();
         }
-        if (log.isTraceEnabled()) {
-            log.trace("File input stream marked at position " + markPos);
-        }
+        log.trace(() -> "File input stream marked at position " + markPos);
     }
 
     /**
@@ -267,9 +264,7 @@ public class ResettableInputStream extends ReleasableInputStream {
     public void reset() throws IOException {
         abortIfNeeded();
         fileChannel.position(markPos);
-        if (log.isTraceEnabled()) {
-            log.trace("Reset to position " + markPos);
-        }
+        log.trace(() -> "Reset to position " + markPos);
     }
 
     @Override

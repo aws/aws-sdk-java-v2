@@ -28,6 +28,7 @@ public final class NamingConversionUtils {
     private static final String V2_PACKAGE_PREFIX = "software.amazon.awssdk.services";
     private static final Map<String, String> PACKAGE_MAPPING = new HashMap<>();
     private static final Map<String, String> CLIENT_MAPPING = new HashMap<>();
+    private static final Map<String, String> S3_POJO_MAPPING = new HashMap<>();
 
     static {
         PACKAGE_MAPPING.put("appregistry", "servicecatalogappregistry");
@@ -97,8 +98,6 @@ public final class NamingConversionUtils {
         CLIENT_MAPPING.put("IAMRolesAnywhere", "RolesAnywhere");
         CLIENT_MAPPING.put("IdentityManagement", "Iam");
         CLIENT_MAPPING.put("IdentityStore", "Identitystore");
-        CLIENT_MAPPING.put("IoT1ClickDevices", "Iot1ClickDevices");
-        CLIENT_MAPPING.put("IoT1ClickProjects", "Iot1ClickProjects");
         CLIENT_MAPPING.put("IoTDeviceAdvisor", "IotDeviceAdvisor");
         CLIENT_MAPPING.put("IoTEvents", "IotEvents");
         CLIENT_MAPPING.put("IoTEventsData", "IotEventsData");
@@ -132,12 +131,36 @@ public final class NamingConversionUtils {
         CLIENT_MAPPING.put("Workspaces", "WorkSpaces");
     }
 
+    static {
+        S3_POJO_MAPPING.put("GetBucketCrossOriginConfigurationRequest", "GetBucketCorsRequest");
+        S3_POJO_MAPPING.put("DeleteBucketCrossOriginConfigurationRequest", "DeleteBucketCorsRequest");
+        S3_POJO_MAPPING.put("SetBucketCrossOriginConfigurationRequest", "PutBucketCorsRequest");
+        S3_POJO_MAPPING.put("GetBucketVersioningConfigurationRequest", "GetBucketVersioningRequest");
+        S3_POJO_MAPPING.put("DeleteBucketLifecycleConfigurationRequest", "DeleteBucketLifecycleRequest");
+        S3_POJO_MAPPING.put("DeleteBucketReplicationConfigurationRequest", "DeleteBucketReplicationRequest");
+        S3_POJO_MAPPING.put("DeleteBucketTaggingConfigurationRequest", "DeleteBucketTaggingRequest");
+        S3_POJO_MAPPING.put("DeleteBucketWebsiteConfigurationRequest", "DeleteBucketWebsiteRequest");
+        S3_POJO_MAPPING.put("GetBucketLoggingConfigurationRequest", "GetBucketLoggingRequest");
+        S3_POJO_MAPPING.put("GetBucketReplicationConfigurationRequest", "GetBucketReplicationRequest");
+        S3_POJO_MAPPING.put("GetBucketTaggingConfigurationRequest", "GetBucketTaggingRequest");
+        S3_POJO_MAPPING.put("GetBucketWebsiteConfigurationRequest", "GetBucketWebsiteRequest");
+
+        S3_POJO_MAPPING.put("GetObjectMetadataRequest", "HeadObjectRequest");
+        S3_POJO_MAPPING.put("InitiateMultipartUploadRequest", "CreateMultipartUploadRequest");
+        S3_POJO_MAPPING.put("InitiateMultipartUploadResponse", "CreateMultipartUploadResponse");
+        S3_POJO_MAPPING.put("ListVersionsRequest", "ListObjectVersionsRequest");
+        S3_POJO_MAPPING.put("ObjectMetadata", "HeadObjectResponse");
+        S3_POJO_MAPPING.put("ObjectListing", "ListObjectsResponse");
+        S3_POJO_MAPPING.put("CorsRule", "CORSRule");
+        S3_POJO_MAPPING.put("BucketCrossOriginConfiguration", "CORSConfiguration");
+    }
+
     private NamingConversionUtils() {
     }
 
     public static String getV2Equivalent(String currentFqcn) {
-        int lastIndexOfDot = currentFqcn.lastIndexOf(".");
-        String v1ClassName = currentFqcn.substring(lastIndexOfDot + 1, currentFqcn.length());
+        int lastIndexOfDot = currentFqcn.lastIndexOf('.');
+        String v1ClassName = currentFqcn.substring(lastIndexOfDot + 1);
         String packagePrefix = currentFqcn.substring(0, lastIndexOfDot);
 
         String v2ClassName = CodegenNamingUtils.pascalCase(v1ClassName);
@@ -151,7 +174,15 @@ public final class NamingConversionUtils {
             v2ClassName = v1ClassName.substring(0, lastIndex) + "Response";
         }
 
+        if (isS3Package(v2PackagePrefix) && S3_POJO_MAPPING.containsKey(v2ClassName)) {
+            v2ClassName = S3_POJO_MAPPING.get(v2ClassName);
+        }
+
         return v2PackagePrefix + "." + v2ClassName;
+    }
+
+    private static boolean isS3Package(String packagePrefix) {
+        return packagePrefix.contains("services.s3");
     }
 
     /**
@@ -169,7 +200,7 @@ public final class NamingConversionUtils {
     }
 
     public static String getV2ModelPackageWildCardEquivalent(String currentFqcn) {
-        int lastIndexOfDot = currentFqcn.lastIndexOf(".");
+        int lastIndexOfDot = currentFqcn.lastIndexOf('.');
         String packagePrefix = currentFqcn.substring(0, lastIndexOfDot);
         String v2PackagePrefix = packagePrefix.replace(V1_PACKAGE_PREFIX, V2_PACKAGE_PREFIX);
         v2PackagePrefix = checkPackageServiceNameForV2Suffix(v2PackagePrefix);
@@ -203,7 +234,7 @@ public final class NamingConversionUtils {
         }
 
         if (!className.endsWith("Client") && !className.endsWith("Builder")) {
-            v2Style = v2Style + "Client";
+            v2Style += "Client";
         }
 
         return v2Style;

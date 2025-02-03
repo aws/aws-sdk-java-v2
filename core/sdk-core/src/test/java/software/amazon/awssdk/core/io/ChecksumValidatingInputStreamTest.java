@@ -2,8 +2,9 @@ package software.amazon.awssdk.core.io;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
+import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.core.checksums.Algorithm;
-import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.io.ChecksumValidatingInputStream;
 
@@ -17,7 +18,7 @@ public class ChecksumValidatingInputStreamTest {
     public void validCheckSumMatch() throws IOException {
         String initialString = "Hello world";
         InputStream targetStream = new ByteArrayInputStream(initialString.getBytes());
-        SdkChecksum sdkChecksum = SdkChecksum.forAlgorithm(Algorithm.SHA256);
+        SdkChecksum sdkChecksum = SdkChecksum.forAlgorithm(DefaultChecksumAlgorithm.SHA256);
         ChecksumValidatingInputStream checksumValidatingInputStream =
                 new ChecksumValidatingInputStream(targetStream, sdkChecksum,
                         "ZOyIygCyaOW6GjVnihtTFtIS9PNmskdyMlNKiuyjfzw=");
@@ -29,7 +30,7 @@ public class ChecksumValidatingInputStreamTest {
     public void validCheckSumMismatch()  {
         String initialString = "Hello world";
         InputStream targetStream = new ByteArrayInputStream(initialString.getBytes());
-        SdkChecksum sdkChecksum = SdkChecksum.forAlgorithm(Algorithm.SHA256);
+        SdkChecksum sdkChecksum = SdkChecksum.forAlgorithm(DefaultChecksumAlgorithm.SHA256);
         ChecksumValidatingInputStream checksumValidatingInputStream =
                 new ChecksumValidatingInputStream(targetStream, sdkChecksum,
                         "ZOyIygCyaOW6GjVnihtTFtIS9PNmskdyMlNKiuyjfz1=");

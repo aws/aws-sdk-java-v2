@@ -55,9 +55,9 @@ public class V1GetterToV2Test implements RewriteTest {
                 + "    }\n"
                 + "}\n",
                 "import software.amazon.awssdk.services.sqs.SqsClient;\n"
+                + "import software.amazon.awssdk.services.sqs.model.Message;\n"
                 + "import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;\n"
                 + "import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;\n"
-                + "import software.amazon.awssdk.services.sqs.model.Message;\n"
                 + "\n"
                 + "public class SqsExample {\n"
                 + "    public static void main(String[] args) {\n"

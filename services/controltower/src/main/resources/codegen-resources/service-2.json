@@ -398,6 +398,26 @@
       ],
       "documentation":"<p>Re-enables an <code>EnabledBaseline</code> resource. For example, this API can re-apply the existing <code>Baseline</code> after a new member account is moved to the target OU. For usage examples, see <a href=\"https://docs.aws.amazon.com/controltower/latest/userguide/baseline-api-examples.html\"> <i>the Amazon Web Services Control Tower User Guide</i> </a>.</p>"
     },
+    "ResetEnabledControl":{
+      "name":"ResetEnabledControl",
+      "http":{
+        "method":"POST",
+        "requestUri":"/reset-enabled-control",
+        "responseCode":200
+      },
+      "input":{"shape":"ResetEnabledControlInput"},
+      "output":{"shape":"ResetEnabledControlOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ConflictException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"InternalServerException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Resets an enabled control.</p>"
+    },
     "ResetLandingZone":{
       "name":"ResetLandingZone",
       "http":{
@@ -487,7 +507,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p> Updates the configuration of an already enabled control.</p> <p>If the enabled control shows an <code>EnablementStatus</code> of SUCCEEDED, supply parameters that are different from the currently configured parameters. Otherwise, Amazon Web Services Control Tower will not accept the request.</p> <p>If the enabled control shows an <code>EnablementStatus</code> of FAILED, Amazon Web Services Control Tower updates the control to match any valid parameters that you supply.</p> <p>If the <code>DriftSummary</code> status for the control shows as DRIFTED, you cannot call this API. Instead, you can update the control by calling <code>DisableControl</code> and again calling <code>EnableControl</code>, or you can run an extending governance operation. For usage examples, see the <a href=\"https://docs.aws.amazon.com/controltower/latest/controlreference/control-api-examples-short.html\"> <i>Controls Reference Guide</i> </a>. </p>"
+      "documentation":"<p> Updates the configuration of an already enabled control.</p> <p>If the enabled control shows an <code>EnablementStatus</code> of SUCCEEDED, supply parameters that are different from the currently configured parameters. Otherwise, Amazon Web Services Control Tower will not accept the request.</p> <p>If the enabled control shows an <code>EnablementStatus</code> of FAILED, Amazon Web Services Control Tower updates the control to match any valid parameters that you supply.</p> <p>If the <code>DriftSummary</code> status for the control shows as <code>DRIFTED</code>, you cannot call this API. Instead, you can update the control by calling the <code>ResetEnabledControl</code> API. Alternatively, you can call <code>DisableControl</code> and then call <code>EnableControl</code> again. Also, you can run an extending governance operation to repair drift. For usage examples, see the <a href=\"https://docs.aws.amazon.com/controltower/latest/controlreference/control-api-examples-short.html\"> <i>Controls Reference Guide</i> </a>. </p>"
     },
     "UpdateLandingZone":{
       "name":"UpdateLandingZone",
@@ -611,6 +631,10 @@
     "Baselines":{
       "type":"list",
       "member":{"shape":"BaselineSummary"}
+    },
+    "Boolean":{
+      "type":"boolean",
+      "box":true
     },
     "ConflictException":{
       "type":"structure",
@@ -766,7 +790,8 @@
       "enum":[
         "ENABLE_CONTROL",
         "DISABLE_CONTROL",
-        "UPDATE_ENABLED_CONTROL"
+        "UPDATE_ENABLED_CONTROL",
+        "RESET_ENABLED_CONTROL"
       ]
     },
     "ControlOperationTypes":{
@@ -1032,6 +1057,10 @@
           "shape":"EnabledBaselineParameterSummaries",
           "documentation":"<p>Shows the parameters that are applied when enabling this <code>Baseline</code>.</p>"
         },
+        "parentIdentifier":{
+          "shape":"Arn",
+          "documentation":"<p>An ARN that represents the parent <code>EnabledBaseline</code> at the Organizational Unit (OU) level, from which the child <code>EnabledBaseline</code> inherits its configuration. The value is returned by <code>GetEnabledBaseline</code>.</p>"
+        },
         "statusSummary":{"shape":"EnablementStatusSummary"},
         "targetIdentifier":{
           "shape":"String",
@@ -1046,6 +1075,10 @@
         "baselineIdentifiers":{
           "shape":"EnabledBaselineBaselineIdentifiers",
           "documentation":"<p>Identifiers for the <code>Baseline</code> objects returned as part of the filter operation.</p>"
+        },
+        "parentIdentifiers":{
+          "shape":"EnabledBaselineParentIdentifiers",
+          "documentation":"<p>An optional filter that sets up a list of <code>parentIdentifiers</code> to filter the results of the <code>ListEnabledBaseline</code> output.</p>"
         },
         "targetIdentifiers":{
           "shape":"EnabledBaselineTargetIdentifiers",
@@ -1104,6 +1137,12 @@
       "type":"list",
       "member":{"shape":"EnabledBaselineParameter"}
     },
+    "EnabledBaselineParentIdentifiers":{
+      "type":"list",
+      "member":{"shape":"Arn"},
+      "max":5,
+      "min":1
+    },
     "EnabledBaselineSummary":{
       "type":"structure",
       "required":[
@@ -1124,6 +1163,10 @@
         "baselineVersion":{
           "shape":"String",
           "documentation":"<p>The enabled version of the baseline.</p>"
+        },
+        "parentIdentifier":{
+          "shape":"Arn",
+          "documentation":"<p>An ARN that represents an object returned by <code>ListEnabledBaseline</code>, to describe an enabled baseline.</p>"
         },
         "statusSummary":{"shape":"EnablementStatusSummary"},
         "targetIdentifier":{
@@ -1720,6 +1763,10 @@
           "shape":"EnabledBaselineFilter",
           "documentation":"<p>A filter applied on the <code>ListEnabledBaseline</code> operation. Allowed filters are <code>baselineIdentifiers</code> and <code>targetIdentifiers</code>. The filter can be applied for either, or both.</p>"
         },
+        "includeChildren":{
+          "shape":"Boolean",
+          "documentation":"<p>A value that can be set to include the child enabled baselines in responses. The default value is false.</p>"
+        },
         "maxResults":{
           "shape":"ListEnabledBaselinesMaxResults",
           "documentation":"<p>The maximum number of results to be shown.</p>"
@@ -1937,6 +1984,26 @@
         "operationIdentifier":{
           "shape":"OperationIdentifier",
           "documentation":"<p>The ID (in UUID format) of the asynchronous <code>ResetEnabledBaseline</code> operation. This <code>operationIdentifier</code> is used to track status through calls to the <code>GetBaselineOperation</code> API.</p>"
+        }
+      }
+    },
+    "ResetEnabledControlInput":{
+      "type":"structure",
+      "required":["enabledControlIdentifier"],
+      "members":{
+        "enabledControlIdentifier":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the enabled control to be reset.</p>"
+        }
+      }
+    },
+    "ResetEnabledControlOutput":{
+      "type":"structure",
+      "required":["operationIdentifier"],
+      "members":{
+        "operationIdentifier":{
+          "shape":"OperationIdentifier",
+          "documentation":"<p> The operation identifier for this <code>ResetEnabledControl</code> operation. </p>"
         }
       }
     },

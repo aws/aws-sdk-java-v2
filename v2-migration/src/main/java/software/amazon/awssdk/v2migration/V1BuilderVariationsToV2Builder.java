@@ -33,6 +33,7 @@ import org.openrewrite.java.tree.Space;
 import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markers;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.v2migration.internal.utils.IdentifierUtils;
 import software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils;
 
 /**
@@ -123,16 +124,6 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
                 null
             );
 
-            J.Identifier builderOrCreateMethod = new J.Identifier(
-                Tree.randomId(),
-                Space.EMPTY,
-                Markers.EMPTY,
-                Collections.emptyList(),
-                methodName,
-                null,
-                null
-            );
-
             JavaType.Method methodType = new JavaType.Method(
                 null,
                 0L,
@@ -144,6 +135,9 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
                 Collections.emptyList(),
                 Collections.emptyList()
             );
+
+            J.Identifier builderOrCreateMethod =
+                IdentifierUtils.makeId(methodName, methodType);
 
             J.MethodInvocation builderInvoke = new J.MethodInvocation(
                 Tree.randomId(),
@@ -172,16 +166,12 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
 
             if ("asyncBuilder".equals(methodName)) {
                 methodName = "builder";
+                mt = mt.withName(methodName);
+                method = method.withName(method.getName()
+                                               .withSimpleName(methodName)
+                                               .withType(mt))
+                               .withMethodType(mt);
             }
-
-            mt = mt.withName(methodName)
-                   .withReturnType(selectType)
-                   .withDeclaringType(fullyQualified);
-
-            method = method.withName(method.getName()
-                                           .withSimpleName(methodName)
-                                           .withType(mt))
-                           .withMethodType(mt);
             return method;
         }
     }

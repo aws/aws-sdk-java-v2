@@ -1,0 +1,42 @@
+{
+    "version": "2.30.6",
+    "date": "2025-01-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CloudTrail",
+            "contributor": "",
+            "description": "This release introduces the SearchSampleQueries API that allows users to search for CloudTrail Lake sample queries."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SSO OIDC",
+            "contributor": "",
+            "description": "Fixed typos in the descriptions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "Added CustomDirectories as a new directory option for storing inbound AS2 messages, MDN files and Status files."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Adds support for UpdateStrategies in EKS Managed Node Groups."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon HealthLake",
+            "contributor": "",
+            "description": "Added new authorization strategy value 'SMART_ON_FHIR' for CreateFHIRDatastore API to support Smart App 2.0"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Systems Manager doc-only update for January, 2025."
+        }
+    ]
+}

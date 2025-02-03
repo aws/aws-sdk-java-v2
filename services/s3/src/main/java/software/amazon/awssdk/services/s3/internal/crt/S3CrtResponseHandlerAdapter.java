@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER_ALTERNATE;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.nio.ByteBuffer;
@@ -25,6 +27,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.CRT;
@@ -34,6 +39,7 @@ import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
@@ -172,19 +178,64 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         int responseStatus = context.getResponseStatus();
         byte[] errorPayload = context.getErrorPayload();
 
-        if (isErrorResponse(responseStatus) && errorPayload != null) {
-            SdkHttpResponse.Builder errorResponse = populateSdkHttpResponse(SdkHttpResponse.builder(),
-                                                                            responseStatus, headers);
-            initiateResponseHandling(errorResponse.build());
-            onErrorResponseComplete(errorPayload);
+        if (isServiceError(responseStatus) && errorPayload != null) {
+            handleServiceError(responseStatus, headers, errorPayload);
         } else {
-            Throwable cause = context.getCause();
+            handleIoError(context, crtCode);
+        }
+    }
+
+    private void handleIoError(S3FinishedResponseContext context, int crtCode) {
+        Throwable cause = context.getCause();
+
+        SdkClientException sdkClientException =
+            SdkClientException.create("Failed to send the request: " +
+                                      CRT.awsErrorString(crtCode), cause);
+        failResponseHandlerAndFuture(sdkClientException);
+    }
+
+    private void handleServiceError(int responseStatus, HttpHeader[] headers, byte[] errorPayload) {
+        SdkHttpResponse.Builder errorResponse = populateSdkHttpResponse(SdkHttpResponse.builder(),
+                                                                        responseStatus, headers);
+        if (requestFailedMidwayOfOtherError(responseStatus)) {
+            AwsServiceException s3Exception = buildS3Exception(responseStatus, errorPayload, errorResponse);
 
             SdkClientException sdkClientException =
-                SdkClientException.create("Failed to send the request: " +
-                                          CRT.awsErrorString(crtCode), cause);
-            failResponseHandlerAndFuture(sdkClientException);
+                SdkClientException.create("Request failed during the transfer due to an error returned from S3");
+            s3Exception.addSuppressed(sdkClientException);
+            failResponseHandlerAndFuture(s3Exception);
+        } else {
+            initiateResponseHandling(errorResponse.build());
+            onErrorResponseComplete(errorPayload);
         }
+    }
+
+    private static AwsServiceException buildS3Exception(int responseStatus,
+                                                        byte[] errorPayload,
+                                                        SdkHttpResponse.Builder errorResponse) {
+        String requestId = errorResponse.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER_ALTERNATE)
+                                        .orElse(null);
+        String extendedRequestId = errorResponse.firstMatchingHeader(X_AMZ_ID_2_HEADER)
+                                                .orElse(null);
+        return S3Exception.builder()
+                          .requestId(requestId)
+                          .extendedRequestId(extendedRequestId)
+                          .statusCode(responseStatus)
+                          .message(errorResponse.statusText())
+                          .awsErrorDetails(AwsErrorDetails.builder()
+                                                          .sdkHttpResponse(errorResponse.build())
+                                                          .rawResponse(SdkBytes.fromByteArray(errorPayload))
+                                                          .build())
+                          .build();
+    }
+
+    /**
+     * Whether request failed midway or it failed due to a different error than the initial response.
+     * For example, this could happen if an object got deleted after download was initiated (200
+     * was received).
+     */
+    private boolean requestFailedMidwayOfOtherError(int responseStatus) {
+        return responseHandlingInitiated && initialHeadersResponse.statusCode() != responseStatus;
     }
 
     private void initiateResponseHandling(SdkHttpResponse response) {
@@ -214,7 +265,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         resultFuture.completeExceptionally(exception);
     }
 
-    private static boolean isErrorResponse(int responseStatus) {
+    private static boolean isServiceError(int responseStatus) {
         return responseStatus != 0;
     }
 

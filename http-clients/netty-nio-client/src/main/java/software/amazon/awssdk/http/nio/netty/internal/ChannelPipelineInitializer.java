@@ -26,6 +26,7 @@ import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
@@ -39,6 +40,8 @@ import io.netty.handler.codec.http2.Http2MultiplexHandler;
 import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.ApplicationProtocolNames;
+import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.SslProvider;
@@ -48,6 +51,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2GoAwayEventListener;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2PingHandler;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2SettingsFrameHandler;
@@ -58,6 +62,7 @@ import software.amazon.awssdk.http.nio.netty.internal.http2.Http2SettingsFrameHa
 @SdkInternalApi
 public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
     private final Protocol protocol;
+    private final ProtocolNegotiation protocolNegotiation;
     private final SslContext sslCtx;
     private final SslProvider sslProvider;
     private final long clientMaxStreams;
@@ -68,6 +73,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     private final URI poolKey;
 
     public ChannelPipelineInitializer(Protocol protocol,
+                                      ProtocolNegotiation protocolNegotiation,
                                       SslContext sslCtx,
                                       SslProvider sslProvider,
                                       long clientMaxStreams,
@@ -77,6 +83,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
                                       NettyConfiguration configuration,
                                       URI poolKey) {
         this.protocol = protocol;
+        this.protocolNegotiation = protocolNegotiation;
         this.sslCtx = sslCtx;
         this.sslProvider = sslProvider;
         this.clientMaxStreams = clientMaxStreams;
@@ -107,30 +114,39 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
             }
         }
 
-        if (protocol == Protocol.HTTP2) {
-            configureHttp2(ch, pipeline);
-        } else {
-            configureHttp11(ch, pipeline);
+        configureProtocolHandlers(ch, pipeline, protocol);
+        configurePostProtocolHandlers(pipeline, protocol);
+    }
+
+    private void configureProtocolHandlers(Channel ch, ChannelPipeline pipeline, Protocol protocol) {
+        switch (protocolNegotiation) {
+            case ASSUME_PROTOCOL:
+                configureAssumeProtocol(ch, pipeline, protocol);
+                break;
+            case ALPN:
+                configureAlpn(pipeline, protocol);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unsupported ProtocolNegotiation: " + protocolNegotiation);
         }
+    }
 
-        if (configuration.reapIdleConnections()) {
-            pipeline.addLast(new IdleConnectionReaperHandler(configuration.idleTimeoutMillis()));
-        }
-
-        if (configuration.connectionTtlMillis() > 0) {
-            pipeline.addLast(new OldConnectionReaperHandler(configuration.connectionTtlMillis()));
-        }
-
-        pipeline.addLast(FutureCancelHandler.getInstance());
-
-        // Only add it for h1 channel because it does not apply to
-        // h2 connection channel. It will be attached
-        // to stream channels when they are created.
+    private void configureAlpn(ChannelPipeline pipeline, Protocol protocol) {
         if (protocol == Protocol.HTTP1_1) {
-            pipeline.addLast(UnusedChannelExceptionHandler.getInstance());
+            // TODO - remove once we implement support for ALPN with HTTP1
+            throw new UnsupportedOperationException("ALPN with HTTP1 is not yet supported, use prior knowledge instead with "
+                                                    + "ProtocolNegotiation.ASSUME_PROTOCOL, or use ALPN with H2.");
+        } else if (protocol == Protocol.HTTP2) {
+            configureAlpnH2(pipeline);
         }
+    }
 
-        pipeline.addLast(new LoggingHandler(LogLevel.DEBUG));
+    private void configureAssumeProtocol(Channel ch, ChannelPipeline pipeline, Protocol protocol) {
+        if (protocol == Protocol.HTTP1_1) {
+            configureHttp11(ch, pipeline);
+        } else if (protocol == Protocol.HTTP2) {
+            configureHttp2(ch, pipeline);
+        }
     }
 
     private void configureHttp2(Channel ch, ChannelPipeline pipeline) {
@@ -167,11 +183,45 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         ch.attr(PROTOCOL_FUTURE).get().complete(Protocol.HTTP1_1);
     }
 
+    private void configureAlpnH2(ChannelPipeline pipeline) {
+        pipeline.addLast(new ApplicationProtocolNegotiationHandler("") {
+            @Override
+            protected void configurePipeline(ChannelHandlerContext ctx, String protocol) {
+                if (protocol.equals(ApplicationProtocolNames.HTTP_2)) {
+                    configureHttp2(ctx.channel(), ctx.pipeline());
+                } else {
+                    ctx.channel().attr(PROTOCOL_FUTURE).get()
+                       .completeExceptionally(new UnsupportedOperationException("The server does not support ALPN with H2"));
+                    ctx.close();
+                }
+            }
+        });
+    }
+
+    private void configurePostProtocolHandlers(ChannelPipeline pipeline, Protocol protocol) {
+        if (configuration.reapIdleConnections()) {
+            pipeline.addLast(new IdleConnectionReaperHandler(configuration.idleTimeoutMillis()));
+        }
+
+        if (configuration.connectionTtlMillis() > 0) {
+            pipeline.addLast(new OldConnectionReaperHandler(configuration.connectionTtlMillis()));
+        }
+
+        pipeline.addLast(FutureCancelHandler.getInstance());
+
+        // Only add it for h1 channel because it does not apply to
+        // h2 connection channel. It will be attached
+        // to stream channels when they are created.
+        if (protocol == Protocol.HTTP1_1) {
+            pipeline.addLast(UnusedChannelExceptionHandler.getInstance());
+        }
+
+        pipeline.addLast(new LoggingHandler(LogLevel.DEBUG));
+    }
+
     private static class NoOpChannelInitializer extends ChannelInitializer<Channel> {
         @Override
         protected void initChannel(Channel ch) {
         }
     }
 }
-
-

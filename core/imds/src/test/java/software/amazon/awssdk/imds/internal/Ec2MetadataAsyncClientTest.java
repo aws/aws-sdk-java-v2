@@ -36,6 +36,7 @@ import java.net.URI;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
@@ -56,6 +57,13 @@ class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAs
         this.client = Ec2MetadataAsyncClient.builder()
                                             .endpoint(URI.create("http://localhost:" + wiremock.getHttpPort()))
                                             .build();
+    }
+
+    @AfterEach
+    void cleanup() {
+        // Cleanup system properties and environment variables after each test
+        System.clearProperty("aws.ec2MetadataServiceTimeout");
+        environmentVariableHelper.reset();
     }
 
     @Override

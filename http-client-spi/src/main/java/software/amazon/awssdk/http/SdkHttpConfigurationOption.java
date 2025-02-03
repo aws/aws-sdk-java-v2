@@ -79,6 +79,12 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
         new SdkHttpConfigurationOption<>("Protocol", Protocol.class);
 
     /**
+     * HTTP protocol negotiation to use.
+     */
+    public static final SdkHttpConfigurationOption<ProtocolNegotiation> PROTOCOL_NEGOTIATION =
+        new SdkHttpConfigurationOption<>("ProtocolNegotiation", ProtocolNegotiation.class);
+
+    /**
      * Maximum number of requests allowed to wait for a connection.
      */
     public static final SdkHttpConfigurationOption<Integer> MAX_PENDING_CONNECTION_ACQUIRES =
@@ -148,6 +154,7 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     private static final Boolean DEFAULT_TRUST_ALL_CERTIFICATES = Boolean.FALSE;
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP1_1;
+    private static final ProtocolNegotiation DEFAULT_PROTOCOL_NEGOTIATION = ProtocolNegotiation.ASSUME_PROTOCOL;
 
     private static final TlsTrustManagersProvider DEFAULT_TLS_TRUST_MANAGERS_PROVIDER = null;
     private static final TlsKeyManagersProvider DEFAULT_TLS_KEY_MANAGERS_PROVIDER = SystemPropertyTlsKeyManagersProvider.create();
@@ -163,6 +170,7 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             .put(MAX_CONNECTIONS, DEFAULT_MAX_CONNECTIONS)
             .put(MAX_PENDING_CONNECTION_ACQUIRES, DEFAULT_MAX_CONNECTION_ACQUIRES)
             .put(PROTOCOL, DEFAULT_PROTOCOL)
+            .put(PROTOCOL_NEGOTIATION, DEFAULT_PROTOCOL_NEGOTIATION)
             .put(TRUST_ALL_CERTIFICATES, DEFAULT_TRUST_ALL_CERTIFICATES)
             .put(REAP_IDLE_CONNECTIONS, DEFAULT_REAP_IDLE_CONNECTIONS)
             .put(TCP_KEEPALIVE, DEFAULT_TCP_KEEPALIVE)

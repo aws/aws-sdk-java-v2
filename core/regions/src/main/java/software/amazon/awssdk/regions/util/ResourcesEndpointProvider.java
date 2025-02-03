@@ -17,8 +17,10 @@ package software.amazon.awssdk.regions.util;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 
@@ -43,6 +45,10 @@ public interface ResourcesEndpointProvider {
      *                 service to retrieve the endpoint.
      */
     URI endpoint() throws IOException;
+
+    default Optional<Duration> connectionTimeout() {
+        return Optional.empty();
+    }
 
     /**
      * Allows the extending class to provide a custom retry policy.

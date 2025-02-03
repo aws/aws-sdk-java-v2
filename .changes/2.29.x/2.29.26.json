@@ -1,0 +1,120 @@
+{
+    "version": "2.29.26",
+    "date": "2024-12-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "This release includes(1)Zero-ETL integration to ingest data from 3P SaaS and DynamoDB to Redshift/Redlake (2)new properties on Connections to enable reuse; new connection APIs for retrieve/preview metadata (3)support of CRUD operations for Multi-catalog (4)support of automatic statistics collections"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lake Formation",
+            "contributor": "",
+            "description": "This release added two new LakeFormation Permissions (CREATE_CATALOG, SUPER_USER) and added Id field for CatalogResource. It also added new conditon and expression field."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "Releasing SDK for Multi-Agent Collaboration."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Releasing SDK for multi agent collaboration"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Athena",
+            "contributor": "",
+            "description": "Add FEDERATED type to CreateDataCatalog. This creates Athena Data Catalog, AWS Lambda connector, and AWS Glue connection. Create/DeleteDataCatalog returns DataCatalog. Add Status, ConnectionType, and Error to DataCatalog and DataCatalogSummary. Add DeleteCatalogOnly to delete Athena Catalog only."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Aurora DSQL",
+            "contributor": "",
+            "description": "Add new API operations for Amazon Aurora DSQL. Amazon Aurora DSQL is a serverless, distributed SQL database with virtually unlimited scale, highest availability, and zero infrastructure management."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock",
+            "contributor": "",
+            "description": "Tagging support for Async Invoke resources. Added support for Distillation in CreateModelCustomizationJob API. Support for videoDataDeliveryEnabled flag in invocation logging."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Added support for Async Invoke Operations Start, List and Get. Support for invocation logs with `requestMetadata` field in Converse, ConverseStream, Invoke and InvokeStream. Video content blocks in Converse/ConverseStream accept raw bytes or S3 URI."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "contributor": "",
+            "description": "Support for configuring AiOps investigation as alarm action"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "Adds support for Connections, ProjectProfiles, and JobRuns APIs. Supports the new Lineage feature at GA. Adjusts optionality of a parameter for DataSource and SubscriptionTarget APIs which may adjust types in some clients."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "This change adds support for global tables with multi-Region strong consistency (in preview). The UpdateTable API now supports a new attribute MultiRegionConsistency to set consistency when creating global tables. The DescribeTable output now optionally includes the MultiRegionConsistency attribute."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "This release includes API needed to support for Unstructured Data in Q in QuickSight Q&A (IDC)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Adds support for Amazon Redshift RegisterNamespace and DeregisterNamespace APIs to share data to AWS Glue Data Catalog."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3 Tables",
+            "contributor": "",
+            "description": "Amazon S3 Tables deliver the first cloud object store with built-in open table format support, and the easiest way to store tabular data at scale."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Amazon S3 Metadata stores object metadata in read-only, fully managed Apache Iceberg metadata tables that you can query. You can create metadata table configurations for S3 general purpose buckets."
+        },
+        {
+            "type": "feature",
+            "category": "QApps",
+            "contributor": "",
+            "description": "Add support for 11 new plugins as action cards to help automate repetitive tasks and improve productivity."
+        },
+        {
+            "type": "feature",
+            "category": "QBusiness",
+            "contributor": "",
+            "description": "Amazon Q Business now supports customization options for your web experience, 11 new Plugins, and QuickSight support. Amazon Q index allows software providers to enrich their native generative AI experiences with their customer's enterprise knowledge and user context spanning multiple applications."
+        },
+        {
+            "type": "feature",
+            "category": "Redshift Serverless",
+            "contributor": "",
+            "description": "Adds support for the ListManagedWorkgroups API to get an overview of existing managed workgroups."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Reverted PR https://github.com/aws/aws-sdk-java-v2/pull/5704, which modified all HTTP methods to include the request body entity, as it caused regression issues for some services."
+        }
+    ]
+}

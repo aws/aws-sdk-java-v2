@@ -20,11 +20,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
 class ApplyUserAgentInterceptorTest {
@@ -37,8 +40,9 @@ class ApplyUserAgentInterceptorTest {
         SdkRequest sdkRequest = interceptor.modifyRequest(() -> getItemRequest, new ExecutionAttributes());
 
         RequestOverrideConfiguration requestOverrideConfiguration = sdkRequest.overrideConfiguration().get();
-        assertThat(requestOverrideConfiguration.apiNames().stream().anyMatch(a -> a.name().equals("ft") && a.version().equals(
-            "s3-transfer"))).isTrue();
+        Predicate<ApiName> apiNamePredicate = a -> a.name().equals("sdk-metrics") &&
+                                                   a.version().equals(BusinessMetricFeatureId.S3_TRANSFER.value());
+        assertThat(requestOverrideConfiguration.apiNames().stream().anyMatch(apiNamePredicate)).isTrue();
     }
 
     @Test

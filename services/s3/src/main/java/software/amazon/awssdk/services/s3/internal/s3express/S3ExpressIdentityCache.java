@@ -29,7 +29,6 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateSessionRequest;
 import software.amazon.awssdk.services.s3.model.SessionCredentials;
-import software.amazon.awssdk.services.s3.model.SessionMode;
 import software.amazon.awssdk.services.s3.s3express.S3ExpressSessionCredentials;
 import software.amazon.awssdk.utils.cache.lru.LruCache;
 
@@ -103,7 +102,6 @@ public class S3ExpressIdentityCache {
         Duration requestApiCallTimeout = clientSetTimeoutIfExists(serviceClientConfiguration).orElse(DEFAULT_API_CALL_TIMEOUT);
 
         return CreateSessionRequest.builder().bucket(bucket)
-                     .sessionMode(SessionMode.READ_WRITE)
                      .overrideConfiguration(o -> o.credentialsProvider(provider)
                                                   .apiCallTimeout(requestApiCallTimeout)).build();
     }

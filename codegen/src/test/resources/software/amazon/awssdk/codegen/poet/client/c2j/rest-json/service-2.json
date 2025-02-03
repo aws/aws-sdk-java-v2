@@ -471,6 +471,12 @@
         // Legacy generation uses shape name == event name
         "eventThree": {
           "shape": "LegacyEventThree"
+        },
+        "errorOne": {
+          "shape": "InvalidInputException"
+        },
+        "errorTwo": {
+          "shape": "InvalidInputException"
         }
       },
       "eventstream": true
@@ -571,7 +577,7 @@
         "ChecksumAlgorithm":{
           "shape":"ChecksumAlgorithm",
           "location":"header",
-          "locationName":"x-amz-checksum-algorithm"
+          "locationName":"x-amz-sdk-checksum-algorithm"
         }
       },
       "payload":"Body"
@@ -589,7 +595,7 @@
         "ChecksumAlgorithm":{
           "shape":"ChecksumAlgorithm",
           "location":"header",
-          "locationName":"x-amz-checksum-algorithm"
+          "locationName":"x-amz-sdk-checksum-algorithm"
         }
       },
       "payload":"stringMember"

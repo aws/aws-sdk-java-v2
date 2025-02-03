@@ -22,7 +22,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -30,7 +29,7 @@ import java.util.Optional;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.checksums.internal.DigestAlgorithm;
+import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -171,6 +170,13 @@ public final class SignerUtils {
         // AWS4 requires that we sign the Host header, so we
         // have to have it in the request by the time we sign.
 
+        // If the SdkHttpRequest has an associated Host header
+        // already set, prefer to use that.
+
+        if (requestBuilder.headers().get(SignerConstant.HOST) != null) {
+            return;
+        }
+
         String host = requestBuilder.host();
         if (!SdkHttpUtils.isUsingStandardPort(requestBuilder.protocol(), requestBuilder.port())) {
             StringBuilder hostHeaderBuilder = new StringBuilder(host);
@@ -210,10 +216,6 @@ public final class SignerUtils {
         return Long.parseLong(decodedContentLength.get());
     }
 
-    private static MessageDigest getMessageDigestInstance() {
-        return DigestAlgorithm.SHA256.getDigest();
-    }
-
     public static InputStream getBinaryRequestPayloadStream(ContentStreamProvider streamProvider) {
         try {
             if (streamProvider == null) {
@@ -227,14 +229,14 @@ public final class SignerUtils {
 
     public static byte[] hash(InputStream input) {
         try {
-            MessageDigest md = getMessageDigestInstance();
+            SdkChecksum md = sha256Checksum();
             byte[] buf = new byte[4096];
             int read = 0;
             while (read >= 0) {
                 read = input.read(buf);
                 md.update(buf, 0, read);
             }
-            return md.digest();
+            return md.getChecksumBytes();
         } catch (Exception e) {
             throw new RuntimeException("Unable to compute hash while signing request: ", e);
         }
@@ -242,9 +244,9 @@ public final class SignerUtils {
 
     public static byte[] hash(ByteBuffer input) {
         try {
-            MessageDigest md = getMessageDigestInstance();
+            SdkChecksum md = sha256Checksum();
             md.update(input);
-            return md.digest();
+            return md.getChecksumBytes();
         } catch (Exception e) {
             throw new RuntimeException("Unable to compute hash while signing request: ", e);
         }
@@ -252,9 +254,9 @@ public final class SignerUtils {
 
     public static byte[] hash(byte[] data) {
         try {
-            MessageDigest md = getMessageDigestInstance();
+            SdkChecksum md = sha256Checksum();
             md.update(data);
-            return md.digest();
+            return md.getChecksumBytes();
         } catch (Exception e) {
             throw new RuntimeException("Unable to compute hash while signing request: ", e);
         }
@@ -289,5 +291,9 @@ public final class SignerUtils {
         return requestBuilder.firstMatchingHeader(X_AMZ_CONTENT_SHA256).orElseThrow(
             () -> new IllegalArgumentException("Content hash must be present in the '" + X_AMZ_CONTENT_SHA256 + "' header!")
         );
+    }
+
+    private static SdkChecksum sha256Checksum() {
+        return SdkChecksum.forAlgorithm(() -> "SHA256");
     }
 }

@@ -27,12 +27,29 @@ import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.retries.LegacyRetryStrategy;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.retries.internal.DefaultAwareRetryStrategy;
+import software.amazon.awssdk.retries.internal.RetryStrategyDefaults;
 
 /**
  * Retry strategies used by any SDK client.
  */
 @SdkPublicApi
 public final class SdkDefaultRetryStrategy {
+
+    private static final String DEFAULTS_NAME = "sdk";
+
+    private static final RetryStrategyDefaults DEFAULTS_PREDICATES = new RetryStrategyDefaults() {
+        @Override
+        public String name() {
+            return DEFAULTS_NAME;
+        }
+
+        @Override
+        public void applyDefaults(RetryStrategy.Builder<?, ?> builder) {
+            configureStrategy(builder);
+            markDefaultsAdded(builder);
+        }
+    };
 
     private SdkDefaultRetryStrategy() {
     }
@@ -153,7 +170,6 @@ public final class SdkDefaultRetryStrategy {
      * @param <T>     The type of the builder extending {@link RetryStrategy.Builder}
      * @return The given builder
      */
-
     public static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder) {
         builder.retryOnException(SdkDefaultRetryStrategy::retryOnRetryableException)
                .retryOnException(SdkDefaultRetryStrategy::retryOnStatusCodes)
@@ -164,6 +180,10 @@ public final class SdkDefaultRetryStrategy {
         Integer maxAttempts = SdkSystemSetting.AWS_MAX_ATTEMPTS.getIntegerValue().orElse(null);
         if (maxAttempts != null) {
             builder.maxAttempts(maxAttempts);
+        }
+        if (builder instanceof DefaultAwareRetryStrategy.Builder) {
+            DefaultAwareRetryStrategy.Builder b = (DefaultAwareRetryStrategy.Builder) builder;
+            b.markDefaultAdded(DEFAULTS_NAME);
         }
         return builder;
     }
@@ -230,5 +250,17 @@ public final class SdkDefaultRetryStrategy {
                                  .retryPolicy(RetryPolicy.forRetryMode(RetryMode.ADAPTIVE))
                                  .build();
     }
+
+    public static RetryStrategyDefaults retryStrategyDefaults() {
+        return DEFAULTS_PREDICATES;
+    }
+
+    private static void markDefaultsAdded(RetryStrategy.Builder<?, ?> builder) {
+        if (builder instanceof DefaultAwareRetryStrategy.Builder) {
+            DefaultAwareRetryStrategy.Builder b = (DefaultAwareRetryStrategy.Builder) builder;
+            b.markDefaultAdded(DEFAULTS_NAME);
+        }
+    }
+
 }
 

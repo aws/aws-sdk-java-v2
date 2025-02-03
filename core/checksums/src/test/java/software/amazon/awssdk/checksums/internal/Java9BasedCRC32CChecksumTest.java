@@ -24,7 +24,7 @@ public class Java9BasedCRC32CChecksumTest extends Crc32CChecksumTest {
 
     @BeforeEach
     public void setUp() {
-        sdkChecksum = Crc32cProvider.createJavaCrc32C();
+        sdkChecksum = CrcChecksumProvider.createJavaCrc32C();
     }
 
 }

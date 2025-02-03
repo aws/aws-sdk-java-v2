@@ -1,0 +1,72 @@
+{
+    "version": "2.29.37",
+    "date": "2024-12-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Amplify",
+            "contributor": "",
+            "description": "Added WAF Configuration to Amplify Apps"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Budgets",
+            "contributor": "",
+            "description": "Releasing minor partition endpoint updates"
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "AWS DataSync introduces the ability to update attributes for in-cloud locations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "Release connectivity status query API which is a dedicated high throughput(TPS) API to query a specific device's most recent connectivity state and metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resilience Hub",
+            "contributor": "",
+            "description": "AWS Resilience Hub now automatically detects already configured CloudWatch alarms and FIS experiments as part of the assessment process and returns the discovered resources in the corresponding list API responses. It also allows you to include or exclude test recommendations for an AppComponent."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "Added AS2 agreement configurations to control filename preservation and message signing enforcement. Added AS2 connector configuration to preserve content type from S3 objects."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Participant Service",
+            "contributor": "",
+            "description": "This release adds support for the GetAuthenticationUrl and CancelParticipantAuthentication APIs used for customer authentication within Amazon Connect chats. There are also minor updates to the GetAttachment API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds support for the UpdateParticipantAuthentication API used for customer authentication within Amazon Connect chats."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonMWAA",
+            "contributor": "",
+            "description": "Added support for Apache Airflow version 2.10.3 to MWAA."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Add support for PerformanceConfiguration attribute to Dataset entity. Allow PerformanceConfiguration specification in CreateDataset and UpdateDataset APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

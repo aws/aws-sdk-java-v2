@@ -15,6 +15,10 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculationResolver;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidationResolver;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -115,6 +119,9 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
                                    c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
                 .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
                 .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
+        SdkClientConfiguration clientConfig = config;
+        builder.lazyOption(SdkClientOption.REQUEST_CHECKSUM_CALCULATION, c -> resolveRequestChecksumCalculation(clientConfig));
+        builder.lazyOption(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION, c -> resolveResponseChecksumValidation(clientConfig));
         return builder.build();
     }
 
@@ -129,6 +136,16 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     private JsonEndpointProvider defaultEndpointProvider() {
         return JsonEndpointProvider.defaultProvider();
+    }
+
+    public B requestChecksumCalculation(RequestChecksumCalculation requestChecksumCalculation) {
+        clientConfiguration.option(SdkClientOption.REQUEST_CHECKSUM_CALCULATION, requestChecksumCalculation);
+        return thisBuilder();
+    }
+
+    public B responseChecksumValidation(ResponseChecksumValidation responseChecksumValidation) {
+        clientConfiguration.option(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION, responseChecksumValidation);
+        return thisBuilder();
     }
 
     public B customParameter(Boolean customParameter) {
@@ -195,6 +212,28 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     private List<SdkPlugin> internalPlugins(SdkClientConfiguration config) {
         return Collections.emptyList();
+    }
+
+    private RequestChecksumCalculation resolveRequestChecksumCalculation(SdkClientConfiguration config) {
+        RequestChecksumCalculation configuredChecksumCalculation = config.option(SdkClientOption.REQUEST_CHECKSUM_CALCULATION);
+        if (configuredChecksumCalculation == null) {
+            configuredChecksumCalculation = RequestChecksumCalculationResolver.create()
+                                                                              .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                              .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                                                              .defaultChecksumCalculation(RequestChecksumCalculation.WHEN_SUPPORTED).resolve();
+        }
+        return configuredChecksumCalculation;
+    }
+
+    private ResponseChecksumValidation resolveResponseChecksumValidation(SdkClientConfiguration config) {
+        ResponseChecksumValidation configuredChecksumValidation = config.option(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION);
+        if (configuredChecksumValidation == null) {
+            configuredChecksumValidation = ResponseChecksumValidationResolver.create()
+                                                                             .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                             .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                                                             .defaultChecksumValidation(ResponseChecksumValidation.WHEN_SUPPORTED).resolve();
+        }
+        return configuredChecksumValidation;
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {

@@ -22,6 +22,8 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_REGION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.USE_S3_EXPRESS_AUTH;
@@ -41,6 +43,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.http.HttpProxyEnvironmentVariableSetting;
@@ -81,7 +85,6 @@ public class S3CrtAsyncHttpClientTest {
                                                                  .endpointOverride(DEFAULT_ENDPOINT)
                                                                  .credentialsProvider(
                                                                      StaticCredentialsProvider.create(AwsBasicCredentials.create("FOO", "BARR")))
-                                                                 .checksumValidationEnabled(true)
                                                                  .signingRegion("us-west-2")
                                                                  .build();
 
@@ -169,7 +172,7 @@ public class S3CrtAsyncHttpClientTest {
     }
 
     @Test
-    public void nonStreamingOperation_noChecksumAlgoProvided_shouldNotSetByDefault() {
+    public void nonStreamingOperation_noChecksumAlgoProvided_shouldSetToDefaultCRC32() {
         HttpChecksum httpChecksum = HttpChecksum.builder()
                                                 .isRequestStreaming(false)
                                                 .build();
@@ -182,11 +185,11 @@ public class S3CrtAsyncHttpClientTest {
                                                                             .build();
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
-        assertThat(actual.getChecksumConfig().getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.NONE);
+        assertThat(actual.getChecksumConfig().getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.CRC32);
     }
 
     @Test
-    public void nonStreamingOperation_checksumAlgoProvided_shouldNotPassToCrt() {
+    public void nonStreamingOperation_checksumAlgoSHA1Provided_shouldPassToCrt() {
         HttpChecksum httpChecksum = HttpChecksum.builder()
                                                 .isRequestStreaming(false)
                                                 .requestAlgorithm("SHA1")
@@ -199,7 +202,24 @@ public class S3CrtAsyncHttpClientTest {
                                                                             .build();
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
-        assertThat(actual.getChecksumConfig().getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.NONE);
+        assertThat(actual.getChecksumConfig().getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.SHA1);
+    }
+
+    @Test
+    public void nonStreamingOperation_checksumAlgoCRC64NVMEProvided_shouldPassToCrt() {
+        HttpChecksum httpChecksum = HttpChecksum.builder()
+                                                .isRequestStreaming(false)
+                                                .requestAlgorithm("CRC64NVME")
+                                                .build();
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
+                                                                                                       "NonStreaming")
+
+                                                                            .putHttpExecutionAttribute(HTTP_CHECKSUM,
+                                                                                                       httpChecksum)
+                                                                            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getChecksumConfig().getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.CRC64NVME);
     }
 
     @Test
@@ -209,9 +229,12 @@ public class S3CrtAsyncHttpClientTest {
                                                 .build();
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                        "PutObject")
-
                                                                             .putHttpExecutionAttribute(HTTP_CHECKSUM,
                                                                                                        httpChecksum)
+                                                                            .putHttpExecutionAttribute(REQUEST_CHECKSUM_CALCULATION,
+                                                                                                       RequestChecksumCalculation.WHEN_SUPPORTED)
+                                                                            .putHttpExecutionAttribute(RESPONSE_CHECKSUM_VALIDATION,
+                                                                                                       ResponseChecksumValidation.WHEN_SUPPORTED)
                                                                             .build();
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
@@ -225,9 +248,12 @@ public class S3CrtAsyncHttpClientTest {
                                                 .build();
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                        "PutObject")
-
                                                                             .putHttpExecutionAttribute(HTTP_CHECKSUM,
                                                                                                        httpChecksum)
+                                                                            .putHttpExecutionAttribute(REQUEST_CHECKSUM_CALCULATION,
+                                                                                                       RequestChecksumCalculation.WHEN_SUPPORTED)
+                                                                            .putHttpExecutionAttribute(RESPONSE_CHECKSUM_VALIDATION,
+                                                                                                       ResponseChecksumValidation.WHEN_SUPPORTED)
                                                                             .build();
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
@@ -241,9 +267,12 @@ public class S3CrtAsyncHttpClientTest {
                                                 .build();
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                        "GetObject")
-
                                                                             .putHttpExecutionAttribute(HTTP_CHECKSUM,
                                                                                                        httpChecksum)
+                                                                            .putHttpExecutionAttribute(REQUEST_CHECKSUM_CALCULATION,
+                                                                                                       RequestChecksumCalculation.WHEN_SUPPORTED)
+                                                                            .putHttpExecutionAttribute(RESPONSE_CHECKSUM_VALIDATION,
+                                                                                                       ResponseChecksumValidation.WHEN_SUPPORTED)
                                                                             .build();
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
@@ -259,7 +288,6 @@ public class S3CrtAsyncHttpClientTest {
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                  .endpointOverride(DEFAULT_ENDPOINT)
                                                                  .credentialsProvider(null)
-                                                                 .checksumValidationEnabled(false)
                                                                  .build();
 
         asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, S3CrtAsyncHttpClient.builder()
@@ -267,7 +295,6 @@ public class S3CrtAsyncHttpClientTest {
 
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                        "GetObject")
-
                                                                             .putHttpExecutionAttribute(HTTP_CHECKSUM,
                                                                                                        httpChecksum)
                                                                             .build();
@@ -286,7 +313,6 @@ public class S3CrtAsyncHttpClientTest {
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                  .endpointOverride(DEFAULT_ENDPOINT)
                                                                  .credentialsProvider(null)
-                                                                 .checksumValidationEnabled(false)
                                                                  .build();
 
         asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, S3CrtAsyncHttpClient.builder()
@@ -294,7 +320,6 @@ public class S3CrtAsyncHttpClientTest {
 
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                        "GetObject")
-
                                                                             .putHttpExecutionAttribute(HTTP_CHECKSUM,
                                                                                                        httpChecksum)
                                                                             .build();
@@ -322,7 +347,6 @@ public class S3CrtAsyncHttpClientTest {
                                                 .build();
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                        "PutObject")
-
                                                                             .putHttpExecutionAttribute(HTTP_CHECKSUM,
                                                                                                        httpChecksum)
                                                                             .build();
@@ -342,6 +366,10 @@ public class S3CrtAsyncHttpClientTest {
                                                                                                        Region.AP_SOUTH_1)
                                                                             .putHttpExecutionAttribute(SIGNING_NAME, "s3express")
                                                                             .putHttpExecutionAttribute(USE_S3_EXPRESS_AUTH, true)
+                                                                            .putHttpExecutionAttribute(REQUEST_CHECKSUM_CALCULATION,
+                                                                                                       RequestChecksumCalculation.WHEN_SUPPORTED)
+                                                                            .putHttpExecutionAttribute(RESPONSE_CHECKSUM_VALIDATION,
+                                                                                                       ResponseChecksumValidation.WHEN_SUPPORTED)
                                                                             .putHttpExecutionAttribute(HTTP_CHECKSUM,
                                                                                                        httpChecksum)
                                                                             .build();
@@ -367,6 +395,10 @@ public class S3CrtAsyncHttpClientTest {
                                                                             .putHttpExecutionAttribute(SIGNING_NAME, "s3")
                                                                             .putHttpExecutionAttribute(HTTP_CHECKSUM,
                                                                                                        httpChecksum)
+                                                                            .putHttpExecutionAttribute(REQUEST_CHECKSUM_CALCULATION,
+                                                                                                       RequestChecksumCalculation.WHEN_SUPPORTED)
+                                                                            .putHttpExecutionAttribute(RESPONSE_CHECKSUM_VALIDATION,
+                                                                                                       ResponseChecksumValidation.WHEN_SUPPORTED)
                                                                             .build();
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);

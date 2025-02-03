@@ -19,8 +19,11 @@ import software.amazon.awssdk.services.query.QueryAsyncClient;
 import software.amazon.awssdk.services.query.QueryAsyncClientBuilder;
 import software.amazon.awssdk.services.query.QueryClient;
 import software.amazon.awssdk.services.query.QueryClientBuilder;
+import software.amazon.awssdk.services.query.model.AttributeValue;
 import software.amazon.awssdk.services.query.model.ChecksumStructure;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
+import software.amazon.awssdk.services.query.model.OperationWithMapOperationContextParamRequest;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 @Generated("software.amazon.awssdk:codegen")
 public class QueryClientEndpointTests extends BaseRuleSetClientTest {
@@ -79,6 +82,33 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
                 builder.build().operationWithContextParam(request);
             }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://012345678901.myservice.aws")).build())
                      .build()),
+            new SyncTestCase("test case 6", () -> {
+                QueryClientBuilder builder = QueryClient.builder();
+                builder.credentialsProvider(BaseRuleSetClientTest.credentialsProviderWithAccountId("012345678901"));
+                builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
+                builder.httpClient(getSyncHttpClient());
+                builder.accountIdEndpointMode(AccountIdEndpointMode.fromValue("required"));
+                OperationWithMapOperationContextParamRequest request = OperationWithMapOperationContextParamRequest
+                    .builder()
+                    .operationWithMapOperationContextParam(
+                        ImmutableMap.of("key", AttributeValue.builder().s("value").build())).build();
+                builder.build().operationWithMapOperationContextParam(request);
+            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://012345678901.myservice.aws")).build())
+                     .build()),
+            new SyncTestCase("test case 7", () -> {
+                QueryClientBuilder builder = QueryClient.builder();
+                builder.credentialsProvider(BaseRuleSetClientTest.credentialsProviderWithAccountId("012345678901"));
+                builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
+                builder.httpClient(getSyncHttpClient());
+                builder.accountIdEndpointMode(AccountIdEndpointMode.fromValue("required"));
+                OperationWithMapOperationContextParamRequest request = OperationWithMapOperationContextParamRequest
+                    .builder()
+                    .operationWithMapOperationContextParam(
+                        ImmutableMap.of("key", AttributeValue.builder().s("value").build(), "key2", AttributeValue
+                            .builder().s("value2").build())).build();
+                builder.build().operationWithMapOperationContextParam(request);
+            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://012345678901.myservice.aws")).build())
+                     .build()),
             new SyncTestCase("Has complex operation input", () -> {
                 QueryClientBuilder builder = QueryClient.builder();
                 builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
@@ -122,6 +152,33 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
                 OperationWithContextParamRequest request = OperationWithContextParamRequest.builder()
                                                                                            .stringMember("this is a test with AccountId and AccountIdEndpointMode").build();
                 return builder.build().operationWithContextParam(request);
+            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://012345678901.myservice.aws")).build())
+                     .build()),
+            new AsyncTestCase("test case 6", () -> {
+                QueryAsyncClientBuilder builder = QueryAsyncClient.builder();
+                builder.credentialsProvider(BaseRuleSetClientTest.credentialsProviderWithAccountId("012345678901"));
+                builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
+                builder.httpClient(getAsyncHttpClient());
+                builder.accountIdEndpointMode(AccountIdEndpointMode.fromValue("required"));
+                OperationWithMapOperationContextParamRequest request = OperationWithMapOperationContextParamRequest
+                    .builder()
+                    .operationWithMapOperationContextParam(
+                        ImmutableMap.of("key", AttributeValue.builder().s("value").build())).build();
+                return builder.build().operationWithMapOperationContextParam(request);
+            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://012345678901.myservice.aws")).build())
+                     .build()),
+            new AsyncTestCase("test case 7", () -> {
+                QueryAsyncClientBuilder builder = QueryAsyncClient.builder();
+                builder.credentialsProvider(BaseRuleSetClientTest.credentialsProviderWithAccountId("012345678901"));
+                builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
+                builder.httpClient(getAsyncHttpClient());
+                builder.accountIdEndpointMode(AccountIdEndpointMode.fromValue("required"));
+                OperationWithMapOperationContextParamRequest request = OperationWithMapOperationContextParamRequest
+                    .builder()
+                    .operationWithMapOperationContextParam(
+                        ImmutableMap.of("key", AttributeValue.builder().s("value").build(), "key2", AttributeValue
+                            .builder().s("value2").build())).build();
+                return builder.build().operationWithMapOperationContextParam(request);
             }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://012345678901.myservice.aws")).build())
                      .build()),
             new AsyncTestCase("Has complex operation input", () -> {

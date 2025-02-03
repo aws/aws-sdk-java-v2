@@ -32,19 +32,24 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOf
 import static software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING;
 
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
+import java.util.Map;
 import java.util.concurrent.CompletionException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -60,20 +65,32 @@ import software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.protocolrestjson.model.ChecksumMode;
 import software.amazon.awssdk.services.protocolrestjson.model.GetOperationWithChecksumResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.OperationWithChecksumNonStreamingResponse;
+import software.amazon.awssdk.utils.ImmutableMap;
 
+@WireMockTest
 public class HttpChecksumValidationTest {
 
-    @Rule
-    public WireMockRule wireMock = new WireMockRule(0);
+    private static final Map<String, String> ALGORITHM_TO_VALUE = ImmutableMap.<String, String>builder()
+        .put("crc32", "i9aeUg==")
+        .put("crc32c", "crUfeA==")
+        .put("sha1", "e1AsOh9IyGCa4hLN+2Od7jlnP14=")
+        .put("sha256", "ZOyIygCyaOW6GjVnihtTFtIS9PNmskdyMlNKiuyjfzw=")
+        .put("crc64nvme", "OOJZ0D8xKts=")
+        .build();
+
     private ProtocolRestJsonClient client;
     private ProtocolRestJsonAsyncClient asyncClient;
 
-    @Before
-    public void setupClient() {
+    public static Stream<Map.Entry<String, String>> checksumEntry() {
+        return ALGORITHM_TO_VALUE.entrySet().stream();
+    }
+
+    @BeforeEach
+    public void setupClient(WireMockRuntimeInfo wm) {
         client = ProtocolRestJsonClient.builder()
                                        .credentialsProvider(AnonymousCredentialsProvider.create())
                                        .region(Region.US_EAST_1)
-                                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                       .endpointOverride(URI.create(wm.getHttpBaseUrl()))
                                        .overrideConfiguration(
                                            // TODO(sra-identity-and-auth): we should remove these
                                            //  overrides once we set up codegen to set chunk-encoding to true
@@ -88,51 +105,56 @@ public class HttpChecksumValidationTest {
                                                  .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                                                  .region(Region.US_EAST_1)
                                                  .overrideConfiguration(o -> o.addExecutionInterceptor(new CaptureChecksumValidationInterceptor()))
-                                                 .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                                 .endpointOverride(URI.create(wm.getHttpBaseUrl()))
                                                  .build();
     }
 
-    @After
+    @AfterEach
     public void clear() {
         CaptureChecksumValidationInterceptor.reset();
     }
 
-    @Test
-    public void syncClientValidateStreamingResponse() {
-        String expectedChecksum = "i9aeUg==";
-        stubWithCRC32AndSha256Checksum("Hello world", expectedChecksum, "crc32");
-        client.putOperationWithChecksum(r -> r
-                                            .checksumAlgorithm(ChecksumAlgorithm.CRC32),
-                                        RequestBody.fromString("Hello world"), ResponseTransformer.toBytes());
-        verify(putRequestedFor(urlEqualTo("/")).withHeader("x-amz-trailer", equalTo("x-amz-checksum-crc32")));
-        verify(putRequestedFor(urlEqualTo("/")).withRequestBody(containing("x-amz-checksum-crc32:" + expectedChecksum)));
+    @ParameterizedTest
+    @MethodSource("checksumEntry")
+    public void syncClientStreamingResponse_shouldValidate(Map.Entry<String, String> checksumToValue) {
+        stubWithSingleChecksum("Hello world", checksumToValue.getValue(), checksumToValue.getKey());
         ResponseBytes<GetOperationWithChecksumResponse> responseBytes =
             client.getOperationWithChecksum(r -> r.checksumMode(ChecksumMode.ENABLED), ResponseTransformer.toBytes());
         assertThat(responseBytes.asUtf8String()).isEqualTo("Hello world");
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(Algorithm.CRC32);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.fromValue(checksumToValue.getKey()));
+    }
+
+    @Test
+    public void syncClientValidateStreamingResponse_multipleChecksumInResponse_shouldChooseBasedOnPriority() {
+        stubWithMultipleChecksums("Hello world", ALGORITHM_TO_VALUE);
+        ResponseBytes<GetOperationWithChecksumResponse> responseBytes =
+            client.getOperationWithChecksum(r -> r.checksumMode(ChecksumMode.ENABLED), ResponseTransformer.toBytes());
+        assertThat(responseBytes.asUtf8String()).isEqualTo("Hello world");
+        assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32C);
     }
 
     @Test
     public void syncClientValidateStreamingResponseZeroByte() {
         String expectedChecksum = "AAAAAA==";
-        stubWithCRC32AndSha256Checksum("", expectedChecksum, "crc32");
+        stubWithSingleChecksum("", expectedChecksum, "crc32");
         client.putOperationWithChecksum(r -> r
                                             .checksumAlgorithm(ChecksumAlgorithm.CRC32),
-                                        RequestBody.fromString(""), ResponseTransformer.toBytes());
+                                        RequestBody.fromString(""));
         verify(putRequestedFor(urlEqualTo("/")).withHeader("x-amz-trailer", equalTo("x-amz-checksum-crc32")));
         verify(putRequestedFor(urlEqualTo("/")).withRequestBody(containing("x-amz-checksum-crc32:" + expectedChecksum)));
         ResponseBytes<GetOperationWithChecksumResponse> responseBytes =
             client.getOperationWithChecksum(r -> r.checksumMode(ChecksumMode.ENABLED), ResponseTransformer.toBytes());
         assertThat(responseBytes.asUtf8String()).isEmpty();
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(Algorithm.CRC32);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32);
     }
 
     @Test
     public void syncClientValidateNonStreamingResponse() {
         String expectedChecksum = "lzlLIA==";
-        stubWithCRC32AndSha256Checksum("{\"stringMember\":\"Hello world\"}", expectedChecksum, "crc32");
+        stubWithSingleChecksum("{\"stringMember\":\"Hello world\"}", expectedChecksum, "crc32");
         client.operationWithChecksumNonStreaming(
             r -> r.stringMember("Hello world").checksumAlgorithm(ChecksumAlgorithm.CRC32)
                   // TODO(sra-identity-and-auth): we should remove these
@@ -145,13 +167,13 @@ public class HttpChecksumValidationTest {
             client.operationWithChecksumNonStreaming(o -> o.checksumMode(ChecksumMode.ENABLED));
         assertThat(operationWithChecksumNonStreamingResponse.stringMember()).isEqualTo("Hello world");
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(Algorithm.CRC32);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32);
     }
 
     @Test
     public void syncClientValidateNonStreamingResponseZeroByte() {
         String expectedChecksum = "o6a/Qw==";
-        stubWithCRC32AndSha256Checksum("{}", expectedChecksum, "crc32");
+        stubWithSingleChecksum("{}", expectedChecksum, "crc32");
         client.operationWithChecksumNonStreaming(
             r -> r.checksumAlgorithm(ChecksumAlgorithm.CRC32)
                   // TODO(sra-identity-and-auth): we should remove these
@@ -164,13 +186,13 @@ public class HttpChecksumValidationTest {
             client.operationWithChecksumNonStreaming(o -> o.checksumMode(ChecksumMode.ENABLED));
         assertThat(operationWithChecksumNonStreamingResponse.stringMember()).isNull();
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(Algorithm.CRC32);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32);
     }
 
     @Test
     public void syncClientValidateStreamingResponseForceSkip() {
         String expectedChecksum = "i9aeUg==";
-        stubWithCRC32AndSha256Checksum("Hello world", expectedChecksum, "crc32");
+        stubWithSingleChecksum("Hello world", expectedChecksum, "crc32");
         ResponseBytes<GetOperationWithChecksumResponse> responseBytes =
             client.getOperationWithChecksum(
                 r -> r.checksumMode(ChecksumMode.ENABLED).overrideConfiguration(
@@ -183,7 +205,7 @@ public class HttpChecksumValidationTest {
     }
 
     @Test
-    public void syncClientValidateStreamingResponseNoAlgorithmInResponse() {
+    public void syncClientValidateStreamingResponse_noAlgorithmInResponse_shouldSkipValidation() {
         stubWithNoChecksum();
         ResponseBytes<GetOperationWithChecksumResponse> responseBytes =
             client.getOperationWithChecksum(
@@ -194,10 +216,11 @@ public class HttpChecksumValidationTest {
         assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isNull();
     }
 
-    @Test
-    public void syncClientValidateStreamingResponseNoAlgorithmFoundInClient() {
+    @ParameterizedTest
+    @ValueSource(strings = {"foobar1", "foobar2"})
+    public void syncClientValidateStreamingResponse_noSupportedAlgorithmFoundInClient_shouldSkipValidation(String unsupportedAlgorithm) {
         String expectedChecksum = "someNewAlgorithmCalculatedValue";
-        stubWithCRC32AndSha256Checksum("Hello world", expectedChecksum, "crc64");
+        stubWithSingleChecksum("Hello world", expectedChecksum, unsupportedAlgorithm);
         ResponseBytes<GetOperationWithChecksumResponse> responseBytes =
             client.getOperationWithChecksum(
                 r -> r.checksumMode(ChecksumMode.ENABLED),
@@ -210,7 +233,7 @@ public class HttpChecksumValidationTest {
     @Test
     public void syncClientValidateStreamingResponseWithValidationFailed() {
         String expectedChecksum = "i9aeUg=";
-        stubWithCRC32AndSha256Checksum("Hello world", expectedChecksum, "crc32");
+        stubWithSingleChecksum("Hello world", expectedChecksum, "crc32");
         assertThatExceptionOfType(SdkClientException.class)
             .isThrownBy(() -> client.getOperationWithChecksum(
                 r -> r.checksumMode(ChecksumMode.ENABLED),
@@ -218,13 +241,13 @@ public class HttpChecksumValidationTest {
             .withMessage("Unable to unmarshall response (Data read has a different checksum than expected. Was i9aeUg==, "
                          + "but expected i9aeUg=). Response Code: 200, Response Text: OK");
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(Algorithm.CRC32);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32);
     }
 
     @Test
     public void syncClientSkipsValidationWhenFeatureDisabled() {
         String expectedChecksum = "i9aeUg==";
-        stubWithCRC32AndSha256Checksum("Hello world", expectedChecksum, "crc32");
+        stubWithSingleChecksum("Hello world", expectedChecksum, "crc32");
         ResponseBytes<GetOperationWithChecksumResponse> responseBytes =
             client.getOperationWithChecksum(r -> r.stringMember("foo"), ResponseTransformer.toBytes());
         assertThat(responseBytes.asUtf8String()).isEqualTo("Hello world");
@@ -232,33 +255,42 @@ public class HttpChecksumValidationTest {
         assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isNull();
     }
 
-    //Async
-    @Test
-    public void asyncClientValidateStreamingResponse() {
-        String expectedChecksum = "i9aeUg==";
-        stubWithCRC32AndSha256Checksum("Hello world", expectedChecksum, "crc32");
+    @ParameterizedTest
+    @MethodSource("checksumEntry")
+    public void asyncClientStreamingResponse_shouldValidate(Map.Entry<String, String> checksumToValue) {
+        stubWithSingleChecksum("Hello world", checksumToValue.getValue(), checksumToValue.getKey());
         ResponseBytes<GetOperationWithChecksumResponse> responseBytes =
             asyncClient.getOperationWithChecksum(r -> r.checksumMode(ChecksumMode.ENABLED), AsyncResponseTransformer.toBytes()).join();
         assertThat(responseBytes.asUtf8String()).isEqualTo("Hello world");
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(Algorithm.CRC32);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.fromValue(checksumToValue.getKey()));
+    }
+
+    @Test
+    public void asyncClientValidateStreamingResponse_multipleChecksumInResponse_shouldChooseBasedOnPriority() {
+        stubWithMultipleChecksums("Hello world", ALGORITHM_TO_VALUE);
+        ResponseBytes<GetOperationWithChecksumResponse> responseBytes =
+            asyncClient.getOperationWithChecksum(r -> r.checksumMode(ChecksumMode.ENABLED), AsyncResponseTransformer.toBytes()).join();
+        assertThat(responseBytes.asUtf8String()).isEqualTo("Hello world");
+        assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32C);
     }
 
     @Test
     public void asyncClientValidateStreamingResponseZeroByte() {
         String expectedChecksum = "AAAAAA==";
-        stubWithCRC32AndSha256Checksum("", expectedChecksum, "crc32");
+        stubWithSingleChecksum("", expectedChecksum, "crc32");
         ResponseBytes<GetOperationWithChecksumResponse> responseBytes =
             asyncClient.getOperationWithChecksum(r -> r.checksumMode(ChecksumMode.ENABLED), AsyncResponseTransformer.toBytes()).join();
         assertThat(responseBytes.asUtf8String()).isEmpty();
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(Algorithm.CRC32);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32);
     }
 
     @Test
     public void asyncClientValidateNonStreamingResponse() {
         String expectedChecksum = "lzlLIA==";
-        stubWithCRC32AndSha256Checksum("{\"stringMember\":\"Hello world\"}", expectedChecksum, "crc32");
+        stubWithSingleChecksum("{\"stringMember\":\"Hello world\"}", expectedChecksum, "crc32");
         OperationWithChecksumNonStreamingResponse response =
             asyncClient.operationWithChecksumNonStreaming(
                 o -> o.checksumMode(ChecksumMode.ENABLED)
@@ -268,13 +300,13 @@ public class HttpChecksumValidationTest {
                       .overrideConfiguration(c -> c.putExecutionAttribute(ENABLE_CHUNKED_ENCODING, false))).join();
         assertThat(response.stringMember()).isEqualTo("Hello world");
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(Algorithm.CRC32);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32);
     }
 
     @Test
     public void asyncClientValidateNonStreamingResponseZeroByte() {
         String expectedChecksum = "o6a/Qw==";
-        stubWithCRC32AndSha256Checksum("{}", expectedChecksum, "crc32");
+        stubWithSingleChecksum("{}", expectedChecksum, "crc32");
         OperationWithChecksumNonStreamingResponse operationWithChecksumNonStreamingResponse =
             asyncClient.operationWithChecksumNonStreaming(
                 o -> o.checksumMode(ChecksumMode.ENABLED)
@@ -284,13 +316,13 @@ public class HttpChecksumValidationTest {
                       .overrideConfiguration(c -> c.putExecutionAttribute(ENABLE_CHUNKED_ENCODING, false))).join();
         assertThat(operationWithChecksumNonStreamingResponse.stringMember()).isNull();
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(Algorithm.CRC32);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32);
     }
 
     @Test
     public void asyncClientValidateStreamingResponseForceSkip() {
         String expectedChecksum = "i9aeUg==";
-        stubWithCRC32AndSha256Checksum("Hello world", expectedChecksum, "crc32");
+        stubWithSingleChecksum("Hello world", expectedChecksum, "crc32");
         ResponseBytes<GetOperationWithChecksumResponse> responseBytes =
             asyncClient.getOperationWithChecksum(
                 r -> r.checksumMode(ChecksumMode.ENABLED).overrideConfiguration(
@@ -314,10 +346,11 @@ public class HttpChecksumValidationTest {
         assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isNull();
     }
 
-    @Test
-    public void asyncClientValidateStreamingResponseNoAlgorithmFoundInClient() {
+    @ParameterizedTest
+    @ValueSource(strings = {"foobar1", "foobar2"})
+    public void asyncClientValidateStreamingResponseNoSupportedAlgorithmFoundInClient_shouldNotFail(String unsupportedAlgorithm) {
         String expectedChecksum = "someNewAlgorithmCalculatedValue";
-        stubWithCRC32AndSha256Checksum("Hello world", expectedChecksum, "crc64");
+        stubWithSingleChecksum("Hello world", expectedChecksum, unsupportedAlgorithm);
         ResponseBytes<GetOperationWithChecksumResponse> responseBytes =
             asyncClient.getOperationWithChecksum(
                 r -> r.checksumMode(ChecksumMode.ENABLED),
@@ -330,7 +363,7 @@ public class HttpChecksumValidationTest {
     @Test
     public void asyncClientValidateStreamingResponseWithValidationFailed() {
         String expectedChecksum = "i9aeUg=";
-        stubWithCRC32AndSha256Checksum("Hello world", expectedChecksum, "crc32");
+        stubWithSingleChecksum("Hello world", expectedChecksum, "crc32");
         assertThatExceptionOfType(CompletionException.class)
             .isThrownBy(() -> asyncClient.getOperationWithChecksum(
                 r -> r.checksumMode(ChecksumMode.ENABLED),
@@ -339,13 +372,13 @@ public class HttpChecksumValidationTest {
             .withMessage("software.amazon.awssdk.core.exception.SdkClientException: Data read has a different checksum"
                          + " than expected. Was i9aeUg==, but expected i9aeUg=");
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
-        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(Algorithm.CRC32);
+        assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32);
     }
 
     @Test
     public void asyncClientSkipsValidationWhenFeatureDisabled() {
         String expectedChecksum = "i9aeUg==";
-        stubWithCRC32AndSha256Checksum("Hello world", expectedChecksum, "crc32");
+        stubWithSingleChecksum("Hello world", expectedChecksum, "crc32");
         ResponseBytes<GetOperationWithChecksumResponse> responseBytes =
             asyncClient.getOperationWithChecksum(r -> r.stringMember("foo"), AsyncResponseTransformer.toBytes()).join();
         assertThat(responseBytes.asUtf8String()).isEqualTo("Hello world");
@@ -353,12 +386,26 @@ public class HttpChecksumValidationTest {
         assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isNull();
     }
 
-    private void stubWithCRC32AndSha256Checksum(String body, String checksumValue, String algorithmName) {
+    private void stubWithSingleChecksum(String body, String checksumValue, String algorithmName) {
         ResponseDefinitionBuilder responseBuilder = aResponse().withStatus(200)
                                                                .withHeader("x-amz-checksum-" + algorithmName, checksumValue)
                                                                .withHeader("content-length",
                                                                            String.valueOf(body.length()))
                                                                .withBody(body);
+        stubFor(get(anyUrl()).willReturn(responseBuilder));
+        stubFor(put(anyUrl()).willReturn(responseBuilder));
+        stubFor(post(anyUrl()).willReturn(responseBuilder));
+    }
+
+    private void stubWithMultipleChecksums(String body, Map<String, String> checksums) {
+        ResponseDefinitionBuilder responseBuilder = aResponse().withStatus(200)
+                                                               .withHeader("content-length",
+                                                                           String.valueOf(body.length()))
+                                                               .withBody(body);
+
+
+        checksums.entrySet().forEach(checksum -> responseBuilder.withHeader("x-amz-checksum-" + checksum.getKey(),
+                                                                 checksum.getValue()));
         stubFor(get(anyUrl()).willReturn(responseBuilder));
         stubFor(put(anyUrl()).willReturn(responseBuilder));
         stubFor(post(anyUrl()).willReturn(responseBuilder));
@@ -375,7 +422,7 @@ public class HttpChecksumValidationTest {
     }
 
     private static class CaptureChecksumValidationInterceptor implements ExecutionInterceptor {
-        private static Algorithm expectedAlgorithm;
+        private static software.amazon.awssdk.checksums.spi.ChecksumAlgorithm expectedAlgorithm;
         private static ChecksumValidation checksumValidation;
 
         public static void reset() {
@@ -387,7 +434,7 @@ public class HttpChecksumValidationTest {
         @Override
         public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
             expectedAlgorithm =
-                executionAttributes.getOptionalAttribute(SdkExecutionAttribute.HTTP_CHECKSUM_VALIDATION_ALGORITHM).orElse(null);
+                executionAttributes.getOptionalAttribute(SdkExecutionAttribute.HTTP_CHECKSUM_VALIDATION_ALGORITHM_V2).orElse(null);
             checksumValidation =
                 executionAttributes.getOptionalAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION).orElse(null);
         }
@@ -395,7 +442,7 @@ public class HttpChecksumValidationTest {
         @Override
         public void onExecutionFailure(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
             expectedAlgorithm =
-                executionAttributes.getOptionalAttribute(SdkExecutionAttribute.HTTP_CHECKSUM_VALIDATION_ALGORITHM).orElse(null);
+                executionAttributes.getOptionalAttribute(SdkExecutionAttribute.HTTP_CHECKSUM_VALIDATION_ALGORITHM_V2).orElse(null);
             checksumValidation =
                 executionAttributes.getOptionalAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION).orElse(null);
         }

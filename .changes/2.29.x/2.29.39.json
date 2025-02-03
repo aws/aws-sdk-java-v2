@@ -1,0 +1,84 @@
+{
+    "version": "2.29.39",
+    "date": "2024-12-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Billing",
+            "contributor": "",
+            "description": "Added new API's for defining and fetching Billing Views."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "Support for retrieving cost, usage, and forecast for billing view."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Outposts",
+            "contributor": "",
+            "description": "Add CS8365C as a supported power connector for Outpost sites."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "Support for custom user agent and max web pages crawled for web connector. Support app only credentials for SharePoint connector. Increase agents memory duration limit to 365 days. Support to specify max number of session summaries to include in agent invocation context."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "bedrock agents now supports long term memory and performance configs. Invokeflow supports performance configs. RetrieveAndGenerate performance configs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release supports adding NotAttributeCondition and Range to the RoutingCriteria object."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB with MongoDB compatibility",
+            "contributor": "",
+            "description": "Support AWS Secret Manager managed password for AWS DocumentDB instance-based cluster."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "This release expands the catalog of upgrade insight checks"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "contributor": "",
+            "description": "This release adds support for identifying S3 general purpose buckets that exceed the Amazon Macie quota for preventative control monitoring."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds support for c6i, m6i and r6i instance on SageMaker Hyperpod and trn1 instances in batch"
+        },
+        {
+            "type": "feature",
+            "category": "Data Automation for Amazon Bedrock",
+            "contributor": "",
+            "description": "Documentation update for Amazon Bedrock Data Automation"
+        },
+        {
+            "type": "feature",
+            "category": "Runtime for Amazon Bedrock Data Automation",
+            "contributor": "",
+            "description": "Documentation update for Amazon Bedrock Data Automation Runtime"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

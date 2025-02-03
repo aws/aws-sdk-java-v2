@@ -60,7 +60,6 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
                                                                       .targetThroughputInGbps(config.targetThroughput() == null ?
                                                                                               Double.valueOf(100.0) :
                                                                                               config.targetThroughput())
-                                                                      .checksumValidationEnabled(true)
                                                                       .build();
 
         this.bucket = config.bucket();

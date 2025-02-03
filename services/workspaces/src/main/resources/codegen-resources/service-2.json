@@ -1421,6 +1421,36 @@
     }
   },
   "shapes":{
+    "AGAModeForDirectoryEnum":{
+      "type":"string",
+      "enum":[
+        "ENABLED_AUTO",
+        "DISABLED"
+      ]
+    },
+    "AGAModeForWorkSpaceEnum":{
+      "type":"string",
+      "enum":[
+        "ENABLED_AUTO",
+        "DISABLED",
+        "INHERITED"
+      ]
+    },
+    "AGAPreferredProtocolForDirectory":{
+      "type":"string",
+      "enum":[
+        "TCP",
+        "NONE"
+      ]
+    },
+    "AGAPreferredProtocolForWorkSpace":{
+      "type":"string",
+      "enum":[
+        "TCP",
+        "NONE",
+        "INHERITED"
+      ]
+    },
     "ARN":{
       "type":"string",
       "pattern":"^arn:aws[a-z-]{0,7}:[A-Za-z0-9][A-za-z0-9_/.-]{0,62}:[A-za-z0-9_/.-]{0,63}:[A-za-z0-9_/.-]{0,63}:[A-Za-z0-9][A-Za-z0-9:_/+=,@.\\\\-]{0,1023}$"
@@ -1435,7 +1465,7 @@
         },
         "ClientToken":{
           "shape":"ClientToken",
-          "documentation":"<p>A string of up to 64 ASCII characters that Amazon EFS uses to ensure idempotent creation.</p>"
+          "documentation":"<p>A string of up to 64 ASCII characters that Amazon WorkSpaces uses to ensure idempotent creation.</p>"
         }
       }
     },
@@ -2066,6 +2096,8 @@
         "POWER",
         "GRAPHICS",
         "POWERPRO",
+        "GENERALPURPOSE_4XLARGE",
+        "GENERALPURPOSE_8XLARGE",
         "GRAPHICSPRO",
         "GRAPHICS_G4DN",
         "GRAPHICSPRO_G4DN"
@@ -2300,7 +2332,7 @@
         },
         "ClientToken":{
           "shape":"ClientToken",
-          "documentation":"<p>A string of up to 64 ASCII characters that Amazon EFS uses to ensure idempotent creation.</p>"
+          "documentation":"<p>A string of up to 64 ASCII characters that Amazon WorkSpaces uses to ensure idempotent creation.</p>"
         }
       }
     },
@@ -2837,7 +2869,7 @@
         },
         "ClientToken":{
           "shape":"ClientToken",
-          "documentation":"<p>A string of up to 64 ASCII characters that Amazon EFS uses to ensure idempotent creation.</p>"
+          "documentation":"<p>A string of up to 64 ASCII characters that Amazon WorkSpaces uses to ensure idempotent creation.</p>"
         }
       }
     },
@@ -4050,6 +4082,36 @@
         }
       }
     },
+    "GlobalAcceleratorForDirectory":{
+      "type":"structure",
+      "required":["Mode"],
+      "members":{
+        "Mode":{
+          "shape":"AGAModeForDirectoryEnum",
+          "documentation":"<p>Indicates if Global Accelerator for directory is enabled or disabled.</p>"
+        },
+        "PreferredProtocol":{
+          "shape":"AGAPreferredProtocolForDirectory",
+          "documentation":"<p>Indicates the preferred protocol for Global Accelerator.</p>"
+        }
+      },
+      "documentation":"<p>Describes the Global Accelerator for directory</p>"
+    },
+    "GlobalAcceleratorForWorkSpace":{
+      "type":"structure",
+      "required":["Mode"],
+      "members":{
+        "Mode":{
+          "shape":"AGAModeForWorkSpaceEnum",
+          "documentation":"<p>Indicates if Global Accelerator for WorkSpaces is enabled, disabled, or the same mode as the associated directory.</p>"
+        },
+        "PreferredProtocol":{
+          "shape":"AGAPreferredProtocolForWorkSpace",
+          "documentation":"<p>Indicates the preferred protocol for Global Accelerator.</p>"
+        }
+      },
+      "documentation":"<p>Describes the Global Accelerator for WorkSpaces.</p>"
+    },
     "IDCConfig":{
       "type":"structure",
       "members":{
@@ -4214,7 +4276,7 @@
         },
         "IngestionProcess":{
           "shape":"WorkspaceImageIngestionProcess",
-          "documentation":"<p>The ingestion process to be used when importing the image, depending on which protocol you want to use for your BYOL Workspace image, either PCoIP, DCV, or bring your own protocol (BYOP). To use WSP, specify a value that ends in <code>_DCV</code>. To use PCoIP, specify a value that does not end in <code>_DCV</code>. To use BYOP, specify a value that ends in <code>_BYOP</code>.</p> <p>For non-GPU-enabled bundles (bundles other than Graphics or GraphicsPro), specify <code>BYOL_REGULAR</code>, <code>BYOL_REGULAR_DCV</code>, or <code>BYOL_REGULAR_BYOP</code>, depending on the protocol.</p> <note> <p>The <code>BYOL_REGULAR_BYOP</code> and <code>BYOL_GRAPHICS_G4DN_BYOP</code> values are only supported by Amazon WorkSpaces Core. Contact your account team to be allow-listed to use these values. For more information, see <a href=\"http://aws.amazon.com/workspaces/core/\">Amazon WorkSpaces Core</a>.</p> </note>"
+          "documentation":"<p>The ingestion process to be used when importing the image, depending on which protocol you want to use for your BYOL Workspace image, either PCoIP, WSP, or bring your own protocol (BYOP). To use DCV, specify a value that ends in <code>_WSP</code>. To use PCoIP, specify a value that does not end in <code>_WSP</code>. To use BYOP, specify a value that ends in <code>_BYOP</code>.</p> <p>For non-GPU-enabled bundles (bundles other than Graphics or GraphicsPro), specify <code>BYOL_REGULAR</code>, <code>BYOL_REGULAR_WSP</code>, or <code>BYOL_REGULAR_BYOP</code>, depending on the protocol.</p> <note> <p>The <code>BYOL_REGULAR_BYOP</code> and <code>BYOL_GRAPHICS_G4DN_BYOP</code> values are only supported by Amazon WorkSpaces Core. Contact your account team to be allow-listed to use these values. For more information, see <a href=\"http://aws.amazon.com/workspaces/core/\">Amazon WorkSpaces Core</a>.</p> </note>"
         },
         "ImageName":{
           "shape":"WorkspaceImageName",
@@ -4843,7 +4905,8 @@
         "WINDOWS_SERVER_2016",
         "WINDOWS_SERVER_2019",
         "WINDOWS_SERVER_2022",
-        "RHEL_8"
+        "RHEL_8",
+        "ROCKY_8"
       ]
     },
     "OperatingSystemNameList":{
@@ -5601,6 +5664,10 @@
         "StorageConnectors":{
           "shape":"StorageConnectors",
           "documentation":"<p>Indicates the storage connector used </p>"
+        },
+        "GlobalAccelerator":{
+          "shape":"GlobalAcceleratorForDirectory",
+          "documentation":"<p>Indicates the Global Accelerator properties.</p>"
         }
       },
       "documentation":"<p>Describes the streaming properties.</p>"
@@ -6625,7 +6692,23 @@
         "UEFINotSupported",
         "UnknownError",
         "AppXPackagesInstalled",
-        "ReservedStorageInUse"
+        "ReservedStorageInUse",
+        "AdditionalDrivesPresent",
+        "WindowsUpdatesRequired",
+        "SysPrepFileMissing",
+        "UserProfileMissing",
+        "InsufficientDiskSpace",
+        "EnvironmentVariablesPathMissingEntries",
+        "DomainAccountServicesFound",
+        "InvalidIp",
+        "RemoteDesktopServicesDisabled",
+        "WindowsModulesInstallerDisabled",
+        "AmazonSsmAgentEnabled",
+        "UnsupportedSecurityProtocol",
+        "MultipleUserProfiles",
+        "StagedAppxPackage",
+        "UnsupportedOsUpgrade",
+        "InsufficientRearmCount"
       ]
     },
     "WorkspaceImageId":{
@@ -6714,6 +6797,10 @@
         "OperatingSystemName":{
           "shape":"OperatingSystemName",
           "documentation":"<p>The name of the operating system.</p>"
+        },
+        "GlobalAccelerator":{
+          "shape":"GlobalAcceleratorForWorkSpace",
+          "documentation":"<p>Indicates the Global Accelerator properties.</p>"
         }
       },
       "documentation":"<p>Describes a WorkSpace.</p>"
@@ -6732,7 +6819,7 @@
         },
         "UserName":{
           "shape":"UserName",
-          "documentation":"<p>The user name of the user for the WorkSpace. This user name must exist in the Directory Service directory for the WorkSpace.</p> <p>The reserved keyword, <code>[UNDEFINED]</code>, is used when creating user-decoupled WorkSpaces.</p>"
+          "documentation":"<p>The user name of the user for the WorkSpace. This user name must exist in the Directory Service directory for the WorkSpace.</p> <p>The username is not case-sensitive, but we recommend matching the case in the Directory Service directory to avoid potential incompatibilities.</p> <p>The reserved keyword, <code>[UNDEFINED]</code>, is used when creating user-decoupled WorkSpaces.</p>"
         },
         "BundleId":{
           "shape":"BundleId",

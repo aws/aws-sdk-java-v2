@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -451,6 +452,8 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
                                                                                                    LIST_OF_BLOBS_FIELD, RECURSIVE_STRUCT_FIELD, POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD,
                                                                                                    POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD, ENUM_TYPE_FIELD, UNDERSCORE_NAME_TYPE_FIELD, MY_DOCUMENT_FIELD,
                                                                                                    ALL_TYPES_UNION_STRUCTURE_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private static final long serialVersionUID = 1L;
 
@@ -2245,6 +2248,51 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         return SDK_FIELDS;
     }
 
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("StringMember", STRING_MEMBER_FIELD);
+        map.put("IntegerMember", INTEGER_MEMBER_FIELD);
+        map.put("BooleanMember", BOOLEAN_MEMBER_FIELD);
+        map.put("FloatMember", FLOAT_MEMBER_FIELD);
+        map.put("DoubleMember", DOUBLE_MEMBER_FIELD);
+        map.put("LongMember", LONG_MEMBER_FIELD);
+        map.put("ShortMember", SHORT_MEMBER_FIELD);
+        map.put("SimpleList", SIMPLE_LIST_FIELD);
+        map.put("ListOfEnums", LIST_OF_ENUMS_FIELD);
+        map.put("ListOfMaps", LIST_OF_MAPS_FIELD);
+        map.put("ListOfStructs", LIST_OF_STRUCTS_FIELD);
+        map.put("ListOfMapOfEnumToString", LIST_OF_MAP_OF_ENUM_TO_STRING_FIELD);
+        map.put("ListOfMapOfStringToStruct", LIST_OF_MAP_OF_STRING_TO_STRUCT_FIELD);
+        map.put("MapOfStringToIntegerList", MAP_OF_STRING_TO_INTEGER_LIST_FIELD);
+        map.put("MapOfStringToString", MAP_OF_STRING_TO_STRING_FIELD);
+        map.put("MapOfStringToSimpleStruct", MAP_OF_STRING_TO_SIMPLE_STRUCT_FIELD);
+        map.put("MapOfEnumToEnum", MAP_OF_ENUM_TO_ENUM_FIELD);
+        map.put("MapOfEnumToString", MAP_OF_ENUM_TO_STRING_FIELD);
+        map.put("MapOfStringToEnum", MAP_OF_STRING_TO_ENUM_FIELD);
+        map.put("MapOfEnumToSimpleStruct", MAP_OF_ENUM_TO_SIMPLE_STRUCT_FIELD);
+        map.put("MapOfEnumToListOfEnums", MAP_OF_ENUM_TO_LIST_OF_ENUMS_FIELD);
+        map.put("MapOfEnumToMapOfStringToEnum", MAP_OF_ENUM_TO_MAP_OF_STRING_TO_ENUM_FIELD);
+        map.put("TimestampMember", TIMESTAMP_MEMBER_FIELD);
+        map.put("StructWithNestedTimestampMember", STRUCT_WITH_NESTED_TIMESTAMP_MEMBER_FIELD);
+        map.put("BlobArg", BLOB_ARG_FIELD);
+        map.put("StructWithNestedBlob", STRUCT_WITH_NESTED_BLOB_FIELD);
+        map.put("BlobMap", BLOB_MAP_FIELD);
+        map.put("ListOfBlobs", LIST_OF_BLOBS_FIELD);
+        map.put("RecursiveStruct", RECURSIVE_STRUCT_FIELD);
+        map.put("PolymorphicTypeWithSubTypes", POLYMORPHIC_TYPE_WITH_SUB_TYPES_FIELD);
+        map.put("PolymorphicTypeWithoutSubTypes", POLYMORPHIC_TYPE_WITHOUT_SUB_TYPES_FIELD);
+        map.put("EnumType", ENUM_TYPE_FIELD);
+        map.put("Underscore_Name_Type", UNDERSCORE_NAME_TYPE_FIELD);
+        map.put("MyDocument", MY_DOCUMENT_FIELD);
+        map.put("AllTypesUnionStructure", ALL_TYPES_UNION_STRUCTURE_FIELD);
+        return Collections.unmodifiableMap(map);
+    }
+
     private static <T> Function<Object, T> getter(Function<AllTypesUnionStructure, T> g) {
         return obj -> g.apply((AllTypesUnionStructure) obj);
     }
@@ -3812,6 +3860,11 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
 
         private final void handleUnionValueChange(Type type, Object oldValue, Object newValue) {

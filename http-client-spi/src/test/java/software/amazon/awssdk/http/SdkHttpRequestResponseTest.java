@@ -413,6 +413,16 @@ public class SdkHttpRequestResponseTest {
     }
 
     @Test
+    public void testSdkHttpFullRequestBuilderUriWithQueryParamWithoutValueWithEqual() {
+        final String original = "https://github.com/aws/aws-sdk-for-java-v2?foo=";
+        final String expected = "https://github.com/aws/aws-sdk-for-java-v2?foo";
+        URI myUri = URI.create(original);
+
+        SdkHttpRequest actual = SdkHttpRequest.builder().method(SdkHttpMethod.POST).uri(myUri).build();
+        assertThat(actual.getUri()).hasToString(expected);
+    }
+
+    @Test
     public void testSdkHttpRequestBuilderNoQueryParams() {
         URI uri = URI.create("https://github.com/aws/aws-sdk-java-v2/issues/2034");
         final SdkHttpRequest sdkHttpRequest = SdkHttpRequest.builder().method(SdkHttpMethod.POST).uri(uri).build();
@@ -440,6 +450,16 @@ public class SdkHttpRequestResponseTest {
     public void testSdkHttpRequestBuilderUriWithQueryParamWithoutValue() {
         final String expected = "https://github.com/aws/aws-sdk-for-java-v2?foo";
         URI myUri = URI.create(expected);
+        SdkHttpRequest actual = SdkHttpRequest.builder().method(SdkHttpMethod.POST).uri(myUri).build();
+        assertThat(actual.getUri()).hasToString(expected);
+    }
+
+    @Test
+    public void testSdkHttpRequestWithSingleEqualQuery() {
+        final String original = "http://example.com?=";
+        final String expected = "http://example.com?";
+        URI myUri = URI.create(original);
+
         SdkHttpRequest actual = SdkHttpRequest.builder().method(SdkHttpMethod.POST).uri(myUri).build();
         assertThat(actual.getUri()).hasToString(expected);
     }

@@ -2258,6 +2258,10 @@
           "locationName": "multicastIp",
           "documentation": "The network source multicast IP."
         },
+        "MulticastSourceSettings": {
+          "shape": "MulticastSourceSettings",
+          "locationName": "multicastSourceSettings"
+        },
         "Name": {
           "shape": "__string",
           "locationName": "name",
@@ -2747,6 +2751,17 @@
         "aes256"
       ]
     },
+    "AudioMonitoringSetting": {
+      "type": "structure",
+      "members": {
+        "SilentAudio": {
+          "shape": "SilentAudio",
+          "locationName": "silentAudio",
+          "documentation": "Detects periods of silence."
+        }
+      },
+      "documentation": "Specifies the configuration for audio stream metrics monitoring."
+    },
     "BadRequestException": {
       "type": "structure",
       "members": {
@@ -2764,6 +2779,22 @@
       "error": {
         "httpStatusCode": 400
       }
+    },
+    "BlackFrames": {
+      "type": "structure",
+      "members": {
+        "State": {
+          "shape": "State",
+          "locationName": "state",
+          "documentation": "Indicates whether the BlackFrames metric is enabled or disabled."
+        },
+        "ThresholdSeconds": {
+          "shape": "__integer",
+          "locationName": "thresholdSeconds",
+          "documentation": "Specifies the number of consecutive seconds of black frames that triggers an event or alert."
+        }
+      },
+      "documentation": "Configures settings for the BlackFrames metric."
     },
     "Bridge": {
       "type": "structure",
@@ -2930,6 +2961,10 @@
           "locationName": "multicastIp",
           "documentation": "The network source multicast IP."
         },
+        "MulticastSourceSettings": {
+          "shape": "MulticastSourceSettings",
+          "locationName": "multicastSourceSettings"
+        },
         "Name": {
           "shape": "__string",
           "locationName": "name",
@@ -3047,6 +3082,13 @@
       "enum": [
         "CONNECTED",
         "DISCONNECTED"
+      ]
+    },
+    "ContentQualityAnalysisState": {
+      "type": "string",
+      "enum": [
+        "ENABLED",
+        "DISABLED"
       ]
     },
     "CreateBridge420Exception": {
@@ -4073,6 +4115,22 @@
         "FrameWidth",
         "FrameHeight"
       ]
+    },
+    "FrozenFrames": {
+      "type": "structure",
+      "members": {
+        "State": {
+          "shape": "State",
+          "locationName": "state",
+          "documentation": "Indicates whether the FrozenFrames metric is enabled or disabled."
+        },
+        "ThresholdSeconds": {
+          "shape": "__integer",
+          "locationName": "thresholdSeconds",
+          "documentation": "Specifies the number of consecutive seconds of a static image that triggers an event or alert."
+        }
+      },
+      "documentation": "Configures settings for the FrozenFrames metric."
     },
     "Gateway": {
       "type": "structure",
@@ -5167,9 +5225,35 @@
           "shape": "ThumbnailState",
           "locationName": "thumbnailState",
           "documentation": "The state of thumbnail monitoring."
+        },
+        "AudioMonitoringSettings": {
+          "shape": "__listOfAudioMonitoringSetting",
+          "locationName": "audioMonitoringSettings",
+          "documentation": "Contains the settings for audio stream metrics monitoring."
+        },
+        "ContentQualityAnalysisState": {
+          "shape": "ContentQualityAnalysisState",
+          "locationName": "contentQualityAnalysisState",
+          "documentation": "Indicates whether content quality analysis is enabled or disabled."
+        },
+        "VideoMonitoringSettings": {
+          "shape": "__listOfVideoMonitoringSetting",
+          "locationName": "videoMonitoringSettings",
+          "documentation": "Contains the settings for video stream metrics monitoring."
         }
       },
       "documentation": "The settings for source monitoring."
+    },
+    "MulticastSourceSettings": {
+      "type": "structure",
+      "members": {
+        "MulticastSourceIp": {
+          "shape": "__string",
+          "locationName": "multicastSourceIp",
+          "documentation": "The IP address of the source for source-specific multicast (SSM)."
+        }
+      },
+      "documentation": "The settings related to the multicast source."
     },
     "NetworkInterfaceType": {
       "type": "string",
@@ -5960,6 +6044,22 @@
       },
       "documentation": "The settings for the source of the flow."
     },
+    "SilentAudio": {
+      "type": "structure",
+      "members": {
+        "State": {
+          "shape": "State",
+          "locationName": "state",
+          "documentation": "Indicates whether the SilentAudio metric is enabled or disabled."
+        },
+        "ThresholdSeconds": {
+          "shape": "__integer",
+          "locationName": "thresholdSeconds",
+          "documentation": "Specifies the number of consecutive seconds of silence that triggers an event or alert."
+        }
+      },
+      "documentation": "Configures settings for the SilentAudio metric."
+    },
     "Source": {
       "type": "structure",
       "members": {
@@ -6487,6 +6587,10 @@
           "shape": "__string",
           "locationName": "multicastIp",
           "documentation": "The network source multicast IP."
+        },
+        "MulticastSourceSettings": {
+          "shape": "MulticastSourceSettings",
+          "locationName": "multicastSourceSettings"
         },
         "NetworkName": {
           "shape": "__string",
@@ -7249,6 +7353,22 @@
       },
       "documentation": "Update maintenance setting for a flow"
     },
+    "VideoMonitoringSetting": {
+      "type": "structure",
+      "members": {
+        "BlackFrames": {
+          "shape": "BlackFrames",
+          "locationName": "blackFrames",
+          "documentation": "Detects video frames that are black."
+        },
+        "FrozenFrames": {
+          "shape": "FrozenFrames",
+          "locationName": "frozenFrames",
+          "documentation": "Detects video frames that have not changed."
+        }
+      },
+      "documentation": "Specifies the configuration for video stream metrics monitoring."
+    },
     "VpcInterface": {
       "type": "structure",
       "members": {
@@ -7372,6 +7492,12 @@
       "type": "list",
       "member": {
         "shape": "AddOutputRequest"
+      }
+    },
+    "__listOfAudioMonitoringSetting": {
+      "type": "list",
+      "member": {
+        "shape": "AudioMonitoringSetting"
       }
     },
     "__listOfBridgeOutput": {
@@ -7534,6 +7660,12 @@
       "type": "list",
       "member": {
         "shape": "TransportStreamProgram"
+      }
+    },
+    "__listOfVideoMonitoringSetting": {
+      "type": "list",
+      "member": {
+        "shape": "VideoMonitoringSetting"
       }
     },
     "__listOfVpcInterface": {

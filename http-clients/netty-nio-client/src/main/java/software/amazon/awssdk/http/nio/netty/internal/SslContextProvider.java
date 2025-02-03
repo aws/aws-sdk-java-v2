@@ -16,6 +16,8 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.handler.codec.http2.Http2SecurityUtil;
+import io.netty.handler.ssl.ApplicationProtocolConfig;
+import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
@@ -28,6 +30,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.SystemPropertyTlsKeyManagersProvider;
 import software.amazon.awssdk.http.TlsTrustManagersProvider;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
@@ -37,12 +40,15 @@ import software.amazon.awssdk.utils.Validate;
 public final class SslContextProvider {
     private static final NettyClientLogger log = NettyClientLogger.getLogger(SslContextProvider.class);
     private final Protocol protocol;
+    private final ProtocolNegotiation protocolNegotiation;
     private final SslProvider sslProvider;
     private final TrustManagerFactory trustManagerFactory;
     private final KeyManagerFactory keyManagerFactory;
 
-    public SslContextProvider(NettyConfiguration configuration, Protocol protocol, SslProvider sslProvider) {
+    public SslContextProvider(NettyConfiguration configuration, Protocol protocol, ProtocolNegotiation protocolNegotiation,
+                              SslProvider sslProvider) {
         this.protocol = protocol;
+        this.protocolNegotiation = protocolNegotiation;
         this.sslProvider = sslProvider;
         this.trustManagerFactory = getTrustManager(configuration);
         this.keyManagerFactory = getKeyManager(configuration);
@@ -50,15 +56,46 @@ public final class SslContextProvider {
 
     public SslContext sslContext() {
         try {
-            return SslContextBuilder.forClient()
-                                    .sslProvider(sslProvider)
-                                    .ciphers(getCiphers(), SupportedCipherSuiteFilter.INSTANCE)
-                                    .trustManager(trustManagerFactory)
-                                    .keyManager(keyManagerFactory)
-                                    .build();
+            SslContextBuilder builder = SslContextBuilder.forClient()
+                                                         .sslProvider(sslProvider)
+                                                         .ciphers(getCiphers(), SupportedCipherSuiteFilter.INSTANCE)
+                                                         .trustManager(trustManagerFactory)
+                                                         .keyManager(keyManagerFactory);
+
+            addAlpnConfigIfEnabled(builder);
+
+            return builder.build();
         } catch (SSLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private SslContextBuilder addAlpnConfigIfEnabled(SslContextBuilder builder) {
+        if (protocolNegotiation != ProtocolNegotiation.ALPN) {
+            return builder;
+        }
+
+        ApplicationProtocolConfig.SelectorFailureBehavior selectorFailureBehavior;
+        ApplicationProtocolConfig.SelectedListenerFailureBehavior selectedListenerFailureBehavior;
+
+        if (sslProvider == SslProvider.OPENSSL || sslProvider == SslProvider.OPENSSL_REFCNT) {
+            // OpenSSL does not support FATAL_ALERT
+            selectorFailureBehavior = ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE;
+            selectedListenerFailureBehavior = ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT;
+        } else {
+            selectorFailureBehavior = ApplicationProtocolConfig.SelectorFailureBehavior.FATAL_ALERT;
+            selectedListenerFailureBehavior = ApplicationProtocolConfig.SelectedListenerFailureBehavior.FATAL_ALERT;
+        }
+
+        return builder.applicationProtocolConfig(
+            new ApplicationProtocolConfig(ApplicationProtocolConfig.Protocol.ALPN,
+                                          selectorFailureBehavior,
+                                          selectedListenerFailureBehavior,
+                                          resolveNettyProtocol(protocol)));
+    }
+
+    private String resolveNettyProtocol(Protocol protocol) {
+        return protocol == Protocol.HTTP2 ? ApplicationProtocolNames.HTTP_2 : ApplicationProtocolNames.HTTP_1_1;
     }
 
     /**

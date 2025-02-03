@@ -3,7 +3,9 @@ package software.amazon.awssdk.services.sharedeventstream.model;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -33,6 +35,8 @@ public class GetRandomPersonResponse extends SharedEventStreamResponse implement
                                                                     .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Birthday").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NAME_FIELD, BIRTHDAY_FIELD));
+
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private final String name;
 
@@ -134,6 +138,18 @@ public class GetRandomPersonResponse extends SharedEventStreamResponse implement
         return SDK_FIELDS;
     }
 
+    @Override
+    public final Map<String, SdkField<?>> sdkFieldNameToField() {
+        return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("Name", NAME_FIELD);
+        map.put("Birthday", BIRTHDAY_FIELD);
+        return Collections.unmodifiableMap(map);
+    }
+
     private static <T> Function<Object, T> getter(Function<GetRandomPersonResponse, T> g) {
         return obj -> g.apply((GetRandomPersonResponse) obj);
     }
@@ -213,6 +229,11 @@ public class GetRandomPersonResponse extends SharedEventStreamResponse implement
         @Override
         public List<SdkField<?>> sdkFields() {
             return SDK_FIELDS;
+        }
+
+        @Override
+        public Map<String, SdkField<?>> sdkFieldNameToField() {
+            return SDK_NAME_TO_FIELD;
         }
     }
 }

@@ -81,6 +81,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.HttpTestUtils;
+import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -310,7 +311,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
         NettyConfiguration nettyConfiguration = new NettyConfiguration(AttributeMap.empty());
 
         SdkAsyncHttpClient customerClient =
-            new NettyNioAsyncHttpClient(eventLoopGroup, sdkChannelPoolMap, nettyConfiguration);
+            new NettyNioAsyncHttpClient(eventLoopGroup, sdkChannelPoolMap, nettyConfiguration, ProtocolNegotiation.ASSUME_PROTOCOL);
 
         customerClient.close();
         assertThat(eventLoopGroup.eventLoopGroup().isShuttingDown()).isTrue();

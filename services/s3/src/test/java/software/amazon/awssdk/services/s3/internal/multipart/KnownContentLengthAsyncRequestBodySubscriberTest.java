@@ -105,7 +105,8 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
                                                                              new CompletableFuture<>());
 
         when(multipartUploadHelper.completeMultipartUpload(any(CompletableFuture.class), any(String.class),
-                                                           any(CompletedPart[].class), any(PutObjectRequest.class)))
+                                                           any(CompletedPart[].class), any(PutObjectRequest.class),
+                                                           any(Long.class)))
             .thenReturn(completeMpuFuture);
         subscriber.onComplete();
         return subscriber.pause();

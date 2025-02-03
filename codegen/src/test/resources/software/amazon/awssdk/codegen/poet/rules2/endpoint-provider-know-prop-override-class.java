@@ -56,7 +56,11 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
             if (result.isResolved()) {
                 return result;
             }
-            return endpointRule11(params, locals);
+            result = endpointRule11(params, locals);
+            if (result.isResolved()) {
+                return result;
+            }
+            return endpointRule12(params, locals);
         }
         return RuleResult.carryOn();
     }
@@ -179,6 +183,31 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         return RuleResult.error(locals.region() + " is not a valid HTTP host-label");
     }
 
+    private static RuleResult endpointRule12(QueryEndpointParams params, LocalState locals) {
+        if (params.useFipsEndpoint() == null && params.useDualStackEndpoint() != null && params.useDualStackEndpoint()
+            && params.arnList() != null) {
+            String firstArn = null;
+            RuleArn parsedArn = null;
+            if ((firstArn = RulesFunctions.listAccess(params.arnList(), 0)) != null) {
+                locals = locals.toBuilder().firstArn(firstArn).build();
+            } else {
+                return RuleResult.carryOn();
+            }
+            if ((parsedArn = RulesFunctions.awsParseArn(locals.firstArn())) != null) {
+                locals = locals.toBuilder().parsedArn(parsedArn).build();
+                return RuleResult.endpoint(Endpoint
+                                               .builder()
+                                               .url(URI.create("https://" + params.endpointId() + ".query."
+                                                               + locals.partitionResult().dualStackDnsSuffix()))
+                                               .putAttribute(
+                                                   AwsEndpointAttribute.AUTH_SCHEMES,
+                                                   Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
+                                                                                 .signingRegionSet(Arrays.asList("*")).build())).build());
+            }
+        }
+        return RuleResult.carryOn();
+    }
+
     @Override
     public boolean equals(Object rhs) {
         return rhs != null && getClass().equals(rhs.getClass());
@@ -194,9 +223,15 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
 
         private final RulePartition partitionResult;
 
+        private final String firstArn;
+
+        private final RuleArn parsedArn;
+
         LocalState() {
             this.region = null;
             this.partitionResult = null;
+            this.firstArn = null;
+            this.parsedArn = null;
         }
 
         LocalState(Region region) {
@@ -206,11 +241,15 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                 this.region = null;
             }
             this.partitionResult = null;
+            this.firstArn = null;
+            this.parsedArn = null;
         }
 
         LocalState(LocalStateBuilder builder) {
             this.region = builder.region;
             this.partitionResult = builder.partitionResult;
+            this.firstArn = builder.firstArn;
+            this.parsedArn = builder.parsedArn;
         }
 
         public String region() {
@@ -219,6 +258,14 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
 
         public RulePartition partitionResult() {
             return this.partitionResult;
+        }
+
+        public String firstArn() {
+            return this.firstArn;
+        }
+
+        public RuleArn parsedArn() {
+            return this.parsedArn;
         }
 
         public LocalStateBuilder toBuilder() {
@@ -231,14 +278,22 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
 
         private RulePartition partitionResult;
 
+        private String firstArn;
+
+        private RuleArn parsedArn;
+
         LocalStateBuilder() {
             this.region = null;
             this.partitionResult = null;
+            this.firstArn = null;
+            this.parsedArn = null;
         }
 
         LocalStateBuilder(LocalState locals) {
             this.region = locals.region;
             this.partitionResult = locals.partitionResult;
+            this.firstArn = locals.firstArn;
+            this.parsedArn = locals.parsedArn;
         }
 
         public LocalStateBuilder region(String value) {
@@ -248,6 +303,16 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
 
         public LocalStateBuilder partitionResult(RulePartition value) {
             this.partitionResult = value;
+            return this;
+        }
+
+        public LocalStateBuilder firstArn(String value) {
+            this.firstArn = value;
+            return this;
+        }
+
+        public LocalStateBuilder parsedArn(RuleArn value) {
+            this.parsedArn = value;
             return this;
         }
 

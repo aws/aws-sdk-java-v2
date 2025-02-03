@@ -149,3 +149,16 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.amazonaws.retry.RetryMode
       newFullyQualifiedTypeName: software.amazon.awssdk.core.retry.RetryMode
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.AmazonWebServiceClient
+      newFullyQualifiedTypeName: software.amazon.awssdk.awscore.AwsClient
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.client.builder.AwsSyncClientBuilder
+      newFullyQualifiedTypeName: software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.client.builder.AwsClientBuilder
+      newFullyQualifiedTypeName: software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.client.builder.AwsAsyncClientBuilder
+      newFullyQualifiedTypeName: software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder

@@ -53,12 +53,10 @@ public class ChangeSdkTypeTest implements RewriteTest {
                 "    }\n" +
                 "}\n",
                "import software.amazon.awssdk.services.sqs.SqsClient;\n"
-               // TODO: duplicate import for some reason, fix this
-               + "import software.amazon.awssdk.services.sqs.SqsClient;\n"
                + "import software.amazon.awssdk.services.sqs.model.InvalidAttributeNameException;\n"
                + "import software.amazon.awssdk.services.sqs.model.ListQueuesRequest;\n"
-               + "import software.amazon.awssdk.services.sqs.model.SqsException;\n"
                + "import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;\n"
+               + "import software.amazon.awssdk.services.sqs.model.SqsException;\n"
                + "\n"
                + "class Test {\n"
                + "    static void method() {\n"

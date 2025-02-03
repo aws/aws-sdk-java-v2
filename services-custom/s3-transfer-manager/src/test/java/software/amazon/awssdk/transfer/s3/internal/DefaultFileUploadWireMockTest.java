@@ -123,12 +123,12 @@ public class DefaultFileUploadWireMockTest {
 
         stubCreateMpuSuccessfulResponse();
 
-        wireMock.stubFor(put(urlPathMatching("/bucket/key?partNumber=1&uploadId=uploadId"))
+        wireMock.stubFor(put(urlEqualTo("/bucket/key?partNumber=1&uploadId=uploadId"))
                              .willReturn(aResponse()
                                              .withStatus(200)
                                              .withBody("<Part><PartNumber>1</PartNumber><ETag>\"etag1\"</ETag></Part>")));
 
-        wireMock.stubFor(put(urlPathMatching("/bucket/key?partNumber=2&uploadId=uploadId"))
+        wireMock.stubFor(put(urlEqualTo("/bucket/key?partNumber=2&uploadId=uploadId"))
                              .willReturn(aResponse()
                                              .withFault(Fault.CONNECTION_RESET_BY_PEER)));
 
@@ -136,7 +136,8 @@ public class DefaultFileUploadWireMockTest {
 
         FileUpload fileUpload = null;
         try {
-            tm.uploadFile(request);
+            fileUpload = tm.uploadFile(request);
+            fileUpload.completionFuture().join();
         } catch (Exception e) {
             assertThat(e).isInstanceOf(CompletionException.class);
             ResumableFileUpload resumableFileUpload = fileUpload.pause();

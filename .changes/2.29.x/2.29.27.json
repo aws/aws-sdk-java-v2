@@ -1,0 +1,12 @@
+{
+    "version": "2.29.27",
+    "date": "2024-12-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Aurora DSQL",
+            "contributor": "",
+            "description": "Add IAM Token Generation Utility for DSQL."
+        }
+    ]
+}

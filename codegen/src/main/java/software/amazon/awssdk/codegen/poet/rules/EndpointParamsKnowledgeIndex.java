@@ -23,14 +23,17 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointModeResolver;
+import software.amazon.awssdk.awscore.internal.useragent.BusinessMetricsUtils;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.internal.LocalParameter;
@@ -39,6 +42,9 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -163,11 +169,51 @@ public final class EndpointParamsKnowledgeIndex {
         return actualParams;
     }
 
-    public Optional<MethodSpec> accountIdFromIdentityMethod() {
+    public void addAccountIdMethodsIfPresent(TypeSpec.Builder b) {
         if (!hasAccountIdEndpointModeBuiltIn()) {
-            return Optional.empty();
+            return;
         }
 
+        b.addMethod(resolveAndRecordAccountIdFromIdentityMethod());
+        b.addMethod(accountIdFromIdentityMethod());
+        b.addMethod(recordAccountIdEndpointModeMethod());
+    }
+
+    public MethodSpec recordAccountIdEndpointModeMethod() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("recordAccountIdEndpointMode")
+                                               .addModifiers(PRIVATE, STATIC)
+                                               .addParameter(ExecutionAttributes.class, "executionAttributes")
+                                               .returns(String.class);
+        builder.addStatement("$T mode = executionAttributes.getAttribute($T.AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE)",
+                             AccountIdEndpointMode.class, AwsExecutionAttribute.class);
+
+        builder.addStatement("$T.resolveAccountIdEndpointModeMetric(mode)"
+                             + ".ifPresent(m -> executionAttributes.getAttribute($T.BUSINESS_METRICS).addMetric(m))",
+                             BusinessMetricsUtils.class, SdkInternalExecutionAttribute.class);
+
+        builder.addStatement("return mode.name().toLowerCase()");
+
+        return builder.build();
+    }
+
+    public MethodSpec resolveAndRecordAccountIdFromIdentityMethod() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("resolveAndRecordAccountIdFromIdentity")
+                                               .addModifiers(PRIVATE, STATIC)
+                                               .addParameter(ExecutionAttributes.class, "executionAttributes")
+                                               .returns(String.class);
+        builder.addStatement("$T accountId = accountIdFromIdentity(executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME))",
+                             String.class, SdkInternalExecutionAttribute.class);
+
+        builder.addStatement("executionAttributes.getAttribute($T.BUSINESS_METRICS).addMetric($T.RESOLVED_ACCOUNT_ID.value())",
+                             SdkInternalExecutionAttribute.class, BusinessMetricFeatureId.class);
+
+        builder.addStatement("return accountId");
+
+        return builder.build();
+    }
+
+
+    public MethodSpec accountIdFromIdentityMethod() {
         ParameterizedTypeName paramType = ParameterizedTypeName.get(ClassName.get(SelectedAuthScheme.class),
                                                                     TypeVariableName.get("T"));
 
@@ -184,6 +230,6 @@ public final class EndpointParamsKnowledgeIndex {
         builder.addStatement("accountId = (($T) identity).accountId().orElse(null)", AwsCredentialsIdentity.class);
         builder.endControlFlow();
         builder.addStatement("return accountId");
-        return Optional.of(builder.build());
+        return builder.build();
     }
 }

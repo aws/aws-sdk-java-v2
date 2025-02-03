@@ -259,6 +259,11 @@ public class CustomizationConfig {
     private boolean generateEndpointClientTests;
 
     /**
+     * Whether to use prior knowledge protocol negotiation for H2
+     */
+    private boolean usePriorKnowledgeForH2;
+
+    /**
      * A mapping from the skipped test's description to the reason why it's being skipped.
      */
     private Map<String, String> skipEndpointTests;
@@ -346,6 +351,11 @@ public class CustomizationConfig {
      * A boolean flag to indicate if Automatic Batch Request is supported.
      */
     private boolean batchManagerSupported;
+
+    /**
+     * A boolean flag to indicate if the fast unmarshaller code path is enabled.
+     */
+    private boolean enableFastUnmarshaller;
 
     private CustomizationConfig() {
     }
@@ -741,6 +751,14 @@ public class CustomizationConfig {
         this.generateEndpointClientTests = generateEndpointClientTests;
     }
 
+    public boolean isUsePriorKnowledgeForH2() {
+        return usePriorKnowledgeForH2;
+    }
+
+    public void setUsePriorKnowledgeForH2(boolean usePriorKnowledgeForH2) {
+        this.usePriorKnowledgeForH2 = usePriorKnowledgeForH2;
+    }
+
     public boolean useGlobalEndpoint() {
         return useGlobalEndpoint;
     }
@@ -914,4 +932,11 @@ public class CustomizationConfig {
         this.batchManagerSupported = batchManagerSupported;
     }
 
+    public boolean getEnableFastUnmarshaller() {
+        return enableFastUnmarshaller;
+    }
+
+    public void setEnableFastUnmarshaller(boolean enableFastUnmarshaller) {
+        this.enableFastUnmarshaller = enableFastUnmarshaller;
+    }
 }

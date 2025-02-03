@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -44,7 +43,7 @@ class MultipartS3AsyncClientTest {
                                                .key("test-key")
                                                .range("Range: bytes 0-499/1234")
                                                .build();
-        S3AsyncClient s3AsyncClient = MultipartS3AsyncClient.create(mockDelegate, MultipartConfiguration.builder().build());
+        S3AsyncClient s3AsyncClient = MultipartS3AsyncClient.create(mockDelegate, MultipartConfiguration.builder().build(), true);
         s3AsyncClient.getObject(req, mockTransformer);
         verify(mockTransformer, never()).split(any(SplittingTransformerConfiguration.class));
         verify(mockDelegate, times(1)).getObject(any(GetObjectRequest.class), eq(mockTransformer));
@@ -60,7 +59,7 @@ class MultipartS3AsyncClientTest {
                                                .key("test-key")
                                                .partNumber(1)
                                                .build();
-        S3AsyncClient s3AsyncClient = MultipartS3AsyncClient.create(mockDelegate, MultipartConfiguration.builder().build());
+        S3AsyncClient s3AsyncClient = MultipartS3AsyncClient.create(mockDelegate, MultipartConfiguration.builder().build(), true);
         s3AsyncClient.getObject(req, mockTransformer);
         verify(mockTransformer, never()).split(any(SplittingTransformerConfiguration.class));
         verify(mockDelegate, times(1)).getObject(any(GetObjectRequest.class), eq(mockTransformer));

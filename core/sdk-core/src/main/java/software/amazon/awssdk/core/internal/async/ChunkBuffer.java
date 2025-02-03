@@ -91,19 +91,38 @@ public final class ChunkBuffer {
      * Splits the input ByteBuffer to multiple chunks and add them to the iterable.
      */
     private void splitRemainingInputByteBuffer(ByteBuffer inputByteBuffer, List<ByteBuffer> byteBuffers) {
+        long numTransferredBytes = transferredBytes.get();
         while (inputByteBuffer.hasRemaining()) {
-            ByteBuffer inputByteBufferCopy = inputByteBuffer.asReadOnlyBuffer();
-            if (inputByteBuffer.remaining() < chunkSize) {
+            if (inputByteBuffer.remaining() < chunkSize || wouldExceedTotalByte(numTransferredBytes)) {
+                limitBufferToTotalBytes(inputByteBuffer, numTransferredBytes);
                 currentBuffer.put(inputByteBuffer);
                 break;
             }
+
+            ByteBuffer inputByteBufferCopy = inputByteBuffer.asReadOnlyBuffer();
 
             int newLimit = inputByteBufferCopy.position() + chunkSize;
             inputByteBufferCopy.limit(newLimit);
             inputByteBuffer.position(newLimit);
             byteBuffers.add(inputByteBufferCopy);
-            transferredBytes.addAndGet(chunkSize);
+            numTransferredBytes = transferredBytes.addAndGet(chunkSize);
         }
+    }
+
+    private void limitBufferToTotalBytes(ByteBuffer buff, long transferred) {
+        if (totalBytes == null) {
+            return;
+        }
+        long remainingForTotalBytes = totalBytes - transferred;
+        int newLimit = (int) Math.min(buff.limit(), buff.position() + remainingForTotalBytes);
+        buff.limit(newLimit);
+    }
+
+    private boolean wouldExceedTotalByte(long transferredBytes) {
+        if (totalBytes == null) {
+            return false;
+        }
+        return transferredBytes + chunkSize > totalBytes;
     }
 
     /**
@@ -127,6 +146,7 @@ public final class ChunkBuffer {
         if (totalBytes == null) {
             return false;
         }
+
         long remainingBytes = totalBytes - transferredBytes.get();
         return remainingBytes != 0 && remainingBytes == currentBuffer.position();
     }
@@ -134,8 +154,14 @@ public final class ChunkBuffer {
     private void addCurrentBufferToIterable(List<ByteBuffer> byteBuffers) {
         Optional<ByteBuffer> bufferedChunk = getBufferedData();
         if (bufferedChunk.isPresent()) {
-            byteBuffers.add(bufferedChunk.get());
-            transferredBytes.addAndGet(bufferedChunk.get().remaining());
+            ByteBuffer chunk = bufferedChunk.get();
+            if (totalBytes != null) {
+                long remainingBytes = totalBytes - transferredBytes.get();
+                int newLimit = Math.toIntExact(Math.min(chunk.capacity(), remainingBytes));
+                chunk.limit(newLimit);
+            }
+            byteBuffers.add(chunk);
+            transferredBytes.addAndGet(chunk.remaining());
             currentBuffer.clear();
         }
     }

@@ -35,7 +35,6 @@ import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.waiters.AsyncWaiter;
 import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.ListMultipartUploadsResponse;
 import software.amazon.awssdk.services.s3.model.ListPartsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchUploadException;

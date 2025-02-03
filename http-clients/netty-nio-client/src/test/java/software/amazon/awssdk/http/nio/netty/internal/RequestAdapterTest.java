@@ -106,6 +106,34 @@ public class RequestAdapterTest {
     }
 
     @Test
+    public void adapt_keepsUserHostHeader() {
+        String hostOverride = "virtual.host:123";
+        SdkHttpRequest sdkRequest = SdkHttpRequest.builder()
+                .uri(URI.create("http://localhost:12345/"))
+                .method(SdkHttpMethod.HEAD)
+                .putHeader("Host", hostOverride)
+                .build();
+        HttpRequest result = h1Adapter.adapt(sdkRequest);
+        List<String> hostHeaders = result.headers()
+                                         .getAll(HttpHeaderNames.HOST.toString());
+        assertThat(hostHeaders).containsExactly(hostOverride);
+    }
+
+    @Test
+    public void adapt_keepsLowercaseUserHostHeader() {
+        String hostOverride = "virtual.host:123";
+        SdkHttpRequest sdkRequest = SdkHttpRequest.builder()
+                .uri(URI.create("http://localhost:12345/"))
+                .method(SdkHttpMethod.HEAD)
+                .putHeader("host", hostOverride)
+                .build();
+        HttpRequest result = h1Adapter.adapt(sdkRequest);
+        List<String> hostHeaders = result.headers()
+                                         .getAll(HttpHeaderNames.HOST.toString());
+        assertThat(hostHeaders).containsExactly(hostOverride);
+    }
+
+    @Test
     public void adapt_standardHttpsPort_omittedInHeader() {
         SdkHttpRequest sdkRequest = SdkHttpRequest.builder()
                 .uri(URI.create("https://localhost:443/"))

@@ -1,0 +1,54 @@
+{
+    "version": "2.30.9",
+    "date": "2025-01-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Billing and Cost Management Pricing Calculator",
+            "contributor": "",
+            "description": "Added ConflictException error type in DeleteBillScenario, BatchDeleteBillScenarioCommitmentModification, BatchDeleteBillScenarioUsageModification, BatchUpdateBillScenarioUsageModification, and BatchUpdateBillScenarioCommitmentModification API operations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Container Registry",
+            "contributor": "",
+            "description": "Add support for Dualstack and Dualstack-with-FIPS Endpoints"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Container Registry Public",
+            "contributor": "",
+            "description": "Add support for Dualstack Endpoints"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Change the type of MpuObjectSize in CompleteMultipartUploadRequest from int to long."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Streaming Service",
+            "contributor": "",
+            "description": "This release adds support for AWS HealthScribe Streaming APIs within Amazon Transcribe."
+        },
+        {
+            "type": "feature",
+            "category": "MailManager",
+            "contributor": "",
+            "description": "This release includes a new feature for Amazon SES Mail Manager which allows customers to specify known addresses and domains and make use of those in traffic policies and rules actions to distinguish between known and unknown entries."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Fixed an issue that could cause checksum mismatch errors when performing parallel uploads with the async S3 client and the SHA1 or SHA256 checksum algorithms selected."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Buffer input data from ContentStreamProvider in cases where content length is known."
+        }
+    ]
+}

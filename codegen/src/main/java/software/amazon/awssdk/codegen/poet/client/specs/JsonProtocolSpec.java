@@ -27,6 +27,7 @@ import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
@@ -55,6 +56,7 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.protocols.cbor.AwsCborProtocolFactory;
+import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
@@ -238,7 +240,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                    .add(".eventStreamResponseHandler(asyncResponseHandler)\n")
                    .add(".eventResponseHandler(eventResponseHandler)\n")
                    .add(".initialResponseHandler(responseHandler)\n")
-                   .add(".exceptionResponseHandler(errorResponseHandler)\n")
+                   .add(".exceptionResponseHandler(errorEventResponseHandler)\n")
                    .add(".future(future)\n")
                    .add(".executor(executor)\n")
                    .add(".serviceName(serviceName())\n")
@@ -419,6 +421,25 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                      .build());
     }
 
+    @Override
+    public Optional<MethodSpec> createEventstreamErrorResponseHandler() {
+        ClassName httpResponseHandler = ClassName.get(HttpResponseHandler.class);
+        ClassName sdkBaseException = ClassName.get(AwsServiceException.class);
+        TypeName responseHandlerOfException = ParameterizedTypeName.get(httpResponseHandler, sdkBaseException);
+        ParameterizedTypeName mapperType = ParameterizedTypeName.get(ClassName.get(Function.class),
+            ClassName.get(String.class), ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
+
+        return Optional.of(MethodSpec.methodBuilder("createErrorResponseHandler")
+                                     .addParameter(BaseAwsJsonProtocolFactory.class, "protocolFactory")
+                                     .addParameter(JsonOperationMetadata.class, "operationMetadata")
+                                     .addParameter(mapperType, "exceptionMetadataMapper")
+                                     .returns(responseHandlerOfException)
+                                     .addModifiers(Modifier.PRIVATE)
+                                     .addStatement("return protocolFactory.createErrorResponseHandler(operationMetadata, "
+                                                   + "exceptionMetadataMapper)")
+                                     .build());
+    }
+
     private String protocolEnumName(software.amazon.awssdk.codegen.model.intermediate.Protocol protocol) {
         switch (protocol) {
             case CBOR:
@@ -480,6 +501,37 @@ public class JsonProtocolSpec implements ProtocolSpec {
                         });
         builder.add(".defaultSdkPojoSupplier(() -> new $T($T.UNKNOWN))\n"
                     + ".build());\n", SdkPojoBuilder.class, eventStreamBaseClass);
+
+        ParameterizedTypeName metadataMapperType = ParameterizedTypeName.get(
+            ClassName.get(Function.class),
+            ClassName.get(String.class),
+            ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
+
+        builder.add("\n");
+        builder.add("$T eventstreamExceptionMetadataMapper = errorCode -> {\n", metadataMapperType);
+        builder.add("switch (errorCode) {\n");
+        EventStreamUtils.getErrorMembers(eventStream).forEach(m -> {
+            String errorCode = m.getC2jName();
+            builder.add("case $S:\n", errorCode);
+            builder.add("return $T.of($T.builder()", Optional.class, ExceptionMetadata.class);
+            builder.add(".errorCode($S)", m.getShape().getErrorCode());
+            builder.add(populateHttpStatusCode(m.getShape(), model));
+            builder.add(".exceptionBuilderSupplier($T::builder).build());\n",
+                        poetExtensions.getModelClassFromShape(m.getShape()));
+        });
+        builder.add("default: return $T.empty();", Optional.class);
+        builder.add("}\n");
+        builder.add("};\n");
+
+        ParameterizedTypeName errorResponseHandlerType = ParameterizedTypeName.get(HttpResponseHandler.class,
+                                                                                   AwsServiceException.class);
+
+        builder.add("\n");
+        builder.addStatement("$T errorEventResponseHandler = createErrorResponseHandler($N, operationMetadata, "
+                             + "eventstreamExceptionMetadataMapper)",
+                             errorResponseHandlerType,
+                             protocolFactoryLiteral(model, opModel));
+
     }
 
     private String protocolFactoryLiteral(IntermediateModel model, OperationModel opModel) {

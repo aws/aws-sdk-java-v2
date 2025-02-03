@@ -18,6 +18,7 @@ package software.amazon.awssdk.v2migrationtests;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
@@ -147,7 +148,14 @@ public class TestUtils {
                 IoUtils.copy(process.getInputStream(), System.out);
                 result.result = process.waitFor();
                 if (!result.wasSuccessful()) {
-                    throw new RuntimeException("Command (" + Arrays.toString(args) + ") failed: " + result.output);
+                    String errorMsg = null;
+                    try (InputStream errorStream = process.getErrorStream()) {
+                        if (errorStream != null) {
+                            errorMsg = IoUtils.toUtf8String(errorStream);
+                        }
+                    }
+                    throw new RuntimeException(String.format("Command (%s) failed of error code: %d, error message: %s",
+                                                             Arrays.toString(args), result.result, errorMsg));
                 }
             } finally {
                 process.destroy();

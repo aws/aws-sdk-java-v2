@@ -27,6 +27,8 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
@@ -62,8 +64,8 @@ public class CrtChecksumIntegrationTest extends S3IntegrationTestBase {
         testFileCrc32 = ChecksumUtils.calculatedChecksum(testFile.toPath(), Algorithm.CRC32);
 
         s3Crt = S3CrtAsyncClient.builder()
-                                .credentialsProvider(AwsTestBase.CREDENTIALS_PROVIDER_CHAIN)
-                                .region(S3IntegrationTestBase.DEFAULT_REGION)
+                                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                .region(DEFAULT_REGION)
                                 // make sure we don't do a multipart upload, it will mess with validation against the precomputed
                                 // checksums above
                                 .thresholdInBytes(2L * OBJ_SIZE)
@@ -106,7 +108,8 @@ public class CrtChecksumIntegrationTest extends S3IntegrationTestBase {
         try (S3AsyncClient s3Crt = S3CrtAsyncClient.builder()
                                                    .credentialsProvider(AwsTestBase.CREDENTIALS_PROVIDER_CHAIN)
                                                    .region(S3IntegrationTestBase.DEFAULT_REGION)
-                                                   .checksumValidationEnabled(Boolean.FALSE)
+                                                   .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
+                                                   .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
                                                    .build()) {
             AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
             PutObjectResponse putObjectResponse =

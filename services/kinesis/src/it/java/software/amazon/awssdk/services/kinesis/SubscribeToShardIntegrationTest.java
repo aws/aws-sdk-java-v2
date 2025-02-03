@@ -30,9 +30,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.SdkBytes;
@@ -54,13 +54,13 @@ import software.amazon.awssdk.testutils.Waiter;
 public class SubscribeToShardIntegrationTest extends AbstractTestCase {
 
     public static final int WAIT_TIME_FOR_SUBSCRIPTION_COMPLETION = 300;
-    private String streamName;
+    private static String streamName;
     private static final String CONSUMER_NAME = "subscribe-to-shard-consumer";
     private static String consumerArn;
     private static String shardId;
 
-    @Before
-    public void setup() throws InterruptedException {
+    @BeforeAll
+    public static void setup() throws InterruptedException {
         streamName = "subscribe-to-shard-integ-test-" + System.currentTimeMillis();
 
         asyncClient.createStream(r -> r.streamName(streamName)
@@ -70,18 +70,18 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
                                       .streamDescription()
                                       .streamARN();
 
-        this.shardId = asyncClient.listShards(r -> r.streamName(streamName))
-                                  .join()
-                                  .shards().get(0).shardId();
-        this.consumerArn = asyncClient.registerStreamConsumer(r -> r.streamARN(streamARN)
-                                                                    .consumerName(CONSUMER_NAME)).join()
-                                      .consumer()
-                                      .consumerARN();
+        shardId = asyncClient.listShards(r -> r.streamName(streamName))
+                             .join()
+                             .shards().get(0).shardId();
+        consumerArn = asyncClient.registerStreamConsumer(r -> r.streamARN(streamARN)
+                                                               .consumerName(CONSUMER_NAME)).join()
+                                 .consumer()
+                                 .consumerARN();
         waitForConsumerToBeActive();
     }
 
-    @After
-    public void tearDown() {
+    @AfterAll
+    public static void tearDown() {
         asyncClient.deleteStream(r -> r.streamName(streamName)
                                        .enforceConsumerDeletion(true)).join();
     }
@@ -96,22 +96,22 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
         }
 
         KinesisAsyncClient smallWindowAsyncClient = KinesisAsyncClient.builder()
-                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                .httpClientBuilder(NettyNioAsyncHttpClient.builder()
-                    .http2Configuration(Http2Configuration.builder()
-                            .initialWindowSize(16384)
-                            .build()))
-                .build();
+                                                                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                                      .httpClientBuilder(NettyNioAsyncHttpClient.builder()
+                                                                                                                .http2Configuration(Http2Configuration.builder()
+                                                                                                                                                      .initialWindowSize(16384)
+                                                                                                                                                      .build()))
+                                                                      .build();
 
         try {
             smallWindowAsyncClient.subscribeToShard(r -> r.consumerARN(consumerArn)
-                            .shardId(shardId)
-                            .startingPosition(s -> s.type(ShardIteratorType.TRIM_HORIZON)),
-                    SubscribeToShardResponseHandler.builder()
-                            .onEventStream(es -> Flowable.fromPublisher(es).forEach(e -> {}))
-                            .onResponse(this::verifyHttpMetadata)
-                            .build())
-                    .join();
+                                                          .shardId(shardId)
+                                                          .startingPosition(s -> s.type(ShardIteratorType.TRIM_HORIZON)),
+                                                    SubscribeToShardResponseHandler.builder()
+                                                                                   .onEventStream(es -> Flowable.fromPublisher(es).forEach(e -> {}))
+                                                                                   .onResponse(this::verifyHttpMetadata)
+                                                                                   .build())
+                                  .join();
 
         } finally {
             smallWindowAsyncClient.close();
@@ -153,51 +153,51 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
         AtomicBoolean errorOccurred = new AtomicBoolean(false);
         List<SubscribeToShardEventStream> events = new ArrayList<>();
         asyncClient.subscribeToShard(r -> r.consumerARN(consumerArn)
-                        .shardId(shardId)
-                        .startingPosition(s -> s.type(ShardIteratorType.LATEST)),
-                new SubscribeToShardResponseHandler() {
-                    @Override
-                    public void responseReceived(SubscribeToShardResponse response) {
-                        verifyHttpMetadata(response);
-                    }
+                                           .shardId(shardId)
+                                           .startingPosition(s -> s.type(ShardIteratorType.LATEST)),
+                                     new SubscribeToShardResponseHandler() {
+                                         @Override
+                                         public void responseReceived(SubscribeToShardResponse response) {
+                                             verifyHttpMetadata(response);
+                                         }
 
-                    @Override
-                    public void onEventStream(SdkPublisher<SubscribeToShardEventStream> publisher) {
-                        publisher.limit(3).subscribe(new Subscriber<SubscribeToShardEventStream>() {
-                            private Subscription subscription;
-                            @Override
-                            public void onSubscribe(Subscription subscription) {
-                                this.subscription = subscription;
-                                subscription.request(10);
-                            }
+                                         @Override
+                                         public void onEventStream(SdkPublisher<SubscribeToShardEventStream> publisher) {
+                                             publisher.limit(3).subscribe(new Subscriber<SubscribeToShardEventStream>() {
+                                                 private Subscription subscription;
+                                                 @Override
+                                                 public void onSubscribe(Subscription subscription) {
+                                                     this.subscription = subscription;
+                                                     subscription.request(10);
+                                                 }
 
-                            @Override
-                            public void onNext(SubscribeToShardEventStream subscribeToShardEventStream) {
-                                events.add(subscribeToShardEventStream);
-                            }
+                                                 @Override
+                                                 public void onNext(SubscribeToShardEventStream subscribeToShardEventStream) {
+                                                     events.add(subscribeToShardEventStream);
+                                                 }
 
-                            @Override
-                            public void onError(Throwable throwable) {
-                                errorOccurred.set(true);
-                            }
+                                                 @Override
+                                                 public void onError(Throwable throwable) {
+                                                     errorOccurred.set(true);
+                                                 }
 
-                            @Override
-                            public void onComplete() {
-                                onCompleteSubsMethodsCalled.set(true);
-                            }
-                        });
-                    }
+                                                 @Override
+                                                 public void onComplete() {
+                                                     onCompleteSubsMethodsCalled.set(true);
+                                                 }
+                                             });
+                                         }
 
-                    @Override
-                    public void exceptionOccurred(Throwable throwable) {
-                        errorOccurred.set(true);
-                    }
+                                         @Override
+                                         public void exceptionOccurred(Throwable throwable) {
+                                             errorOccurred.set(true);
+                                         }
 
-                    @Override
-                    public void complete() {
-                        completeMethodOfHandlerCalled.set(true);
-                    }
-                }).join();
+                                         @Override
+                                         public void complete() {
+                                             completeMethodOfHandlerCalled.set(true);
+                                         }
+                                     }).join();
 
         try {
             Thread.sleep(WAIT_TIME_FOR_SUBSCRIPTION_COMPLETION);
@@ -279,13 +279,14 @@ public class SubscribeToShardIntegrationTest extends AbstractTestCase {
         assertThat(events.size()).isEqualTo(1);
 
     }
+
     private static void waitForConsumerToBeActive() {
         Waiter.run(() -> asyncClient.describeStreamConsumer(r -> r.consumerARN(consumerArn)).join())
               .until(b -> b.consumerDescription().consumerStatus().equals(ConsumerStatus.ACTIVE))
               .orFailAfter(Duration.ofMinutes(5));
     }
 
-    private void waitForStreamToBeActive() {
+    private static void waitForStreamToBeActive() {
         Waiter.run(() -> asyncClient.describeStream(r -> r.streamName(streamName)).join())
               .until(b -> b.streamDescription().streamStatus().equals(StreamStatus.ACTIVE))
               .orFailAfter(Duration.ofMinutes(5));

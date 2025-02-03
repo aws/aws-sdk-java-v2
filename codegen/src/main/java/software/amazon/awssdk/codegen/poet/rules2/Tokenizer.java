@@ -211,6 +211,19 @@ public class Tokenizer {
         index += 4;
     }
 
+    // e.g., [123]
+    public boolean isDirectIndexedAccess() {
+        return matches(TokenKind.OPEN_SQUARE, TokenKind.NUMBER, TokenKind.CLOSE_SQUARE);
+    }
+
+    public void consumeDirectIndexed(Consumer<Integer> consumer) {
+        if (!isDirectIndexedAccess()) {
+            throw new IllegalStateException("not at direct indexed");
+        }
+        consumer.accept(Integer.parseInt(tokens.get(index + 1).value));
+        index += 3;
+    }
+
     // e.g., {url#scheme}
     public boolean isNamedAccess() {
         return matches(TokenKind.OPEN_CURLY, TokenKind.IDENTIFIER, TokenKind.HASH, TokenKind.IDENTIFIER, TokenKind.CLOSE_CURLY);

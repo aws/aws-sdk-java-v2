@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.checksums;
 
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
  */
 @SdkProtectedApi
 public final class DefaultChecksumAlgorithm {
+
     public static final ChecksumAlgorithm CRC32C = of("CRC32C");
     public static final ChecksumAlgorithm CRC32 = of("CRC32");
     public static final ChecksumAlgorithm MD5 = of("MD5");
@@ -38,11 +40,29 @@ public final class DefaultChecksumAlgorithm {
         return ChecksumAlgorithmsCache.put(name);
     }
 
+    public static ChecksumAlgorithm fromValue(String algorithm) {
+        if (algorithm == null) {
+            return null;
+        }
+
+        return ChecksumAlgorithmsCache.VALUES.get(algorithm.toUpperCase(Locale.US));
+    }
+
     private static final class ChecksumAlgorithmsCache {
         private static final ConcurrentHashMap<String, ChecksumAlgorithm> VALUES = new ConcurrentHashMap<>();
 
         private static ChecksumAlgorithm put(String value) {
-            return VALUES.computeIfAbsent(value, v -> () -> v);
+            return VALUES.computeIfAbsent(value, v -> new ChecksumAlgorithm() {
+                @Override
+                public String algorithmId() {
+                    return v;
+                }
+
+                @Override
+                public String toString() {
+                    return algorithmId();
+                }
+            });
         }
     }
 }

@@ -155,7 +155,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
             b.addMethod(signerProviderMethod());
         }
 
-        endpointParamsKnowledgeIndex.accountIdFromIdentityMethod().ifPresent(b::addMethod);
+        endpointParamsKnowledgeIndex.addAccountIdMethodsIfPresent(b);
         return b.build();
     }
 
@@ -303,13 +303,10 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                     b.addStatement(endpointProviderUtilsSetter("endpointBuiltIn", setter));
                     break;
                 case AWS_AUTH_ACCOUNT_ID:
-                    b.addStatement("builder.$N(accountIdFromIdentity(executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME)))",
-                                   setter, SdkInternalExecutionAttribute.class);
+                    b.addStatement("builder.$N(resolveAndRecordAccountIdFromIdentity(executionAttributes))", setter);
                     break;
                 case AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE:
-                    b.addStatement("builder.$N(executionAttributes.getAttribute($T.$N).name().toLowerCase())",
-                                   setter, AwsExecutionAttribute.class,
-                                   model.getNamingStrategy().getEnumValueName(m.getBuiltInEnum().name()));
+                    b.addStatement("builder.$N(recordAccountIdEndpointMode(executionAttributes))", setter);
                     break;
                 case AWS_S3_USE_GLOBAL_ENDPOINT:
                     b.addStatement("builder.$N(executionAttributes.getAttribute($T.$N))",
@@ -558,10 +555,10 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.addStatement("$1T input = new $1T(request)", poetExtension.jmesPathRuntimeClass().nestedClass("Value"));
 
         opModel.getOperationContextParams().forEach((key, value) -> {
-            if (Objects.requireNonNull(value.getValue().asToken()) == JsonToken.VALUE_STRING) {
+            if (Objects.requireNonNull(value.getPath().asToken()) == JsonToken.VALUE_STRING) {
                 String setterName = endpointRulesSpecUtils.paramMethodName(key);
 
-                String jmesPathString = ((JrsString) value.getValue()).getValue();
+                String jmesPathString = ((JrsString) value.getPath()).getValue();
                 CodeBlock addParam = CodeBlock.builder()
                                               .add("params.$N(", setterName)
                                               .add(jmesPathGenerator.interpret(jmesPathString, "input"))
@@ -572,7 +569,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                 b.addStatement(addParam);
             } else {
                 throw new RuntimeException("Invalid operation context parameter path for " + opModel.getOperationName() +
-                                           ". Expected VALUE_STRING, but got " + value.getValue().asToken());
+                                           ". Expected VALUE_STRING, but got " + value.getPath().asToken());
             }
 
         });

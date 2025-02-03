@@ -4533,7 +4533,8 @@
         "WINDOWS_SERVER_2019",
         "WINDOWS_SERVER_2022",
         "AMAZON_LINUX2",
-        "RHEL8"
+        "RHEL8",
+        "ROCKY_LINUX8"
       ]
     },
     "Platforms":{
@@ -5040,6 +5041,10 @@
         "Domains":{
           "shape":"DomainList",
           "documentation":"<p>The names of the domains for the account.</p>"
+        },
+        "DomainsRequireAdminConsent":{
+          "shape":"DomainList",
+          "documentation":"<p>The OneDrive for Business domains where you require admin consent when users try to link their OneDrive account to AppStream 2.0. The attribute can only be specified when ConnectorType=ONE_DRIVE.</p>"
         }
       },
       "documentation":"<p>Describes a connector that enables persistent storage for users.</p>"

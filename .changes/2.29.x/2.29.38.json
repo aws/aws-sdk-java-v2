@@ -1,0 +1,48 @@
+{
+    "version": "2.29.38",
+    "date": "2024-12-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release adds support for inserting timecode tracks into MP4 container outputs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "MediaLive is releasing ListVersions api"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager for SAP",
+            "contributor": "",
+            "description": "AWS Systems Manager for SAP added support for registration and discovery of distributed ABAP applications"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "Added support for Rocky Linux 8 on Amazon AppStream 2.0"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Q Connect",
+            "contributor": "",
+            "description": "Amazon Q in Connect enables agents to ask Q for assistance in multiple languages and Q will provide answers and recommended step-by-step guides in those languages. Qs default language is English (United States) and you can switch this by setting the locale configuration on the AI Agent."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Added AWS Global Accelerator (AGA) support for WorkSpaces Personal."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

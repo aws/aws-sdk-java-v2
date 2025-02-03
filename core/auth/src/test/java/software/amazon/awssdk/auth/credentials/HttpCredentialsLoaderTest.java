@@ -144,7 +144,8 @@ public class HttpCredentialsLoaderTest {
 
 
     private ResourcesEndpointProvider testEndpointProvider() {
-        return new StaticResourcesEndpointProvider(URI.create("http://localhost:" + mockServer.port() + CREDENTIALS_PATH),
-                                                   null);
+        return  StaticResourcesEndpointProvider.builder()
+                                               .endpoint(URI.create("http://localhost:" + mockServer.port() + CREDENTIALS_PATH))
+                                               .build();
     }
 }

@@ -242,7 +242,7 @@
         "requestChecksumRequired" : true,
         "requestAlgorithmMember": "ChecksumAlgorithm",
         "requestValidationModeMember" : "ChecksumMode",
-        "responseAlgorithms": ["crc32", "crc32c", "sha256", "sha1"]
+        "responseAlgorithms": ["crc64nvme","crc32", "crc32c", "sha256", "sha1"]
       }
     },
     "StreamingInputOperation":{
@@ -294,9 +294,7 @@
         "requestUri":"/"
       },
       "input":{"shape":"ChecksumStructureWithStreaming"},
-      "output":{"shape":"ChecksumStructureWithStreaming"},
       "httpChecksum" : {
-        "requestChecksumRequired": true,
         "requestAlgorithmMember": "ChecksumAlgorithm"
       }
     },
@@ -335,7 +333,7 @@
       "output":{"shape":"ChecksumStructureWithStreaming"},
       "httpChecksum" : {
         "requestValidationModeMember": "ChecksumMode",
-        "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"]
+        "responseAlgorithms": ["CRC64NVME","CRC32C", "CRC32", "SHA1", "SHA256"]
       }
     },
     "GetOperationWithMapEndpointParam":{
@@ -359,7 +357,7 @@
         "requestChecksumRequired": true,
         "requestAlgorithmMember": "ChecksumAlgorithm",
         "requestValidationModeMember": "ChecksumMode",
-        "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"]
+        "responseAlgorithms": ["CRC64NVME","CRC32C", "CRC32", "SHA1", "SHA256"]
       }
     },
     "QueryParameterOperation":{
@@ -981,7 +979,8 @@
         "CRC32",
         "CRC32C",
         "SHA1",
-        "SHA256"
+        "SHA256",
+        "CRC64NVME"
       ]
     },
     "ChecksumMode":{
@@ -1009,7 +1008,7 @@
         "ChecksumAlgorithm":{
           "shape":"ChecksumAlgorithm",
           "location":"header",
-          "locationName":"x-amz-checksum-algorithm"
+          "locationName":"x-amz-sdk-checksum-algorithm"
         }
       },
       "payload":"Body"
@@ -1032,7 +1031,7 @@
         "ChecksumAlgorithm":{
           "shape":"ChecksumAlgorithm",
           "location":"header",
-          "locationName":"x-amz-checksum-algorithm"
+          "locationName":"x-amz-sdk-checksum-algorithm"
         }
       }
     },

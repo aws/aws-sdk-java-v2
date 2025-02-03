@@ -17,32 +17,20 @@ package software.amazon.awssdk.services.s3.internal.checksums;
 
 import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AWS_KMS;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.checksums.ChecksumSpecs;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
-import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpHeaders;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.handlers.AsyncChecksumValidationInterceptor;
 import software.amazon.awssdk.services.s3.internal.handlers.SyncChecksumValidationInterceptor;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.utils.StringUtils;
-import software.amazon.awssdk.utils.internal.Base16Lower;
 
 /**
  * Class used by {@link SyncChecksumValidationInterceptor} and
@@ -53,6 +41,8 @@ import software.amazon.awssdk.utils.internal.Base16Lower;
 public final class ChecksumsEnabledValidator {
 
     public static final ExecutionAttribute<SdkChecksum> CHECKSUM = new ExecutionAttribute<>("checksum");
+    public static final ExecutionAttribute<Boolean> SKIP_MD5_TRAILING_CHECKSUM = new ExecutionAttribute<>(
+        "skipMd5TrailingChecksum");
 
     private ChecksumsEnabledValidator() {
     }
@@ -69,7 +59,7 @@ public final class ChecksumsEnabledValidator {
                                                              ExecutionAttributes executionAttributes) {
         return request instanceof GetObjectRequest
                && ((GetObjectRequest) request).checksumMode() != ChecksumMode.ENABLED
-               && checksumEnabledPerConfig(executionAttributes);
+               && checksumEnabledPerConfigForGet(executionAttributes);
     }
 
     /**
@@ -77,63 +67,23 @@ public final class ChecksumsEnabledValidator {
      *
      * @param request the request
      * @param responseHeaders the response headers
+     * @param executionAttributes the executionAttributes
      * @return true if trailing checksums is enabled, false otherwise
      */
-    public static boolean getObjectChecksumEnabledPerResponse(SdkRequest request, SdkHttpHeaders responseHeaders) {
-        return request instanceof GetObjectRequest && checksumEnabledPerResponse(responseHeaders);
-    }
-
-    /**
-     * Validates that checksums should be enabled based on {@link ClientType} and the presence of S3 specific headers.
-     *
-     * @param expectedClientType - The expected client type for enabling checksums
-     * @param executionAttributes - {@link ExecutionAttributes} to determine the actual client type
-     * @return If trailing checksums should be enabled for this request.
-     */
-    public static boolean shouldRecordChecksum(SdkRequest sdkRequest,
-                                               ClientType expectedClientType,
-                                               ExecutionAttributes executionAttributes,
-                                               SdkHttpRequest httpRequest) {
-        if (!(sdkRequest instanceof PutObjectRequest)) {
+    public static boolean getObjectChecksumEnabledPerResponse(SdkRequest request, SdkHttpHeaders responseHeaders,
+                                                              ExecutionAttributes executionAttributes) {
+        if (!(request instanceof GetObjectRequest)) {
             return false;
         }
 
-        ClientType actualClientType = executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_TYPE);
+        ResponseChecksumValidation responseChecksumValidation =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION);
 
-        if (expectedClientType != actualClientType) {
+        if (responseChecksumValidation != null && responseChecksumValidation == ResponseChecksumValidation.WHEN_REQUIRED) {
             return false;
         }
 
-
-        if (hasServerSideEncryptionHeader(httpRequest)) {
-            return false;
-        }
-
-        //Checksum validation is done at Service side when HTTP Checksum algorithm attribute is set.
-        if (isHttpCheckSumValidationEnabled(executionAttributes, sdkRequest)) {
-            return false;
-        }
-
-        return checksumEnabledPerConfig(executionAttributes);
-    }
-
-    private static boolean isHttpCheckSumValidationEnabled(ExecutionAttributes executionAttributes, SdkRequest request) {
-        if (isChecksumValueSpecified(request)) {
-            return true;
-        }
-
-        Optional<ChecksumSpecs> resolvedChecksum =
-            executionAttributes.getOptionalAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS);
-        if (resolvedChecksum.isPresent()) {
-            ChecksumSpecs checksumSpecs = resolvedChecksum.get();
-            return checksumSpecs.algorithm() != null;
-        }
-        return false;
-    }
-
-    private static boolean isChecksumValueSpecified(SdkRequest request) {
-        return Stream.of("ChecksumCRC32", "ChecksumCRC32C", "ChecksumSHA1", "ChecksumSHA256")
-                     .anyMatch(s -> request.getValueForField(s, String.class).isPresent());
+        return checksumEnabledPerResponse(responseHeaders);
     }
 
     public static boolean responseChecksumIsValid(SdkHttpResponse httpResponse) {
@@ -156,30 +106,6 @@ public final class ChecksumsEnabledValidator {
     }
 
     /**
-     * Client side validation for {@link PutObjectRequest}
-     *
-     * @param response the response
-     * @param executionAttributes the execution attributes
-     */
-    public static void validatePutObjectChecksum(PutObjectResponse response, ExecutionAttributes executionAttributes) {
-        SdkChecksum checksum = executionAttributes.getAttribute(CHECKSUM);
-
-        if (response.eTag() != null) {
-            String contentMd5 = BinaryUtils.toBase64(checksum.getChecksumBytes());
-            byte[] digest = BinaryUtils.fromBase64(contentMd5);
-            byte[] ssHash = Base16Lower.decode(StringUtils.replace(response.eTag(), "\"", ""));
-
-            if (!Arrays.equals(digest, ssHash)) {
-                throw RetryableException.create(
-                    String.format("Data read has a different checksum than expected. Was 0x%s, but expected 0x%s. " +
-                                  "This commonly means that the data was corrupted between the client and " +
-                                  "service. Note: Despite this error, the upload still completed and was persisted in S3.",
-                                  BinaryUtils.toHex(digest), BinaryUtils.toHex(ssHash)));
-            }
-        }
-    }
-
-    /**
      * Check the response header to see if the trailing checksum is enabled.
      *
      * @param responseHeaders the SdkHttpHeaders
@@ -192,15 +118,20 @@ public final class ChecksumsEnabledValidator {
     }
 
     /**
-     * Check the {@link S3Configuration#checksumValidationEnabled()} to see if the checksum is enabled.
+     * Check the {@code SdkExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION} to see if the checksum is enabled for GET.
      *
      * @param executionAttributes the execution attributes
-     * @return true if the trailing checksum is enabled in the config, false otherwise.
+     * @return true if the checksum is enabled in the config, false otherwise.
      */
-    private static boolean checksumEnabledPerConfig(ExecutionAttributes executionAttributes) {
-        S3Configuration serviceConfiguration =
-            (S3Configuration) executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_CONFIG);
+    private static boolean checksumEnabledPerConfigForGet(ExecutionAttributes executionAttributes) {
+        Boolean skipTrailingChecksum = executionAttributes.getAttribute(SKIP_MD5_TRAILING_CHECKSUM);
+        if (skipTrailingChecksum != null && skipTrailingChecksum) {
+            return false;
+        }
 
-        return serviceConfiguration == null || serviceConfiguration.checksumValidationEnabled();
+        ResponseChecksumValidation responseChecksumValidation =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION);
+
+        return responseChecksumValidation == ResponseChecksumValidation.WHEN_SUPPORTED;
     }
 }

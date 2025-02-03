@@ -25,6 +25,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.ChecksumType;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
@@ -48,8 +49,9 @@ import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 @SdkInternalApi
 public final class SdkPojoConversionUtils {
 
-    private static final HashSet<String> PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE =
-        new HashSet<>(Arrays.asList("ChecksumSHA1", "ChecksumSHA256", "ContentMD5", "ChecksumCRC32C", "ChecksumCRC32"));
+    protected static final Set<String> PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE =
+        new HashSet<>(Arrays.asList("ChecksumSHA1", "ChecksumSHA256", "ContentMD5", "ChecksumCRC32C", "ChecksumCRC32",
+                                    "ChecksumCRC64NVME", "ContentLength"));
 
     private SdkPojoConversionUtils() {
     }
@@ -62,9 +64,17 @@ public final class SdkPojoConversionUtils {
     }
 
     public static CompleteMultipartUploadRequest toCompleteMultipartUploadRequest(PutObjectRequest putObjectRequest,
-                                                                                  String uploadId, CompletedPart[] parts) {
+                                                                                  String uploadId, CompletedPart[] parts,
+                                                                                  long contentLength) {
         CompleteMultipartUploadRequest.Builder builder = CompleteMultipartUploadRequest.builder();
         setSdkFields(builder, putObjectRequest);
+
+        builder.mpuObjectSize(contentLength);
+
+        if (S3ChecksumUtils.checksumValueSpecified(putObjectRequest)) {
+            builder.checksumType(ChecksumType.FULL_OBJECT);
+        }
+
         return builder.uploadId(uploadId).multipartUpload(c -> c.parts(parts)).build();
     }
 
@@ -72,6 +82,11 @@ public final class SdkPojoConversionUtils {
 
         CreateMultipartUploadRequest.Builder builder = CreateMultipartUploadRequest.builder();
         setSdkFields(builder, putObjectRequest);
+
+        if (S3ChecksumUtils.checksumValueSpecified(putObjectRequest)) {
+            builder.checksumType(ChecksumType.FULL_OBJECT);
+        }
+
         return builder.build();
     }
 

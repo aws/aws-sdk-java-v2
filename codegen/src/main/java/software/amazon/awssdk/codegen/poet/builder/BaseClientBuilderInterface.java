@@ -39,6 +39,8 @@ import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointParamsKnowledgeIndex;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
@@ -104,6 +106,14 @@ public class BaseClientBuilderInterface implements ClassSpec {
         if (generateTokenProviderMethod()) {
             builder.addMethod(tokenProviderMethod());
             builder.addMethod(tokenIdentityProviderMethod());
+        }
+
+        if (hasRequestAlgorithmMember(model)) {
+            builder.addMethod(requestChecksumCalculationMethod());
+        }
+
+        if (hasResponseAlgorithms(model)) {
+            builder.addMethod(responseChecksumValidationMethod());
         }
 
         return builder.build();
@@ -183,6 +193,26 @@ public class BaseClientBuilderInterface implements ClassSpec {
                          .build();
     }
 
+    private MethodSpec requestChecksumCalculationMethod() {
+        return MethodSpec.methodBuilder("requestChecksumCalculation")
+                         .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                         .addParameter(RequestChecksumCalculation.class, "requestChecksumCalculation")
+                         .addJavadoc("Configures the client behavior for request checksum calculation.")
+                         .returns(TypeVariableName.get("B"))
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
+                         .build();
+    }
+
+    private MethodSpec responseChecksumValidationMethod() {
+        return MethodSpec.methodBuilder("responseChecksumValidation")
+                         .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                         .addParameter(ResponseChecksumValidation.class, "responseChecksumValidation")
+                         .addJavadoc("Configures the client behavior for response checksum validation.")
+                         .returns(TypeVariableName.get("B"))
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
+                         .build();
+    }
+
     private MethodSpec clientContextParamSetter(String name, ClientContextParam param) {
         String setterName = Utils.unCapitalize(CodegenNamingUtils.pascalCase(name));
         TypeName type = endpointRulesSpecUtils.toJavaType(param.getType());
@@ -254,5 +284,17 @@ public class BaseClientBuilderInterface implements ClassSpec {
         return model.getCustomizationConfig() != null
                && model.getCustomizationConfig().getCustomClientContextParams() != null
                && !model.getCustomizationConfig().getCustomClientContextParams().isEmpty();
+    }
+
+    private boolean hasRequestAlgorithmMember(IntermediateModel model) {
+        return model.getOperations().values().stream()
+                    .anyMatch(opModel -> opModel.getHttpChecksum() != null
+                                         && opModel.getHttpChecksum().getRequestAlgorithmMember() != null);
+    }
+
+    private boolean hasResponseAlgorithms(IntermediateModel model) {
+        return model.getOperations().values().stream()
+                    .anyMatch(opModel -> opModel.getHttpChecksum() != null
+                                         && opModel.getHttpChecksum().getResponseAlgorithms() != null);
     }
 }

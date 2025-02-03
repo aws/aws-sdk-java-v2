@@ -21,6 +21,8 @@ import static org.junit.Assert.assertNotNull;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.Optional;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -53,16 +55,17 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
     private static final int SESSION_DURATION = 60 * 60;
 
-    private static final String USER_NAME = "assume-role-integration-test-user";
+    private static final String USER_NAME = "assume-role-integration-test-user-" + RandomStringUtils.randomAlphanumeric(10);
     private static final String USER_ARN_FORMAT = "arn:aws:iam::%s:user/" + USER_NAME;
     private static String USER_ARN;
 
     private static final String POLICY_NAME = "AssumeRoleIntegrationTestPolicy";
     private static final String POLICY_ARN_FORMAT = "arn:aws:iam::%s:policy/" + POLICY_NAME;
 
-    private static final String ROLE_NAME = "assume-role-integration-test-role";
+    private static final String ROLE_NAME = "assume-role-integration-test-role-" + RandomStringUtils.randomAlphanumeric(10);
     private static final String ROLE_ARN_FORMAT = "arn:aws:iam::%s:role/" + ROLE_NAME;
     private static String ROLE_ARN;
+    private static String accountId;
 
     private static final String ASSUME_ROLE = "sts:AssumeRole";
 
@@ -70,7 +73,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
     @BeforeClass
     public static void setup() {
-        String accountId = sts.getCallerIdentity().account();
+        accountId = sts.getCallerIdentity().account();
         USER_ARN = String.format(USER_ARN_FORMAT, accountId);
         ROLE_ARN = String.format(ROLE_ARN_FORMAT, accountId);
 
@@ -132,6 +135,21 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
               .ignoringException(StsException.class)
               .orFailAfter(Duration.ofMinutes(5));
     }
+
+    @AfterClass
+    public static void cleanup() {
+        iam.listAccessKeysPaginator(r -> r.userName(USER_NAME))
+           .accessKeyMetadata()
+           .stream()
+           .forEach(meta -> iam.deleteAccessKey(req -> req.userName(USER_NAME).accessKeyId(meta.accessKeyId())));
+        iam.detachUserPolicy(req -> req.userName(USER_NAME).policyArn(String.format(POLICY_ARN_FORMAT, accountId)));
+        iam.deleteUser(req -> req.userName(USER_NAME));
+
+        // deleting the IAM User referenced in the IAM Role trust relationship leaves the role in a bad state where it cant be
+        // assumed anymore. Therefore, we need to delete the role as well.
+        iam.deleteRole(req -> req.roleName(ROLE_NAME));
+    }
+
 
     /** Tests that we can call assumeRole successfully. */
     @Test

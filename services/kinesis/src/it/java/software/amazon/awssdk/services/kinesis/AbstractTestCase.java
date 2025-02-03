@@ -15,13 +15,16 @@
 
 package software.amazon.awssdk.services.kinesis;
 
+import io.netty.handler.ssl.SslProvider;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Properties;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
@@ -29,19 +32,33 @@ public class AbstractTestCase extends AwsTestBase {
     protected static KinesisClient client;
     protected static KinesisAsyncClient asyncClient;
 
-    @BeforeClass
+    @BeforeAll
     public static void init() throws IOException {
         setUpCredentials();
         KinesisClientBuilder builder = KinesisClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
         setEndpoint(builder);
         client = builder.build();
-        asyncClient = KinesisAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        asyncClient = kinesisAsyncClientBuilder().build();
+    }
+
+    @AfterAll
+    public static void cleanUp() {
+        client.close();
+        asyncClient.close();
+    }
+
+    protected static KinesisAsyncClientBuilder kinesisAsyncClientBuilder() {
+        return KinesisAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
+    }
+
+    protected static boolean alpnSupported(){
+        return NettyUtils.isAlpnSupported(SslProvider.JDK);
     }
 
     private static void setEndpoint(KinesisClientBuilder builder) throws IOException {
         File endpointOverrides = new File(
-                new File(System.getProperty("user.home")),
-                ".aws/awsEndpointOverrides.properties"
+            new File(System.getProperty("user.home")),
+            ".aws/awsEndpointOverrides.properties"
         );
 
         if (endpointOverrides.exists()) {

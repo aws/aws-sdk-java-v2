@@ -36,6 +36,7 @@ import software.amazon.awssdk.metrics.MetricRecord;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
 import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
+import software.amazon.awssdk.utils.MetricValueNormalizer;
 
 /**
  * "Buckets" metrics by the minute in which they were collected. This allows all metric data for a given 1-minute period to be

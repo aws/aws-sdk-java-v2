@@ -1003,6 +1003,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "Fred1155",
+      "name": "Bole1155",
+      "avatar_url": "https://avatars.githubusercontent.com/u/49867651?v=4",
+      "profile": "https://github.com/Fred1155",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Xtansia",
+      "name": "Thomas Farr",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1222964?v=4",
+      "profile": "https://xtansia.com",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

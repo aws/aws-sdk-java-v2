@@ -12,6 +12,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
 import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.codegen.internal.UtilsTest;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
@@ -58,6 +59,8 @@ import software.amazon.awssdk.services.query.model.OperationWithCustomMemberRequ
 import software.amazon.awssdk.services.query.model.OperationWithCustomMemberResponse;
 import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperationContextParamRequest;
 import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperationContextParamResponse;
+import software.amazon.awssdk.services.query.model.OperationWithMapOperationContextParamRequest;
+import software.amazon.awssdk.services.query.model.OperationWithMapOperationContextParamResponse;
 import software.amazon.awssdk.services.query.model.OperationWithNoneAuthTypeRequest;
 import software.amazon.awssdk.services.query.model.OperationWithNoneAuthTypeResponse;
 import software.amazon.awssdk.services.query.model.OperationWithOperationContextParamRequest;
@@ -82,6 +85,7 @@ import software.amazon.awssdk.services.query.transform.OperationWithChecksumRequ
 import software.amazon.awssdk.services.query.transform.OperationWithContextParamRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithCustomMemberRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithCustomizedOperationContextParamRequestMarshaller;
+import software.amazon.awssdk.services.query.transform.OperationWithMapOperationContextParamRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithNoneAuthTypeRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithOperationContextParamRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithRequestCompressionRequestMarshaller;
@@ -310,9 +314,9 @@ final class DefaultQueryClient implements QueryClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .putExecutionAttribute(
                                     SdkInternalExecutionAttribute.HTTP_CHECKSUM,
-                                    HttpChecksum.builder().requestChecksumRequired(true)
+                                    HttpChecksum.builder().requestChecksumRequired(true).isRequestStreaming(false)
                                             .requestAlgorithm(getOperationWithChecksumRequest.checksumAlgorithmAsString())
-                                            .isRequestStreaming(false).build())
+                                            .requestAlgorithmHeader("x-amz-sdk-checksum-algorithm").build())
                             .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -510,6 +514,54 @@ final class DefaultQueryClient implements QueryClient {
                             .withInput(operationWithCustomizedOperationContextParamRequest)
                             .withMetricCollector(apiCallMetricCollector)
                             .withMarshaller(new OperationWithCustomizedOperationContextParamRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
+    }
+
+    /**
+     * Invokes the OperationWithMapOperationContextParam operation.
+     *
+     * @param operationWithMapOperationContextParamRequest
+     * @return Result of the OperationWithMapOperationContextParam operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws QueryException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample QueryClient.OperationWithMapOperationContextParam
+     * @see <a
+     *      href="https://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/OperationWithMapOperationContextParam"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public OperationWithMapOperationContextParamResponse operationWithMapOperationContextParam(
+            OperationWithMapOperationContextParamRequest operationWithMapOperationContextParamRequest)
+            throws AwsServiceException, SdkClientException, QueryException {
+
+        HttpResponseHandler<OperationWithMapOperationContextParamResponse> responseHandler = protocolFactory
+                .createResponseHandler(OperationWithMapOperationContextParamResponse::builder);
+
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithMapOperationContextParamRequest,
+                this.clientConfiguration);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                operationWithMapOperationContextParamRequest.overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+                .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithMapOperationContextParam");
+
+            return clientHandler
+                    .execute(new ClientExecutionParams<OperationWithMapOperationContextParamRequest, OperationWithMapOperationContextParamResponse>()
+                            .withOperationName("OperationWithMapOperationContextParam").withProtocolMetadata(protocolMetadata)
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration)
+                            .withInput(operationWithMapOperationContextParamRequest).withMetricCollector(apiCallMetricCollector)
+                            .withMarshaller(new OperationWithMapOperationContextParamRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -718,11 +770,11 @@ final class DefaultQueryClient implements QueryClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     * 
+     *
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     * 
+     *
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows '
      *        <p>
@@ -782,10 +834,14 @@ final class DefaultQueryClient implements QueryClient {
                             .withMetricCollector(apiCallMetricCollector)
                             .putExecutionAttribute(
                                     SdkInternalExecutionAttribute.HTTP_CHECKSUM,
-                                    HttpChecksum.builder().requestChecksumRequired(false)
+                                    HttpChecksum
+                                            .builder()
+                                            .requestChecksumRequired(false)
+                                            .isRequestStreaming(true)
                                             .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
-                                            .responseAlgorithms("CRC32C", "CRC32", "SHA1", "SHA256").isRequestStreaming(true)
-                                            .build())
+                                            .responseAlgorithmsV2(DefaultChecksumAlgorithm.CRC32C,
+                                                    DefaultChecksumAlgorithm.CRC32, DefaultChecksumAlgorithm.SHA1,
+                                                    DefaultChecksumAlgorithm.SHA256).build())
                             .withRequestBody(requestBody)
                             .withMarshaller(
                                     StreamingRequestMarshaller.builder()
@@ -804,11 +860,11 @@ final class DefaultQueryClient implements QueryClient {
      *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
      *        methods for various sources of data. For example, to create a request body from a file you can do the
      *        following.
-     * 
+     *
      *        <pre>
      * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
-     * 
+     *
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
      *        The service documentation for the request content is as follows 'This be a stream'
      * @return Result of the StreamingInputOperation operation returned by the service.

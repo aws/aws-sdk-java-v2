@@ -1,0 +1,66 @@
+{
+    "version": "2.29.28",
+    "date": "2024-12-04",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add default retry predicates on top of user-provided ones"
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "This release adds GenAI Index in Amazon Kendra for Retrieval Augmented Generation (RAG) and intelligent search. With the Kendra GenAI Index, customers get high retrieval accuracy powered by the latest information retrieval technologies and semantic models."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "This release introduces the ability to generate SQL using natural language, through a new GenerateQuery API (with native integration into Knowledge Bases); ability to ingest and retrieve images through Bedrock Data Automation; and ability to create a Knowledge Base backed by Kendra GenAI Index."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "This release introduces the ability to generate SQL using natural language, through a new GenerateQuery API (with native integration into Knowledge Bases); ability to ingest and retrieve images through Bedrock Data Automation; and ability to create a Knowledge Base backed by Kendra GenAI Index."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock",
+            "contributor": "",
+            "description": "Introduced two APIs ListPromptRouters and GetPromptRouter for Intelligent Prompt Router feature. Add support for Bedrock Guardrails image content filter. New Bedrock Marketplace feature enabling a wider range of bedrock compatible models with self-hosted capability."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Added support for Intelligent Prompt Router in Invoke, InvokeStream, Converse and ConverseStream. Add support for Bedrock Guardrails image content filter. New Bedrock Marketplace feature enabling a wider range of bedrock compatible models with self-hosted capability."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon SageMaker HyperPod launched task governance to help customers maximize accelerator utilization for model development and flexible training plans to meet training timelines and budget while reducing weeks of training time. AI apps from AWS partner is now available in SageMaker."
+        },
+        {
+            "type": "feature",
+            "category": "DSQL",
+            "contributor": "APandher",
+            "description": "Add IAM Token Generation Utility for DSQL"
+        },
+        {
+            "type": "feature",
+            "category": "Data Automation for Amazon Bedrock",
+            "contributor": "",
+            "description": "Release Bedrock Data Automation SDK"
+        },
+        {
+            "type": "feature",
+            "category": "Runtime for Amazon Bedrock Data Automation",
+            "contributor": "",
+            "description": "Release Bedrock Data Automation Runtime SDK"
+        }
+    ]
+}

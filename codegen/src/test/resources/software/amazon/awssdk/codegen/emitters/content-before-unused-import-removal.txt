@@ -33,6 +33,9 @@ import
     java.util.ArrayList
     ;
 
+/*
+ * import something in the doc;
+ */
 public class FileWithUnusedImports implements Predicate<Set<String> {
     private final List<Date> dates;
     public FileWithUnusedImports() {

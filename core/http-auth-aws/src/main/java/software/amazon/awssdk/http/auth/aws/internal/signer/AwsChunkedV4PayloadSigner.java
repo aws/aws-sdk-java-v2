@@ -117,6 +117,7 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
 
     @Override
     public Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4RequestSigningResult requestSigningResult) {
+        // TODO(sra-identity-and-auth): implement this first and remove addFlexibleChecksumInTrailer logic in HttpChecksumStage
         throw new UnsupportedOperationException();
     }
 

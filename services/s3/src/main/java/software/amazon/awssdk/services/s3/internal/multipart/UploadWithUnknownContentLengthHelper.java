@@ -20,17 +20,20 @@ import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionA
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
@@ -110,6 +113,7 @@ public final class UploadWithUnknownContentLengthHelper {
         private final AtomicBoolean failureActionInitiated = new AtomicBoolean(false);
 
         private AtomicInteger partNumber = new AtomicInteger(1);
+        private AtomicLong contentLength = new AtomicLong(0);
 
         private final Queue<CompletedPart> completedParts = new ConcurrentLinkedQueue<>();
         private final Collection<CompletableFuture<CompletedPart>> futures = new ConcurrentLinkedQueue<>();
@@ -199,6 +203,13 @@ public final class UploadWithUnknownContentLengthHelper {
         }
 
         private void sendUploadPartRequest(String uploadId, AsyncRequestBody asyncRequestBody) {
+            Optional<Long> contentLength = asyncRequestBody.contentLength();
+            if (!contentLength.isPresent()) {
+                SdkClientException e = SdkClientException.create("Content length must be present on the AsyncRequestBody");
+                multipartUploadHelper.failRequestsElegantly(futures, e, uploadId, returnFuture, putObjectRequest);
+            }
+            this.contentLength.getAndAdd(contentLength.get());
+
             multipartUploadHelper.sendIndividualUploadPartRequest(uploadId, completedParts::add, futures,
                                                                   uploadPart(asyncRequestBody), progressListener)
                 .whenComplete((r, t) -> {
@@ -249,7 +260,8 @@ public final class UploadWithUnknownContentLengthHelper {
                 CompletedPart[] parts = completedParts.stream()
                                                       .sorted(Comparator.comparingInt(CompletedPart::partNumber))
                                                       .toArray(CompletedPart[]::new);
-                multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest);
+                multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest,
+                                                              this.contentLength.get());
             }
         }
     }

@@ -18,6 +18,7 @@ package software.amazon.awssdk.retries.api;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * A strategy used by an SDK to determine when something should be retried.
@@ -86,6 +87,15 @@ public interface RetryStrategy {
     int maxAttempts();
 
     /**
+     * Returns whether the retry strategy uses default retry predicates.
+     *
+     * @return true if this retry strategy should use the default retry predicates, false otherwise.
+     */
+    default boolean useClientDefaults() {
+        return true;
+    }
+
+    /**
      * Create a new {@link Builder} with the current configuration.
      *
      * <p>This is useful for modifying the strategy's behavior, like conditions or max retries.
@@ -97,7 +107,7 @@ public interface RetryStrategy {
      */
     interface Builder<
         B extends Builder<B, T>,
-        T extends RetryStrategy> {
+        T extends RetryStrategy> extends SdkBuilder<B, T> {
         /**
          * Configure the strategy to retry when the provided predicate returns true, given a failure exception.
          */
@@ -217,6 +227,16 @@ public interface RetryStrategy {
          * {@link #backoffStrategy} will be used. This predicate will not be called for non-retryable exceptions.
          */
         B treatAsThrottling(Predicate<Throwable> treatAsThrottling);
+
+
+        /**
+         * Configure whether the default predicates should be used, or not. When set to false, only user-provided retry
+         * predicates will be considered to determine what should be retried or not. Setting this to false and providing
+         * no predicate will result in an empty retry strategy.
+         */
+        default B useClientDefaults(boolean useClientDefaults) {
+            return (B) this;
+        }
 
         /**
          * Build a new {@link RetryStrategy} with the current configuration on this builder.

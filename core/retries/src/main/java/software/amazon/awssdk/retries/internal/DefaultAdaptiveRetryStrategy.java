@@ -140,6 +140,12 @@ public final class DefaultAdaptiveRetryStrategy
         }
 
         @Override
+        public Builder useClientDefaults(boolean useClientDefaults) {
+            setUseClientDefaults(useClientDefaults);
+            return this;
+        }
+
+        @Override
         public AdaptiveRetryStrategy build() {
             return new DefaultAdaptiveRetryStrategy(this);
         }
