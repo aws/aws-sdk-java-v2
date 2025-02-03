@@ -191,7 +191,7 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     }
 
     private void configureAlpnH2(ChannelPipeline pipeline) {
-        pipeline.addLast(new ApplicationProtocolNegotiationHandler(ApplicationProtocolNames.HTTP_2) {
+        pipeline.addLast(new ApplicationProtocolNegotiationHandler("") {
             @Override
             protected void configurePipeline(ChannelHandlerContext ctx, String protocol) {
                 if (protocol.equals(ApplicationProtocolNames.HTTP_2)) {
