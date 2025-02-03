@@ -272,7 +272,7 @@
         {"shape":"InvalidDBInstanceStateFault"},
         {"shape":"InvalidDBClusterStateFault"}
       ],
-      "documentation":"<p>Creates a blue/green deployment.</p> <p>A blue/green deployment creates a staging environment that copies the production environment. In a blue/green deployment, the blue environment is the current production environment. The green environment is the staging environment. The staging environment stays in sync with the current production environment using logical replication.</p> <p>You can make changes to the databases in the green environment without affecting production workloads. For example, you can upgrade the major or minor DB engine version, change database parameters, or make schema changes in the staging environment. You can thoroughly test changes in the green environment. When ready, you can switch over the environments to promote the green environment to be the new production environment. The switchover typically takes under a minute.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/blue-green-deployments.html\">Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/blue-green-deployments.html\"> Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon Aurora User Guide</i>.</p>"
+      "documentation":"<p>Creates a blue/green deployment.</p> <p>A blue/green deployment creates a staging environment that copies the production environment. In a blue/green deployment, the blue environment is the current production environment. The green environment is the staging environment, and it stays in sync with the current production environment.</p> <p>You can make changes to the databases in the green environment without affecting production workloads. For example, you can upgrade the major or minor DB engine version, change database parameters, or make schema changes in the staging environment. You can thoroughly test changes in the green environment. When ready, you can switch over the environments to promote the green environment to be the new production environment. The switchover typically takes under a minute.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/blue-green-deployments.html\">Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/blue-green-deployments.html\"> Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon Aurora User Guide</i>.</p>"
     },
     "CreateCustomDBEngineVersion":{
       "name":"CreateCustomDBEngineVersion",
@@ -1296,7 +1296,8 @@
         "resultWrapper":"DescribeDBLogFilesResult"
       },
       "errors":[
-        {"shape":"DBInstanceNotFoundFault"}
+        {"shape":"DBInstanceNotFoundFault"},
+        {"shape":"DBInstanceNotReadyFault"}
       ],
       "documentation":"<p>Returns a list of DB log files for the DB instance.</p> <p>This command doesn't apply to RDS Custom.</p>"
     },
@@ -1779,7 +1780,7 @@
         {"shape":"ResourceNotFoundFault"},
         {"shape":"InvalidResourceStateFault"}
       ],
-      "documentation":"<p>Disables the HTTP endpoint for the specified DB cluster. Disabling this endpoint disables RDS Data API.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using RDS Data API</a> in the <i>Amazon Aurora User Guide</i>.</p> <note> <p>This operation applies only to Aurora PostgreSQL Serverless v2 and provisioned DB clusters. To disable the HTTP endpoint for Aurora Serverless v1 DB clusters, use the <code>EnableHttpEndpoint</code> parameter of the <code>ModifyDBCluster</code> operation.</p> </note>"
+      "documentation":"<p>Disables the HTTP endpoint for the specified DB cluster. Disabling this endpoint disables RDS Data API.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using RDS Data API</a> in the <i>Amazon Aurora User Guide</i>.</p> <note> <p>This operation applies only to Aurora Serverless v2 and provisioned DB clusters. To disable the HTTP endpoint for Aurora Serverless v1 DB clusters, use the <code>EnableHttpEndpoint</code> parameter of the <code>ModifyDBCluster</code> operation.</p> </note>"
     },
     "DownloadDBLogFilePortion":{
       "name":"DownloadDBLogFilePortion",
@@ -1794,6 +1795,7 @@
       },
       "errors":[
         {"shape":"DBInstanceNotFoundFault"},
+        {"shape":"DBInstanceNotReadyFault"},
         {"shape":"DBLogFileNotFoundFault"}
       ],
       "documentation":"<p>Downloads all or a portion of the specified log file, up to 1 MB in size.</p> <p>This command doesn't apply to RDS Custom.</p>"
@@ -1813,7 +1815,7 @@
         {"shape":"ResourceNotFoundFault"},
         {"shape":"InvalidResourceStateFault"}
       ],
-      "documentation":"<p>Enables the HTTP endpoint for the DB cluster. By default, the HTTP endpoint isn't enabled.</p> <p>When enabled, this endpoint provides a connectionless web service API (RDS Data API) for running SQL queries on the Aurora DB cluster. You can also query your database from inside the RDS console with the RDS query editor.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using RDS Data API</a> in the <i>Amazon Aurora User Guide</i>.</p> <note> <p>This operation applies only to Aurora PostgreSQL Serverless v2 and provisioned DB clusters. To enable the HTTP endpoint for Aurora Serverless v1 DB clusters, use the <code>EnableHttpEndpoint</code> parameter of the <code>ModifyDBCluster</code> operation.</p> </note>"
+      "documentation":"<p>Enables the HTTP endpoint for the DB cluster. By default, the HTTP endpoint isn't enabled.</p> <p>When enabled, this endpoint provides a connectionless web service API (RDS Data API) for running SQL queries on the Aurora DB cluster. You can also query your database from inside the RDS console with the RDS query editor.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using RDS Data API</a> in the <i>Amazon Aurora User Guide</i>.</p> <note> <p>This operation applies only to Aurora Serverless v2 and provisioned DB clusters. To enable the HTTP endpoint for Aurora Serverless v1 DB clusters, use the <code>EnableHttpEndpoint</code> parameter of the <code>ModifyDBCluster</code> operation.</p> </note>"
     },
     "FailoverDBCluster":{
       "name":"FailoverDBCluster",
@@ -2963,7 +2965,7 @@
         {"shape":"SnapshotQuotaExceededFault"},
         {"shape":"InvalidDBClusterStateFault"}
       ],
-      "documentation":"<p>Stops an Amazon RDS DB instance. When you stop a DB instance, Amazon RDS retains the DB instance's metadata, including its endpoint, DB parameter group, and option group membership. Amazon RDS also retains the transaction logs so you can do a point-in-time restore if necessary.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_StopInstance.html\"> Stopping an Amazon RDS DB Instance Temporarily</a> in the <i>Amazon RDS User Guide.</i> </p> <note> <p>This command doesn't apply to RDS Custom, Aurora MySQL, and Aurora PostgreSQL. For Aurora clusters, use <code>StopDBCluster</code> instead.</p> </note>"
+      "documentation":"<p>Stops an Amazon RDS DB instance temporarily. When you stop a DB instance, Amazon RDS retains the DB instance's metadata, including its endpoint, DB parameter group, and option group membership. Amazon RDS also retains the transaction logs so you can do a point-in-time restore if necessary. The instance restarts automatically after 7 days.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_StopInstance.html\"> Stopping an Amazon RDS DB Instance Temporarily</a> in the <i>Amazon RDS User Guide.</i> </p> <note> <p>This command doesn't apply to RDS Custom, Aurora MySQL, and Aurora PostgreSQL. For Aurora clusters, use <code>StopDBCluster</code> instead.</p> </note>"
     },
     "StopDBInstanceAutomatedBackupsReplication":{
       "name":"StopDBInstanceAutomatedBackupsReplication",
@@ -3656,6 +3658,7 @@
       "type":"string",
       "enum":[
         "MYSQL_NATIVE_PASSWORD",
+        "MYSQL_CACHING_SHA2_PASSWORD",
         "POSTGRES_SCRAM_SHA_256",
         "POSTGRES_MD5",
         "SQL_SERVER_AUTHENTICATION"
@@ -3666,11 +3669,11 @@
       "members":{
         "EnableLogTypes":{
           "shape":"LogTypeList",
-          "documentation":"<p>The list of log types to enable.</p>"
+          "documentation":"<p>The list of log types to enable.</p> <p>The following values are valid for each DB engine:</p> <ul> <li> <p>Aurora MySQL - <code>audit | error | general | slowquery</code> </p> </li> <li> <p>Aurora PostgreSQL - <code>postgresql</code> </p> </li> <li> <p>RDS for MySQL - <code>error | general | slowquery</code> </p> </li> <li> <p>RDS for PostgreSQL - <code>postgresql | upgrade</code> </p> </li> </ul>"
         },
         "DisableLogTypes":{
           "shape":"LogTypeList",
-          "documentation":"<p>The list of log types to disable.</p>"
+          "documentation":"<p>The list of log types to disable.</p> <p>The following values are valid for each DB engine:</p> <ul> <li> <p>Aurora MySQL - <code>audit | error | general | slowquery</code> </p> </li> <li> <p>Aurora PostgreSQL - <code>postgresql</code> </p> </li> <li> <p>RDS for MySQL - <code>error | general | slowquery</code> </p> </li> <li> <p>RDS for PostgreSQL - <code>postgresql | upgrade</code> </p> </li> </ul>"
         }
       },
       "documentation":"<p>The configuration setting for the log types to be enabled for export to CloudWatch Logs for a specific DB instance or DB cluster.</p> <p>The <code>EnableLogTypes</code> and <code>DisableLogTypes</code> arrays determine which logs will be exported (or not exported) to CloudWatch Logs. The values within these arrays depend on the DB engine being used.</p> <p>For more information about exporting CloudWatch Logs for Amazon RDS DB instances, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs </a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about exporting CloudWatch Logs for Amazon Aurora DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon Aurora User Guide</i>.</p>"
@@ -4009,6 +4012,22 @@
         "UpgradeTargetStorageConfig":{
           "shape":"BooleanOptional",
           "documentation":"<p>Whether to upgrade the storage file system configuration on the green database. This option migrates the green DB instance from the older 32-bit file system to the preferred configuration. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.StorageTypes.html#USER_PIOPS.UpgradeFileSystem\">Upgrading the storage file system for a DB instance</a>.</p>"
+        },
+        "TargetIops":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>The amount of Provisioned IOPS (input/output operations per second) to allocate for the green DB instance. For information about valid IOPS values, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html\">Amazon RDS DB instance storage</a> in the <i>Amazon RDS User Guide</i>.</p> <p>This setting doesn't apply to Amazon Aurora blue/green deployments.</p>"
+        },
+        "TargetStorageType":{
+          "shape":"TargetStorageType",
+          "documentation":"<p>The storage type to associate with the green DB instance.</p> <p>Valid Values: <code>gp2 | gp3 | io1 | io2</code> </p> <p>This setting doesn't apply to Amazon Aurora blue/green deployments.</p>"
+        },
+        "TargetAllocatedStorage":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>The amount of storage in gibibytes (GiB) to allocate for the green DB instance. You can choose to increase or decrease the allocated storage on the green DB instance.</p> <p>This setting doesn't apply to Amazon Aurora blue/green deployments.</p>"
+        },
+        "TargetStorageThroughput":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>The storage throughput value for the green DB instance.</p> <p>This setting applies only to the <code>gp3</code> storage type.</p> <p>This setting doesn't apply to Amazon Aurora blue/green deployments.</p>"
         }
       }
     },
@@ -4215,7 +4234,7 @@
         },
         "EnableCloudwatchLogsExports":{
           "shape":"LogTypeList",
-          "documentation":"<p>The list of log types that need to be enabled for exporting to CloudWatch Logs.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters</p> <p>The following values are valid for each DB engine:</p> <ul> <li> <p>Aurora MySQL - <code>audit | error | general | slowquery</code> </p> </li> <li> <p>Aurora PostgreSQL - <code>postgresql</code> </p> </li> <li> <p>RDS for MySQL - <code>error | general | slowquery</code> </p> </li> <li> <p>RDS for PostgreSQL - <code>postgresql | upgrade</code> </p> </li> </ul> <p>For more information about exporting CloudWatch Logs for Amazon RDS, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about exporting CloudWatch Logs for Amazon Aurora, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon Aurora User Guide</i>.</p>"
+          "documentation":"<p>The list of log types that need to be enabled for exporting to CloudWatch Logs.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters</p> <p>The following values are valid for each DB engine:</p> <ul> <li> <p>Aurora MySQL - <code>audit | error | general | instance | slowquery</code> </p> </li> <li> <p>Aurora PostgreSQL - <code>instance | postgresql</code> </p> </li> <li> <p>RDS for MySQL - <code>error | general | slowquery</code> </p> </li> <li> <p>RDS for PostgreSQL - <code>postgresql | upgrade</code> </p> </li> </ul> <p>For more information about exporting CloudWatch Logs for Amazon RDS, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about exporting CloudWatch Logs for Amazon Aurora, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon Aurora User Guide</i>.</p>"
         },
         "EngineMode":{
           "shape":"String",
@@ -4239,7 +4258,7 @@
         },
         "EnableHttpEndpoint":{
           "shape":"BooleanOptional",
-          "documentation":"<p>Specifies whether to enable the HTTP endpoint for the DB cluster. By default, the HTTP endpoint isn't enabled.</p> <p>When enabled, the HTTP endpoint provides a connectionless web service API (RDS Data API) for running SQL queries on the DB cluster. You can also query your database from inside the RDS console with the RDS query editor.</p> <p>RDS Data API is supported with the following DB clusters:</p> <ul> <li> <p>Aurora PostgreSQL Serverless v2 and provisioned</p> </li> <li> <p>Aurora PostgreSQL and Aurora MySQL Serverless v1</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using RDS Data API</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>Valid for Cluster Type: Aurora DB clusters only</p>"
+          "documentation":"<p>Specifies whether to enable the HTTP endpoint for the DB cluster. By default, the HTTP endpoint isn't enabled.</p> <p>When enabled, the HTTP endpoint provides a connectionless web service API (RDS Data API) for running SQL queries on the DB cluster. You can also query your database from inside the RDS console with the RDS query editor.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using RDS Data API</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>Valid for Cluster Type: Aurora DB clusters only</p>"
         },
         "CopyTagsToSnapshot":{
           "shape":"BooleanOptional",
@@ -4279,27 +4298,31 @@
         },
         "AutoMinorVersionUpgrade":{
           "shape":"BooleanOptional",
-          "documentation":"<p>Specifies whether minor engine upgrades are applied automatically to the DB cluster during the maintenance window. By default, minor engine upgrades are applied automatically.</p> <p>Valid for Cluster Type: Multi-AZ DB clusters only</p>"
+          "documentation":"<p>Specifies whether minor engine upgrades are applied automatically to the DB cluster during the maintenance window. By default, minor engine upgrades are applied automatically.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB cluster</p>"
         },
         "MonitoringInterval":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The interval, in seconds, between points when Enhanced Monitoring metrics are collected for the DB cluster. To turn off collecting Enhanced Monitoring metrics, specify <code>0</code>.</p> <p>If <code>MonitoringRoleArn</code> is specified, also set <code>MonitoringInterval</code> to a value other than <code>0</code>.</p> <p>Valid for Cluster Type: Multi-AZ DB clusters only</p> <p>Valid Values: <code>0 | 1 | 5 | 10 | 15 | 30 | 60</code> </p> <p>Default: <code>0</code> </p>"
+          "documentation":"<p>The interval, in seconds, between points when Enhanced Monitoring metrics are collected for the DB cluster. To turn off collecting Enhanced Monitoring metrics, specify <code>0</code>.</p> <p>If <code>MonitoringRoleArn</code> is specified, also set <code>MonitoringInterval</code> to a value other than <code>0</code>.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters</p> <p>Valid Values: <code>0 | 1 | 5 | 10 | 15 | 30 | 60</code> </p> <p>Default: <code>0</code> </p>"
         },
         "MonitoringRoleArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) for the IAM role that permits RDS to send Enhanced Monitoring metrics to Amazon CloudWatch Logs. An example is <code>arn:aws:iam:123456789012:role/emaccess</code>. For information on creating a monitoring role, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Monitoring.OS.html#USER_Monitoring.OS.Enabling\">Setting up and enabling Enhanced Monitoring</a> in the <i>Amazon RDS User Guide</i>.</p> <p>If <code>MonitoringInterval</code> is set to a value other than <code>0</code>, supply a <code>MonitoringRoleArn</code> value.</p> <p>Valid for Cluster Type: Multi-AZ DB clusters only</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) for the IAM role that permits RDS to send Enhanced Monitoring metrics to Amazon CloudWatch Logs. An example is <code>arn:aws:iam:123456789012:role/emaccess</code>. For information on creating a monitoring role, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Monitoring.OS.html#USER_Monitoring.OS.Enabling\">Setting up and enabling Enhanced Monitoring</a> in the <i>Amazon RDS User Guide</i>.</p> <p>If <code>MonitoringInterval</code> is set to a value other than <code>0</code>, supply a <code>MonitoringRoleArn</code> value.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters</p>"
+        },
+        "DatabaseInsightsMode":{
+          "shape":"DatabaseInsightsMode",
+          "documentation":"<p>The mode of Database Insights to enable for the DB cluster.</p> <p>If you set this value to <code>advanced</code>, you must also set the <code>PerformanceInsightsEnabled</code> parameter to <code>true</code> and the <code>PerformanceInsightsRetentionPeriod</code> parameter to 465.</p> <p>Valid for Cluster Type: Aurora DB clusters only</p>"
         },
         "EnablePerformanceInsights":{
           "shape":"BooleanOptional",
-          "documentation":"<p>Specifies whether to turn on Performance Insights for the DB cluster.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html\"> Using Amazon Performance Insights</a> in the <i>Amazon RDS User Guide</i>.</p> <p>Valid for Cluster Type: Multi-AZ DB clusters only</p>"
+          "documentation":"<p>Specifies whether to turn on Performance Insights for the DB cluster.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html\"> Using Amazon Performance Insights</a> in the <i>Amazon RDS User Guide</i>.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters</p>"
         },
         "PerformanceInsightsKMSKeyId":{
           "shape":"String",
-          "documentation":"<p>The Amazon Web Services KMS key identifier for encryption of Performance Insights data.</p> <p>The Amazon Web Services KMS key identifier is the key ARN, key ID, alias ARN, or alias name for the KMS key.</p> <p>If you don't specify a value for <code>PerformanceInsightsKMSKeyId</code>, then Amazon RDS uses your default KMS key. There is a default KMS key for your Amazon Web Services account. Your Amazon Web Services account has a different default KMS key for each Amazon Web Services Region.</p> <p>Valid for Cluster Type: Multi-AZ DB clusters only</p>"
+          "documentation":"<p>The Amazon Web Services KMS key identifier for encryption of Performance Insights data.</p> <p>The Amazon Web Services KMS key identifier is the key ARN, key ID, alias ARN, or alias name for the KMS key.</p> <p>If you don't specify a value for <code>PerformanceInsightsKMSKeyId</code>, then Amazon RDS uses your default KMS key. There is a default KMS key for your Amazon Web Services account. Your Amazon Web Services account has a different default KMS key for each Amazon Web Services Region.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters</p>"
         },
         "PerformanceInsightsRetentionPeriod":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The number of days to retain Performance Insights data.</p> <p>Valid for Cluster Type: Multi-AZ DB clusters only</p> <p>Valid Values:</p> <ul> <li> <p> <code>7</code> </p> </li> <li> <p> <i>month</i> * 31, where <i>month</i> is a number of months from 1-23. Examples: <code>93</code> (3 months * 31), <code>341</code> (11 months * 31), <code>589</code> (19 months * 31)</p> </li> <li> <p> <code>731</code> </p> </li> </ul> <p>Default: <code>7</code> days</p> <p>If you specify a retention period that isn't valid, such as <code>94</code>, Amazon RDS issues an error.</p>"
+          "documentation":"<p>The number of days to retain Performance Insights data.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters</p> <p>Valid Values:</p> <ul> <li> <p> <code>7</code> </p> </li> <li> <p> <i>month</i> * 31, where <i>month</i> is a number of months from 1-23. Examples: <code>93</code> (3 months * 31), <code>341</code> (11 months * 31), <code>589</code> (19 months * 31)</p> </li> <li> <p> <code>731</code> </p> </li> </ul> <p>Default: <code>7</code> days</p> <p>If you specify a retention period that isn't valid, such as <code>94</code>, Amazon RDS issues an error.</p>"
         },
         "EnableLimitlessDatabase":{
           "shape":"BooleanOptional",
@@ -4418,7 +4441,7 @@
       "members":{
         "DBName":{
           "shape":"String",
-          "documentation":"<p>The meaning of this parameter differs according to the database engine you use.</p> <dl> <dt>Amazon Aurora MySQL</dt> <dd> <p>The name of the database to create when the primary DB instance of the Aurora MySQL DB cluster is created. If this parameter isn't specified for an Aurora MySQL DB cluster, no database is created in the DB cluster.</p> <p>Constraints:</p> <ul> <li> <p>Must contain 1 to 64 alphanumeric characters.</p> </li> <li> <p>Can't be a word reserved by the database engine.</p> </li> </ul> </dd> <dt>Amazon Aurora PostgreSQL</dt> <dd> <p>The name of the database to create when the primary DB instance of the Aurora PostgreSQL DB cluster is created. A database named <code>postgres</code> is always created. If this parameter is specified, an additional database with this name is created.</p> <p>Constraints:</p> <ul> <li> <p>It must contain 1 to 63 alphanumeric characters.</p> </li> <li> <p>Must begin with a letter. Subsequent characters can be letters, underscores, or digits (0 to 9).</p> </li> <li> <p>Can't be a word reserved by the database engine.</p> </li> </ul> </dd> <dt>Amazon RDS Custom for Oracle</dt> <dd> <p>The Oracle System ID (SID) of the created RDS Custom DB instance. If you don't specify a value, the default value is <code>ORCL</code> for non-CDBs and <code>RDSCDB</code> for CDBs.</p> <p>Default: <code>ORCL</code> </p> <p>Constraints:</p> <ul> <li> <p>Must contain 1 to 8 alphanumeric characters.</p> </li> <li> <p>Must contain a letter.</p> </li> <li> <p>Can't be a word reserved by the database engine.</p> </li> </ul> </dd> <dt>Amazon RDS Custom for SQL Server</dt> <dd> <p>Not applicable. Must be null.</p> </dd> <dt>RDS for Db2</dt> <dd> <p>The name of the database to create when the DB instance is created. If this parameter isn't specified, no database is created in the DB instance. In some cases, we recommend that you don't add a database name. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/db2-db-instance-prereqs.html#db2-prereqs-additional-considerations\">Additional considerations</a> in the <i>Amazon RDS User Guide</i>.</p> <p>Constraints:</p> <ul> <li> <p>Must contain 1 to 64 letters or numbers.</p> </li> <li> <p>Must begin with a letter. Subsequent characters can be letters, underscores, or digits (0-9).</p> </li> <li> <p>Can't be a word reserved by the specified database engine.</p> </li> </ul> </dd> <dt>RDS for MariaDB</dt> <dd> <p>The name of the database to create when the DB instance is created. If this parameter isn't specified, no database is created in the DB instance.</p> <p>Constraints:</p> <ul> <li> <p>Must contain 1 to 64 letters or numbers.</p> </li> <li> <p>Must begin with a letter. Subsequent characters can be letters, underscores, or digits (0-9).</p> </li> <li> <p>Can't be a word reserved by the specified database engine.</p> </li> </ul> </dd> <dt>RDS for MySQL</dt> <dd> <p>The name of the database to create when the DB instance is created. If this parameter isn't specified, no database is created in the DB instance.</p> <p>Constraints:</p> <ul> <li> <p>Must contain 1 to 64 letters or numbers.</p> </li> <li> <p>Must begin with a letter. Subsequent characters can be letters, underscores, or digits (0-9).</p> </li> <li> <p>Can't be a word reserved by the specified database engine.</p> </li> </ul> </dd> <dt>RDS for Oracle</dt> <dd> <p>The Oracle System ID (SID) of the created DB instance. If you don't specify a value, the default value is <code>ORCL</code>. You can't specify the string <code>null</code>, or any other reserved word, for <code>DBName</code>.</p> <p>Default: <code>ORCL</code> </p> <p>Constraints:</p> <ul> <li> <p>Can't be longer than 8 characters.</p> </li> </ul> </dd> <dt>RDS for PostgreSQL</dt> <dd> <p>The name of the database to create when the DB instance is created. A database named <code>postgres</code> is always created. If this parameter is specified, an additional database with this name is created.</p> <p>Constraints:</p> <ul> <li> <p>Must contain 1 to 63 letters, numbers, or underscores.</p> </li> <li> <p>Must begin with a letter. Subsequent characters can be letters, underscores, or digits (0-9).</p> </li> <li> <p>Can't be a word reserved by the specified database engine.</p> </li> </ul> </dd> <dt>RDS for SQL Server</dt> <dd> <p>Not applicable. Must be null.</p> </dd> </dl>"
+          "documentation":"<p>The meaning of this parameter differs according to the database engine you use.</p> <dl> <dt>Amazon Aurora MySQL</dt> <dd> <p>The name of the database to create when the primary DB instance of the Aurora MySQL DB cluster is created. If this parameter isn't specified for an Aurora MySQL DB cluster, no database is created in the DB cluster.</p> <p>Constraints:</p> <ul> <li> <p>Must contain 1 to 64 alphanumeric characters.</p> </li> <li> <p>Must begin with a letter. Subsequent characters can be letters, underscores, or digits (0-9).</p> </li> <li> <p>Can't be a word reserved by the database engine.</p> </li> </ul> </dd> <dt>Amazon Aurora PostgreSQL</dt> <dd> <p>The name of the database to create when the primary DB instance of the Aurora PostgreSQL DB cluster is created. A database named <code>postgres</code> is always created. If this parameter is specified, an additional database with this name is created.</p> <p>Constraints:</p> <ul> <li> <p>It must contain 1 to 63 alphanumeric characters.</p> </li> <li> <p>Must begin with a letter. Subsequent characters can be letters, underscores, or digits (0 to 9).</p> </li> <li> <p>Can't be a word reserved by the database engine.</p> </li> </ul> </dd> <dt>Amazon RDS Custom for Oracle</dt> <dd> <p>The Oracle System ID (SID) of the created RDS Custom DB instance. If you don't specify a value, the default value is <code>ORCL</code> for non-CDBs and <code>RDSCDB</code> for CDBs.</p> <p>Default: <code>ORCL</code> </p> <p>Constraints:</p> <ul> <li> <p>Must contain 1 to 8 alphanumeric characters.</p> </li> <li> <p>Must contain a letter.</p> </li> <li> <p>Can't be a word reserved by the database engine.</p> </li> </ul> </dd> <dt>Amazon RDS Custom for SQL Server</dt> <dd> <p>Not applicable. Must be null.</p> </dd> <dt>RDS for Db2</dt> <dd> <p>The name of the database to create when the DB instance is created. If this parameter isn't specified, no database is created in the DB instance. In some cases, we recommend that you don't add a database name. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/db2-db-instance-prereqs.html#db2-prereqs-additional-considerations\">Additional considerations</a> in the <i>Amazon RDS User Guide</i>.</p> <p>Constraints:</p> <ul> <li> <p>Must contain 1 to 64 letters or numbers.</p> </li> <li> <p>Must begin with a letter. Subsequent characters can be letters, underscores, or digits (0-9).</p> </li> <li> <p>Can't be a word reserved by the specified database engine.</p> </li> </ul> </dd> <dt>RDS for MariaDB</dt> <dd> <p>The name of the database to create when the DB instance is created. If this parameter isn't specified, no database is created in the DB instance.</p> <p>Constraints:</p> <ul> <li> <p>Must contain 1 to 64 letters or numbers.</p> </li> <li> <p>Must begin with a letter. Subsequent characters can be letters, underscores, or digits (0-9).</p> </li> <li> <p>Can't be a word reserved by the specified database engine.</p> </li> </ul> </dd> <dt>RDS for MySQL</dt> <dd> <p>The name of the database to create when the DB instance is created. If this parameter isn't specified, no database is created in the DB instance.</p> <p>Constraints:</p> <ul> <li> <p>Must contain 1 to 64 letters or numbers.</p> </li> <li> <p>Must begin with a letter. Subsequent characters can be letters, underscores, or digits (0-9).</p> </li> <li> <p>Can't be a word reserved by the specified database engine.</p> </li> </ul> </dd> <dt>RDS for Oracle</dt> <dd> <p>The Oracle System ID (SID) of the created DB instance. If you don't specify a value, the default value is <code>ORCL</code>. You can't specify the string <code>null</code>, or any other reserved word, for <code>DBName</code>.</p> <p>Default: <code>ORCL</code> </p> <p>Constraints:</p> <ul> <li> <p>Can't be longer than 8 characters.</p> </li> </ul> </dd> <dt>RDS for PostgreSQL</dt> <dd> <p>The name of the database to create when the DB instance is created. A database named <code>postgres</code> is always created. If this parameter is specified, an additional database with this name is created.</p> <p>Constraints:</p> <ul> <li> <p>Must contain 1 to 63 letters, numbers, or underscores.</p> </li> <li> <p>Must begin with a letter. Subsequent characters can be letters, underscores, or digits (0-9).</p> </li> <li> <p>Can't be a word reserved by the specified database engine.</p> </li> </ul> </dd> <dt>RDS for SQL Server</dt> <dd> <p>Not applicable. Must be null.</p> </dd> </dl>"
         },
         "DBInstanceIdentifier":{
           "shape":"String",
@@ -4592,6 +4615,10 @@
           "shape":"BooleanOptional",
           "documentation":"<p>Specifies whether to enable mapping of Amazon Web Services Identity and Access Management (IAM) accounts to database accounts. By default, mapping isn't enabled.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html\"> IAM Database Authentication for MySQL and PostgreSQL</a> in the <i>Amazon RDS User Guide</i>.</p> <p>This setting doesn't apply to the following DB instances:</p> <ul> <li> <p>Amazon Aurora (Mapping Amazon Web Services IAM accounts to database accounts is managed by the DB cluster.)</p> </li> <li> <p>RDS Custom</p> </li> </ul>"
         },
+        "DatabaseInsightsMode":{
+          "shape":"DatabaseInsightsMode",
+          "documentation":"<p>The mode of Database Insights to enable for the DB instance.</p> <p>This setting only applies to Amazon Aurora DB instances.</p> <note> <p>Currently, this value is inherited from the DB cluster and can't be changed.</p> </note>"
+        },
         "EnablePerformanceInsights":{
           "shape":"BooleanOptional",
           "documentation":"<p>Specifies whether to enable Performance Insights for the DB instance. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html\">Using Amazon Performance Insights</a> in the <i>Amazon RDS User Guide</i>.</p> <p>This setting doesn't apply to RDS Custom DB instances.</p>"
@@ -4638,7 +4665,7 @@
         },
         "StorageThroughput":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The storage throughput value for the DB instance.</p> <p>This setting applies only to the <code>gp3</code> storage type.</p> <p>This setting doesn't apply to Amazon Aurora or RDS Custom DB instances.</p>"
+          "documentation":"<p>The storage throughput value, in mebibyte per second (MiBps), for the DB instance.</p> <p>This setting applies only to the <code>gp3</code> storage type.</p> <p>This setting doesn't apply to Amazon Aurora or RDS Custom DB instances.</p>"
         },
         "ManageMasterUserPassword":{
           "shape":"BooleanOptional",
@@ -4756,6 +4783,10 @@
           "shape":"BooleanOptional",
           "documentation":"<p>Specifies whether to enable mapping of Amazon Web Services Identity and Access Management (IAM) accounts to database accounts. By default, mapping isn't enabled.</p> <p>For more information about IAM database authentication, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html\"> IAM Database Authentication for MySQL and PostgreSQL</a> in the <i>Amazon RDS User Guide</i>.</p> <p>This setting doesn't apply to RDS Custom DB instances.</p>"
         },
+        "DatabaseInsightsMode":{
+          "shape":"DatabaseInsightsMode",
+          "documentation":"<p>The mode of Database Insights to enable for the read replica.</p> <note> <p>Currently, this setting is not supported.</p> </note>"
+        },
         "EnablePerformanceInsights":{
           "shape":"BooleanOptional",
           "documentation":"<p>Specifies whether to enable Performance Insights for the read replica.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html\">Using Amazon Performance Insights</a> in the <i>Amazon RDS User Guide</i>.</p> <p>This setting doesn't apply to RDS Custom DB instances.</p>"
@@ -4834,7 +4865,7 @@
         },
         "AllocatedStorage":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The amount of storage (in gibibytes) to allocate initially for the read replica. Follow the allocation rules specified in <code>CreateDBInstance</code>.</p> <note> <p>Be sure to allocate enough storage for your read replica so that the create operation can succeed. You can also allocate additional storage for future growth.</p> </note>"
+          "documentation":"<p>The amount of storage (in gibibytes) to allocate initially for the read replica. Follow the allocation rules specified in <code>CreateDBInstance</code>.</p> <p>This setting isn't valid for RDS for SQL Server.</p> <note> <p>Be sure to allocate enough storage for your read replica so that the create operation can succeed. You can also allocate additional storage for future growth.</p> </note>"
         },
         "SourceDBClusterIdentifier":{
           "shape":"String",
@@ -5565,7 +5596,7 @@
         },
         "CloneGroupId":{
           "shape":"String",
-          "documentation":"<p>The ID of the clone group with which the DB cluster is associated.</p>"
+          "documentation":"<p>The ID of the clone group with which the DB cluster is associated. For newly created clusters, the ID is typically null. </p> <p>If you clone a DB cluster when the ID is null, the operation populates the ID value for the source cluster and the clone because both clusters become part of the same clone group. Even if you delete the clone cluster, the clone group ID remains for the lifetime of the source cluster to show that it was used in a cloning operation.</p> <p>For PITR, the clone group ID is inherited from the source cluster. For snapshot restore operations, the clone group ID isn't inherited from the source cluster.</p>"
         },
         "ClusterCreateTime":{
           "shape":"TStamp",
@@ -5667,27 +5698,31 @@
         },
         "AutoMinorVersionUpgrade":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether minor version patches are applied automatically.</p> <p>This setting is only for non-Aurora Multi-AZ DB clusters.</p>"
+          "documentation":"<p>Indicates whether minor version patches are applied automatically.</p> <p>This setting is for Aurora DB clusters and Multi-AZ DB clusters.</p>"
         },
         "MonitoringInterval":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The interval, in seconds, between points when Enhanced Monitoring metrics are collected for the DB cluster.</p> <p>This setting is only for non-Aurora Multi-AZ DB clusters.</p>"
+          "documentation":"<p>The interval, in seconds, between points when Enhanced Monitoring metrics are collected for the DB cluster.</p> <p>This setting is only for -Aurora DB clusters and Multi-AZ DB clusters.</p>"
         },
         "MonitoringRoleArn":{
           "shape":"String",
-          "documentation":"<p>The ARN for the IAM role that permits RDS to send Enhanced Monitoring metrics to Amazon CloudWatch Logs.</p> <p>This setting is only for non-Aurora Multi-AZ DB clusters.</p>"
+          "documentation":"<p>The ARN for the IAM role that permits RDS to send Enhanced Monitoring metrics to Amazon CloudWatch Logs.</p> <p>This setting is only for Aurora DB clusters and Multi-AZ DB clusters.</p>"
+        },
+        "DatabaseInsightsMode":{
+          "shape":"DatabaseInsightsMode",
+          "documentation":"<p>The mode of Database Insights that is enabled for the DB cluster.</p>"
         },
         "PerformanceInsightsEnabled":{
           "shape":"BooleanOptional",
-          "documentation":"<p>Indicates whether Performance Insights is enabled for the DB cluster.</p> <p>This setting is only for non-Aurora Multi-AZ DB clusters.</p>"
+          "documentation":"<p>Indicates whether Performance Insights is enabled for the DB cluster.</p> <p>This setting is only for Aurora DB clusters and Multi-AZ DB clusters.</p>"
         },
         "PerformanceInsightsKMSKeyId":{
           "shape":"String",
-          "documentation":"<p>The Amazon Web Services KMS key identifier for encryption of Performance Insights data.</p> <p>The Amazon Web Services KMS key identifier is the key ARN, key ID, alias ARN, or alias name for the KMS key.</p> <p>This setting is only for non-Aurora Multi-AZ DB clusters.</p>"
+          "documentation":"<p>The Amazon Web Services KMS key identifier for encryption of Performance Insights data.</p> <p>The Amazon Web Services KMS key identifier is the key ARN, key ID, alias ARN, or alias name for the KMS key.</p> <p>This setting is only for Aurora DB clusters and Multi-AZ DB clusters.</p>"
         },
         "PerformanceInsightsRetentionPeriod":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The number of days to retain Performance Insights data.</p> <p>This setting is only for non-Aurora Multi-AZ DB clusters.</p> <p>Valid Values:</p> <ul> <li> <p> <code>7</code> </p> </li> <li> <p> <i>month</i> * 31, where <i>month</i> is a number of months from 1-23. Examples: <code>93</code> (3 months * 31), <code>341</code> (11 months * 31), <code>589</code> (19 months * 31)</p> </li> <li> <p> <code>731</code> </p> </li> </ul> <p>Default: <code>7</code> days</p>"
+          "documentation":"<p>The number of days to retain Performance Insights data.</p> <p>This setting is only for Aurora DB clusters and Multi-AZ DB clusters.</p> <p>Valid Values:</p> <ul> <li> <p> <code>7</code> </p> </li> <li> <p> <i>month</i> * 31, where <i>month</i> is a number of months from 1-23. Examples: <code>93</code> (3 months * 31), <code>341</code> (11 months * 31), <code>589</code> (19 months * 31)</p> </li> <li> <p> <code>731</code> </p> </li> </ul> <p>Default: <code>7</code> days</p>"
         },
         "ServerlessV2ScalingConfiguration":{"shape":"ServerlessV2ScalingConfigurationInfo"},
         "NetworkType":{
@@ -6681,6 +6716,10 @@
         "SupportsIntegrations":{
           "shape":"Boolean",
           "documentation":"<p>Indicates whether the DB engine version supports zero-ETL integrations with Amazon Redshift.</p>"
+        },
+        "ServerlessV2FeaturesSupport":{
+          "shape":"ServerlessV2FeaturesSupport",
+          "documentation":"<p>Specifies any Aurora Serverless v2 properties or limits that differ between Aurora engine versions. You can test the values of this attribute when deciding which Aurora version to use in a new or upgraded DB cluster. You can also retrieve the version of an existing DB cluster and check whether that version supports certain Aurora Serverless v2 features before you attempt to use those features. </p>"
         }
       },
       "documentation":"<p>This data type is used as a response element in the action <code>DescribeDBEngineVersions</code>.</p>"
@@ -6916,6 +6955,10 @@
         "IAMDatabaseAuthenticationEnabled":{
           "shape":"Boolean",
           "documentation":"<p>Indicates whether mapping of Amazon Web Services Identity and Access Management (IAM) accounts to database accounts is enabled for the DB instance.</p> <p>For a list of engine versions that support IAM database authentication, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RDS_Fea_Regions_DB-eng.Feature.IamDatabaseAuthentication.html\">IAM database authentication</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.Aurora_Fea_Regions_DB-eng.Feature.IAMdbauth.html\">IAM database authentication in Aurora</a> in the <i>Amazon Aurora User Guide</i>.</p>"
+        },
+        "DatabaseInsightsMode":{
+          "shape":"DatabaseInsightsMode",
+          "documentation":"<p>The mode of Database Insights that is enabled for the instance.</p>"
         },
         "PerformanceInsightsEnabled":{
           "shape":"BooleanOptional",
@@ -7289,6 +7332,17 @@
         "code":"DBInstanceNotFound",
         "httpStatusCode":404,
         "senderFault":true
+      },
+      "exception":true
+    },
+    "DBInstanceNotReadyFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>An attempt to download or examine log files didn't succeed because an Aurora Serverless v2 instance was paused.</p>",
+      "error":{
+        "code":"DBInstanceNotReady",
+        "httpStatusCode":503
       },
       "exception":true
     },
@@ -8156,7 +8210,8 @@
           "documentation":"<p>The Amazon Resource Name (ARN) for the DB shard group.</p>"
         },
         "TagList":{"shape":"TagList"}
-      }
+      },
+      "documentation":"<p>Contains the details for an Amazon RDS DB shard group.</p>"
     },
     "DBShardGroupAlreadyExistsFault":{
       "type":"structure",
@@ -8664,6 +8719,13 @@
       "max":2048,
       "min":1,
       "pattern":"^arn:[A-Za-z][0-9A-Za-z-:._]*"
+    },
+    "DatabaseInsightsMode":{
+      "type":"string",
+      "enum":[
+        "standard",
+        "advanced"
+      ]
     },
     "DeleteBlueGreenDeploymentRequest":{
       "type":"structure",
@@ -9215,11 +9277,11 @@
         },
         "Source":{
           "shape":"String",
-          "documentation":"<p>A specific source to return parameters for.</p> <p>Valid Values:</p> <ul> <li> <p> <code>customer</code> </p> </li> <li> <p> <code>engine</code> </p> </li> <li> <p> <code>service</code> </p> </li> </ul>"
+          "documentation":"<p>A specific source to return parameters for.</p> <p>Valid Values:</p> <ul> <li> <p> <code>engine-default</code> </p> </li> <li> <p> <code>system</code> </p> </li> <li> <p> <code>user</code> </p> </li> </ul>"
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>This parameter isn't currently supported.</p>"
+          "documentation":"<p>A filter that specifies one or more DB cluster parameters to describe.</p> <p>The only supported filter is <code>parameter-name</code>. The results list only includes information about the DB cluster parameters with these names.</p>"
         },
         "MaxRecords":{
           "shape":"IntegerOptional",
@@ -9524,7 +9586,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>This parameter isn't currently supported.</p>"
+          "documentation":"<p>A filter that specifies one or more DB parameters to describe.</p> <p>The only supported filter is <code>parameter-name</code>. The results list only includes information about the DB parameters with these names.</p>"
         },
         "MaxRecords":{
           "shape":"IntegerOptional",
@@ -9924,7 +9986,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>This parameter isn't currently supported.</p>"
+          "documentation":"<p>A filter that specifies one or more parameters to describe.</p> <p>The only supported filter is <code>parameter-name</code>. The results list only includes information about the parameters with these names.</p>"
         },
         "MaxRecords":{
           "shape":"IntegerOptional",
@@ -12229,7 +12291,7 @@
         },
         "ApplyImmediately":{
           "shape":"Boolean",
-          "documentation":"<p>Specifies whether the modifications in this request and any pending modifications are asynchronously applied as soon as possible, regardless of the <code>PreferredMaintenanceWindow</code> setting for the DB cluster. If this parameter is disabled, changes to the DB cluster are applied during the next maintenance window.</p> <p>Most modifications can be applied immediately or during the next scheduled maintenance window. Some modifications, such as turning on deletion protection and changing the master password, are applied immediately—regardless of when you choose to apply them.</p> <p>By default, this parameter is disabled.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters</p>"
+          "documentation":"<p>Specifies whether the modifications in this request are asynchronously applied as soon as possible, regardless of the <code>PreferredMaintenanceWindow</code> setting for the DB cluster. If this parameter is disabled, changes to the DB cluster are applied during the next maintenance window.</p> <p>Most modifications can be applied immediately or during the next scheduled maintenance window. Some modifications, such as turning on deletion protection and changing the master password, are applied immediately—regardless of when you choose to apply them.</p> <p>By default, this parameter is disabled.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters</p>"
         },
         "BackupRetentionPeriod":{
           "shape":"IntegerOptional",
@@ -12273,7 +12335,7 @@
         },
         "CloudwatchLogsExportConfiguration":{
           "shape":"CloudwatchLogsExportConfiguration",
-          "documentation":"<p>The configuration setting for the log types to be enabled for export to CloudWatch Logs for a specific DB cluster.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters</p> <p>The following values are valid for each DB engine:</p> <ul> <li> <p>Aurora MySQL - <code>audit | error | general | slowquery</code> </p> </li> <li> <p>Aurora PostgreSQL - <code>postgresql</code> </p> </li> <li> <p>RDS for MySQL - <code>error | general | slowquery</code> </p> </li> <li> <p>RDS for PostgreSQL - <code>postgresql | upgrade</code> </p> </li> </ul> <p>For more information about exporting CloudWatch Logs for Amazon RDS, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\"> Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about exporting CloudWatch Logs for Amazon Aurora, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon Aurora User Guide</i>.</p>"
+          "documentation":"<p>The configuration setting for the log types to be enabled for export to CloudWatch Logs for a specific DB cluster.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters</p> <p>The following values are valid for each DB engine:</p> <ul> <li> <p>Aurora MySQL - <code>audit | error | general | instance | slowquery</code> </p> </li> <li> <p>Aurora PostgreSQL - <code>instance | postgresql</code> </p> </li> <li> <p>RDS for MySQL - <code>error | general | slowquery</code> </p> </li> <li> <p>RDS for PostgreSQL - <code>postgresql | upgrade</code> </p> </li> </ul> <p>For more information about exporting CloudWatch Logs for Amazon RDS, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\"> Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about exporting CloudWatch Logs for Amazon Aurora, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon Aurora User Guide</i>.</p>"
         },
         "EngineVersion":{
           "shape":"String",
@@ -12305,7 +12367,7 @@
         },
         "EnableHttpEndpoint":{
           "shape":"BooleanOptional",
-          "documentation":"<p>Specifies whether to enable the HTTP endpoint for an Aurora Serverless v1 DB cluster. By default, the HTTP endpoint isn't enabled.</p> <p>When enabled, the HTTP endpoint provides a connectionless web service API (RDS Data API) for running SQL queries on the Aurora Serverless v1 DB cluster. You can also query your database from inside the RDS console with the RDS query editor.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using RDS Data API</a> in the <i>Amazon Aurora User Guide</i>.</p> <note> <p>This parameter applies only to Aurora Serverless v1 DB clusters. To enable or disable the HTTP endpoint for an Aurora PostgreSQL Serverless v2 or provisioned DB cluster, use the <code>EnableHttpEndpoint</code> and <code>DisableHttpEndpoint</code> operations.</p> </note> <p>Valid for Cluster Type: Aurora DB clusters only</p>"
+          "documentation":"<p>Specifies whether to enable the HTTP endpoint for an Aurora Serverless v1 DB cluster. By default, the HTTP endpoint isn't enabled.</p> <p>When enabled, the HTTP endpoint provides a connectionless web service API (RDS Data API) for running SQL queries on the Aurora Serverless v1 DB cluster. You can also query your database from inside the RDS console with the RDS query editor.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using RDS Data API</a> in the <i>Amazon Aurora User Guide</i>.</p> <note> <p>This parameter applies only to Aurora Serverless v1 DB clusters. To enable or disable the HTTP endpoint for an Aurora Serverless v2 or provisioned DB cluster, use the <code>EnableHttpEndpoint</code> and <code>DisableHttpEndpoint</code> operations.</p> </note> <p>Valid for Cluster Type: Aurora DB clusters only</p>"
         },
         "CopyTagsToSnapshot":{
           "shape":"BooleanOptional",
@@ -12333,7 +12395,7 @@
         },
         "AutoMinorVersionUpgrade":{
           "shape":"BooleanOptional",
-          "documentation":"<p>Specifies whether minor engine upgrades are applied automatically to the DB cluster during the maintenance window. By default, minor engine upgrades are applied automatically.</p> <p>Valid for Cluster Type: Multi-AZ DB clusters only</p>"
+          "documentation":"<p>Specifies whether minor engine upgrades are applied automatically to the DB cluster during the maintenance window. By default, minor engine upgrades are applied automatically.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters</p>"
         },
         "MonitoringInterval":{
           "shape":"IntegerOptional",
@@ -12343,17 +12405,21 @@
           "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) for the IAM role that permits RDS to send Enhanced Monitoring metrics to Amazon CloudWatch Logs. An example is <code>arn:aws:iam:123456789012:role/emaccess</code>. For information on creating a monitoring role, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Monitoring.html#USER_Monitoring.OS.IAMRole\">To create an IAM role for Amazon RDS Enhanced Monitoring</a> in the <i>Amazon RDS User Guide.</i> </p> <p>If <code>MonitoringInterval</code> is set to a value other than <code>0</code>, supply a <code>MonitoringRoleArn</code> value.</p> <p>Valid for Cluster Type: Multi-AZ DB clusters only</p>"
         },
+        "DatabaseInsightsMode":{
+          "shape":"DatabaseInsightsMode",
+          "documentation":"<p>Specifies the mode of Database Insights to enable for the DB cluster.</p> <p>If you change the value from <code>standard</code> to <code>advanced</code>, you must set the <code>PerformanceInsightsEnabled</code> parameter to <code>true</code> and the <code>PerformanceInsightsRetentionPeriod</code> parameter to 465.</p> <p>If you change the value from <code>advanced</code> to <code>standard</code>, you must set the <code>PerformanceInsightsEnabled</code> parameter to <code>false</code>.</p> <p>Valid for Cluster Type: Aurora DB clusters only</p>"
+        },
         "EnablePerformanceInsights":{
           "shape":"BooleanOptional",
           "documentation":"<p>Specifies whether to turn on Performance Insights for the DB cluster.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html\"> Using Amazon Performance Insights</a> in the <i>Amazon RDS User Guide</i>.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters</p>"
         },
         "PerformanceInsightsKMSKeyId":{
           "shape":"String",
-          "documentation":"<p>The Amazon Web Services KMS key identifier for encryption of Performance Insights data.</p> <p>The Amazon Web Services KMS key identifier is the key ARN, key ID, alias ARN, or alias name for the KMS key.</p> <p>If you don't specify a value for <code>PerformanceInsightsKMSKeyId</code>, then Amazon RDS uses your default KMS key. There is a default KMS key for your Amazon Web Services account. Your Amazon Web Services account has a different default KMS key for each Amazon Web Services Region.</p> <p>Valid for Cluster Type: Multi-AZ DB clusters only</p>"
+          "documentation":"<p>The Amazon Web Services KMS key identifier for encryption of Performance Insights data.</p> <p>The Amazon Web Services KMS key identifier is the key ARN, key ID, alias ARN, or alias name for the KMS key.</p> <p>If you don't specify a value for <code>PerformanceInsightsKMSKeyId</code>, then Amazon RDS uses your default KMS key. There is a default KMS key for your Amazon Web Services account. Your Amazon Web Services account has a different default KMS key for each Amazon Web Services Region.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters</p>"
         },
         "PerformanceInsightsRetentionPeriod":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The number of days to retain Performance Insights data.</p> <p>Valid for Cluster Type: Multi-AZ DB clusters only</p> <p>Valid Values:</p> <ul> <li> <p> <code>7</code> </p> </li> <li> <p> <i>month</i> * 31, where <i>month</i> is a number of months from 1-23. Examples: <code>93</code> (3 months * 31), <code>341</code> (11 months * 31), <code>589</code> (19 months * 31)</p> </li> <li> <p> <code>731</code> </p> </li> </ul> <p>Default: <code>7</code> days</p> <p>If you specify a retention period that isn't valid, such as <code>94</code>, Amazon RDS issues an error.</p>"
+          "documentation":"<p>The number of days to retain Performance Insights data.</p> <p>Valid for Cluster Type: Aurora DB clusters and Multi-AZ DB clusters</p> <p>Valid Values:</p> <ul> <li> <p> <code>7</code> </p> </li> <li> <p> <i>month</i> * 31, where <i>month</i> is a number of months from 1-23. Examples: <code>93</code> (3 months * 31), <code>341</code> (11 months * 31), <code>589</code> (19 months * 31)</p> </li> <li> <p> <code>731</code> </p> </li> </ul> <p>Default: <code>7</code> days</p> <p>If you specify a retention period that isn't valid, such as <code>94</code>, Amazon RDS issues an error.</p>"
         },
         "ServerlessV2ScalingConfiguration":{"shape":"ServerlessV2ScalingConfiguration"},
         "NetworkType":{
@@ -12529,7 +12595,7 @@
         },
         "Iops":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The new Provisioned IOPS (I/O operations per second) value for the RDS instance.</p> <p>Changing this setting doesn't result in an outage and the change is applied during the next maintenance window unless the <code>ApplyImmediately</code> parameter is enabled for this request. If you are migrating from Provisioned IOPS to standard storage, set this value to 0. The DB instance will require a reboot for the change in storage type to take effect.</p> <p>If you choose to migrate your DB instance from using standard storage to using Provisioned IOPS, or from using Provisioned IOPS to using standard storage, the process can take time. The duration of the migration depends on several factors such as database load, storage size, storage type (standard or Provisioned IOPS), amount of IOPS provisioned (if any), and the number of prior scale storage operations. Typical migration times are under 24 hours, but the process can take up to several days in some cases. During the migration, the DB instance is available for use, but might experience performance degradation. While the migration takes place, nightly backups for the instance are suspended. No other Amazon RDS operations can take place for the instance, including modifying the instance, rebooting the instance, deleting the instance, creating a read replica for the instance, and creating a DB snapshot of the instance.</p> <p>Constraints:</p> <ul> <li> <p>For RDS for MariaDB, RDS for MySQL, RDS for Oracle, and RDS for PostgreSQL - The value supplied must be at least 10% greater than the current value. Values that are not at least 10% greater than the existing value are rounded up so that they are 10% greater than the current value.</p> </li> <li> <p>When you increase the Provisioned IOPS, you must also specify the <code>AllocatedStorage</code> parameter. You can use the current value for <code>AllocatedStorage</code>.</p> </li> </ul> <p>Default: Uses existing setting</p>"
+          "documentation":"<p>The new Provisioned IOPS (I/O operations per second) value for the RDS instance.</p> <p>Changing this setting doesn't result in an outage and the change is applied during the next maintenance window unless the <code>ApplyImmediately</code> parameter is enabled for this request. If you are migrating from Provisioned IOPS to standard storage, set this value to 0. The DB instance will require a reboot for the change in storage type to take effect.</p> <p>If you choose to migrate your DB instance from using standard storage to Provisioned IOPS (io1), or from Provisioned IOPS to standard storage, the process can take time. The duration of the migration depends on several factors such as database load, storage size, storage type (standard or Provisioned IOPS), amount of IOPS provisioned (if any), and the number of prior scale storage operations. Typical migration times are under 24 hours, but the process can take up to several days in some cases. During the migration, the DB instance is available for use, but might experience performance degradation. While the migration takes place, nightly backups for the instance are suspended. No other Amazon RDS operations can take place for the instance, including modifying the instance, rebooting the instance, deleting the instance, creating a read replica for the instance, and creating a DB snapshot of the instance.</p> <p/> <p>Constraints:</p> <ul> <li> <p>For RDS for MariaDB, RDS for MySQL, RDS for Oracle, and RDS for PostgreSQL - The value supplied must be at least 10% greater than the current value. Values that are not at least 10% greater than the existing value are rounded up so that they are 10% greater than the current value.</p> </li> <li> <p>When you increase the Provisioned IOPS, you must also specify the <code>AllocatedStorage</code> parameter. You can use the current value for <code>AllocatedStorage</code>.</p> </li> </ul> <p>Default: Uses existing setting</p>"
         },
         "OptionGroupName":{
           "shape":"String",
@@ -12541,7 +12607,7 @@
         },
         "StorageType":{
           "shape":"String",
-          "documentation":"<p>The storage type to associate with the DB instance.</p> <p>If you specify <code>io1</code>, <code>io2</code>, or <code>gp3</code> you must also include a value for the <code>Iops</code> parameter.</p> <p>If you choose to migrate your DB instance from using standard storage to using Provisioned IOPS, or from using Provisioned IOPS to using standard storage, the process can take time. The duration of the migration depends on several factors such as database load, storage size, storage type (standard or Provisioned IOPS), amount of IOPS provisioned (if any), and the number of prior scale storage operations. Typical migration times are under 24 hours, but the process can take up to several days in some cases. During the migration, the DB instance is available for use, but might experience performance degradation. While the migration takes place, nightly backups for the instance are suspended. No other Amazon RDS operations can take place for the instance, including modifying the instance, rebooting the instance, deleting the instance, creating a read replica for the instance, and creating a DB snapshot of the instance.</p> <p>Valid Values: <code>gp2 | gp3 | io1 | io2 | standard</code> </p> <p>Default: <code>io1</code>, if the <code>Iops</code> parameter is specified. Otherwise, <code>gp2</code>.</p>"
+          "documentation":"<p>The storage type to associate with the DB instance.</p> <p>If you specify <code>io1</code>, <code>io2</code>, or <code>gp3</code> you must also include a value for the <code>Iops</code> parameter.</p> <p>If you choose to migrate your DB instance from using standard storage to gp2 (General Purpose SSD), gp3, or Provisioned IOPS (io1), or from these storage types to standard storage, the process can take time. The duration of the migration depends on several factors such as database load, storage size, storage type (standard or Provisioned IOPS), amount of IOPS provisioned (if any), and the number of prior scale storage operations. Typical migration times are under 24 hours, but the process can take up to several days in some cases. During the migration, the DB instance is available for use, but might experience performance degradation. While the migration takes place, nightly backups for the instance are suspended. No other Amazon RDS operations can take place for the instance, including modifying the instance, rebooting the instance, deleting the instance, creating a read replica for the instance, and creating a DB snapshot of the instance.</p> <p>Valid Values: <code>gp2 | gp3 | io1 | io2 | standard</code> </p> <p>Default: <code>io1</code>, if the <code>Iops</code> parameter is specified. Otherwise, <code>gp2</code>.</p>"
         },
         "TdeCredentialArn":{
           "shape":"String",
@@ -12611,6 +12677,10 @@
           "shape":"BooleanOptional",
           "documentation":"<p>Specifies whether to enable mapping of Amazon Web Services Identity and Access Management (IAM) accounts to database accounts. By default, mapping isn't enabled.</p> <p>This setting doesn't apply to Amazon Aurora. Mapping Amazon Web Services IAM accounts to database accounts is managed by the DB cluster.</p> <p>For more information about IAM database authentication, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html\"> IAM Database Authentication for MySQL and PostgreSQL</a> in the <i>Amazon RDS User Guide.</i> </p> <p>This setting doesn't apply to RDS Custom DB instances.</p>"
         },
+        "DatabaseInsightsMode":{
+          "shape":"DatabaseInsightsMode",
+          "documentation":"<p>Specifies the mode of Database Insights to enable for the DB instance.</p> <p>This setting only applies to Amazon Aurora DB instances.</p> <note> <p>Currently, this value is inherited from the DB cluster and can't be changed.</p> </note>"
+        },
         "EnablePerformanceInsights":{
           "shape":"BooleanOptional",
           "documentation":"<p>Specifies whether to enable Performance Insights for the DB instance.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.html\">Using Amazon Performance Insights</a> in the <i>Amazon RDS User Guide</i>.</p> <p>This setting doesn't apply to RDS Custom DB instances.</p>"
@@ -12625,7 +12695,7 @@
         },
         "CloudwatchLogsExportConfiguration":{
           "shape":"CloudwatchLogsExportConfiguration",
-          "documentation":"<p>The log types to be enabled for export to CloudWatch Logs for a specific DB instance.</p> <p>A change to the <code>CloudwatchLogsExportConfiguration</code> parameter is always applied to the DB instance immediately. Therefore, the <code>ApplyImmediately</code> parameter has no effect.</p> <p>This setting doesn't apply to RDS Custom DB instances.</p>"
+          "documentation":"<p>The log types to be enabled for export to CloudWatch Logs for a specific DB instance.</p> <p>A change to the <code>CloudwatchLogsExportConfiguration</code> parameter is always applied to the DB instance immediately. Therefore, the <code>ApplyImmediately</code> parameter has no effect.</p> <p>This setting doesn't apply to RDS Custom DB instances.</p> <p>The following values are valid for each DB engine:</p> <ul> <li> <p>Aurora MySQL - <code>audit | error | general | slowquery</code> </p> </li> <li> <p>Aurora PostgreSQL - <code>postgresql</code> </p> </li> <li> <p>RDS for MySQL - <code>error | general | slowquery</code> </p> </li> <li> <p>RDS for PostgreSQL - <code>postgresql | upgrade</code> </p> </li> </ul> <p>For more information about exporting CloudWatch Logs for Amazon RDS, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\"> Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about exporting CloudWatch Logs for Amazon Aurora, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon Aurora User Guide</i>.</p>"
         },
         "ProcessorFeatures":{
           "shape":"ProcessorFeatureList",
@@ -14901,7 +14971,7 @@
         },
         "EnableCloudwatchLogsExports":{
           "shape":"LogTypeList",
-          "documentation":"<p>The list of logs that the restored DB cluster is to export to CloudWatch Logs. The values in the list depend on the DB engine being used.</p> <p> <b>Aurora MySQL</b> </p> <p>Possible values are <code>audit</code>, <code>error</code>, <code>general</code>, and <code>slowquery</code>.</p> <p>For more information about exporting CloudWatch Logs for Amazon Aurora, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon Aurora User Guide</i>.</p>"
+          "documentation":"<p>The list of logs that the restored DB cluster is to export to CloudWatch Logs. The values in the list depend on the DB engine being used.</p> <p> <b>Aurora MySQL</b> </p> <p>Possible values are <code>audit</code>, <code>error</code>, <code>general</code>, <code>instance</code>, and <code>slowquery</code>.</p> <p> <b>Aurora PostgreSQL</b> </p> <p>Possible value are <code>instance</code> and <code>postgresql</code>.</p> <p>For more information about exporting CloudWatch Logs for Amazon RDS, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about exporting CloudWatch Logs for Amazon Aurora, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon Aurora User Guide</i>.</p>"
         },
         "DeletionProtection":{
           "shape":"BooleanOptional",
@@ -15014,7 +15084,7 @@
         },
         "EnableCloudwatchLogsExports":{
           "shape":"LogTypeList",
-          "documentation":"<p>The list of logs that the restored DB cluster is to export to Amazon CloudWatch Logs. The values in the list depend on the DB engine being used.</p> <p> <b>RDS for MySQL</b> </p> <p>Possible values are <code>error</code>, <code>general</code>, and <code>slowquery</code>.</p> <p> <b>RDS for PostgreSQL</b> </p> <p>Possible values are <code>postgresql</code> and <code>upgrade</code>.</p> <p> <b>Aurora MySQL</b> </p> <p>Possible values are <code>audit</code>, <code>error</code>, <code>general</code>, and <code>slowquery</code>.</p> <p> <b>Aurora PostgreSQL</b> </p> <p>Possible value is <code>postgresql</code>.</p> <p>For more information about exporting CloudWatch Logs for Amazon RDS, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about exporting CloudWatch Logs for Amazon Aurora, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
+          "documentation":"<p>The list of logs that the restored DB cluster is to export to Amazon CloudWatch Logs. The values in the list depend on the DB engine being used.</p> <p> <b>RDS for MySQL</b> </p> <p>Possible values are <code>error</code>, <code>general</code>, and <code>slowquery</code>.</p> <p> <b>RDS for PostgreSQL</b> </p> <p>Possible values are <code>postgresql</code> and <code>upgrade</code>.</p> <p> <b>Aurora MySQL</b> </p> <p>Possible values are <code>audit</code>, <code>error</code>, <code>general</code>, <code>instance</code>, and <code>slowquery</code>.</p> <p> <b>Aurora PostgreSQL</b> </p> <p>Possible value are <code>instance</code> and <code>postgresql</code>.</p> <p>For more information about exporting CloudWatch Logs for Amazon RDS, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about exporting CloudWatch Logs for Amazon Aurora, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
         },
         "EngineMode":{
           "shape":"String",
@@ -15157,7 +15227,7 @@
         },
         "EnableCloudwatchLogsExports":{
           "shape":"LogTypeList",
-          "documentation":"<p>The list of logs that the restored DB cluster is to export to CloudWatch Logs. The values in the list depend on the DB engine being used.</p> <p> <b>RDS for MySQL</b> </p> <p>Possible values are <code>error</code>, <code>general</code>, and <code>slowquery</code>.</p> <p> <b>RDS for PostgreSQL</b> </p> <p>Possible values are <code>postgresql</code> and <code>upgrade</code>.</p> <p> <b>Aurora MySQL</b> </p> <p>Possible values are <code>audit</code>, <code>error</code>, <code>general</code>, and <code>slowquery</code>.</p> <p> <b>Aurora PostgreSQL</b> </p> <p>Possible value is <code>postgresql</code>.</p> <p>For more information about exporting CloudWatch Logs for Amazon RDS, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about exporting CloudWatch Logs for Amazon Aurora, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
+          "documentation":"<p>The list of logs that the restored DB cluster is to export to CloudWatch Logs. The values in the list depend on the DB engine being used.</p> <p> <b>RDS for MySQL</b> </p> <p>Possible values are <code>error</code>, <code>general</code>, and <code>slowquery</code>.</p> <p> <b>RDS for PostgreSQL</b> </p> <p>Possible values are <code>postgresql</code> and <code>upgrade</code>.</p> <p> <b>Aurora MySQL</b> </p> <p>Possible values are <code>audit</code>, <code>error</code>, <code>general</code>, <code>instance</code>, and <code>slowquery</code>.</p> <p> <b>Aurora PostgreSQL</b> </p> <p>Possible value are <code>instance</code> and <code>postgresql</code>.</p> <p>For more information about exporting CloudWatch Logs for Amazon RDS, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about exporting CloudWatch Logs for Amazon Aurora, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch\">Publishing Database Logs to Amazon CloudWatch Logs</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
         },
         "DBClusterParameterGroupName":{
           "shape":"String",
@@ -15185,7 +15255,7 @@
         },
         "EngineMode":{
           "shape":"String",
-          "documentation":"<p>The engine mode of the new cluster. Specify <code>provisioned</code> or <code>serverless</code>, depending on the type of the cluster you are creating. You can create an Aurora Serverless v1 clone from a provisioned cluster, or a provisioned clone from an Aurora Serverless v1 cluster. To create a clone that is an Aurora Serverless v1 cluster, the original cluster must be an Aurora Serverless v1 cluster or an encrypted provisioned cluster.</p> <p>Valid for: Aurora DB clusters only</p>"
+          "documentation":"<p>The engine mode of the new cluster. Specify <code>provisioned</code> or <code>serverless</code>, depending on the type of the cluster you are creating. You can create an Aurora Serverless v1 clone from a provisioned cluster, or a provisioned clone from an Aurora Serverless v1 cluster. To create a clone that is an Aurora Serverless v1 cluster, the original cluster must be an Aurora Serverless v1 cluster or an encrypted provisioned cluster. To create a full copy that is an Aurora Serverless v1 cluster, specify the engine mode <code>serverless</code>.</p> <p>Valid for: Aurora DB clusters only</p>"
         },
         "DBClusterInstanceClass":{
           "shape":"String",
@@ -15404,7 +15474,7 @@
         },
         "AllocatedStorage":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The amount of storage (in gibibytes) to allocate initially for the DB instance. Follow the allocation rules specified in CreateDBInstance.</p> <note> <p>Be sure to allocate enough storage for your new DB instance so that the restore operation can succeed. You can also allocate additional storage for future growth.</p> </note>"
+          "documentation":"<p>The amount of storage (in gibibytes) to allocate initially for the DB instance. Follow the allocation rules specified in CreateDBInstance.</p> <p>This setting isn't valid for RDS for SQL Server.</p> <note> <p>Be sure to allocate enough storage for your new DB instance so that the restore operation can succeed. You can also allocate additional storage for future growth.</p> </note>"
         },
         "DedicatedLogVolume":{
           "shape":"BooleanOptional",
@@ -15449,7 +15519,7 @@
         },
         "AllocatedStorage":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The amount of storage (in gibibytes) to allocate initially for the DB instance. Follow the allocation rules specified in <code>CreateDBInstance</code>.</p> <note> <p>Be sure to allocate enough storage for your new DB instance so that the restore operation can succeed. You can also allocate additional storage for future growth.</p> </note>"
+          "documentation":"<p>The amount of storage (in gibibytes) to allocate initially for the DB instance. Follow the allocation rules specified in <code>CreateDBInstance</code>.</p> <p>This setting isn't valid for RDS for SQL Server.</p> <note> <p>Be sure to allocate enough storage for your new DB instance so that the restore operation can succeed. You can also allocate additional storage for future growth.</p> </note>"
         },
         "DBInstanceClass":{
           "shape":"String",
@@ -15582,6 +15652,10 @@
         "S3IngestionRoleArn":{
           "shape":"String",
           "documentation":"<p>An Amazon Web Services Identity and Access Management (IAM) role with a trust policy and a permissions policy that allows Amazon RDS to access your Amazon S3 bucket. For information about this role, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MySQL.Procedural.Importing.html#MySQL.Procedural.Importing.Enabling.IAM\"> Creating an IAM role manually</a> in the <i>Amazon RDS User Guide.</i> </p>"
+        },
+        "DatabaseInsightsMode":{
+          "shape":"DatabaseInsightsMode",
+          "documentation":"<p>Specifies the mode of Database Insights to enable for the DB instance.</p> <p>This setting only applies to Amazon Aurora DB instances.</p> <note> <p>Currently, this value is inherited from the DB cluster and can't be changed.</p> </note>"
         },
         "EnablePerformanceInsights":{
           "shape":"BooleanOptional",
@@ -15822,7 +15896,7 @@
         },
         "AllocatedStorage":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The amount of storage (in gibibytes) to allocate initially for the DB instance. Follow the allocation rules specified in <code>CreateDBInstance</code>.</p> <note> <p>Be sure to allocate enough storage for your new DB instance so that the restore operation can succeed. You can also allocate additional storage for future growth.</p> </note>"
+          "documentation":"<p>The amount of storage (in gibibytes) to allocate initially for the DB instance. Follow the allocation rules specified in <code>CreateDBInstance</code>.</p> <p>This setting isn't valid for RDS for SQL Server.</p> <note> <p>Be sure to allocate enough storage for your new DB instance so that the restore operation can succeed. You can also allocate additional storage for future growth.</p> </note>"
         },
         "DedicatedLogVolume":{
           "shape":"BooleanOptional",
@@ -16002,16 +16076,34 @@
       "type":"string",
       "sensitive":true
     },
+    "ServerlessV2FeaturesSupport":{
+      "type":"structure",
+      "members":{
+        "MinCapacity":{
+          "shape":"DoubleOptional",
+          "documentation":"<p>If the minimum capacity is 0 ACUs, the engine version supports the automatic pause/resume feature of Aurora Serverless v2.</p>"
+        },
+        "MaxCapacity":{
+          "shape":"DoubleOptional",
+          "documentation":"<p> Specifies the upper Aurora Serverless v2 capacity limit for a particular engine version. Depending on the engine version, the maximum capacity for an Aurora Serverless v2 cluster might be <code>256</code> or <code>128</code>. </p>"
+        }
+      },
+      "documentation":"<p>Specifies any Aurora Serverless v2 properties or limits that differ between Aurora engine versions. You can test the values of this attribute when deciding which Aurora version to use in a new or upgraded DB cluster. You can also retrieve the version of an existing DB cluster and check whether that version supports certain Aurora Serverless v2 features before you attempt to use those features. </p>"
+    },
     "ServerlessV2ScalingConfiguration":{
       "type":"structure",
       "members":{
         "MinCapacity":{
           "shape":"DoubleOptional",
-          "documentation":"<p>The minimum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster. You can specify ACU values in half-step increments, such as 8, 8.5, 9, and so on. The smallest value that you can use is 0.5.</p>"
+          "documentation":"<p>The minimum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster. You can specify ACU values in half-step increments, such as 8, 8.5, 9, and so on. For Aurora versions that support the Aurora Serverless v2 auto-pause feature, the smallest value that you can use is 0. For versions that don't support Aurora Serverless v2 auto-pause, the smallest value that you can use is 0.5. </p>"
         },
         "MaxCapacity":{
           "shape":"DoubleOptional",
-          "documentation":"<p>The maximum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster. You can specify ACU values in half-step increments, such as 40, 40.5, 41, and so on. The largest value that you can use is 128.</p>"
+          "documentation":"<p>The maximum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster. You can specify ACU values in half-step increments, such as 32, 32.5, 33, and so on. The largest value that you can use is 256 for recent Aurora versions, or 128 for older versions.</p>"
+        },
+        "SecondsUntilAutoPause":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>Specifies the number of seconds an Aurora Serverless v2 DB instance must be idle before Aurora attempts to automatically pause it. </p> <p>Specify a value between 300 seconds (five minutes) and 86,400 seconds (one day). The default is 300 seconds.</p>"
         }
       },
       "documentation":"<p>Contains the scaling configuration of an Aurora Serverless v2 DB cluster.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.html\">Using Amazon Aurora Serverless v2</a> in the <i>Amazon Aurora User Guide</i>.</p>"
@@ -16021,11 +16113,15 @@
       "members":{
         "MinCapacity":{
           "shape":"DoubleOptional",
-          "documentation":"<p>The minimum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster. You can specify ACU values in half-step increments, such as 8, 8.5, 9, and so on. The smallest value that you can use is 0.5.</p>"
+          "documentation":"<p>The minimum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster. You can specify ACU values in half-step increments, such as 8, 8.5, 9, and so on. For Aurora versions that support the Aurora Serverless v2 auto-pause feature, the smallest value that you can use is 0. For versions that don't support Aurora Serverless v2 auto-pause, the smallest value that you can use is 0.5. </p>"
         },
         "MaxCapacity":{
           "shape":"DoubleOptional",
-          "documentation":"<p>The maximum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster. You can specify ACU values in half-step increments, such as 40, 40.5, 41, and so on. The largest value that you can use is 128.</p>"
+          "documentation":"<p>The maximum number of Aurora capacity units (ACUs) for a DB instance in an Aurora Serverless v2 cluster. You can specify ACU values in half-step increments, such as 32, 32.5, 33, and so on. The largest value that you can use is 256 for recent Aurora versions, or 128 for older versions.</p>"
+        },
+        "SecondsUntilAutoPause":{
+          "shape":"IntegerOptional",
+          "documentation":"<p> The number of seconds an Aurora Serverless v2 DB instance must be idle before Aurora attempts to automatically pause it. This property is only shown when the minimum capacity for the cluster is set to 0 ACUs. Changing the minimum capacity to a nonzero value removes this property. If you later change the minimum capacity back to 0 ACUs, this property is reset to its default value unless you specify it again. </p> <p>This value ranges between 300 seconds (five minutes) and 86,400 seconds (one day). The default is 300 seconds.</p>"
         }
       },
       "documentation":"<p>The scaling configuration for an Aurora Serverless v2 DB cluster.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.html\">Using Amazon Aurora Serverless v2</a> in the <i>Amazon Aurora User Guide</i>.</p>"
@@ -16739,6 +16835,7 @@
         "UNAVAILABLE"
       ]
     },
+    "TargetStorageType":{"type":"string"},
     "TargetType":{
       "type":"string",
       "enum":[

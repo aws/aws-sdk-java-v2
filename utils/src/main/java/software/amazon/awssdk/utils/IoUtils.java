@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
@@ -31,7 +29,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 public final class IoUtils {
 
     private static final int BUFFER_SIZE = 1024 * 4;
-    private static final Logger DEFAULT_LOG = LoggerFactory.getLogger(IoUtils.class);
+    private static final Logger DEFAULT_LOG = Logger.loggerFor(IoUtils.class);
 
     private IoUtils() {
     }
@@ -63,16 +61,25 @@ public final class IoUtils {
      * Closes the given Closeable quietly.
      * @param is the given closeable
      * @param log logger used to log any failure should the close fail
+     * @deprecated use {@link #closeQuietlyV2(AutoCloseable, Logger)} instead
      */
-    public static void closeQuietly(AutoCloseable is, Logger log) {
+    @Deprecated
+    public static void closeQuietly(AutoCloseable is, org.slf4j.Logger log) {
+        closeQuietlyV2(is, log == null ? DEFAULT_LOG : new Logger(log));
+    }
+
+    /**
+     * Closes the given Closeable quietly.
+     * @param is the given closeable
+     * @param log logger used to log any failure should the close fail
+     */
+    public static void closeQuietlyV2(AutoCloseable is, Logger log) {
         if (is != null) {
             try {
                 is.close();
             } catch (Exception ex) {
                 Logger logger = log == null ? DEFAULT_LOG : log;
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Ignore failure in closing the Closeable", ex);
-                }
+                logger.debug(() -> "Ignore failure in closing the Closeable", ex);
             }
         }
     }
@@ -81,10 +88,23 @@ public final class IoUtils {
      * Closes the given Closeable quietly.
      * @param maybeCloseable the given closeable
      * @param log logger used to log any failure should the close fail
+     * @deprecated use {@link #closeQuietlyV2(AutoCloseable, Logger)} instead
      */
-    public static void closeIfCloseable(Object maybeCloseable, Logger log) {
+    @Deprecated
+    public static void closeIfCloseable(Object maybeCloseable, org.slf4j.Logger log) {
         if (maybeCloseable instanceof AutoCloseable) {
             IoUtils.closeQuietly((AutoCloseable) maybeCloseable, log);
+        }
+    }
+
+    /**
+     * Closes the given Closeable quietly.
+     * @param maybeCloseable the given closeable
+     * @param log logger used to log any failure should the close fail
+     */
+    public static void closeIfCloseableV2(Object maybeCloseable, Logger log) {
+        if (maybeCloseable instanceof AutoCloseable) {
+            IoUtils.closeQuietlyV2((AutoCloseable) maybeCloseable, log);
         }
     }
 

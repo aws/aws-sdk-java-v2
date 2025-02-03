@@ -25,6 +25,7 @@ recipeList:
   - software.amazon.awssdk.v2migration.S3StreamingResponseToV2
   - software.amazon.awssdk.v2migration.S3StreamingRequestToV2
   - software.amazon.awssdk.v2migration.S3NonStreamingRequestToV2
+  - software.amazon.awssdk.v2migration.S3MethodsToV2
   - software.amazon.awssdk.v2migration.S3MethodsConstructorToFluent
   - software.amazon.awssdk.v2migration.EnumGettersToV2
   - software.amazon.awssdk.v2migration.ChangeSdkType
@@ -37,3 +38,4 @@ recipeList:
   - software.amazon.awssdk.v2migration.HttpSettingsToHttpClient
   - software.amazon.awssdk.v2migration.WrapSdkClientBuilderRegionStr
   - software.amazon.awssdk.v2migration.EnumCasingToV2
+  - software.amazon.awssdk.v2migration.SdkBytesToByteBuffer

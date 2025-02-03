@@ -25,18 +25,13 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilder<SubTypeOne.Builder, SubTypeOne> {
     private static final SdkField<String> SUB_TYPE_ONE_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .memberName("SubTypeOneMember").getter(getter(SubTypeOne::subTypeOneMember))
-            .setter(setter(Builder::subTypeOneMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("SubTypeOneMember").build()).build();
+                                                                              .memberName("SubTypeOneMember").getter(getter(SubTypeOne::subTypeOneMember))
+                                                                              .setter(setter(Builder::subTypeOneMember))
+                                                                              .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("SubTypeOneMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(SUB_TYPE_ONE_MEMBER_FIELD));
 
-    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = Collections
-            .unmodifiableMap(new HashMap<String, SdkField<?>>() {
-                {
-                    put("SubTypeOneMember", SUB_TYPE_ONE_MEMBER_FIELD);
-                }
-            });
+    private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private static final long serialVersionUID = 1L;
 
@@ -48,7 +43,7 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
 
     /**
      * Returns the value of the SubTypeOneMember property for this object.
-     * 
+     *
      * @return The value of the SubTypeOneMember property for this object.
      */
     public final String subTypeOneMember() {
@@ -106,10 +101,10 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "SubTypeOneMember":
-            return Optional.ofNullable(clazz.cast(subTypeOneMember()));
-        default:
-            return Optional.empty();
+            case "SubTypeOneMember":
+                return Optional.ofNullable(clazz.cast(subTypeOneMember()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -121,6 +116,12 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
     @Override
     public final Map<String, SdkField<?>> sdkFieldNameToField() {
         return SDK_NAME_TO_FIELD;
+    }
+
+    private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
+        Map<String, SdkField<?>> map = new HashMap<>();
+        map.put("SubTypeOneMember", SUB_TYPE_ONE_MEMBER_FIELD);
+        return Collections.unmodifiableMap(map);
     }
 
     private static <T> Function<Object, T> getter(Function<SubTypeOne, T> g) {

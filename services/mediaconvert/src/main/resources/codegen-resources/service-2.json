@@ -1842,7 +1842,7 @@
           "documentation": "Advanced audio normalization settings. Ignore these settings unless you need to comply with a loudness standard."
         },
         "AudioSourceName": {
-          "shape": "__string",
+          "shape": "__stringMax2048",
           "locationName": "audioSourceName",
           "documentation": "Specifies which audio data to use from each input. In the simplest case, specify an \"Audio Selector\":#inputs-audio_selector by name based on its order within each input. For example if you specify \"Audio Selector 3\", then the third audio selector will be used from each input. If an input does not have an \"Audio Selector 3\", then the audio selector marked as \"default\" in that input will be used. If there is no audio selector marked as \"default\", silence will be inserted for the duration of that input. Alternatively, an \"Audio Selector Group\":#inputs-audio_selector_group name may be specified, with similar default/silence behavior. If no audio_source_name is specified, then \"Audio Selector 1\" will be chosen automatically."
         },
@@ -2004,7 +2004,7 @@
         "ExternalAudioFileInput": {
           "shape": "__stringPatternS3Https",
           "locationName": "externalAudioFileInput",
-          "documentation": "Specifies audio data from an external file source."
+          "documentation": "Specify the S3, HTTP, or HTTPS URL for your external audio file input."
         },
         "HlsRenditionGroupSettings": {
           "shape": "HlsRenditionGroupSettings",
@@ -2014,12 +2014,12 @@
         "LanguageCode": {
           "shape": "LanguageCode",
           "locationName": "languageCode",
-          "documentation": "Selects a specific language code from within an audio source."
+          "documentation": "Specify the language to select from your audio input. In the MediaConvert console choose from a list of languages. In your JSON job settings choose from an ISO 639-2 three-letter code listed at https://www.loc.gov/standards/iso639-2/php/code_list.php"
         },
         "Offset": {
           "shape": "__integerMinNegative2147483648Max2147483647",
           "locationName": "offset",
-          "documentation": "Specifies a time delta in milliseconds to offset the audio from the input video."
+          "documentation": "Specify a time delta, in milliseconds, to offset the audio from the input video.\nTo specify no offset: Keep the default value, 0.\nTo specify an offset: Enter an integer from -2147483648 to 2147483647"
         },
         "Pids": {
           "shape": "__listOf__integerMin1Max2147483647",
@@ -2602,6 +2602,11 @@
           "shape": "__integerMin0Max10",
           "locationName": "outlineSize",
           "documentation": "Specify the Outline size of the caption text, in pixels. Leave Outline size blank and set Style passthrough to enabled to use the outline size data from your input captions, if present."
+        },
+        "RemoveRubyReserveAttributes": {
+          "shape": "RemoveRubyReserveAttributes",
+          "locationName": "removeRubyReserveAttributes",
+          "documentation": "Optionally remove any tts:rubyReserve attributes present in your input, that do   not have a tts:ruby attribute in the same element, from your output. Use if your vertical Japanese output captions have alignment issues. To remove ruby reserve attributes when present: Choose Enabled. To not remove any ruby reserve attributes: Keep the default value, Disabled."
         },
         "ShadowColor": {
           "shape": "BurninSubtitleShadowColor",
@@ -4031,6 +4036,11 @@
     "CreateQueueRequest": {
       "type": "structure",
       "members": {
+        "ConcurrentJobs": {
+          "shape": "__integer",
+          "locationName": "concurrentJobs",
+          "documentation": "Specify the maximum number of jobs your queue can process concurrently. For on-demand queues, the value you enter is constrained by your service quotas for Maximum concurrent jobs, per on-demand queue and Maximum concurrent jobs, per account. For reserved queues, specify the number of jobs you can process concurrently in your reservation plan instead."
+        },
         "Description": {
           "shape": "__string",
           "locationName": "description",
@@ -4640,7 +4650,7 @@
     },
     "DropFrameTimecode": {
       "type": "string",
-      "documentation": "Applies only to 29.97 fps outputs. When this feature is enabled, the service will use drop-frame timecode on outputs. If it is not possible to use drop-frame timecode, the system will fall back to non-drop-frame. This setting is enabled by default when Timecode insertion is enabled.",
+      "documentation": "Applies only to 29.97 fps outputs. When this feature is enabled, the service will use drop-frame timecode on outputs. If it is not possible to use drop-frame timecode, the system will fall back to non-drop-frame. This setting is enabled by default when Timecode insertion or Timecode track is enabled.",
       "enum": [
         "DISABLED",
         "ENABLED"
@@ -4983,6 +4993,45 @@
         "NONE",
         "SPECIFIED",
         "NO_DISPLAY_WINDOW"
+      ]
+    },
+    "DynamicAudioSelector": {
+      "type": "structure",
+      "members": {
+        "AudioDurationCorrection": {
+          "shape": "AudioDurationCorrection",
+          "locationName": "audioDurationCorrection",
+          "documentation": "Apply audio timing corrections to help synchronize audio and video in your output. To apply timing corrections, your input must meet the following requirements: * Container: MP4, or MOV, with an accurate time-to-sample (STTS) table. * Audio track: AAC. Choose from the following audio timing correction settings: * Disabled (Default): Apply no correction. * Auto: Recommended for most inputs. MediaConvert analyzes the audio timing in your input and determines which correction setting to use, if needed. * Track: Adjust the duration of each audio frame by a constant amount to align the audio track length with STTS duration. Track-level correction does not affect pitch, and is recommended for tonal audio content such as music. * Frame: Adjust the duration of each audio frame by a variable amount to align audio frames with STTS timestamps. No corrections are made to already-aligned frames. Frame-level correction may affect the pitch of corrected frames, and is recommended for atonal audio content such as speech or percussion. * Force: Apply audio duration correction, either Track or Frame depending on your input, regardless of the accuracy of your input's STTS table. Your output audio and video may not be aligned or it may contain audio artifacts."
+        },
+        "ExternalAudioFileInput": {
+          "shape": "__stringPatternS3Https",
+          "locationName": "externalAudioFileInput",
+          "documentation": "Specify the S3, HTTP, or HTTPS URL for your external audio file input."
+        },
+        "LanguageCode": {
+          "shape": "LanguageCode",
+          "locationName": "languageCode",
+          "documentation": "Specify the language to select from your audio input. In the MediaConvert console choose from a list of languages. In your JSON job settings choose from an ISO 639-2 three-letter code listed at https://www.loc.gov/standards/iso639-2/php/code_list.php"
+        },
+        "Offset": {
+          "shape": "__integerMinNegative2147483648Max2147483647",
+          "locationName": "offset",
+          "documentation": "Specify a time delta, in milliseconds, to offset the audio from the input video.\nTo specify no offset: Keep the default value, 0.\nTo specify an offset: Enter an integer from -2147483648 to 2147483647"
+        },
+        "SelectorType": {
+          "shape": "DynamicAudioSelectorType",
+          "locationName": "selectorType",
+          "documentation": "Specify which audio tracks to dynamically select from your source. To select all audio tracks: Keep the default value, All tracks. To select all audio tracks with a specific language code: Choose Language code. When you do, you must also specify a language code under the Language code setting. If there is no matching Language code in your source, then no track will be selected."
+        }
+      },
+      "documentation": "Use Dynamic audio selectors when you do not know the track layout of your source when you submit your job, but want to select multiple audio tracks. When you include an audio track in your output and specify this Dynamic audio selector as the Audio source, MediaConvert creates an output audio track for each dynamically selected track. Note that when you include a Dynamic audio selector for two or more inputs, each input must have the same number of audio tracks and audio channels."
+    },
+    "DynamicAudioSelectorType": {
+      "type": "string",
+      "documentation": "Specify which audio tracks to dynamically select from your source. To select all audio tracks: Keep the default value, All tracks. To select all audio tracks with a specific language code: Choose Language code. When you do, you must also specify a language code under the Language code setting. If there is no matching Language code in your source, then no track will be selected.",
+      "enum": [
+        "ALL_TRACKS",
+        "LANGUAGE_CODE"
       ]
     },
     "Eac3AtmosBitstreamMode": {
@@ -6296,6 +6345,11 @@
           "shape": "H264UnregisteredSeiTimecode",
           "locationName": "unregisteredSeiTimecode",
           "documentation": "Inserts timecode for each frame as 4 bytes of an unregistered SEI message."
+        },
+        "WriteMp4PackagingType": {
+          "shape": "H264WriteMp4PackagingType",
+          "locationName": "writeMp4PackagingType",
+          "documentation": "Specify how SPS and PPS NAL units are written in your output MP4 container, according to ISO/IEC 14496-15. If the location of these parameters doesn't matter in your workflow: Keep the default value, AVC1. MediaConvert writes SPS and PPS NAL units in the sample description ('stsd') box (but not into samples directly). To write SPS and PPS NAL units directly into samples (but not in the 'stsd' box): Choose AVC3. When you do, note that your output might not play properly with some downstream systems or players."
         }
       },
       "documentation": "Required when you set Codec to the value H_264."
@@ -6347,6 +6401,14 @@
       "enum": [
         "DISABLED",
         "ENABLED"
+      ]
+    },
+    "H264WriteMp4PackagingType": {
+      "type": "string",
+      "documentation": "Specify how SPS and PPS NAL units are written in your output MP4 container, according to ISO/IEC 14496-15. If the location of these parameters doesn't matter in your workflow: Keep the default value, AVC1. MediaConvert writes SPS and PPS NAL units in the sample description ('stsd') box (but not into samples directly). To write SPS and PPS NAL units directly into samples (but not in the 'stsd' box): Choose AVC3. When you do, note that your output might not play properly with some downstream systems or players.",
+      "enum": [
+        "AVC1",
+        "AVC3"
       ]
     },
     "H265AdaptiveQuantization": {
@@ -6402,6 +6464,14 @@
         "MAIN_422_8BIT_HIGH",
         "MAIN_422_10BIT_MAIN",
         "MAIN_422_10BIT_HIGH"
+      ]
+    },
+    "H265Deblocking": {
+      "type": "string",
+      "documentation": "Use Deblocking to improve the video quality of your output by smoothing the edges of macroblock artifacts created during video compression. To reduce blocking artifacts at block boundaries, and improve overall video quality: Keep the default value, Enabled. To not apply any deblocking: Choose Disabled. Visible block edge artifacts might appear in the output, especially at lower bitrates.",
+      "enum": [
+        "ENABLED",
+        "DISABLED"
       ]
     },
     "H265DynamicSubGop": {
@@ -6578,6 +6648,11 @@
           "shape": "H265CodecProfile",
           "locationName": "codecProfile",
           "documentation": "Represents the Profile and Tier, per the HEVC (H.265) specification. Selections are grouped as [Profile] / [Tier], so \"Main/High\" represents Main Profile with High Tier. 4:2:2 profiles are only available with the HEVC 4:2:2 License."
+        },
+        "Deblocking": {
+          "shape": "H265Deblocking",
+          "locationName": "deblocking",
+          "documentation": "Use Deblocking to improve the video quality of your output by smoothing the edges of macroblock artifacts created during video compression. To reduce blocking artifacts at block boundaries, and improve overall video quality: Keep the default value, Enabled. To not apply any deblocking: Choose Disabled. Visible block edge artifacts might appear in the output, especially at lower bitrates."
         },
         "DynamicSubGop": {
           "shape": "H265DynamicSubGop",
@@ -7629,8 +7704,13 @@
           "locationName": "dolbyVisionMetadataXml",
           "documentation": "Use this setting only when your video source has Dolby Vision studio mastering metadata that is carried in a separate XML file. Specify the Amazon S3 location for the metadata XML file. MediaConvert uses this file to provide global and frame-level metadata for Dolby Vision preprocessing. When you specify a file here and your input also has interleaved global and frame level metadata, MediaConvert ignores the interleaved metadata and uses only the the metadata from this external XML file. Note that your IAM service role must grant MediaConvert read permissions to this file. For more information, see https://docs.aws.amazon.com/mediaconvert/latest/ug/iam-role.html."
         },
+        "DynamicAudioSelectors": {
+          "shape": "__mapOfDynamicAudioSelector",
+          "locationName": "dynamicAudioSelectors",
+          "documentation": "Use Dynamic audio selectors when you do not know the track layout of your source when you submit your job, but want to select multiple audio tracks. When you include an audio track in your output and specify this Dynamic audio selector as the Audio source, MediaConvert creates an output audio track for each dynamically selected track. Note that when you include a Dynamic audio selector for two or more inputs, each input must have the same number of audio tracks and audio channels."
+        },
         "FileInput": {
-          "shape": "__stringPatternS3Https",
+          "shape": "__stringMax2048PatternS3Https",
           "locationName": "fileInput",
           "documentation": "Specify the source file for your transcoding job. You can use multiple inputs in a single job. The service concatenates these inputs, in the order that you specify them in the job, to create the outputs. If your input format is IMF, specify your input by providing the path to your CPL. For example, \"s3://bucket/vf/cpl.xml\". If the CPL is in an incomplete IMP, make sure to use *Supplemental IMPs* to specify any supplemental IMPs that contain assets referenced by the CPL."
         },
@@ -7865,6 +7945,11 @@
           "shape": "__stringMin14PatternS3XmlXMLHttpsXmlXML",
           "locationName": "dolbyVisionMetadataXml",
           "documentation": "Use this setting only when your video source has Dolby Vision studio mastering metadata that is carried in a separate XML file. Specify the Amazon S3 location for the metadata XML file. MediaConvert uses this file to provide global and frame-level metadata for Dolby Vision preprocessing. When you specify a file here and your input also has interleaved global and frame level metadata, MediaConvert ignores the interleaved metadata and uses only the the metadata from this external XML file. Note that your IAM service role must grant MediaConvert read permissions to this file. For more information, see https://docs.aws.amazon.com/mediaconvert/latest/ug/iam-role.html."
+        },
+        "DynamicAudioSelectors": {
+          "shape": "__mapOfDynamicAudioSelector",
+          "locationName": "dynamicAudioSelectors",
+          "documentation": "Use Dynamic audio selectors when you do not know the track layout of your source when you submit your job, but want to select multiple audio tracks. When you include an audio track in your output and specify this Dynamic audio selector as the Audio source, MediaConvert creates an output audio track for each dynamically selected track. Note that when you include a Dynamic audio selector for two or more inputs, each input must have the same number of audio tracks and audio channels."
         },
         "FilterEnable": {
           "shape": "InputFilterEnable",
@@ -8271,7 +8356,7 @@
         "FollowSource": {
           "shape": "__integerMin1Max150",
           "locationName": "followSource",
-          "documentation": "Specify the input that MediaConvert references for your default output settings.  MediaConvert uses this input's Resolution, Frame rate, and Pixel aspect ratio for all  outputs that you don't manually specify different output settings for. Enabling this setting will disable \"Follow source\" for all other inputs.  If MediaConvert cannot follow your source, for example if you specify an audio-only input,  MediaConvert uses the first followable input instead. In your JSON job specification, enter an integer from 1 to 150 corresponding  to the order of your inputs."
+          "documentation": "Specify the input that MediaConvert references for your default output settings. MediaConvert uses this input's Resolution, Frame rate, and Pixel aspect ratio for all outputs that you don't manually specify different output settings for. Enabling this setting will disable \"Follow source\" for all other inputs.  If MediaConvert cannot follow your source, for example if you specify an audio-only input,  MediaConvert uses the first followable input instead. In your JSON job specification, enter an integer from 1 to 150 corresponding  to the order of your inputs."
         },
         "Inputs": {
           "shape": "__listOfInput",
@@ -8296,7 +8381,7 @@
         "NielsenNonLinearWatermark": {
           "shape": "NielsenNonLinearWatermarkSettings",
           "locationName": "nielsenNonLinearWatermark",
-          "documentation": "Ignore these settings unless you are using Nielsen non-linear watermarking. Specify the values that MediaConvert uses to generate and place Nielsen watermarks in your output audio. In addition to specifying these values, you also need to set up your cloud TIC server. These settings apply to every output in your job. The MediaConvert implementation is currently with the following Nielsen versions: Nielsen Watermark SDK Version 5.2.1 Nielsen NLM Watermark Engine Version 1.2.7 Nielsen Watermark Authenticator [SID_TIC] Version [5.0.0]"
+          "documentation": "Ignore these settings unless you are using Nielsen non-linear watermarking. Specify the values that MediaConvert uses to generate and place Nielsen watermarks in your output audio. In addition to specifying these values, you also need to set up your cloud TIC server. These settings apply to every output in your job. The MediaConvert implementation is currently with the following Nielsen versions: Nielsen Watermark SDK Version 6.0.13 Nielsen NLM Watermark Engine Version 1.3.3 Nielsen Watermark Authenticator [SID_TIC] Version [7.0.0]"
         },
         "OutputGroups": {
           "shape": "__listOfOutputGroup",
@@ -8442,7 +8527,7 @@
         "FollowSource": {
           "shape": "__integerMin1Max150",
           "locationName": "followSource",
-          "documentation": "Specify the input that MediaConvert references for your default output settings.  MediaConvert uses this input's Resolution, Frame rate, and Pixel aspect ratio for all  outputs that you don't manually specify different output settings for. Enabling this setting will disable \"Follow source\" for all other inputs.  If MediaConvert cannot follow your source, for example if you specify an audio-only input,  MediaConvert uses the first followable input instead. In your JSON job specification, enter an integer from 1 to 150 corresponding  to the order of your inputs."
+          "documentation": "Specify the input that MediaConvert references for your default output settings. MediaConvert uses this input's Resolution, Frame rate, and Pixel aspect ratio for all outputs that you don't manually specify different output settings for. Enabling this setting will disable \"Follow source\" for all other inputs.  If MediaConvert cannot follow your source, for example if you specify an audio-only input,  MediaConvert uses the first followable input instead. In your JSON job specification, enter an integer from 1 to 150 corresponding  to the order of your inputs."
         },
         "Inputs": {
           "shape": "__listOfInputTemplate",
@@ -8467,7 +8552,7 @@
         "NielsenNonLinearWatermark": {
           "shape": "NielsenNonLinearWatermarkSettings",
           "locationName": "nielsenNonLinearWatermark",
-          "documentation": "Ignore these settings unless you are using Nielsen non-linear watermarking. Specify the values that MediaConvert uses to generate and place Nielsen watermarks in your output audio. In addition to specifying these values, you also need to set up your cloud TIC server. These settings apply to every output in your job. The MediaConvert implementation is currently with the following Nielsen versions: Nielsen Watermark SDK Version 5.2.1 Nielsen NLM Watermark Engine Version 1.2.7 Nielsen Watermark Authenticator [SID_TIC] Version [5.0.0]"
+          "documentation": "Ignore these settings unless you are using Nielsen non-linear watermarking. Specify the values that MediaConvert uses to generate and place Nielsen watermarks in your output audio. In addition to specifying these values, you also need to set up your cloud TIC server. These settings apply to every output in your job. The MediaConvert implementation is currently with the following Nielsen versions: Nielsen Watermark SDK Version 6.0.13 Nielsen NLM Watermark Engine Version 1.3.3 Nielsen Watermark Authenticator [SID_TIC] Version [7.0.0]"
         },
         "OutputGroups": {
           "shape": "__listOfOutputGroup",
@@ -8501,7 +8586,7 @@
           "documentation": "Specify a unique identifier for Kantar to use for this piece of content."
         },
         "CredentialsSecretName": {
-          "shape": "__stringMin1Max512PatternAZAZ09",
+          "shape": "__stringMin1Max2048PatternArnAZSecretsmanagerWD12SecretAZAZ09",
           "locationName": "credentialsSecretName",
           "documentation": "Provide the name of the AWS Secrets Manager secret where your Kantar credentials are stored. Note that your MediaConvert service role must provide access to this secret. For more information, see https://docs.aws.amazon.com/mediaconvert/latest/ug/granting-permissions-for-mediaconvert-to-access-secrets-manager-secret.html. For instructions on creating a secret, see https://docs.aws.amazon.com/secretsmanager/latest/userguide/tutorials_basic.html, in the AWS Secrets Manager User Guide."
         },
@@ -8947,6 +9032,16 @@
           "shape": "__listOfQueue",
           "locationName": "queues",
           "documentation": "List of queues."
+        },
+        "TotalConcurrentJobs": {
+          "shape": "__integer",
+          "locationName": "totalConcurrentJobs",
+          "documentation": "The maximum number of jobs that MediaConvert can process at one time, across all of your on-demand queues in the current AWS Region."
+        },
+        "UnallocatedConcurrentJobs": {
+          "shape": "__integer",
+          "locationName": "unallocatedConcurrentJobs",
+          "documentation": "The remaining number of concurrent jobs that are not associated with a queue and are available to allocate to a queue. You can allocate these jobs when you create or update a queue."
         }
       }
     },
@@ -10563,7 +10658,7 @@
           "documentation": "To create assets that have the same TIC values in each audio track, keep the default value Share TICs. To create assets that have unique TIC values for each audio track, choose Use unique TICs."
         }
       },
-      "documentation": "Ignore these settings unless you are using Nielsen non-linear watermarking. Specify the values that MediaConvert uses to generate and place Nielsen watermarks in your output audio. In addition to specifying these values, you also need to set up your cloud TIC server. These settings apply to every output in your job. The MediaConvert implementation is currently with the following Nielsen versions: Nielsen Watermark SDK Version 5.2.1 Nielsen NLM Watermark Engine Version 1.2.7 Nielsen Watermark Authenticator [SID_TIC] Version [5.0.0]"
+      "documentation": "Ignore these settings unless you are using Nielsen non-linear watermarking. Specify the values that MediaConvert uses to generate and place Nielsen watermarks in your output audio. In addition to specifying these values, you also need to set up your cloud TIC server. These settings apply to every output in your job. The MediaConvert implementation is currently with the following Nielsen versions: Nielsen Watermark SDK Version 6.0.13 Nielsen NLM Watermark Engine Version 1.3.3 Nielsen Watermark Authenticator [SID_TIC] Version [7.0.0]"
     },
     "NielsenSourceWatermarkStatusType": {
       "type": "string",
@@ -10764,7 +10859,7 @@
           "documentation": "Container specific settings."
         },
         "Extension": {
-          "shape": "__string",
+          "shape": "__stringMax256",
           "locationName": "extension",
           "documentation": "Use Extension to specify the file extension for outputs in File output groups. If you do not specify a value, the service will use default extensions by container type as follows * MPEG-2 transport stream, m2ts * Quicktime, mov * MXF container, mxf * MPEG-4 container, mp4 * WebM container, webm * No Container, the service will use codec extensions (e.g. AAC, H265, H265, AC3)"
         },
@@ -10837,7 +10932,7 @@
           "documentation": "Use Custom Group Name to specify a name for the output group. This value is displayed on the console and can make your job settings JSON more human-readable. It does not affect your outputs. Use up to twelve characters that are either letters, numbers, spaces, or underscores."
         },
         "Name": {
-          "shape": "__string",
+          "shape": "__stringMax2048",
           "locationName": "name",
           "documentation": "Name of the output group"
         },
@@ -11275,6 +11370,11 @@
           "locationName": "arn",
           "documentation": "An identifier for this resource that is unique within all of AWS."
         },
+        "ConcurrentJobs": {
+          "shape": "__integer",
+          "locationName": "concurrentJobs",
+          "documentation": "The maximum number of jobs your queue can process concurrently."
+        },
         "CreatedAt": {
           "shape": "__timestampUnix",
           "locationName": "createdAt",
@@ -11309,6 +11409,11 @@
           "shape": "ReservationPlan",
           "locationName": "reservationPlan",
           "documentation": "Details about the pricing plan for your reserved queue. Required for reserved queues and not applicable to on-demand queues."
+        },
+        "ServiceOverrides": {
+          "shape": "__listOfServiceOverride",
+          "locationName": "serviceOverrides",
+          "documentation": "A list of any service overrides applied by MediaConvert to the settings that you have configured. If you see any overrides, we recommend that you contact AWS Support."
         },
         "Status": {
           "shape": "QueueStatus",
@@ -11424,6 +11529,14 @@
         }
       },
       "documentation": "Use Manual audio remixing to adjust audio levels for each audio channel in each output of your job. With audio remixing, you can output more or fewer audio channels than your input audio source provides."
+    },
+    "RemoveRubyReserveAttributes": {
+      "type": "string",
+      "documentation": "Optionally remove any tts:rubyReserve attributes present in your input, that do   not have a tts:ruby attribute in the same element, from your output. Use if your vertical Japanese output captions have alignment issues. To remove ruby reserve attributes when present: Choose Enabled. To not remove any ruby reserve attributes: Keep the default value, Disabled.",
+      "enum": [
+        "DISABLED",
+        "ENABLED"
+      ]
     },
     "RenewalType": {
       "type": "string",
@@ -11728,6 +11841,32 @@
         }
       }
     },
+    "ServiceOverride": {
+      "type": "structure",
+      "members": {
+        "Message": {
+          "shape": "__string",
+          "locationName": "message",
+          "documentation": "Details about the service override that MediaConvert has applied."
+        },
+        "Name": {
+          "shape": "__string",
+          "locationName": "name",
+          "documentation": "The name of the setting that MediaConvert has applied an override to."
+        },
+        "OverrideValue": {
+          "shape": "__string",
+          "locationName": "overrideValue",
+          "documentation": "The current value of the service override that MediaConvert has applied."
+        },
+        "Value": {
+          "shape": "__string",
+          "locationName": "value",
+          "documentation": "The value of the setting that you configured, prior to any overrides that MediaConvert has applied."
+        }
+      },
+      "documentation": "A service override applied by MediaConvert to the settings that you have configured. If you see any overrides, we recommend that you contact AWS Support."
+    },
     "SimulateReservedQueue": {
       "type": "string",
       "documentation": "Enable this setting when you run a test job to estimate how many reserved transcoding slots (RTS) you need. When this is enabled, MediaConvert runs your job from an on-demand queue with similar performance to what you will see with one RTS in a reserved queue. This setting is disabled by default.",
@@ -12000,6 +12139,14 @@
         "EMBEDDED",
         "ZEROBASED",
         "SPECIFIEDSTART"
+      ]
+    },
+    "TimecodeTrack": {
+      "type": "string",
+      "documentation": "To include a timecode track in your MP4 output: Choose Enabled. MediaConvert writes the timecode track in the Null Media Header box (NMHD), without any timecode text formatting information. You can also specify dropframe or non-dropframe timecode under the Drop Frame Timecode setting. To not include a timecode track: Keep the default value, Disabled.",
+      "enum": [
+        "DISABLED",
+        "ENABLED"
       ]
     },
     "TimedMetadata": {
@@ -12340,6 +12487,11 @@
     "UpdateQueueRequest": {
       "type": "structure",
       "members": {
+        "ConcurrentJobs": {
+          "shape": "__integer",
+          "locationName": "concurrentJobs",
+          "documentation": "Specify the maximum number of jobs your queue can process concurrently. For on-demand queues, the value you enter is constrained by your service quotas for Maximum concurrent jobs, per on-demand queue and Maximum concurrent jobs, per account. For reserved queues, update your reservation plan instead in order to increase your yearly commitment."
+        },
         "Description": {
           "shape": "__string",
           "locationName": "description",
@@ -12614,7 +12766,7 @@
         "DropFrameTimecode": {
           "shape": "DropFrameTimecode",
           "locationName": "dropFrameTimecode",
-          "documentation": "Applies only to 29.97 fps outputs. When this feature is enabled, the service will use drop-frame timecode on outputs. If it is not possible to use drop-frame timecode, the system will fall back to non-drop-frame. This setting is enabled by default when Timecode insertion is enabled."
+          "documentation": "Applies only to 29.97 fps outputs. When this feature is enabled, the service will use drop-frame timecode on outputs. If it is not possible to use drop-frame timecode, the system will fall back to non-drop-frame. This setting is enabled by default when Timecode insertion or Timecode track is enabled."
         },
         "FixedAfd": {
           "shape": "__integerMin0Max15",
@@ -12650,6 +12802,11 @@
           "shape": "VideoTimecodeInsertion",
           "locationName": "timecodeInsertion",
           "documentation": "Applies only to H.264, H.265, MPEG2, and ProRes outputs. Only enable Timecode insertion when the input frame rate is identical to the output frame rate. To include timecodes in this output, set Timecode insertion to PIC_TIMING_SEI. To leave them out, set it to DISABLED. Default is DISABLED. When the service inserts timecodes in an output, by default, it uses any embedded timecodes from the input. If none are present, the service will set the timecode for the first output frame to zero. To change this default behavior, adjust the settings under Timecode configuration. In the console, these settings are located under Job > Job settings > Timecode configuration. Note - Timecode source under input settings does not affect the timecodes that are inserted in the output. Source under Job settings > Timecode configuration does."
+        },
+        "TimecodeTrack": {
+          "shape": "TimecodeTrack",
+          "locationName": "timecodeTrack",
+          "documentation": "To include a timecode track in your MP4 output: Choose Enabled. MediaConvert writes the timecode track in the Null Media Header box (NMHD), without any timecode text formatting information. You can also specify dropframe or non-dropframe timecode under the Drop Frame Timecode setting. To not include a timecode track: Keep the default value, Disabled."
         },
         "VideoPreprocessors": {
           "shape": "VideoPreprocessor",
@@ -14432,6 +14589,12 @@
         "shape": "QueueTransition"
       }
     },
+    "__listOfServiceOverride": {
+      "type": "list",
+      "member": {
+        "shape": "ServiceOverride"
+      }
+    },
     "__listOfTeletextPageType": {
       "type": "list",
       "member": {
@@ -14543,6 +14706,15 @@
         "shape": "CaptionSelector"
       }
     },
+    "__mapOfDynamicAudioSelector": {
+      "type": "map",
+      "key": {
+        "shape": "__string"
+      },
+      "value": {
+        "shape": "DynamicAudioSelector"
+      }
+    },
     "__mapOf__string": {
       "type": "map",
       "key": {
@@ -14558,6 +14730,19 @@
     "__stringMax1000": {
       "type": "string",
       "max": 1000
+    },
+    "__stringMax2048": {
+      "type": "string",
+      "max": 2048
+    },
+    "__stringMax2048PatternS3Https": {
+      "type": "string",
+      "max": 2048,
+      "pattern": "^s3://([^\\/]+\\/+)+((([^\\/]*)))|^https?://[^\\/].*[^&]$"
+    },
+    "__stringMax256": {
+      "type": "string",
+      "max": 256
     },
     "__stringMin0": {
       "type": "string",
@@ -14619,6 +14804,12 @@
       "min": 1,
       "max": 20
     },
+    "__stringMin1Max2048PatternArnAZSecretsmanagerWD12SecretAZAZ09": {
+      "type": "string",
+      "min": 1,
+      "max": 2048,
+      "pattern": "^(arn:[a-z-]+:secretsmanager:[\\w-]+:\\d{12}:secret:)?[a-zA-Z0-9_\\/_+=.@-]*$"
+    },
     "__stringMin1Max256": {
       "type": "string",
       "min": 1,
@@ -14633,12 +14824,6 @@
       "type": "string",
       "min": 1,
       "max": 50,
-      "pattern": "^[a-zA-Z0-9_\\/_+=.@-]*$"
-    },
-    "__stringMin1Max512PatternAZAZ09": {
-      "type": "string",
-      "min": 1,
-      "max": 512,
       "pattern": "^[a-zA-Z0-9_\\/_+=.@-]*$"
     },
     "__stringMin24Max512PatternAZaZ0902": {

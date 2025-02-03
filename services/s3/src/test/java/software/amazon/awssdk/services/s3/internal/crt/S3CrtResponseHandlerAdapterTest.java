@@ -23,10 +23,14 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER_ALTERNATE;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
@@ -43,6 +47,7 @@ import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @RunWith(MockitoJUnitRunner.class)
 public class S3CrtResponseHandlerAdapterTest {
@@ -152,6 +157,31 @@ public class S3CrtResponseHandlerAdapterTest {
         assertThat(actualException).isInstanceOf(SdkClientException.class).hasMessageContaining(message);
         assertThat(future).isCompletedExceptionally();
         assertThatThrownBy(() -> future.join()).hasRootCauseInstanceOf(SdkClientException.class).hasMessageContaining(message);
+        verify(s3MetaRequest).close();
+    }
+
+    @Test
+    public void requestFailedMidwayDueToServerError_shouldCompleteFutureWithS3Exceptionally() {
+        responseHandlerAdapter.onResponseHeaders(200, new HttpHeader[0]);
+        responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld".getBytes(StandardCharsets.UTF_8)), 0, 0);
+
+        S3FinishedResponseContext errorContext = stubResponseContext(1, 404, "".getBytes());
+        List<HttpHeader> headers = new ArrayList<>();
+        headers.add(new HttpHeader(X_AMZN_REQUEST_ID_HEADER_ALTERNATE, "1234"));
+        headers.add(new HttpHeader(X_AMZ_ID_2_HEADER, "5678"));
+
+        when(errorContext.getErrorHeaders()).thenReturn(headers.toArray(new HttpHeader[0]));
+
+        responseHandlerAdapter.onFinished(errorContext);
+        Throwable actualException = sdkResponseHandler.error;
+        assertThat(actualException).isInstanceOf(S3Exception.class);
+
+        assertThat(((S3Exception) actualException).statusCode()).isEqualTo(404);
+        assertThat(((S3Exception) actualException).requestId()).isEqualTo("1234");
+        assertThat(((S3Exception) actualException).extendedRequestId()).isEqualTo("5678");
+
+        assertThatThrownBy(() -> future.join()).hasRootCause(actualException);
+        assertThat(future).isCompletedExceptionally();
         verify(s3MetaRequest).close();
     }
 

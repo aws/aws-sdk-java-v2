@@ -72,12 +72,14 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     private final JsonMarshallerContext marshallerContext;
     private final boolean hasEventStreamingInput;
     private final boolean hasEvent;
+    private final boolean hasAwsQueryCompatible;
 
     JsonProtocolMarshaller(URI endpoint,
                            StructuredJsonGenerator jsonGenerator,
                            String contentType,
                            OperationInfo operationInfo,
-                           AwsJsonProtocolMetadata protocolMetadata) {
+                           AwsJsonProtocolMetadata protocolMetadata,
+                           boolean hasAwsQueryCompatible) {
         this.endpoint = endpoint;
         this.jsonGenerator = jsonGenerator;
         this.contentType = contentType;
@@ -88,6 +90,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         this.hasEventStreamingInput = operationInfo.hasEventStreamingInput();
         this.hasEvent = operationInfo.hasEvent();
         this.request = fillBasicRequestParams(operationInfo);
+        this.hasAwsQueryCompatible = hasAwsQueryCompatible;
         this.marshallerContext = JsonMarshallerContext.builder()
                                                       .jsonGenerator(jsonGenerator)
                                                       .marshallerRegistry(MARSHALLER_REGISTRY)
@@ -280,7 +283,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 if (protocol == AwsJsonProtocol.AWS_JSON) {
                     // For RPC formats, this content type will later be pushed down into the `initial-event` in the body
                     request.putHeader(CONTENT_TYPE, contentType);
-                } else if (protocol == AwsJsonProtocol.REST_JSON) {
+                } else if (protocol == AwsJsonProtocol.REST_JSON || protocol == AwsJsonProtocol.SMITHY_RPC_V2_CBOR) {
                     request.putHeader(CONTENT_TYPE, MIMETYPE_EVENT_STREAM);
                 } else {
                     throw new IllegalArgumentException("Unknown AwsJsonProtocol: " + protocol);
@@ -290,6 +293,10 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             } else if (contentType != null && !hasStreamingInput && request.firstMatchingHeader(CONTENT_LENGTH).isPresent()) {
                 request.putHeader(CONTENT_TYPE, contentType);
             }
+        }
+
+        if (hasAwsQueryCompatible) {
+            request.putHeader("x-amzn-query-mode", "true");
         }
 
         return request.build();

@@ -50,6 +50,17 @@
       },
       "input":{"shape":"WithOperationContextParam"}
     },
+    "OperationWithMapOperationContextParam": {
+      "name": "OperationWithMapOperationContextParam",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "operationContextParams":{
+        "arnList":{"path":"keys(RequestMap)"}
+      },
+      "input":{"shape":"WithMapOperationContextParam"}
+    },
     "OperationWithStaticContextParams": {
       "name": "OperationWithStaticContextParams",
       "http": {
@@ -229,6 +240,27 @@
         }
       }
     },
+    "WithMapOperationContextParam": {
+      "type": "structure",
+      "members": {
+        "OperationWithMapOperationContextParam":{
+          "shape":"RequestMap"
+        }
+      }
+    },
+    "RequestMap":{
+      "type":"map",
+      "key":{"shape":"LeafString"},
+      "value":{"shape":"AttributeValue"}
+    },
+    "AttributeValue": {
+      "type": "structure",
+      "members": {
+        "S": {
+          "shape": "LeafString"
+        }
+      }
+    },
     "ListMember":{
       "type":"structure",
       "members":{
@@ -391,7 +423,7 @@
         "ChecksumAlgorithm":{
           "shape":"ChecksumAlgorithm",
           "location":"header",
-          "locationName":"x-amz-checksum-algorithm"
+          "locationName":"x-amz-sdk-checksum-algorithm"
         }
       },
       "payload":"Body"
@@ -409,7 +441,7 @@
         "ChecksumAlgorithm":{
           "shape":"ChecksumAlgorithm",
           "location":"header",
-          "locationName":"x-amz-checksum-algorithm"
+          "locationName":"x-amz-sdk-checksum-algorithm"
         }
       },
       "payload":"Body"

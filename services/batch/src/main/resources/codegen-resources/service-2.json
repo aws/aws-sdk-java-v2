@@ -1742,6 +1742,11 @@
       },
       "documentation":"<p>The properties for a task definition that describes the container and volume definitions of an Amazon ECS task. You can specify which Docker images to use, the required resources, and other configurations related to launching the task definition through an Amazon ECS service or task.</p>"
     },
+    "EksAnnotationsMap":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"String"}
+    },
     "EksAttemptContainerDetail":{
       "type":"structure",
       "members":{
@@ -2037,6 +2042,10 @@
           "shape":"String",
           "documentation":"<p>The path on the container where the volume is mounted.</p>"
         },
+        "subPath":{
+          "shape":"String",
+          "documentation":"<p>A sub-path inside the referenced volume instead of its root.</p>"
+        },
         "readOnly":{
           "shape":"Boolean",
           "documentation":"<p>If this value is <code>true</code>, the container has read-only access to the volume. Otherwise, the container can write to the volume. The default value is <code>false</code>.</p>"
@@ -2092,9 +2101,32 @@
         "labels":{
           "shape":"EksLabelsMap",
           "documentation":"<p>Key-value pairs used to identify, sort, and organize cube resources. Can contain up to 63 uppercase letters, lowercase letters, numbers, hyphens (-), and underscores (_). Labels can be added or modified at any time. Each resource can have multiple labels, but each key must be unique for a given object.</p>"
+        },
+        "annotations":{
+          "shape":"EksAnnotationsMap",
+          "documentation":"<p>Key-value pairs used to attach arbitrary, non-identifying metadata to Kubernetes objects. Valid annotation keys have two segments: an optional prefix and a name, separated by a slash (/). </p> <ul> <li> <p>The prefix is optional and must be 253 characters or less. If specified, the prefix must be a DNS subdomain− a series of DNS labels separated by dots (.), and it must end with a slash (/).</p> </li> <li> <p>The name segment is required and must be 63 characters or less. It can include alphanumeric characters ([a-z0-9A-Z]), dashes (-), underscores (_), and dots (.), but must begin and end with an alphanumeric character.</p> </li> </ul> <note> <p>Annotation values must be 255 characters or less.</p> </note> <p>Annotations can be added or modified at any time. Each resource can have multiple annotations. </p>"
+        },
+        "namespace":{
+          "shape":"String",
+          "documentation":"<p>The namespace of the Amazon EKS cluster. In Kubernetes, namespaces provide a mechanism for isolating groups of resources within a single cluster. Names of resources need to be unique within a namespace, but not across namespaces. Batch places Batch Job pods in this namespace. If this field is provided, the value can't be empty or null. It must meet the following requirements:</p> <ul> <li> <p>1-63 characters long</p> </li> <li> <p>Can't be set to default</p> </li> <li> <p>Can't start with <code>kube</code> </p> </li> <li> <p>Must match the following regular expression: <code>^[a-z0-9]([-a-z0-9]*[a-z0-9])?$</code> </p> </li> </ul> <p> For more information, see <a href=\"https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/\">Namespaces</a> in the <i>Kubernetes documentation</i>. This namespace can be different from the <code>kubernetesNamespace</code> set in the compute environment's <code>EksConfiguration</code>, but must have identical role-based access control (RBAC) roles as the compute environment's <code>kubernetesNamespace</code>. For multi-node parallel jobs, the same value must be provided across all the node ranges.</p>"
         }
       },
-      "documentation":"<p>Describes and uniquely identifies Kubernetes resources. For example, the compute environment that a pod runs in or the <code>jobID</code> for a job running in the pod. For more information, see <a href=\"https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/\">Understanding Kubernetes Objects</a> in the <i>Kubernetes documentation</i>.</p>"
+      "documentation":"<p>Describes and uniquely identifies Kubernetes resources. For example, the compute environment that a pod runs in or the <code>jobID</code> for a job running in the pod. For more information, see <a href=\"https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/\"> Understanding Kubernetes Objects</a> in the <i>Kubernetes documentation</i>.</p>"
+    },
+    "EksPersistentVolumeClaim":{
+      "type":"structure",
+      "required":["claimName"],
+      "members":{
+        "claimName":{
+          "shape":"String",
+          "documentation":"<p>The name of the <code>persistentVolumeClaim</code> bounded to a <code>persistentVolume</code>. For more information, see <a href=\"https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims\"> Persistent Volume Claims</a> in the <i>Kubernetes documentation</i>.</p>"
+        },
+        "readOnly":{
+          "shape":"Boolean",
+          "documentation":"<p>An optional boolean value indicating if the mount is read only. Default is false. For more information, see <a href=\"https://kubernetes.io/docs/concepts/storage/volumes/#read-only-mounts\"> Read Only Mounts</a> in the <i>Kubernetes documentation</i>.</p>"
+        }
+      },
+      "documentation":"<p>A <code>persistentVolumeClaim</code> volume is used to mount a <a href=\"https://kubernetes.io/docs/concepts/storage/persistent-volumes/\">PersistentVolume</a> into a Pod. PersistentVolumeClaims are a way for users to \"claim\" durable storage without knowing the details of the particular cloud environment. See the information about <a href=\"https://kubernetes.io/docs/concepts/storage/persistent-volumes/\">PersistentVolumes</a> in the <i>Kubernetes documentation</i>.</p>"
     },
     "EksPodProperties":{
       "type":"structure",
@@ -2275,6 +2307,10 @@
         "secret":{
           "shape":"EksSecret",
           "documentation":"<p>Specifies the configuration of a Kubernetes <code>secret</code> volume. For more information, see <a href=\"https://kubernetes.io/docs/concepts/storage/volumes/#secret\">secret</a> in the <i>Kubernetes documentation</i>.</p>"
+        },
+        "persistentVolumeClaim":{
+          "shape":"EksPersistentVolumeClaim",
+          "documentation":"<p>Specifies the configuration of a Kubernetes <code>persistentVolumeClaim</code> bounded to a <code>persistentVolume</code>. For more information, see <a href=\"https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims\"> Persistent Volume Claims</a> in the <i>Kubernetes documentation</i>.</p>"
         }
       },
       "documentation":"<p>Specifies an Amazon EKS volume for a job definition.</p>"
@@ -2330,7 +2366,7 @@
       "members":{
         "shareDecaySeconds":{
           "shape":"Integer",
-          "documentation":"<p>The amount of time (in seconds) to use to calculate a fair share percentage for each fair share identifier in use. A value of zero (0) indicates that only current usage is measured. The decay allows for more recently run jobs to have more weight than jobs that ran earlier. The maximum supported value is 604800 (1 week).</p>"
+          "documentation":"<p>The amount of time (in seconds) to use to calculate a fair share percentage for each fair share identifier in use. A value of zero (0) indicates the default minimum time window (600 seconds). The maximum supported value is 604800 (1 week).</p> <p>The decay allows for more recently run jobs to have more weight than jobs that ran earlier. Consider adjusting this number if you have jobs that (on average) run longer than ten minutes, or a large difference in job count or job run times between share identifiers, and the allocation of resources doesn’t meet your needs.</p>"
         },
         "computeReservation":{
           "shape":"Integer",
@@ -2743,7 +2779,7 @@
         },
         "priority":{
           "shape":"Integer",
-          "documentation":"<p>The priority of the job queue. Job queues with a higher priority (or a higher integer value for the <code>priority</code> parameter) are evaluated first when associated with the same compute environment. Priority is determined in descending order. For example, a job queue with a priority value of <code>10</code> is given scheduling preference over a job queue with a priority value of <code>1</code>. All of the compute environments must be either Amazon EC2 (<code>EC2</code> or <code>SPOT</code>) or Fargate (<code>FARGATE</code> or <code>FARGATE_SPOT</code>). Amazon EC2 and Fargate compute environments can't be mixed.</p>"
+          "documentation":"<p>The priority of the job queue. Job queue priority determines the order that job queues are evaluated when multiple queues dispatch jobs within a shared compute environment. A higher value for <code>priority</code> indicates a higher priority. Queues are evaluated in cycles, in descending order by priority. For example, a job queue with a priority value of <code>10</code> is evaluated before a queue with a priority value of <code>1</code>. All of the compute environments must be either Amazon EC2 (<code>EC2</code> or <code>SPOT</code>) or Fargate (<code>FARGATE</code> or <code>FARGATE_SPOT</code>). Amazon EC2 and Fargate compute environments can't be mixed.</p> <note> <p>Job queue priority doesn't guarantee that a particular job executes before a job in a lower priority queue. Jobs added to higher priority queues during the queue evaluation cycle might not be evaluated until the next cycle. A job is dispatched from a queue only if resources are available when the queue is evaluated. If there are insufficient resources available at that time, the cycle proceeds to the next queue. This means that jobs added to higher priority queues might have to wait for jobs in multiple lower priority queues to complete before they are dispatched. You can use job dependencies to control the order for jobs from queues with different priorities. For more information, see <a href=\"https://docs.aws.amazon.com/batch/latest/userguide/job_dependencies.html\">Job Dependencies</a> in the <i>Batch User Guide</i>.</p> </note>"
         },
         "computeEnvironmentOrder":{
           "shape":"ComputeEnvironmentOrders",
@@ -2960,7 +2996,7 @@
         },
         "targetInstanceTypes":{
           "shape":"StringList",
-          "documentation":"<p>The instance type or family that this this override launch template should be applied to.</p> <p>This parameter is required when defining a launch template override.</p> <p>Information included in this parameter must meet the following requirements:</p> <ul> <li> <p>Must be a valid Amazon EC2 instance type or family.</p> </li> <li> <p> <code>optimal</code> isn't allowed.</p> </li> <li> <p> <code>targetInstanceTypes</code> can target only instance types and families that are included within the <a href=\"https://docs.aws.amazon.com/batch/latest/APIReference/API_ComputeResource.html#Batch-Type-ComputeResource-instanceTypes\"> <code>ComputeResource.instanceTypes</code> </a> set. <code>targetInstanceTypes</code> doesn't need to include all of the instances from the <code>instanceType</code> set, but at least a subset. For example, if <code>ComputeResource.instanceTypes</code> includes <code>[m5, g5]</code>, <code>targetInstanceTypes</code> can include <code>[m5.2xlarge]</code> and <code>[m5.large]</code> but not <code>[c5.large]</code>.</p> </li> <li> <p> <code>targetInstanceTypes</code> included within the same launch template override or across launch template overrides can't overlap for the same compute environment. For example, you can't define one launch template override to target an instance family and another define an instance type within this same family.</p> </li> </ul>"
+          "documentation":"<p>The instance type or family that this override launch template should be applied to.</p> <p>This parameter is required when defining a launch template override.</p> <p>Information included in this parameter must meet the following requirements:</p> <ul> <li> <p>Must be a valid Amazon EC2 instance type or family.</p> </li> <li> <p> <code>optimal</code> isn't allowed.</p> </li> <li> <p> <code>targetInstanceTypes</code> can target only instance types and families that are included within the <a href=\"https://docs.aws.amazon.com/batch/latest/APIReference/API_ComputeResource.html#Batch-Type-ComputeResource-instanceTypes\"> <code>ComputeResource.instanceTypes</code> </a> set. <code>targetInstanceTypes</code> doesn't need to include all of the instances from the <code>instanceType</code> set, but at least a subset. For example, if <code>ComputeResource.instanceTypes</code> includes <code>[m5, g5]</code>, <code>targetInstanceTypes</code> can include <code>[m5.2xlarge]</code> and <code>[m5.large]</code> but not <code>[c5.large]</code>.</p> </li> <li> <p> <code>targetInstanceTypes</code> included within the same launch template override or across launch template overrides can't overlap for the same compute environment. For example, you can't define one launch template override to target an instance family and another define an instance type within this same family.</p> </li> </ul>"
         }
       },
       "documentation":"<p>An object that represents a launch template to use in place of the default launch template. You must specify either the launch template ID or launch template name in the request, but not both.</p> <p>If security groups are specified using both the <code>securityGroupIds</code> parameter of <code>CreateComputeEnvironment</code> and the launch template, the values in the <code>securityGroupIds</code> parameter of <code>CreateComputeEnvironment</code> will be used.</p> <p>You can define up to ten (10) overrides for each compute environment.</p> <note> <p>This object isn't applicable to jobs that are running on Fargate resources.</p> </note> <note> <p>To unset all override templates for a compute environment, you can pass an empty array to the <a href=\"https://docs.aws.amazon.com/batch/latest/APIReference/API_UpdateComputeEnvironment.html\">UpdateComputeEnvironment.overrides</a> parameter, or not include the <code>overrides</code> parameter when submitting the <code>UpdateComputeEnvironment</code> API operation.</p> </note>"
@@ -3931,7 +3967,7 @@
         },
         "environment":{
           "shape":"EnvironmentVariables",
-          "documentation":"<p>The environment variables to pass to a container. This parameter maps to Env inthe <a href=\"https://docs.docker.com/engine/api/v1.23/#create-a-container\">Create a container</a> section of the <a href=\"https://docs.docker.com/engine/api/v1.23/\">Docker Remote API</a> and the <code>--env</code> parameter to <a href=\"https://docs.docker.com/engine/reference/run/\">docker run</a>. </p> <important> <p>We don't recommend using plaintext environment variables for sensitive information, such as credential data.</p> </important> <note> <p>Environment variables cannot start with <code>AWS_BATCH</code>. This naming convention is reserved for variables that Batch sets.</p> </note>"
+          "documentation":"<p>The environment variables to pass to a container. This parameter maps to Env in the <a href=\"https://docs.docker.com/engine/api/v1.23/#create-a-container\">Create a container</a> section of the <a href=\"https://docs.docker.com/engine/api/v1.23/\">Docker Remote API</a> and the <code>--env</code> parameter to <a href=\"https://docs.docker.com/engine/reference/run/\">docker run</a>. </p> <important> <p>We don't recommend using plaintext environment variables for sensitive information, such as credential data.</p> </important> <note> <p>Environment variables cannot start with <code>AWS_BATCH</code>. This naming convention is reserved for variables that Batch sets.</p> </note>"
         },
         "essential":{
           "shape":"Boolean",

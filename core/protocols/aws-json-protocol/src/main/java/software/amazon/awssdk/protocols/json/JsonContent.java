@@ -16,14 +16,13 @@
 package software.amazon.awssdk.protocols.json;
 
 import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Simple struct like class to hold both the raw json string content and it's parsed JsonNode
@@ -32,7 +31,7 @@ import software.amazon.awssdk.utils.IoUtils;
 //TODO Do we need this? It isn't well encapsulated because of storing non-copied arrays.
 public class JsonContent {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JsonContent.class);
+    private static final Logger LOG = Logger.loggerFor(JsonContent.class);
 
     private final byte[] rawContent;
     private final JsonNode jsonNode;
@@ -58,7 +57,7 @@ public class JsonContent {
             try {
                 return IoUtils.toByteArray(c);
             } catch (IOException e) {
-                LOG.debug("Unable to read HTTP response content", e);
+                LOG.debug(() -> "Unable to read HTTP response content", e);
             }
             return null;
         }).orElse(null);
@@ -73,7 +72,7 @@ public class JsonContent {
             JsonNodeParser parser = JsonNodeParser.builder().jsonFactory(jsonFactory).build();
             return parser.parse(rawJsonContent);
         } catch (Exception e) {
-            LOG.debug("Unable to parse HTTP response content", e);
+            LOG.debug(() -> "Unable to parse HTTP response content", e);
             return JsonNode.emptyObjectNode();
         }
     }

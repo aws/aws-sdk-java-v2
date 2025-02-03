@@ -169,7 +169,7 @@
         {"shape":"InvalidRequestException"},
         {"shape":"InternalException"}
       ],
-      "documentation":"<p>Creates a transfer <i>location</i> for a Network File System (NFS) file server. DataSync can use this location as a source or destination for transferring data.</p> <p>Before you begin, make sure that you understand how DataSync <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-nfs-location.html#accessing-nfs\">accesses NFS file servers</a>.</p> <note> <p>If you're copying data to or from an Snowcone device, you can also use <code>CreateLocationNfs</code> to create your transfer location. For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/nfs-on-snowcone.html\">Configuring transfers with Snowcone</a>.</p> </note>"
+      "documentation":"<p>Creates a transfer <i>location</i> for a Network File System (NFS) file server. DataSync can use this location as a source or destination for transferring data.</p> <p>Before you begin, make sure that you understand how DataSync <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-nfs-location.html#accessing-nfs\">accesses NFS file servers</a>.</p>"
     },
     "CreateLocationObjectStorage":{
       "name":"CreateLocationObjectStorage",
@@ -211,7 +211,7 @@
         {"shape":"InvalidRequestException"},
         {"shape":"InternalException"}
       ],
-      "documentation":"<p>Creates a transfer <i>location</i> for a Server Message Block (SMB) file server. DataSync can use this location as a source or destination for transferring data.</p> <p>Before you begin, make sure that you understand how DataSync <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-smb-location.html#configuring-smb\">accesses SMB file servers</a>.</p>"
+      "documentation":"<p>Creates a transfer <i>location</i> for a Server Message Block (SMB) file server. DataSync can use this location as a source or destination for transferring data.</p> <p>Before you begin, make sure that you understand how DataSync accesses SMB file servers. For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-smb-location.html#configuring-smb-permissions\">Providing DataSync access to SMB file servers</a>.</p>"
     },
     "CreateTask":{
       "name":"CreateTask",
@@ -523,7 +523,7 @@
         {"shape":"InvalidRequestException"},
         {"shape":"InternalException"}
       ],
-      "documentation":"<p>Provides information about an execution of your DataSync task. You can use this operation to help monitor the progress of an ongoing data transfer or check the results of the transfer.</p> <note> <p>Some <code>DescribeTaskExecution</code> response elements are only relevant to a specific task mode. For information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/choosing-task-mode.html#task-mode-differences\">Understanding task mode differences</a> and <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/transfer-performance-metrics.html\">Understanding data transfer performance metrics</a>.</p> </note>"
+      "documentation":"<p>Provides information about an execution of your DataSync task. You can use this operation to help monitor the progress of an ongoing data transfer or check the results of the transfer.</p> <note> <p>Some <code>DescribeTaskExecution</code> response elements are only relevant to a specific task mode. For information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/choosing-task-mode.html#task-mode-differences\">Understanding task mode differences</a> and <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/transfer-performance-counters.html\">Understanding data transfer performance counters</a>.</p> </note>"
     },
     "GenerateRecommendations":{
       "name":"GenerateRecommendations",
@@ -768,7 +768,77 @@
         {"shape":"InvalidRequestException"},
         {"shape":"InternalException"}
       ],
-      "documentation":"<p>Modifies some configurations of the Microsoft Azure Blob Storage transfer location that you're using with DataSync.</p>"
+      "documentation":"<p>Modifies the following configurations of the Microsoft Azure Blob Storage transfer location that you're using with DataSync.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/creating-azure-blob-location.html\">Configuring DataSync transfers with Azure Blob Storage</a>.</p>"
+    },
+    "UpdateLocationEfs":{
+      "name":"UpdateLocationEfs",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateLocationEfsRequest"},
+      "output":{"shape":"UpdateLocationEfsResponse"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p>Modifies the following configuration parameters of the Amazon EFS transfer location that you're using with DataSync.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-efs-location.html\">Configuring DataSync transfers with Amazon EFS</a>.</p>"
+    },
+    "UpdateLocationFsxLustre":{
+      "name":"UpdateLocationFsxLustre",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateLocationFsxLustreRequest"},
+      "output":{"shape":"UpdateLocationFsxLustreResponse"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p>Modifies the following configuration parameters of the Amazon FSx for Lustre transfer location that you're using with DataSync.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-lustre-location.html\">Configuring DataSync transfers with FSx for Lustre</a>.</p>"
+    },
+    "UpdateLocationFsxOntap":{
+      "name":"UpdateLocationFsxOntap",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateLocationFsxOntapRequest"},
+      "output":{"shape":"UpdateLocationFsxOntapResponse"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p>Modifies the following configuration parameters of the Amazon FSx for NetApp ONTAP transfer location that you're using with DataSync.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-ontap-location.html\">Configuring DataSync transfers with FSx for ONTAP</a>.</p>"
+    },
+    "UpdateLocationFsxOpenZfs":{
+      "name":"UpdateLocationFsxOpenZfs",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateLocationFsxOpenZfsRequest"},
+      "output":{"shape":"UpdateLocationFsxOpenZfsResponse"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p>Modifies the following configuration parameters of the Amazon FSx for OpenZFS transfer location that you're using with DataSync.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-openzfs-location.html\">Configuring DataSync transfers with FSx for OpenZFS</a>.</p> <note> <p>Request parameters related to <code>SMB</code> aren't supported with the <code>UpdateLocationFsxOpenZfs</code> operation.</p> </note>"
+    },
+    "UpdateLocationFsxWindows":{
+      "name":"UpdateLocationFsxWindows",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateLocationFsxWindowsRequest"},
+      "output":{"shape":"UpdateLocationFsxWindowsResponse"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p>Modifies the following configuration parameters of the Amazon FSx for Windows File Server transfer location that you're using with DataSync.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-fsx-location.html\">Configuring DataSync transfers with FSx for Windows File Server</a>.</p>"
     },
     "UpdateLocationHdfs":{
       "name":"UpdateLocationHdfs",
@@ -782,7 +852,7 @@
         {"shape":"InvalidRequestException"},
         {"shape":"InternalException"}
       ],
-      "documentation":"<p>Updates some parameters of a previously created location for a Hadoop Distributed File System cluster.</p>"
+      "documentation":"<p>Modifies the following configuration parameters of the Hadoop Distributed File System (HDFS) transfer location that you're using with DataSync.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-hdfs-location.html\">Configuring DataSync transfers with an HDFS cluster</a>.</p>"
     },
     "UpdateLocationNfs":{
       "name":"UpdateLocationNfs",
@@ -796,7 +866,7 @@
         {"shape":"InvalidRequestException"},
         {"shape":"InternalException"}
       ],
-      "documentation":"<p>Modifies some configurations of the Network File System (NFS) transfer location that you're using with DataSync.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-nfs-location.html\">Configuring transfers to or from an NFS file server</a>.</p>"
+      "documentation":"<p>Modifies the following configuration parameters of the Network File System (NFS) transfer location that you're using with DataSync.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-nfs-location.html\">Configuring transfers with an NFS file server</a>.</p>"
     },
     "UpdateLocationObjectStorage":{
       "name":"UpdateLocationObjectStorage",
@@ -810,7 +880,21 @@
         {"shape":"InvalidRequestException"},
         {"shape":"InternalException"}
       ],
-      "documentation":"<p>Updates some parameters of an existing DataSync location for an object storage system.</p>"
+      "documentation":"<p>Modifies the following configuration parameters of the object storage transfer location that you're using with DataSync.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-object-location.html\">Configuring DataSync transfers with an object storage system</a>.</p>"
+    },
+    "UpdateLocationS3":{
+      "name":"UpdateLocationS3",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateLocationS3Request"},
+      "output":{"shape":"UpdateLocationS3Response"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"InternalException"}
+      ],
+      "documentation":"<p>Modifies the following configuration parameters of the Amazon S3 transfer location that you're using with DataSync.</p> <important> <p>Before you begin, make sure that you read the following topics:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-s3-location.html#using-storage-classes\">Storage class considerations with Amazon S3 locations</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-s3-location.html#create-s3-location-s3-requests\">Evaluating S3 request costs when using DataSync</a> </p> </li> </ul> </important>"
     },
     "UpdateLocationSmb":{
       "name":"UpdateLocationSmb",
@@ -824,7 +908,7 @@
         {"shape":"InvalidRequestException"},
         {"shape":"InternalException"}
       ],
-      "documentation":"<p>Updates some of the parameters of a Server Message Block (SMB) file server location that you can use for DataSync transfers.</p>"
+      "documentation":"<p>Modifies the following configuration parameters of the Server Message Block (SMB) transfer location that you're using with DataSync.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-smb-location.html\">Configuring DataSync transfers with an SMB file server</a>.</p>"
     },
     "UpdateStorageSystem":{
       "name":"UpdateStorageSystem",
@@ -1180,7 +1264,7 @@
       "members":{
         "Subdirectory":{
           "shape":"EfsSubdirectory",
-          "documentation":"<p>Specifies a mount path for your Amazon EFS file system. This is where DataSync reads or writes data (depending on if this is a source or destination location) on your file system.</p> <p>By default, DataSync uses the root directory (or <a href=\"https://docs.aws.amazon.com/efs/latest/ug/efs-access-points.html\">access point</a> if you provide one by using <code>AccessPointArn</code>). You can also include subdirectories using forward slashes (for example, <code>/path/to/folder</code>).</p>"
+          "documentation":"<p>Specifies a mount path for your Amazon EFS file system. This is where DataSync reads or writes data on your file system (depending on if this is a source or destination location).</p> <p>By default, DataSync uses the root directory (or <a href=\"https://docs.aws.amazon.com/efs/latest/ug/efs-access-points.html\">access point</a> if you provide one by using <code>AccessPointArn</code>). You can also include subdirectories using forward slashes (for example, <code>/path/to/folder</code>).</p>"
         },
         "EfsFilesystemArn":{
           "shape":"EfsFilesystemArn",
@@ -1228,19 +1312,19 @@
       "members":{
         "FsxFilesystemArn":{
           "shape":"FsxFilesystemArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) for the FSx for Lustre file system.</p>"
+          "documentation":"<p>Specifies the Amazon Resource Name (ARN) of the FSx for Lustre file system.</p>"
         },
         "SecurityGroupArns":{
           "shape":"Ec2SecurityGroupArnList",
-          "documentation":"<p>The Amazon Resource Names (ARNs) of the security groups that are used to configure the FSx for Lustre file system.</p>"
+          "documentation":"<p>Specifies the Amazon Resource Names (ARNs) of up to five security groups that provide access to your FSx for Lustre file system.</p> <p>The security groups must be able to access the file system's ports. The file system must also allow access from the security groups. For information about file system access, see the <a href=\"https://docs.aws.amazon.com/fsx/latest/LustreGuide/limit-access-security-groups.html\"> <i>Amazon FSx for Lustre User Guide</i> </a>.</p>"
         },
         "Subdirectory":{
           "shape":"FsxLustreSubdirectory",
-          "documentation":"<p>A subdirectory in the location's path. This subdirectory in the FSx for Lustre file system is used to read data from the FSx for Lustre source location or write data to the FSx for Lustre destination.</p>"
+          "documentation":"<p>Specifies a mount path for your FSx for Lustre file system. The path can include subdirectories.</p> <p>When the location is used as a source, DataSync reads data from the mount path. When the location is used as a destination, DataSync writes data to the mount path. If you don't include this parameter, DataSync uses the file system's root directory (<code>/</code>).</p>"
         },
         "Tags":{
           "shape":"InputTagList",
-          "documentation":"<p>The key-value pair that represents a tag that you want to add to the resource. The value can be an empty string. This value helps you manage, filter, and search for your resources. We recommend that you create a name tag for your location.</p>"
+          "documentation":"<p>Specifies labels that help you categorize, filter, and search for your Amazon Web Services resources. We recommend creating at least a name tag for your location.</p>"
         }
       }
     },
@@ -1249,7 +1333,7 @@
       "members":{
         "LocationArn":{
           "shape":"LocationArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the FSx for Lustre file system location that's created. </p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the FSx for Lustre file system location that you created. </p>"
         }
       }
     },
@@ -1272,7 +1356,7 @@
         },
         "Subdirectory":{
           "shape":"FsxOntapSubdirectory",
-          "documentation":"<p>Specifies a path to the file share in the SVM where you'll copy your data.</p> <p>You can specify a junction path (also known as a mount point), qtree path (for NFS file shares), or share name (for SMB file shares). For example, your mount path might be <code>/vol1</code>, <code>/vol1/tree1</code>, or <code>/share1</code>.</p> <note> <p>Don't specify a junction path in the SVM's root volume. For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/managing-svms.html\">Managing FSx for ONTAP storage virtual machines</a> in the <i>Amazon FSx for NetApp ONTAP User Guide</i>.</p> </note>"
+          "documentation":"<p>Specifies a path to the file share in the SVM where you want to transfer data to or from.</p> <p>You can specify a junction path (also known as a mount point), qtree path (for NFS file shares), or share name (for SMB file shares). For example, your mount path might be <code>/vol1</code>, <code>/vol1/tree1</code>, or <code>/share1</code>.</p> <note> <p>Don't specify a junction path in the SVM's root volume. For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/managing-svms.html\">Managing FSx for ONTAP storage virtual machines</a> in the <i>Amazon FSx for NetApp ONTAP User Guide</i>.</p> </note>"
         },
         "Tags":{
           "shape":"InputTagList",
@@ -1359,7 +1443,7 @@
         },
         "Domain":{
           "shape":"SmbDomain",
-          "documentation":"<p>Specifies the name of the Microsoft Active Directory domain that the FSx for Windows File Server file system belongs to.</p> <p>If you have multiple Active Directory domains in your environment, configuring this parameter makes sure that DataSync connects to the right file system.</p>"
+          "documentation":"<p>Specifies the name of the Windows domain that the FSx for Windows File Server file system belongs to.</p> <p>If you have multiple Active Directory domains in your environment, configuring this parameter makes sure that DataSync connects to the right file system.</p>"
         },
         "Password":{
           "shape":"SmbPassword",
@@ -1595,30 +1679,28 @@
       "required":[
         "Subdirectory",
         "ServerHostname",
-        "User",
-        "Password",
         "AgentArns"
       ],
       "members":{
         "Subdirectory":{
           "shape":"SmbSubdirectory",
-          "documentation":"<p>Specifies the name of the share exported by your SMB file server where DataSync will read or write data. You can include a subdirectory in the share path (for example, <code>/path/to/subdirectory</code>). Make sure that other SMB clients in your network can also mount this path.</p> <p>To copy all data in the subdirectory, DataSync must be able to mount the SMB share and access all of its data. For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-smb-location.html#configuring-smb-permissions\">required permissions</a> for SMB locations.</p>"
+          "documentation":"<p>Specifies the name of the share exported by your SMB file server where DataSync will read or write data. You can include a subdirectory in the share path (for example, <code>/path/to/subdirectory</code>). Make sure that other SMB clients in your network can also mount this path.</p> <p>To copy all data in the subdirectory, DataSync must be able to mount the SMB share and access all of its data. For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-smb-location.html#configuring-smb-permissions\">Providing DataSync access to SMB file servers</a>.</p>"
         },
         "ServerHostname":{
           "shape":"ServerHostname",
-          "documentation":"<p>Specifies the Domain Name Service (DNS) name or IP address of the SMB file server that your DataSync agent will mount.</p> <note> <p>You can't specify an IP version 6 (IPv6) address.</p> </note>"
+          "documentation":"<p>Specifies the domain name or IP address of the SMB file server that your DataSync agent will mount.</p> <p>Remember the following when configuring this parameter:</p> <ul> <li> <p>You can't specify an IP version 6 (IPv6) address.</p> </li> <li> <p>If you're using Kerberos authentication, you must specify a domain name.</p> </li> </ul>"
         },
         "User":{
           "shape":"SmbUser",
-          "documentation":"<p>Specifies the user that can mount and access the files, folders, and file metadata in your SMB file server.</p> <p>For information about choosing a user with the right level of access for your transfer, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-smb-location.html#configuring-smb-permissions\">required permissions</a> for SMB locations.</p>"
+          "documentation":"<p>Specifies the user that can mount and access the files, folders, and file metadata in your SMB file server. This parameter applies only if <code>AuthenticationType</code> is set to <code>NTLM</code>.</p> <p>For information about choosing a user with the right level of access for your transfer, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-smb-location.html#configuring-smb-permissions\">Providing DataSync access to SMB file servers</a>.</p>"
         },
         "Domain":{
           "shape":"SmbDomain",
-          "documentation":"<p>Specifies the name of the Active Directory domain that your SMB file server belongs to. </p> <p>If you have multiple Active Directory domains in your environment, configuring this parameter makes sure that DataSync connects to the right file server.</p>"
+          "documentation":"<p>Specifies the Windows domain name that your SMB file server belongs to. This parameter applies only if <code>AuthenticationType</code> is set to <code>NTLM</code>.</p> <p>If you have multiple domains in your environment, configuring this parameter makes sure that DataSync connects to the right file server.</p>"
         },
         "Password":{
           "shape":"SmbPassword",
-          "documentation":"<p>Specifies the password of the user who can mount your SMB file server and has permission to access the files and folders involved in your transfer.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-smb-location.html#configuring-smb-permissions\">required permissions</a> for SMB locations.</p>"
+          "documentation":"<p>Specifies the password of the user who can mount your SMB file server and has permission to access the files and folders involved in your transfer. This parameter applies only if <code>AuthenticationType</code> is set to <code>NTLM</code>.</p>"
         },
         "AgentArns":{
           "shape":"AgentArnList",
@@ -1631,6 +1713,26 @@
         "Tags":{
           "shape":"InputTagList",
           "documentation":"<p>Specifies labels that help you categorize, filter, and search for your Amazon Web Services resources. We recommend creating at least a name tag for your location.</p>"
+        },
+        "AuthenticationType":{
+          "shape":"SmbAuthenticationType",
+          "documentation":"<p>Specifies the authentication protocol that DataSync uses to connect to your SMB file server. DataSync supports <code>NTLM</code> (default) and <code>KERBEROS</code> authentication.</p>"
+        },
+        "DnsIpAddresses":{
+          "shape":"DnsIpList",
+          "documentation":"<p>Specifies the IPv4 addresses for the DNS servers that your SMB file server belongs to. This parameter applies only if <code>AuthenticationType</code> is set to <code>KERBEROS</code>.</p> <p>If you have multiple domains in your environment, configuring this parameter makes sure that DataSync connects to the right SMB file server.</p>"
+        },
+        "KerberosPrincipal":{
+          "shape":"KerberosPrincipal",
+          "documentation":"<p>Specifies a service principal name (SPN), which is an identity in your Kerberos realm that has permission to access the files, folders, and file metadata in your SMB file server.</p> <p>SPNs are case sensitive and must include a prepended <code>cifs/</code>. For example, an SPN might look like <code>cifs/kerberosuser@EXAMPLE.COM</code>.</p> <p>Your task execution will fail if the SPN that you provide for this parameter doesn’t match what’s exactly in your keytab or <code>krb5.conf</code> files. </p>"
+        },
+        "KerberosKeytab":{
+          "shape":"KerberosKeytabFile",
+          "documentation":"<p>Specifies your Kerberos key table (keytab) file, which includes mappings between your service principal name (SPN) and encryption keys.</p> <p>You can specify the keytab using a file path (for example, <code>file://path/to/file.keytab</code>). The file must be base64 encoded. If you're using the CLI, the encoding is done for you.</p> <p>To avoid task execution errors, make sure that the SPN in the keytab file matches exactly what you specify for <code>KerberosPrincipal</code> and in your <code>krb5.conf</code> file. </p>"
+        },
+        "KerberosKrb5Conf":{
+          "shape":"KerberosKrb5ConfFile",
+          "documentation":"<p>Specifies a Kerberos configuration file (<code>krb5.conf</code>) that defines your Kerberos realm configuration.</p> <p>You can specify the <code>krb5.conf</code> using a file path (for example, <code>file://path/to/krb5.conf</code>). The file must be base64 encoded. If you're using the CLI, the encoding is done for you.</p> <p>To avoid task execution errors, make sure that the service principal name (SPN) in the <code>krb5.conf</code> file matches exactly what you specify for <code>KerberosPrincipal</code> and in your keytab file.</p>"
         }
       },
       "documentation":"<p>CreateLocationSmbRequest</p>"
@@ -1698,7 +1800,7 @@
         },
         "TaskMode":{
           "shape":"TaskMode",
-          "documentation":"<p>Specifies one of the following task modes for your data transfer:</p> <ul> <li> <p> <code>ENHANCED</code> - Transfer virtually unlimited numbers of objects with enhanced metrics, more detailed logs, and higher performance than Basic mode. Currently available for transfers between Amazon S3 locations.</p> <note> <p>To create an Enhanced mode task, the IAM role that you use to call the <code>CreateTask</code> operation must have the <code>iam:CreateServiceLinkedRole</code> permission.</p> </note> </li> <li> <p> <code>BASIC</code> (default) - Transfer files or objects between Amazon Web Services storage and on-premises, edge, or other cloud storage. DataSync <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/datasync-limits.html\">quotas</a> apply.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/choosing-task-mode.html#task-mode-differences\">Understanding task mode differences</a>.</p>"
+          "documentation":"<p>Specifies one of the following task modes for your data transfer:</p> <ul> <li> <p> <code>ENHANCED</code> - Transfer virtually unlimited numbers of objects with higher performance than Basic mode. Enhanced mode tasks optimize the data transfer process by listing, preparing, transferring, and verifying data in parallel. Enhanced mode is currently available for transfers between Amazon S3 locations.</p> <note> <p>To create an Enhanced mode task, the IAM role that you use to call the <code>CreateTask</code> operation must have the <code>iam:CreateServiceLinkedRole</code> permission.</p> </note> </li> <li> <p> <code>BASIC</code> (default) - Transfer files or objects between Amazon Web Services storage and all other supported DataSync locations. Basic mode tasks are subject to <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/datasync-limits.html\">quotas</a> on the number of files, objects, and directories in a dataset. Basic mode sequentially prepares, transfers, and verifies data, making it slower than Enhanced mode for most workloads.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/choosing-task-mode.html#task-mode-differences\">Understanding task mode differences</a>.</p>"
         }
       },
       "documentation":"<p>CreateTaskRequest</p>"
@@ -2309,19 +2411,31 @@
         },
         "User":{
           "shape":"SmbUser",
-          "documentation":"<p>The user that can mount and access the files, folders, and file metadata in your SMB file server.</p>"
+          "documentation":"<p>The user that can mount and access the files, folders, and file metadata in your SMB file server. This element applies only if <code>AuthenticationType</code> is set to <code>NTLM</code>.</p>"
         },
         "Domain":{
           "shape":"SmbDomain",
-          "documentation":"<p>The name of the Microsoft Active Directory domain that the SMB file server belongs to.</p>"
+          "documentation":"<p>The name of the Windows domain that the SMB file server belongs to. This element applies only if <code>AuthenticationType</code> is set to <code>NTLM</code>.</p>"
         },
         "MountOptions":{
           "shape":"SmbMountOptions",
-          "documentation":"<p>The protocol that DataSync use to access your SMB file.</p>"
+          "documentation":"<p>The SMB protocol version that DataSync uses to access your SMB file server.</p>"
         },
         "CreationTime":{
           "shape":"Time",
           "documentation":"<p>The time that the SMB location was created.</p>"
+        },
+        "DnsIpAddresses":{
+          "shape":"DnsIpList",
+          "documentation":"<p>The IPv4 addresses for the DNS servers that your SMB file server belongs to. This element applies only if <code>AuthenticationType</code> is set to <code>KERBEROS</code>.</p>"
+        },
+        "KerberosPrincipal":{
+          "shape":"KerberosPrincipal",
+          "documentation":"<p>The Kerberos service principal name (SPN) that has permission to access the files, folders, and file metadata in your SMB file server.</p>"
+        },
+        "AuthenticationType":{
+          "shape":"SmbAuthenticationType",
+          "documentation":"<p>The authentication protocol that DataSync uses to connect to your SMB file server.</p>"
         }
       },
       "documentation":"<p>DescribeLocationSmbResponse</p>"
@@ -2519,7 +2633,7 @@
         },
         "EstimatedFilesToTransfer":{
           "shape":"long",
-          "documentation":"<p>The number of files, objects, and directories that DataSync expects to transfer over the network. This value is calculated during the task execution's <code>PREPARING</code> <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/run-task.html#understand-task-execution-statuses\">step</a> before the <code>TRANSFERRING</code> step.</p> <p>How this gets calculated depends primarily on your task’s <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/API_Options.html#DataSync-Type-Options-TransferMode\">transfer mode</a> configuration:</p> <ul> <li> <p>If <code>TranserMode</code> is set to <code>CHANGED</code> - The calculation is based on comparing the content of the source and destination locations and determining the difference that needs to be transferred. The difference can include:</p> <ul> <li> <p>Anything that's added or modified at the source location.</p> </li> <li> <p>Anything that's in both locations and modified at the destination after an initial transfer (unless <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/API_Options.html#DataSync-Type-Options-OverwriteMode\">OverwriteMode</a> is set to <code>NEVER</code>).</p> </li> <li> <p> <b>(Basic task mode only)</b> The number of items that DataSync expects to delete (if <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/API_Options.html#DataSync-Type-Options-PreserveDeletedFiles\">PreserveDeletedFiles</a> is set to <code>REMOVE</code>).</p> </li> </ul> </li> <li> <p>If <code>TranserMode</code> is set to <code>ALL</code> - The calculation is based only on the items that DataSync finds at the source location.</p> </li> </ul>"
+          "documentation":"<p>The number of files, objects, and directories that DataSync expects to transfer over the network. This value is calculated while DataSync <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/run-task.html#understand-task-execution-statuses\">prepares</a> the transfer.</p> <p>How this gets calculated depends primarily on your task’s <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/API_Options.html#DataSync-Type-Options-TransferMode\">transfer mode</a> configuration:</p> <ul> <li> <p>If <code>TranserMode</code> is set to <code>CHANGED</code> - The calculation is based on comparing the content of the source and destination locations and determining the difference that needs to be transferred. The difference can include:</p> <ul> <li> <p>Anything that's added or modified at the source location.</p> </li> <li> <p>Anything that's in both locations and modified at the destination after an initial transfer (unless <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/API_Options.html#DataSync-Type-Options-OverwriteMode\">OverwriteMode</a> is set to <code>NEVER</code>).</p> </li> <li> <p> <b>(Basic task mode only)</b> The number of items that DataSync expects to delete (if <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/API_Options.html#DataSync-Type-Options-PreserveDeletedFiles\">PreserveDeletedFiles</a> is set to <code>REMOVE</code>).</p> </li> </ul> </li> <li> <p>If <code>TranserMode</code> is set to <code>ALL</code> - The calculation is based only on the items that DataSync finds at the source location.</p> </li> </ul>"
         },
         "EstimatedBytesToTransfer":{
           "shape":"long",
@@ -2527,7 +2641,7 @@
         },
         "FilesTransferred":{
           "shape":"long",
-          "documentation":"<p>The number of files, objects, and directories that DataSync actually transfers over the network. This value is updated periodically during the task execution's <code>TRANSFERRING</code> <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/run-task.html#understand-task-execution-statuses\">step</a> when something is read from the source and sent over the network.</p> <p>If DataSync fails to transfer something, this value can be less than <code>EstimatedFilesToTransfer</code>. In some cases, this value can also be greater than <code>EstimatedFilesToTransfer</code>. This element is implementation-specific for some location types, so don't use it as an exact indication of what's transferring or to monitor your task execution.</p>"
+          "documentation":"<p>The number of files, objects, and directories that DataSync actually transfers over the network. This value is updated periodically during your task execution when something is read from the source and sent over the network.</p> <p>If DataSync fails to transfer something, this value can be less than <code>EstimatedFilesToTransfer</code>. In some cases, this value can also be greater than <code>EstimatedFilesToTransfer</code>. This element is implementation-specific for some location types, so don't use it as an exact indication of what's transferring or to monitor your task execution.</p>"
         },
         "BytesWritten":{
           "shape":"long",
@@ -2539,7 +2653,7 @@
         },
         "BytesCompressed":{
           "shape":"long",
-          "documentation":"<p>The number of physical bytes that DataSync transfers over the network after compression (if compression is possible). This number is typically less than <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/API_DescribeTaskExecution.html#DataSync-DescribeTaskExecution-response-BytesTransferred\">BytesTransferred</a> unless the data isn't compressible.</p> <note> <p>Not currently supported with <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/choosing-task-mode.html\">Enhanced mode tasks</a>.</p> </note>"
+          "documentation":"<p>The number of physical bytes that DataSync transfers over the network after compression (if compression is possible). This number is typically less than <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/API_DescribeTaskExecution.html#DataSync-DescribeTaskExecution-response-BytesTransferred\">BytesTransferred</a> unless the data isn't compressible.</p>"
         },
         "Result":{
           "shape":"TaskExecutionResultDetail",
@@ -2551,7 +2665,7 @@
         },
         "FilesDeleted":{
           "shape":"long",
-          "documentation":"<p>The number of files, objects, and directories that DataSync actually deletes in your destination location. If you don't <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/configure-metadata.html\">configure your task</a> to delete data in the destination that isn't in the source, the value is always <code>0</code>.</p>"
+          "documentation":"<p>The number of files, objects, and directories that DataSync actually deletes in your destination location. If you don't configure your task to <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/configure-metadata.html\">delete data in the destination that isn't in the source</a>, the value is always <code>0</code>.</p>"
         },
         "FilesSkipped":{
           "shape":"long",
@@ -2567,7 +2681,7 @@
         },
         "EstimatedFilesToDelete":{
           "shape":"long",
-          "documentation":"<p>The number of files, objects, and directories that DataSync expects to delete in your destination location. If you don't <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/configure-metadata.html\">configure your task</a> to delete data in the destination that isn't in the source, the value is always <code>0</code>.</p>"
+          "documentation":"<p>The number of files, objects, and directories that DataSync expects to delete in your destination location. If you don't configure your task to <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/configure-metadata.html\">delete data in the destination that isn't in the source</a>, the value is always <code>0</code>.</p>"
         },
         "TaskMode":{
           "shape":"TaskMode",
@@ -2575,7 +2689,7 @@
         },
         "FilesPrepared":{
           "shape":"long",
-          "documentation":"<p>The number of objects that DataSync will attempt to transfer after comparing your source and destination locations.</p> <note> <p>Applies only to <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/choosing-task-mode.html\">Enhanced mode tasks</a>.</p> </note> <p>This metric isn't applicable if you configure your task to <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/configure-metadata.html#task-option-transfer-mode\">transfer all data</a>. In that scenario, DataSync copies everything from the source to the destination without comparing differences between the locations.</p>"
+          "documentation":"<p>The number of objects that DataSync will attempt to transfer after comparing your source and destination locations.</p> <note> <p>Applies only to <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/choosing-task-mode.html\">Enhanced mode tasks</a>.</p> </note> <p>This counter isn't applicable if you configure your task to <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/configure-metadata.html#task-option-transfer-mode\">transfer all data</a>. In that scenario, DataSync copies everything from the source to the destination without comparing differences between the locations.</p>"
         },
         "FilesListed":{
           "shape":"TaskExecutionFilesListedDetail",
@@ -2783,6 +2897,11 @@
       "enum":["NetAppONTAP"]
     },
     "DiscoveryTime":{"type":"timestamp"},
+    "DnsIpList":{
+      "type":"list",
+      "member":{"shape":"ServerIpAddress"},
+      "max":2
+    },
     "Duration":{
       "type":"long",
       "min":0
@@ -2950,7 +3069,7 @@
       "members":{
         "MountOptions":{"shape":"NfsMountOptions"}
       },
-      "documentation":"<p>Specifies the Network File System (NFS) protocol configuration that DataSync uses to access your Amazon FSx for OpenZFS or Amazon FSx for NetApp ONTAP file system.</p>"
+      "documentation":"<p>Specifies the Network File System (NFS) protocol configuration that DataSync uses to access your FSx for OpenZFS file system or FSx for ONTAP file system's storage virtual machine (SVM).</p>"
     },
     "FsxProtocolSmb":{
       "type":"structure",
@@ -2961,7 +3080,7 @@
       "members":{
         "Domain":{
           "shape":"SmbDomain",
-          "documentation":"<p>Specifies the fully qualified domain name (FQDN) of the Microsoft Active Directory that your storage virtual machine (SVM) belongs to.</p> <p>If you have multiple domains in your environment, configuring this setting makes sure that DataSync connects to the right SVM.</p>"
+          "documentation":"<p>Specifies the name of the Windows domain that your storage virtual machine (SVM) belongs to.</p> <p>If you have multiple domains in your environment, configuring this setting makes sure that DataSync connects to the right SVM.</p> <p>If you have multiple Active Directory domains in your environment, configuring this parameter makes sure that DataSync connects to the right SVM.</p>"
         },
         "MountOptions":{"shape":"SmbMountOptions"},
         "Password":{
@@ -2973,7 +3092,37 @@
           "documentation":"<p>Specifies a user that can mount and access the files, folders, and metadata in your SVM.</p> <p>For information about choosing a user with the right level of access for your transfer, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-ontap-location.html#create-ontap-location-smb\">Using the SMB protocol</a>.</p>"
         }
       },
-      "documentation":"<p>Specifies the Server Message Block (SMB) protocol configuration that DataSync uses to access your Amazon FSx for NetApp ONTAP file system. For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-ontap-location.html#create-ontap-location-access\">Accessing FSx for ONTAP file systems</a>.</p>"
+      "documentation":"<p>Specifies the Server Message Block (SMB) protocol configuration that DataSync uses to access your Amazon FSx for NetApp ONTAP file system's storage virtual machine (SVM). For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-ontap-location.html#create-ontap-location-access\">Providing DataSync access to FSx for ONTAP file systems</a>.</p>"
+    },
+    "FsxUpdateProtocol":{
+      "type":"structure",
+      "members":{
+        "NFS":{"shape":"FsxProtocolNfs"},
+        "SMB":{
+          "shape":"FsxUpdateProtocolSmb",
+          "documentation":"<p>Specifies the Server Message Block (SMB) protocol configuration that DataSync uses to access your FSx for ONTAP file system's storage virtual machine (SVM).</p>"
+        }
+      },
+      "documentation":"<p>Specifies the data transfer protocol that DataSync uses to access your Amazon FSx file system.</p> <note> <p>You can't update the Network File System (NFS) protocol configuration for FSx for ONTAP locations. DataSync currently only supports NFS version 3 with this location type.</p> </note>"
+    },
+    "FsxUpdateProtocolSmb":{
+      "type":"structure",
+      "members":{
+        "Domain":{
+          "shape":"UpdateSmbDomain",
+          "documentation":"<p>Specifies the name of the Windows domain that your storage virtual machine (SVM) belongs to.</p> <p>If you have multiple Active Directory domains in your environment, configuring this parameter makes sure that DataSync connects to the right SVM.</p>"
+        },
+        "MountOptions":{"shape":"SmbMountOptions"},
+        "Password":{
+          "shape":"SmbPassword",
+          "documentation":"<p>Specifies the password of a user who has permission to access your SVM.</p>"
+        },
+        "User":{
+          "shape":"SmbUser",
+          "documentation":"<p>Specifies a user that can mount and access the files, folders, and metadata in your SVM.</p> <p>For information about choosing a user with the right level of access for your transfer, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-ontap-location.html#create-ontap-location-smb\">Using the SMB protocol</a>.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the Server Message Block (SMB) protocol configuration that DataSync uses to access your Amazon FSx for NetApp ONTAP file system's storage virtual machine (SVM). For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-ontap-location.html#create-ontap-location-access\">Providing DataSync access to FSx for ONTAP file systems</a>.</p>"
     },
     "FsxWindowsSubdirectory":{
       "type":"string",
@@ -3825,7 +3974,7 @@
       "type":"string",
       "max":63,
       "min":3,
-      "pattern":"^[a-zA-Z0-9_\\-\\+\\./\\(\\)\\$\\p{Zs}]+$"
+      "pattern":"^[a-zA-Z0-9_\\-\\+\\.\\(\\)\\$\\p{Zs}]+$"
     },
     "ObjectStorageCertificate":{
       "type":"blob",
@@ -4317,7 +4466,7 @@
           "documentation":"<p>Specifies the ARN of the IAM role that DataSync uses to access your S3 bucket.</p>"
         }
       },
-      "documentation":"<p>Specifies the Amazon Resource Name (ARN) of the Identity and Access Management (IAM) role that DataSync uses to access your S3 bucket.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-s3-location.html#create-s3-location-access\">Accessing S3 buckets</a>.</p>"
+      "documentation":"<p>Specifies the Amazon Resource Name (ARN) of the Identity and Access Management (IAM) role that DataSync uses to access your S3 bucket.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-s3-location.html#create-s3-location-access\">Providing DataSync access to S3 buckets</a>.</p>"
     },
     "S3ManifestConfig":{
       "type":"structure",
@@ -4404,6 +4553,19 @@
       "max":255,
       "pattern":"^(([a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9\\-]*[A-Za-z0-9])$"
     },
+    "ServerIpAddress":{
+      "type":"string",
+      "max":15,
+      "min":7,
+      "pattern":"\\A(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}\\z"
+    },
+    "SmbAuthenticationType":{
+      "type":"string",
+      "enum":[
+        "NTLM",
+        "KERBEROS"
+      ]
+    },
     "SmbDomain":{
       "type":"string",
       "max":253,
@@ -4441,7 +4603,7 @@
     "SmbUser":{
       "type":"string",
       "max":104,
-      "pattern":"^[^\\x5B\\x5D\\\\/:;|=,+*?]{1,104}$"
+      "pattern":"^[^\\x22\\x5B\\x5D/\\\\:;|=,+*?\\x3C\\x3E]{1,104}$"
     },
     "SmbVersion":{
       "type":"string",
@@ -4699,7 +4861,7 @@
         },
         "AtDestinationForDelete":{
           "shape":"long",
-          "documentation":"<p>The number of objects that DataSync finds at your destination location. This metric is only applicable if you <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/configure-metadata.html#task-option-file-object-handling\">configure your task</a> to delete data in the destination that isn't in the source.</p>"
+          "documentation":"<p>The number of objects that DataSync finds at your destination location. This counter is only applicable if you <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/configure-metadata.html#task-option-file-object-handling\">configure your task</a> to delete data in the destination that isn't in the source.</p>"
         }
       },
       "documentation":"<p>The number of objects that DataSync finds at your locations.</p> <note> <p>Applies only to <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/choosing-task-mode.html\">Enhanced mode tasks</a>.</p> </note>"
@@ -5068,6 +5230,130 @@
       "members":{
       }
     },
+    "UpdateLocationEfsRequest":{
+      "type":"structure",
+      "required":["LocationArn"],
+      "members":{
+        "LocationArn":{
+          "shape":"LocationArn",
+          "documentation":"<p>Specifies the Amazon Resource Name (ARN) of the Amazon EFS transfer location that you're updating.</p>"
+        },
+        "Subdirectory":{
+          "shape":"EfsSubdirectory",
+          "documentation":"<p>Specifies a mount path for your Amazon EFS file system. This is where DataSync reads or writes data on your file system (depending on if this is a source or destination location).</p> <p>By default, DataSync uses the root directory (or <a href=\"https://docs.aws.amazon.com/efs/latest/ug/efs-access-points.html\">access point</a> if you provide one by using <code>AccessPointArn</code>). You can also include subdirectories using forward slashes (for example, <code>/path/to/folder</code>).</p>"
+        },
+        "AccessPointArn":{
+          "shape":"UpdatedEfsAccessPointArn",
+          "documentation":"<p>Specifies the Amazon Resource Name (ARN) of the access point that DataSync uses to mount your Amazon EFS file system.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-efs-location.html#create-efs-location-iam\">Accessing restricted Amazon EFS file systems</a>.</p>"
+        },
+        "FileSystemAccessRoleArn":{
+          "shape":"UpdatedEfsIamRoleArn",
+          "documentation":"<p>Specifies an Identity and Access Management (IAM) role that allows DataSync to access your Amazon EFS file system.</p> <p>For information on creating this role, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-efs-location.html#create-efs-location-iam-role\">Creating a DataSync IAM role for Amazon EFS file system access</a>.</p>"
+        },
+        "InTransitEncryption":{
+          "shape":"EfsInTransitEncryption",
+          "documentation":"<p>Specifies whether you want DataSync to use Transport Layer Security (TLS) 1.2 encryption when it transfers data to or from your Amazon EFS file system.</p> <p>If you specify an access point using <code>AccessPointArn</code> or an IAM role using <code>FileSystemAccessRoleArn</code>, you must set this parameter to <code>TLS1_2</code>.</p>"
+        }
+      }
+    },
+    "UpdateLocationEfsResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "UpdateLocationFsxLustreRequest":{
+      "type":"structure",
+      "required":["LocationArn"],
+      "members":{
+        "LocationArn":{
+          "shape":"LocationArn",
+          "documentation":"<p>Specifies the Amazon Resource Name (ARN) of the FSx for Lustre transfer location that you're updating.</p>"
+        },
+        "Subdirectory":{
+          "shape":"SmbSubdirectory",
+          "documentation":"<p>Specifies a mount path for your FSx for Lustre file system. The path can include subdirectories.</p> <p>When the location is used as a source, DataSync reads data from the mount path. When the location is used as a destination, DataSync writes data to the mount path. If you don't include this parameter, DataSync uses the file system's root directory (<code>/</code>).</p>"
+        }
+      }
+    },
+    "UpdateLocationFsxLustreResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "UpdateLocationFsxOntapRequest":{
+      "type":"structure",
+      "required":["LocationArn"],
+      "members":{
+        "LocationArn":{
+          "shape":"LocationArn",
+          "documentation":"<p>Specifies the Amazon Resource Name (ARN) of the FSx for ONTAP transfer location that you're updating.</p>"
+        },
+        "Protocol":{
+          "shape":"FsxUpdateProtocol",
+          "documentation":"<p>Specifies the data transfer protocol that DataSync uses to access your Amazon FSx file system.</p>"
+        },
+        "Subdirectory":{
+          "shape":"FsxOntapSubdirectory",
+          "documentation":"<p>Specifies a path to the file share in the storage virtual machine (SVM) where you want to transfer data to or from.</p> <p>You can specify a junction path (also known as a mount point), qtree path (for NFS file shares), or share name (for SMB file shares). For example, your mount path might be <code>/vol1</code>, <code>/vol1/tree1</code>, or <code>/share1</code>.</p> <note> <p>Don't specify a junction path in the SVM's root volume. For more information, see <a href=\"https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/managing-svms.html\">Managing FSx for ONTAP storage virtual machines</a> in the <i>Amazon FSx for NetApp ONTAP User Guide</i>.</p> </note>"
+        }
+      }
+    },
+    "UpdateLocationFsxOntapResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "UpdateLocationFsxOpenZfsRequest":{
+      "type":"structure",
+      "required":["LocationArn"],
+      "members":{
+        "LocationArn":{
+          "shape":"LocationArn",
+          "documentation":"<p>Specifies the Amazon Resource Name (ARN) of the FSx for OpenZFS transfer location that you're updating.</p>"
+        },
+        "Protocol":{"shape":"FsxProtocol"},
+        "Subdirectory":{
+          "shape":"SmbSubdirectory",
+          "documentation":"<p>Specifies a subdirectory in the location's path that must begin with <code>/fsx</code>. DataSync uses this subdirectory to read or write data (depending on whether the file system is a source or destination location).</p>"
+        }
+      }
+    },
+    "UpdateLocationFsxOpenZfsResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "UpdateLocationFsxWindowsRequest":{
+      "type":"structure",
+      "required":["LocationArn"],
+      "members":{
+        "LocationArn":{
+          "shape":"LocationArn",
+          "documentation":"<p>Specifies the ARN of the FSx for Windows File Server transfer location that you're updating.</p>"
+        },
+        "Subdirectory":{
+          "shape":"FsxWindowsSubdirectory",
+          "documentation":"<p>Specifies a mount path for your file system using forward slashes. DataSync uses this subdirectory to read or write data (depending on whether the file system is a source or destination location).</p>"
+        },
+        "Domain":{
+          "shape":"UpdateSmbDomain",
+          "documentation":"<p>Specifies the name of the Windows domain that your FSx for Windows File Server file system belongs to.</p> <p>If you have multiple Active Directory domains in your environment, configuring this parameter makes sure that DataSync connects to the right file system.</p>"
+        },
+        "User":{
+          "shape":"SmbUser",
+          "documentation":"<p>Specifies the user with the permissions to mount and access the files, folders, and file metadata in your FSx for Windows File Server file system.</p> <p>For information about choosing a user with the right level of access for your transfer, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-fsx-location.html#create-fsx-windows-location-permissions\">required permissions</a> for FSx for Windows File Server locations.</p>"
+        },
+        "Password":{
+          "shape":"SmbPassword",
+          "documentation":"<p>Specifies the password of the user with the permissions to mount and access the files, folders, and file metadata in your FSx for Windows File Server file system.</p>"
+        }
+      }
+    },
+    "UpdateLocationFsxWindowsResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "UpdateLocationHdfsRequest":{
       "type":"structure",
       "required":["LocationArn"],
@@ -5195,6 +5481,30 @@
       "members":{
       }
     },
+    "UpdateLocationS3Request":{
+      "type":"structure",
+      "required":["LocationArn"],
+      "members":{
+        "LocationArn":{
+          "shape":"LocationArn",
+          "documentation":"<p>Specifies the Amazon Resource Name (ARN) of the Amazon S3 transfer location that you're updating.</p>"
+        },
+        "Subdirectory":{
+          "shape":"S3Subdirectory",
+          "documentation":"<p>Specifies a prefix in the S3 bucket that DataSync reads from or writes to (depending on whether the bucket is a source or destination location).</p> <note> <p>DataSync can't transfer objects with a prefix that begins with a slash (<code>/</code>) or includes <code>//</code>, <code>/./</code>, or <code>/../</code> patterns. For example:</p> <ul> <li> <p> <code>/photos</code> </p> </li> <li> <p> <code>photos//2006/January</code> </p> </li> <li> <p> <code>photos/./2006/February</code> </p> </li> <li> <p> <code>photos/../2006/March</code> </p> </li> </ul> </note>"
+        },
+        "S3StorageClass":{
+          "shape":"S3StorageClass",
+          "documentation":"<p>Specifies the storage class that you want your objects to use when Amazon S3 is a transfer destination.</p> <p>For buckets in Amazon Web Services Regions, the storage class defaults to <code>STANDARD</code>. For buckets on Outposts, the storage class defaults to <code>OUTPOSTS</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-s3-location.html#using-storage-classes\">Storage class considerations with Amazon S3 transfers</a>.</p>"
+        },
+        "S3Config":{"shape":"S3Config"}
+      }
+    },
+    "UpdateLocationS3Response":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "UpdateLocationSmbRequest":{
       "type":"structure",
       "required":["LocationArn"],
@@ -5205,31 +5515,56 @@
         },
         "Subdirectory":{
           "shape":"SmbSubdirectory",
-          "documentation":"<p>Specifies the name of the share exported by your SMB file server where DataSync will read or write data. You can include a subdirectory in the share path (for example, <code>/path/to/subdirectory</code>). Make sure that other SMB clients in your network can also mount this path.</p> <p>To copy all data in the specified subdirectory, DataSync must be able to mount the SMB share and access all of its data. For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-smb-location.html#configuring-smb-permissions\">required permissions</a> for SMB locations.</p>"
+          "documentation":"<p>Specifies the name of the share exported by your SMB file server where DataSync will read or write data. You can include a subdirectory in the share path (for example, <code>/path/to/subdirectory</code>). Make sure that other SMB clients in your network can also mount this path.</p> <p>To copy all data in the specified subdirectory, DataSync must be able to mount the SMB share and access all of its data. For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-smb-location.html#configuring-smb-permissions\">Providing DataSync access to SMB file servers</a>.</p>"
         },
         "User":{
           "shape":"SmbUser",
-          "documentation":"<p>Specifies the user name that can mount your SMB file server and has permission to access the files and folders involved in your transfer.</p> <p>For information about choosing a user with the right level of access for your transfer, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-smb-location.html#configuring-smb-permissions\">required permissions</a> for SMB locations.</p>"
+          "documentation":"<p>Specifies the user name that can mount your SMB file server and has permission to access the files and folders involved in your transfer. This parameter applies only if <code>AuthenticationType</code> is set to <code>NTLM</code>.</p> <p>For information about choosing a user with the right level of access for your transfer, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-smb-location.html#configuring-smb-permissions\">Providing DataSync access to SMB file servers</a>.</p>"
         },
         "Domain":{
           "shape":"SmbDomain",
-          "documentation":"<p>Specifies the Windows domain name that your SMB file server belongs to. </p> <p>If you have multiple domains in your environment, configuring this parameter makes sure that DataSync connects to the right file server.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-smb-location.html#configuring-smb-permissions\">required permissions</a> for SMB locations.</p>"
+          "documentation":"<p>Specifies the Windows domain name that your SMB file server belongs to. This parameter applies only if <code>AuthenticationType</code> is set to <code>NTLM</code>.</p> <p>If you have multiple domains in your environment, configuring this parameter makes sure that DataSync connects to the right file server.</p>"
         },
         "Password":{
           "shape":"SmbPassword",
-          "documentation":"<p>Specifies the password of the user who can mount your SMB file server and has permission to access the files and folders involved in your transfer.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/datasync/latest/userguide/create-smb-location.html#configuring-smb-permissions\">required permissions</a> for SMB locations.</p>"
+          "documentation":"<p>Specifies the password of the user who can mount your SMB file server and has permission to access the files and folders involved in your transfer. This parameter applies only if <code>AuthenticationType</code> is set to <code>NTLM</code>.</p>"
         },
         "AgentArns":{
           "shape":"AgentArnList",
           "documentation":"<p>Specifies the DataSync agent (or agents) that can connect to your SMB file server. You specify an agent by using its Amazon Resource Name (ARN).</p>"
         },
-        "MountOptions":{"shape":"SmbMountOptions"}
+        "MountOptions":{"shape":"SmbMountOptions"},
+        "AuthenticationType":{
+          "shape":"SmbAuthenticationType",
+          "documentation":"<p>Specifies the authentication protocol that DataSync uses to connect to your SMB file server. DataSync supports <code>NTLM</code> (default) and <code>KERBEROS</code> authentication.</p>"
+        },
+        "DnsIpAddresses":{
+          "shape":"DnsIpList",
+          "documentation":"<p>Specifies the IPv4 addresses for the DNS servers that your SMB file server belongs to. This parameter applies only if <code>AuthenticationType</code> is set to <code>KERBEROS</code>.</p> <p>If you have multiple domains in your environment, configuring this parameter makes sure that DataSync connects to the right SMB file server. </p>"
+        },
+        "KerberosPrincipal":{
+          "shape":"KerberosPrincipal",
+          "documentation":"<p>Specifies a service principal name (SPN), which is an identity in your Kerberos realm that has permission to access the files, folders, and file metadata in your SMB file server.</p> <p>SPNs are case sensitive and must include a prepended <code>cifs/</code>. For example, an SPN might look like <code>cifs/kerberosuser@EXAMPLE.COM</code>.</p> <p>Your task execution will fail if the SPN that you provide for this parameter doesn’t match what’s exactly in your keytab or <code>krb5.conf</code> files.</p>"
+        },
+        "KerberosKeytab":{
+          "shape":"KerberosKeytabFile",
+          "documentation":"<p>Specifies your Kerberos key table (keytab) file, which includes mappings between your service principal name (SPN) and encryption keys.</p> <p>You can specify the keytab using a file path (for example, <code>file://path/to/file.keytab</code>). The file must be base64 encoded. If you're using the CLI, the encoding is done for you.</p> <p>To avoid task execution errors, make sure that the SPN in the keytab file matches exactly what you specify for <code>KerberosPrincipal</code> and in your <code>krb5.conf</code> file.</p>"
+        },
+        "KerberosKrb5Conf":{
+          "shape":"KerberosKrb5ConfFile",
+          "documentation":"<p>Specifies a Kerberos configuration file (<code>krb5.conf</code>) that defines your Kerberos realm configuration.</p> <p>You can specify the <code>krb5.conf</code> using a file path (for example, <code>file://path/to/krb5.conf</code>). The file must be base64 encoded. If you're using the CLI, the encoding is done for you.</p> <p>To avoid task execution errors, make sure that the service principal name (SPN) in the <code>krb5.conf</code> file matches exactly what you specify for <code>KerberosPrincipal</code> and in your keytab file.</p>"
+        }
       }
     },
     "UpdateLocationSmbResponse":{
       "type":"structure",
       "members":{
       }
+    },
+    "UpdateSmbDomain":{
+      "type":"string",
+      "max":253,
+      "pattern":"^([A-Za-z0-9]((\\.|-+)?[A-Za-z0-9]){0,252})?$"
     },
     "UpdateStorageSystemRequest":{
       "type":"structure",
@@ -5329,6 +5664,16 @@
       "type":"structure",
       "members":{
       }
+    },
+    "UpdatedEfsAccessPointArn":{
+      "type":"string",
+      "max":128,
+      "pattern":"(^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):elasticfilesystem:[a-z\\-0-9]+:[0-9]{12}:access-point/fsap-[0-9a-f]{8,40}$)|(^$)"
+    },
+    "UpdatedEfsIamRoleArn":{
+      "type":"string",
+      "max":2048,
+      "pattern":"(^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b):iam::[0-9]{12}:role/.*$)|(^$)"
     },
     "VerifyMode":{
       "type":"string",

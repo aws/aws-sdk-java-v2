@@ -22,6 +22,8 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OBJECT_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_REGION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.USE_S3_EXPRESS_AUTH;
@@ -36,6 +38,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.http.HttpHeader;
@@ -140,12 +144,18 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         String operationName = asyncRequest.httpExecutionAttributes().getAttribute(OPERATION_NAME);
         S3MetaRequestOptions.MetaRequestType requestType = requestType(operationName);
 
-        HttpChecksum httpChecksum = httpExecutionAttributes.getAttribute(HTTP_CHECKSUM);
         ResumeToken resumeToken = httpExecutionAttributes.getAttribute(CRT_PAUSE_RESUME_TOKEN);
         Region signingRegion = httpExecutionAttributes.getAttribute(SIGNING_REGION);
         Path requestFilePath = httpExecutionAttributes.getAttribute(OBJECT_FILE_PATH);
-        ChecksumConfig checksumConfig =
-            checksumConfig(httpChecksum, requestType, s3NativeClientConfiguration.checksumValidationEnabled());
+
+        HttpChecksum httpChecksum = httpExecutionAttributes.getAttribute(HTTP_CHECKSUM);
+        RequestChecksumCalculation requestChecksumCalculation =
+            httpExecutionAttributes.getAttribute(REQUEST_CHECKSUM_CALCULATION);
+        ResponseChecksumValidation responseChecksumValidation =
+            httpExecutionAttributes.getAttribute(RESPONSE_CHECKSUM_VALIDATION);
+        ChecksumConfig checksumConfig = checksumConfig(httpChecksum, requestType, requestChecksumCalculation,
+                                                       responseChecksumValidation);
+
         URI endpoint = getEndpoint(uri);
 
         AwsSigningConfig signingConfig = awsSigningConfig(signingRegion, httpExecutionAttributes);

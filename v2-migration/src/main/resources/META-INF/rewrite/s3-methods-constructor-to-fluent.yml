@@ -46,3 +46,283 @@ recipeList:
         - java.lang.String
       fluentNames:
         - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.HeadBucketRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.InitiateMultipartUploadRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withKey
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.ListObjectsRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.ListObjectsV2Request
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteBucketCrossOriginConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketCrossOriginConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteBucketVersioningConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteBucketEncryptionRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteBucketPolicyRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketAccelerateConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketAclRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketEncryptionRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketLifecycleConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketNotificationConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketPolicyRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketLocationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketVersioningConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteBucketLifecycleConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteBucketReplicationConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteBucketTaggingConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteBucketWebsiteConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketLoggingConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketReplicationConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketTaggingConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketWebsiteConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.SetBucketCrossOriginConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+        - com.amazonaws.services.s3.model.BucketCrossOriginConfiguration
+      fluentNames:
+        - withBucket
+        - withCorsConfiguration
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteObjectRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withKey
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetObjectRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withKey
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetObjectAclRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withKey
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetObjectMetadataRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withKey
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteBucketAnalyticsConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withId
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteBucketIntelligentTieringConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withId
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteBucketInventoryConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withId
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteBucketMetricsConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withId
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketAnalyticsConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withId
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketIntelligentTieringConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withId
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketInventoryConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withId
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetBucketMetricsConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withId
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.ListObjectsRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withPrefix
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.ListObjectsV2Request
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withPrefix
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.ListVersionsRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withPrefix

@@ -31,7 +31,6 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvider;
-import software.amazon.awssdk.auth.credentials.internal.Ec2MetadataDisableV1Resolver;
 import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader;
 import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader.LoadedCredentials;
 import software.amazon.awssdk.auth.credentials.internal.StaticResourcesEndpointProvider;
@@ -79,7 +78,6 @@ public final class InstanceProfileCredentialsProvider
     private final Clock clock;
     private final String endpoint;
     private final Ec2MetadataConfigProvider configProvider;
-    private final Ec2MetadataDisableV1Resolver ec2MetadataDisableV1Resolver;
     private final HttpCredentialsLoader httpCredentialsLoader;
     private final CachedSupplier<AwsCredentials> credentialsCache;
 
@@ -91,6 +89,8 @@ public final class InstanceProfileCredentialsProvider
 
     private final String profileName;
     private final String source;
+
+    private final Duration staleTime;
 
     /**
      * @see #builder()
@@ -112,7 +112,8 @@ public final class InstanceProfileCredentialsProvider
                                      .profileFile(profileFile)
                                      .profileName(profileName)
                                      .build();
-        this.ec2MetadataDisableV1Resolver = Ec2MetadataDisableV1Resolver.create(profileFile, profileName);
+
+        this.staleTime = Validate.getOrDefault(builder.staleTime, () -> Duration.ofSeconds(1));
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
@@ -180,7 +181,7 @@ public final class InstanceProfileCredentialsProvider
             return null;
         }
 
-        return expiration.minusSeconds(1);
+        return expiration.minus(staleTime);
     }
 
     private Instant prefetchTime(Instant expiration) {
@@ -222,9 +223,13 @@ public final class InstanceProfileCredentialsProvider
         String token = getToken(imdsHostname);
         String[] securityCredentials = getSecurityCredentials(imdsHostname, token);
 
-        return new StaticResourcesEndpointProvider(URI.create(imdsHostname + SECURITY_CREDENTIALS_RESOURCE +
-                                                              securityCredentials[0]),
-                                                   getTokenHeaders(token));
+        return StaticResourcesEndpointProvider.builder()
+                                              .endpoint(URI.create(imdsHostname + SECURITY_CREDENTIALS_RESOURCE
+                                                                   + securityCredentials[0]))
+                                              .headers(getTokenHeaders(token))
+                                              .connectionTimeout(Duration.ofMillis(
+                                                  this.configProvider.serviceTimeout()))
+                                              .build();
     }
 
     private String getImdsEndpoint() {
@@ -237,8 +242,13 @@ public final class InstanceProfileCredentialsProvider
 
     private String getToken(String imdsHostname) {
         Map<String, String> tokenTtlHeaders = Collections.singletonMap(EC2_METADATA_TOKEN_TTL_HEADER, DEFAULT_TOKEN_TTL);
-        ResourcesEndpointProvider tokenEndpoint = new StaticResourcesEndpointProvider(getTokenEndpoint(imdsHostname),
-                                                                                      tokenTtlHeaders);
+        ResourcesEndpointProvider tokenEndpoint =
+            StaticResourcesEndpointProvider.builder()
+                                           .endpoint(getTokenEndpoint(imdsHostname))
+                                           .headers(tokenTtlHeaders)
+                                           .connectionTimeout(Duration.ofMillis(
+                                               this.configProvider.serviceTimeout()))
+                                           .build();
 
         try {
             return HttpResourcesUtils.instance().readResource(tokenEndpoint, "PUT");
@@ -282,13 +292,16 @@ public final class InstanceProfileCredentialsProvider
     }
 
     private boolean isInsecureFallbackDisabled() {
-        return ec2MetadataDisableV1Resolver.resolve();
+        return configProvider.isMetadataV1Disabled();
     }
 
     private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {
         ResourcesEndpointProvider securityCredentialsEndpoint =
-            new StaticResourcesEndpointProvider(URI.create(imdsHostname + SECURITY_CREDENTIALS_RESOURCE),
-                                                getTokenHeaders(metadataToken));
+            StaticResourcesEndpointProvider.builder()
+                                           .endpoint(URI.create(imdsHostname + SECURITY_CREDENTIALS_RESOURCE))
+                                           .headers(getTokenHeaders(metadataToken))
+                .connectionTimeout(Duration.ofMillis(this.configProvider.serviceTimeout()))
+                                           .build();
 
         String securityCredentialsList =
             invokeSafely(() -> HttpResourcesUtils.instance().readResource(securityCredentialsEndpoint));
@@ -343,6 +356,18 @@ public final class InstanceProfileCredentialsProvider
         Builder profileName(String profileName);
 
         /**
+         * Configure the amount of time before the moment of expiration of credentials for which to consider the credentials to
+         * be stale. A higher value can lead to a higher rate of request being made to the Amazon EC2 Instance Metadata Service.
+         * The default is 1 sec.
+         * <p>Increasing this value to a higher value (10s or more) may help with situations where a higher load on the instance
+         * metadata service causes it to return 503s error, for which the SDK may not be able to recover fast enough and
+         * returns expired credentials.
+         *
+         * @param duration the amount of time before expiration for when to consider the credentials to be stale and need refresh
+         */
+        Builder staleTime(Duration duration);
+
+        /**
          * Build a {@link InstanceProfileCredentialsProvider} from the provided configuration.
          */
         @Override
@@ -358,6 +383,7 @@ public final class InstanceProfileCredentialsProvider
         private Supplier<ProfileFile> profileFile;
         private String profileName;
         private String source;
+        private Duration staleTime;
 
         private BuilderImpl() {
             asyncThreadName("instance-profile-credentials-provider");
@@ -371,6 +397,7 @@ public final class InstanceProfileCredentialsProvider
             this.profileFile = provider.profileFile;
             this.profileName = provider.profileName;
             this.source = provider.source;
+            this.staleTime = provider.staleTime;
         }
 
         Builder clock(Clock clock) {
@@ -447,6 +474,15 @@ public final class InstanceProfileCredentialsProvider
 
         public void setSource(String source) {
             source(source);
+        }
+
+        public Builder staleTime(Duration duration) {
+            this.staleTime = duration;
+            return this;
+        }
+
+        public void setStaleTime(Duration duration) {
+            staleTime(duration);
         }
 
         @Override
