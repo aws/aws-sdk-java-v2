@@ -1,4 +1,9 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.12__ __2025-02-03__
+## __AWS MediaTailor__
+  - ### Features
+    - Add support for CloudWatch Vended Logs which allows for delivery of customer logs to CloudWatch Logs, S3, or Firehose.
+
 # __2.30.11__ __2025-01-31__
 ## __AWS CodeBuild__
   - ### Features
