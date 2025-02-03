@@ -115,7 +115,7 @@ public class SyncClientHandlerTest {
 
     @Test
     public void failedExecutionCallsErrorResponseHandler() throws Exception {
-        SdkServiceException exception = (SdkServiceException) SdkServiceException.builder().message("Uh oh!").statusCode(500).numAttempts(1).build();
+        SdkServiceException exception = SdkServiceException.builder().message("Uh oh!").statusCode(500).numAttempts(1).build();
 
         Map<String, List<String>> headers = new HashMap<>();
         headers.put("foo", Arrays.asList("bar"));
