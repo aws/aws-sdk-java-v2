@@ -136,10 +136,9 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     private void failIfAlpnUsedWithHttp(AsyncExecuteRequest request) {
-        if ("http".equals(request.request().protocol())) {
-            if (isAlpnUserConfigured) {
-                throw new UnsupportedOperationException("ALPN can only be used with HTTPS, not HTTP.");
-            }
+        if (isAlpnUserConfigured && "http".equals(request.request().protocol())) {
+            throw new UnsupportedOperationException("ALPN can only be used with HTTPS, not HTTP. "
+                                                    + "Use ProtocolNegotiation.ASSUME_PROTOCOL instead.");
         }
     }
 
