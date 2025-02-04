@@ -100,6 +100,12 @@ public class AwsCrtClientBuilderBase<BuilderT> {
         return thisBuilder();
     }
 
+    public BuilderT connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout) {
+        Validate.isPositive(connectionAcquisitionTimeout, "connectionAcquisitionTimeout");
+        standardOptions.put(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT, connectionAcquisitionTimeout);
+        return thisBuilder();
+    }
+
     public BuilderT tcpKeepAliveConfiguration(TcpKeepAliveConfiguration tcpKeepAliveConfiguration) {
         this.tcpKeepAliveConfiguration = tcpKeepAliveConfiguration;
         return thisBuilder();

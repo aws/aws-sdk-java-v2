@@ -226,6 +226,13 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
         AwsCrtHttpClient.Builder connectionTimeout(Duration connectionTimeout);
 
         /**
+         * The amount of time to wait when acquiring a connection from the pool before giving up and timing out.
+         * @param connectionAcquisitionTimeout the timeout duration
+         * @return this builder for method chaining.
+         */
+        AwsCrtHttpClient.Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout);
+
+        /**
          * Configure whether to enable {@code tcpKeepAlive} and relevant configuration for all connections established by this
          * client.
          *

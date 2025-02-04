@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Aws Crt Http Client for Java v2",
+    "contributor": "",
+    "description": "Exposed the connectionAcquisitionTimeout field in AwsCrtHttpClient and AwsCrtAsyncHttpClient and pass it through"
+}
