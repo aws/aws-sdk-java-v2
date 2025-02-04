@@ -55,6 +55,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EnumBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ExtendedBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedBeanBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedImmutableBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FluentSetterBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.IgnoredAttributeBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ListBean;
@@ -1159,5 +1160,23 @@ public class BeanTableSchemaTest {
         EmptyConverterProvidersValidBean reverse = beanTableSchema.mapToItem(itemMap);
         assertThat(reverse.getId(), is(equalTo("id-value-custom")));
         assertThat(reverse.getIntegerAttribute(), is(equalTo(133)));
+    }
+
+    @Test
+    public void fluentSetterBean_correctlyMapsBeanAttributes() {
+        BeanTableSchema<FluentSetterBean> beanTableSchema =
+            BeanTableSchema.create(FluentSetterBean.class);
+
+        FluentSetterBean fluentSetterBean = new FluentSetterBean()
+            .setAttribute1(1)
+            .setAttribute2("testAttribute2")
+            .setAttribute3("testAttribute3");
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(fluentSetterBean, false);
+
+        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap, hasEntry("attribute1", numberValue(1)));
+        assertThat(itemMap, hasEntry("attribute2", stringValue("testAttribute2")));
+        assertThat(itemMap, hasEntry("attribute3", stringValue("testAttribute3")));
     }
 }

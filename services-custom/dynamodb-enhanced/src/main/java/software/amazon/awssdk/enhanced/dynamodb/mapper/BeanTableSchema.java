@@ -182,6 +182,7 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
 
         try {
             beanInfo = Introspector.getBeanInfo(beanClass);
+            enhanceDescriptorsWithFluentSetters(beanClass, beanInfo);
         } catch (IntrospectionException e) {
             throw new IllegalArgumentException(e);
         }
@@ -223,6 +224,34 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         builder.attributes(attributes);
 
         return builder.build();
+    }
+
+    // Enhance beanInfo descriptors with fluent setter when the default set method is absent
+    private static <T> void enhanceDescriptorsWithFluentSetters(Class<T> beanClass, BeanInfo beanInfo) {
+        Arrays.stream(beanInfo.getPropertyDescriptors())
+              .filter(descriptor -> descriptor.getWriteMethod() == null)
+              .forEach(descriptor -> findFluentSetter(beanClass, descriptor.getName())
+                  .ifPresent(method -> {
+                      try {
+                          descriptor.setWriteMethod(method);
+                      } catch (IntrospectionException e) {
+                          throw new RuntimeException("Failed to set write method for " + descriptor.getName(), e);
+                      }
+                  }));
+    }
+
+    private static Optional<Method> findFluentSetter(Class<?> beanClass, String propertyName) {
+        String setterName = "set" + capitalize(propertyName);
+
+        return Arrays.stream(beanClass.getMethods())
+                     .filter(m -> m.getName().equals(setterName)
+                                  && m.getParameterCount() == 1
+                                  && m.getReturnType().equals(beanClass))
+                     .findFirst();
+    }
+
+    private static String capitalize(String name) {
+        return Character.toUpperCase(name.charAt(0)) + name.substring(1);
     }
 
     private static AttributeConfiguration resolveAttributeConfiguration(PropertyDescriptor propertyDescriptor) {
