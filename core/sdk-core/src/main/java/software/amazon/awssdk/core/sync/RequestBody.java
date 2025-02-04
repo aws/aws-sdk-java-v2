@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.sync.BufferingContentStreamProvider;
 import software.amazon.awssdk.core.internal.sync.FileContentStreamProvider;
@@ -43,16 +44,20 @@ import software.amazon.awssdk.utils.IoUtils;
 /**
  * Represents the body of an HTTP request. Must be provided for operations that have a streaming input.
  * Offers various convenience factory methods from common sources of data (File, String, byte[], etc).
+ *
+ * <p>
+ * This class is NOT intended to be overridden.
  */
 @SdkPublicApi
-public final class RequestBody {
+public class RequestBody {
 
     // TODO Handle stream management (progress listener, orig input stream tracking, etc
     private final ContentStreamProvider contentStreamProvider;
     private final Long contentLength;
     private final String contentType;
 
-    private RequestBody(ContentStreamProvider contentStreamProvider, Long contentLength, String contentType) {
+    @SdkInternalApi
+    protected RequestBody(ContentStreamProvider contentStreamProvider, Long contentLength, String contentType) {
         this.contentStreamProvider = paramNotNull(contentStreamProvider, "contentStreamProvider");
         this.contentLength = contentLength != null ? isNotNegative(contentLength, "Content-length") : null;
         this.contentType = paramNotNull(contentType, "contentType");
@@ -61,7 +66,7 @@ public final class RequestBody {
     /**
      * @return RequestBody as an {@link InputStream}.
      */
-    public ContentStreamProvider contentStreamProvider() {
+    public final ContentStreamProvider contentStreamProvider() {
         return contentStreamProvider;
     }
 
@@ -70,7 +75,7 @@ public final class RequestBody {
      * @return Content length of {@link RequestBody}.
      */
     @Deprecated
-    public long contentLength() {
+    public final long contentLength() {
         validState(this.contentLength != null,
                    "Content length is invalid, please use optionalContentLength() for your case.");
         return contentLength;
@@ -79,14 +84,14 @@ public final class RequestBody {
     /**
      * @return Optional object of content length of {@link RequestBody}.
      */
-    public Optional<Long> optionalContentLength() {
+    public final Optional<Long> optionalContentLength() {
         return Optional.ofNullable(contentLength);
     }
 
     /**
      * @return Content type of {@link RequestBody}.
      */
-    public String contentType() {
+    public final String contentType() {
         return contentType;
     }
 

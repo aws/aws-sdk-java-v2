@@ -139,9 +139,9 @@ public abstract class BaseClientHandler {
                 streamProvider = () -> new SdkLengthAwareInputStream(toWrap.newStream(), contentLength);
             }
 
-            return RequestBody.fromContentProvider(streamProvider,
-                                                   contentLength,
-                                                   contentType);
+            return new SdkInternalOnlyRequestBody(streamProvider,
+                                                  contentLength,
+                                                  contentType);
         }
 
         return null;
