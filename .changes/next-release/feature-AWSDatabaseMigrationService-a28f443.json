@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Database Migration Service",
-    "contributor": "",
-    "description": "Introduces TargetDataSettings with the TablePreparationMode option available for data migrations."
-}

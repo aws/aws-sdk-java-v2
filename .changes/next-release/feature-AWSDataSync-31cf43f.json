@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS DataSync",
-    "contributor": "",
-    "description": "Doc-only update to provide more information on using Kerberos authentication with SMB locations."
-}
