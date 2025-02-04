@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.crt;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
 
+import java.time.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.crt.CrtResource;
@@ -42,10 +43,14 @@ public class AwsCrtHttpClientTest extends SdkHttpClientTestSuite {
         CrtResource.waitForNoResources();
     }
 
+    /**
+     * default value of connectionAcquisitionTimeout of 10 will fail validatesHttpsCertificateIssuer() test
+     * */
     @Override
     protected SdkHttpClient createSdkHttpClient(SdkHttpClientOptions options) {
         boolean trustAllCerts = options.trustAll();
         return AwsCrtHttpClient.builder()
+                               .connectionAcquisitionTimeout(Duration.ofSeconds(40))
                                .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, trustAllCerts).build());
     }
 
