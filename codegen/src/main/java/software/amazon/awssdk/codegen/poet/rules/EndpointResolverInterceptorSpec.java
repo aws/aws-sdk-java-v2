@@ -827,7 +827,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                                   + "&& v4aAuthScheme.signingRegionSet() != null)",
                                   AwsV4aAuthScheme.class, AwsV4aHttpSigner.class);
         } else {
-            code.beginControlFlow("if (v4aAuthScheme.signingRegionSet() != null)");
+            code.beginControlFlow("if (!$T.isNullOrEmpty(v4aAuthScheme.signingRegionSet()))", CollectionUtils.class);
         }
         code.addStatement("$1T regionSet = $1T.create(v4aAuthScheme.signingRegionSet())", RegionSet.class);
         code.addStatement("option.putSignerProperty($T.REGION_SET, regionSet)", AwsV4aHttpSigner.class);

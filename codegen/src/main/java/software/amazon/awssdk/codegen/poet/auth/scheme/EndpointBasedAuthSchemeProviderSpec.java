@@ -44,6 +44,7 @@ import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -217,7 +218,8 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
                           SigV4aAuthScheme.class, Validate.class, SigV4aAuthScheme.class,
                           "Expecting auth scheme of class SigV4AuthScheme, got instead object of class %s");
 
-        spec.addStatement("$1T regionSet = $1T.create(sigv4aAuthScheme.signingRegionSet())", RegionSet.class);
+        spec.addStatement("$1T regionSet = $2T.isNullOrEmpty(sigv4aAuthScheme.signingRegionSet()) ? null : $1T.create"
+                          + "(sigv4aAuthScheme.signingRegionSet())", RegionSet.class, CollectionUtils.class);
 
         CodeBlock.Builder block = CodeBlock.builder();
         block.add("$1T.builder().schemeId($2T.SCHEME_ID)", AuthSchemeOption.class,
