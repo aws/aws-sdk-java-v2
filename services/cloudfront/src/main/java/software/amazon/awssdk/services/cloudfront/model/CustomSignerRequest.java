@@ -100,7 +100,9 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         return ipRange;
     }
 
-    public String policyResourceUrl() { return policyResourceUrl; }
+    public String policyResourceUrl() {
+        return policyResourceUrl;
+    }
 
     @Override
     public boolean equals(Object o) {
