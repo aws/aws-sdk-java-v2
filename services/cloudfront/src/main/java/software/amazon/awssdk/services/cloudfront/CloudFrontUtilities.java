@@ -249,8 +249,12 @@ public final class CloudFrontUtilities {
     public SignedUrl getSignedUrlWithCustomPolicy(CustomSignerRequest request) {
         try {
             String resourceUrl = request.resourceUrl();
-            String policy = SigningUtils.buildCustomPolicyForSignedUrl(request.resourceUrl(), request.activeDate(),
-                                                                       request.expirationDate(), request.ipRange());
+            String policy = SigningUtils.buildCustomPolicyForSignedUrl(request.resourceUrl(),
+                                                                       request.activeDate(),
+                                                                       request.expirationDate(),
+                                                                       request.ipRange(),
+                                                                       request.policyResourceUrl());
+
             byte[] signatureBytes = SigningUtils.signWithSha1Rsa(policy.getBytes(UTF_8), request.privateKey());
             String urlSafePolicy = SigningUtils.makeStringUrlSafe(policy);
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);

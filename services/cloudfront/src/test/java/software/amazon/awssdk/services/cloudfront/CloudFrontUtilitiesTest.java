@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.cloudfront;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -27,6 +28,7 @@ import java.time.LocalDate;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Base64;
+import java.util.StringJoiner;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -331,4 +333,38 @@ class CloudFrontUtilitiesTest {
         assertThat(cookiesForCustomPolicy.keyPairIdHeaderValue()).isEqualTo("CloudFront-Key-Pair-Id=keyPairId");
     }
 
+    @Test
+    void getSignedURLWithCustomPolicy_policyResourceUrlShouldOverwriteResourceUrl() {
+        String baseUrl = "https://d1234.cloudfront.net/images/photo.jpg";
+        Instant expiration = Instant.now().plusSeconds(3600);
+        CustomSignerRequest request = CustomSignerRequest.builder()
+                                                         .resourceUrl(baseUrl)
+                                                         .privateKey(keyPair.getPrivate())
+                                                         .keyPairId("keyPairId")
+                                                         .policyResourceUrl("*")
+                                                         .expirationDate(expiration)
+                                                         .build();
+
+        SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
+
+        String encodedPolicy = signedUrl.url().split("Policy=")[1].split("&")[0];
+        // Replace URL-safe characters back to standard Base64
+        String standardBase64 = encodedPolicy
+            .replace('-', '+')
+            .replace('_', '=')
+            .replace('~', '/');
+        String decodedPolicy = new String(Base64.getDecoder().decode(standardBase64), UTF_8);
+        StringBuilder expectedPolicy = new StringBuilder();
+        StringJoiner conditions = new StringJoiner(",", "{", "}");
+
+        conditions.add("\"DateLessThan\":{\"AWS:EpochTime\":" + expiration.getEpochSecond() + "}");
+
+
+        expectedPolicy.append("{\"Statement\": [{")
+              .append("\"Resource\":\"").append("*").append("\",")
+              .append("\"Condition\":").append(conditions)
+              .append("}]}");
+
+        assertThat(decodedPolicy.trim()).isEqualTo(expectedPolicy.toString().trim());
+    }
 }
