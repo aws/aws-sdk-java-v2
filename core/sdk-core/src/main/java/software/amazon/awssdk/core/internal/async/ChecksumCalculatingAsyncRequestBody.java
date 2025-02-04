@@ -179,9 +179,10 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
         if (sdkChecksum != null) {
             sdkChecksum.reset();
         }
+
         SynchronousChunkBuffer synchronousChunkBuffer = new SynchronousChunkBuffer(totalBytes);
-        alwaysInvokeOnNext(wrapped).flatMapIterable(synchronousChunkBuffer::buffer)
-               .subscribe(new ChecksumCalculatingSubscriber(s, sdkChecksum, trailerHeader, totalBytes));
+        alwaysInvokeOnNext(wrapped.flatMapIterable(synchronousChunkBuffer::buffer))
+                 .subscribe(new ChecksumCalculatingSubscriber(s, sdkChecksum, trailerHeader, totalBytes));
     }
 
     private SdkPublisher<ByteBuffer> alwaysInvokeOnNext(SdkPublisher<ByteBuffer> source) {

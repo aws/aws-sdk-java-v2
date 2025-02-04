@@ -34,14 +34,12 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -74,36 +72,36 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
         }
     }
 
-    private static Stream<Arguments> publishers() {
+    private static Stream<TestCase> contentPublishers() {
         return Stream.of(
-            Arguments.of("RequestBody from string, test string",
-                         checksumPublisher(AsyncRequestBody.fromString(testString)),
-                         expectedTestString),
-            Arguments.of("RequestBody from file, test string",
-                         checksumPublisher(AsyncRequestBody.fromFile(path)),
-                         expectedTestString),
-            Arguments.of("RequestBody from buffer, 0 pos, test string",
-                         checksumPublisher(AsyncRequestBody.fromRemainingByteBuffer(posZeroByteBuffer(testString))),
-                         expectedTestString),
-            Arguments.of("RequestBody from buffer, random pos, test string",
-                         checksumPublisher(AsyncRequestBody.fromRemainingByteBufferUnsafe(nonPosZeroByteBuffer(testString))),
-                         expectedTestString),
-            Arguments.of("RequestBody from string, empty string",
-                         checksumPublisher(AsyncRequestBody.fromString(emptyString)),
-                         expectedEmptyString),
+            new TestCase().description("RequestBody from string, test string")
+                          .requestBody(AsyncRequestBody.fromString(testString))
+                          .expectedBody(expectedTestString),
+            new TestCase().description("RequestBody from file, test string")
+                          .requestBody(AsyncRequestBody.fromFile(path))
+                          .expectedBody(expectedTestString),
+            new TestCase().description("RequestBody from buffer, 0 pos, test string")
+                          .requestBody(AsyncRequestBody.fromRemainingByteBuffer(posZeroByteBuffer(testString)))
+                          .expectedBody(expectedTestString),
+            new TestCase().description("RequestBody from buffer, random pos, test string")
+                          .requestBody(AsyncRequestBody.fromRemainingByteBufferUnsafe(nonPosZeroByteBuffer(testString)))
+                          .expectedBody(expectedTestString),
+            new TestCase().description("RequestBody from string, empty string")
+                          .requestBody(AsyncRequestBody.fromString(emptyString))
+                          .expectedBody(expectedEmptyString),
             //Note: FileAsyncRequestBody with empty file does not call onNext, only onComplete()
-            Arguments.of("RequestBody from file, empty string",
-                         checksumPublisher(AsyncRequestBody.fromFile(pathToEmpty)),
-                         expectedEmptyString),
-            Arguments.of("RequestBody from buffer, 0 pos, empty string",
-                         checksumPublisher(AsyncRequestBody.fromRemainingByteBuffer(posZeroByteBuffer(emptyString))),
-                         expectedEmptyString),
-            Arguments.of("RequestBody from string, random pos, empty string",
-                         checksumPublisher(AsyncRequestBody.fromRemainingByteBufferUnsafe(nonPosZeroByteBuffer(emptyString))),
-                         expectedEmptyString),
-            Arguments.of("EmptyBufferPublisher, test string",
-                         checksumPublisher(new EmptyBufferPublisher(testString)),
-                         expectedTestString));
+            new TestCase().description("RequestBody from file, empty string")
+                          .requestBody(AsyncRequestBody.fromFile(pathToEmpty))
+                          .expectedBody(expectedEmptyString),
+            new TestCase().description("RequestBody from buffer, 0 pos, empty string")
+                          .requestBody(AsyncRequestBody.fromRemainingByteBuffer(posZeroByteBuffer(emptyString)))
+                          .expectedBody(expectedEmptyString),
+            new TestCase().description("RequestBody from string, random pos, empty string")
+                          .requestBody(AsyncRequestBody.fromRemainingByteBufferUnsafe(nonPosZeroByteBuffer(emptyString)))
+                          .expectedBody(expectedEmptyString),
+            new TestCase().description("EmptyBufferPublisher, test string")
+                          .requestBody(new EmptyBufferPublisher(testString))
+                          .expectedBody(expectedTestString));
     }
 
     private static ChecksumCalculatingAsyncRequestBody checksumPublisher(AsyncRequestBody sourcePublisher) {
@@ -133,10 +131,8 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
     }
 
     @ParameterizedTest(name = "{index} {0}")
-    @MethodSource("publishers")
-    public void publish_differentAsyncRequestBodiesAndSources_produceCorrectData(String description,
-                                                                                 AsyncRequestBody provider,
-                                                                                 String expectedContent) throws InterruptedException {
+    @MethodSource("contentPublishers")
+    public void publish_differentAsyncRequestBodiesAndSources_produceCorrectData(TestCase tc) throws InterruptedException {
         StringBuilder sb = new StringBuilder();
         CountDownLatch done = new CountDownLatch(1);
 
@@ -157,11 +153,14 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
                 done.countDown();
             }
         };
+
+        AsyncRequestBody provider = checksumPublisher(tc.requestBody);
+
         provider.subscribe(subscriber);
         done.await(10, TimeUnit.SECONDS);
 
-        assertThat(provider.contentLength()).hasValue((long) expectedContent.length());
-        assertThat(sb).hasToString(expectedContent);
+        assertThat(provider.contentLength()).hasValue((long) tc.expectedBody.length());
+        assertThat(sb).hasToString(tc.expectedBody);
     }
 
     @Test
@@ -281,6 +280,27 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
         assertThat(BinaryUtils.copyAllBytesFrom(publishedBb)).isEqualTo(expected);
     }
 
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("contentPublishers")
+    public void explicit0ContentLength_containsEmptyStringTrailingChecksum(TestCase tc) {
+        ChecksumCalculatingAsyncRequestBody checksumBody =
+            ChecksumCalculatingAsyncRequestBody.builder()
+                                               .contentLengthHeader(0L)
+                                               .trailerHeader("x-amz-checksum-crc32")
+                                               .algorithm(DefaultChecksumAlgorithm.CRC32)
+                                               .asyncRequestBody(tc.requestBody)
+                                               .build();
+
+        StringBuilder sb = new StringBuilder();
+        for (ByteBuffer byteBuffer : Flowable.fromPublisher(checksumBody).toList().blockingGet()) {
+            sb.append(StandardCharsets.UTF_8.decode(byteBuffer));
+        }
+
+        // Note: we ignore tc.expectedBody, since we expect the checksum to always be the empty body because of the 0 content
+        // length.
+        assertThat(sb.toString()).isEqualTo(expectedEmptyString);
+    }
+
     static class EmptyBufferPublisher implements AsyncRequestBody {
 
         private final ByteBuffer[] buffers = new ByteBuffer[2];
@@ -314,6 +334,32 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
         @Override
         public Optional<Long> contentLength() {
             return Optional.of((long) payload.length());
+        }
+    }
+
+    private static class TestCase {
+        private String description;
+        private AsyncRequestBody requestBody;
+        private String expectedBody;
+
+        public TestCase description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public TestCase requestBody(AsyncRequestBody requestBody) {
+            this.requestBody = requestBody;
+            return this;
+        }
+
+        public TestCase expectedBody(String expectedBody) {
+            this.expectedBody = expectedBody;
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return description;
         }
     }
 }
