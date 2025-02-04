@@ -35,13 +35,13 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkPublicApi
 public final class CustomSignerRequest implements CloudFrontSignerRequest,
                                                   ToCopyableBuilder<CustomSignerRequest.Builder, CustomSignerRequest> {
-
     private final String resourceUrl;
     private final PrivateKey privateKey;
     private final String keyPairId;
     private final Instant expirationDate;
     private final Instant activeDate;
     private final String ipRange;
+    private final String policyResourceUrl;
 
     private CustomSignerRequest(DefaultBuilder builder) {
         this.resourceUrl = builder.resourceUrl;
@@ -50,6 +50,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         this.expirationDate = builder.expirationDate;
         this.activeDate = builder.activeDate;
         this.ipRange = builder.ipRange;
+        this.policyResourceUrl = builder.policyResourceUrl;
     }
 
     /**
@@ -99,6 +100,8 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         return ipRange;
     }
 
+    public String policyResourceUrl() { return policyResourceUrl; }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -114,7 +117,8 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
                && Objects.equals(keyPairId, cookie.keyPairId)
                && Objects.equals(expirationDate, cookie.expirationDate)
                && Objects.equals(activeDate, cookie.activeDate)
-               && Objects.equals(ipRange, cookie.ipRange);
+               && Objects.equals(ipRange, cookie.ipRange)
+               && Objects.equals(policyResourceUrl, cookie.policyResourceUrl);
     }
 
     @Override
@@ -125,6 +129,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         result = 31 * result + (expirationDate != null ? expirationDate.hashCode() : 0);
         result = 31 * result + (activeDate != null ? activeDate.hashCode() : 0);
         result = 31 * result + (ipRange != null ? ipRange.hashCode() : 0);
+        result = 31 * result + (policyResourceUrl != null ? policyResourceUrl.hashCode() : 0);
         return result;
     }
 
@@ -179,6 +184,16 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
          * IPv6 format is not supported.
          */
         Builder ipRange(String ipRange);
+
+        /**
+         * Configure the resource URL pattern to be used in the policy
+         * <p>
+         * For custom policies, this specifies the URL pattern that determines which files
+         * can be accessed with this signed URL. This can include wildcard characters (*) to
+         * grant access to multiple files or paths. If not specified, the resourceUrl value
+         * will be used in the policy.
+         */
+        Builder policyResourceUrl(String policyResourceUrl);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -188,6 +203,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         private Instant expirationDate;
         private Instant activeDate;
         private String ipRange;
+        private String policyResourceUrl;
 
         private DefaultBuilder() {
         }
@@ -199,6 +215,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
             this.expirationDate = request.expirationDate;
             this.activeDate = request.activeDate;
             this.ipRange = request.ipRange;
+            this.policyResourceUrl = request.policyResourceUrl;
         }
 
         @Override
@@ -240,6 +257,12 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         @Override
         public Builder ipRange(String ipRange) {
             this.ipRange = ipRange;
+            return this;
+        }
+
+        @Override
+        public Builder policyResourceUrl(String policyResourceUrl) {
+            this.policyResourceUrl = policyResourceUrl;
             return this;
         }
 
