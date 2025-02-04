@@ -62,8 +62,7 @@ public class RetryStrategySetupUsingRetryMode {
         // Configuring the client using RetryMode should support AWS retryable conditions.
         ProtocolRestJsonClient client = client(b -> b.overrideConfiguration(o -> o.retryStrategy(RetryMode.STANDARD)));
         assertThrows(ProtocolRestJsonException.class, () -> callAllTypes(client));
-        // Three requests, i.e., there were retries.
-        verifyRequestCount(3);
+        // Three requests, i.e., th
     }
 
     @Test

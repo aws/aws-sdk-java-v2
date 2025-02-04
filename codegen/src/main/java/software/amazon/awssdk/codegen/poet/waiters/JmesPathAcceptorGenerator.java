@@ -57,6 +57,7 @@ import software.amazon.awssdk.utils.Validate;
  * this interpreter make heavy use of the {@code JmesPathRuntime}.
  */
 public class JmesPathAcceptorGenerator {
+    private static final ClassName BIG_DECIMAL = ClassName.get("java.math", "BigDecimal");
     private final ClassName runtimeClass;
 
     public JmesPathAcceptorGenerator(ClassName runtimeClass) {
@@ -273,7 +274,7 @@ public class JmesPathAcceptorGenerator {
         public void visitLiteral(Literal input) {
             JrsValue jsonValue = input.jsonValue();
             if (jsonValue.isNumber()) {
-                codeBlock.add(".constant($L)", Integer.parseInt(jsonValue.asText()));
+                codeBlock.add(".constant(new $T($S))", BIG_DECIMAL, jsonValue.asText());
             } else if (jsonValue instanceof JrsBoolean) {
                 codeBlock.add(".constant($L)", ((JrsBoolean) jsonValue).booleanValue());
             } else {
