@@ -46,7 +46,7 @@ public class AlpnHttpTest {
         assertThat(e).hasCauseInstanceOf(SdkClientException.class);
         assertThat(e.getCause()).hasCauseInstanceOf(ConnectException.class);
         assertThat(e.getMessage()).contains("Connection refused");
-        assertThat(e.getMessage()).doesNotContain("ALPN can only be used with HTTPS, not HTTP");
+        assertThat(e.getMessage()).doesNotContain("ALPN can only be used with HTTPS, not HTTP. Use ProtocolNegotiation.ASSUME_PROTOCOL instead.");
     }
 
     @Test
@@ -61,7 +61,7 @@ public class AlpnHttpTest {
         CompletionException e = assertThrows(CompletionException.class, () -> makeRequest(client));
         assertThat(e).hasCauseInstanceOf(SdkClientException.class);
         assertThat(e.getCause()).hasCauseInstanceOf(UnsupportedOperationException.class);
-        assertThat(e.getMessage()).contains("ALPN can only be used with HTTPS, not HTTP");
+        assertThat(e.getMessage()).contains("ALPN can only be used with HTTPS, not HTTP. Use ProtocolNegotiation.ASSUME_PROTOCOL instead.");
     }
 
     private H2AsyncClientBuilder clientBuilderWithHttpEndpoint() {
