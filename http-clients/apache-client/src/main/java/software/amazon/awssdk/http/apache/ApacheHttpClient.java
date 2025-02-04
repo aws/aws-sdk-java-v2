@@ -40,7 +40,9 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Registry;
@@ -55,6 +57,10 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLInitializationException;
+import org.apache.http.impl.auth.BasicSchemeFactory;
+import org.apache.http.impl.auth.KerberosSchemeFactory;
+import org.apache.http.impl.auth.NTLMSchemeFactory;
+import org.apache.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
@@ -148,6 +154,17 @@ public final class ApacheHttpClient implements SdkHttpClient {
         // IdleConnectionReaper as it's required for the successful deregistration of managers
         // from the reaper. See https://github.com/aws/aws-sdk-java/issues/722.
         HttpClientConnectionManager cm = cmFactory.create(configuration, standardOptions);
+
+        Registry<AuthSchemeProvider> authSchemeProviderRegistry = configuration.authSchemeProviderRegistry;
+        if (authSchemeProviderRegistry == null) {
+            authSchemeProviderRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+                                                        .register(AuthSchemes.BASIC, new BasicSchemeFactory())
+                                                        .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
+                                                        .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(true, false))
+                                                        .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory(true, false))
+                                                        .build();
+        }
+        builder.setDefaultAuthSchemeRegistry(authSchemeProviderRegistry);
 
         builder.setRequestExecutor(new HttpRequestExecutor())
                // SDK handles decompression
@@ -453,6 +470,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
     private static final class DefaultBuilder implements Builder {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
+        private Registry<AuthSchemeProvider> authSchemeProviderRegistry;
         private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
         private InetAddress localAddress;
         private Boolean expectContinueEnabled;
@@ -638,6 +656,15 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         public void setTlsTrustManagersProvider(TlsTrustManagersProvider tlsTrustManagersProvider) {
             tlsTrustManagersProvider(tlsTrustManagersProvider);
+        }
+
+        public Builder authSchemeProviderRegistry(Registry<AuthSchemeProvider> authSchemeProviderRegistry) {
+            this.authSchemeProviderRegistry = authSchemeProviderRegistry;
+            return this;
+        }
+
+        public void setAuthSchemeProviderRegistry(Registry<AuthSchemeProvider> authSchemeProviderRegistry) {
+            authSchemeProviderRegistry(authSchemeProviderRegistry);
         }
 
         @Override
