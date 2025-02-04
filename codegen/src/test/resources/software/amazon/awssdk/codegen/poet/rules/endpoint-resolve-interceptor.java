@@ -41,6 +41,7 @@ import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperat
 import software.amazon.awssdk.services.query.model.OperationWithMapOperationContextParamRequest;
 import software.amazon.awssdk.services.query.model.OperationWithOperationContextParamRequest;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @Generated("software.amazon.awssdk:codegen")
@@ -168,7 +169,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 if (v4aAuthScheme.isDisableDoubleEncodingSet()) {
                     option.putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, !v4aAuthScheme.disableDoubleEncoding());
                 }
-                if (v4aAuthScheme.signingRegionSet() != null) {
+                if (!CollectionUtils.isNullOrEmpty(v4aAuthScheme.signingRegionSet())) {
                     RegionSet regionSet = RegionSet.create(v4aAuthScheme.signingRegionSet());
                     option.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet);
                 }
