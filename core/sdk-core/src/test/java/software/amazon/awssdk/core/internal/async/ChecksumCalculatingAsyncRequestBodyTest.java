@@ -281,6 +281,38 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
         assertThat(BinaryUtils.copyAllBytesFrom(publishedBb)).isEqualTo(expected);
     }
 
+    @Test
+    public void explicit0ContentLength_emptyPublisher_containsEmptyStringTrailingChecksum() {
+        AsyncRequestBody body = AsyncRequestBody.fromString(emptyString);
+        ChecksumCalculatingAsyncRequestBody checksumBody =
+            ChecksumCalculatingAsyncRequestBody.builder()
+                                               .contentLengthHeader(0L)
+                                               .trailerHeader("x-amz-checksum-crc32")
+                                               .algorithm(DefaultChecksumAlgorithm.CRC32)
+                                               .asyncRequestBody(body)
+                                               .build();
+
+        StringBuilder sb = new StringBuilder(expectedEmptyString.length());
+        Flowable.fromPublisher(checksumBody).forEach(b -> sb.append(StandardCharsets.UTF_8.decode(b)));
+        assertThat(sb.toString()).isEqualTo(expectedEmptyString);
+    }
+
+    @Test
+    public void explicit0ContentLength_nonEmptyPublisher_containsEmptyStringTrailingChecksum() {
+        AsyncRequestBody body = AsyncRequestBody.fromString(testString);
+        ChecksumCalculatingAsyncRequestBody checksumBody =
+            ChecksumCalculatingAsyncRequestBody.builder()
+                                               .contentLengthHeader(0L)
+                                               .trailerHeader("x-amz-checksum-crc32")
+                                               .algorithm(DefaultChecksumAlgorithm.CRC32)
+                                               .asyncRequestBody(body)
+                                               .build();
+
+        StringBuilder sb = new StringBuilder(expectedTestString.length());
+        Flowable.fromPublisher(checksumBody).forEach(b -> sb.append(StandardCharsets.UTF_8.decode(b)));
+        assertThat(sb.toString()).isEqualTo(expectedEmptyString);
+    }
+
     static class EmptyBufferPublisher implements AsyncRequestBody {
 
         private final ByteBuffer[] buffers = new ByteBuffer[2];
