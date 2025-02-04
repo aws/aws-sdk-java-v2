@@ -28,6 +28,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -100,6 +101,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
     private final boolean dependsOnHttpAuthAws;
     private final boolean useSraAuth;
     private final boolean multiAuthSigv4a;
+    private final boolean legacyAuthFromEndpointRulesService;
 
 
     public EndpointResolverInterceptorSpec(IntermediateModel model) {
@@ -118,6 +120,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
         this.multiAuthSigv4a = new AuthSchemeSpecUtils(model).usesSigV4a();
+        this.legacyAuthFromEndpointRulesService = new AuthSchemeSpecUtils(model).generateEndpointBasedParams();
     }
 
     @Override
@@ -236,6 +239,23 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
             b.addStatement("selectedAuthScheme = new $T(selectedAuthScheme.identity(), selectedAuthScheme.signer(), "
                            + "optionBuilder.build())", SelectedAuthScheme.class);
             b.endControlFlow();
+        } else if (legacyAuthFromEndpointRulesService) {
+            b.beginControlFlow("if ($T.SCHEME_ID.equals(selectedAuthScheme.authSchemeOption().schemeId()) && "
+                               + "selectedAuthScheme.authSchemeOption().signerProperty($T.REGION_SET) == null)",
+                               AwsV4aAuthScheme.class, AwsV4aHttpSigner.class)
+             .addStatement("$T optionBuilder = selectedAuthScheme.authSchemeOption().toBuilder()",
+                           AuthSchemeOption.Builder.class)
+             .addStatement("$T<$T> regionSet = executionAttributes\n"
+                           + ".getOptionalAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)\n"
+                           + ".filter(regions -> !$T.isNullOrEmpty(regions))\n"
+                           + ".orElseGet(() -> $T.singleton(endpointParams.region().id()))",
+                           Set.class, String.class, AwsExecutionAttribute.class,
+                           CollectionUtils.class, Collections.class)
+             .addStatement("optionBuilder.putSignerProperty($T.REGION_SET, $T.create(regionSet))",
+                           AwsV4aHttpSigner.class, RegionSet.class)
+             .addStatement("selectedAuthScheme = new $T(selectedAuthScheme.identity(), "
+                           + "selectedAuthScheme.signer(), optionBuilder.build())",
+                           SelectedAuthScheme.class).endControlFlow();
         }
         b.addStatement("executionAttributes.putAttribute($T.SELECTED_AUTH_SCHEME, selectedAuthScheme)",
                        SdkInternalExecutionAttribute.class);
