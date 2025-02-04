@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fix an issue where the trailing checksum of a request body is not sent when the `Content-Length` header is explicitly set to `0`."
+}
