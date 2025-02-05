@@ -466,6 +466,12 @@ public final class ApacheHttpClient implements SdkHttpClient {
          * when constructing the SSL context.
          */
         Builder tlsTrustManagersProvider(TlsTrustManagersProvider tlsTrustManagersProvider);
+
+        /**
+         * Configure the authentication scheme registry that can be used to obtain the corresponding authentication scheme
+         * implementation for a given type of authorization challenge.
+         */
+        Builder authSchemeProviderRegistry(Registry<AuthSchemeProvider> authSchemeProviderRegistry);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -658,6 +664,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
             tlsTrustManagersProvider(tlsTrustManagersProvider);
         }
 
+        @Override
         public Builder authSchemeProviderRegistry(Registry<AuthSchemeProvider> authSchemeProviderRegistry) {
             this.authSchemeProviderRegistry = authSchemeProviderRegistry;
             return this;
