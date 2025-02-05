@@ -3,6 +3,8 @@
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
+  - ### Bugfixes
+    - Fix an issue where the trailing checksum of a request body is not sent when the `Content-Length` header is explicitly set to `0`.
 
 ## __Amazon Relational Database Service__
   - ### Features
