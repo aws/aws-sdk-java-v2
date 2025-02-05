@@ -129,7 +129,7 @@ public abstract class ExceptionAttemptMessageBehaviorTest<ClientT, BuilderT exte
         AwsServiceException exception = assertThrows(AwsServiceException.class,
                                                      () -> callAllTypes(client));
 
-        assertThat(exception.getMessage()).contains("numAttempts = 2");
+        assertThat(exception.getMessage()).isEqualTo("Service returned HTTP status code 403 (Service: ProtocolRestJson, Status Code: 403, Request ID: null) (SDK Diagnostics: numAttempts = 2)");
         wireMock.verify(2, postRequestedFor(anyUrl()));
     }
 
