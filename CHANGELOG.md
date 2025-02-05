@@ -1,4 +1,19 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.14__ __2025-02-05__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+  - ### Bugfixes
+    - Fix an issue where the trailing checksum of a request body is not sent when the `Content-Length` header is explicitly set to `0`.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates to clarify the description for the parameter AllocatedStorage for the DB cluster data type, the description for the parameter DeleteAutomatedBackups for the DeleteDBCluster API operation, and removing an outdated note for the CreateDBParameterGroup API operation.
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Fallback to prior knowledge if default client setting is ALPN and request has HTTP endpoint
+
 # __2.30.13__ __2025-02-04__
 ## __AWS DataSync__
   - ### Features
