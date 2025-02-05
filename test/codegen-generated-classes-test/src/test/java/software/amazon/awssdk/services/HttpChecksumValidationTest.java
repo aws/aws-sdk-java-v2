@@ -238,7 +238,7 @@ public class HttpChecksumValidationTest {
             .isThrownBy(() -> client.getOperationWithChecksum(
                 r -> r.checksumMode(ChecksumMode.ENABLED),
                 ResponseTransformer.toBytes()))
-            .withMessage("Unable to unmarshall response (Data read has a different checksum than expected. Was i9aeUg==, "
+            .withMessageContaining("Unable to unmarshall response (Data read has a different checksum than expected. Was i9aeUg==, "
                          + "but expected i9aeUg=). Response Code: 200, Response Text: OK");
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
         assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32);
@@ -369,7 +369,7 @@ public class HttpChecksumValidationTest {
                 r -> r.checksumMode(ChecksumMode.ENABLED),
                 AsyncResponseTransformer.toBytes()).join())
 
-            .withMessage("software.amazon.awssdk.core.exception.SdkClientException: Data read has a different checksum"
+            .withMessageContaining("software.amazon.awssdk.core.exception.SdkClientException: Data read has a different checksum"
                          + " than expected. Was i9aeUg==, but expected i9aeUg=");
         assertThat(CaptureChecksumValidationInterceptor.checksumValidation).isEqualTo(ChecksumValidation.VALIDATED);
         assertThat(CaptureChecksumValidationInterceptor.expectedAlgorithm).isEqualTo(DefaultChecksumAlgorithm.CRC32);

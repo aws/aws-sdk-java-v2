@@ -165,7 +165,11 @@ public final class RetryableStageHelper {
                                   .build();
             lastException.addSuppressed(pastException);
         }
-        return lastException;
+        SdkException newException = lastException.toBuilder().numAttempts(retriesAttemptedSoFar() + 1).build();
+        for (Throwable suppressed : lastException.getSuppressed()) {
+            newException.addSuppressed(suppressed);
+        }
+        return newException;
     }
 
     /**
