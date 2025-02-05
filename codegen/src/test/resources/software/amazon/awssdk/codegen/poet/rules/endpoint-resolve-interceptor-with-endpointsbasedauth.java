@@ -1,8 +1,10 @@
 package software.amazon.awssdk.services.query.endpoints.internal;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -25,6 +27,7 @@ import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
@@ -37,7 +40,6 @@ import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.jmespath.internal.JmesPathRuntime;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
-import software.amazon.awssdk.services.query.model.OperationWithCustomizedOperationContextParamRequest;
 import software.amazon.awssdk.services.query.model.OperationWithMapOperationContextParamRequest;
 import software.amazon.awssdk.services.query.model.OperationWithOperationContextParamRequest;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -75,6 +77,17 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
             if (endpointAuthSchemes != null && selectedAuthScheme != null) {
                 selectedAuthScheme = authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme);
+                if (AwsV4aAuthScheme.SCHEME_ID.equals(selectedAuthScheme.authSchemeOption().schemeId())
+                    && selectedAuthScheme.authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_SET) == null) {
+                    AuthSchemeOption.Builder optionBuilder = selectedAuthScheme.authSchemeOption().toBuilder();
+                    Set<String> regionSet = executionAttributes
+                        .getOptionalAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET)
+                        .filter(regions -> !CollectionUtils.isNullOrEmpty(regions))
+                        .orElseGet(() -> Collections.singleton(endpointParams.region().id()));
+                    optionBuilder.putSignerProperty(AwsV4aHttpSigner.REGION_SET, RegionSet.create(regionSet));
+                    selectedAuthScheme = new SelectedAuthScheme(selectedAuthScheme.identity(), selectedAuthScheme.signer(),
+                                                                optionBuilder.build());
+                }
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
             }
             executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, endpoint);
@@ -194,9 +207,6 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
 
     private static void setOperationContextParams(QueryEndpointParams.Builder params, String operationName, SdkRequest request) {
         switch (operationName) {
-            case "OperationWithCustomizedOperationContextParam":
-                setOperationContextParams(params, (OperationWithCustomizedOperationContextParamRequest) request);
-                break;
             case "OperationWithMapOperationContextParam":
                 setOperationContextParams(params, (OperationWithMapOperationContextParamRequest) request);
                 break;
@@ -209,21 +219,15 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     }
 
     private static void setOperationContextParams(QueryEndpointParams.Builder params,
-                                                  OperationWithCustomizedOperationContextParamRequest request) {
-        JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
-        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString").stringValues());
-    }
-
-    private static void setOperationContextParams(QueryEndpointParams.Builder params,
                                                   OperationWithMapOperationContextParamRequest request) {
         JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
-        params.arnList(input.field("RequestMap").keys().stringValues());
+        params.arnList(input.field("RequestMap").keys());
     }
 
     private static void setOperationContextParams(QueryEndpointParams.Builder params,
                                                   OperationWithOperationContextParamRequest request) {
         JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
-        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString").stringValues());
+        params.customEndpointArray(input.field("ListMember").field("StringList").wildcard().field("LeafString"));
     }
 
     private static Optional<String> hostPrefix(String operationName, SdkRequest request) {
