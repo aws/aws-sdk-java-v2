@@ -15,12 +15,15 @@
 
 package software.amazon.awssdk.http.crt;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
 
 import java.time.Duration;
+import org.junit.Test;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -52,6 +55,16 @@ public class AwsCrtHttpClientTest extends SdkHttpClientTestSuite {
         return AwsCrtHttpClient.builder()
                                .connectionAcquisitionTimeout(Duration.ofSeconds(40))
                                .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, trustAllCerts).build());
+    }
+
+    @Test
+    public void negativeConnectionAcquisitionTimeout_shouldFail() {
+        assertThatThrownBy(() -> {
+            SdkHttpClient client = AwsCrtHttpClient.builder()
+                    .connectionAcquisitionTimeout(Duration.ofSeconds(-1))
+                    .build();
+            client.close();
+        }).hasMessage("connectionAcquisitionTimeout must be positive");
     }
 
     // Empty test; behavior not supported when using custom factory
