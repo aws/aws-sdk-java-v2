@@ -54,10 +54,13 @@ public final class SwitchToPostInterceptor implements ExecutionInterceptor {
         if (context.request() instanceof SearchRequest) {
             byte[] params = context.httpRequest().encodedQueryParametersAsFormData().orElse("")
                                    .getBytes(StandardCharsets.UTF_8);
+            // CHECKSTYLE:OFF - Avoid flagging the use of fromContentProvider. This is fine here because it's non-streaming
+            // operation
             return Optional.of(RequestBody.fromContentProvider(() -> new ByteArrayInputStream(params),
                                                                params.length,
                                                                "application/x-www-form-urlencoded; charset=" +
                                                                lowerCase(StandardCharsets.UTF_8.toString())));
+            // CHECKSTYLE:ON
         }
         return context.requestBody();
     }

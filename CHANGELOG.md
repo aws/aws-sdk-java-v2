@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.13__ __2025-02-04__
+## __AWS DataSync__
+  - ### Features
+    - Doc-only update to provide more information on using Kerberos authentication with SMB locations.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Introduces TargetDataSettings with the TablePreparationMode option available for data migrations.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - This release adds support for accepting encrypted SAML assertions. Customers can now configure their identity provider to encrypt the SAML assertions it sends to IAM.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue in the SDK where it unnecessarily buffers the entire content for streaming operations, causing OOM error. See [#5850](https://github.com/aws/aws-sdk-java-v2/issues/5850).
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Added argument to `list-export` to filter by graph ID
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - IPv6 support for Hyperpod clusters
+
+## __QBusiness__
+  - ### Features
+    - Adds functionality to enable/disable a new Q Business Chat orchestration feature. If enabled, Q Business can orchestrate over datasources and plugins without the need for customers to select specific chat modes.
+
+# __2.30.12__ __2025-02-03__
+## __AWS MediaTailor__
+  - ### Features
+    - Add support for CloudWatch Vended Logs which allows for delivery of customer logs to CloudWatch Logs, S3, or Firehose.
+
 # __2.30.11__ __2025-01-31__
 ## __AWS CodeBuild__
   - ### Features
