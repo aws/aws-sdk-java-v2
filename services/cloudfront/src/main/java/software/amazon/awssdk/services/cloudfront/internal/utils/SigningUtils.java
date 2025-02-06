@@ -174,16 +174,15 @@ public final class SigningUtils {
     public static String buildCustomPolicyForSignedUrl(String resourceUrl,
                                                        Instant activeDate,
                                                        Instant expirationDate,
-                                                       String limitToIpAddressCidr,
-                                                       String policyResourceUrl) {
+                                                       String limitToIpAddressCidr) {
         if (expirationDate == null) {
             throw SdkClientException.create("Expiration date must be provided to sign CloudFront URLs");
         }
         if (resourceUrl == null) {
-            throw SdkClientException.create("Resource URL must be provided to sign CloudFront URLs");
+            resourceUrl = "*";
         }
-        String policyResource = policyResourceUrl != null ? policyResourceUrl : resourceUrl;
-        return buildCustomPolicy(policyResource, activeDate, expirationDate, limitToIpAddressCidr);
+
+        return buildCustomPolicy(resourceUrl, activeDate, expirationDate, limitToIpAddressCidr);
     }
 
     /**

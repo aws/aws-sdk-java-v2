@@ -285,7 +285,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                          .resourceUrl(resourceUrl)
                                                          .privateKey(keyFilePath)
                                                          .keyPairId(keyPairId)
-                                                         .policyResourceUrl(resourceUrl + "*")
+                                                         .policyResource(resourceUrl + "*")
                                                          .activeDate(activeDate)
                                                          .expirationDate(expirationDate)
                                                          .build();
@@ -323,7 +323,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                          .resourceUrl(resourceUri + "/foo/specific-file")
                                                          .privateKey(keyFilePath)
                                                          .keyPairId(keyPairId)
-                                                         .policyResourceUrl(resourceUri + "/foo/*")
+                                                         .policyResource(resourceUri + "/foo/*")
                                                          .activeDate(activeDate)
                                                          .expirationDate(expirationDate)
                                                          .build();
@@ -345,7 +345,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void getSignedUrlWithCustomPolicy_wildCardPolicyResourceUrl_allowsAnyPath() throws Exception {
+    void getSignedUrlWithCustomPolicy_wildCardPolicyResource_allowsAnyPath() throws Exception {
         Instant expirationDate = LocalDate.of(2050, 1, 1)
                                           .atStartOfDay()
                                           .toInstant(ZoneOffset.of("Z"));
@@ -358,7 +358,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                          .resourceUrl(resourceUrl)
                                                          .privateKey(keyFilePath)
                                                          .keyPairId(keyPairId)
-                                                         .policyResourceUrl("*")
+                                                         .policyResource("*")
                                                          .activeDate(activeDate)
                                                          .expirationDate(expirationDate)
                                                          .build();

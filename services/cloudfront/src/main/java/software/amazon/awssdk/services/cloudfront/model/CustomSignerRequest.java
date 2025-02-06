@@ -41,7 +41,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
     private final Instant expirationDate;
     private final Instant activeDate;
     private final String ipRange;
-    private final String policyResourceUrl;
+    private final String policyResource;
 
     private CustomSignerRequest(DefaultBuilder builder) {
         this.resourceUrl = builder.resourceUrl;
@@ -50,7 +50,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         this.expirationDate = builder.expirationDate;
         this.activeDate = builder.activeDate;
         this.ipRange = builder.ipRange;
-        this.policyResourceUrl = builder.policyResourceUrl;
+        this.policyResource = builder.policyResource;
     }
 
     /**
@@ -100,8 +100,8 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         return ipRange;
     }
 
-    public String policyResourceUrl() {
-        return policyResourceUrl;
+    public String policyResource() {
+        return policyResource;
     }
 
     @Override
@@ -120,7 +120,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
                && Objects.equals(expirationDate, cookie.expirationDate)
                && Objects.equals(activeDate, cookie.activeDate)
                && Objects.equals(ipRange, cookie.ipRange)
-               && Objects.equals(policyResourceUrl, cookie.policyResourceUrl);
+               && Objects.equals(policyResource, cookie.policyResource);
     }
 
     @Override
@@ -131,7 +131,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         result = 31 * result + (expirationDate != null ? expirationDate.hashCode() : 0);
         result = 31 * result + (activeDate != null ? activeDate.hashCode() : 0);
         result = 31 * result + (ipRange != null ? ipRange.hashCode() : 0);
-        result = 31 * result + (policyResourceUrl != null ? policyResourceUrl.hashCode() : 0);
+        result = 31 * result + (policyResource != null ? policyResource.hashCode() : 0);
         return result;
     }
 
@@ -195,7 +195,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
          * grant access to multiple files or paths. If not specified, the resourceUrl value
          * will be used in the policy.
          */
-        Builder policyResourceUrl(String policyResourceUrl);
+        Builder policyResource(String policyResource);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -205,7 +205,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         private Instant expirationDate;
         private Instant activeDate;
         private String ipRange;
-        private String policyResourceUrl;
+        private String policyResource;
 
         private DefaultBuilder() {
         }
@@ -217,7 +217,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
             this.expirationDate = request.expirationDate;
             this.activeDate = request.activeDate;
             this.ipRange = request.ipRange;
-            this.policyResourceUrl = request.policyResourceUrl;
+            this.policyResource = request.policyResource;
         }
 
         @Override
@@ -263,8 +263,8 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         }
 
         @Override
-        public Builder policyResourceUrl(String policyResourceUrl) {
-            this.policyResourceUrl = policyResourceUrl;
+        public Builder policyResource(String policyResource) {
+            this.policyResource = policyResource;
             return this;
         }
 

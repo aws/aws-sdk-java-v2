@@ -210,13 +210,17 @@ public final class CloudFrontUtilities {
      * based on an access time window and an ip range. The custom policy itself
      * is included as part of the signed URL (For a signed URL with canned
      * policy, there is no policy included in the signed URL).
+     * <p>
+     * <b>Note: </b> If you require a wildcard or a different resource path in the policy than the actual {@code resourceUrl},
+     * use the optional {@code policyResource} field in {@link CustomSignerRequest}.
      * For more information, see <a href=
      * "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-creating-signed-url-custom-policy.html"
      * >Creating a signed URL using a custom policy</a>.
      *
      * @param request
      *            A {@link CustomSignerRequest} configured with the following values:
-     *            resourceUrl, privateKey, keyPairId, expirationDate, activeDate (optional), ipRange (optional)
+     *            resourceUrl, privateKey, keyPairId, expirationDate, activeDate (optional), ipRange (optional), policyResource
+     *            (optional)
      * @return A signed URL that will permit access to distribution and S3
      *         objects as specified in the policy document.
      *
@@ -233,6 +237,7 @@ public final class CloudFrontUtilities {
      *     Path keyFile = myKeyFile;
      *     Instant activeDate = Instant.now().plus(Duration.ofDays(2));
      *     String ipRange = "192.168.0.1/24";
+     *     String policyResource = resourceUrl + "*";
      *
      *     CustomSignerRequest customRequest = CustomSignerRequest.builder()
      *                                                            .resourceUrl(resourceUrl)
@@ -241,19 +246,29 @@ public final class CloudFrontUtilities {
      *                                                            .expirationDate(expirationDate)
      *                                                            .activeDate(activeDate)
      *                                                            .ipRange(ipRange)
+     *                                                             .policyResource(policyResource)
      *                                                            .build();
      *     SignedUrl signedUrl = utilities.getSignedUrlWithCustomPolicy(customRequest);
      *     String url = signedUrl.url();
      * }
      */
     public SignedUrl getSignedUrlWithCustomPolicy(CustomSignerRequest request) {
+        String resourceUrl = request.resourceUrl();
+
+        if (resourceUrl == null) {
+            throw SdkClientException.create("resourceUrl must not be null. "
+                                            + "To provide a custom policy resource please use the policyResource parameter");
+        }
+
         try {
-            String resourceUrl = request.resourceUrl();
-            String policy = SigningUtils.buildCustomPolicyForSignedUrl(request.resourceUrl(),
+            String policyResource = request.policyResource() != null
+                                    ? request.policyResource()
+                                    : request.resourceUrl();
+
+            String policy = SigningUtils.buildCustomPolicyForSignedUrl(policyResource,
                                                                        request.activeDate(),
                                                                        request.expirationDate(),
-                                                                       request.ipRange(),
-                                                                       request.policyResourceUrl());
+                                                                       request.ipRange());
 
             byte[] signatureBytes = SigningUtils.signWithSha1Rsa(policy.getBytes(UTF_8), request.privateKey());
             String urlSafePolicy = SigningUtils.makeStringUrlSafe(policy);

@@ -341,7 +341,7 @@ class CloudFrontUtilitiesTest {
                                                          .resourceUrl(baseUrl)
                                                          .privateKey(keyPair.getPrivate())
                                                          .keyPairId("keyPairId")
-                                                         .policyResourceUrl("*")
+                                                         .policyResource("*")
                                                          .expirationDate(expiration)
                                                          .build();
 
