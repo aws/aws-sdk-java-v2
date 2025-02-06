@@ -1,8 +1,34 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.15__ __2025-02-06__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Allow users to configure connectionAcquisitionTimeout for AwsCrtHttpClient and AwsCrtAsyncHttpClient
+
+## __AWS CloudFormation__
+  - ### Features
+    - We added 5 new stack refactoring APIs: CreateStackRefactor, ExecuteStackRefactor, ListStackRefactors, DescribeStackRefactor, ListStackRefactorActions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds the ability to conditionally require fields on a template. Check public documentation for more information.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Updated list of the valid AWS Region values for the LocationConstraint parameter for general purpose buckets.
+
+## __Cost Optimization Hub__
+  - ### Features
+    - This release enables AWS Cost Optimization Hub to show cost optimization recommendations for Amazon Auto Scaling Groups, including those with single and mixed instance types.
+
 # __2.30.14__ __2025-02-05__
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
+
   - ### Bugfixes
     - Fix an issue where the trailing checksum of a request body is not sent when the `Content-Length` header is explicitly set to `0`.
 
