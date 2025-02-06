@@ -208,7 +208,7 @@ class CloudFrontUtilitiesTest {
 
     @Test
     void getSignedURLWithCustomPolicy_withMissingExpirationDate_shouldThrowException() {
-        SdkClientException exception = assertThrows(SdkClientException.class, () ->
+        NullPointerException exception = assertThrows(NullPointerException.class, () ->
             cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> r
                 .resourceUrl(RESOURCE_URL)
                 .privateKey(keyPair.getPrivate())

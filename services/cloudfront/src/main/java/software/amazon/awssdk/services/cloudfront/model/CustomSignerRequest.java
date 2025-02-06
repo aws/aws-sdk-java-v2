@@ -24,6 +24,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -44,7 +45,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
     private final String policyResource;
 
     private CustomSignerRequest(DefaultBuilder builder) {
-        this.resourceUrl = builder.resourceUrl;
+        this.resourceUrl = Validate.notNull(builder.resourceUrl, "resourceUrl must not be null");
         this.privateKey = builder.privateKey;
         this.keyPairId = builder.keyPairId;
         this.expirationDate = builder.expirationDate;

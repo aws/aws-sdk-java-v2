@@ -34,6 +34,7 @@ import software.amazon.awssdk.services.cloudfront.internal.auth.Pem;
 import software.amazon.awssdk.services.cloudfront.internal.auth.Rsa;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class SigningUtils {
@@ -175,9 +176,9 @@ public final class SigningUtils {
                                                        Instant activeDate,
                                                        Instant expirationDate,
                                                        String limitToIpAddressCidr) {
-        if (expirationDate == null) {
-            throw SdkClientException.create("Expiration date must be provided to sign CloudFront URLs");
-        }
+
+        Validate.notNull(expirationDate, "Expiration date must be provided to sign CloudFront URLs");
+
         if (resourceUrl == null) {
             resourceUrl = "*";
         }

@@ -254,12 +254,6 @@ public final class CloudFrontUtilities {
      */
     public SignedUrl getSignedUrlWithCustomPolicy(CustomSignerRequest request) {
         String resourceUrl = request.resourceUrl();
-
-        if (resourceUrl == null) {
-            throw SdkClientException.create("resourceUrl must not be null. "
-                                            + "To provide a custom policy resource please use the policyResource parameter");
-        }
-
         try {
             String policyResource = request.policyResource() != null
                                     ? request.policyResource()
