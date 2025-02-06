@@ -150,7 +150,7 @@ class Sigv4aSigningRegionSetTest {
                 "us-west-4",
                 "us-west-5",
                 setOf("*"),
-                "sigv4aRegionSet set to GLOBAL value, takes highest precedence")),
+                "sigv4aSigningRegionSet set to GLOBAL value, takes highest precedence")),
 
             Arguments.of(new SuccessCase(
                 RegionSet.create("us-west-3"),
@@ -158,7 +158,7 @@ class Sigv4aSigningRegionSetTest {
                 "us-west-4",
                 "us-west-5",
                 setOf("us-west-3"),
-                "sigv4aRegionSet set to different value, takes highest precedence"))
+                "sigv4aSigningRegionSet set to different value, takes highest precedence"))
         );
     }
 
@@ -182,7 +182,7 @@ class Sigv4aSigningRegionSetTest {
                                .region(Region.US_WEST_2)
                                .credentialsProvider(AnonymousCredentialsProvider.create());
             if (testCase.regionSet != null) {
-                builder.sigv4aRegionSet(testCase.regionSet);
+                builder.sigv4aSigningRegionSet(testCase.regionSet);
             }
             if (testCase.systemPropSetting != null) {
                 System.setProperty(SdkSystemSetting.AWS_SIGV4A_SIGNING_REGION_SET.property(), testCase.systemPropSetting);

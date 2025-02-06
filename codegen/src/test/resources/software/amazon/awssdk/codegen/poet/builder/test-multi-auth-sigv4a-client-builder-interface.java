@@ -39,7 +39,7 @@ public interface DatabaseBaseClientBuilder<B extends DatabaseBaseClientBuilder<B
      * <li>The region configured for the client.</li>
      * </ol>
      */
-    default B sigv4aRegionSet(RegionSet sigv4aRegionSet) {
+    default B sigv4aSigningRegionSet(RegionSet sigv4aSigningRegionSet) {
         throw new UnsupportedOperationException();
     }
 }
