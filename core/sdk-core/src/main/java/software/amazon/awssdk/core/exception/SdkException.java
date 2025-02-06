@@ -145,7 +145,7 @@ public class SdkException extends RuntimeException {
          * The number of times a request was attempted before this exception was thrown
          * @return the attempt count
          */
-        Integer numAttempts();
+        default Integer numAttempts() { throw new UnsupportedOperationException(); }
 
         /**
          * Specifies whether the stack trace in this exception can be written.
