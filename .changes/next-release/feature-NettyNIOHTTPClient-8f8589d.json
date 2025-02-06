@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Netty NIO HTTP Client",
-    "contributor": "",
-    "description": "Fallback to prior knowledge if default client setting is ALPN and request has HTTP endpoint"
-}
