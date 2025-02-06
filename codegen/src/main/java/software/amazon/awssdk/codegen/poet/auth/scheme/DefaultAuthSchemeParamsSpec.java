@@ -80,7 +80,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
             b.addStatement("this.region = builder.region");
         }
 
-        if (authSchemeSpecUtils.usesSigV4a()) {
+        if (authSchemeSpecUtils.hasSigV4aSupport()) {
             b.addStatement("this.regionSet = builder.regionSet");
         }
 
@@ -150,7 +150,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.usesSigV4()) {
             builderFromInstance.addStatement("this.region = params.region");
         }
-        if (authSchemeSpecUtils.usesSigV4a()) {
+        if (authSchemeSpecUtils.hasSigV4aSupport()) {
             builderFromInstance.addStatement("this.regionSet = params.regionSet");
         }
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
@@ -189,7 +189,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                                   .build());
         }
 
-        if (authSchemeSpecUtils.usesSigV4a()) {
+        if (authSchemeSpecUtils.hasSigV4aSupport()) {
             b.addField(FieldSpec.builder(RegionSet.class, "regionSet")
                                 .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                                 .build());
@@ -248,7 +248,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
             b.addMethod(builderSetterMethod("region", TypeName.get(Region.class)));
         }
 
-        if (authSchemeSpecUtils.usesSigV4a()) {
+        if (authSchemeSpecUtils.hasSigV4aSupport()) {
             b.addField(FieldSpec.builder(RegionSet.class, "regionSet")
                                 .addModifiers(Modifier.PRIVATE)
                                 .build());

@@ -31,6 +31,7 @@ import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointParams;
 import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointProvider;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
@@ -140,9 +141,9 @@ public final class DatabaseResolveEndpointInterceptor implements ExecutionInterc
                 if (v4aAuthScheme.isDisableDoubleEncodingSet()) {
                     option.putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, !v4aAuthScheme.disableDoubleEncoding());
                 }
-                if (!(selectedAuthScheme.authSchemeOption().schemeId().equals(AwsV4aAuthScheme.SCHEME_ID)
-                      && selectedAuthScheme.authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_SET) != null)
-                    && v4aAuthScheme.signingRegionSet() != null) {
+                if (!(selectedAuthScheme.authSchemeOption().schemeId().equals(AwsV4aAuthScheme.SCHEME_ID) && selectedAuthScheme
+                                                                                                                 .authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_SET) != null)
+                    && !CollectionUtils.isNullOrEmpty(v4aAuthScheme.signingRegionSet())) {
                     RegionSet regionSet = RegionSet.create(v4aAuthScheme.signingRegionSet());
                     option.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet);
                 }

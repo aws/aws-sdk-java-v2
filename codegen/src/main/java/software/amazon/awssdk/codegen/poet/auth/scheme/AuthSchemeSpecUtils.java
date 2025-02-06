@@ -155,6 +155,10 @@ public final class AuthSchemeSpecUtils {
         return intermediateModel.getMetadata().getSigningName();
     }
 
+    public boolean hasSigV4aSupport() {
+        return usesSigV4a() || generateEndpointBasedParams();
+    }
+
     private static Set<String> setOf(String val1, String val2) {
         Set<String> result = new HashSet<>();
         result.add(val1);

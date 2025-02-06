@@ -3,6 +3,7 @@ package software.amazon.awssdk.services.query.auth.scheme.internal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
@@ -69,8 +70,9 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
                     SigV4aAuthScheme sigv4aAuthScheme = Validate.isInstanceOf(SigV4aAuthScheme.class, authScheme,
                                                                               "Expecting auth scheme of class SigV4AuthScheme, got instead object of class %s", authScheme.getClass()
                                                                                                                                                                           .getName());
-                    RegionSet regionSet = CollectionUtils.isNullOrEmpty(sigv4aAuthScheme.signingRegionSet()) ? null : RegionSet
-                        .create(sigv4aAuthScheme.signingRegionSet());
+                    RegionSet regionSet = Optional.ofNullable(params.regionSet()).orElseGet(
+                        () -> Optional.ofNullable(sigv4aAuthScheme.signingRegionSet())
+                                      .filter(set -> !CollectionUtils.isNullOrEmpty(set)).map(RegionSet::create).orElse(null));
                     AuthSchemeOption sigv4aAuthSchemeOption = AuthSchemeOption.builder().schemeId(AwsV4aAuthScheme.SCHEME_ID)
                                                                               .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, sigv4aAuthScheme.signingName())
                                                                               .putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet)

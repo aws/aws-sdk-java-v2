@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.endpointauth;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -49,17 +50,136 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
-@DisplayName("Multi-Auth Tests")
+@DisplayName("Endpoint-Auth Tests")
 class EndpointAuthSigningPropertiesTest {
 
     private static final String MOCK_HTTP_CLIENT_NAME = "MockHttpClient";
     private static final String EXPECTED_EXCEPTION_MESSAGE = "expected exception";
 
-    private final EnvironmentVariableHelper environmentVariableHelper = new EnvironmentVariableHelper();
+    private static final Region TEST_REGION = Region.US_WEST_2;
+    private static final String MULTI_REGION_SET = "us-west-2,us-west-1";
 
     @Mock
     private SdkHttpClient mockHttpClient;
+    private final EnvironmentVariableHelper environmentVariableHelper = new EnvironmentVariableHelper();
 
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        configureMockHttpClient();
+    }
+
+    @AfterEach
+    void tearDown() {
+        environmentVariableHelper.reset();
+    }
+
+    @Nested
+    @DisplayName("Region Set Configuration Tests")
+    class RegionSetConfigurationTests {
+        private CapturingSigner signer;
+        private EndpointAuthClient client;
+
+        @BeforeEach
+        void setUp() {
+            signer = new CapturingSigner();
+        }
+
+        @Test
+        @DisplayName("Should not use region set for non-sigv4a operations")
+        void shouldNotUseRegionSetForNonSigv4aOperations() {
+            
+            environmentVariableHelper.set(SdkSystemSetting.AWS_SIGV4A_SIGNING_REGION_SET, MULTI_REGION_SET);
+            client = createEndpointAuthClient()
+                .putAuthScheme(authScheme("aws.auth#sigv4", signer))
+                .build();
+            assertAll(
+                () -> assertThatThrownBy(() ->
+                                             client.noSigv4aPropertiesInEndpointRules(r -> r.stringMember("")))
+                    .hasMessageContaining("stop"),
+                () -> assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET))
+                    .isNull(),
+                () -> assertThat(signer.request.property(AwsV4aHttpSigner.SERVICE_SIGNING_NAME))
+                    .isEqualTo("fromruleset")
+            );
+        }
+
+        @Test
+        @DisplayName("Should fall back to client region when no environment variable exists")
+        void shouldFallBackToClientRegion() {
+            
+            client = createEndpointAuthClient()
+                .putAuthScheme(authScheme("aws.auth#sigv4a", signer))
+                .build();
+            assertAll(
+                () -> assertThatThrownBy(() ->
+                                             client.regionsetAbsentInSigv4aPropertiesInEndpointRules(r -> r.stringMember("")))
+                    .hasMessageContaining("stop"),
+                () -> assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET))
+                    .isEqualTo(RegionSet.create(TEST_REGION.toString())),
+                () -> assertThat(signer.request.property(AwsV4aHttpSigner.SERVICE_SIGNING_NAME))
+                    .isEqualTo("sigv4afromruleset2")
+            );
+        }
+
+        @Test
+        @DisplayName("Should use client region set despite endpoint signing properties")
+        void clientConfiguredRegionSetTakesPrecedenceOverEndpointRegionSet() {
+
+            environmentVariableHelper.set(SdkSystemSetting.AWS_SIGV4A_SIGNING_REGION_SET, MULTI_REGION_SET);
+            client = createEndpointAuthClient()
+                .putAuthScheme(authScheme("aws.auth#sigv4a", signer))
+                .build();
+
+            assertAll(
+                () -> assertThatThrownBy(() ->
+                                             client.allAuthPropertiesInEndpointRules(r -> r.stringMember("")))
+                    .hasMessageContaining("stop"),
+                () -> assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET))
+                    .isEqualTo(RegionSet.create(MULTI_REGION_SET)),
+                () -> assertThat(signer.request.property(AwsV4aHttpSigner.SERVICE_SIGNING_NAME))
+                    .isEqualTo("sigv4afromruleset")
+            );
+        }
+
+        @Test
+        @DisplayName("Environment variable config should take precedence over endpoint rules")
+        void environmentVariableRegionSetTakesPrecedenceOverEndpointRegionSet() {
+            
+            environmentVariableHelper.set(SdkSystemSetting.AWS_SIGV4A_SIGNING_REGION_SET, MULTI_REGION_SET);
+            client = createEndpointAuthClient()
+                .putAuthScheme(authScheme("aws.auth#sigv4a", signer))
+                .build();
+
+            
+            assertAll(
+                () -> assertThatThrownBy(() ->
+                                             client.regionsetAbsentInSigv4aPropertiesInEndpointRules(r -> r.stringMember("")))
+                    .hasMessageContaining("stop"),
+                () -> assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET))
+                    .isEqualTo(RegionSet.create("us-west-1, us-west-2")),
+                () -> assertThat(signer.request.property(AwsV4aHttpSigner.SERVICE_SIGNING_NAME))
+                    .isEqualTo("sigv4afromruleset2")
+            );
+        }
+    }
+
+
+    private void configureMockHttpClient() {
+        when(mockHttpClient.clientName()).thenReturn(MOCK_HTTP_CLIENT_NAME);
+        when(mockHttpClient.prepareRequest(any()))
+            .thenThrow(new RuntimeException(EXPECTED_EXCEPTION_MESSAGE));
+    }
+
+    private EndpointAuthClientBuilder createEndpointAuthClient() {
+        return EndpointAuthClient.builder()
+                                 .httpClient(mockHttpClient)
+                                 .credentialsProvider(StaticCredentialsProvider.create(
+                                     AwsBasicCredentials.create("akid", "skid")))
+                                 .region(TEST_REGION);
+    }
+
+    // Helper classes and methods
     private static AuthScheme<?> authScheme(String schemeId, HttpSigner<AwsCredentialsIdentity> signer) {
         return new AuthScheme<AwsCredentialsIdentity>() {
             @Override
@@ -79,27 +199,6 @@ class EndpointAuthSigningPropertiesTest {
         };
     }
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        when(mockHttpClient.clientName()).thenReturn(MOCK_HTTP_CLIENT_NAME);
-        when(mockHttpClient.prepareRequest(any())).thenThrow(new RuntimeException(EXPECTED_EXCEPTION_MESSAGE));
-    }
-
-    @AfterEach
-    void tearDown() {
-        environmentVariableHelper.reset();
-    }
-
-    private EndpointAuthClientBuilder createEndpointAuthClient() {
-        return EndpointAuthClient.builder()
-                                 .httpClient(mockHttpClient)
-                                 .credentialsProvider(StaticCredentialsProvider.create(
-                                     AwsBasicCredentials.create("akid", "skid")))
-                                 .region(Region.US_WEST_2);
-    }
-
-
     public static class CapturingSigner implements HttpSigner<AwsCredentialsIdentity> {
         private BaseSignRequest<?, ?> request;
 
@@ -114,78 +213,6 @@ class EndpointAuthSigningPropertiesTest {
             AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
             this.request = request;
             return CompletableFutureUtils.failedFuture(new RuntimeException("stop"));
-        }
-    }
-
-    @Nested
-    @DisplayName("Region Set Configuration Tests")
-    class RegionSetConfigurationTests {
-
-        @Test
-        @DisplayName("Should use environment variable region set when provided")
-        void shouldNotUseRegionSetForOperationWhichIsNotSigv4a() {
-            environmentVariableHelper.set(SdkSystemSetting.AWS_SIGV4A_SIGNING_REGION_SET, "us-west-2,us-west-1");
-            CapturingSigner signer = new CapturingSigner();
-
-            EndpointAuthClient client = createEndpointAuthClient()
-                .putAuthScheme(authScheme("aws.auth#sigv4", signer))
-                .build();
-
-            assertThatThrownBy(() -> client.noSigv4aPropertiesInEndpointRules(r -> r.stringMember("")))
-                .hasMessageContaining("stop");
-            assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET))
-                .isNull();
-        }
-
-        @Test
-        @DisplayName("Should fall back to client region when no environment variable is set")
-        void shouldFallBackToClientRegion() {
-            CapturingSigner signer = new CapturingSigner();
-            EndpointAuthClient client = createEndpointAuthClient()
-                .putAuthScheme(authScheme("aws.auth#sigv4a", signer))
-                .build();
-
-            assertThatThrownBy(() -> client.regionsetAbsentInSigv4aPropertiesInEndpointRules(r -> r.stringMember("")))
-                .hasMessageContaining("stop");
-
-            assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET))
-                .isEqualTo(RegionSet.create(Region.US_WEST_2.toString()));
-        }
-
-        @Test
-        @DisplayName("Should use RegionSet as defined in the endpoint rule set when no region set defined on client")
-        void authSchemePickedFromEndpointParamsAndNotFromClientConfig() {
-            environmentVariableHelper.set(SdkSystemSetting.AWS_SIGV4A_SIGNING_REGION_SET, "us-west-2,us-west-1");
-            CapturingSigner signer = new CapturingSigner();
-
-            EndpointAuthClient client = createEndpointAuthClient()
-                .putAuthScheme(authScheme("aws.auth#sigv4a", signer))
-                .build();
-
-            assertThatThrownBy(() -> client.allAuthPropertiesInEndpointRules(r -> r.stringMember("")))
-                .hasMessageContaining("stop");
-
-            RegionSet property = signer.request.property(AwsV4aHttpSigner.REGION_SET);
-
-            assertThat(property)
-                .isEqualTo(RegionSet.create("us-seattle,us-west-2"));
-        }
-
-        @Test
-        @DisplayName("Should use from configurations from env variable if EndpointAuth Property not present")
-        void envVariableConfiguredRegionSetTakePrecedenceOverEndpointRulesRegionSet() {
-            environmentVariableHelper.set(SdkSystemSetting.AWS_SIGV4A_SIGNING_REGION_SET, "us-west-2,us-west-1");
-
-            CapturingSigner signer = new CapturingSigner();
-            EndpointAuthClient client = createEndpointAuthClient()
-                .putAuthScheme(authScheme("aws.auth#sigv4a", signer))
-                .build();
-
-            assertThatThrownBy(() -> client.regionsetAbsentInSigv4aPropertiesInEndpointRules(r -> r.stringMember("")))
-                .hasMessageContaining("stop");
-
-            assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET))
-                .isEqualTo(RegionSet.create("us-west-1, us-west-2"));
         }
     }
 }

@@ -1,10 +1,8 @@
 package software.amazon.awssdk.services.query.endpoints.internal;
 
 import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -77,14 +75,12 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
             if (endpointAuthSchemes != null && selectedAuthScheme != null) {
                 selectedAuthScheme = authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme);
-                if (AwsV4aAuthScheme.SCHEME_ID.equals(selectedAuthScheme.authSchemeOption().schemeId())
+                // Precedence of SigV4a RegionSet is set according to multi-auth SigV4a specifications
+                if (selectedAuthScheme.authSchemeOption().schemeId().equals(AwsV4aAuthScheme.SCHEME_ID)
                     && selectedAuthScheme.authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_SET) == null) {
                     AuthSchemeOption.Builder optionBuilder = selectedAuthScheme.authSchemeOption().toBuilder();
-                    Set<String> regionSet = executionAttributes
-                        .getOptionalAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET)
-                        .filter(regions -> !CollectionUtils.isNullOrEmpty(regions))
-                        .orElseGet(() -> Collections.singleton(endpointParams.region().id()));
-                    optionBuilder.putSignerProperty(AwsV4aHttpSigner.REGION_SET, RegionSet.create(regionSet));
+                    RegionSet regionSet = RegionSet.create(endpointParams.region().id());
+                    optionBuilder.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet);
                     selectedAuthScheme = new SelectedAuthScheme(selectedAuthScheme.identity(), selectedAuthScheme.signer(),
                                                                 optionBuilder.build());
                 }
@@ -182,7 +178,9 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 if (v4aAuthScheme.isDisableDoubleEncodingSet()) {
                     option.putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, !v4aAuthScheme.disableDoubleEncoding());
                 }
-                if (!CollectionUtils.isNullOrEmpty(v4aAuthScheme.signingRegionSet())) {
+                if (!(selectedAuthScheme.authSchemeOption().schemeId().equals(AwsV4aAuthScheme.SCHEME_ID) && selectedAuthScheme
+                                                                                                                 .authSchemeOption().signerProperty(AwsV4aHttpSigner.REGION_SET) != null)
+                    && !CollectionUtils.isNullOrEmpty(v4aAuthScheme.signingRegionSet())) {
                     RegionSet regionSet = RegionSet.create(v4aAuthScheme.signingRegionSet());
                     option.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet);
                 }

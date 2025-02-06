@@ -28,7 +28,6 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -226,7 +225,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                        SelectedAuthScheme.class, SdkInternalExecutionAttribute.class);
         b.beginControlFlow("if (endpointAuthSchemes != null && selectedAuthScheme != null)");
         b.addStatement("selectedAuthScheme = authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme)");
-        if (multiAuthSigv4a) {
+        if (multiAuthSigv4a || legacyAuthFromEndpointRulesService) {
             b.addComment("Precedence of SigV4a RegionSet is set according to multi-auth SigV4a specifications");
             b.beginControlFlow("if(selectedAuthScheme.authSchemeOption().schemeId().equals($T.SCHEME_ID) "
                                + "&& selectedAuthScheme.authSchemeOption().signerProperty($T.REGION_SET) == null)",
@@ -239,23 +238,6 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
             b.addStatement("selectedAuthScheme = new $T(selectedAuthScheme.identity(), selectedAuthScheme.signer(), "
                            + "optionBuilder.build())", SelectedAuthScheme.class);
             b.endControlFlow();
-        } else if (legacyAuthFromEndpointRulesService) {
-            b.beginControlFlow("if ($T.SCHEME_ID.equals(selectedAuthScheme.authSchemeOption().schemeId()) && "
-                               + "selectedAuthScheme.authSchemeOption().signerProperty($T.REGION_SET) == null)",
-                               AwsV4aAuthScheme.class, AwsV4aHttpSigner.class)
-             .addStatement("$T optionBuilder = selectedAuthScheme.authSchemeOption().toBuilder()",
-                           AuthSchemeOption.Builder.class)
-             .addStatement("$T<$T> regionSet = executionAttributes\n"
-                           + ".getOptionalAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)\n"
-                           + ".filter(regions -> !$T.isNullOrEmpty(regions))\n"
-                           + ".orElseGet(() -> $T.singleton(endpointParams.region().id()))",
-                           Set.class, String.class, AwsExecutionAttribute.class,
-                           CollectionUtils.class, Collections.class)
-             .addStatement("optionBuilder.putSignerProperty($T.REGION_SET, $T.create(regionSet))",
-                           AwsV4aHttpSigner.class, RegionSet.class)
-             .addStatement("selectedAuthScheme = new $T(selectedAuthScheme.identity(), "
-                           + "selectedAuthScheme.signer(), optionBuilder.build())",
-                           SelectedAuthScheme.class).endControlFlow();
         }
         b.addStatement("executionAttributes.putAttribute($T.SELECTED_AUTH_SCHEME, selectedAuthScheme)",
                        SdkInternalExecutionAttribute.class);
@@ -821,11 +803,11 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         code.addStatement("option.putSignerProperty($T.DOUBLE_URL_ENCODE, !v4aAuthScheme.disableDoubleEncoding())",
                           AwsV4aHttpSigner.class);
         code.endControlFlow();
-        if (multiAuthSigv4a) {
+        if (multiAuthSigv4a || legacyAuthFromEndpointRulesService) {
             code.beginControlFlow("if (!(selectedAuthScheme.authSchemeOption().schemeId().equals($T.SCHEME_ID) "
                                   + "&& selectedAuthScheme.authSchemeOption().signerProperty($T.REGION_SET) != null) "
-                                  + "&& v4aAuthScheme.signingRegionSet() != null)",
-                                  AwsV4aAuthScheme.class, AwsV4aHttpSigner.class);
+                                  + "&& !$T.isNullOrEmpty(v4aAuthScheme.signingRegionSet()))",
+                                  AwsV4aAuthScheme.class, AwsV4aHttpSigner.class, CollectionUtils.class);
         } else {
             code.beginControlFlow("if (!$T.isNullOrEmpty(v4aAuthScheme.signingRegionSet()))", CollectionUtils.class);
         }

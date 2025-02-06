@@ -121,7 +121,7 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
                                   .build());
         }
 
-        if (authSchemeSpecUtils.usesSigV4a()) {
+        if (authSchemeSpecUtils.hasSigV4aSupport()) {
             b.addMethod(MethodSpec.methodBuilder("regionSet")
                                   .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                                   .returns(RegionSet.class)
@@ -173,7 +173,7 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
 
         }
 
-        if (authSchemeSpecUtils.usesSigV4a()) {
+        if (authSchemeSpecUtils.hasSigV4aSupport()) {
             b.addMethod(MethodSpec.methodBuilder("regionSet")
                                   .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                                   .addParameter(ParameterSpec.builder(RegionSet.class, "regionSet").build())
