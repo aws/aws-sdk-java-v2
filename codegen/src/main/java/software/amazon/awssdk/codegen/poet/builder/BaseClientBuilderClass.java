@@ -821,8 +821,8 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addModifiers(Modifier.PUBLIC)
                          .returns(TypeVariableName.get("B"))
                          .addParameter(RegionSet.class, "sigv4aSigningRegionSet")
-                         .addStatement("clientConfiguration.option($T.AWS_SIGV4A_SIGNING_REGION_SET, sigv4aSigningRegionSet == null ? "
-                                       + "$T.emptySet() : sigv4aSigningRegionSet.asSet())",
+                         .addStatement("clientConfiguration.option($T.AWS_SIGV4A_SIGNING_REGION_SET, "
+                                       + "sigv4aSigningRegionSet == null ? $T.emptySet() : sigv4aSigningRegionSet.asSet())",
                                        AwsClientOption.class, Collections.class)
                          .addStatement("return thisBuilder()")
                          .build();

@@ -196,7 +196,8 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                             .applyMutation(this::configureRetryPolicy)
                             .applyMutation(this::configureRetryStrategy)
                             .lazyOptionIfAbsent(SdkClientOption.IDENTITY_PROVIDERS, this::resolveIdentityProviders)
-                            .lazyOptionIfAbsent(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET, this::resolveSigv4aSigningRegionSet)
+                            .lazyOptionIfAbsent(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET,
+                                                this::resolveSigv4aSigningRegionSet)
                             .build();
     }
 
