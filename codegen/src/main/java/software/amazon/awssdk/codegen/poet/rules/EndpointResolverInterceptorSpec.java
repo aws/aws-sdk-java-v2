@@ -100,6 +100,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
     private final boolean dependsOnHttpAuthAws;
     private final boolean useSraAuth;
     private final boolean multiAuthSigv4a;
+    private final boolean legacyAuthFromEndpointRulesService;
 
 
     public EndpointResolverInterceptorSpec(IntermediateModel model) {
@@ -118,6 +119,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
         this.multiAuthSigv4a = new AuthSchemeSpecUtils(model).usesSigV4a();
+        this.legacyAuthFromEndpointRulesService = new AuthSchemeSpecUtils(model).generateEndpointBasedParams();
     }
 
     @Override
@@ -223,7 +225,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                        SelectedAuthScheme.class, SdkInternalExecutionAttribute.class);
         b.beginControlFlow("if (endpointAuthSchemes != null && selectedAuthScheme != null)");
         b.addStatement("selectedAuthScheme = authSchemeWithEndpointSignerProperties(endpointAuthSchemes, selectedAuthScheme)");
-        if (multiAuthSigv4a) {
+        if (multiAuthSigv4a || legacyAuthFromEndpointRulesService) {
             b.addComment("Precedence of SigV4a RegionSet is set according to multi-auth SigV4a specifications");
             b.beginControlFlow("if(selectedAuthScheme.authSchemeOption().schemeId().equals($T.SCHEME_ID) "
                                + "&& selectedAuthScheme.authSchemeOption().signerProperty($T.REGION_SET) == null)",
@@ -801,13 +803,13 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         code.addStatement("option.putSignerProperty($T.DOUBLE_URL_ENCODE, !v4aAuthScheme.disableDoubleEncoding())",
                           AwsV4aHttpSigner.class);
         code.endControlFlow();
-        if (multiAuthSigv4a) {
+        if (multiAuthSigv4a || legacyAuthFromEndpointRulesService) {
             code.beginControlFlow("if (!(selectedAuthScheme.authSchemeOption().schemeId().equals($T.SCHEME_ID) "
                                   + "&& selectedAuthScheme.authSchemeOption().signerProperty($T.REGION_SET) != null) "
-                                  + "&& v4aAuthScheme.signingRegionSet() != null)",
-                                  AwsV4aAuthScheme.class, AwsV4aHttpSigner.class);
+                                  + "&& !$T.isNullOrEmpty(v4aAuthScheme.signingRegionSet()))",
+                                  AwsV4aAuthScheme.class, AwsV4aHttpSigner.class, CollectionUtils.class);
         } else {
-            code.beginControlFlow("if (v4aAuthScheme.signingRegionSet() != null)");
+            code.beginControlFlow("if (!$T.isNullOrEmpty(v4aAuthScheme.signingRegionSet()))", CollectionUtils.class);
         }
         code.addStatement("$1T regionSet = $1T.create(v4aAuthScheme.signingRegionSet())", RegionSet.class);
         code.addStatement("option.putSignerProperty($T.REGION_SET, regionSet)", AwsV4aHttpSigner.class);

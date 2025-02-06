@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
@@ -275,5 +276,11 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     protected static void validateClientOptions(SdkClientConfiguration c) {
         Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
                          "The 'tokenProvider' must be configured in the client builder.");
+    }
+
+    public B sigv4aRegionSet(RegionSet sigv4aRegionSet) {
+        clientConfiguration.option(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET,
+                                   sigv4aRegionSet == null ? Collections.emptySet() : sigv4aRegionSet.asSet());
+        return thisBuilder();
     }
 }

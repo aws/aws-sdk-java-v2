@@ -215,7 +215,7 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         builder.addMethod(validateClientOptionsMethod());
 
-        if (authSchemeSpecUtils.usesSigV4a()) {
+        if (authSchemeSpecUtils.hasSigV4aSupport()) {
             builder.addMethod(sigv4aRegionSetMethod());
         }
 

@@ -118,7 +118,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
             builder.addMethod(responseChecksumValidationMethod());
         }
 
-        if (AuthUtils.usesSigv4aAuth(model)) {
+        if (authSchemeSpecUtils.hasSigV4aSupport()) {
             builder.addMethod(sigv4aRegionSetMethod());
         }
 
