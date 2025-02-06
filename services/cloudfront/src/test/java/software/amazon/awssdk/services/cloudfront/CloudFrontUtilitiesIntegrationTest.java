@@ -75,7 +75,7 @@ import software.amazon.awssdk.testutils.Waiter;
 
 public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     private static final Base64.Encoder ENCODER = Base64.getEncoder();
-    private static final String RESOURCE_PREFIX = "do-not-delete-cf-test-";
+    private static final String RESOURCE_PREFIX = "do-not-delete-cf-test-v2";
     private static final String CALLER_REFERENCE = UUID.randomUUID().toString();
     private static final String S3_OBJECT_KEY = "s3ObjectKey";
     private static final String S3_OBJECT_KEY_ON_SUB_PATH = "foo/specific-file";
