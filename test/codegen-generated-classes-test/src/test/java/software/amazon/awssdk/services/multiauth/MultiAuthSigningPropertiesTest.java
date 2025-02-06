@@ -133,7 +133,7 @@ class MultiAuthSigningPropertiesTest {
                                                     .httpClient(mockHttpClient)
                                                     .region(Region.US_WEST_2)
                                                     .putAuthScheme(authScheme("aws.auth#sigv4a", signer))
-                                                    .sigv4aRegionSet(RegionSet.create(new StringJoiner(",")
+                                                    .sigv4aSigningRegionSet(RegionSet.create(new StringJoiner(",")
                                                                                           .add(Region.US_WEST_2.id())
                                                                                           .add(Region.US_GOV_EAST_1.id())
                                                                                           .toString()))

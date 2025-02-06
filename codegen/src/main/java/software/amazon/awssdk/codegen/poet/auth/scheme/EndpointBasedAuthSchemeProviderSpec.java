@@ -224,8 +224,6 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
                           ".filter(set -> !$3T.isNullOrEmpty(set)).map($1T::create).orElse(null))",
                           RegionSet.class, Optional.class, CollectionUtils.class);
 
-
-
         CodeBlock.Builder block = CodeBlock.builder();
         block.add("$1T.builder().schemeId($2T.SCHEME_ID)", AuthSchemeOption.class,
                   AwsV4aAuthScheme.class)

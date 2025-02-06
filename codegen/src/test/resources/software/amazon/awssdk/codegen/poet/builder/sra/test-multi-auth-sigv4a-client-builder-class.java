@@ -189,9 +189,9 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
     protected static void validateClientOptions(SdkClientConfiguration c) {
     }
 
-    public B sigv4aRegionSet(RegionSet sigv4aRegionSet) {
+    public B sigv4aSigningRegionSet(RegionSet sigv4aSigningRegionSet) {
         clientConfiguration.option(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET,
-                                   sigv4aRegionSet == null ? Collections.emptySet() : sigv4aRegionSet.asSet());
+                                   sigv4aSigningRegionSet == null ? Collections.emptySet() : sigv4aSigningRegionSet.asSet());
         return thisBuilder();
     }
 }

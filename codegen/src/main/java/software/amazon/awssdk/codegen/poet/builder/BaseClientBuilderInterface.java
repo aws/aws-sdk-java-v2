@@ -119,7 +119,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
         }
 
         if (authSchemeSpecUtils.hasSigV4aSupport()) {
-            builder.addMethod(sigv4aRegionSetMethod());
+            builder.addMethod(sigv4aSigningRegionSetMethod());
         }
 
         return builder.build();
@@ -292,10 +292,10 @@ public class BaseClientBuilderInterface implements ClassSpec {
                && !model.getCustomizationConfig().getCustomClientContextParams().isEmpty();
     }
 
-    private MethodSpec sigv4aRegionSetMethod() {
-        return MethodSpec.methodBuilder("sigv4aRegionSet")
+    private MethodSpec sigv4aSigningRegionSetMethod() {
+        return MethodSpec.methodBuilder("sigv4aSigningRegionSet")
                          .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
-                         .addParameter(RegionSet.class, "sigv4aRegionSet")
+                         .addParameter(RegionSet.class, "sigv4aSigningRegionSet")
                          .addJavadoc("Sets the {@link $T} to be used for operations using Sigv4a signing requests.\n" +
                                      "This is optional; if not provided, the following precedence is used:\n" +
                                      "<ol>\n" +

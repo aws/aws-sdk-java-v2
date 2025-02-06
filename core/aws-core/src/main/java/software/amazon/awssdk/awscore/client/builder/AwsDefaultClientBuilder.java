@@ -196,7 +196,8 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                             .applyMutation(this::configureRetryPolicy)
                             .applyMutation(this::configureRetryStrategy)
                             .lazyOptionIfAbsent(SdkClientOption.IDENTITY_PROVIDERS, this::resolveIdentityProviders)
-                            .lazyOptionIfAbsent(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET, this::resolveSigv4aRegionSet)
+                            .lazyOptionIfAbsent(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET,
+                                                this::resolveSigv4aSigningRegionSet)
                             .build();
     }
 
@@ -387,7 +388,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                        .orElse(null);
     }
 
-    private Set<String> resolveSigv4aRegionSet(LazyValueSource config) {
+    private Set<String> resolveSigv4aSigningRegionSet(LazyValueSource config) {
         Supplier<ProfileFile> profileFile = config.get(SdkClientOption.PROFILE_FILE_SUPPLIER);
         String profileName = config.get(SdkClientOption.PROFILE_NAME);
         return Sigv4aSigningRegionSetProvider.builder()

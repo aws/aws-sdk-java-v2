@@ -159,7 +159,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                      AwsExecutionAttribute.class);
                 builder.addStatement("builder.region(region)");
             }
-            generateSigv4aRegionSet(builder);
+            generateSigv4aSigningRegionSet(builder);
             builder.addStatement("return builder.build()");
             return builder.build();
         }
@@ -186,7 +186,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                                  AwsExecutionAttribute.class);
             builder.addStatement("builder.region(region)");
         }
-        generateSigv4aRegionSet(builder);
+        generateSigv4aSigningRegionSet(builder);
         ClassName paramsBuilderClass = authSchemeSpecUtils.parametersEndpointAwareDefaultImplName().nestedClass("Builder");
         builder.beginControlFlow("if (builder instanceof $T)",
                                  paramsBuilderClass);
@@ -450,7 +450,7 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
         return result;
     }
 
-    private void generateSigv4aRegionSet(MethodSpec.Builder builder) {
+    private void generateSigv4aSigningRegionSet(MethodSpec.Builder builder) {
         if (authSchemeSpecUtils.hasSigV4aSupport()) {
             builder.addStatement(
                 "executionAttributes.getOptionalAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)\n" +

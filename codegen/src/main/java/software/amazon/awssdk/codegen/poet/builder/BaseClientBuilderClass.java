@@ -216,7 +216,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addMethod(validateClientOptionsMethod());
 
         if (authSchemeSpecUtils.hasSigV4aSupport()) {
-            builder.addMethod(sigv4aRegionSetMethod());
+            builder.addMethod(sigv4aSigningRegionSetMethod());
         }
 
         return builder.build();
@@ -816,13 +816,13 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .build();
     }
 
-    private MethodSpec sigv4aRegionSetMethod() {
-        return MethodSpec.methodBuilder("sigv4aRegionSet")
+    private MethodSpec sigv4aSigningRegionSetMethod() {
+        return MethodSpec.methodBuilder("sigv4aSigningRegionSet")
                          .addModifiers(Modifier.PUBLIC)
                          .returns(TypeVariableName.get("B"))
-                         .addParameter(RegionSet.class, "sigv4aRegionSet")
-                         .addStatement("clientConfiguration.option($T.AWS_SIGV4A_SIGNING_REGION_SET, sigv4aRegionSet == null ? "
-                                       + "$T.emptySet() : sigv4aRegionSet.asSet())",
+                         .addParameter(RegionSet.class, "sigv4aSigningRegionSet")
+                         .addStatement("clientConfiguration.option($T.AWS_SIGV4A_SIGNING_REGION_SET, "
+                                       + "sigv4aSigningRegionSet == null ? $T.emptySet() : sigv4aSigningRegionSet.asSet())",
                                        AwsClientOption.class, Collections.class)
                          .addStatement("return thisBuilder()")
                          .build();
