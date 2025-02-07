@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2 - waiters",
-    "contributor": "",
-    "description": "adding any number support for waiters' path matchers"
-}

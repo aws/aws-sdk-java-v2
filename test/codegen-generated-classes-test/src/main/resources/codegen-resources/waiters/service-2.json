@@ -373,7 +373,6 @@
       "exception":true
     },
     "Integer":{"type":"integer"},
-    // Shape is customized to BigDecimal in customization.config
     "NumericValue": {
       "type": "bigdecimal"
     },
