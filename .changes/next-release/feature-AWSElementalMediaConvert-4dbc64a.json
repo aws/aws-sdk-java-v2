@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaConvert",
+    "contributor": "",
+    "description": "This release adds support for Animated GIF output, forced chroma sample positioning metadata, and Extensible Wave Container format"
+}
