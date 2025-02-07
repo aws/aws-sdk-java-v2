@@ -136,21 +136,14 @@ public class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody fromInputStream(InputStream inputStream, long contentLength) {
-        // NOTE: does not have an effect if mark not supported
         IoUtils.markStreamWithMaxReadLimit(inputStream);
         InputStream nonCloseable = nonCloseableInputStream(inputStream);
-        ContentStreamProvider provider;
-        if (nonCloseable.markSupported()) {
-            // stream supports mark + reset
-            provider = () -> {
+        return fromContentProvider(() -> {
+            if (nonCloseable.markSupported()) {
                 invokeSafely(nonCloseable::reset);
-                return nonCloseable;
-            };
-        } else {
-            // stream doesn't support mark + reset, make sure to buffer it
-            provider = new BufferingContentStreamProvider(() -> nonCloseable, contentLength);
-        }
-        return new RequestBody(provider, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
+            }
+            return nonCloseable;
+        }, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     /**
@@ -224,9 +217,6 @@ public class RequestBody {
     /**
      * Creates a {@link RequestBody} from the given {@link ContentStreamProvider}.
      * <p>
-     * Important: Be aware that this implementation requires buffering the contents for {@code ContentStreamProvider}, which can
-     * cause increased memory usage.
-     * <p>
      * If you are using this in conjunction with S3 and want to upload a stream with an unknown content length, you can refer
      * S3's documentation for
      * <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/s3_example_s3_Scenario_UploadStream_section.html">alternative
@@ -239,7 +229,7 @@ public class RequestBody {
      * @return The created {@code RequestBody}.
      */
     public static RequestBody fromContentProvider(ContentStreamProvider provider, long contentLength, String mimeType) {
-        return new RequestBody(new BufferingContentStreamProvider(provider, contentLength), contentLength, mimeType);
+        return new RequestBody(provider, contentLength, mimeType);
     }
 
     /**

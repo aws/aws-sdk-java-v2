@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.time.Duration;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
@@ -23,8 +24,10 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.io.SdkLengthAwareInputStream;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -32,6 +35,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -40,6 +44,7 @@ import software.amazon.awssdk.utils.Pair;
 @SdkInternalApi
 public class MakeHttpRequestStage
     implements RequestPipeline<SdkHttpFullRequest, Pair<SdkHttpFullRequest, SdkHttpFullResponse>> {
+    private static final Logger LOG = Logger.loggerFor(MakeHttpRequestStage.class);
 
     private final SdkHttpClient sdkHttpClient;
 
@@ -64,6 +69,8 @@ public class MakeHttpRequestStage
         MetricCollector attemptMetricCollector = context.attemptMetricCollector();
 
         MetricCollector httpMetricCollector = MetricUtils.createHttpMetricsCollector(context);
+
+        request = enforceContentLengthIfPresent(request);
 
         ExecutableHttpRequest requestCallable = sdkHttpClient
             .prepareRequest(HttpExecuteRequest.builder()
@@ -93,5 +100,40 @@ public class MakeHttpRequestStage
         context.executionAttributes().putAttribute(SdkInternalExecutionAttribute.API_CALL_ATTEMPT_START_NANO_TIME,
                                                    now);
         return now;
+    }
+
+    private static SdkHttpFullRequest enforceContentLengthIfPresent(SdkHttpFullRequest request) {
+        Optional<ContentStreamProvider> requestContentStreamProviderOptional = request.contentStreamProvider();
+
+        if (!requestContentStreamProviderOptional.isPresent()) {
+            return request;
+        }
+
+        Optional<Long> contentLength = contentLength(request);
+        if (!contentLength.isPresent()) {
+            LOG.warn(() -> String.format("Request contains a body but does not have a Content-Length header. Not validating "
+                                         + "the amount of data sent to the service: %s", request));
+            return request;
+        }
+
+        ContentStreamProvider requestContentProvider = requestContentStreamProviderOptional.get();
+        ContentStreamProvider lengthVerifyingProvider = () -> new SdkLengthAwareInputStream(requestContentProvider.newStream(),
+                                                                                            contentLength.get());
+        return request.toBuilder()
+                      .contentStreamProvider(lengthVerifyingProvider)
+                      .build();
+    }
+
+    private static Optional<Long> contentLength(SdkHttpFullRequest request) {
+        Optional<String> contentLengthHeader = request.firstMatchingHeader("Content-Length");
+
+        if (contentLengthHeader.isPresent()) {
+            try {
+                return Optional.of(Long.parseLong(contentLengthHeader.get()));
+            } catch (NumberFormatException e) {
+                LOG.warn(() -> "Unable to parse 'Content-Length' header. Treating it as non existent.");
+            }
+        }
+        return Optional.empty();
     }
 }
