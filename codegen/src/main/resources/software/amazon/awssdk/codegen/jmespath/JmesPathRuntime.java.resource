@@ -110,6 +110,18 @@ public final class JmesPathRuntime {
                 this.type = Type.NUMBER;
                 if (value instanceof BigDecimal) {
                     this.numberValue = (BigDecimal) value;
+                } else if (value instanceof Double) {
+                    this.numberValue = BigDecimal.valueOf((Double) value);
+                } else if (value instanceof Float) {
+                    this.numberValue = BigDecimal.valueOf((Float) value);
+                } else if (value instanceof Long) {
+                    this.numberValue = BigDecimal.valueOf((Long) value);
+                } else if (value instanceof Integer) {
+                    this.numberValue = BigDecimal.valueOf((Integer) value);
+                } else if (value instanceof Short) {
+                    this.numberValue = BigDecimal.valueOf((Short) value);
+                } else if (value instanceof Byte) {
+                    this.numberValue = BigDecimal.valueOf((Byte) value);
                 } else {
                     this.numberValue = new BigDecimal(value.toString());
                 }

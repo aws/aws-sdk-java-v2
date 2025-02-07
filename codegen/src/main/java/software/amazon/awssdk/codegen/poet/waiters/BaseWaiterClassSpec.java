@@ -561,21 +561,25 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
         boolean isString = acceptor.getExpected() instanceof JrsString;
         boolean isNumber = acceptor.getExpected().isNumber();
 
+        CodeBlock.Builder block = CodeBlock.builder();
+        if (isNumber) {
+            block.add("new $T($S)", BigDecimal.class, expected);
+        } else if (isString) {
+            block.add("$S", expected);
+        } else {
+            block.add("$L", expected);
+        }
+        CodeBlock rhs = block.build();
+
         CodeBlock.Builder builder = CodeBlock.builder()
                         .add("response -> {")
                         .add("$1T input = new $1T(response);", poetExtensions.jmesPathRuntimeClass().nestedClass("Value"))
                         .add("return $T.equals(", Objects.class)
                         .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
-                        .add(".value(), ");
-        if (isNumber) {
-            builder.add("new $T($S)", BigDecimal.class, expected);
-        } else if (isString) {
-            builder.add("$S", expected);
-        } else {
-            builder.add("$L", expected);
-        }
-        builder.add(");")
-               .add("}");
+                        .add(".value(), ")
+                        .add(rhs)
+                        .add(");")
+                        .add("}");
 
         return builder.build();
     }

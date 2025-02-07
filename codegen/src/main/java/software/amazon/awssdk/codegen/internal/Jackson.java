@@ -36,6 +36,7 @@ public final class Jackson {
                                          .disable(JSON.Feature.FAIL_ON_UNKNOWN_BEAN_PROPERTY)
                                          .enable(JSON.Feature.PRETTY_PRINT_OUTPUT)
                                          .enable(JSON.Feature.READ_JSON_ARRAYS_AS_JAVA_ARRAYS)
+                                         // enable BigDecimal Support
                                          .enable(JSON.Feature.USE_BIG_DECIMAL_FOR_FLOATS)
                                          .register(new JrSimpleTreeExtension());
 

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsValue;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -57,7 +58,7 @@ import software.amazon.awssdk.utils.Validate;
  * this interpreter make heavy use of the {@code JmesPathRuntime}.
  */
 public class JmesPathAcceptorGenerator {
-    private static final ClassName BIG_DECIMAL = ClassName.get("java.math", "BigDecimal");
+    private static final ClassName BIG_DECIMAL = ClassName.get(BigDecimal.class);
     private final ClassName runtimeClass;
 
     public JmesPathAcceptorGenerator(ClassName runtimeClass) {
