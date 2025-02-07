@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Kubernetes Service",
+    "contributor": "",
+    "description": "Introduce versionStatus field to take place of status field in EKS DescribeClusterVersions API"
+}
