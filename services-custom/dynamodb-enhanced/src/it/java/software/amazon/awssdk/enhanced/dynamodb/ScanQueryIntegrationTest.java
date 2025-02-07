@@ -43,6 +43,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 
 public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBase {
 
@@ -187,5 +188,41 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
         result.put("id", stringValue(RECORDS.get(sort).getId()));
         result.put("sort", numberValue(RECORDS.get(sort).getSort()));
         return Collections.unmodifiableMap(result);
+    }
+
+    @Test
+    public void query_withStringSelect_returnsSpecifiedAttributes() {
+        insertRecords();
+
+        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
+                                                           .queryConditional(sortBetween(k -> k.partitionValue("id-value").sortValue(2),
+                                                                                         k -> k.partitionValue("id-value").sortValue(6)))
+                                                           .select("ALL_ATTRIBUTES")
+                                                           .build();
+
+        Iterator<Page<Record>> results = mappedTable.query(request).iterator();
+
+        while (results.hasNext()) {
+            Page<Record> page = results.next();
+            for (Record record : page.items()) {
+                assertThat(record.getId(), is(notNullValue()));
+                assertThat(record.getSort(), is(notNullValue()));
+                assertThat(record.getValue(), is(notNullValue()));
+                assertThat(record.getStringAttribute(), is(notNullValue()));
+            }
+        }
+    }
+
+    @Test
+    public void query_withInvalidStringSelect_returnsUnknown() {
+        insertRecords();
+
+        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
+                                                           .queryConditional(sortBetween(k -> k.partitionValue("id-value").sortValue(2),
+                                                                                         k -> k.partitionValue("id-value").sortValue(6)))
+                                                           .select("INVALID_SELECT")
+                                                           .build();
+
+        assertThat(request.select(), is(equalTo(Select.UNKNOWN_TO_SDK_VERSION)));
     }
 }

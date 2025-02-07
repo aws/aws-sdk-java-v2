@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -23,12 +24,15 @@ import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.util.*;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
@@ -183,4 +187,12 @@ public class QueryEnhancedRequestTest {
         assertThat(copiedObject, is(builtObject));
     }
 
+    @org.junit.jupiter.api.Test
+    public void testSelectWithStringInput() {
+        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
+                                                           .select("ALL_ATTRIBUTES")
+                                                           .build();
+
+        assertThat(Select.ALL_ATTRIBUTES, is(request.select()));
+    }
 }

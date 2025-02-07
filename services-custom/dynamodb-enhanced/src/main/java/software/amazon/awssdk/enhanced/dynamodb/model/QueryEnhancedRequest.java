@@ -312,6 +312,17 @@ public final class QueryEnhancedRequest {
         }
 
         /**
+         * Determines the attributes to be returned in the result. See {@link Select} for examples and constraints.
+         * If not found, returns {@link Select#UNKNOWN_TO_SDK_VERSION}.
+         * @param select the selection criteria as a string
+         * @return a builder of this type
+         */
+        public Builder select(String select) {
+            this.select = Select.fromValue(select);
+            return this;
+        }
+
+        /**
          * The primary key of the first item that this operation will evaluate. By default, the operation will evaluate
          * the whole dataset. If used, normally this parameter is populated with the value that was returned for
          * {@link Page#lastEvaluatedKey()} in the previous operation.
