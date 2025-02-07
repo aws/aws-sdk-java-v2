@@ -108,7 +108,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
     @Override
     public void beforeSigning(SdkHttpRequest.Builder request, ContentStreamProvider payload, String checksum) {
         long encodedContentLength = 0;
-        long contentLength = moveContentLength(request, payload != null ? payload.newStream() : new StringInputStream(""));
+        long contentLength = moveContentLength(request, payload);
         setupPreExistingTrailers(request);
 
         // pre-existing trailers
