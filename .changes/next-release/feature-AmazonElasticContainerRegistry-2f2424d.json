@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Container Registry",
-    "contributor": "",
-    "description": "Adds support to handle the new basic scanning daily quota."
-}

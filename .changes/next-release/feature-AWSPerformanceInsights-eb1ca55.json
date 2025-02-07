@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Performance Insights",
-    "contributor": "",
-    "description": "Adds documentation for dimension groups and dimensions to analyze locks for Database Insights."
-}

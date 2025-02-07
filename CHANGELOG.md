@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.16__ __2025-02-07__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds support for Animated GIF output, forced chroma sample positioning metadata, and Extensible Wave Container format
+
+## __AWS Performance Insights__
+  - ### Features
+    - Adds documentation for dimension groups and dimensions to analyze locks for Database Insights.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Adds support to handle the new basic scanning daily quota.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Introduce versionStatus field to take place of status field in EKS DescribeClusterVersions API
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds support for the Clinical Note Template Customization feature for the AWS HealthScribe APIs within Amazon Transcribe.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - This release adds support for the Clinical Note Template Customization feature for the AWS HealthScribe Streaming APIs within Amazon Transcribe.
+
 # __2.30.15__ __2025-02-06__
 ## __AWS CRT HTTP Client__
   - ### Features
