@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocol.tests;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -25,12 +26,17 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
@@ -43,9 +49,10 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingInputOperationRequest;
 
-public class TruncatedRequestStreamTest {
+public class StreamingRequestInputStreamLengthAwareTest {
     private ProtocolRestJsonClient client;
     private SdkHttpClient mockHttpClient;
+
 
     @BeforeEach
     public void setup() throws IOException {
@@ -82,8 +89,7 @@ public class TruncatedRequestStreamTest {
         int bodyLength = 16;
 
         client.streamingInputOperation(StreamingInputOperationRequest.builder().build(),
-                                       bodyFromStream(32, bodyLength));
-
+                                       bodyFromInputStream(32, bodyLength));
         ArgumentCaptor<HttpExecuteRequest> requestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
 
         verify(mockHttpClient).prepareRequest(requestCaptor.capture());
@@ -96,9 +102,30 @@ public class TruncatedRequestStreamTest {
         assertThat(drainStream(streamProvider.newStream())).isEqualTo(bodyLength);
     }
 
-    private static RequestBody bodyFromStream(int streamLength, int bodyLength) {
+
+    public static Stream<Arguments> requestBodies() {
+        return Stream.of(Arguments.of(bodyFromInputStream(32, 64), 64),
+                         Arguments.of(bodyFromContentProvider(32, 50), 50));
+    }
+
+    @ParameterizedTest
+    @MethodSource("requestBodies")
+    public void streamingRequest_streamLessThanContentLength_shouldThrowException(RequestBody body, long contentLength) throws IOException {
+        assertThatThrownBy(() -> client.streamingInputOperation(StreamingInputOperationRequest.builder().build(),
+                                                                body)).isInstanceOf(IllegalStateException.class)
+                                                                      .hasMessageContaining("The request content has fewer "
+                                                                                            + "bytes than the specified "
+                                                                                            + "content-length");
+    }
+
+    private static RequestBody bodyFromInputStream(int streamLength, int contentLength) {
         InputStream is = new ByteArrayInputStream(new byte[streamLength]);
-        return RequestBody.fromInputStream(is, bodyLength);
+        return RequestBody.fromInputStream(is, contentLength);
+    }
+
+    private static RequestBody bodyFromContentProvider(int streamLength, int contentLength) {
+        InputStream is = new ByteArrayInputStream(new byte[streamLength]);
+        return RequestBody.fromContentProvider(() -> is, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     private static int drainStream(InputStream is) throws IOException {

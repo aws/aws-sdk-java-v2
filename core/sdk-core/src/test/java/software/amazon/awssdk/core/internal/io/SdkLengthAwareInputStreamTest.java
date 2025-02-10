@@ -179,8 +179,8 @@ class SdkLengthAwareInputStreamTest {
             while ((read = is.read(buff, 0, buff.length)) != -1) {
             }
         })
-            .isInstanceOf(IOException.class)
-            .hasMessage("Reached EOF before reading entire expected content");
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("The request content has fewer bytes than the specified content-length");
     }
 
     @Test
@@ -230,8 +230,8 @@ class SdkLengthAwareInputStreamTest {
             while ((read = is.read()) != -1) {
             }
         })
-            .isInstanceOf(IOException.class)
-            .hasMessage("Reached EOF before reading entire expected content");
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("The request content has fewer bytes than the specified content-length");
     }
 
     @Test
