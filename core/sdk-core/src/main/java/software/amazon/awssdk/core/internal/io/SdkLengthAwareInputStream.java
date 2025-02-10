@@ -52,7 +52,10 @@ public class SdkLengthAwareInputStream extends FilterInputStream {
 
         if (read != -1) {
             remaining--;
-        } else if (remaining != 0) { // EOF, ensure we've read the number of expected bytes
+        }
+
+        // EOF, ensure we've read the number of expected bytes
+        if (read == -1 && remaining > 0) {
             throw new IllegalStateException("The request content has fewer bytes than the "
                                             + "specified "
                                             + "content-length: " + length + " bytes.");
@@ -75,7 +78,7 @@ public class SdkLengthAwareInputStream extends FilterInputStream {
         }
 
         // EOF, ensure we've read the number of expected bytes
-        if (read == -1 && remaining != 0) {
+        if (read == -1 && remaining > 0) {
             throw new IllegalStateException("The request content has fewer bytes than the "
                                             + "specified "
                                             + "content-length: " + length + " bytes.");

@@ -11,6 +11,9 @@
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
+    - The SDK now does not buffer input data from `RequestBody#fromInputStream` in cases where the InputStream does not support mark and reset.
+    - The SDK now throws exception for input streaming operation if the stream has fewer bytes (i.e. reaches EOF) before the expected length is reached.
+    - The SDK now does not buffer input data from ContentStreamProvider in cases where content length is known.
 
   - ### Bugfixes
     - Remove unnecessary invocation of `ContentStreamProvider#newStream` when content-length is known for requests that use AWS chunked encoding.
