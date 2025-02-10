@@ -174,7 +174,7 @@ public class SdkException extends RuntimeException {
     protected static class BuilderImpl implements Builder {
         protected Throwable cause;
         protected String message;
-        protected Integer numAttempts;
+        protected Integer numAttempts = 0;
         protected Boolean writableStackTrace;
 
         protected BuilderImpl() {

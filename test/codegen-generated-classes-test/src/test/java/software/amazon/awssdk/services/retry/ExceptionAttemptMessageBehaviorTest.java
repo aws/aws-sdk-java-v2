@@ -88,7 +88,7 @@ public abstract class ExceptionAttemptMessageBehaviorTest<ClientT, BuilderT exte
         SdkClientException exception = assertThrows(SdkClientException.class,
                                                     () -> callAllTypes(client));
 
-        assertThat(exception.getMessage()).contains("numAttempts = 4");
+        assertThat(exception.getMessage()).contains("SDK Attempt Count: 4");
         wireMock.verify(4, postRequestedFor(anyUrl()));
     }
 
@@ -104,7 +104,7 @@ public abstract class ExceptionAttemptMessageBehaviorTest<ClientT, BuilderT exte
         AwsServiceException exception = assertThrows(AwsServiceException.class,
                                                      () -> callAllTypes(client));
 
-        assertThat(exception.getMessage()).contains("numAttempts = 1");
+        assertThat(exception.getMessage()).contains("(SDK Attempt Count: 1)");
         wireMock.verify(1, postRequestedFor(anyUrl()));
     }
 
@@ -129,7 +129,7 @@ public abstract class ExceptionAttemptMessageBehaviorTest<ClientT, BuilderT exte
         AwsServiceException exception = assertThrows(AwsServiceException.class,
                                                      () -> callAllTypes(client));
 
-        assertThat(exception.getMessage()).isEqualTo("Service returned HTTP status code 403 (Service: ProtocolRestJson, Status Code: 403, Request ID: null) (SDK Diagnostics: numAttempts = 2)");
+        assertThat(exception.getMessage()).isEqualTo("Service returned HTTP status code 403 (Service: ProtocolRestJson, Status Code: 403, Request ID: null) (SDK Attempt Count: 2)");
         wireMock.verify(2, postRequestedFor(anyUrl()));
     }
 

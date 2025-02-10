@@ -233,13 +233,13 @@ public class SdkServiceException extends SdkException implements SdkPojo {
 
         @Override
         public Builder numAttempts(Integer numAttempts) {
-            super.numAttempts(numAttempts);
+            this.numAttempts(numAttempts);
             return this;
         }
 
         @Override
         public Integer numAttempts() {
-            return super.numAttempts();
+            return this.numAttempts();
         }
 
         @Override

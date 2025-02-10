@@ -109,13 +109,13 @@ public class AwsServiceExceptionTest {
         return Stream.of(
             Arguments.of(
                 6,
-                "errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId) (SDK Diagnostics: numAttempts = 6)"),
+                "errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId) (SDK Attempt Count: 6)"),
             Arguments.of(
                 3,
-                "errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId) (SDK Diagnostics: numAttempts = 3)"),
+                "errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId) (SDK Attempt Count: 3)"),
             Arguments.of(
                 0,
-                "errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId) (SDK Diagnostics: numAttempts = 0)")
+                "errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId)")
         );
     }
 
