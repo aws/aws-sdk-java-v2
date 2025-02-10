@@ -20,19 +20,15 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 
 import java.net.URI;
 import org.apache.http.auth.AuthSchemeProvider;
-
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
-
 import org.apache.http.impl.auth.BasicSchemeFactory;
 import org.apache.http.impl.auth.KerberosSchemeFactory;
-
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.junit.jupiter.api.AfterAll;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -63,11 +59,6 @@ class ApacheHttpClientAuthRegistryTest {
     private static final String SERVER_AUTH_SCENARIO = "Server Auth";
     private static final String CHALLENGED_STATE = "Challenged";
 
-
-    @AfterAll
-    static void tearDown() {
-        System.getProperties().clear();
-    }
 
     private Registry<AuthSchemeProvider> createAuthSchemeRegistry(String scheme, AuthSchemeProvider provider) {
         return RegistryBuilder.<AuthSchemeProvider>create()
