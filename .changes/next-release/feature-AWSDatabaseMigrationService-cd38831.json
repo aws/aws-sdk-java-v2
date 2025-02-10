@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Database Migration Service",
-    "contributor": "",
-    "description": "New vendors for DMS Data Providers: DB2 LUW and DB2 for z/OS"
-}
