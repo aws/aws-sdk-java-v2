@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
+
 import java.time.Duration;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -111,7 +113,7 @@ public class MakeHttpRequestStage
 
         Optional<Long> contentLength = contentLength(request);
         if (!contentLength.isPresent()) {
-            LOG.warn(() -> String.format("Request contains a body but does not have a Content-Length header. Not validating "
+            LOG.debug(() -> String.format("Request contains a body but does not have a Content-Length header. Not validating "
                                          + "the amount of data sent to the service: %s", request));
             return request;
         }
@@ -125,7 +127,7 @@ public class MakeHttpRequestStage
     }
 
     private static Optional<Long> contentLength(SdkHttpFullRequest request) {
-        Optional<String> contentLengthHeader = request.firstMatchingHeader("Content-Length");
+        Optional<String> contentLengthHeader = request.firstMatchingHeader(CONTENT_LENGTH);
 
         if (contentLengthHeader.isPresent()) {
             try {
