@@ -25,8 +25,9 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An {@code InputStream} that is aware of its length. The main purpose of this class is to support truncating streams to a
- * length that is shorter than the total length of the stream.
+ * An {@code InputStream} that is aware of its length. This class enforces that we sent exactly the number of bytes equal to
+ * the input length. If the wrapped stream has more bytes than the expected length, it will be truncated to length. If the stream
+ * has less bytes (i.e. reaches EOF) before the expected length is reached, it will throw {@code IOException}.
  */
 @SdkInternalApi
 public class SdkLengthAwareInputStream extends FilterInputStream {
@@ -48,8 +49,13 @@ public class SdkLengthAwareInputStream extends FilterInputStream {
         }
 
         int read = super.read();
+
         if (read != -1) {
             remaining--;
+        } else if (remaining != 0) { // EOF, ensure we've read the number of expected bytes
+            throw new IllegalStateException("The request content has fewer bytes than the "
+                                            + "specified "
+                                            + "content-length: " + length + " bytes.");
         }
         return read;
     }
@@ -61,10 +67,18 @@ public class SdkLengthAwareInputStream extends FilterInputStream {
             return -1;
         }
 
-        len = Math.min(len, saturatedCast(remaining));
-        int read = super.read(b, off, len);
-        if (read > 0) {
+        int readLen = Math.min(len, saturatedCast(remaining));
+
+        int read = super.read(b, off, readLen);
+        if (read != -1) {
             remaining -= read;
+        }
+
+        // EOF, ensure we've read the number of expected bytes
+        if (read == -1 && remaining != 0) {
+            throw new IllegalStateException("The request content has fewer bytes than the "
+                                            + "specified "
+                                            + "content-length: " + length + " bytes.");
         }
 
         return read;
