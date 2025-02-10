@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "Updated the CreateContact API documentation to indicate that it only applies to EMAIL contacts."
+}
