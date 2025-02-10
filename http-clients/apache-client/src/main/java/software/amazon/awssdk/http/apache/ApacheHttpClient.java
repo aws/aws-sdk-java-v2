@@ -42,7 +42,6 @@ import org.apache.http.HeaderIterator;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Registry;
@@ -57,10 +56,6 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLInitializationException;
-import org.apache.http.impl.auth.BasicSchemeFactory;
-import org.apache.http.impl.auth.KerberosSchemeFactory;
-import org.apache.http.impl.auth.NTLMSchemeFactory;
-import org.apache.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
@@ -156,15 +151,10 @@ public final class ApacheHttpClient implements SdkHttpClient {
         HttpClientConnectionManager cm = cmFactory.create(configuration, standardOptions);
 
         Registry<AuthSchemeProvider> authSchemeProviderRegistry = configuration.authSchemeProviderRegistry;
-        if (authSchemeProviderRegistry == null) {
-            authSchemeProviderRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-                                                        .register(AuthSchemes.BASIC, new BasicSchemeFactory())
-                                                        .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
-                                                        .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(true, false))
-                                                        .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory(true, false))
-                                                        .build();
+        if (authSchemeProviderRegistry != null) {
+            builder.setDefaultAuthSchemeRegistry(authSchemeProviderRegistry);
         }
-        builder.setDefaultAuthSchemeRegistry(authSchemeProviderRegistry);
+
 
         builder.setRequestExecutor(new HttpRequestExecutor())
                // SDK handles decompression
