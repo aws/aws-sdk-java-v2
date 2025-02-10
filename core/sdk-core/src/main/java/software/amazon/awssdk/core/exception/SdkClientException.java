@@ -50,7 +50,7 @@ public class SdkClientException extends SdkException {
     @Override
     public String getMessage() {
         String message = rawMessage();
-        if (numAttempts() != null) {
+        if (numAttempts() != null && numAttempts() > 0) {
             SdkDiagnostics sdkDiagnostics = SdkDiagnostics.builder().numAttempts(numAttempts()).build();
             message = message + " " + sdkDiagnostics;
         }
