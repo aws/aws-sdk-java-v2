@@ -1,0 +1,48 @@
+{
+    "version": "2.30.17",
+    "date": "2025-02-10",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS CRT-based S3 Client",
+            "contributor": "",
+            "description": "Fixed an issue in AWS CRT-based S3 client where checksums are not calculated for operations that require checksums when RequestChecksumCalculation.WHEN_REQUIRED is configured, resulting error."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Remove unnecessary invocation of `ContentStreamProvider#newStream` when content-length is known for requests that use AWS chunked encoding."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "New vendors for DMS Data Providers: DB2 LUW and DB2 for z/OS"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonApiGatewayV2",
+            "contributor": "",
+            "description": "Documentation updates for Amazon API Gateway"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Doc-only update that adds defaults for CloudFront VpcOriginEndpointConfig values."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Updated the CreateContact API documentation to indicate that it only applies to EMAIL contacts."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

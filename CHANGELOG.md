@@ -1,4 +1,32 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.17__ __2025-02-10__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Fixed an issue in AWS CRT-based S3 client where checksums are not calculated for operations that require checksums when RequestChecksumCalculation.WHEN_REQUIRED is configured, resulting error.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - New vendors for DMS Data Providers: DB2 LUW and DB2 for z/OS
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Remove unnecessary invocation of `ContentStreamProvider#newStream` when content-length is known for requests that use AWS chunked encoding.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Doc-only update that adds defaults for CloudFront VpcOriginEndpointConfig values.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Updated the CreateContact API documentation to indicate that it only applies to EMAIL contacts.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
 # __2.30.16__ __2025-02-07__
 ## __AWS Elemental MediaConvert__
   - ### Features
