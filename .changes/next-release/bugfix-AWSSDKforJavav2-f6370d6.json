@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Fixed an issue in the SDK where it unnecessarily buffers the entire content for streaming operations, causing OOM error. See [#5850](https://github.com/aws/aws-sdk-java-v2/issues/5850)."
-}

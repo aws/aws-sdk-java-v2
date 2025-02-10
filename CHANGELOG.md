@@ -1,4 +1,106 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.16__ __2025-02-07__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds support for Animated GIF output, forced chroma sample positioning metadata, and Extensible Wave Container format
+
+## __AWS Performance Insights__
+  - ### Features
+    - Adds documentation for dimension groups and dimensions to analyze locks for Database Insights.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Adds support to handle the new basic scanning daily quota.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Introduce versionStatus field to take place of status field in EKS DescribeClusterVersions API
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds support for the Clinical Note Template Customization feature for the AWS HealthScribe APIs within Amazon Transcribe.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - This release adds support for the Clinical Note Template Customization feature for the AWS HealthScribe Streaming APIs within Amazon Transcribe.
+
+# __2.30.15__ __2025-02-06__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Allow users to configure connectionAcquisitionTimeout for AwsCrtHttpClient and AwsCrtAsyncHttpClient
+
+## __AWS CloudFormation__
+  - ### Features
+    - We added 5 new stack refactoring APIs: CreateStackRefactor, ExecuteStackRefactor, ListStackRefactors, DescribeStackRefactor, ListStackRefactorActions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds the ability to conditionally require fields on a template. Check public documentation for more information.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Updated list of the valid AWS Region values for the LocationConstraint parameter for general purpose buckets.
+
+## __Cost Optimization Hub__
+  - ### Features
+    - This release enables AWS Cost Optimization Hub to show cost optimization recommendations for Amazon Auto Scaling Groups, including those with single and mixed instance types.
+
+# __2.30.14__ __2025-02-05__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix an issue where the trailing checksum of a request body is not sent when the `Content-Length` header is explicitly set to `0`.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates to clarify the description for the parameter AllocatedStorage for the DB cluster data type, the description for the parameter DeleteAutomatedBackups for the DeleteDBCluster API operation, and removing an outdated note for the CreateDBParameterGroup API operation.
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Fallback to prior knowledge if default client setting is ALPN and request has HTTP endpoint
+
+# __2.30.13__ __2025-02-04__
+## __AWS DataSync__
+  - ### Features
+    - Doc-only update to provide more information on using Kerberos authentication with SMB locations.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Introduces TargetDataSettings with the TablePreparationMode option available for data migrations.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - This release adds support for accepting encrypted SAML assertions. Customers can now configure their identity provider to encrypt the SAML assertions it sends to IAM.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue in the SDK where it unnecessarily buffers the entire content for streaming operations, causing OOM error. See [#5850](https://github.com/aws/aws-sdk-java-v2/issues/5850).
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Added argument to `list-export` to filter by graph ID
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - IPv6 support for Hyperpod clusters
+
+## __QBusiness__
+  - ### Features
+    - Adds functionality to enable/disable a new Q Business Chat orchestration feature. If enabled, Q Business can orchestrate over datasources and plugins without the need for customers to select specific chat modes.
+
 # __2.30.12__ __2025-02-03__
 ## __AWS MediaTailor__
   - ### Features

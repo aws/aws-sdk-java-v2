@@ -47,7 +47,6 @@ import software.amazon.awssdk.http.auth.aws.internal.signer.io.ChecksumInputStre
 import software.amazon.awssdk.http.auth.aws.internal.signer.io.ResettableContentStreamProvider;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Pair;
-import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -124,7 +123,7 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     @Override
     public void beforeSigning(SdkHttpRequest.Builder request, ContentStreamProvider payload) {
         long encodedContentLength = 0;
-        long contentLength = moveContentLength(request, payload != null ? payload.newStream() : new StringInputStream(""));
+        long contentLength = moveContentLength(request, payload);
         setupPreExistingTrailers(request);
 
         // pre-existing trailers

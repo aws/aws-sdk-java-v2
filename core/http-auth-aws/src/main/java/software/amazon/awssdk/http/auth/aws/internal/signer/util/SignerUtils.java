@@ -198,22 +198,27 @@ public final class SignerUtils {
      * Move `Content-Length` to `x-amz-decoded-content-length` if not already present. If `Content-Length` is not present, then
      * the payload is read in its entirety to calculate the length.
      */
-    public static long moveContentLength(SdkHttpRequest.Builder request, InputStream payload) {
+    public static long moveContentLength(SdkHttpRequest.Builder request, ContentStreamProvider contentStreamProvider) {
         Optional<String> decodedContentLength = request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH);
-        if (!decodedContentLength.isPresent()) {
-            // if the decoded length isn't present, content-length must be there
-            String contentLength = request.firstMatchingHeader(Header.CONTENT_LENGTH).orElseGet(
-                () -> String.valueOf(readAll(payload))
-            );
 
-            request.putHeader(X_AMZ_DECODED_CONTENT_LENGTH, contentLength)
-                   .removeHeader(Header.CONTENT_LENGTH);
-            return Long.parseLong(contentLength);
+        if (decodedContentLength.isPresent()) {
+            request.removeHeader(Header.CONTENT_LENGTH);
+            return Long.parseLong(decodedContentLength.get());
         }
 
-        // decoded header is already there, so remove content-length just to be sure it's gone
-        request.removeHeader(Header.CONTENT_LENGTH);
-        return Long.parseLong(decodedContentLength.get());
+        long contentLength;
+        Optional<String> contentLengthFromHeader =
+            request.firstMatchingHeader(Header.CONTENT_LENGTH);
+        if (contentLengthFromHeader.isPresent()) {
+            contentLength = Long.parseLong(contentLengthFromHeader.get());
+        } else {
+            InputStream inputStream = contentStreamProvider.newStream();
+            contentLength = inputStream == null ? 0 : readAll(inputStream);
+        }
+
+        request.putHeader(X_AMZ_DECODED_CONTENT_LENGTH, String.valueOf(contentLength))
+               .removeHeader(Header.CONTENT_LENGTH);
+        return contentLength;
     }
 
     public static InputStream getBinaryRequestPayloadStream(ContentStreamProvider streamProvider) {

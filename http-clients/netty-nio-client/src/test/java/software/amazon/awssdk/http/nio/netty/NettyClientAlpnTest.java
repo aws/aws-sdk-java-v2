@@ -96,11 +96,11 @@ public class NettyClientAlpnTest {
 
     @Test
     @EnabledIf("alpnSupported")
-    public void alpnClient_httpRequest_throwsException() throws Exception {
+    public void clientWithUserConfiguredAlpn_httpRequest_throwsException() throws Exception {
         initClient(ProtocolNegotiation.ALPN, SslProvider.JDK);
         initServer(true);
         UnsupportedOperationException e = assertThrows(UnsupportedOperationException.class, this::makeHttpRequest);
-        assertThat(e.getMessage()).isEqualTo("ALPN can only be used with HTTPS, not HTTP.");
+        assertThat(e.getMessage()).isEqualTo("ALPN can only be used with HTTPS, not HTTP. Use ProtocolNegotiation.ASSUME_PROTOCOL instead.");
     }
 
     private void makeHttpsRequest() throws Exception {
