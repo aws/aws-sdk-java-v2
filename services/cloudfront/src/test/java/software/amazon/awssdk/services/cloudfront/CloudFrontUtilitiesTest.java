@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.cloudfront;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
@@ -341,7 +342,7 @@ class CloudFrontUtilitiesTest {
                                                          .resourceUrl(baseUrl)
                                                          .privateKey(keyPair.getPrivate())
                                                          .keyPairId("keyPairId")
-                                                         .policyResource("*")
+                                                         .resourceUrlPattern("*")
                                                          .expirationDate(expiration)
                                                          .build();
 
@@ -366,5 +367,11 @@ class CloudFrontUtilitiesTest {
               .append("}]}");
 
         assertThat(decodedPolicy.trim()).isEqualTo(expectedPolicy.toString().trim());
+    }
+
+    @Test
+    void customSignerRequest_nullResourceUrlShouldThrow(){
+        assertThatNullPointerException().isThrownBy(() -> CustomSignerRequest.builder().build())
+                                        .withMessageContaining("resourceUrl must not be null");
     }
 }

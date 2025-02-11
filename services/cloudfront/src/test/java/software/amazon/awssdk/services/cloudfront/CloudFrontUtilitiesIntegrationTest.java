@@ -285,7 +285,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                          .resourceUrl(resourceUrl)
                                                          .privateKey(keyFilePath)
                                                          .keyPairId(keyPairId)
-                                                         .policyResource(resourceUrl + "*")
+                                                         .resourceUrlPattern(resourceUrl + "*")
                                                          .activeDate(activeDate)
                                                          .expirationDate(expirationDate)
                                                          .build();
@@ -323,7 +323,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                          .resourceUrl(resourceUri + "/foo/specific-file")
                                                          .privateKey(keyFilePath)
                                                          .keyPairId(keyPairId)
-                                                         .policyResource(resourceUri + "/foo/*")
+                                                         .resourceUrlPattern(resourceUri + "/foo/*")
                                                          .activeDate(activeDate)
                                                          .expirationDate(expirationDate)
                                                          .build();
@@ -358,7 +358,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                          .resourceUrl(resourceUrl)
                                                          .privateKey(keyFilePath)
                                                          .keyPairId(keyPairId)
-                                                         .policyResource("*")
+                                                         .resourceUrlPattern("*")
                                                          .activeDate(activeDate)
                                                          .expirationDate(expirationDate)
                                                          .build();
