@@ -62,6 +62,12 @@ public final class ApiCallAttemptTimeoutException extends SdkClientException {
         Builder writableStackTrace(Boolean writableStackTrace);
 
         @Override
+        ApiCallAttemptTimeoutException.Builder numAttempts(Integer numAttempts);
+
+        @Override
+        Integer numAttempts();
+
+        @Override
         ApiCallAttemptTimeoutException build();
     }
 
@@ -90,6 +96,17 @@ public final class ApiCallAttemptTimeoutException extends SdkClientException {
         public Builder writableStackTrace(Boolean writableStackTrace) {
             this.writableStackTrace = writableStackTrace;
             return this;
+        }
+
+        @Override
+        public ApiCallAttemptTimeoutException.Builder numAttempts(Integer numAttempts) {
+            this.numAttempts = numAttempts;
+            return this;
+        }
+
+        @Override
+        public Integer numAttempts() {
+            return numAttempts;
         }
 
         @Override

@@ -189,6 +189,9 @@ public class AwsServiceException extends SdkServiceException {
         Builder numAttempts(Integer numAttempts);
 
         @Override
+        Integer numAttempts();
+
+        @Override
         Builder cause(Throwable t);
 
         @Override
@@ -257,6 +260,11 @@ public class AwsServiceException extends SdkServiceException {
         public Builder numAttempts(Integer numAttempts) {
             this.numAttempts = numAttempts;
             return this;
+        }
+
+        @Override
+        public Integer numAttempts() {
+            return numAttempts;
         }
 
         @Override

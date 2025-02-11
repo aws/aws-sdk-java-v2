@@ -87,6 +87,12 @@ public class SdkClientException extends SdkException {
 
         @Override
         SdkClientException build();
+
+        @Override
+        Builder numAttempts(Integer numAttempts);
+
+        @Override
+        Integer numAttempts();
     }
 
     protected static class BuilderImpl extends SdkException.BuilderImpl implements Builder {
@@ -114,6 +120,17 @@ public class SdkClientException extends SdkException {
         public Builder writableStackTrace(Boolean writableStackTrace) {
             this.writableStackTrace = writableStackTrace;
             return this;
+        }
+
+        @Override
+        public Builder numAttempts(Integer numAttempts) {
+            this.numAttempts = numAttempts;
+            return this;
+        }
+
+        @Override
+        public Integer numAttempts() {
+            return numAttempts;
         }
 
         @Override
