@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer.util;
 
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED;
+
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Locale;
@@ -22,11 +25,15 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.ConstantChecksum;
+import software.amazon.awssdk.http.auth.spi.signer.BaseSignRequest;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.FunctionalUtils;
+import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class ChecksumUtil {
 
+    private static final Logger log = Logger.loggerFor(ChecksumUtil.class);
     private static final String CONSTANT_CHECKSUM = "CONSTANT";
 
     private ChecksumUtil() {
@@ -95,5 +102,43 @@ public final class ChecksumUtil {
         public String algorithmId() {
             return CONSTANT_CHECKSUM;
         }
+    }
+
+    public static boolean hasChecksumHeader(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
+        ChecksumAlgorithm checksumAlgorithm = request.property(CHECKSUM_ALGORITHM);
+
+        if (checksumAlgorithm != null) {
+            String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
+            return request.request().firstMatchingHeader(checksumHeaderName).isPresent();
+        }
+
+        return false;
+    }
+
+    public static boolean useChunkEncoding(boolean payloadSigningEnabled, boolean chunkEncodingEnabled,
+                                            boolean isTrailingOrFlexible) {
+
+        return (payloadSigningEnabled && chunkEncodingEnabled) || (chunkEncodingEnabled && isTrailingOrFlexible);
+    }
+
+    public static boolean isPayloadSigning(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
+        boolean isAnonymous = CredentialUtils.isAnonymous(request.identity());
+        boolean isPayloadSigningEnabled = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
+        boolean isEncrypted = "https".equals(request.request().protocol());
+
+        if (isAnonymous) {
+            return false;
+        }
+
+        // presigning requests should always have a null payload, and should always be unsigned-payload
+        if (!isEncrypted && request.payload().isPresent()) {
+            if (!isPayloadSigningEnabled) {
+                log.debug(() -> "Payload signing was disabled for an HTTP request with a payload. " +
+                                "Signing will be enabled. Use HTTPS for unsigned payloads.");
+            }
+            return true;
+        }
+
+        return isPayloadSigningEnabled;
     }
 }

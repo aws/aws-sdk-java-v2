@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.checksumHeaderName;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.hasChecksumHeader;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.isPayloadSigning;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.useChunkEncoding;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.CredentialUtils.sanitizeCredentials;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.OptionalDependencyLoaderUtil.getEventStreamV4PayloadSigner;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
@@ -32,7 +34,6 @@ import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -310,45 +311,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return start.compareTo(x) <= 0 && x.compareTo(end) <= 0;
     }
 
-    private static boolean isPayloadSigning(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
-        boolean isAnonymous = CredentialUtils.isAnonymous(request.identity());
-        boolean isPayloadSigningEnabled = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
-        boolean isEncrypted = "https".equals(request.request().protocol());
-
-        if (isAnonymous) {
-            return false;
-        }
-
-        // presigning requests should always have a null payload, and should always be unsigned-payload
-        if (!isEncrypted && request.payload().isPresent()) {
-            if (!isPayloadSigningEnabled) {
-                LOG.debug(() -> "Payload signing was disabled for an HTTP request with a payload. " +
-                          "Signing will be enabled. Use HTTPS for unsigned payloads.");
-            }
-            return true;
-        }
-
-        return isPayloadSigningEnabled;
-    }
-
     private static boolean isEventStreaming(SdkHttpRequest request) {
         return "application/vnd.amazon.eventstream".equals(request.firstMatchingHeader(Header.CONTENT_TYPE).orElse(""));
-    }
-
-    private static boolean hasChecksumHeader(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
-        ChecksumAlgorithm checksumAlgorithm = request.property(CHECKSUM_ALGORITHM);
-
-        if (checksumAlgorithm != null) {
-            String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
-            return request.request().firstMatchingHeader(checksumHeaderName).isPresent();
-        }
-
-        return false;
-    }
-
-    private static boolean useChunkEncoding(boolean payloadSigningEnabled, boolean chunkEncodingEnabled,
-                                            boolean isTrailingOrFlexible) {
-
-        return (payloadSigningEnabled && chunkEncodingEnabled) || (chunkEncodingEnabled && isTrailingOrFlexible);
     }
 }
