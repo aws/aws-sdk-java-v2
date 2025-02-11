@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Performance Insights",
+    "contributor": "",
+    "description": "Documentation only update for RDS Performance Insights dimensions for execution plans and locking analysis."
+}
