@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.18__ __2025-02-11__
+## __AWS AppSync__
+  - ### Features
+    - Add support for operation level caching
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Private Certificate Authority service now supports Partitioned CRL as a revocation configuration option.
+
+## __AWS Performance Insights__
+  - ### Features
+    - Documentation only update for RDS Performance Insights dimensions for execution plans and locking analysis.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding support for the new fullSnapshotSizeInBytes field in the response of the EC2 EBS DescribeSnapshots API. This field represents the size of all the blocks that were written to the source volume at the time the snapshot was created.
+
 # __2.30.17__ __2025-02-10__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
@@ -10,10 +31,10 @@
 
 ## __AWS SDK for Java v2__
   - ### Features
-    - Updated endpoint and partition metadata.
+    - The SDK now does not buffer input data from ContentStreamProvider in cases where content length is known.
     - The SDK now does not buffer input data from `RequestBody#fromInputStream` in cases where the InputStream does not support mark and reset.
     - The SDK now throws exception for input streaming operation if the stream has fewer bytes (i.e. reaches EOF) before the expected length is reached.
-    - The SDK now does not buffer input data from ContentStreamProvider in cases where content length is known.
+    - Updated endpoint and partition metadata.
 
   - ### Bugfixes
     - Remove unnecessary invocation of `ContentStreamProvider#newStream` when content-length is known for requests that use AWS chunked encoding.
