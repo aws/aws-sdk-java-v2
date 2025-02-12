@@ -19,9 +19,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
+import com.amazonaws.services.dynamodbv2.xspec.ExpressionSpecBuilder;
+import com.amazonaws.services.elasticmapreduce.spi.EMRFSAnnotationProvider;
+import com.amazonaws.services.elasticmapreduce.util.StepFactory;
+import com.amazonaws.services.kinesisvideo.AmazonKinesisVideoPutMedia;
 import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.simpleemail.AWSJavaMailTransport;
+import com.amazonaws.services.sns.message.SnsMessageManager;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.amazonaws.services.stepfunctions.builder.StepFunctionBuilder;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -114,6 +122,15 @@ public class SdkTypeUtilsTest {
                          Arguments.of("v1ClientClass_shouldReturnTrue", AmazonSQS.class.getCanonicalName(), true),
                          Arguments.of("tmClass_shouldReturnFalse", TransferManager.class.getCanonicalName(), false),
                          Arguments.of("ddbMapper_shouldReturnFalse", DynamoDBMapper.class.getCanonicalName(), false),
+                         Arguments.of("sesJavaMailTransport_shouldReturnFalse", AWSJavaMailTransport.class.getCanonicalName(), false),
+                         Arguments.of("kinesisVideoPutMedia_shouldReturnFalse", AmazonKinesisVideoPutMedia.class.getCanonicalName(), false),
+                         Arguments.of("snsMessageManager_shouldReturnFalse", SnsMessageManager.class.getCanonicalName(), false),
+                         Arguments.of("ddbDocumentSpec_shouldReturnFalse", UpdateItemSpec.class.getCanonicalName(), false),
+                         Arguments.of("ddbXspec_shouldReturnFalse", ExpressionSpecBuilder.class.getCanonicalName(), false),
+                         Arguments.of("stepfunctionsBuilder_shouldReturnFalse", StepFunctionBuilder.class.getCanonicalName(), false),
+                         Arguments.of("emrUtil_shouldReturnFalse", StepFactory.class.getCanonicalName(), false),
+                         Arguments.of("emrSpi_shouldReturnFalse", EMRFSAnnotationProvider.class.getCanonicalName(), false),
+                         Arguments.of("lambdaInvoke_shouldReturnFalse", "com.amazonaws.services.lambda.invoke.LambdaInvokerFactory", false),
                          Arguments.of("customSdk_shouldReturnFalse", "com.amazonaws.services.foobar.model.FooBarRequest", false),
                          Arguments.of("customSdk_shouldReturnFalse", "com.amazonaws.services.foobar.FooBarClient", false)
                          );
