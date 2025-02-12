@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeBuild",
+    "contributor": "",
+    "description": "Add note for the RUNNER_BUILDKITE_BUILD buildType."
+}
