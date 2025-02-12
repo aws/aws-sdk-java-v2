@@ -100,7 +100,7 @@ public class JsonProtocolTestsException extends AwsServiceException {
 
         @Override
         public Integer numAttempts() {
-            return this.numAttempts;
+            return numAttempts;
         }
 
         @Override

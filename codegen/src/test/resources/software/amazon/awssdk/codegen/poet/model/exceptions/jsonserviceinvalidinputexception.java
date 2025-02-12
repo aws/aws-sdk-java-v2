@@ -73,6 +73,12 @@ public final class JsonServiceInvalidInputException extends JsonException implem
 
         @Override
         Builder writableStackTrace(Boolean writableStackTrace);
+
+        @Override
+        Builder numAttempts(Integer numAttempts);
+
+        @Override
+        Integer numAttempts();
     }
 
     static final class BuilderImpl extends JsonException.BuilderImpl implements Builder {
@@ -117,6 +123,17 @@ public final class JsonServiceInvalidInputException extends JsonException implem
         public BuilderImpl writableStackTrace(Boolean writableStackTrace) {
             this.writableStackTrace = writableStackTrace;
             return this;
+        }
+
+        @Override
+        public BuilderImpl numAttempts(Integer numAttempts) {
+            this.numAttempts = numAttempts;
+            return this;
+        }
+
+        @Override
+        public Integer numAttempts() {
+            return numAttempts;
         }
 
         @Override
