@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.19__ __2025-02-12__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Allow spaces in the following fields in the Partnership resource: ISA 06 - Sender ID, ISA 08 - Receiver ID, GS 02 - Application Sender Code, GS 03 - Application Receiver Code
+
+## __AWS CodeBuild__
+  - ### Features
+    - Add note for the RUNNER_BUILDKITE_BUILD buildType.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adds a RequestId parameter to all MediaLive Workflow Monitor create operations. The RequestId parameter allows idempotent operations.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This releases adds the additionalModelRequestFields field to the CreateAgent and UpdateAgent operations. Use additionalModelRequestFields to specify additional inference parameters for a model beyond the base inference parameters.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This releases adds the additionalModelRequestFields field to the InvokeInlineAgent operation. Use additionalModelRequestFields to specify additional inference parameters for a model beyond the base inference parameters.
+
+## __Amazon FSx__
+  - ### Features
+    - Support for in-place Lustre version upgrades
+
+## __Amazon Polly__
+  - ### Features
+    - Added support for the new voice - Jasmine (en-SG). Jasmine is available as a Neural voice only.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Custom OpenSearchServerless Entity ID for SAML Config.
+
 # __2.30.18__ __2025-02-11__
 ## __AWS AppSync__
   - ### Features
