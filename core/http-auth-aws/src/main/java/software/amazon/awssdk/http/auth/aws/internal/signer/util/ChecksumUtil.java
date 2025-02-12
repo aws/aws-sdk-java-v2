@@ -15,7 +15,14 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer.util;
 
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_EVENTS_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_SIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_SIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.UNSIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED;
 
 import java.io.InputStream;
@@ -24,6 +31,9 @@ import java.util.Locale;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
+import software.amazon.awssdk.http.Header;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.aws.internal.signer.Checksummer;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.ConstantChecksum;
 import software.amazon.awssdk.http.auth.spi.signer.BaseSignRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -140,5 +150,54 @@ public final class ChecksumUtil {
         }
 
         return isPayloadSigningEnabled;
+    }
+
+    public static boolean isEventStreaming(SdkHttpRequest request) {
+        return "application/vnd.amazon.eventstream".equals(request.firstMatchingHeader(Header.CONTENT_TYPE).orElse(""));
+    }
+
+    public static Checksummer checksummer(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
+                                          Boolean isPayloadSigningOverride) {
+        boolean isPayloadSigning = isPayloadSigningOverride != null ? isPayloadSigningOverride : isPayloadSigning(request);
+        boolean isEventStreaming = isEventStreaming(request.request());
+        boolean hasChecksumHeader = hasChecksumHeader(request);
+        boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
+        boolean isTrailing = request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
+        boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM) && !hasChecksumHeader;
+        boolean isAnonymous = CredentialUtils.isAnonymous(request.identity());
+
+        if (isEventStreaming) {
+            return Checksummer.forPrecomputed256Checksum(STREAMING_EVENTS_PAYLOAD);
+        }
+
+        if (isPayloadSigning) {
+            if (isChunkEncoding) {
+                if (isFlexible || isTrailing) {
+                    return Checksummer.forPrecomputed256Checksum(STREAMING_SIGNED_PAYLOAD_TRAILER);
+                }
+                return Checksummer.forPrecomputed256Checksum(STREAMING_SIGNED_PAYLOAD);
+            }
+
+            if (isFlexible) {
+                return Checksummer.forFlexibleChecksum(request.property(CHECKSUM_ALGORITHM));
+            }
+            return Checksummer.create();
+        }
+
+        if (isFlexible || isTrailing) {
+            if (isChunkEncoding) {
+                return Checksummer.forPrecomputed256Checksum(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
+            }
+        }
+
+        if (isFlexible) {
+            return Checksummer.forFlexibleChecksum(UNSIGNED_PAYLOAD, request.property(CHECKSUM_ALGORITHM));
+        }
+
+        if (isAnonymous) {
+            return Checksummer.forNoOp();
+        }
+
+        return Checksummer.forPrecomputed256Checksum(UNSIGNED_PAYLOAD);
     }
 }
