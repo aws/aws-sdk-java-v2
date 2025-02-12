@@ -58,7 +58,6 @@ public final class AwsCrtConfigurationUtils {
             return defaultTls;
         }
 
-        // TODO: change this to the new PQ TLS Policy that stays up to date when it's ready
         TlsCipherPreference pqTls = TlsCipherPreference.TLS_CIPHER_PQ_DEFAULT;
         if (!pqTls.isSupported()) {
             log.warn(() -> "Hybrid post-quantum cipher suites are not supported on this platform. The SDK will use the system "
