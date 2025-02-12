@@ -32,6 +32,10 @@
   - ### Features
     - Custom OpenSearchServerless Entity ID for SAML Config.
 
+## __Amazon S3__
+- ### Bugfixes
+    - Fixed an issue in the S3 client where it skipped checksum calculation for operations that use SigV4a signing and require checksums. See [#5878](https://github.com/aws/aws-sdk-java-v2/issues/5878).
+
 # __2.30.18__ __2025-02-11__
 ## __AWS AppSync__
   - ### Features
