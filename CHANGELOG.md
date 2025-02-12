@@ -1,4 +1,93 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.19__ __2025-02-12__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Allow spaces in the following fields in the Partnership resource: ISA 06 - Sender ID, ISA 08 - Receiver ID, GS 02 - Application Sender Code, GS 03 - Application Receiver Code
+
+## __AWS CodeBuild__
+  - ### Features
+    - Add note for the RUNNER_BUILDKITE_BUILD buildType.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adds a RequestId parameter to all MediaLive Workflow Monitor create operations. The RequestId parameter allows idempotent operations.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This releases adds the additionalModelRequestFields field to the CreateAgent and UpdateAgent operations. Use additionalModelRequestFields to specify additional inference parameters for a model beyond the base inference parameters.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This releases adds the additionalModelRequestFields field to the InvokeInlineAgent operation. Use additionalModelRequestFields to specify additional inference parameters for a model beyond the base inference parameters.
+
+## __Amazon FSx__
+  - ### Features
+    - Support for in-place Lustre version upgrades
+
+## __Amazon Polly__
+  - ### Features
+    - Added support for the new voice - Jasmine (en-SG). Jasmine is available as a Neural voice only.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Custom OpenSearchServerless Entity ID for SAML Config.
+
+## __Amazon S3__
+- ### Bugfixes
+    - Fixed an issue in the S3 client where it skipped checksum calculation for operations that use SigV4a signing and require checksums. See [#5878](https://github.com/aws/aws-sdk-java-v2/issues/5878).
+
+# __2.30.18__ __2025-02-11__
+## __AWS AppSync__
+  - ### Features
+    - Add support for operation level caching
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Private Certificate Authority service now supports Partitioned CRL as a revocation configuration option.
+
+## __AWS Performance Insights__
+  - ### Features
+    - Documentation only update for RDS Performance Insights dimensions for execution plans and locking analysis.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding support for the new fullSnapshotSizeInBytes field in the response of the EC2 EBS DescribeSnapshots API. This field represents the size of all the blocks that were written to the source volume at the time the snapshot was created.
+
+# __2.30.17__ __2025-02-10__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Fixed an issue in AWS CRT-based S3 client where checksums are not calculated for operations that require checksums when RequestChecksumCalculation.WHEN_REQUIRED is configured, resulting error.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - New vendors for DMS Data Providers: DB2 LUW and DB2 for z/OS
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - The SDK now does not buffer input data from ContentStreamProvider in cases where content length is known.
+    - The SDK now does not buffer input data from `RequestBody#fromInputStream` in cases where the InputStream does not support mark and reset.
+    - The SDK now throws exception for input streaming operation if the stream has fewer bytes (i.e. reaches EOF) before the expected length is reached.
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Remove unnecessary invocation of `ContentStreamProvider#newStream` when content-length is known for requests that use AWS chunked encoding.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Doc-only update that adds defaults for CloudFront VpcOriginEndpointConfig values.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Updated the CreateContact API documentation to indicate that it only applies to EMAIL contacts.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
 # __2.30.16__ __2025-02-07__
 ## __AWS Elemental MediaConvert__
   - ### Features
