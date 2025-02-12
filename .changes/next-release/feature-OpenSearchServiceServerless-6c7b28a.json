@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "OpenSearch Service Serverless",
+    "contributor": "",
+    "description": "Custom OpenSearchServerless Entity ID for SAML Config."
+}
