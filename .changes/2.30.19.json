@@ -49,6 +49,12 @@
             "category": "OpenSearch Service Serverless",
             "contributor": "",
             "description": "Custom OpenSearchServerless Entity ID for SAML Config."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Fixed an issue in the S3 client where it skipped checksum calculation for operations that use SigV4a signing and require checksums. See [#5878](https://github.com/aws/aws-sdk-java-v2/issues/5878)."
         }
     ]
 }
