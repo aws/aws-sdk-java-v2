@@ -130,7 +130,12 @@ public final class SdkTypeUtils {
                       "com.amazonaws.services.elasticmapreduce.util",
                       "com.amazonaws.services.elasticmapreduce.spi",
                       "com.amazonaws.services.simpleemail.AWSJavaMailTransport",
-                      "com.amazonaws.services.kinesisvideo.AmazonKinesisVideoPutMedia"
+                      "com.amazonaws.services.kinesisvideo.AmazonKinesisVideoPutMedia",
+                      "com.amazonaws.services.s3.model.PresignedUrlDownloadRequest",
+                      "com.amazonaws.services.s3.model.PresignedUrlDownloadResult",
+                      "com.amazonaws.services.s3.model.PresignedUrlDownloadConfig",
+                      "com.amazonaws.services.s3.model.PresignedUrlUploadRequest",
+                      "com.amazonaws.services.s3.model.PresignedUrlUploadResult"
         ));
 
     static {
