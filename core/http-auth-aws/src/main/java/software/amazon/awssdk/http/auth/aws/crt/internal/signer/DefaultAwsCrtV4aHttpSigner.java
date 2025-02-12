@@ -25,6 +25,7 @@ import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignin
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtHttpRequestConverter.toRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.sanitizeRequest;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.toCredentials;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.checksummer;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.hasChecksumHeader;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.isPayloadSigning;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.useChunkEncoding;
@@ -44,6 +45,7 @@ import software.amazon.awssdk.crt.auth.signing.AwsSigningResult;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.aws.internal.signer.Checksummer;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
@@ -68,10 +70,11 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
 
     @Override
     public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
+        Checksummer checksummer = checksummer(request, null);
         V4aProperties v4aProperties = v4aProperties(request);
         AwsSigningConfig signingConfig = signingConfig(request, v4aProperties);
         V4aPayloadSigner payloadSigner = v4aPayloadSigner(request, v4aProperties);
-        return doSign(request, signingConfig, payloadSigner);
+        return doSign(request, checksummer, signingConfig, payloadSigner);
     }
 
     @Override
@@ -205,9 +208,13 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
     }
 
     private static SignedRequest doSign(SignRequest<? extends AwsCredentialsIdentity> request,
+                                        Checksummer checksummer,
                                         AwsSigningConfig signingConfig,
                                         V4aPayloadSigner payloadSigner) {
+
+        SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
         ContentStreamProvider contentStreamProvider = request.payload().orElse(null);
+
         if (isAnonymous(request.identity())) {
             return SignedRequest.builder()
                                 .request(request.request())
@@ -215,8 +222,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
                                 .build();
         }
 
-        SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
-
+        checksummer.checksum(contentStreamProvider, requestBuilder);
         payloadSigner.beforeSigning(requestBuilder, contentStreamProvider, signingConfig.getSignedBodyValue());
 
         SdkHttpRequest sdkHttpRequest = requestBuilder.build();
