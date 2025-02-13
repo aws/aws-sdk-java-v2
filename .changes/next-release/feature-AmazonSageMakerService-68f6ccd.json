@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "Adds additional values to the InferenceAmiVersion parameter in the ProductionVariant data type."
-}
