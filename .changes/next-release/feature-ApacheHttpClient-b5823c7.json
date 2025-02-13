@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Apache Http Client",
+    "contributor": "",
+    "description": "Allow users to configure authSchemeProviderRegistry for ApacheHttpClient"
+}
