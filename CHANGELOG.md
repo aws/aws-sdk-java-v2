@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.20__ __2025-02-13__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Private Certificate Authority (PCA) documentation updates
+
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - Adds auto-pagination for the following operations: ListActions, ListExperimentTemplates, ListTargetAccountConfigurations, ListExperiments, ListExperimentResolvedTargets, ListTargetResourceTypes. Reduces length constraints of prefixes for logConfiguration and experimentReportConfiguration.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - This release adds support for generating cache reports on S3 File Gateways for files that fail to upload.
+
+## __Access Analyzer__
+  - ### Features
+    - This release introduces the getFindingsStatistics API, enabling users to retrieve aggregated finding statistics for IAM Access Analyzer's external access and unused access analysis features. Updated service API and documentation.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation only release to support migrating Amazon ECS service ARNs to the long ARN format.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds additional values to the InferenceAmiVersion parameter in the ProductionVariant data type.
+
+## __Apache Http Client__
+  - ### Features
+    - Allow users to configure authSchemeProviderRegistry for ApacheHttpClient
+
 # __2.30.19__ __2025-02-12__
 ## __AWS B2B Data Interchange__
   - ### Features
@@ -28,13 +57,13 @@
   - ### Features
     - Added support for the new voice - Jasmine (en-SG). Jasmine is available as a Neural voice only.
 
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue in the S3 client where it skipped checksum calculation for operations that use SigV4a signing and require checksums. See [#5878](https://github.com/aws/aws-sdk-java-v2/issues/5878).
+
 ## __OpenSearch Service Serverless__
   - ### Features
     - Custom OpenSearchServerless Entity ID for SAML Config.
-
-## __Amazon S3__
-- ### Bugfixes
-    - Fixed an issue in the S3 client where it skipped checksum calculation for operations that use SigV4a signing and require checksums. See [#5878](https://github.com/aws/aws-sdk-java-v2/issues/5878).
 
 # __2.30.18__ __2025-02-11__
 ## __AWS AppSync__
