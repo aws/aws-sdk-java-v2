@@ -137,7 +137,8 @@ public class SdkTypeUtilsTest {
                          Arguments.of("s3PresignedUrlDownloadResult_shouldReturnFalse", "com.amazonaws.services.s3.model.PresignedUrlDownloadResult", false),
                          Arguments.of("s3PresignedUrlDownloadConfig_shouldReturnFalse", "com.amazonaws.services.s3.model.PresignedUrlDownloadConfig", false),
                          Arguments.of("s3PresignedUrlUploadRequest_shouldReturnFalse", "com.amazonaws.services.s3.model.PresignedUrlUploadRequest", false),
-                         Arguments.of("s3PresignedUrlUploadResult_shouldReturnFalse", "com.amazonaws.services.s3.model.PresignedUrlUploadResult", false)
+                         Arguments.of("s3PresignedUrlUploadResult_shouldReturnFalse", "com.amazonaws.services.s3.model.PresignedUrlUploadResult", false),
+                         Arguments.of("lambdaRuntimeNonJavaSDK_shouldReturnFalse", "com.amazonaws.services.lambda.runtime.Context", false)
                          );
     }
 

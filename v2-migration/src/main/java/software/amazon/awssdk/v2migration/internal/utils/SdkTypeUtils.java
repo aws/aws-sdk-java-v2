@@ -135,7 +135,9 @@ public final class SdkTypeUtils {
                       "com.amazonaws.services.s3.model.PresignedUrlDownloadResult",
                       "com.amazonaws.services.s3.model.PresignedUrlDownloadConfig",
                       "com.amazonaws.services.s3.model.PresignedUrlUploadRequest",
-                      "com.amazonaws.services.s3.model.PresignedUrlUploadResult"
+                      "com.amazonaws.services.s3.model.PresignedUrlUploadResult",
+                      // non-SDK library, aws-lambda-java-core
+                      "com.amazonaws.services.lambda.runtime"
         ));
 
     static {
