@@ -93,6 +93,7 @@
         <module>test/bundle-shading-tests</module>
         <module>test/crt-unavailable-tests</module>
         <module>test/architecture-tests</module>
+        <module>test/s3-checksum-tests</module>
     </modules>
     <scm>
         <url>${scm.github.url}</url>
