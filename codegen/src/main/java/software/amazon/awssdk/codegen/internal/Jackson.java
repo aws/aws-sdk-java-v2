@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.jr.ob.JSON;
-import com.fasterxml.jackson.jr.stree.JacksonJrsTreeCodec;
+import com.fasterxml.jackson.jr.stree.JrSimpleTreeExtension;
 import com.fasterxml.jackson.jr.stree.JrsValue;
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +36,10 @@ public final class Jackson {
                                          .disable(JSON.Feature.FAIL_ON_UNKNOWN_BEAN_PROPERTY)
                                          .enable(JSON.Feature.PRETTY_PRINT_OUTPUT)
                                          .enable(JSON.Feature.READ_JSON_ARRAYS_AS_JAVA_ARRAYS)
-                                         .treeCodec(new JacksonJrsTreeCodec());
+                                         // enable BigDecimal Support
+                                         .enable(JSON.Feature.USE_BIG_DECIMAL_FOR_FLOATS)
+                                         .register(new JrSimpleTreeExtension());
+
 
         mapperBuilder.streamFactory().enable(JsonParser.Feature.ALLOW_COMMENTS);
 
