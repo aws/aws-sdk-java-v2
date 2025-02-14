@@ -6,15 +6,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -520,16 +519,16 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
                                                                                     .build());
 
         assertThat(getItemResponse.item().get("nestedRecord")).isNotNull();
-        assertThat(getItemResponse.item().get("nestedRecord").toString()).isEqualTo("AttributeValue(M={nestedTimeAttribute"
-                                                                                    + "=AttributeValue(NUL=true), "
-                                                                                    + "nestedRecord=AttributeValue(NUL=true), "
-                                                                                    + "attribute=AttributeValue(NUL=true), "
-                                                                                    + "id=AttributeValue(NUL=true), "
-                                                                                    + "nestedUpdateBehaviorAttribute"
-                                                                                    + "=AttributeValue"
-                                                                                    + "(NUL=true), nestedCounter=AttributeValue"
-                                                                                    + "(NUL=true), nestedVersionedAttribute"
-                                                                                    + "=AttributeValue(NUL=true)})");
+
+        Map<String, AttributeValue> item = getItemResponse.item().get("nestedRecord").m();
+        Instant nestedTime = Instant.parse(item.get("nestedTimeAttribute").s());
+        assertThat(areInstantsAlmostEqual(nestedTime, Instant.now(), tolerance)).isTrue();
+        assertThat(item.get("nestedUpdateBehaviorAttribute").s()).isNull();
+        assertThat(item.get("nestedCounter").n()).isNull();
+        assertThat(item.get("nestedVersionedAttribute").n()).isNull();
+        assertThat(item.get("nestedRecord").m()).isEmpty();
+        assertThat(item.get("attribute").s()).isNull();
+        assertThat(item.get("id").s()).isNull();
     }
 
 
@@ -564,6 +563,7 @@ public class UpdateBehaviorTest extends LocalDynamoDbSyncTestBase {
         verifySingleLevelNestingTargetedUpdateBehavior(persistedFlattenedRecord.getCompositeRecord().getNestedRecord(), 100L,
                                                        TEST_BEHAVIOUR_ATTRIBUTE, Instant.now());
     }
+
 
 
     @Test
