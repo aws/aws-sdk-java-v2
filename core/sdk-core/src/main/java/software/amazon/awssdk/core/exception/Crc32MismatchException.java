@@ -65,9 +65,6 @@ public final class Crc32MismatchException extends SdkClientException {
         Builder numAttempts(Integer numAttempts);
 
         @Override
-        Integer numAttempts();
-
-        @Override
         Crc32MismatchException build();
     }
 
@@ -102,11 +99,6 @@ public final class Crc32MismatchException extends SdkClientException {
         public Builder numAttempts(Integer numAttempts) {
             this.numAttempts = numAttempts;
             return this;
-        }
-
-        @Override
-        public Integer numAttempts() {
-            return numAttempts;
         }
 
         @Override

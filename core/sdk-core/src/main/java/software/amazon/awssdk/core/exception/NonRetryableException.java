@@ -67,9 +67,6 @@ public final class NonRetryableException extends SdkClientException {
         Builder numAttempts(Integer numAttempts);
 
         @Override
-        Integer numAttempts();
-
-        @Override
         NonRetryableException build();
     }
 
@@ -114,11 +111,6 @@ public final class NonRetryableException extends SdkClientException {
         public Builder numAttempts(Integer numAttempts) {
             this.numAttempts = numAttempts;
             return this;
-        }
-
-        @Override
-        public Integer numAttempts() {
-            return numAttempts;
         }
 
         @Override

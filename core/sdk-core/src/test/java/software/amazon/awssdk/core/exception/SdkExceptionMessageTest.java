@@ -61,8 +61,8 @@ public class SdkExceptionMessageTest {
     }
 
     @Test
-    public void create_WithoutAttemptCount_UsesDefaultValue() {
+    public void create_WithoutAttemptCount_DefaultsToNull() {
         SdkException exception = SdkException.builder().message("message").cause(new RuntimeException()).build();
-        assertThat(exception.numAttempts()).isEqualTo(0);
+        assertThat(exception.numAttempts()).isEqualTo(null);
     }
 }

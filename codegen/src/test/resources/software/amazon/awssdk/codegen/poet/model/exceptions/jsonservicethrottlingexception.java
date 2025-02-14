@@ -86,9 +86,6 @@ public final class JsonServiceThrottlingException extends JsonException implemen
 
         @Override
         Builder numAttempts(Integer numAttempts);
-
-        @Override
-        Integer numAttempts();
     }
 
     static final class BuilderImpl extends JsonException.BuilderImpl implements Builder {
@@ -139,11 +136,6 @@ public final class JsonServiceThrottlingException extends JsonException implemen
         public BuilderImpl numAttempts(Integer numAttempts) {
             this.numAttempts = numAttempts;
             return this;
-        }
-
-        @Override
-        public Integer numAttempts() {
-            return numAttempts;
         }
 
         @Override

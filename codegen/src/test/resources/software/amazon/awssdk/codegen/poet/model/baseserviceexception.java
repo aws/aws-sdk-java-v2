@@ -43,9 +43,6 @@ public class JsonProtocolTestsException extends AwsServiceException {
 
         @Override
         Builder numAttempts(Integer numAttempts);
-
-        @Override
-        Integer numAttempts();
     }
 
     protected static class BuilderImpl extends AwsServiceException.BuilderImpl implements Builder {
@@ -96,11 +93,6 @@ public class JsonProtocolTestsException extends AwsServiceException {
         public BuilderImpl numAttempts(Integer numAttempts) {
             this.numAttempts = numAttempts;
             return this;
-        }
-
-        @Override
-        public Integer numAttempts() {
-            return numAttempts;
         }
 
         @Override

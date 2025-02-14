@@ -62,9 +62,6 @@ public class EndpointDiscoveryFailedException extends SdkClientException {
         Builder numAttempts(Integer numAttempts);
 
         @Override
-        Integer numAttempts();
-
-        @Override
         EndpointDiscoveryFailedException build();
     }
 
@@ -99,11 +96,6 @@ public class EndpointDiscoveryFailedException extends SdkClientException {
         public Builder numAttempts(Integer numAttempts) {
             this.numAttempts = numAttempts;
             return this;
-        }
-
-        @Override
-        public Integer numAttempts() {
-            return numAttempts;
         }
 
         @Override

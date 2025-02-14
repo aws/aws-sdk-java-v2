@@ -88,7 +88,7 @@ public class AwsServiceExceptionTest {
 
     @ParameterizedTest
     @MethodSource("exceptionMessageTestCases")
-    void exceptionMessageTests(int numAttempts, String expectedMessage) {
+    void exceptionMessageTests(Integer numAttempts, String expectedMessage) {
         AwsServiceException e = AwsServiceException.builder()
                                                    .message("errorMessage")
                                                    .numAttempts(numAttempts)
@@ -114,7 +114,7 @@ public class AwsServiceExceptionTest {
                 3,
                 "errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId) (SDK Attempt Count: 3)"),
             Arguments.of(
-                0,
+                null,
                 "errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId)")
         );
     }

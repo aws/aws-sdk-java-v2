@@ -141,9 +141,6 @@ public class SdkServiceException extends SdkException implements SdkPojo {
         @Override
         Builder numAttempts(Integer numAttempts);
 
-        @Override
-        Integer numAttempts();
-
         /**
          * Specifies the requestId returned by the called service.
          *
@@ -235,11 +232,6 @@ public class SdkServiceException extends SdkException implements SdkPojo {
         public Builder numAttempts(Integer numAttempts) {
             this.numAttempts = numAttempts;
             return this;
-        }
-
-        @Override
-        public Integer numAttempts() {
-            return numAttempts;
         }
 
         @Override

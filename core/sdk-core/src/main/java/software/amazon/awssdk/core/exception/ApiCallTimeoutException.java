@@ -65,9 +65,6 @@ public final class ApiCallTimeoutException extends SdkClientException {
         Builder numAttempts(Integer numAttempts);
 
         @Override
-        Integer numAttempts();
-
-        @Override
         ApiCallTimeoutException build();
     }
 
@@ -102,11 +99,6 @@ public final class ApiCallTimeoutException extends SdkClientException {
         public Builder numAttempts(Integer numAttempts) {
             this.numAttempts = numAttempts;
             return this;
-        }
-
-        @Override
-        public Integer numAttempts() {
-            return numAttempts;
         }
 
         @Override

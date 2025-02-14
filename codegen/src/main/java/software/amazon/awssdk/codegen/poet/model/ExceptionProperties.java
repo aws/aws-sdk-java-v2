@@ -35,8 +35,7 @@ public class ExceptionProperties {
                 builderMethod(className, "statusCode", int.class),
                 builderMethod(className, "cause", Throwable.class),
                 builderMethod(className, "writableStackTrace", Boolean.class),
-                builderMethod(className, "numAttempts", Integer.class),
-                builderGetterMethodInterface("numAttempts", Integer.class));
+                builderMethod(className, "numAttempts", Integer.class));
 
     }
 
@@ -48,8 +47,7 @@ public class ExceptionProperties {
                 builderImplMethods(className, "statusCode", int.class),
                 builderImplMethods(className, "cause", Throwable.class),
                 builderImplMethods(className, "writableStackTrace", Boolean.class),
-                builderImplMethods(className, "numAttempts", Integer.class),
-                builderImplGetterMethods("numAttempts", Integer.class));
+                builderImplMethods(className, "numAttempts", Integer.class));
     }
 
     private static MethodSpec builderMethod(ClassName className, String name, Class clazz) {
@@ -58,14 +56,6 @@ public class ExceptionProperties {
                 .returns(className)
                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                 .addParameter(clazz, name)
-                .build();
-    }
-
-    private static MethodSpec builderGetterMethodInterface(String name, Class clazz) {
-        return MethodSpec.methodBuilder(name)
-                .addAnnotation(Override.class)
-                .returns(clazz)
-                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                 .build();
     }
 
@@ -78,14 +68,5 @@ public class ExceptionProperties {
                 .addStatement("this." + name + " = " + name)
                 .addStatement("return this")
                 .build();
-    }
-
-    private static MethodSpec builderImplGetterMethods(String name, Class clazz) {
-        return MethodSpec.methodBuilder(name)
-                         .addAnnotation(Override.class)
-                         .returns(clazz)
-                         .addModifiers(Modifier.PUBLIC)
-                         .addStatement("return " + name)
-                         .build();
     }
 }

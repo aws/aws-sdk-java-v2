@@ -26,9 +26,6 @@ public class SourceException extends SdkException {
 
         @Override
         Builder numAttempts(Integer numAttempts);
-
-        @Override
-        Integer numAttempts();
     }
 
     public static class BuilderImpl extends SdkException.BuilderImpl implements Builder {
@@ -59,11 +56,6 @@ public class SourceException extends SdkException {
         public Builder numAttempts(Integer numAttempts) {
             super.numAttempts(numAttempts);
             return this;
-        }
-
-        @Override
-        public Integer numAttempts() {
-            return super.numAttempts();
         }
     }
 }

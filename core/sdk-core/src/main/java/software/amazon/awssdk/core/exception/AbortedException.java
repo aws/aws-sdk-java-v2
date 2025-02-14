@@ -62,9 +62,6 @@ public final class AbortedException extends SdkClientException {
 
         @Override
         Builder numAttempts(Integer numAttempts);
-
-        @Override
-        Integer numAttempts();
     }
 
     protected static final class BuilderImpl extends SdkClientException.BuilderImpl implements Builder {
@@ -98,11 +95,6 @@ public final class AbortedException extends SdkClientException {
         public Builder numAttempts(Integer numAttempts) {
             this.numAttempts = numAttempts;
             return this;
-        }
-
-        @Override
-        public Integer numAttempts() {
-            return numAttempts;
         }
 
         @Override
