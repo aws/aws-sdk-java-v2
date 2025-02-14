@@ -15,13 +15,30 @@
 
 package software.amazon.awssdk.services.s3.checksum;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import io.reactivex.Flowable;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,11 +49,21 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsClient;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
+import software.amazon.awssdk.checksums.SdkChecksum;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.BucketAccelerateStatus;
 import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -47,6 +74,8 @@ import software.amazon.awssdk.services.s3.model.GlacierJobParameters;
 import software.amazon.awssdk.services.s3.model.LocationInfo;
 import software.amazon.awssdk.services.s3.model.LocationType;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.RestoreObjectRequest;
 import software.amazon.awssdk.services.s3.model.RestoreRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -59,6 +88,8 @@ import software.amazon.awssdk.services.s3control.model.MultiRegionAccessPointSta
 import software.amazon.awssdk.services.s3control.model.S3ControlException;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.Logger;
 
 public class ChecksumTesting {
@@ -78,6 +109,10 @@ public class ChecksumTesting {
                                                                  .build(),
                                        DefaultCredentialsProvider.create());
 
+    private static final SdkChecksum CRC32 = SdkChecksum.forAlgorithm(DefaultChecksumAlgorithm.CRC32);
+
+    private static final ExecutorService ASYNC_REQUEST_BODY_EXECUTOR = Executors.newSingleThreadExecutor();
+
     private static String accountId;
     private static String bucketName;
     private static String mrapArn;
@@ -88,10 +123,12 @@ public class ChecksumTesting {
     private static S3Client s3;
     private static StsClient sts;
 
+    private static Path testFile;
+
     private Map<BucketType, List<String>> bucketCleanup = new HashMap<>();
 
     @BeforeAll
-    static void setup() throws InterruptedException {
+    static void setup() throws InterruptedException, IOException {
         s3 = S3Client.builder()
                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                      .region(REGION)
@@ -115,6 +152,8 @@ public class ChecksumTesting {
         eozBucket = createEozBucket();
 
         apArn = createAccessPoint();
+
+        testFile = createRandomFile();
     }
 
     @AfterEach
@@ -127,11 +166,30 @@ public class ChecksumTesting {
         bucketCleanup.clear();
     }
 
+    @AfterAll
+    public static void cleanup() {
+        ASYNC_REQUEST_BODY_EXECUTOR.shutdownNow();
+    }
+
     private void assumeNotAccessPointWithPathStyle(TestConfig config) {
         BucketType bucketType = config.getBucketType();
-        boolean isAccessPoint = BucketType.ACCESS_POINT == bucketType || BucketType.MRAP == bucketType;
-        Assumptions.assumeFalse(config.isForcePathStyle() && isAccessPoint,
+        Assumptions.assumeFalse(config.isForcePathStyle() && bucketType.isArnType(),
                                 "Path style doesn't work with ARN type buckets");
+    }
+
+    private void assumeNotAccelerateWithPathStyle(TestConfig config) {
+        Assumptions.assumeFalse(config.isForcePathStyle() && config.isAccelerateEnabled(),
+                                "Path style doesn't work with Accelerate");
+    }
+
+    private void assumeNotAccelerateWithArnType(TestConfig config) {
+        Assumptions.assumeFalse(config.isAccelerateEnabled() && config.getBucketType().isArnType(),
+                                "Accelerate doesn't work with ARN buckets");
+    }
+
+    private void assumeNotAccelerateWithEoz(TestConfig config) {
+        Assumptions.assumeFalse(config.isAccelerateEnabled() && config.getBucketType() == BucketType.EOZ,
+                                "Accelerate is not supported with Express One Zone");
     }
 
     // Request checksum required
@@ -139,6 +197,9 @@ public class ChecksumTesting {
     @MethodSource("testConfigs")
     void deleteObject(TestConfig config) {
         assumeNotAccessPointWithPathStyle(config);
+        assumeNotAccelerateWithPathStyle(config);
+        assumeNotAccelerateWithArnType(config);
+        assumeNotAccelerateWithEoz(config);
 
         String bucket = bucketForType(config.getBucketType());
         String key = putRandomObject(config.getBucketType());
@@ -167,6 +228,8 @@ public class ChecksumTesting {
     @MethodSource("testConfigs")
     void restoreObject(TestConfig config) {
         assumeNotAccessPointWithPathStyle(config);
+        assumeNotAccelerateWithPathStyle(config);
+        assumeNotAccelerateWithArnType(config);
 
         Assumptions.assumeFalse(config.getBucketType() == BucketType.EOZ,
                                 "Restore is not supported for S3 Express");
@@ -189,7 +252,89 @@ public class ChecksumTesting {
             callable = callRestoreObject(request, config);
             callable.runnable.run();
         } finally {
-            callable.client.close();
+            if (callable != null) {
+                callable.client.close();
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("uploadConfigs")
+    void putObject(UploadConfig config) throws IOException {
+        assumeNotAccelerateWithPathStyle(config.getBaseConfig());
+        assumeNotAccessPointWithPathStyle(config.getBaseConfig());
+        assumeNotAccelerateWithArnType(config.getBaseConfig());
+        assumeNotAccelerateWithEoz(config.getBaseConfig());
+
+        // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
+        // There is no way to create AsyncRequestBody with a Publisher<ByteBuffer> and also provide the content length
+        Assumptions.assumeFalse(config.getBodyType() == BodyType.CONTENT_PROVIDER_WITH_LENGTH
+                                && config.getBaseConfig().getFlavor().isAsync(),
+                                "No way to create AsyncRequestBody by giving both an Publisher and the content length");
+
+        BucketType bucketType = config.getBaseConfig().getBucketType();
+
+        String bucket = bucketForType(bucketType);
+        String key = randomKey();
+
+        PutObjectRequest request = PutObjectRequest.builder()
+                                                   .bucket(bucket)
+                                                   .key(key)
+                                                   .build();
+
+        RequestRecorder recorder = new RequestRecorder();
+
+        ClientOverrideConfiguration overrideConfiguration =
+            ClientOverrideConfiguration.builder().addExecutionInterceptor(recorder).build();
+
+        TestCallable callable = null;
+        try {
+
+            Long actualContentLength = null;
+            boolean requestBodyHasContentLength = false;
+
+            if (!config.getBaseConfig().getFlavor().isAsync()) {
+                TestRequestBody body = getRequestBody(config.getBodyType());
+                callable = callPutObject(request, body, config.getBaseConfig(), overrideConfiguration);
+                actualContentLength = body.getActualContentLength();
+                requestBodyHasContentLength = body.optionalContentLength().isPresent();
+            } else {
+                TestAsyncBody body = getAsyncRequestBody(config.getBodyType());
+                callable = callPutObject(request, body, config.getBaseConfig(), overrideConfiguration);
+                actualContentLength = body.getActualContentLength();
+                requestBodyHasContentLength = body.getAsyncRequestBody().contentLength().isPresent();
+            }
+
+            callable.runnable.run();
+
+            recordObjectToCleanup(bucketType, key);
+
+            // We can't set an execution interceptor when using CRT
+            if (config.getBaseConfig().getFlavor() != S3ClientFlavor.ASYNC_CRT) {
+                assertThat(recorder.getRequests()).isNotEmpty();
+            }
+
+            for (SdkHttpRequest httpRequest : recorder.getRequests()) {
+                // skip any non-PUT requests, e.g. GetSession for EOZ requests
+                if (httpRequest.method() != SdkHttpMethod.PUT) {
+                    continue;
+                }
+
+                String payloadSha = httpRequest.firstMatchingHeader("x-amz-content-sha256").get();
+                if ("STREAMING-UNSIGNED-PAYLOAD-TRAILER".equals(payloadSha)) {
+                    String decodedContentLength = httpRequest.firstMatchingHeader("x-amz-decoded-content-length").get();
+                    assertThat(Long.parseLong(decodedContentLength)).isEqualTo(actualContentLength);
+                } else {
+                    Optional<String> contentLength = httpRequest.firstMatchingHeader("Content-Length");
+                    if (requestBodyHasContentLength) {
+                        assertThat(Long.parseLong(contentLength.get())).isEqualTo(actualContentLength);
+                    }
+                }
+            }
+        } finally {
+            if (callable != null) {
+                callable.client.close();
+            }
         }
     }
 
@@ -198,11 +343,12 @@ public class ChecksumTesting {
         Runnable runnable = null;
 
         if (config.getFlavor().isAsync()) {
-            S3AsyncClient s3Async = makeAsyncClient(config);
+            S3AsyncClient s3Async = makeAsyncClient(config, null);
             toClose = s3Async;
-            runnable = () -> {s3Async.deleteObjects(request).join();};
+            runnable = () -> {
+                CompletableFutureUtils.joinLikeSync(s3Async.deleteObjects(request));};
         } else {
-            S3Client s3 = makeSyncClient(config);
+            S3Client s3 = makeSyncClient(config, null);
             toClose = s3;
             runnable = () -> {s3.deleteObjects(request);};
         }
@@ -215,16 +361,43 @@ public class ChecksumTesting {
         Runnable runnable = null;
 
         if (config.getFlavor().isAsync()) {
-            S3AsyncClient s3Async = makeAsyncClient(config);
+            S3AsyncClient s3Async = makeAsyncClient(config, null);
             toClose = s3Async;
             runnable = () -> {s3Async.restoreObject(request).join();};
         } else {
-            S3Client s3 = makeSyncClient(config);
+            S3Client s3 = makeSyncClient(config, null);
             toClose = s3;
             runnable = () -> {s3.restoreObject(request);};
         }
 
         return new TestCallable(toClose, runnable);
+    }
+
+    private TestCallable callPutObject(PutObjectRequest request, TestRequestBody requestBody, TestConfig config,
+                                       ClientOverrideConfiguration overrideConfiguration) throws IOException {
+        S3Client s3Client = makeSyncClient(config, overrideConfiguration);
+        Runnable runnable = () -> {
+            try {
+                s3Client.putObject(request, requestBody);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+        return new TestCallable(s3Client, runnable);
+    }
+
+    private TestCallable callPutObject(PutObjectRequest request, TestAsyncBody requestBody, TestConfig config,
+                                       ClientOverrideConfiguration overrideConfiguration) throws IOException {
+        S3AsyncClient s3Client = makeAsyncClient(config, overrideConfiguration);
+        Runnable runnable = () -> {
+            try {
+                CompletableFuture<PutObjectResponse> future = s3Client.putObject(request, requestBody.getAsyncRequestBody());
+                CompletableFutureUtils.joinLikeSync(future);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+        return new TestCallable(s3Client, runnable);
     }
 
     private static class TestCallable {
@@ -237,7 +410,7 @@ public class ChecksumTesting {
         }
     }
 
-    private S3Client makeSyncClient(TestConfig config) {
+    private S3Client makeSyncClient(TestConfig config, ClientOverrideConfiguration overrideConfiguration) {
         switch (config.getFlavor()) {
             case JAVA_BASED:
                 return S3Client.builder()
@@ -245,13 +418,15 @@ public class ChecksumTesting {
                     .requestChecksumCalculation(config.getRequestChecksumValidation())
                     .region(REGION)
                     .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                    .accelerate(config.isAccelerateEnabled())
+                    .overrideConfiguration(overrideConfiguration)
                     .build();
             default:
                 throw new RuntimeException("Unsupported sync flavor: " + config.getFlavor());
         }
     }
 
-    private S3AsyncClient makeAsyncClient(TestConfig config) {
+    private S3AsyncClient makeAsyncClient(TestConfig config, ClientOverrideConfiguration overrideConfiguration) {
         switch (config.getFlavor()) {
             case ASYNC_JAVA_BASED:
                 return S3AsyncClient.builder()
@@ -259,14 +434,21 @@ public class ChecksumTesting {
                     .requestChecksumCalculation(config.getRequestChecksumValidation())
                     .region(REGION)
                     .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                    .accelerate(config.isAccelerateEnabled())
+                    .overrideConfiguration(overrideConfiguration)
                     .build();
-            case ASYNC_CRT:
+            case ASYNC_CRT: {
+                if (overrideConfiguration != null) {
+                    LOG.warn(() -> "Override configuration cannot be set for Async S3 CRT!");
+                }
                 return S3AsyncClient.crtBuilder()
-                    .forcePathStyle(config.isForcePathStyle())
-                    .requestChecksumCalculation(config.getRequestChecksumValidation())
-                    .region(REGION)
-                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                    .build();
+                                    .forcePathStyle(config.isForcePathStyle())
+                                    .requestChecksumCalculation(config.getRequestChecksumValidation())
+                                    .region(REGION)
+                                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                    .accelerate(config.isAccelerateEnabled())
+                                    .build();
+            }
             default:
                 throw new RuntimeException("Unsupported async flavor: " + config.getFlavor());
         }
@@ -288,12 +470,23 @@ public class ChecksumTesting {
     }
 
     enum BucketType {
-        STANDARD_BUCKET,
-        ACCESS_POINT,
+        STANDARD_BUCKET(false),
+        ACCESS_POINT(true),
         // Multi-region access point
-        MRAP,
+        MRAP(true),
         // Express one zone/S3 express
-        EOZ,
+        EOZ(false),
+        ;
+
+        private boolean arnType;
+
+        private BucketType(boolean arnType) {
+            this.arnType = arnType;
+        }
+
+        public boolean isArnType() {
+            return arnType;
+        }
     }
 
     enum S3ClientFlavor {
@@ -314,11 +507,78 @@ public class ChecksumTesting {
         }
     }
 
+    static class UploadConfig {
+        private TestConfig baseConfig;
+        private BodyType bodyType;
+
+        public TestConfig getBaseConfig() {
+            return baseConfig;
+        }
+
+        public void setBaseConfig(TestConfig baseConfig) {
+            this.baseConfig = baseConfig;
+        }
+
+        public BodyType getBodyType() {
+            return bodyType;
+        }
+
+        public void setBodyType(BodyType bodyType) {
+            this.bodyType = bodyType;
+        }
+
+        @Override
+        public String toString() {
+            return "SyncUploadTestConfig{" +
+                   "baseConfig=" + baseConfig +
+                   ", bodyType=" + bodyType +
+                   '}';
+        }
+    }
+
+    static class TestRequestBody extends RequestBody {
+        private final long contentLength;
+        private final String checksum;
+
+        protected TestRequestBody(RequestBody wrapped, long contentLength, String checksum) {
+            super(wrapped.contentStreamProvider(), wrapped.optionalContentLength().orElse(null), wrapped.contentType());
+            this.contentLength = contentLength;
+            this.checksum = checksum;
+        }
+
+        public long getActualContentLength() {
+            return contentLength;
+        }
+
+        public String getChecksum() {
+            return checksum;
+        }
+    }
+
+    private static class TestAsyncBody {
+        private final AsyncRequestBody asyncRequestBody;
+        private final long actualContentLength;
+
+        private TestAsyncBody(AsyncRequestBody asyncRequestBody, long actualContentLength) {
+            this.asyncRequestBody = asyncRequestBody;
+            this.actualContentLength = actualContentLength;
+        }
+
+        public AsyncRequestBody getAsyncRequestBody() {
+            return asyncRequestBody;
+        }
+
+        public long getActualContentLength() {
+            return actualContentLength;
+        }
+    }
+
     static class TestConfig {
         private S3ClientFlavor flavor;
         private BucketType bucketType;
         private boolean forcePathStyle;
         private RequestChecksumCalculation requestChecksumValidation;
+        private boolean accelerateEnabled;
 
         public S3ClientFlavor getFlavor() {
             return flavor;
@@ -352,6 +612,14 @@ public class ChecksumTesting {
             this.requestChecksumValidation = requestChecksumValidation;
         }
 
+        public boolean isAccelerateEnabled() {
+            return accelerateEnabled;
+        }
+
+        public void setAccelerateEnabled(boolean accelerateEnabled) {
+            this.accelerateEnabled = accelerateEnabled;
+        }
+
         @Override
         public String toString() {
             return "[" +
@@ -359,6 +627,7 @@ public class ChecksumTesting {
                    ", bucketType=" + bucketType +
                    ", forcePathStyle=" + forcePathStyle +
                    ", requestChecksumValidation=" + requestChecksumValidation +
+                   ", accelerateEnabled=" + accelerateEnabled +
                    ']';
         }
     }
@@ -369,17 +638,20 @@ public class ChecksumTesting {
         boolean[] forcePathStyle = {true, false};
         RequestChecksumCalculation[] checksumValidations = {RequestChecksumCalculation.WHEN_REQUIRED,
                                                             RequestChecksumCalculation.WHEN_SUPPORTED};
-
+        boolean[] accelerateEnabled = {true, false};
         for (boolean pathStyle : forcePathStyle) {
             for (RequestChecksumCalculation checksumValidation : checksumValidations) {
                 for (S3ClientFlavor flavor : S3ClientFlavor.values()) {
                     for (BucketType bucketType : BucketType.values()) {
-                        TestConfig testConfig = new TestConfig();
-                        testConfig.setFlavor(flavor);
-                        testConfig.setBucketType(bucketType);
-                        testConfig.setForcePathStyle(pathStyle);
-                        testConfig.setRequestChecksumValidation(checksumValidation);
-                        configs.add(testConfig);
+                        for (boolean accelerate : accelerateEnabled) {
+                            TestConfig testConfig = new TestConfig();
+                            testConfig.setFlavor(flavor);
+                            testConfig.setBucketType(bucketType);
+                            testConfig.setForcePathStyle(pathStyle);
+                            testConfig.setRequestChecksumValidation(checksumValidation);
+                            testConfig.setAccelerateEnabled(accelerate);
+                            configs.add(testConfig);
+                        }
                     }
                 }
             }
@@ -388,11 +660,38 @@ public class ChecksumTesting {
         return configs;
     }
 
+    enum BodyType {
+        INPUTSTREAM_RESETABLE,
+        INPUTSTREAM_NOT_RESETABLE,
+
+        STRING,
+
+        FILE,
+
+        CONTENT_PROVIDER_WITH_LENGTH,
+
+        CONTENT_PROVIDER_NO_LENGTH
+    }
+
+    private static List<UploadConfig> uploadConfigs() {
+        List<UploadConfig> configs = new ArrayList<>();
+
+        for (BodyType bodyType : BodyType.values()) {
+            for (TestConfig baseConfig : testConfigs()) {
+                UploadConfig config = new UploadConfig();
+                config.setBaseConfig(baseConfig);
+                config.setBodyType(bodyType);
+                configs.add(config);
+            }
+        }
+        return configs;
+    }
+
     private String putRandomObject(BucketType bucketType) {
         String key = randomKey();
         String bucketName = bucketForType(bucketType);
         s3.putObject(r -> r.bucket(bucketName).key(key), RequestBody.fromString("hello"));
-        bucketCleanup.computeIfAbsent(bucketType, k -> new ArrayList<>()).add(key);
+        recordObjectToCleanup(bucketType, key);
         return key;
     }
 
@@ -401,8 +700,82 @@ public class ChecksumTesting {
         String key = randomKey();
         String bucketName = bucketForType(bucketType);
         s3.putObject(r -> r.bucket(bucketName).key(key).storageClass(StorageClass.GLACIER), RequestBody.fromString("hello"));
-        bucketCleanup.computeIfAbsent(bucketType, k -> new ArrayList<>()).add(key);
+        recordObjectToCleanup(bucketType, key);
         return key;
+    }
+
+    private TestRequestBody getRequestBody(BodyType bodyType) throws IOException {
+        switch (bodyType) {
+            case STRING: {
+                String content = "Hello world";
+                long contentLength = content.getBytes(StandardCharsets.UTF_8).length;
+                return new TestRequestBody(RequestBody.fromString("Hello world"), contentLength, crc32(content));
+            }
+            case FILE:
+                return new TestRequestBody(RequestBody.fromFile(testFile), Files.size(testFile), crc32(testFile));
+            case CONTENT_PROVIDER_NO_LENGTH: {
+                RequestBody wrapped =
+                    RequestBody.fromContentProvider(() -> FunctionalUtils.invokeSafely(() -> Files.newInputStream(testFile)),
+                                                    "application/octet-stream");
+
+                return new TestRequestBody(wrapped, Files.size(testFile), crc32(testFile));
+            }
+            case CONTENT_PROVIDER_WITH_LENGTH: {
+                long contentLength = Files.size(testFile);
+                RequestBody wrapped = RequestBody.fromContentProvider(() -> FunctionalUtils.invokeSafely(() -> Files.newInputStream(testFile)),
+                                                                          Files.size(testFile),
+                                                                          "application/octet-stream");
+                return new TestRequestBody(wrapped, contentLength, crc32(testFile));
+            }
+            case INPUTSTREAM_RESETABLE: {
+                byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
+                RequestBody wrapped = RequestBody.fromInputStream(new ByteArrayInputStream(content), content.length);
+                return new TestRequestBody(wrapped, content.length, crc32(content));
+            }
+            case INPUTSTREAM_NOT_RESETABLE: {
+                byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
+                RequestBody wrapped = RequestBody.fromInputStream(new NonResettableByteStream(content), content.length);
+                return new TestRequestBody(wrapped, content.length, crc32(content));
+            }
+            default:
+                throw new RuntimeException("Unsupported body type: " + bodyType);
+        }
+    }
+
+    private TestAsyncBody getAsyncRequestBody(BodyType bodyType) throws IOException {
+        switch (bodyType) {
+            case STRING: {
+                String content = "Hello world";
+                long contentLength = content.getBytes(StandardCharsets.UTF_8).length;
+                return new TestAsyncBody(AsyncRequestBody.fromString(content), contentLength);
+            }
+            case FILE: {
+                long contentLength = Files.size(testFile);
+                return new TestAsyncBody(AsyncRequestBody.fromFile(testFile), contentLength);
+            }
+            case INPUTSTREAM_RESETABLE: {
+                byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromInputStream(new ByteArrayInputStream(content),
+                                                                                     (long) content.length,
+                                                                                     ASYNC_REQUEST_BODY_EXECUTOR);
+                return new TestAsyncBody(asyncRequestBody, content.length);
+            }
+            case INPUTSTREAM_NOT_RESETABLE: {
+                byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromInputStream(new NonResettableByteStream(content),
+                                                                                     (long) content.length,
+                                                                                     ASYNC_REQUEST_BODY_EXECUTOR);
+                return new TestAsyncBody(asyncRequestBody, content.length);
+            }
+            case CONTENT_PROVIDER_NO_LENGTH: {
+                byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
+                Flowable<ByteBuffer> publisher = Flowable.just(ByteBuffer.wrap(content));
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromPublisher(publisher);
+                return new TestAsyncBody(asyncRequestBody, content.length);
+            }
+            default:
+                throw new RuntimeException("Unsupported async body type: " + bodyType);
+        }
     }
 
     private String randomKey() {
@@ -454,11 +827,12 @@ public class ChecksumTesting {
         return waitForMrapToBeReady();
     }
 
-
     private static String createBucket() {
         String name = getBucketName();
         LOG.debug(() -> "Creating bucket: " + name);
         createBucket(name, 3);
+        s3.putBucketAccelerateConfiguration(r -> r.bucket(name)
+                                                  .accelerateConfiguration(c -> c.status(BucketAccelerateStatus.ENABLED)));
         return name;
     }
 
@@ -537,5 +911,77 @@ public class ChecksumTesting {
         }
 
         s3.waiter().waitUntilBucketExists(r -> r.bucket(bucketName));
+    }
+
+    private static Path createRandomFile() throws IOException {
+        Path tmp = Files.createTempFile(null, null);
+        byte[] randomBytes = new byte[1024];
+        new Random().nextBytes(randomBytes);
+        try (OutputStream os = Files.newOutputStream(tmp)) {
+            for (int i = 0; i < 16; ++i) {
+                os.write(randomBytes);
+            }
+        }
+        return tmp;
+    }
+
+    private static class NonResettableByteStream extends ByteArrayInputStream {
+        public NonResettableByteStream(byte[] buf) {
+            super(buf);
+        }
+
+        @Override
+        public boolean markSupported() {
+            return false;
+        }
+
+        @Override
+        public synchronized void reset() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static String crc32(String s) {
+        return crc32(s.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static String crc32(byte[] bytes) {
+        CRC32.reset();
+        CRC32.update(bytes);
+        return BinaryUtils.toBase64(CRC32.getChecksumBytes());
+    }
+
+    private static String crc32(Path p) throws IOException {
+        CRC32.reset();
+
+        byte[] buff = new byte[4096];
+        int read;
+        try (InputStream is = Files.newInputStream(p)) {
+            while (true) {
+                read = is.read(buff);
+                if (read == -1) {
+                    break;
+                }
+                CRC32.update(buff, 0, read);
+            }
+        }
+
+        return BinaryUtils.toBase64(CRC32.getChecksumBytes());
+    }
+
+    private void recordObjectToCleanup(BucketType type, String key) {
+        bucketCleanup.computeIfAbsent(type, k -> new ArrayList<>()).add(key);
+    }
+
+    private static class RequestRecorder implements ExecutionInterceptor {
+        private final List<SdkHttpRequest> requests = new ArrayList<>();
+        @Override
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+            requests.add(context.httpRequest());
+        }
+
+        public List<SdkHttpRequest> getRequests() {
+            return requests;
+        }
     }
 }
