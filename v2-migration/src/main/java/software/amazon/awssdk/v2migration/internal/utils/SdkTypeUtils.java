@@ -135,7 +135,17 @@ public final class SdkTypeUtils {
                       "com.amazonaws.services.s3.model.PresignedUrlDownloadResult",
                       "com.amazonaws.services.s3.model.PresignedUrlDownloadConfig",
                       "com.amazonaws.services.s3.model.PresignedUrlUploadRequest",
-                      "com.amazonaws.services.s3.model.PresignedUrlUploadResult"
+                      "com.amazonaws.services.s3.model.PresignedUrlUploadResult",
+                      // non-SDK libraries
+                      // Lambda Runtime : aws-lambda-java-core
+                      "com.amazonaws.services.lambda.runtime",
+                      // Kinesis Client Library (KCL) : amazon-kinesis-client
+                      "com.amazonaws.services.kinesis.clientlibrary",
+                      "com.amazonaws.services.kinesis.leases",
+                      "com.amazonaws.services.kinesis.metrics",
+                      "com.amazonaws.services.kinesis.multilang",
+                      // Kinesis Producer Library (KCL) : amazon-kinesis-producer
+                      "com.amazonaws.services.kinesis.producer"
         ));
 
     static {
