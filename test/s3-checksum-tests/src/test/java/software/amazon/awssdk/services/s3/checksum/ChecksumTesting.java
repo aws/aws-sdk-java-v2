@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -195,7 +196,7 @@ public class ChecksumTesting {
     // Request checksum required
     @ParameterizedTest
     @MethodSource("testConfigs")
-    void deleteObject(TestConfig config) {
+    void deleteObject(TestConfig config) throws Exception {
         assumeNotAccessPointWithPathStyle(config);
         assumeNotAccelerateWithPathStyle(config);
         assumeNotAccelerateWithArnType(config);
@@ -215,7 +216,7 @@ public class ChecksumTesting {
                                                            .build();
 
             callable = callDeleteObjects(req, config);
-            callable.runnable.run();
+            callable.runnable.call();
         } finally {
             if (callable != null) {
                 callable.client.close();
@@ -226,7 +227,7 @@ public class ChecksumTesting {
     // Request checksum optional
     @ParameterizedTest
     @MethodSource("testConfigs")
-    void restoreObject(TestConfig config) {
+    void restoreObject(TestConfig config) throws Exception {
         assumeNotAccessPointWithPathStyle(config);
         assumeNotAccelerateWithPathStyle(config);
         assumeNotAccelerateWithArnType(config);
@@ -236,7 +237,7 @@ public class ChecksumTesting {
 
         String bucket = bucketForType(config.getBucketType());
         String key = putRandomArchivedObject(config.getBucketType());
-        TestCallable callable = null;
+        TestCallable<Void> callable = null;
         try {
             RestoreObjectRequest request = RestoreObjectRequest.builder()
                                                                .bucket(bucket)
@@ -250,7 +251,7 @@ public class ChecksumTesting {
                                                                .build();
 
             callable = callRestoreObject(request, config);
-            callable.runnable.run();
+            callable.runnable.call();
         } finally {
             if (callable != null) {
                 callable.client.close();
@@ -260,7 +261,7 @@ public class ChecksumTesting {
 
     @ParameterizedTest
     @MethodSource("uploadConfigs")
-    void putObject(UploadConfig config) throws IOException {
+    void putObject(UploadConfig config) throws Exception {
         assumeNotAccelerateWithPathStyle(config.getBaseConfig());
         assumeNotAccessPointWithPathStyle(config.getBaseConfig());
         assumeNotAccelerateWithArnType(config.getBaseConfig());
@@ -287,27 +288,34 @@ public class ChecksumTesting {
         ClientOverrideConfiguration overrideConfiguration =
             ClientOverrideConfiguration.builder().addExecutionInterceptor(recorder).build();
 
-        TestCallable callable = null;
+        TestCallable<PutObjectResponse> callable = null;
         try {
 
             Long actualContentLength = null;
             boolean requestBodyHasContentLength = false;
+            String actualCrc32;
 
             if (!config.getBaseConfig().getFlavor().isAsync()) {
                 TestRequestBody body = getRequestBody(config.getBodyType());
                 callable = callPutObject(request, body, config.getBaseConfig(), overrideConfiguration);
                 actualContentLength = body.getActualContentLength();
                 requestBodyHasContentLength = body.optionalContentLength().isPresent();
+                actualCrc32 = body.getChecksum();
             } else {
                 TestAsyncBody body = getAsyncRequestBody(config.getBodyType());
                 callable = callPutObject(request, body, config.getBaseConfig(), overrideConfiguration);
                 actualContentLength = body.getActualContentLength();
                 requestBodyHasContentLength = body.getAsyncRequestBody().contentLength().isPresent();
+                actualCrc32 = body.getChecksum();
             }
 
-            callable.runnable.run();
+            PutObjectResponse response = callable.runnable.call();
 
             recordObjectToCleanup(bucketType, key);
+
+            if (config.getBaseConfig().getRequestChecksumValidation() == RequestChecksumCalculation.WHEN_SUPPORTED) {
+                assertThat(response.checksumCRC32()).isEqualTo(actualCrc32);
+            }
 
             // We can't set an execution interceptor when using CRT
             if (config.getBaseConfig().getFlavor() != S3ClientFlavor.ASYNC_CRT) {
@@ -338,73 +346,84 @@ public class ChecksumTesting {
         }
     }
 
-    private TestCallable callDeleteObjects(DeleteObjectsRequest request, TestConfig config) {
+    private TestCallable<Void> callDeleteObjects(DeleteObjectsRequest request, TestConfig config) {
         AwsClient toClose;
-        Runnable runnable = null;
+        Callable<Void> runnable = null;
 
         if (config.getFlavor().isAsync()) {
             S3AsyncClient s3Async = makeAsyncClient(config, null);
             toClose = s3Async;
             runnable = () -> {
-                CompletableFutureUtils.joinLikeSync(s3Async.deleteObjects(request));};
+                CompletableFutureUtils.joinLikeSync(s3Async.deleteObjects(request));
+                return null;
+            };
         } else {
             S3Client s3 = makeSyncClient(config, null);
             toClose = s3;
-            runnable = () -> {s3.deleteObjects(request);};
+            runnable = () -> {
+                s3.deleteObjects(request);
+                return null;
+            };
         }
 
-        return new TestCallable(toClose, runnable);
+        return new TestCallable<>(toClose, runnable);
     }
 
-    private TestCallable callRestoreObject(RestoreObjectRequest request, TestConfig config) {
+    private TestCallable<Void> callRestoreObject(RestoreObjectRequest request, TestConfig config) {
         AwsClient toClose;
-        Runnable runnable = null;
+        Callable<Void> callable = null;
 
         if (config.getFlavor().isAsync()) {
             S3AsyncClient s3Async = makeAsyncClient(config, null);
             toClose = s3Async;
-            runnable = () -> {s3Async.restoreObject(request).join();};
+            callable = () -> {
+                s3Async.restoreObject(request).join();
+                return null;
+            };
         } else {
             S3Client s3 = makeSyncClient(config, null);
             toClose = s3;
-            runnable = () -> {s3.restoreObject(request);};
+            callable = () -> {
+                s3.restoreObject(request);
+                return null;
+            };
         }
 
-        return new TestCallable(toClose, runnable);
+        return new TestCallable<>(toClose, callable);
     }
 
-    private TestCallable callPutObject(PutObjectRequest request, TestRequestBody requestBody, TestConfig config,
+    private TestCallable<PutObjectResponse> callPutObject(PutObjectRequest request, TestRequestBody requestBody, TestConfig config,
                                        ClientOverrideConfiguration overrideConfiguration) throws IOException {
         S3Client s3Client = makeSyncClient(config, overrideConfiguration);
-        Runnable runnable = () -> {
+        Callable<PutObjectResponse> callable = () -> {
             try {
-                s3Client.putObject(request, requestBody);
+                return s3Client.putObject(request, requestBody);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         };
-        return new TestCallable(s3Client, runnable);
+        return new TestCallable<>(s3Client, callable);
     }
 
-    private TestCallable callPutObject(PutObjectRequest request, TestAsyncBody requestBody, TestConfig config,
+    private TestCallable<PutObjectResponse> callPutObject(PutObjectRequest request, TestAsyncBody requestBody, TestConfig config,
                                        ClientOverrideConfiguration overrideConfiguration) throws IOException {
         S3AsyncClient s3Client = makeAsyncClient(config, overrideConfiguration);
-        Runnable runnable = () -> {
+        Callable<PutObjectResponse> callable = () -> {
             try {
                 CompletableFuture<PutObjectResponse> future = s3Client.putObject(request, requestBody.getAsyncRequestBody());
-                CompletableFutureUtils.joinLikeSync(future);
+                return CompletableFutureUtils.joinLikeSync(future);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         };
-        return new TestCallable(s3Client, runnable);
+        return new TestCallable<>(s3Client, callable);
     }
 
-    private static class TestCallable {
+    private static class TestCallable<ResponseT> {
         private AwsClient client;
-        private Runnable runnable;
+        private Callable<ResponseT> runnable;
 
-        TestCallable(AwsClient client, Runnable runnable) {
+        TestCallable(AwsClient client, Callable<ResponseT> runnable) {
             this.client = client;
             this.runnable = runnable;
         }
@@ -558,10 +577,12 @@ public class ChecksumTesting {
     private static class TestAsyncBody {
         private final AsyncRequestBody asyncRequestBody;
         private final long actualContentLength;
+        private final String checksum;
 
-        private TestAsyncBody(AsyncRequestBody asyncRequestBody, long actualContentLength) {
+        private TestAsyncBody(AsyncRequestBody asyncRequestBody, long actualContentLength, String checksum) {
             this.asyncRequestBody = asyncRequestBody;
             this.actualContentLength = actualContentLength;
+            this.checksum = checksum;
         }
 
         public AsyncRequestBody getAsyncRequestBody() {
@@ -571,6 +592,11 @@ public class ChecksumTesting {
         public long getActualContentLength() {
             return actualContentLength;
         }
+
+        public String getChecksum() {
+            return checksum;
+        }
+
     }
 
     static class TestConfig {
@@ -747,31 +773,31 @@ public class ChecksumTesting {
             case STRING: {
                 String content = "Hello world";
                 long contentLength = content.getBytes(StandardCharsets.UTF_8).length;
-                return new TestAsyncBody(AsyncRequestBody.fromString(content), contentLength);
+                return new TestAsyncBody(AsyncRequestBody.fromString(content), contentLength, crc32(content));
             }
             case FILE: {
                 long contentLength = Files.size(testFile);
-                return new TestAsyncBody(AsyncRequestBody.fromFile(testFile), contentLength);
+                return new TestAsyncBody(AsyncRequestBody.fromFile(testFile), contentLength, crc32(testFile));
             }
             case INPUTSTREAM_RESETABLE: {
                 byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromInputStream(new ByteArrayInputStream(content),
                                                                                      (long) content.length,
                                                                                      ASYNC_REQUEST_BODY_EXECUTOR);
-                return new TestAsyncBody(asyncRequestBody, content.length);
+                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content));
             }
             case INPUTSTREAM_NOT_RESETABLE: {
                 byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromInputStream(new NonResettableByteStream(content),
                                                                                      (long) content.length,
                                                                                      ASYNC_REQUEST_BODY_EXECUTOR);
-                return new TestAsyncBody(asyncRequestBody, content.length);
+                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content));
             }
             case CONTENT_PROVIDER_NO_LENGTH: {
                 byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
                 Flowable<ByteBuffer> publisher = Flowable.just(ByteBuffer.wrap(content));
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromPublisher(publisher);
-                return new TestAsyncBody(asyncRequestBody, content.length);
+                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content));
             }
             default:
                 throw new RuntimeException("Unsupported async body type: " + bodyType);
