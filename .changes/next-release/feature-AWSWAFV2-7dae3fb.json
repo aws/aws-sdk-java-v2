@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS WAFV2",
-    "contributor": "",
-    "description": "The WAFv2 API now supports configuring data protection in webACLs."
-}

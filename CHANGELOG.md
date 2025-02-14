@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.21__ __2025-02-14__
+## __AWS CodeBuild__
+  - ### Features
+    - Added test suite names to test case metadata
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Introduces premigration assessment feature to DMS Serverless API for start-replication and describe-replications
+
+## __AWS RDS DataService__
+  - ### Features
+    - Add support for Stop DB feature.
+
+## __AWS WAFV2__
+  - ### Features
+    - The WAFv2 API now supports configuring data protection in webACLs.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Release Notes: 1) Analytics API enhancements: Added new ListAnalyticsDataLakeDataSets API. 2) Onboarding API Idempotency: Adds ClientToken to instance creation and management APIs to support idempotency.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added support for Content-Range header in HeadObject response.
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Update Environment and Device name field definitions
+
 # __2.30.20__ __2025-02-13__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features

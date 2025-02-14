@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Database Migration Service",
-    "contributor": "",
-    "description": "Introduces premigration assessment feature to DMS Serverless API for start-replication and describe-replications"
-}
