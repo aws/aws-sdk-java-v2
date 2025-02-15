@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -74,9 +75,12 @@ import software.amazon.awssdk.testutils.Waiter;
 
 public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     private static final Base64.Encoder ENCODER = Base64.getEncoder();
-    private static final String RESOURCE_PREFIX = "do-not-delete-cf-test-";
+    private static final String RESOURCE_PREFIX = "do-not-delete-cf-test-v2";
     private static final String CALLER_REFERENCE = UUID.randomUUID().toString();
     private static final String S3_OBJECT_KEY = "s3ObjectKey";
+    private static final String S3_OBJECT_KEY_ON_SUB_PATH = "foo/specific-file";
+    private static final String S3_OBJECT_KEY_ON_SUB_PATH_OTHER = "foo/other-file";
+
 
     private static String bucket;
     private static String domainName;
@@ -267,6 +271,114 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
     }
 
+    @Test
+    void getSignedUrlWithCustomPolicy_shouldAllowQueryParametersWhenUsingWildcard() throws Exception {
+        Instant expirationDate = LocalDate.of(2050, 1, 1)
+                                          .atStartOfDay()
+                                          .toInstant(ZoneOffset.of("Z"));
+
+        Instant activeDate = LocalDate.of(2022, 1, 1)
+                                      .atStartOfDay()
+                                      .toInstant(ZoneOffset.of("Z"));
+
+        CustomSignerRequest request = CustomSignerRequest.builder()
+                                                         .resourceUrl(resourceUrl)
+                                                         .privateKey(keyFilePath)
+                                                         .keyPairId(keyPairId)
+                                                         .resourceUrlPattern(resourceUrl + "*")
+                                                         .activeDate(activeDate)
+                                                         .expirationDate(expirationDate)
+                                                         .build();
+
+        SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
+
+        String urlWithDynamicParam = signedUrl.url() + "&foo=bar";
+        URI modifiedUri = URI.create(urlWithDynamicParam);
+
+
+        SdkHttpClient client = ApacheHttpClient.create();
+        HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                               .request(SdkHttpRequest.builder()
+                                                                                                      .encodedPath(modifiedUri.getRawPath() + "?" + modifiedUri.getRawQuery())
+                                                                                                      .host(modifiedUri.getHost())
+                                                                                                      .method(SdkHttpMethod.GET)
+                                                                                                      .protocol("https")
+                                                                                                      .build())
+                                                                               .build()).call();
+        assertThat(response.httpResponse().statusCode()).isEqualTo(200);
+    }
+
+    @Test
+    void getSignedUrlWithCustomPolicy_wildCardPath() throws Exception {
+        String resourceUri = "https://" + domainName;
+        Instant expirationDate = LocalDate.of(2050, 1, 1)
+                                          .atStartOfDay()
+                                          .toInstant(ZoneOffset.of("Z"));
+
+        Instant activeDate = LocalDate.of(2022, 1, 1)
+                                      .atStartOfDay()
+                                      .toInstant(ZoneOffset.of("Z"));
+
+        CustomSignerRequest request = CustomSignerRequest.builder()
+                                                         .resourceUrl(resourceUri + "/foo/specific-file")
+                                                         .privateKey(keyFilePath)
+                                                         .keyPairId(keyPairId)
+                                                         .resourceUrlPattern(resourceUri + "/foo/*")
+                                                         .activeDate(activeDate)
+                                                         .expirationDate(expirationDate)
+                                                         .build();
+
+        SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
+
+
+        URI modifiedUri = URI.create(signedUrl.url().replace("/specific-file","/other-file"));
+        SdkHttpClient client = ApacheHttpClient.create();
+        HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                               .request(SdkHttpRequest.builder()
+                                                                                                      .encodedPath(modifiedUri.getRawPath() + "?" + modifiedUri.getRawQuery())
+                                                                                                      .host(modifiedUri.getHost())
+                                                                                                      .method(SdkHttpMethod.GET)
+                                                                                                      .protocol("https")
+                                                                                                      .build())
+                                                                               .build()).call();
+        assertThat(response.httpResponse().statusCode()).isEqualTo(200);
+    }
+
+    @Test
+    void getSignedUrlWithCustomPolicy_wildCardPolicyResource_allowsAnyPath() throws Exception {
+        Instant expirationDate = LocalDate.of(2050, 1, 1)
+                                          .atStartOfDay()
+                                          .toInstant(ZoneOffset.of("Z"));
+
+        Instant activeDate = LocalDate.of(2022, 1, 1)
+                                      .atStartOfDay()
+                                      .toInstant(ZoneOffset.of("Z"));
+
+        CustomSignerRequest request = CustomSignerRequest.builder()
+                                                         .resourceUrl(resourceUrl)
+                                                         .privateKey(keyFilePath)
+                                                         .keyPairId(keyPairId)
+                                                         .resourceUrlPattern("*")
+                                                         .activeDate(activeDate)
+                                                         .expirationDate(expirationDate)
+                                                         .build();
+
+        SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
+
+
+        URI modifiedUri = URI.create(signedUrl.url().replace("/s3ObjectKey","/foo/other-file"));
+        SdkHttpClient client = ApacheHttpClient.create();
+        HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                               .request(SdkHttpRequest.builder()
+                                                                                                      .encodedPath(modifiedUri.getRawPath() + "?" + modifiedUri.getRawQuery())
+                                                                                                      .host(modifiedUri.getHost())
+                                                                                                      .method(SdkHttpMethod.GET)
+                                                                                                      .protocol("https")
+                                                                                                      .build())
+                                                                               .build()).call();
+        assertThat(response.httpResponse().statusCode()).isEqualTo(200);
+    }
+
     private static void initStaticFields() throws Exception {
         initializeKeyFileAndPair();
         originAccessId = getOrCreateOriginAccessIdentity();
@@ -409,7 +521,11 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         s3Client.waiter().waitUntilBucketExists(r -> r.bucket(newBucketName));
 
         File content = new RandomTempFile("testFile", 1000L);
+        File content2 = new RandomTempFile("testFile2", 500L);
         s3Client.putObject(PutObjectRequest.builder().bucket(newBucketName).key(S3_OBJECT_KEY).build(), RequestBody.fromFile(content));
+        s3Client.putObject(PutObjectRequest.builder().bucket(newBucketName).key(S3_OBJECT_KEY_ON_SUB_PATH).build(), RequestBody.fromFile(content2));
+        s3Client.putObject(PutObjectRequest.builder().bucket(newBucketName).key(S3_OBJECT_KEY_ON_SUB_PATH_OTHER).build(), RequestBody.fromFile(content2));
+
 
         String bucketPolicy = "{\n"
                               + "\"Version\":\"2012-10-17\",\n"
