@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
@@ -42,36 +41,49 @@ import software.amazon.awssdk.services.bedrock.model.ListCustomModelsResponse;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 
-public class BearerMultiAuth {
+class BedrockAuthenticationTest {
     private static final AuthenticationInterceptor interceptor = new AuthenticationInterceptor();
-
+    private static final EnvironmentVariableHelper environmentVariableHelper = new EnvironmentVariableHelper();
     private final String accessKey;
     private final String secretKey;
-    private static final EnvironmentVariableHelper environmentVariableHelper = new EnvironmentVariableHelper();
+    private static final Region TEST_REGION = Region.US_EAST_1;
 
-    public BearerMultiAuth() {
+
+    BedrockAuthenticationTest() {
         ProfileCredentialsProvider profileCredentialsProvider = ProfileCredentialsProvider.create("default-Feb15-2025");
         this.accessKey = profileCredentialsProvider.resolveCredentials().accessKeyId();
         this.secretKey = profileCredentialsProvider.resolveCredentials().secretAccessKey();
     }
 
+    @AfterEach
+    void cleanup() {
+        environmentVariableHelper.reset();
+        System.clearProperty("aws.accessKeyId");
+        System.clearProperty("aws.secretAccessKey");
+        interceptor.reset();
+    }
+
+
 
     @Test
-    void whenNoCredentialProvided_shouldThrowSdkClientException() {
-        BedrockClient client = BedrockClient.builder()
-                                            .region(Region.US_EAST_1)
-                                            .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
-                                            .build();
+    void shouldThrowExceptionWhenNoCredentialsProvided() {
+        BedrockClient client = createBasicClient().build();
 
-        // Act & Assert
-        SdkClientException exception = assertThrows(SdkClientException.class, () ->
-                                                        client.listCustomModels(ListCustomModelsRequest.builder().build()),
+        SdkClientException exception = assertThrows(SdkClientException.class,
+                                                    () -> client.listCustomModels(ListCustomModelsRequest.builder().build()),
                                                     "Should throw SdkClientException when no credentials are provided"
         );
 
-        assertTrue(exception.getMessage().contains("Unable to load credentials"),
-                   "Exception message should indicate credentials loading failure");
+        assertTrue(exception.getMessage().contains("Unable to load credentials"));
     }
+
+    private BedrockClientBuilder createBasicClient() {
+        return BedrockClient.builder()
+                            .region(TEST_REGION)
+                            .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor));
+    }
+
+
 
     @Test
     void operationCredentials() {
@@ -104,21 +116,20 @@ public class BearerMultiAuth {
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey,secretKey)))
                                             .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
                                             .build();
-
-        // Act
         ListCustomModelsResponse response = client.listCustomModels(
             ListCustomModelsRequest.builder().build());
 
+        assertSuccessfulAuthentication(response,"AWS4-HMAC-SHA256");
+    }
+
+    private void assertSuccessfulAuthentication(ListCustomModelsResponse response, String expectedAuthorization) {
         String authHeader = interceptor.getAuthorizationHeader();
         assertAll(
             () -> assertNotNull(response, "Response should not be null"),
             () -> assertFalse(response.modelSummaries().isEmpty(), "Custom models list should not be empty"),
-            () -> assertTrue(authHeader.startsWith("AWS4-HMAC-SHA256"),
-                             "Authorization header should use AWS4-HMAC-SHA256 signature")
-
+            () -> assertTrue(authHeader.startsWith(expectedAuthorization))
         );
     }
-
 
     @Test
     void systemPropertyCredentials() {
@@ -131,25 +142,13 @@ public class BearerMultiAuth {
                                             .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
                                             .build();
 
-        // Act
         ListCustomModelsResponse response = client.listCustomModels(
             ListCustomModelsRequest.builder().build());
-
-        String authHeader = interceptor.getAuthorizationHeader();
-        assertAll(
-            () -> assertNotNull(response, "Response should not be null"),
-            () -> assertFalse(response.modelSummaries().isEmpty(), "Custom models list should not be empty"),
-            () -> assertTrue(authHeader.startsWith("AWS4-HMAC-SHA256"),
-                             "Authorization header should use AWS4-HMAC-SHA256 signature")
-
-        );
+        assertSuccessfulAuthentication(response,"AWS4-HMAC-SHA256");
     }
-
 
     @Test
     void environmentVariableCredentials() {
-
-
         environmentVariableHelper.set(SdkSystemSetting.AWS_ACCESS_KEY_ID, accessKey);
         environmentVariableHelper.set(SdkSystemSetting.AWS_SECRET_ACCESS_KEY, secretKey);
 
@@ -157,94 +156,48 @@ public class BearerMultiAuth {
                                             .region(Region.US_EAST_1)
                                             .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
                                             .build();
-
-        // Act
         ListCustomModelsResponse response = client.listCustomModels(
             ListCustomModelsRequest.builder().build());
-
-        String authHeader = interceptor.getAuthorizationHeader();
-        assertAll(
-            () -> assertNotNull(response, "Response should not be null"),
-            () -> assertFalse(response.modelSummaries().isEmpty(), "Custom models list should not be empty"),
-            () -> assertTrue(authHeader.startsWith("AWS4-HMAC-SHA256"),
-                             "Authorization header should use AWS4-HMAC-SHA256 signature")
-
-        );
+        assertSuccessfulAuthentication(response,"AWS4-HMAC-SHA256");
     }
-
-
 
     @Test
     void profileFileCredentials() {
-
-
         BedrockClient client = BedrockClient.builder()
                                             .region(Region.US_EAST_1)
                                             .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor)
                                                 .defaultProfileFile(createCredentialProfileFile(accessKey,secretKey)))
                                             .build();
 
-        // Act
         ListCustomModelsResponse response = client.listCustomModels(
             ListCustomModelsRequest.builder().build());
-
-        String authHeader = interceptor.getAuthorizationHeader();
-        assertAll(
-            () -> assertNotNull(response, "Response should not be null"),
-            () -> assertFalse(response.modelSummaries().isEmpty(), "Custom models list should not be empty"),
-            () -> assertTrue(authHeader.startsWith("AWS4-HMAC-SHA256"),
-                             "Authorization header should use AWS4-HMAC-SHA256 signature")
-
-        );
+        assertSuccessfulAuthentication(response,"AWS4-HMAC-SHA256");
     }
-
 
     @Test
     void clientTokenProvider() {
-
-
         BedrockClient client = BedrockClient.builder()
                                             .region(Region.US_EAST_1)
                                             .tokenProvider(StaticTokenProvider.create(() -> "foo-token"))
                                             .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
                                             .build();
-
-        // Act
         ListCustomModelsResponse response = client.listCustomModels(
             ListCustomModelsRequest.builder().build());
 
-        String authHeader = interceptor.getAuthorizationHeader();
-        assertAll(
-            () -> assertNotNull(response, "Response should not be null"),
-            () -> assertFalse(response.modelSummaries().isEmpty(), "Custom models list should not be empty"),
-            () -> assertTrue(authHeader.startsWith("AWS4-HMAC-SHA256"),
-                             "Authorization header should use AWS4-HMAC-SHA256 signature")
-
-        );
+        assertSuccessfulAuthentication(response,"Bearer foo-token");
     }
-
 
     @Test
     void operationCredentialsAndClientTokenProvider() {
-
-
         BedrockClient client = BedrockClient.builder()
                                             .region(Region.US_EAST_1)
                                             .tokenProvider(StaticTokenProvider.create(() -> "foo-token"))
                                             .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
                                             .build();
-
         ListCustomModelsResponse response = client.listCustomModels(
             ListCustomModelsRequest.builder().overrideConfiguration(r ->r.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))).build());
 
-        String authHeader = interceptor.getAuthorizationHeader();
-        assertAll(
-            () -> assertNotNull(response, "Response should not be null"),
-            () -> assertFalse(response.modelSummaries().isEmpty(), "Custom models list should not be empty"),
-            () -> assertTrue(authHeader.startsWith("AWS4-HMAC-SHA256"),
-                             "Authorization header should use AWS4-HMAC-SHA256 signature")
-
-        );
+        assertSuccessfulAuthentication(response,"AWS4-HMAC-SHA256");
     }
 
     @Test
@@ -260,21 +213,11 @@ public class BearerMultiAuth {
         ListCustomModelsResponse response = client.listCustomModels(
             ListCustomModelsRequest.builder().build());
 
-        String authHeader = interceptor.getAuthorizationHeader();
-        assertAll(
-            () -> assertNotNull(response, "Response should not be null"),
-            () -> assertFalse(response.modelSummaries().isEmpty(), "Custom models list should not be empty"),
-            () -> assertTrue(authHeader.startsWith("AWS4-HMAC-SHA256"),
-                             "Authorization header should use AWS4-HMAC-SHA256 signature")
-
-        );
+        assertSuccessfulAuthentication(response,"AWS4-HMAC-SHA256");
     }
-
-
 
     @Test
     void systemPropertyCredentialsAndClientTokenProvider() {
-
         System.setProperty("aws.accessKeyId", accessKey);
         System.setProperty("aws.secretAccessKey", secretKey);
 
@@ -284,28 +227,14 @@ public class BearerMultiAuth {
                                             .tokenProvider(StaticTokenProvider.create(() -> "foo-token"))
                                             .build();
 
-        // Act
         ListCustomModelsResponse response = client.listCustomModels(
             ListCustomModelsRequest.builder().build());
 
-        String authHeader = interceptor.getAuthorizationHeader();
-        assertAll(
-            () -> assertNotNull(response, "Response should not be null"),
-            () -> assertFalse(response.modelSummaries().isEmpty(), "Custom models list should not be empty"),
-            () -> assertTrue(authHeader.startsWith("AWS4-HMAC-SHA256"),
-                             "Authorization header should use AWS4-HMAC-SHA256 signature")
-
-        );
-
-
-
-
+        assertSuccessfulAuthentication(response,"AWS4-HMAC-SHA256");
     }
 
     @Test
     void environmentVariableCredentialsAndClientTokenProvider() {
-
-
         environmentVariableHelper.set(SdkSystemSetting.AWS_ACCESS_KEY_ID, accessKey);
         environmentVariableHelper.set(SdkSystemSetting.AWS_SECRET_ACCESS_KEY, secretKey);
 
@@ -313,55 +242,30 @@ public class BearerMultiAuth {
                                             .region(Region.US_EAST_1)
                                             .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
                                             .tokenProvider(StaticTokenProvider.create(() -> "foo-token"))
-
                                             .build();
 
-        // Act
         ListCustomModelsResponse response = client.listCustomModels(
             ListCustomModelsRequest.builder().build());
 
-        String authHeader = interceptor.getAuthorizationHeader();
-        assertAll(
-            () -> assertNotNull(response, "Response should not be null"),
-            () -> assertFalse(response.modelSummaries().isEmpty(), "Custom models list should not be empty"),
-            () -> assertTrue(authHeader.startsWith("AWS4-HMAC-SHA256"),
-                             "Authorization header should use AWS4-HMAC-SHA256 signature")
-
-        );
+        assertSuccessfulAuthentication(response,"AWS4-HMAC-SHA256");
     }
-
 
     @Test
     void profileFileCredentialsAndClientTokenProvider() {
-
-
         BedrockClient client = BedrockClient.builder()
                                             .region(Region.US_EAST_1)
                                             .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor)
                                                                          .defaultProfileFile(createCredentialProfileFile(accessKey,secretKey)))
                                             .tokenProvider(StaticTokenProvider.create(() -> "foo-token"))
-
                                             .build();
 
-        // Act
         ListCustomModelsResponse response = client.listCustomModels(
             ListCustomModelsRequest.builder().build());
-
-        String authHeader = interceptor.getAuthorizationHeader();
-        assertAll(
-            () -> assertNotNull(response, "Response should not be null"),
-            () -> assertFalse(response.modelSummaries().isEmpty(), "Custom models list should not be empty"),
-            () -> assertTrue(authHeader.startsWith("AWS4-HMAC-SHA256"),
-                             "Authorization header should use AWS4-HMAC-SHA256 signature")
-
-        );
+        assertSuccessfulAuthentication(response,"AWS4-HMAC-SHA256");
     }
-
 
     @Test
     void nullOperationCredentialsAndClientTokenProvider() {
-
-
         BedrockClient client = BedrockClient.builder()
                                             .region(Region.US_EAST_1)
                                             .tokenProvider(StaticTokenProvider.create(() -> "foo-token"))
@@ -371,47 +275,29 @@ public class BearerMultiAuth {
         ListCustomModelsResponse response = client.listCustomModels(
             ListCustomModelsRequest.builder().overrideConfiguration(r ->r.credentialsProvider(StaticCredentialsProvider.create(null))).build());
 
-        String authHeader = interceptor.getAuthorizationHeader();
-        assertAll(
-            () -> assertNotNull(response, "Response should not be null"),
-            () -> assertFalse(response.modelSummaries().isEmpty(), "Custom models list should not be empty"),
-            () -> assertTrue(authHeader.startsWith("AWS4-HMAC-SHA256"),
-                             "Authorization header should use AWS4-HMAC-SHA256 signature")
-
-        );
+        assertSuccessfulAuthentication(response,"Bearer foo-token");
     }
 
     @Test
     void nullOperationNullClientCredentialsAndClientTokenProvider() {
-
-
         BedrockClient client = BedrockClient.builder()
                                             .region(Region.US_EAST_1)
                                             .tokenProvider(StaticTokenProvider.create(() -> "foo-token"))
-            .credentialsProvider(null)
+                                            .credentialsProvider(null)
                                             .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
                                             .build();
 
         ListCustomModelsResponse response = client.listCustomModels(
             ListCustomModelsRequest.builder().overrideConfiguration(r ->r.credentialsProvider(null)).build());
 
-        String authHeader = interceptor.getAuthorizationHeader();
-        assertAll(
-            () -> assertNotNull(response, "Response should not be null"),
-            () -> assertFalse(response.modelSummaries().isEmpty(), "Custom models list should not be empty"),
-            () -> assertTrue(authHeader.startsWith("AWS4-HMAC-SHA256"),
-                             "Authorization header should use AWS4-HMAC-SHA256 signature")
-
-        );
+        assertSuccessfulAuthentication(response, "Bearer foo-token");
     }
-
 
     @Test
     void nullClientCredentialsAndClientTokenProvider() {
-
         //
         // StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(null,
-        //                                                                                                             null));
+        //                                                                                                        null));
         BedrockClient client = BedrockClient.builder()
                                             .region(Region.US_EAST_1)
                                             .tokenProvider(StaticTokenProvider.create(() -> "foo-token"))
@@ -420,55 +306,21 @@ public class BearerMultiAuth {
                                             .build();
 
         ListCustomModelsResponse response = client.listCustomModels(ListCustomModelsRequest.builder().build());
-
-        String authHeader = interceptor.getAuthorizationHeader();
-        assertAll(
-            () -> assertNotNull(response, "Response should not be null"),
-            () -> assertFalse(response.modelSummaries().isEmpty(), "Custom models list should not be empty"),
-            () -> assertTrue(authHeader.startsWith("AWS4-HMAC-SHA256"),
-                             "Authorization header should use AWS4-HMAC-SHA256 signature")
-
-        );
+        assertSuccessfulAuthentication(response,"Bearer foo-token");
     }
-
-
 
     @Test
     void operationCredentialsAndNullClientTokenProvider() {
-
-
         StaticTokenProvider tokenProvider = StaticTokenProvider.create(() -> null);
         BedrockClient client = BedrockClient.builder()
                                             .region(Region.US_EAST_1)
                                             .tokenProvider(tokenProvider)
                                             .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor))
                                             .build();
-
         ListCustomModelsResponse response = client.listCustomModels(
             ListCustomModelsRequest.builder().overrideConfiguration(r ->r.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))).build());
-
-        String authHeader = interceptor.getAuthorizationHeader();
-        assertAll(
-            () -> assertNotNull(response, "Response should not be null"),
-            () -> assertFalse(response.modelSummaries().isEmpty(), "Custom models list should not be empty"),
-            () -> assertTrue(authHeader.startsWith("AWS4-HMAC-SHA256"),
-                             "Authorization header should use AWS4-HMAC-SHA256 signature")
-
-        );
+        assertSuccessfulAuthentication(response,"AWS4-HMAC-SHA256");
     }
-
-
-
-
-    @AfterEach
-    void clear(){
-        environmentVariableHelper.reset();
-        System.clearProperty("aws.accessKeyId");
-        System.clearProperty("aws.secretAccessKey");
-
-    }
-
-
 
     private static ProfileFile createCredentialProfileFile(String accessKey, String secretKey) {
         StringBuilder profileFileContent = new StringBuilder();
@@ -489,10 +341,8 @@ public class BearerMultiAuth {
     }
 
 
-
     private static class AuthenticationInterceptor implements ExecutionInterceptor {
         private Optional<String> authHeader = Optional.empty();
-
         String getAuthorizationHeader() {
             return authHeader.orElse(null);
         }
@@ -507,9 +357,4 @@ public class BearerMultiAuth {
             authHeader = context.httpRequest().firstMatchingHeader("Authorization");
         }
     }
-
-
-
-
-
 }
