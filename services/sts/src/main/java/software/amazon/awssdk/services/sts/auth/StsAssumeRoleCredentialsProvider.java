@@ -25,6 +25,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
@@ -49,8 +50,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class StsAssumeRoleCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsAssumeRoleCredentialsProvider.Builder, StsAssumeRoleCredentialsProvider> {
-    private static final String PROVIDER_NAME = "StsAssumeRoleCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE.value();
     private final Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
+    private final String source;
 
     /**
      * @see #builder()
@@ -60,6 +62,7 @@ public final class StsAssumeRoleCredentialsProvider
         Validate.notNull(builder.assumeRoleRequestSupplier, "Assume role request must not be null.");
 
         this.assumeRoleRequestSupplier = builder.assumeRoleRequestSupplier;
+        this.source = builder.source;
     }
 
     /**
@@ -75,13 +78,13 @@ public final class StsAssumeRoleCredentialsProvider
         Validate.notNull(assumeRoleRequest, "Assume role request must not be null.");
         AssumeRoleResponse assumeRoleResponse = stsClient.assumeRole(assumeRoleRequest);
         return fromStsCredentials(assumeRoleResponse.credentials(),
-                                  PROVIDER_NAME,
+                                  resolvedProviderName(),
                                   accountIdFromArn(assumeRoleResponse.assumedRoleUser()));
     }
 
     @Override
     public String toString() {
-        return ToString.builder(PROVIDER_NAME)
+        return ToString.builder(resolvedProviderName())
                        .add("refreshRequest", assumeRoleRequestSupplier)
                        .build();
     }
@@ -96,6 +99,13 @@ public final class StsAssumeRoleCredentialsProvider
         return PROVIDER_NAME;
     }
 
+    private String resolvedProviderName() {
+        if (source != null && !source.isEmpty()) {
+            return String.format("%s,%s", source, providerName());
+        }
+        return providerName();
+    }
+
     /**
      * A builder (created by {@link StsAssumeRoleCredentialsProvider#builder()}) for creating a
      * {@link StsAssumeRoleCredentialsProvider}.
@@ -103,6 +113,7 @@ public final class StsAssumeRoleCredentialsProvider
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsAssumeRoleCredentialsProvider> {
         private Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
+        private String source;
 
         private Builder() {
             super(StsAssumeRoleCredentialsProvider::new);
@@ -143,6 +154,15 @@ public final class StsAssumeRoleCredentialsProvider
          */
         public Builder refreshRequest(Consumer<AssumeRoleRequest.Builder> assumeRoleRequest) {
             return refreshRequest(AssumeRoleRequest.builder().applyMutation(assumeRoleRequest).build());
+        }
+
+        /**
+         * An optional string list of {@link software.amazon.awssdk.core.useragent.BusinessMetricFeatureId} denoting previous
+         * credentials providers that are chained with this one.
+         */
+        public Builder source(String source) {
+            this.source = source;
+            return this;
         }
 
         @Override

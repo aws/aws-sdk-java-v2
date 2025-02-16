@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.credentials;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -24,7 +25,8 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public final class StaticCredentialsProvider implements AwsCredentialsProvider {
-    private static final String PROVIDER_NAME = "StaticCredentialsProvider";
+
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_CODE.value();
     private final AwsCredentials credentials;
 
     private StaticCredentialsProvider(AwsCredentials credentials) {
