@@ -149,29 +149,6 @@ public class RequestBodyTest {
     }
 
     @Test
-    public void fromInputStream_streamSupportMarkReset_doesNotBuffer() {
-        byte[] newData = new byte[16536];
-        new Random().nextBytes(newData);
-
-        ByteArrayInputStream stream = new ByteArrayInputStream(newData);
-
-        RequestBody requestBody = RequestBody.fromInputStream(stream, newData.length);
-        assertThat(requestBody.contentStreamProvider()).isNotInstanceOf(BufferingContentStreamProvider.class);
-    }
-
-    @Test
-    public void fromInputStream_streamDoesNotSupportMarkReset_buffers() {
-        byte[] newData = new byte[16536];
-        new Random().nextBytes(newData);
-
-        ByteArrayInputStream stream = Mockito.spy(new ByteArrayInputStream(newData));
-        Mockito.when(stream.markSupported()).thenReturn(false);
-
-        RequestBody requestBody = RequestBody.fromInputStream(stream, newData.length);
-        assertThat(requestBody.contentStreamProvider()).isInstanceOf(BufferingContentStreamProvider.class);
-    }
-
-    @Test
     public void fromInputStream_streamSupportsReset_resetsTheStream() {
         byte[] newData = new byte[16536];
         new Random().nextBytes(newData);

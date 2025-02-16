@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "Allow users to configure connectionAcquisitionTimeout for AwsCrtHttpClient and AwsCrtAsyncHttpClient"
-}

@@ -79,6 +79,9 @@ public final class SdkTypeUtils {
     private static final Pattern V2_ASYNC_CLIENT_CLASS_PATTERN = Pattern.compile(
         "software\\.amazon\\.awssdk\\.services\\.[a-zA-Z0-9]+\\.[a-zA-Z0-9]+AsyncClient");
 
+    private static final Pattern KINESIS_VIDEO_PUT_MEDIA_CLIENT_BUILDER = Pattern.compile(
+        "com.amazonaws.services.kinesisvideo.AmazonKinesisVideoPutMediaClientBuilder");
+
     /**
      * V2 core classes with a builder
      */
@@ -116,10 +119,34 @@ public final class SdkTypeUtils {
 
     private static final Set<String> V1_SERVICES_PACKAGE_NAMES = new HashSet<>();
 
-    private static final Set<String> PACKAGES_TO_SKIP = new HashSet<>(
+    private static final Set<String> PACKAGES_AND_CLASSES_TO_SKIP = new HashSet<>(
         Arrays.asList("com.amazonaws.services.s3.transfer",
                       "com.amazonaws.services.dynamodbv2.datamodeling",
-                      "com.amazonaws.services.lambda.invoke"));
+                      "com.amazonaws.services.lambda.invoke",
+                      "com.amazonaws.services.sns.message",
+                      "com.amazonaws.services.dynamodbv2.xspec",
+                      "com.amazonaws.services.dynamodbv2.document.spec",
+                      "com.amazonaws.services.stepfunctions.builder",
+                      "com.amazonaws.services.elasticmapreduce.util",
+                      "com.amazonaws.services.elasticmapreduce.spi",
+                      "com.amazonaws.services.simpleemail.AWSJavaMailTransport",
+                      "com.amazonaws.services.kinesisvideo.AmazonKinesisVideoPutMedia",
+                      "com.amazonaws.services.s3.model.PresignedUrlDownloadRequest",
+                      "com.amazonaws.services.s3.model.PresignedUrlDownloadResult",
+                      "com.amazonaws.services.s3.model.PresignedUrlDownloadConfig",
+                      "com.amazonaws.services.s3.model.PresignedUrlUploadRequest",
+                      "com.amazonaws.services.s3.model.PresignedUrlUploadResult",
+                      // non-SDK libraries
+                      // Lambda Runtime : aws-lambda-java-core
+                      "com.amazonaws.services.lambda.runtime",
+                      // Kinesis Client Library (KCL) : amazon-kinesis-client
+                      "com.amazonaws.services.kinesis.clientlibrary",
+                      "com.amazonaws.services.kinesis.leases",
+                      "com.amazonaws.services.kinesis.metrics",
+                      "com.amazonaws.services.kinesis.multilang",
+                      // Kinesis Producer Library (KCL) : amazon-kinesis-producer
+                      "com.amazonaws.services.kinesis.producer"
+        ));
 
     static {
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.sagemakeredgemanager");
@@ -518,7 +545,7 @@ public final class SdkTypeUtils {
         String fullyQualifiedName = fullyQualified.getFullyQualifiedName();
 
         if (!fullyQualifiedName.startsWith("com.amazonaws.") ||
-            PACKAGES_TO_SKIP.stream().anyMatch(fullyQualifiedName::startsWith)) {
+            PACKAGES_AND_CLASSES_TO_SKIP.stream().anyMatch(fullyQualifiedName::startsWith)) {
             return false;
         }
 
@@ -549,6 +576,10 @@ public final class SdkTypeUtils {
         return type != null
                && type instanceof JavaType.FullyQualified
                && type.isAssignableFrom(V1_SERVICE_CLIENT_CLASS_PATTERN);
+    }
+
+    public static boolean isSupportedV1ClientClass(JavaType type) {
+        return !type.isAssignableFrom(KINESIS_VIDEO_PUT_MEDIA_CLIENT_BUILDER);
     }
 
     public static boolean isV2ModelBuilder(JavaType type) {

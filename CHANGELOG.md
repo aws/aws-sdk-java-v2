@@ -1,8 +1,210 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.21__ __2025-02-14__
+## __AWS CodeBuild__
+  - ### Features
+    - Added test suite names to test case metadata
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Introduces premigration assessment feature to DMS Serverless API for start-replication and describe-replications
+
+## __AWS RDS DataService__
+  - ### Features
+    - Add support for Stop DB feature.
+
+## __AWS WAFV2__
+  - ### Features
+    - The WAFv2 API now supports configuring data protection in webACLs.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Release Notes: 1) Analytics API enhancements: Added new ListAnalyticsDataLakeDataSets API. 2) Onboarding API Idempotency: Adds ClientToken to instance creation and management APIs to support idempotency.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added support for Content-Range header in HeadObject response.
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Update Environment and Device name field definitions
+
+# __2.30.20__ __2025-02-13__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Private Certificate Authority (PCA) documentation updates
+
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - Adds auto-pagination for the following operations: ListActions, ListExperimentTemplates, ListTargetAccountConfigurations, ListExperiments, ListExperimentResolvedTargets, ListTargetResourceTypes. Reduces length constraints of prefixes for logConfiguration and experimentReportConfiguration.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - This release adds support for generating cache reports on S3 File Gateways for files that fail to upload.
+
+## __Access Analyzer__
+  - ### Features
+    - This release introduces the getFindingsStatistics API, enabling users to retrieve aggregated finding statistics for IAM Access Analyzer's external access and unused access analysis features. Updated service API and documentation.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation only release to support migrating Amazon ECS service ARNs to the long ARN format.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds additional values to the InferenceAmiVersion parameter in the ProductionVariant data type.
+
+## __Apache Http Client__
+  - ### Features
+    - Allow users to configure authSchemeProviderRegistry for ApacheHttpClient
+
+# __2.30.19__ __2025-02-12__
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Allow spaces in the following fields in the Partnership resource: ISA 06 - Sender ID, ISA 08 - Receiver ID, GS 02 - Application Sender Code, GS 03 - Application Receiver Code
+
+## __AWS CodeBuild__
+  - ### Features
+    - Add note for the RUNNER_BUILDKITE_BUILD buildType.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adds a RequestId parameter to all MediaLive Workflow Monitor create operations. The RequestId parameter allows idempotent operations.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This releases adds the additionalModelRequestFields field to the CreateAgent and UpdateAgent operations. Use additionalModelRequestFields to specify additional inference parameters for a model beyond the base inference parameters.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This releases adds the additionalModelRequestFields field to the InvokeInlineAgent operation. Use additionalModelRequestFields to specify additional inference parameters for a model beyond the base inference parameters.
+
+## __Amazon FSx__
+  - ### Features
+    - Support for in-place Lustre version upgrades
+
+## __Amazon Polly__
+  - ### Features
+    - Added support for the new voice - Jasmine (en-SG). Jasmine is available as a Neural voice only.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue in the S3 client where it skipped checksum calculation for operations that use SigV4a signing and require checksums. See [#5878](https://github.com/aws/aws-sdk-java-v2/issues/5878).
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Custom OpenSearchServerless Entity ID for SAML Config.
+
+# __2.30.18__ __2025-02-11__
+## __AWS AppSync__
+  - ### Features
+    - Add support for operation level caching
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Private Certificate Authority service now supports Partitioned CRL as a revocation configuration option.
+
+## __AWS Performance Insights__
+  - ### Features
+    - Documentation only update for RDS Performance Insights dimensions for execution plans and locking analysis.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding support for the new fullSnapshotSizeInBytes field in the response of the EC2 EBS DescribeSnapshots API. This field represents the size of all the blocks that were written to the source volume at the time the snapshot was created.
+
+# __2.30.17__ __2025-02-10__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Fixed an issue in AWS CRT-based S3 client where checksums are not calculated for operations that require checksums when RequestChecksumCalculation.WHEN_REQUIRED is configured, resulting error.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - New vendors for DMS Data Providers: DB2 LUW and DB2 for z/OS
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - The SDK now does not buffer input data from ContentStreamProvider in cases where content length is known.
+    - The SDK now does not buffer input data from `RequestBody#fromInputStream` in cases where the InputStream does not support mark and reset.
+    - The SDK now throws exception for input streaming operation if the stream has fewer bytes (i.e. reaches EOF) before the expected length is reached.
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Remove unnecessary invocation of `ContentStreamProvider#newStream` when content-length is known for requests that use AWS chunked encoding.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Doc-only update that adds defaults for CloudFront VpcOriginEndpointConfig values.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Updated the CreateContact API documentation to indicate that it only applies to EMAIL contacts.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
+# __2.30.16__ __2025-02-07__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds support for Animated GIF output, forced chroma sample positioning metadata, and Extensible Wave Container format
+
+## __AWS Performance Insights__
+  - ### Features
+    - Adds documentation for dimension groups and dimensions to analyze locks for Database Insights.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Adds support to handle the new basic scanning daily quota.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Introduce versionStatus field to take place of status field in EKS DescribeClusterVersions API
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds support for the Clinical Note Template Customization feature for the AWS HealthScribe APIs within Amazon Transcribe.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - This release adds support for the Clinical Note Template Customization feature for the AWS HealthScribe Streaming APIs within Amazon Transcribe.
+
+# __2.30.15__ __2025-02-06__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Allow users to configure connectionAcquisitionTimeout for AwsCrtHttpClient and AwsCrtAsyncHttpClient
+
+## __AWS CloudFormation__
+  - ### Features
+    - We added 5 new stack refactoring APIs: CreateStackRefactor, ExecuteStackRefactor, ListStackRefactors, DescribeStackRefactor, ListStackRefactorActions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds the ability to conditionally require fields on a template. Check public documentation for more information.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Updated list of the valid AWS Region values for the LocationConstraint parameter for general purpose buckets.
+
+## __Cost Optimization Hub__
+  - ### Features
+    - This release enables AWS Cost Optimization Hub to show cost optimization recommendations for Amazon Auto Scaling Groups, including those with single and mixed instance types.
+
 # __2.30.14__ __2025-02-05__
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
+
   - ### Bugfixes
     - Fix an issue where the trailing checksum of a request body is not sent when the `Content-Length` header is explicitly set to `0`.
 

@@ -60,7 +60,7 @@ public final class TestUtils {
                                                      .uri(URI.create("https://demo.us-east-1.amazonaws.com"))
                                                      .build()
                                                      .copy(requestOverrides))
-                          .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
+                          .payload(() -> new ByteArrayInputStream("Hello world".getBytes()))
                           .putProperty(REGION_SET, RegionSet.create("aws-global"))
                           .putProperty(SERVICE_SIGNING_NAME, "demo")
                           .putProperty(SIGNING_CLOCK, new TickingClock(Instant.ofEpochMilli(1596476903000L)))
