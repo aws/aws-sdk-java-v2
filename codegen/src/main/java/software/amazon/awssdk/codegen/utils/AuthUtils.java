@@ -64,11 +64,16 @@ public final class AuthUtils {
         if (opModel.getAuthType() == AuthType.BEARER) {
             return true;
         }
+        if(opModel.getAuth() != null && opModel.getAuth().contains(AuthType.BEARER)){
+            return true;
+        }
         return isServiceBearerAuth(model) && hasNoAuthType(opModel);
     }
 
     private static boolean isServiceBearerAuth(IntermediateModel model) {
-        return model.getMetadata().getAuthType() == AuthType.BEARER;
+        return model.getMetadata().getAuthType() == AuthType.BEARER
+             || (model.getMetadata().getAuth() != null
+                 && model.getMetadata().getAuth().stream().anyMatch(authType -> authType == AuthType.BEARER));
     }
 
     private static boolean isServiceSigv4a(IntermediateModel model) {
