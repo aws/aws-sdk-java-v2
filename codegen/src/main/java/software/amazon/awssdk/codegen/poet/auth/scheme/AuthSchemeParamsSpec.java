@@ -31,6 +31,8 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -117,7 +119,16 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
                                   .addJavadoc("Returns the region. The region parameter may be used with the $S auth scheme.",
                                               AwsV4AuthScheme.SCHEME_ID)
                                   .build());
+        }
 
+        if (authSchemeSpecUtils.hasSigV4aSupport()) {
+            b.addMethod(MethodSpec.methodBuilder("regionSet")
+                                  .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                                  .returns(RegionSet.class)
+                                  .addJavadoc("Returns the RegionSet. The regionSet parameter may be used with the $S auth "
+                                              + "scheme.",
+                                              AwsV4aAuthScheme.SCHEME_ID)
+                                  .build());
         }
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
@@ -158,6 +169,17 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
                                   .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
                                   .addJavadoc("Set the region. The region parameter may be used with the $S auth scheme.",
                                               AwsV4AuthScheme.SCHEME_ID)
+                                  .build());
+
+        }
+
+        if (authSchemeSpecUtils.hasSigV4aSupport()) {
+            b.addMethod(MethodSpec.methodBuilder("regionSet")
+                                  .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                                  .addParameter(ParameterSpec.builder(RegionSet.class, "regionSet").build())
+                                  .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
+                                  .addJavadoc("Set the RegionSet. The regionSet parameter may be used with the $S auth scheme.",
+                                              AwsV4aAuthScheme.SCHEME_ID)
                                   .build());
 
         }

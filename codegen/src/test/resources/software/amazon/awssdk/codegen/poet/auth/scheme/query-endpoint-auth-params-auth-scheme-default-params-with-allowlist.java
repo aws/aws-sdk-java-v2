@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.query.auth.scheme.internal;
 
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
@@ -28,6 +29,8 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     private final String operation;
 
     private final Region region;
+
+    private final RegionSet regionSet;
 
     private final Boolean defaultTrueParam;
 
@@ -46,6 +49,7 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     private DefaultQueryAuthSchemeParams(Builder builder) {
         this.operation = Validate.paramNotNull(builder.operation, "operation");
         this.region = builder.region;
+        this.regionSet = builder.regionSet;
         this.defaultTrueParam = Validate.paramNotNull(builder.defaultTrueParam, "defaultTrueParam");
         this.defaultStringParam = Validate.paramNotNull(builder.defaultStringParam, "defaultStringParam");
         this.deprecatedParam = builder.deprecatedParam;
@@ -67,6 +71,11 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     @Override
     public Region region() {
         return region;
+    }
+
+    @Override
+    public RegionSet regionSet() {
+        return regionSet;
     }
 
     @Override
@@ -115,6 +124,8 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
 
         private Region region;
 
+        private RegionSet regionSet;
+
         private Boolean defaultTrueParam = true;
 
         private String defaultStringParam = "hello endpoints";
@@ -135,6 +146,7 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         Builder(DefaultQueryAuthSchemeParams params) {
             this.operation = params.operation;
             this.region = params.region;
+            this.regionSet = params.regionSet;
             this.defaultTrueParam = params.defaultTrueParam;
             this.defaultStringParam = params.defaultStringParam;
             this.deprecatedParam = params.deprecatedParam;
@@ -153,6 +165,12 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         @Override
         public Builder region(Region region) {
             this.region = region;
+            return this;
+        }
+
+        @Override
+        public Builder regionSet(RegionSet regionSet) {
+            this.regionSet = regionSet;
             return this;
         }
 

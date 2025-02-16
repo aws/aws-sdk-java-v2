@@ -42,4 +42,16 @@ public class EndpointResolverInterceptorSpecTest {
         model.getCustomizationConfig().setUseSraAuth(useSraAuth);
         return model;
     }
+
+    @Test
+    void endpointResolverInterceptorClassWithSigv4aMultiAuth() {
+        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(ClientTestModels.opsWithSigv4a());
+        assertThat(endpointProviderInterceptor, generatesTo("endpoint-resolve-interceptor-with-multiauthsigv4a.java"));
+    }
+
+    @Test
+    void endpointResolverInterceptorClassWithEndpointBasedAuth() {
+        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(ClientTestModels.queryServiceModelsEndpointAuthParamsWithoutAllowList());
+        assertThat(endpointProviderInterceptor, generatesTo("endpoint-resolve-interceptor-with-endpointsbasedauth.java"));
+    }
 }

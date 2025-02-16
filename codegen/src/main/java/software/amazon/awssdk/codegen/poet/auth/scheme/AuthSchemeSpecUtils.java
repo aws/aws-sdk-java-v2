@@ -109,6 +109,10 @@ public final class AuthSchemeSpecUtils {
         return AuthUtils.usesAwsAuth(intermediateModel);
     }
 
+    public boolean usesSigV4a() {
+        return AuthUtils.usesSigv4aAuth(intermediateModel);
+    }
+
     public boolean useEndpointBasedAuthProvider() {
         // Endpoint based auth provider is gated using the same setting that enables the use of auth scheme params. One does
         // not make sense without the other so there's no much point on creating another setting if both have to be at the same
@@ -149,6 +153,10 @@ public final class AuthSchemeSpecUtils {
 
     public String signingName() {
         return intermediateModel.getMetadata().getSigningName();
+    }
+
+    public boolean hasSigV4aSupport() {
+        return usesSigV4a() || generateEndpointBasedParams();
     }
 
     private static Set<String> setOf(String val1, String val2) {

@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 public final class AuthUtils {
     private AuthUtils() {
@@ -34,6 +35,16 @@ public final class AuthUtils {
         return model.getOperations().values().stream()
                     .map(OperationModel::getAuthType)
                     .anyMatch(authType -> authType == AuthType.BEARER);
+    }
+
+    public static boolean usesSigv4aAuth(IntermediateModel model) {
+        if (isServiceSigv4a(model)) {
+            return true;
+        }
+        return model.getOperations()
+                    .values()
+                    .stream()
+                    .anyMatch(operationModel -> operationModel.getAuth().stream().anyMatch(authType -> authType == AuthType.V4A));
     }
 
     public static boolean usesAwsAuth(IntermediateModel model) {
@@ -60,8 +71,18 @@ public final class AuthUtils {
         return model.getMetadata().getAuthType() == AuthType.BEARER;
     }
 
+    private static boolean isServiceSigv4a(IntermediateModel model) {
+        return model.getMetadata().getAuth().stream().anyMatch(authType -> authType == AuthType.V4A);
+    }
+
     private static boolean isServiceAwsAuthType(IntermediateModel model) {
         AuthType authType = model.getMetadata().getAuthType();
+        if (authType == null && !CollectionUtils.isNullOrEmpty(model.getMetadata().getAuth())) {
+            return model.getMetadata().getAuth().stream()
+                        .map(AuthType::value)
+                        .map(AuthType::fromValue)
+                        .anyMatch(AuthUtils::isAuthTypeAws);
+        }
         return isAuthTypeAws(authType);
     }
 
@@ -71,6 +92,7 @@ public final class AuthUtils {
         }
 
         switch (authType) {
+            case V4A:
             case V4:
             case S3:
             case S3V4:

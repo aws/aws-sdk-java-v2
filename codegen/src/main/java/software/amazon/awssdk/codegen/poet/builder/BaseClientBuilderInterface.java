@@ -39,9 +39,11 @@ import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointParamsKnowledgeIndex;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
@@ -114,6 +116,10 @@ public class BaseClientBuilderInterface implements ClassSpec {
 
         if (hasResponseAlgorithms(model)) {
             builder.addMethod(responseChecksumValidationMethod());
+        }
+
+        if (authSchemeSpecUtils.hasSigV4aSupport()) {
+            builder.addMethod(sigv4aSigningRegionSetMethod());
         }
 
         return builder.build();
@@ -284,6 +290,24 @@ public class BaseClientBuilderInterface implements ClassSpec {
         return model.getCustomizationConfig() != null
                && model.getCustomizationConfig().getCustomClientContextParams() != null
                && !model.getCustomizationConfig().getCustomClientContextParams().isEmpty();
+    }
+
+    private MethodSpec sigv4aSigningRegionSetMethod() {
+        return MethodSpec.methodBuilder("sigv4aSigningRegionSet")
+                         .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                         .addParameter(RegionSet.class, "sigv4aSigningRegionSet")
+                         .addJavadoc("Sets the {@link $T} to be used for operations using Sigv4a signing requests.\n" +
+                                     "This is optional; if not provided, the following precedence is used:\n" +
+                                     "<ol>\n" +
+                                     "    <li>{@link $T#AWS_SIGV4A_SIGNING_REGION_SET}.</li>\n" +
+                                     "    <li>as <code>sigv4a_signing_region_set</code> in the configuration file.</li>\n" +
+                                     "    <li>The region configured for the client.</li>\n" +
+                                     "</ol>\n",
+                                     RegionSet.class,
+                                     SdkSystemSetting.class)
+                         .returns(TypeVariableName.get("B"))
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
+                         .build();
     }
 
     private boolean hasRequestAlgorithmMember(IntermediateModel model) {

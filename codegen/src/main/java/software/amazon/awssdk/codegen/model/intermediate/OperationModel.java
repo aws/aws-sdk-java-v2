@@ -87,6 +87,8 @@ public class OperationModel extends DocumentationModel {
     @JsonIgnore
     private Map<String, OperationContextParam> operationContextParams;
 
+    private boolean unsignedPayload;
+
     public String getOperationName() {
         return operationName;
     }
@@ -368,5 +370,13 @@ public class OperationModel extends DocumentationModel {
 
     public void setOperationContextParams(Map<String, OperationContextParam> operationContextParams) {
         this.operationContextParams = operationContextParams;
+    }
+
+    public boolean isUnsignedPayload() {
+        return unsignedPayload;
+    }
+
+    public void setUnsignedPayload(boolean unsignedPayload) {
+        this.unsignedPayload = unsignedPayload;
     }
 }

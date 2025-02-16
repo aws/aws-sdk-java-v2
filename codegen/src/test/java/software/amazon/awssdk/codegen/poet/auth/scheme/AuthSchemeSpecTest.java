@@ -189,6 +189,31 @@ public class AuthSchemeSpecTest {
                     .classSpecProvider(AuthSchemeInterceptorSpec::new)
                     .caseName("query-endpoint-auth-params-without-allowlist")
                     .outputFileSuffix("interceptor")
+                    .build(),
+            // Service with auth trait with Sigv4a
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::opsWithSigv4a)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
+                    .caseName("ops-auth-sigv4a-value")
+                    .outputFileSuffix("default-provider")
+                    .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::opsWithSigv4a)
+                    .classSpecProvider(AuthSchemeParamsSpec::new)
+                    .caseName("ops-auth-sigv4a-value")
+                    .outputFileSuffix("params")
+                    .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::opsWithSigv4a)
+                    .classSpecProvider(DefaultAuthSchemeParamsSpec::new)
+                    .caseName("ops-auth-sigv4a-value")
+                    .outputFileSuffix("default-params")
+                    .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::opsWithSigv4a)
+                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
+                    .caseName("ops-auth-sigv4a-value")
+                    .outputFileSuffix("interceptor")
                     .build()
         );
     }
@@ -198,6 +223,14 @@ public class AuthSchemeSpecTest {
         private final Function<IntermediateModel, ClassSpec> classSpecProvider;
         private final String outputFileSuffix;
         private final String caseName;
+
+
+        @Override
+        public String toString() {
+            return "TestCase{" +
+                   "caseName='" + caseName + "-" + outputFileSuffix + '\'' +
+                   '}';
+        }
 
         TestCase(Builder builder) {
             this.modelProvider = builder.modelProvider;

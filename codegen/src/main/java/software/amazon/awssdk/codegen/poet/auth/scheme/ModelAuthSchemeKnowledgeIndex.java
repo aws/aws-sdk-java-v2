@@ -72,26 +72,32 @@ public final class ModelAuthSchemeKnowledgeIndex {
      * {@link Collections#emptyList()}.
      */
     private Map<List<String>, List<AuthSchemeCodegenMetadata>> operationsToModeledMetadata() {
-        Map<List<String>, List<AuthType>> operationsToAuthType = operationsToAuthType();
+        Map<List<String>, List<AuthTrait>> operationsToAuthOption = operationsToAuthOptions();
         Map<List<String>, List<AuthSchemeCodegenMetadata>> operationsToMetadata = new LinkedHashMap<>();
-        operationsToAuthType.forEach((k, v) -> operationsToMetadata.put(k, authTypeToCodegenMetadata(v)));
+        operationsToAuthOption.forEach((k, v) -> operationsToMetadata.put(k, authOptionToCodegenMetadata(v)));
         return operationsToMetadata;
     }
 
     /**
-     * Returns a map from list of operations to the list of auth-types modeled for those operations. The values are taken directly
-     * from the model {@link OperationModel#getAuth()} method.
+     * Returns a map from a list of operations to the list of auth-types modeled for those operations.
+     * The {@link AuthTrait} values are taken directly from the {@link OperationModel}
      */
-    private Map<List<String>, List<AuthType>> operationsToAuthType() {
-        Map<List<AuthType>, List<String>> authSchemesToOperations =
+    private Map<List<String>, List<AuthTrait>> operationsToAuthOptions() {
+        // Group operations by their shared AuthTraits.
+        // The map's keys are AuthTrait lists, and the values are lists of operation names.
+        Map<List<AuthTrait>, List<String>> authSchemesToOperations =
             intermediateModel.getOperations()
                              .entrySet()
                              .stream()
                              .filter(kvp -> !kvp.getValue().getAuth().isEmpty())
-                             .collect(Collectors.groupingBy(kvp -> kvp.getValue().getAuth(),
-                                                            Collectors.mapping(Map.Entry::getKey, Collectors.toList())));
+                             .collect(Collectors.groupingBy(
+                                 kvp -> toAuthTrait(kvp.getValue()),
+                                 Collectors.mapping(Map.Entry::getKey, Collectors.toList())
+                             ));
 
-        Map<List<String>, List<AuthType>> operationsToAuthType = authSchemesToOperations
+        // Convert the map to have operation names as keys and AuthTrait options as values,
+        // sorted by the first operation name in each group.
+        Map<List<String>, List<AuthTrait>> operationsToAuthTrait = authSchemesToOperations
             .entrySet()
             .stream()
             .sorted(Comparator.comparing(kvp -> kvp.getValue().get(0)))
@@ -99,16 +105,29 @@ public final class ModelAuthSchemeKnowledgeIndex {
                                       Map.Entry::getKey, (a, b) -> b,
                                       LinkedHashMap::new));
 
-        List<AuthType> serviceDefaults = serviceDefaultAuthTypes();
+        List<AuthTrait> serviceDefaults = serviceDefaultAuthOption();
 
-        // Get the list of operations that share the same auth schemes as the system defaults and remove it from the result. We
-        // will take care of all of these in the fallback `default` case.
+        // Handle operations with defaults
         List<String> operationsWithDefaults = authSchemesToOperations.remove(serviceDefaults);
-        operationsToAuthType.remove(operationsWithDefaults);
-        operationsToAuthType.put(Collections.emptyList(), serviceDefaults);
-        return operationsToAuthType;
+        if (operationsWithDefaults != null) {
+            operationsToAuthTrait.remove(operationsWithDefaults);
+        }
+        operationsToAuthTrait.put(Collections.emptyList(), serviceDefaults);
+        return operationsToAuthTrait;
     }
 
+    /**
+     * Converts an {@link OperationModel} to a list of {@link AuthTrait} instances based on the authentication related traits
+     * defined in the {@link OperationModel}.
+     */
+    private List<AuthTrait> toAuthTrait(OperationModel operation) {
+        return operation.getAuth().stream()
+                        .map(authType -> AuthTrait.builder()
+                                                  .authType(authType)
+                                                  .unsignedPayload(operation.isUnsignedPayload())
+                                                  .build())
+                        .collect(Collectors.toList());
+    }
 
     /**
      * Similar to {@link #operationsToModeledMetadata()} computes a map from operations to codegen metadata objects. The service
@@ -146,6 +165,13 @@ public final class ModelAuthSchemeKnowledgeIndex {
      * Returns the list of modeled top-level auth-types.
      */
     private List<AuthType> serviceDefaultAuthTypes() {
+
+        // First, look at legacy signature versions.
+        if (intermediateModel.getMetadata().getAuthType() != null
+            && intermediateModel.getMetadata().getAuthType() != AuthType.V4) {
+            return Collections.singletonList(intermediateModel.getMetadata().getAuthType());
+        }
+
         List<AuthType> modeled = intermediateModel.getMetadata().getAuth();
         if (!modeled.isEmpty()) {
             return modeled;
@@ -153,7 +179,18 @@ public final class ModelAuthSchemeKnowledgeIndex {
         return Collections.singletonList(intermediateModel.getMetadata().getAuthType());
     }
 
-    private List<AuthSchemeCodegenMetadata> authTypeToCodegenMetadata(List<AuthType> authTypes) {
+    /**
+     * Returns the list of modeled top-level auth-options.
+     */
+    private List<AuthTrait> serviceDefaultAuthOption() {
+        List<AuthType> modeled = intermediateModel.getMetadata().getAuth();
+        if (!modeled.isEmpty()) {
+            return modeled.stream().map(r -> AuthTrait.builder().authType(r).build()).collect(Collectors.toList());
+        }
+        return Collections.singletonList(AuthTrait.builder().authType(intermediateModel.getMetadata().getAuthType()).build());
+    }
+
+    private List<AuthSchemeCodegenMetadata> authOptionToCodegenMetadata(List<AuthTrait> authTypes) {
         return authTypes.stream().map(AuthSchemeCodegenMetadataExt::fromAuthType).collect(Collectors.toList());
     }
 

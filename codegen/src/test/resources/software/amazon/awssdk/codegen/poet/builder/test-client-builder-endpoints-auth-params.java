@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
@@ -250,5 +251,11 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
                          "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' must be configured in the client builder.");
         Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
                          "The 'tokenProvider' must be configured in the client builder.");
+    }
+
+    public B sigv4aSigningRegionSet(RegionSet sigv4aSigningRegionSet) {
+        clientConfiguration.option(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET,
+                                   sigv4aSigningRegionSet == null ? Collections.emptySet() : sigv4aSigningRegionSet.asSet());
+        return thisBuilder();
     }
 }
