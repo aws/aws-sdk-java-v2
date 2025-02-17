@@ -217,8 +217,13 @@ public final class CloudFrontUtilities {
      *
      * @param request
      *            A {@link CustomSignerRequest} configured with the following values:
-     *            resourceUrl, privateKey, keyPairId, expirationDate, activeDate (optional), ipRange (optional), resourceUrlPattern
-     *            (optional)
+     *            resourceUrl,
+     *            privateKey,
+     *            keyPairId,
+     *            expirationDate,
+     *            activeDate (optional),
+     *            ipRange (optional),
+     *            resourceUrlPattern (optional)
      * @return A signed URL that will permit access to distribution and S3
      *         objects as specified in the policy document.
      *
