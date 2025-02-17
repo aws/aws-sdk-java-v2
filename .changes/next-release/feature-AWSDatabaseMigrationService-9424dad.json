@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Database Migration Service",
-    "contributor": "",
-    "description": "Support replicationConfigArn in DMS DescribeApplicableIndividualAssessments API."
-}

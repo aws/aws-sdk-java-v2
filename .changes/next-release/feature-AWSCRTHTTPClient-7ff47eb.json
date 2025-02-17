@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "alexw91",
-    "description": "Add support for ML-KEM in Post-Quantum TLS Config"
-}
