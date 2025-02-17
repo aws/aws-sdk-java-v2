@@ -74,7 +74,7 @@ public class AwsServiceException extends SdkServiceException {
             joiner.add(serviceDiagnostics());
         }
 
-        if (numAttempts() != null && numAttempts() > 0) {
+        if (numAttempts() != null) {
             SdkDiagnostics diagnostics = SdkDiagnostics.builder().numAttempts(numAttempts()).build();
             joiner.add(diagnostics.toString());
         }

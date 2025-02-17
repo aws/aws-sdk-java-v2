@@ -114,6 +114,9 @@ public class AwsServiceExceptionTest {
                 3,
                 "errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId) (SDK Attempt Count: 3)"),
             Arguments.of(
+                0,
+                "errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId) (SDK Attempt Count: 0)"),
+            Arguments.of(
                 null,
                 "errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId)")
         );

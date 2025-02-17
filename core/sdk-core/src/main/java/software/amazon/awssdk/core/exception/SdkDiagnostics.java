@@ -35,7 +35,7 @@ public class SdkDiagnostics implements ToCopyableBuilder<SdkDiagnostics.Builder,
     @Override
     public String toString() {
         StringJoiner details = new StringJoiner(", ", "(", ")");
-        if (numAttempts != null && numAttempts > 0) {
+        if (numAttempts != null) {
             details.add("SDK Attempt Count: " + numAttempts);
             return details.toString();
         }
