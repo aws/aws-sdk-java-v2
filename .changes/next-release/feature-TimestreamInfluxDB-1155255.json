@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Timestream InfluxDB",
+    "contributor": "",
+    "description": "This release introduces APIs to manage DbClusters and adds support for read replicas"
+}
