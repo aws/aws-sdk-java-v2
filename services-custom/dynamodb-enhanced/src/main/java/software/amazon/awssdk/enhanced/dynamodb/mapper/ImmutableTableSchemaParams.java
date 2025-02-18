@@ -23,10 +23,11 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Parameter class used for creating {@link ImmutableTableSchema}.
+ * Container object for the parameters used to construct a {@link ImmutableTableSchema}.
  *
  * @param <T> The type of the immutable item.
- * @see TableSchema#fromImmutableClass
+ * @see TableSchema#fromImmutableClass(ImmutableTableSchemaParams)
+ * @see ImmutableTableSchema#fromImmutableClass(ImmutableTableSchemaParams)
  */
 @SdkPublicApi
 @Immutable
@@ -58,7 +59,13 @@ public final class ImmutableTableSchemaParams<T>
     }
 
     public interface Builder<T> extends CopyableBuilder<Builder<T>, ImmutableTableSchemaParams<T>> {
-        Builder<T> immutableClass(Class<T> beanClass);
+
+        /**
+         * Set the class of the immutable item.
+         *
+         * @return This builder for method chaining.
+         */
+        Builder<T> immutableClass(Class<T> immutableClass);
 
         /**
          * Set the {@link MethodHandles.Lookup} that will be used for reflection and unreflection purposes on the provided item
@@ -75,7 +82,7 @@ public final class ImmutableTableSchemaParams<T>
          *                           .lookup(MethodHandles.lookup())
          *                           .build();
          * }
-         * @return
+         * @return This builder for method chaining.
          */
         Builder<T> lookup(MethodHandles.Lookup lookup);
     }

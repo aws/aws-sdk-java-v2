@@ -18,12 +18,16 @@ package software.amazon.awssdk.enhanced.dynamodb.mapper;
 import java.lang.invoke.MethodHandles;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Parameter class used for creating {@link TableSchema}'s that leverage reflection.
- * @param <T>
+ * Container object for the parameters used to construct a {@link BeanTableSchema}.
+ *
+ * @param <T> The type of the immutable item.
+ * @see TableSchema#fromBean(BeanTableSchemaParams)
+ * @see BeanTableSchema#fromBean(BeanTableSchemaParams)
  */
 @SdkPublicApi
 @Immutable
@@ -55,6 +59,12 @@ public final class BeanTableSchemaParams<T>
     }
 
     public interface Builder<T> extends CopyableBuilder<Builder<T>, BeanTableSchemaParams<T>> {
+
+        /**
+         * Set the class of the item.
+         *
+         * @return This builder for method chaining.
+         */
         Builder<T> beanClass(Class<T> beanClass);
 
         /**
@@ -73,7 +83,7 @@ public final class BeanTableSchemaParams<T>
          *                           .build();
          *}
          *
-         * @return
+         * @return This builder for method chaining.
          */
         Builder<T> lookup(MethodHandles.Lookup lookup);
     }
