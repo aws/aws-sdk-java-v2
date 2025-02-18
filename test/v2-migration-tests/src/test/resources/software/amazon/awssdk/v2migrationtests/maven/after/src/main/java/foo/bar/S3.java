@@ -18,6 +18,7 @@ package foo.bar;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CORSConfiguration;
 import software.amazon.awssdk.services.s3.model.CORSRule;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
@@ -48,11 +49,13 @@ import software.amazon.awssdk.services.s3.model.GetBucketMetricsConfigurationReq
 import software.amazon.awssdk.services.s3.model.GetBucketNotificationConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketPolicyRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketReplicationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketRequestPaymentRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketTaggingRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketVersioningRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketWebsiteRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectAclRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
@@ -62,7 +65,14 @@ import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.MetadataDirective;
+import software.amazon.awssdk.services.s3.model.Payer;
 import software.amazon.awssdk.services.s3.model.PutBucketCorsRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketPolicyRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketRequestPaymentRequest;
+import software.amazon.awssdk.services.s3.model.RequestPaymentConfiguration;
+import software.amazon.awssdk.services.s3.model.RestoreObjectRequest;
+import software.amazon.awssdk.services.s3.model.RestoreRequest;
 
 public class S3 {
 
@@ -187,6 +197,9 @@ public class S3 {
             .build());
         s3.getBucketWebsite(GetBucketWebsiteRequest.builder().bucket(bucket)
             .build());
+        s3.putBucketRequestPayment(PutBucketRequestPaymentRequest.builder().bucket(bucket).requestPaymentConfiguration(RequestPaymentConfiguration.builder().payer(Payer.BUCKET_OWNER).build()).build());
+        s3.putBucketRequestPayment(PutBucketRequestPaymentRequest.builder().bucket(bucket).requestPaymentConfiguration(RequestPaymentConfiguration.builder().payer(Payer.REQUESTER).build()).build());
+        s3.getBucketRequestPayment(GetBucketRequestPaymentRequest.builder().bucket(bucket).build()).payer().toString().equals("Requester");
     }
 
     private void bucketKeyArgsMethods(S3Client s3, String bucket, String key) {
@@ -198,6 +211,8 @@ public class S3 {
             .build());
         s3.headObject(HeadObjectRequest.builder().bucket(bucket).key(key)
             .build());
+        s3.getObjectAsBytes(GetObjectRequest.builder().bucket(bucket).key(key).build()).asUtf8String();
+        s3.utilities().getUrl(GetUrlRequest.builder().bucket(bucket).key(key).build());
     }
 
     private void bucketIdArgsMethods(S3Client s3, String bucket, String id) {
@@ -226,5 +241,20 @@ public class S3 {
             .build());
         s3.listObjectVersions(ListObjectVersionsRequest.builder().bucket(bucket).prefix(prefix)
             .build());
+    }
+
+    private void variousMethods(S3Client s3) {
+        s3.deleteObject(DeleteObjectRequest.builder().bucket("bucket").key("key").versionId("versionId")
+            .build());
+        s3.copyObject(CopyObjectRequest.builder().sourceBucket("sourceBucket").sourceKey("sourceKey").destinationBucket("destBucket").destinationKey("destKey")
+            .build());
+        s3.listObjectVersions(ListObjectVersionsRequest.builder().bucket("bucket").prefix("prefix").keyMarker("keyMarker").versionIdMarker("versionId").delimiter("delimiter").maxKeys(22)
+            .build());
+        s3.putBucketPolicy(PutBucketPolicyRequest.builder().bucket("bucket").policy("policyText")
+            .build());
+
+        s3.listBuckets().buckets();
+        s3.restoreObject(RestoreObjectRequest.builder().bucket("bucket").key("key").restoreRequest(RestoreRequest.builder().days(98).build()).build());
+        s3.copyObject(CopyObjectRequest.builder().sourceBucket("bucket").sourceKey("key").destinationBucket("bucket").destinationKey("key").metadataDirective(MetadataDirective.REPLACE).websiteRedirectLocation("redirectLocation").build());
     }
 }

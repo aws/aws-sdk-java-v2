@@ -121,6 +121,9 @@ public class S3 {
         s3.getBucketReplicationConfiguration(bucket);
         s3.getBucketTaggingConfiguration(bucket);
         s3.getBucketWebsiteConfiguration(bucket);
+        s3.disableRequesterPays(bucket);
+        s3.enableRequesterPays(bucket);
+        s3.isRequesterPaysEnabled(bucket);
     }
 
     private void bucketKeyArgsMethods(AmazonS3 s3, String bucket, String key) {
@@ -128,6 +131,8 @@ public class S3 {
         s3.getObject(bucket, key);
         s3.getObjectAcl(bucket, key);
         s3.getObjectMetadata(bucket, key);
+        s3.getObjectAsString(bucket, key);
+        s3.getUrl(bucket, key);
     }
 
     private void bucketIdArgsMethods(AmazonS3 s3, String bucket, String id) {
@@ -145,5 +150,16 @@ public class S3 {
         s3.listObjects(bucket, prefix);
         s3.listObjectsV2(bucket, prefix);
         s3.listVersions(bucket, prefix);
+    }
+
+    private void variousMethods(AmazonS3 s3) {
+        s3.deleteVersion("bucket", "key", "versionId");
+        s3.copyObject("sourceBucket", "sourceKey", "destBucket", "destKey");
+        s3.listVersions("bucket", "prefix", "keyMarker", "versionId", "delimiter", 22);
+        s3.setBucketPolicy("bucket", "policyText");
+
+        s3.listBuckets();
+        s3.restoreObject("bucket", "key", 98);
+        s3.setObjectRedirectLocation("bucket", "key", "redirectLocation");
     }
 }

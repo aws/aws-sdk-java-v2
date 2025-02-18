@@ -30,7 +30,6 @@ recipeList:
   - software.amazon.awssdk.v2migration.EnumGettersToV2
   - software.amazon.awssdk.v2migration.ChangeSdkType
   - software.amazon.awssdk.v2migration.ChangeSdkCoreTypes
-  # At this point, all classes should be changed to v2 equivalents
   - software.amazon.awssdk.v2migration.V1BuilderVariationsToV2Builder
   - software.amazon.awssdk.v2migration.NewClassToBuilderPattern
   - software.amazon.awssdk.v2migration.NewClassToStaticFactory
@@ -39,3 +38,4 @@ recipeList:
   - software.amazon.awssdk.v2migration.WrapSdkClientBuilderRegionStr
   - software.amazon.awssdk.v2migration.EnumCasingToV2
   - software.amazon.awssdk.v2migration.SdkBytesToByteBuffer
+  - software.amazon.awssdk.v2migration.S3NonStreamingRequestToV2Complex
