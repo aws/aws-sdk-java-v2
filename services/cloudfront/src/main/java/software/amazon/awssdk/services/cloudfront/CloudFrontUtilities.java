@@ -33,6 +33,7 @@ import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
 import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
 import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
 import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  *
@@ -216,7 +217,13 @@ public final class CloudFrontUtilities {
      *
      * @param request
      *            A {@link CustomSignerRequest} configured with the following values:
-     *            resourceUrl, privateKey, keyPairId, expirationDate, activeDate (optional), ipRange (optional)
+     *            resourceUrl,
+     *            privateKey,
+     *            keyPairId,
+     *            expirationDate,
+     *            activeDate (optional),
+     *            ipRange (optional),
+     *            resourceUrlPattern (optional)
      * @return A signed URL that will permit access to distribution and S3
      *         objects as specified in the policy document.
      *
@@ -233,6 +240,7 @@ public final class CloudFrontUtilities {
      *     Path keyFile = myKeyFile;
      *     Instant activeDate = Instant.now().plus(Duration.ofDays(2));
      *     String ipRange = "192.168.0.1/24";
+     *     String resourceUrlPattern = "*"; // If not supplied, defaults to the value of resourceUrl.
      *
      *     CustomSignerRequest customRequest = CustomSignerRequest.builder()
      *                                                            .resourceUrl(resourceUrl)
@@ -241,16 +249,24 @@ public final class CloudFrontUtilities {
      *                                                            .expirationDate(expirationDate)
      *                                                            .activeDate(activeDate)
      *                                                            .ipRange(ipRange)
+     *                                                            .resourceUrlPattern(resourceUrlPattern)
      *                                                            .build();
      *     SignedUrl signedUrl = utilities.getSignedUrlWithCustomPolicy(customRequest);
      *     String url = signedUrl.url();
      * }
      */
     public SignedUrl getSignedUrlWithCustomPolicy(CustomSignerRequest request) {
+        String resourceUrl = request.resourceUrl();
         try {
-            String resourceUrl = request.resourceUrl();
-            String policy = SigningUtils.buildCustomPolicyForSignedUrl(request.resourceUrl(), request.activeDate(),
-                                                                       request.expirationDate(), request.ipRange());
+            String resourceUrlPattern = StringUtils.isEmpty(request.resourceUrlPattern())
+                                        ? request.resourceUrl()
+                                        : request.resourceUrlPattern();
+
+            String policy = SigningUtils.buildCustomPolicyForSignedUrl(resourceUrlPattern,
+                                                                       request.activeDate(),
+                                                                       request.expirationDate(),
+                                                                       request.ipRange());
+
             byte[] signatureBytes = SigningUtils.signWithSha1Rsa(policy.getBytes(UTF_8), request.privateKey());
             String urlSafePolicy = SigningUtils.makeStringUrlSafe(policy);
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
