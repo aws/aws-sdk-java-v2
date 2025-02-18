@@ -352,6 +352,15 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      */
     S3CrtAsyncClientBuilder futureCompletionExecutor(Executor futureCompletionExecutor);
 
+    /**
+     * Configure whether to disable this client's usage of Session Auth for S3Express buckets and reverts to using conventional
+     * SigV4 for those.
+     *
+     * @param disableS3ExpressSessionAuth whether S3ExpressSessionAuth should be disabled
+     * @return an instance of this builder
+     */
+    S3CrtAsyncClientBuilder disableS3ExpressSessionAuth(Boolean disableS3ExpressSessionAuth);
+
 
     @Override
     S3AsyncClient build();
