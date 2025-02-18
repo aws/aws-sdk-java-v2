@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.services.cloudfront;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
@@ -27,9 +29,14 @@ import java.time.LocalDate;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Base64;
+import java.util.StringJoiner;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCannedPolicy;
 import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCustomPolicy;
@@ -206,7 +213,7 @@ class CloudFrontUtilitiesTest {
 
     @Test
     void getSignedURLWithCustomPolicy_withMissingExpirationDate_shouldThrowException() {
-        SdkClientException exception = assertThrows(SdkClientException.class, () ->
+        NullPointerException exception = assertThrows(NullPointerException.class, () ->
             cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> r
                 .resourceUrl(RESOURCE_URL)
                 .privateKey(keyPair.getPrivate())
@@ -331,4 +338,61 @@ class CloudFrontUtilitiesTest {
         assertThat(cookiesForCustomPolicy.keyPairIdHeaderValue()).isEqualTo("CloudFront-Key-Pair-Id=keyPairId");
     }
 
+    @ParameterizedTest
+    @MethodSource("provideUrlPatternsAndExpectedResources")
+    void getSignedURLWithCustomPolicy_policyResourceUrlShouldHandleVariousPatterns(
+        String resourceUrlPattern, String expectedResource) {
+        String baseUrl = "https://d1234.cloudfront.net/images/photo.jpg";
+        Instant expiration = Instant.now().plusSeconds(3600);
+        CustomSignerRequest request = CustomSignerRequest.builder()
+                                                         .resourceUrl(baseUrl)
+                                                         .privateKey(keyPair.getPrivate())
+                                                         .keyPairId("keyPairId")
+                                                         .resourceUrlPattern(resourceUrlPattern)
+                                                         .expirationDate(expiration)
+                                                         .build();
+
+        SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
+
+        // Extract and decode the policy
+        String encodedPolicy = signedUrl.url().split("Policy=")[1].split("&")[0];
+        String standardBase64 = encodedPolicy
+            .replace('-', '+')
+            .replace('_', '=')
+            .replace('~', '/');
+        String decodedPolicy = new String(Base64.getDecoder().decode(standardBase64), UTF_8);
+
+        // Build expected policy
+        StringBuilder expectedPolicy = new StringBuilder();
+        StringJoiner conditions = new StringJoiner(",", "{", "}");
+        conditions.add("\"DateLessThan\":{\"AWS:EpochTime\":" + expiration.getEpochSecond() + "}");
+
+        expectedPolicy.append("{\"Statement\": [{")
+                      .append("\"Resource\":\"").append(expectedResource).append("\",")
+                      .append("\"Condition\":").append(conditions)
+                      .append("}]}");
+
+        assertThat(decodedPolicy.trim()).isEqualTo(expectedPolicy.toString().trim());
+    }
+
+
+    private static Stream<Arguments> provideUrlPatternsAndExpectedResources() {
+        return Stream.of(
+            Arguments.of("*", "*"),
+            Arguments.of("https://d1234.cloudfront.net/*", "https://d1234.cloudfront.net/*"),
+            Arguments.of("https://d1234.cloudfront.net/images/*", "https://d1234.cloudfront.net/images/*"),
+            Arguments.of("https://d1234.cloudfront.net/*/photo.jpg", "https://d1234.cloudfront.net/*/photo.jpg"),
+            Arguments.of("https://d1234.cloudfront.net/images/photo+with-plus.jpg",
+                         "https://d1234.cloudfront.net/images/photo+with-plus.jpg"),
+            Arguments.of("https://d1234.cloudfront.net/images/photo?param=value",
+                         "https://d1234.cloudfront.net/images/photo?param=value"),
+            Arguments.of("https://d1234.cloudfront.net/images/photo-ümlaut.jpg",
+                         "https://d1234.cloudfront.net/images/photo-ümlaut.jpg"));
+    }
+
+    @Test
+    void customSignerRequest_nullResourceUrlShouldThrow(){
+        assertThatNullPointerException().isThrownBy(() -> CustomSignerRequest.builder().build())
+                                        .withMessageContaining("resourceUrl must not be null");
+    }
 }
