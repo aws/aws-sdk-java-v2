@@ -1,4 +1,88 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.22__ __2025-02-17__
+## __AWS Amplify__
+  - ### Features
+    - Add ComputeRoleArn to CreateApp, UpdateApp, CreateBranch, and UpdateBranch, allowing caller to specify a role to be assumed by Amplify Hosting for server-side rendered applications.
+
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Add support for ML-KEM in Post-Quantum TLS Config
+        - Contributed by: [@alexw91](https://github.com/alexw91)
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Support replicationConfigArn in DMS DescribeApplicableIndividualAssessments API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - This release introduces APIs to manage DbClusters and adds support for read replicas
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@alexw91](https://github.com/alexw91)
+# __2.30.21__ __2025-02-14__
+## __AWS CodeBuild__
+  - ### Features
+    - Added test suite names to test case metadata
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Introduces premigration assessment feature to DMS Serverless API for start-replication and describe-replications
+
+## __AWS RDS DataService__
+  - ### Features
+    - Add support for Stop DB feature.
+
+## __AWS WAFV2__
+  - ### Features
+    - The WAFv2 API now supports configuring data protection in webACLs.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Release Notes: 1) Analytics API enhancements: Added new ListAnalyticsDataLakeDataSets API. 2) Onboarding API Idempotency: Adds ClientToken to instance creation and management APIs to support idempotency.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added support for Content-Range header in HeadObject response.
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Update Environment and Device name field definitions
+
+# __2.30.20__ __2025-02-13__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Private Certificate Authority (PCA) documentation updates
+
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - Adds auto-pagination for the following operations: ListActions, ListExperimentTemplates, ListTargetAccountConfigurations, ListExperiments, ListExperimentResolvedTargets, ListTargetResourceTypes. Reduces length constraints of prefixes for logConfiguration and experimentReportConfiguration.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - This release adds support for generating cache reports on S3 File Gateways for files that fail to upload.
+
+## __Access Analyzer__
+  - ### Features
+    - This release introduces the getFindingsStatistics API, enabling users to retrieve aggregated finding statistics for IAM Access Analyzer's external access and unused access analysis features. Updated service API and documentation.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation only release to support migrating Amazon ECS service ARNs to the long ARN format.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds additional values to the InferenceAmiVersion parameter in the ProductionVariant data type.
+
+## __Apache Http Client__
+  - ### Features
+    - Allow users to configure authSchemeProviderRegistry for ApacheHttpClient
+
 # __2.30.19__ __2025-02-12__
 ## __AWS B2B Data Interchange__
   - ### Features
@@ -28,13 +112,13 @@
   - ### Features
     - Added support for the new voice - Jasmine (en-SG). Jasmine is available as a Neural voice only.
 
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue in the S3 client where it skipped checksum calculation for operations that use SigV4a signing and require checksums. See [#5878](https://github.com/aws/aws-sdk-java-v2/issues/5878).
+
 ## __OpenSearch Service Serverless__
   - ### Features
     - Custom OpenSearchServerless Entity ID for SAML Config.
-
-## __Amazon S3__
-- ### Bugfixes
-    - Fixed an issue in the S3 client where it skipped checksum calculation for operations that use SigV4a signing and require checksums. See [#5878](https://github.com/aws/aws-sdk-java-v2/issues/5878).
 
 # __2.30.18__ __2025-02-11__
 ## __AWS AppSync__

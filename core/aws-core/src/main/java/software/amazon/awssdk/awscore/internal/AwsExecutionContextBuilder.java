@@ -126,7 +126,9 @@ public final class AwsExecutionContextBuilder {
                           clientConfig.option(SdkClientOption.REQUEST_CHECKSUM_CALCULATION))
             .putAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION,
                           clientConfig.option(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION))
-            .putAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS, resolveUserAgentBusinessMetrics(clientConfig));
+            .putAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS, resolveUserAgentBusinessMetrics(clientConfig))
+            .putAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET,
+                          clientConfig.option(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET));
 
         // Auth Scheme resolution related attributes
         putAuthSchemeResolutionAttributes(executionAttributes, clientConfig, originalRequest);
