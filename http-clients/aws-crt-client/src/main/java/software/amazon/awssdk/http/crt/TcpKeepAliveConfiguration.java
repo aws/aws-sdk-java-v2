@@ -28,12 +28,17 @@ public final class TcpKeepAliveConfiguration {
 
     private final Duration keepAliveInterval;
     private final Duration keepAliveTimeout;
+    private final Integer keepAliveMaxFailedProbes;
 
     private TcpKeepAliveConfiguration(DefaultTcpKeepAliveConfigurationBuilder builder) {
         this.keepAliveInterval = Validate.isPositive(builder.keepAliveInterval,
                                                      "keepAliveInterval");
         this.keepAliveTimeout = Validate.isPositive(builder.keepAliveTimeout,
                                                     "keepAliveTimeout");
+        this.keepAliveMaxFailedProbes = builder.keepAliveMaxFailedProbes == null
+                                        ? null
+                                        : Validate.isNotNegative(builder.keepAliveMaxFailedProbes,
+                                                                 "keepAliveMaxFailedProbes");
     }
 
     /**
@@ -48,6 +53,13 @@ public final class TcpKeepAliveConfiguration {
      */
     public Duration keepAliveTimeout() {
         return keepAliveTimeout;
+    }
+
+    /**
+     * @return number of keep alive probes allowed to fail before the connection is considered lost.
+     */
+    public Integer keepAliveMaxFailedProbes() {
+        return keepAliveMaxFailedProbes;
     }
 
     public static Builder builder() {
@@ -74,6 +86,13 @@ public final class TcpKeepAliveConfiguration {
          */
         Builder keepAliveTimeout(Duration keepAliveTimeout);
 
+        /**
+         * Sets the number of keep alive probes allowed to fail before the connection is considered lost.
+         * @param keepAliveMaxFailedProbes The maximum number of keep-alive probes to send.
+         * @return Builder
+         */
+        Builder keepAliveMaxFailedProbes(Integer keepAliveMaxFailedProbes);
+
         TcpKeepAliveConfiguration build();
     }
 
@@ -81,6 +100,7 @@ public final class TcpKeepAliveConfiguration {
      * An SDK-internal implementation of {@link Builder}.
      */
     private static final class DefaultTcpKeepAliveConfigurationBuilder implements Builder {
+        private Integer keepAliveMaxFailedProbes;
         private Duration keepAliveInterval;
         private Duration keepAliveTimeout;
 
@@ -106,6 +126,17 @@ public final class TcpKeepAliveConfiguration {
         @Override
         public Builder keepAliveTimeout(Duration keepAliveTimeout) {
             this.keepAliveTimeout = keepAliveTimeout;
+            return this;
+        }
+
+        /**
+         * Sets the maximum number of TCP keep-alive probes to send before giving up and declaring the connection dead.
+         * @param keepAliveMaxFailedProbes The maximum number of keep-alive probes to send.
+         * @return Builder
+         */
+        @Override
+        public Builder keepAliveMaxFailedProbes(Integer keepAliveMaxFailedProbes) {
+            this.keepAliveMaxFailedProbes = keepAliveMaxFailedProbes;
             return this;
         }
 

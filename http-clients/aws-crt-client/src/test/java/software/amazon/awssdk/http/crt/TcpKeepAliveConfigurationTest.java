@@ -29,10 +29,12 @@ public class TcpKeepAliveConfigurationTest {
             TcpKeepAliveConfiguration.builder()
                                      .keepAliveInterval(Duration.ofMinutes(1))
                                      .keepAliveTimeout(Duration.ofSeconds(1))
+                                     .keepAliveMaxFailedProbes(1)
                                      .build();
 
         assertThat(tcpKeepAliveConfiguration.keepAliveInterval()).isEqualTo(Duration.ofMinutes(1));
         assertThat(tcpKeepAliveConfiguration.keepAliveTimeout()).isEqualTo(Duration.ofSeconds(1));
+        assertThat(tcpKeepAliveConfiguration.keepAliveMaxFailedProbes()).isEqualTo(1);
     }
     
     @Test
@@ -52,7 +54,29 @@ public class TcpKeepAliveConfigurationTest {
                                                         .build())
             .hasMessageContaining("keepAliveInterval");
     }
-    
+
+    @Test
+    public void builder_nullKeepAliveMaxFailedProbes_shouldBeAllowed() {
+        TcpKeepAliveConfiguration config = TcpKeepAliveConfiguration.builder()
+                                                                    .keepAliveInterval(Duration.ofMinutes(1))
+                                                                    .keepAliveTimeout(Duration.ofSeconds(1))
+                                                                    .build();
+
+        assertThat(config.keepAliveMaxFailedProbes()).isNull();
+    }
+
+    @Test
+    public void builder_zeroKeepAliveMaxFailedProbes_shouldBeAllowed() {
+        TcpKeepAliveConfiguration config = TcpKeepAliveConfiguration.builder()
+                                                                    .keepAliveInterval(Duration.ofMinutes(1))
+                                                                    .keepAliveTimeout(Duration.ofSeconds(1))
+                                                                    .keepAliveMaxFailedProbes(0)
+                                                                    .build();
+
+        assertThat(config.keepAliveMaxFailedProbes()).isEqualTo(0);
+    }
+
+
     @Test
     public void builder_nonPositiveKeepAliveTimeout_shouldThrowException() {
         assertThatThrownBy(() ->
@@ -71,5 +95,16 @@ public class TcpKeepAliveConfigurationTest {
                                                         .keepAliveTimeout(Duration.ofSeconds(1))
                                                         .build())
             .hasMessageContaining("keepAliveInterval");
+    }
+
+    @Test
+    public void builder_nonPositiveKeepAliveMaxFailedProbes_shouldThrowException() {
+        assertThatThrownBy(() ->
+                               TcpKeepAliveConfiguration.builder()
+                                                        .keepAliveInterval(Duration.ofMinutes(1))
+                                                        .keepAliveTimeout(Duration.ofSeconds(1))
+                                                        .keepAliveMaxFailedProbes(-1)
+                                                        .build())
+            .hasMessageContaining("keepAliveMaxFailedProbes");
     }
 }
