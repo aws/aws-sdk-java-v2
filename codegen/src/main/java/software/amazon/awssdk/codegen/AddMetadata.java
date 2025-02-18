@@ -74,13 +74,14 @@ final class AddMetadata {
                 .withJsonVersion(serviceMetadata.getJsonVersion())
                 .withEndpointPrefix(serviceMetadata.getEndpointPrefix())
                 .withSigningName(serviceMetadata.getSigningName())
-                .withAuthType(AuthType.fromValue(serviceMetadata.getSignatureVersion()))
+                .withAuthType(serviceMetadata.getSignatureVersion() != null ?
+                              AuthType.fromValue(serviceMetadata.getSignatureVersion()) : null)
                 .withUid(serviceMetadata.getUid())
                 .withServiceId(serviceMetadata.getServiceId())
                 .withSupportsH2(supportsH2(serviceMetadata))
                 .withJsonVersion(getJsonVersion(metadata, serviceMetadata))
                 .withAwsQueryCompatible(serviceMetadata.getAwsQueryCompatible())
-                .withAuth(getAuthFromServiceMetadata(serviceMetadata, customizationConfig.useMultiAuth()));
+                .withAuth(getAuthFromServiceMetadata(serviceMetadata));
 
         return metadata;
     }
@@ -136,18 +137,14 @@ final class AddMetadata {
     }
 
     /**
-     * Converts service metadata into a list of AuthTypes. If useMultiAuth is enabled, then
-     * {@code metadata.auth} will be used in the conversion if present. Otherwise, use
-     * {@code metadata.signatureVersion}.
+     * Converts a list of authentication type strings from the given {@link ServiceMetadata} into a list of
+     * {@link AuthType} objects.
      */
-    private static List<AuthType> getAuthFromServiceMetadata(ServiceMetadata serviceMetadata,
-                                                             boolean useMultiAuth) {
-        if (useMultiAuth) {
-            List<String> serviceAuth = serviceMetadata.getAuth();
-            if (serviceAuth != null) {
-                return serviceAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
-            }
+    private static List<AuthType> getAuthFromServiceMetadata(ServiceMetadata serviceMetadata) {
+        List<String> serviceAuth = serviceMetadata.getAuth();
+        if (serviceAuth != null) {
+            return serviceAuth.stream().map(AuthType::fromValue).collect(Collectors.toList());
         }
-        return Collections.singletonList(AuthType.fromValue(serviceMetadata.getSignatureVersion()));
+        return Collections.emptyList();
     }
 }
