@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.23__ __2025-02-18__
+## __AWS Batch__
+  - ### Features
+    - This documentation-only update corrects some typos.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adds support for creating CloudWatchAlarmTemplates for AWS Elemental MediaTailor Playback Configuration resources.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Cloudfront__
+  - ### Bugfixes
+    - Decouple policy logic from resource url for getSignedUrlWithCustomPolicy
+
+## __Amazon EMR Containers__
+  - ### Features
+    - EMR on EKS StartJobRun Api will be supporting the configuration of log storage in AWS by using "managedLogs" under "MonitoringConfiguration".
+
 # __2.30.22__ __2025-02-17__
 ## __AWS Amplify__
   - ### Features
