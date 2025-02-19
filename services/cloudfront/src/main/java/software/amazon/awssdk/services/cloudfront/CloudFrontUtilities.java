@@ -33,7 +33,6 @@ import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
 import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
 import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
 import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
  *
