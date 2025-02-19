@@ -154,7 +154,7 @@
 
 ## __Amazon Cloudfront__
   - ### Bugfixes
-    - Decouple policy logic from resource url for getSignedUrlWithCustomPolicy
+    - Allow users to specify resource URL pattern in `CloudFrontUtilities#getSignedUrlWithCustomPolicy`. See [#5577](https://github.com/aws/aws-sdk-java-v2/issues/5577)
 
 ## __Amazon EMR Containers__
   - ### Features
