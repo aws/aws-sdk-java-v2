@@ -1,4 +1,51 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.23__ __2025-02-18__
+## __AWS Batch__
+  - ### Features
+    - This documentation-only update corrects some typos.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adds support for creating CloudWatchAlarmTemplates for AWS Elemental MediaTailor Playback Configuration resources.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Cloudfront__
+  - ### Bugfixes
+    - Decouple policy logic from resource url for getSignedUrlWithCustomPolicy
+
+## __Amazon EMR Containers__
+  - ### Features
+    - EMR on EKS StartJobRun Api will be supporting the configuration of log storage in AWS by using "managedLogs" under "MonitoringConfiguration".
+
+# __2.30.22__ __2025-02-17__
+## __AWS Amplify__
+  - ### Features
+    - Add ComputeRoleArn to CreateApp, UpdateApp, CreateBranch, and UpdateBranch, allowing caller to specify a role to be assumed by Amplify Hosting for server-side rendered applications.
+
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Add support for ML-KEM in Post-Quantum TLS Config
+        - Contributed by: [@alexw91](https://github.com/alexw91)
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Support replicationConfigArn in DMS DescribeApplicableIndividualAssessments API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - This release introduces APIs to manage DbClusters and adds support for read replicas
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@alexw91](https://github.com/alexw91)
 # __2.30.21__ __2025-02-14__
 ## __AWS CodeBuild__
   - ### Features
