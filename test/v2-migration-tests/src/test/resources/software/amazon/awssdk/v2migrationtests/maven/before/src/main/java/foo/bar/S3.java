@@ -131,8 +131,8 @@ public class S3 {
         s3.getObject(bucket, key);
         s3.getObjectAcl(bucket, key);
         s3.getObjectMetadata(bucket, key);
-        s3.getObjectAsString(bucket, key);
         s3.getUrl(bucket, key);
+        String objectAsString = s3.getObjectAsString(bucket, key);
     }
 
     private void bucketIdArgsMethods(AmazonS3 s3, String bucket, String id) {

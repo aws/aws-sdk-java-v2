@@ -211,8 +211,8 @@ public class S3 {
             .build());
         s3.headObject(HeadObjectRequest.builder().bucket(bucket).key(key)
             .build());
-        s3.getObjectAsBytes(GetObjectRequest.builder().bucket(bucket).key(key).build()).asUtf8String();
         s3.utilities().getUrl(GetUrlRequest.builder().bucket(bucket).key(key).build());
+        String objectAsString = s3.getObjectAsBytes(GetObjectRequest.builder().bucket(bucket).key(key).build()).asUtf8String();
     }
 
     private void bucketIdArgsMethods(S3Client s3, String bucket, String id) {
