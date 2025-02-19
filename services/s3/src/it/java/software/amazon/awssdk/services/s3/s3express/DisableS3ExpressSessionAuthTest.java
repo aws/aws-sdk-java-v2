@@ -46,7 +46,6 @@ public class DisableS3ExpressSessionAuthTest extends S3ExpressIntegrationTestBas
 
     private static final Region TEST_REGION = Region.US_EAST_1;
     private static final String AZ = "use1-az4";
-    private static S3Client s3;
     private static S3AsyncClient s3CrtAsync;
     private static S3AsyncClient s3CrtAsyncDefault;
     private static String testBucket;
@@ -78,14 +77,10 @@ public class DisableS3ExpressSessionAuthTest extends S3ExpressIntegrationTestBas
         s3CrtAsync = s3CrtAsyncClientBuilder(TEST_REGION).disableS3ExpressSessionAuth(true)
                                                          .endpointOverride(URI.create("http://s3.localhost.localstack.cloud:" + s3WireMock.getPort())).build();
 
-        s3 = S3Client.builder().region(TEST_REGION).build();
-        createBucketS3Express(s3, testBucket, AZ);
     }
 
     @AfterAll
     static void clear(){
-        deleteBucketAndAllContents(s3, testBucket);
-        s3.close();
         s3CrtAsync.close();
         s3CrtAsyncDefault.close();
     }
