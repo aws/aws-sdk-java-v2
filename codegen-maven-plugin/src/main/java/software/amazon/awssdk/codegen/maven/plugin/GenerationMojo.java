@@ -117,6 +117,7 @@ public class GenerationMojo extends AbstractMojo {
                      .resourcesDirectory(resourcesDirectory.toFile().getAbsolutePath())
                      .testsDirectory(testsDirectory.toFile().getAbsolutePath())
                      .intermediateModelFileNamePrefix(intermediateModelFileNamePrefix(models))
+                     .targetDirectory(outputDirectory)
                      .build()
                      .execute();
     }
