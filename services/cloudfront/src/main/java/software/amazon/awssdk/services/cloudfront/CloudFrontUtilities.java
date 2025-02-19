@@ -258,7 +258,7 @@ public final class CloudFrontUtilities {
     public SignedUrl getSignedUrlWithCustomPolicy(CustomSignerRequest request) {
         String resourceUrl = request.resourceUrl();
         try {
-            String resourceUrlPattern = StringUtils.isEmpty(request.resourceUrlPattern())
+            String resourceUrlPattern = request.resourceUrlPattern() == null
                                         ? request.resourceUrl()
                                         : request.resourceUrlPattern();
 
