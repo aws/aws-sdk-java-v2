@@ -19,7 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.DateUtils;
@@ -64,7 +68,7 @@ public class AwsServiceExceptionTest {
                                                    .requestId("requestId")
                                                    .extendedRequestId("extendedRequestId")
                                                    .build();
-        assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId, " 
+        assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId, "
                                              + "Extended Request ID: extendedRequestId)");
     }
 
@@ -80,6 +84,42 @@ public class AwsServiceExceptionTest {
                                                    .requestId("requestId")
                                                    .build();
         assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId)");
+    }
+
+    @ParameterizedTest
+    @MethodSource("exceptionMessageTestCases")
+    void exceptionMessageTests(Integer numAttempts, String expectedMessage) {
+        AwsServiceException e = AwsServiceException.builder()
+                                                   .message("errorMessage")
+                                                   .numAttempts(numAttempts)
+                                                   .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                   .errorMessage("errorMessage")
+                                                                                   .serviceName("serviceName")
+                                                                                   .errorCode("errorCode")
+                                                                                   .build())
+                                                   .statusCode(500)
+                                                   .requestId("requestId")
+                                                   .build();
+
+        assertThat(e.getMessage()).isEqualTo(expectedMessage);
+        assertThat(e.numAttempts()).isEqualTo(numAttempts);
+    }
+
+    private static Stream<Arguments> exceptionMessageTestCases() {
+        return Stream.of(
+            Arguments.of(
+                6,
+                "errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId) (SDK Attempt Count: 6)"),
+            Arguments.of(
+                3,
+                "errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId) (SDK Attempt Count: 3)"),
+            Arguments.of(
+                0,
+                "errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId) (SDK Attempt Count: 0)"),
+            Arguments.of(
+                null,
+                "errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId)")
+        );
     }
 
     @Test
@@ -115,19 +155,19 @@ public class AwsServiceExceptionTest {
 
     private AwsServiceException exception(int clientSideTimeOffset, String errorCode, int statusCode, String serverDate) {
         SdkHttpResponse httpResponse =
-                SdkHttpFullResponse.builder()
-                                   .statusCode(statusCode)
-                                   .applyMutation(r -> {
-                                       if (serverDate != null) {
-                                           r.putHeader("Date", serverDate);
-                                       }
-                                   })
-                                   .build();
-        AwsErrorDetails errorDetails =
-                AwsErrorDetails.builder()
-                               .errorCode(errorCode)
-                               .sdkHttpResponse(httpResponse)
+            SdkHttpFullResponse.builder()
+                               .statusCode(statusCode)
+                               .applyMutation(r -> {
+                                   if (serverDate != null) {
+                                       r.putHeader("Date", serverDate);
+                                   }
+                               })
                                .build();
+        AwsErrorDetails errorDetails =
+            AwsErrorDetails.builder()
+                           .errorCode(errorCode)
+                           .sdkHttpResponse(httpResponse)
+                           .build();
 
         return AwsServiceException.builder()
                                   .clockSkew(Duration.ofSeconds(clientSideTimeOffset))
