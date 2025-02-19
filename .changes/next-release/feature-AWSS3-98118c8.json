@@ -1,6 +1,6 @@
 {
     "type": "feature",
-    "category": "AWS S3",
+    "category": "Amazon S3",
     "contributor": "",
     "description": "Allow users to configure disableS3ExpressSessionAuth for s3CrtAsyncClient"
 }

@@ -18,26 +18,21 @@ package software.amazon.awssdk.services.s3.s3express;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
-
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.net.URI;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3Client;
 
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
-
-
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
-public class DisableS3ExpressSessionAuthTest extends S3ExpressIntegrationTestBase{
+
+public class DisableS3ExpressSessionAuthTest extends S3ExpressIntegrationTestBase {
 
     @RegisterExtension
     static WireMockExtension s3WireMock = WireMockExtension.newInstance()
@@ -80,7 +75,8 @@ public class DisableS3ExpressSessionAuthTest extends S3ExpressIntegrationTestBas
     }
 
     @AfterAll
-    static void clear(){
+    static void clear() {
+        ENVIRONMENT_VARIABLE_HELPER.reset();
         s3CrtAsync.close();
         s3CrtAsyncDefault.close();
     }
@@ -91,7 +87,7 @@ public class DisableS3ExpressSessionAuthTest extends S3ExpressIntegrationTestBas
 
 
     @Test
-    void defaultS3CrtAsyncClient_useS3ExpressAuth(){
+    void defaultS3CrtAsyncClient_useS3ExpressAuth() {
         //x-amz-s3session-token will be there
         setupWireMockStub();
         s3CrtAsyncDefault.listObjectsV2(r -> r.bucket(testBucket)).join();
@@ -101,7 +97,7 @@ public class DisableS3ExpressSessionAuthTest extends S3ExpressIntegrationTestBas
 
 
     @Test
-    void disabledS3CrtAsyncClient_NotUseS3ExpressAuth(){
+    void disabledS3CrtAsyncClient_NotUseS3ExpressAuth() {
         //x-amz-s3session-token will not be there
         setupWireMockStub();
         s3CrtAsync.listObjectsV2(r -> r.bucket(testBucket)).join();
