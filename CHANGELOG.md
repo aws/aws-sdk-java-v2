@@ -1,4 +1,62 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.24__ __2025-02-19__
+## __AWS CodePipeline__
+  - ### Features
+    - Add environment variables to codepipeline action declaration.
+
+## __AWS Network Firewall__
+  - ### Features
+    - This release introduces Network Firewall's Automated Domain List feature. New APIs include UpdateFirewallAnalysisSettings, StartAnalysisReport, GetAnalysisReportResults, and ListAnalysisReports. These allow customers to enable analysis on firewalls to identify and report frequently accessed domain.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add retry attempt count to exception messages to improve debugging visibility.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation only release for Amazon ECS that supports the CPU task limit increase.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Documentation updates for Amazon Lightsail.
+
+## __Amazon Location Service__
+  - ### Features
+    - Adds support for larger property maps for tracking and geofence positions changes. It increases the maximum number of items from 3 to 4, and the maximum value length from 40 to 150.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds r8g instance type support to SageMaker Realtime Endpoints
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release adds the ability for outbound email sent with SES to preserve emails to a Mail Manager archive.
+
+## __MailManager__
+  - ### Features
+    - This release adds additional metadata fields in Mail Manager archive searches to show email source and details about emails that were archived when being sent with SES.
+
+# __2.30.23__ __2025-02-18__
+## __AWS Batch__
+  - ### Features
+    - This documentation-only update corrects some typos.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adds support for creating CloudWatchAlarmTemplates for AWS Elemental MediaTailor Playback Configuration resources.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Cloudfront__
+  - ### Bugfixes
+    - Decouple policy logic from resource url for getSignedUrlWithCustomPolicy
+
+## __Amazon EMR Containers__
+  - ### Features
+    - EMR on EKS StartJobRun Api will be supporting the configuration of log storage in AWS by using "managedLogs" under "MonitoringConfiguration".
+
 # __2.30.22__ __2025-02-17__
 ## __AWS Amplify__
   - ### Features

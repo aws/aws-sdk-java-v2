@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon Cloudfront",
-    "contributor": "",
-    "description": "Decouple policy logic from resource url for getSignedUrlWithCustomPolicy"
-}
