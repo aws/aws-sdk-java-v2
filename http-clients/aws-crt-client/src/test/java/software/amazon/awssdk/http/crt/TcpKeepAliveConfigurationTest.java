@@ -29,12 +29,12 @@ public class TcpKeepAliveConfigurationTest {
             TcpKeepAliveConfiguration.builder()
                                      .keepAliveInterval(Duration.ofMinutes(1))
                                      .keepAliveTimeout(Duration.ofSeconds(1))
-                                     .keepAliveMaxFailedProbes(1)
+                                     .keepAliveProbes(1)
                                      .build();
 
         assertThat(tcpKeepAliveConfiguration.keepAliveInterval()).isEqualTo(Duration.ofMinutes(1));
         assertThat(tcpKeepAliveConfiguration.keepAliveTimeout()).isEqualTo(Duration.ofSeconds(1));
-        assertThat(tcpKeepAliveConfiguration.keepAliveMaxFailedProbes()).isEqualTo(1);
+        assertThat(tcpKeepAliveConfiguration.keepAliveProbes()).isEqualTo(1);
     }
     
     @Test
@@ -62,7 +62,7 @@ public class TcpKeepAliveConfigurationTest {
                                                                     .keepAliveTimeout(Duration.ofSeconds(1))
                                                                     .build();
 
-        assertThat(config.keepAliveMaxFailedProbes()).isNull();
+        assertThat(config.keepAliveProbes()).isNull();
     }
 
     @Test
@@ -70,10 +70,10 @@ public class TcpKeepAliveConfigurationTest {
         TcpKeepAliveConfiguration config = TcpKeepAliveConfiguration.builder()
                                                                     .keepAliveInterval(Duration.ofMinutes(1))
                                                                     .keepAliveTimeout(Duration.ofSeconds(1))
-                                                                    .keepAliveMaxFailedProbes(0)
+                                                                    .keepAliveProbes(0)
                                                                     .build();
 
-        assertThat(config.keepAliveMaxFailedProbes()).isEqualTo(0);
+        assertThat(config.keepAliveProbes()).isEqualTo(0);
     }
 
 
@@ -103,8 +103,8 @@ public class TcpKeepAliveConfigurationTest {
                                TcpKeepAliveConfiguration.builder()
                                                         .keepAliveInterval(Duration.ofMinutes(1))
                                                         .keepAliveTimeout(Duration.ofSeconds(1))
-                                                        .keepAliveMaxFailedProbes(-1)
+                                                        .keepAliveProbes(-1)
                                                         .build())
-            .hasMessageContaining("keepAliveMaxFailedProbes");
+            .hasMessageContaining("keepAliveProbes");
     }
 }

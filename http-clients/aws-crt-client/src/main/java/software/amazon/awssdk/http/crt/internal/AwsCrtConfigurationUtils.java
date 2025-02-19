@@ -46,8 +46,8 @@ public final class AwsCrtConfigurationUtils {
                 NumericUtils.saturatedCast(tcpKeepAliveConfiguration.keepAliveInterval().getSeconds());
             clientSocketOptions.keepAliveTimeoutSecs =
                 NumericUtils.saturatedCast(tcpKeepAliveConfiguration.keepAliveTimeout().getSeconds());
-            if(tcpKeepAliveConfiguration.keepAliveMaxFailedProbes() != null) {
-                clientSocketOptions.keepAliveMaxFailedProbes = tcpKeepAliveConfiguration.keepAliveMaxFailedProbes();
+            if(tcpKeepAliveConfiguration.keepAliveProbes() != null) {
+                clientSocketOptions.keepAliveMaxFailedProbes = tcpKeepAliveConfiguration.keepAliveProbes();
             }
         }
 

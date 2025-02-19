@@ -28,17 +28,17 @@ public final class TcpKeepAliveConfiguration {
 
     private final Duration keepAliveInterval;
     private final Duration keepAliveTimeout;
-    private final Integer keepAliveMaxFailedProbes;
+    private final Integer keepAliveProbes;
 
     private TcpKeepAliveConfiguration(DefaultTcpKeepAliveConfigurationBuilder builder) {
         this.keepAliveInterval = Validate.isPositive(builder.keepAliveInterval,
                                                      "keepAliveInterval");
         this.keepAliveTimeout = Validate.isPositive(builder.keepAliveTimeout,
                                                     "keepAliveTimeout");
-        this.keepAliveMaxFailedProbes = builder.keepAliveMaxFailedProbes == null
+        this.keepAliveProbes = builder.keepAliveProbes == null
                                         ? null
-                                        : Validate.isNotNegative(builder.keepAliveMaxFailedProbes,
-                                                                 "keepAliveMaxFailedProbes");
+                                        : Validate.isNotNegative(builder.keepAliveProbes,
+                                                                 "keepAliveProbes");
     }
 
     /**
@@ -56,10 +56,10 @@ public final class TcpKeepAliveConfiguration {
     }
 
     /**
-     * @return number of keep alive probes allowed to fail before the connection is considered lost.
+     * @return number of keepalive probes allowed to fail before the connection is considered lost.
      */
-    public Integer keepAliveMaxFailedProbes() {
-        return keepAliveMaxFailedProbes;
+    public Integer keepAliveProbes() {
+        return keepAliveProbes;
     }
 
     public static Builder builder() {
@@ -87,11 +87,12 @@ public final class TcpKeepAliveConfiguration {
         Builder keepAliveTimeout(Duration keepAliveTimeout);
 
         /**
-         * Sets the number of keep alive probes allowed to fail before the connection is considered lost.
-         * @param keepAliveMaxFailedProbes The maximum number of keep-alive probes to send.
+         * Sets the number of keepalive probes allowed to fail before the connection is considered lost.
+         * If not set or set to 0, OS default settings will be used for the probe count.
+         * @param keepAliveProbes Number of keepalive probes allowed to fail before the connection is considered lost.
          * @return Builder
          */
-        Builder keepAliveMaxFailedProbes(Integer keepAliveMaxFailedProbes);
+        Builder keepAliveProbes(Integer keepAliveProbes);
 
         TcpKeepAliveConfiguration build();
     }
@@ -100,7 +101,7 @@ public final class TcpKeepAliveConfiguration {
      * An SDK-internal implementation of {@link Builder}.
      */
     private static final class DefaultTcpKeepAliveConfigurationBuilder implements Builder {
-        private Integer keepAliveMaxFailedProbes;
+        private Integer keepAliveProbes;
         private Duration keepAliveInterval;
         private Duration keepAliveTimeout;
 
@@ -129,14 +130,9 @@ public final class TcpKeepAliveConfiguration {
             return this;
         }
 
-        /**
-         * Sets the maximum number of TCP keep-alive probes to send before giving up and declaring the connection dead.
-         * @param keepAliveMaxFailedProbes The maximum number of keep-alive probes to send.
-         * @return Builder
-         */
         @Override
-        public Builder keepAliveMaxFailedProbes(Integer keepAliveMaxFailedProbes) {
-            this.keepAliveMaxFailedProbes = keepAliveMaxFailedProbes;
+        public Builder keepAliveProbes(Integer keepAliveProbes) {
+            this.keepAliveProbes = keepAliveProbes;
             return this;
         }
 

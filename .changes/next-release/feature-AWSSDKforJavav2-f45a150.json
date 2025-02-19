@@ -1,6 +1,6 @@
 {
     "type": "feature",
-    "category": "AWS SDK for Java v2",
+    "category": "AWS CRT HTTP Client",
     "contributor": "",
-    "description": "Added `keepAliveMaxFailedProbes` field to `TcpKeepAliveConfiguration`and updated `AwsCrtConfigurationUtils` to pass probe count to CRT."
+    "description": "Allow users to configure the number of TCP keep alive probes in the AWS CRT HTTP client through `keepAliveProbes`."
 }
