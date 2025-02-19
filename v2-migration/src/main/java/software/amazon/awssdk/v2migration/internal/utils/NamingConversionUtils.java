@@ -144,6 +144,7 @@ public final class NamingConversionUtils {
         S3_POJO_MAPPING.put("GetBucketReplicationConfigurationRequest", "GetBucketReplicationRequest");
         S3_POJO_MAPPING.put("GetBucketTaggingConfigurationRequest", "GetBucketTaggingRequest");
         S3_POJO_MAPPING.put("GetBucketWebsiteConfigurationRequest", "GetBucketWebsiteRequest");
+        S3_POJO_MAPPING.put("SetBucketPolicyRequest", "PutBucketPolicyRequest");
 
         S3_POJO_MAPPING.put("GetObjectMetadataRequest", "HeadObjectRequest");
         S3_POJO_MAPPING.put("InitiateMultipartUploadRequest", "CreateMultipartUploadRequest");
@@ -153,6 +154,7 @@ public final class NamingConversionUtils {
         S3_POJO_MAPPING.put("ObjectListing", "ListObjectsResponse");
         S3_POJO_MAPPING.put("CorsRule", "CORSRule");
         S3_POJO_MAPPING.put("BucketCrossOriginConfiguration", "CORSConfiguration");
+        S3_POJO_MAPPING.put("DeleteVersionRequest", "DeleteObjectRequest");
     }
 
     private NamingConversionUtils() {
