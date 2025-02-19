@@ -27,11 +27,13 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -78,6 +80,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @SdkPublicApi
 @ThreadSafe
 public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
+
     private final List<ResolvedImmutableAttribute<T, B>> attributeMappers;
     private final Supplier<B> newBuilderSupplier;
     private final Function<B, T> buildItemFunction;
@@ -92,15 +95,16 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         private final Function<T, T1> otherItemGetter;
         private final BiConsumer<B, T1> otherItemSetter;
         private final TableSchema<T1> otherItemTableSchema;
+        private final String attributesPrefix;
 
         private FlattenedMapper(Function<T, T1> otherItemGetter,
                                 BiConsumer<B, T1> otherItemSetter,
-                                TableSchema<T1> otherItemTableSchema) {
+                                TableSchema<T1> otherItemTableSchema,
+                                String attributesPrefix) {
             this.otherItemGetter = otherItemGetter;
             this.otherItemSetter = otherItemSetter;
             this.otherItemTableSchema = otherItemTableSchema;
-
-
+            this.attributesPrefix = Objects.requireNonNull(attributesPrefix);
         }
 
         public TableSchema<T1> getOtherItemTableSchema() {
@@ -130,7 +134,13 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
                 return Collections.emptyMap();
             }
 
-            return this.otherItemTableSchema.itemToMap(otherItem, ignoreNulls);
+            if (this.attributesPrefix.isEmpty()) {
+                return this.otherItemTableSchema.itemToMap(otherItem, ignoreNulls);
+            }
+            // If there is a prefix append it to the fields.
+            return this.otherItemTableSchema.itemToMap(otherItem, ignoreNulls).entrySet().stream()
+                    // Add the attribute prefix to all converted attributes
+                    .collect(Collectors.toMap(e -> this.attributesPrefix + e.getKey(), Map.Entry::getValue));
         }
 
         private AttributeValue attributeValue(T item, String attributeName) {
@@ -140,11 +150,25 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
                 return null;
             }
 
+            // Remove the flattened prefix from the attribute name before asking other schema for value.
+            attributeName = this.removeAttributePrefix(attributeName);
             AttributeValue attributeValue = this.otherItemTableSchema.attributeValue(otherItem, attributeName);
             return isNullAttributeValue(attributeValue) ? null : attributeValue;
         }
+
+        private String removeAttributePrefix(String attributeName) {
+            // Short circuit if the prefix is empty string.
+            if (this.attributesPrefix.isEmpty()) {
+                return attributeName;
+            }
+
+            if (attributeName.startsWith(this.attributesPrefix)) {
+                return attributeName.substring(this.attributesPrefix.length());
+            }
+            return attributeName;
+        }
     }
-    
+
     private StaticImmutableTableSchema(Builder<T, B> builder) {
         StaticTableMetadata.Builder tableMetadataBuilder = StaticTableMetadata.builder();
 
@@ -183,6 +207,8 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
             flattenedMapper -> {
                 flattenedMapper.otherItemTableSchema.attributeNames().forEach(
                     attributeName -> {
+                        // Add the attribute prefix to every attribute
+                        attributeName = flattenedMapper.attributesPrefix + attributeName;
                         if (mutableAttributeNames.contains(attributeName)) {
                             throw new IllegalArgumentException(
                                 "Attempt to add an attribute to a mapper that already has one with the same name. " +
@@ -361,13 +387,25 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         public <T1> Builder<T, B> flatten(TableSchema<T1> otherTableSchema,
                                           Function<T, T1> otherItemGetter,
                                           BiConsumer<B, T1> otherItemSetter) {
+            return this.flatten(otherTableSchema, otherItemGetter, otherItemSetter, "");
+        }
+
+        /**
+         * Flattens all the attributes defined in another {@link TableSchema} into the database record this schema
+         * maps to. Functions to get and set an object that the flattened schema maps to is required.
+         * Applies the given prefix to all flattened attributes.
+         */
+        public <T1> Builder<T, B> flatten(TableSchema<T1> otherTableSchema,
+                                          Function<T, T1> otherItemGetter,
+                                          BiConsumer<B, T1> otherItemSetter,
+                                          String attributesPrefix) {
             if (otherTableSchema.isAbstract()) {
                 throw new IllegalArgumentException("Cannot flatten an abstract TableSchema. You must supply a concrete " +
                                                        "TableSchema that is able to create items");
             }
 
-            FlattenedMapper<T, B, T1> flattenedMapper = 
-                new FlattenedMapper<>(otherItemGetter, otherItemSetter, otherTableSchema);
+            FlattenedMapper<T, B, T1> flattenedMapper =
+                new FlattenedMapper<>(otherItemGetter, otherItemSetter, otherTableSchema, attributesPrefix);
             this.flattenedMappers.add(flattenedMapper);
             return this;
         }
@@ -463,11 +501,11 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         }
 
         Map<FlattenedMapper<T, B, ?>, Map<String, AttributeValue>> flattenedAttributeValuesMap = new LinkedHashMap<>();
-        
+
         for (Map.Entry<String, AttributeValue> entry : attributeMap.entrySet()) {
             String key = entry.getKey();
             AttributeValue value = entry.getValue();
-            
+
             if (!isNullAttributeValue(value)) {
                 ResolvedImmutableAttribute<T, B> attributeMapper = indexedMappers.get(key);
 
@@ -481,14 +519,14 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
                     FlattenedMapper<T, B, ?> flattenedMapper = this.indexedFlattenedMappers.get(key);
 
                     if (flattenedMapper != null) {
-                        Map<String, AttributeValue> flattenedAttributeValues = 
+                        Map<String, AttributeValue> flattenedAttributeValues =
                             flattenedAttributeValuesMap.get(flattenedMapper);
-                        
+
                         if (flattenedAttributeValues == null) {
                             flattenedAttributeValues = new HashMap<>();
                         }
-                        
-                        flattenedAttributeValues.put(key, value);
+
+                        flattenedAttributeValues.put(flattenedMapper.removeAttributePrefix(key), value);
                         flattenedAttributeValuesMap.put(flattenedMapper, flattenedAttributeValues);
                     }
                 }
@@ -499,7 +537,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
                 flattenedAttributeValuesMap.entrySet()) {
             builder = entry.getKey().mapToItem(builder, this::constructNewBuilder, entry.getValue());
         }
-        
+
         return builder == null ? null : buildItemFunction.apply(builder);
     }
 
@@ -607,6 +645,8 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         // If no resolvedAttribute is found look through flattened attributes
         FlattenedMapper<T, B, ?> flattenedMapper = indexedFlattenedMappers.get(key);
         if (flattenedMapper != null) {
+            // Remove the flattened prefix from the key
+            key = flattenedMapper.removeAttributePrefix((String) key);
             return (AttributeConverter) flattenedMapper.getOtherItemTableSchema().converterForAttribute(key);
         }
         return null;

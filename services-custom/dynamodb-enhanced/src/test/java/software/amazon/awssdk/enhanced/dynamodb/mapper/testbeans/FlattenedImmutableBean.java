@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans;
 
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
@@ -24,6 +25,9 @@ public class FlattenedImmutableBean {
     private String id;
     private String attribute1;
     private AbstractImmutable abstractImmutable;
+    private AbstractImmutable explicitPrefixImmutable;
+    private AbstractImmutable autoPrefixImmutable;
+    private AbstractImmutable customPrefixImmutable;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -46,5 +50,30 @@ public class FlattenedImmutableBean {
     }
     public void setAbstractImmutable(AbstractImmutable abstractImmutable) {
         this.abstractImmutable = abstractImmutable;
+    }
+
+    @DynamoDbFlatten(prefix = "prefix-")
+    public AbstractImmutable getExplicitPrefixImmutable() {
+        return explicitPrefixImmutable;
+    }
+    public void setExplicitPrefixImmutable(AbstractImmutable explicitPrefixImmutable) {
+        this.explicitPrefixImmutable = explicitPrefixImmutable;
+    }
+
+    @DynamoDbFlatten(prefix = DynamoDbFlatten.AUTO_PREFIX)
+    public AbstractImmutable getAutoPrefixImmutable() {
+        return autoPrefixImmutable;
+    }
+    public void setAutoPrefixImmutable(AbstractImmutable autoPrefixImmutable) {
+        this.autoPrefixImmutable = autoPrefixImmutable;
+    }
+
+    @DynamoDbAttribute("custom")
+    @DynamoDbFlatten(prefix = DynamoDbFlatten.AUTO_PREFIX)
+    public AbstractImmutable getCustomPrefixImmutable() {
+        return customPrefixImmutable;
+    }
+    public void setCustomPrefixImmutable(AbstractImmutable customPrefixImmutable) {
+        this.customPrefixImmutable = customPrefixImmutable;
     }
 }

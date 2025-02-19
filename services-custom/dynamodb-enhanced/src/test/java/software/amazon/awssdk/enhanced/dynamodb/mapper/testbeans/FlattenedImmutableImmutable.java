@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans;
 
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
@@ -24,11 +25,17 @@ public class FlattenedImmutableImmutable {
     private final String id;
     private final String attribute1;
     private final AbstractImmutable abstractImmutable;
+    private final AbstractImmutable explicitPrefixImmutable;
+    private final AbstractImmutable autoPrefixImmutable;
+    private final AbstractImmutable customPrefixImmutable;
 
     private FlattenedImmutableImmutable(Builder b) {
         this.id = b.id;
         this.attribute1 = b.attribute1;
         this.abstractImmutable = b.abstractImmutable;
+        this.explicitPrefixImmutable = b.explicitPrefixImmutable;
+        this.autoPrefixImmutable = b.autoPrefixImmutable;
+        this.customPrefixImmutable = b.customPrefixImmutable;
     }
 
     @DynamoDbPartitionKey
@@ -44,11 +51,29 @@ public class FlattenedImmutableImmutable {
     public AbstractImmutable getAbstractImmutable() {
         return abstractImmutable;
     }
+    @DynamoDbFlatten(prefix = "prefix-")
+    public AbstractImmutable getExplicitPrefixImmutable() {
+        return explicitPrefixImmutable;
+    }
+
+    @DynamoDbFlatten(prefix = DynamoDbFlatten.AUTO_PREFIX)
+    public AbstractImmutable getAutoPrefixImmutable() {
+        return autoPrefixImmutable;
+    }
+
+    @DynamoDbAttribute("custom")
+    @DynamoDbFlatten(prefix = DynamoDbFlatten.AUTO_PREFIX)
+    public AbstractImmutable getCustomPrefixImmutable() {
+        return customPrefixImmutable;
+    }
 
     public static final class Builder {
         private String id;
         private String attribute1;
         private AbstractImmutable abstractImmutable;
+        private AbstractImmutable explicitPrefixImmutable;
+        private AbstractImmutable autoPrefixImmutable;
+        private AbstractImmutable customPrefixImmutable;
 
         public Builder setId(String id) {
             this.id = id;
@@ -62,6 +87,21 @@ public class FlattenedImmutableImmutable {
 
         public Builder setAbstractImmutable(AbstractImmutable abstractImmutable) {
             this.abstractImmutable = abstractImmutable;
+            return this;
+        }
+
+        public Builder setExplicitPrefixImmutable(AbstractImmutable explicitPrefixImmutable) {
+            this.explicitPrefixImmutable = explicitPrefixImmutable;
+            return this;
+        }
+
+        public Builder setAutoPrefixImmutable(AbstractImmutable autoPrefixImmutable) {
+            this.autoPrefixImmutable = autoPrefixImmutable;
+            return this;
+        }
+
+        public Builder setCustomPrefixImmutable(AbstractImmutable customPrefixImmutable) {
+            this.customPrefixImmutable = customPrefixImmutable;
             return this;
         }
 
