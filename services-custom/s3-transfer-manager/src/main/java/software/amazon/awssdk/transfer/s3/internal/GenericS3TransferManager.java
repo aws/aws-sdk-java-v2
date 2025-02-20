@@ -367,7 +367,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @Override
-    public final FileDownload downloadFile(DownloadFileRequest downloadRequest) {
+    public FileDownload downloadFile(DownloadFileRequest downloadRequest) {
         Validate.paramNotNull(downloadRequest, "downloadFileRequest");
 
         GetObjectRequest getObjectRequestWithAttributes = attachSdkAttribute(

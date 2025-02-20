@@ -19,26 +19,42 @@ import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttrib
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadResumeContext;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.internal.model.CrtFileUpload;
+import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferProgressUpdater;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -108,6 +124,38 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         return uploadFile(uploadFileRequest.toBuilder()
                                            .putObjectRequest(modifiedPutObjectRequest)
                                            .build());
+    }
+
+    @Override
+    public FileDownload downloadFile(DownloadFileRequest downloadRequest) {
+        Validate.paramNotNull(downloadRequest, "downloadFileRequest");
+        GetObjectRequest getObjectRequestWithAttributes = downloadRequest.getObjectRequest();
+
+        // TODO: add the download resume context to request override.
+        // GetObjectRequest getObjectRequestWithAttributes = attachSdkAttribute(
+        //     downloadRequest.getObjectRequest(),
+        //     b -> b.putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext()));
+        DownloadFileRequest downloadFileRequestWithAttributes =
+            downloadRequest.copy(downloadFileRequest -> downloadFileRequest.getObjectRequest(getObjectRequestWithAttributes));
+
+        CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
+        progressUpdater.transferInitiated();
+        progressUpdater.registerCompletion(returnFuture);
+
+        assertNotUnsupportedArn(downloadRequest.getObjectRequest().bucket(), "download");
+
+        CompletableFuture<GetObjectResponse> future = s3AsyncClient.getObject(downloadFileRequestWithAttributes.getObjectRequest(),
+                                                                              downloadFileRequestWithAttributes.destination());
+
+        // Forward download cancellation to future
+        CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+
+        CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
+                                                          res -> CompletedFileDownload.builder()
+                                                                                      .response(res)
+                                                                                      .build());
+        return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> downloadFileRequestWithAttributes, null);
     }
 
     private static ResumeToken crtResumeToken(ResumableFileUpload resumableFileUpload) {

@@ -57,6 +57,9 @@ public final class S3InternalSdkHttpExecutionAttribute<T> extends SdkHttpExecuti
     public static final S3InternalSdkHttpExecutionAttribute<ResponseChecksumValidation> RESPONSE_CHECKSUM_VALIDATION =
         new S3InternalSdkHttpExecutionAttribute<>(ResponseChecksumValidation.class);
 
+    public static final S3InternalSdkHttpExecutionAttribute<Path> RESPONSE_FILE_PATH =
+        new S3InternalSdkHttpExecutionAttribute<>(Path.class);
+
     private S3InternalSdkHttpExecutionAttribute(Class<T> valueClass) {
         super(valueClass);
     }

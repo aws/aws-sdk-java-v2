@@ -22,17 +22,23 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_REGION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.USE_S3_EXPRESS_AUTH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration.DEFAULT_PART_SIZE_IN_BYTES;
 
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -40,6 +46,8 @@ import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
@@ -70,14 +78,18 @@ import software.amazon.awssdk.services.s3.internal.multipart.CopyObjectHelper;
 import software.amazon.awssdk.services.s3.internal.s3express.S3ExpressUtils;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
     public static final ExecutionAttribute<Path> OBJECT_FILE_PATH = new ExecutionAttribute<>("objectFilePath");
+    public static final ExecutionAttribute<Path> RESPONSE_FILE_PATH = new ExecutionAttribute<>("responseFilePath");
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
     private final CopyObjectHelper copyObjectHelper;
 
@@ -102,6 +114,34 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
         return putObject(putObjectRequest.toBuilder().overrideConfiguration(overrideConfig).build(),
                          new CrtContentLengthOnlyAsyncFileRequestBody(sourcePath));
+    }
+
+    // @Override
+    // public <ReturnT> CompletableFuture<ReturnT> getObject(GetObjectRequest getObjectRequest,
+    //                                                       AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
+    //     Path destinationPath = Paths.get("crt-file.json");
+    //     AwsRequestOverrideConfiguration overrideConfig =
+    //         getObjectRequest.overrideConfiguration()
+    //                         .map(config -> config.toBuilder().putExecutionAttribute(RESPONSE_FILE_PATH, destinationPath))
+    //                         .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
+    //                                                                         .putExecutionAttribute(RESPONSE_FILE_PATH, destinationPath))
+    //                         .build();
+    //     return super.getObject(getObjectRequest.toBuilder().overrideConfiguration(overrideConfig).build(), asyncResponseTransformer);
+    // }
+
+    @Override
+    public CompletableFuture<GetObjectResponse> getObject(GetObjectRequest getObjectRequest, Path destinationPath) {
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
+            new CrtNoBodyResponseTransformer<>();
+
+            AwsRequestOverrideConfiguration overrideConfig =
+                getObjectRequest.overrideConfiguration()
+                                .map(config -> config.toBuilder().putExecutionAttribute(RESPONSE_FILE_PATH, destinationPath))
+                                .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
+                                                                                .putExecutionAttribute(RESPONSE_FILE_PATH, destinationPath))
+                                .build();
+
+        return getObject(getObjectRequest.toBuilder().overrideConfiguration(overrideConfig).build(), responseTransformer);
     }
 
     @Override
@@ -383,6 +423,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                             executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION))
                        .put(RESPONSE_CHECKSUM_VALIDATION,
                             executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION))
+                       .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH,
+                            executionAttributes.getAttribute(RESPONSE_FILE_PATH))
                        .build();
 
             // We rely on CRT to perform checksum validation, disable SDK flexible checksum implementation
@@ -436,4 +478,80 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                             + "on the classpath.", e);
         }
     }
+
+    // TODO: Move this out
+    private static class CrtNoBodyResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT, ResponseT> {
+
+        private static final Logger log = Logger.loggerFor(CrtNoBodyResponseTransformer.class);
+
+        private volatile CompletableFuture<Void> cf;
+        private volatile ResponseT response;
+
+        @Override
+        public CompletableFuture<ResponseT> prepare() {
+            cf = new CompletableFuture<>();
+            return cf.thenApply(ignored -> response);
+        }
+
+        @Override
+        public void onResponse(ResponseT response) {
+            this.response = response;
+        }
+
+        @Override
+        public void onStream(SdkPublisher<ByteBuffer> publisher) {
+            publisher.subscribe(new OnCompleteSubscriber(cf, this::exceptionOccurred));
+        }
+
+        @Override
+        public void exceptionOccurred(Throwable throwable) {
+            if (cf != null) {
+                cf.completeExceptionally(throwable);
+            } else {
+                log.warn(() -> "An exception occurred before the call to prepare() was able to instantiate the CompletableFuture."
+                               + "The future cannot be completed exceptionally because it is null");
+
+            }
+        }
+
+        static class OnCompleteSubscriber implements Subscriber<ByteBuffer> {
+
+            private Subscription subscription;
+            private final CompletableFuture<Void> future;
+            private final Consumer<Throwable> onErrorMethod;
+
+            private OnCompleteSubscriber(CompletableFuture<Void> future, Consumer<Throwable> onErrorMethod) {
+                this.future = future;
+                this.onErrorMethod = onErrorMethod;
+            }
+
+            @Override
+            public void onSubscribe(Subscription s) {
+                if (this.subscription != null) {
+                    s.cancel();
+                    return;
+                }
+                this.subscription = s;
+                // Request the first chunk to start producing content
+                s.request(1);
+            }
+
+            @Override
+            public void onNext(ByteBuffer byteBuffer) {
+                System.out.println("We should probably not be here!!!");
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                onErrorMethod.accept(throwable);
+            }
+
+            @Override
+            public void onComplete() {
+                System.out.println("Yay, we completed!");
+                future.complete(null);
+            }
+        }
+    }
+
 }
