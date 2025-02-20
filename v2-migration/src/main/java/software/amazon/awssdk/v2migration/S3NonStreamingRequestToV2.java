@@ -43,6 +43,16 @@ import software.amazon.awssdk.v2migration.internal.utils.IdentifierUtils;
 @SdkInternalApi
 public class S3NonStreamingRequestToV2 extends Recipe {
 
+    private static final MethodMatcher DELETE_VERSION =
+        new MethodMatcher("com.amazonaws.services.s3.AmazonS3 deleteVersion(String, String, String)", true);
+    private static final MethodMatcher COPY_OBJECT =
+        new MethodMatcher("com.amazonaws.services.s3.AmazonS3 copyObject(String, String, String, String)", true);
+    private static final MethodMatcher LIST_VERSIONS =
+        new MethodMatcher("com.amazonaws.services.s3.AmazonS3 "
+                          + "listVersions(String, String, String, String, String, Integer)", true);
+    private static final MethodMatcher SET_BUCKET_POLICY =
+        new MethodMatcher("com.amazonaws.services.s3.AmazonS3 setBucketPolicy(String, String)", true);
+
     private static final Map<MethodMatcher, JavaType.FullyQualified> BUCKET_ARG_METHODS = new HashMap<>();
     private static final Map<MethodMatcher, JavaType.FullyQualified> BUCKET_KEY_ARGS_METHODS = new HashMap<>();
     private static final Map<MethodMatcher, JavaType.FullyQualified> BUCKET_ID_ARGS_METHODS = new HashMap<>();
@@ -146,27 +156,45 @@ public class S3NonStreamingRequestToV2 extends Recipe {
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
 
+            if (DELETE_VERSION.matches(method)) {
+                method = transformMethod(method, fcqn("deleteObject"), "bucket", "key", "versionId");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (COPY_OBJECT.matches(method)) {
+                method = transformMethod(method, fcqn("copyObject"),
+                                         "sourceBucket", "sourceKey", "destinationBucket", "destinationKey");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (LIST_VERSIONS.matches(method)) {
+                method = transformMethod(method, fcqn("listVersions"),
+                                         "bucket", "prefix", "keyMarker", "versionIdMarker", "delimiter", "maxKeys");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (SET_BUCKET_POLICY.matches(method)) {
+                method = transformMethod(method, fcqn("putBucketPolicy"), "bucket", "policy");
+                return super.visitMethodInvocation(method, executionContext);
+            }
             for (Map.Entry<MethodMatcher, JavaType.FullyQualified> entry : BUCKET_ARG_METHODS.entrySet()) {
                 if (entry.getKey().matches(method)) {
-                    method = transformBucketArgOverload(method, entry.getValue());
+                    method = transformMethod(method, entry.getValue(), "bucket");
                     return super.visitMethodInvocation(method, executionContext);
                 }
             }
             for (Map.Entry<MethodMatcher, JavaType.FullyQualified> entry : BUCKET_KEY_ARGS_METHODS.entrySet()) {
                 if (entry.getKey().matches(method)) {
-                    method = transformTwoStringArgOverload(method, entry.getValue(), "key");
+                    method = transformMethod(method, entry.getValue(), "bucket", "key");
                     return super.visitMethodInvocation(method, executionContext);
                 }
             }
             for (Map.Entry<MethodMatcher, JavaType.FullyQualified> entry : BUCKET_ID_ARGS_METHODS.entrySet()) {
                 if (entry.getKey().matches(method)) {
-                    method = transformTwoStringArgOverload(method, entry.getValue(), "id");
+                    method = transformMethod(method, entry.getValue(), "bucket", "id");
                     return super.visitMethodInvocation(method, executionContext);
                 }
             }
             for (Map.Entry<MethodMatcher, JavaType.FullyQualified> entry : BUCKET_PREFIX_ARGS_METHODS.entrySet()) {
                 if (entry.getKey().matches(method)) {
-                    method = transformTwoStringArgOverload(method, entry.getValue(), "prefix");
+                    method = transformMethod(method, entry.getValue(), "bucket", "prefix");
                     return super.visitMethodInvocation(method, executionContext);
                 }
             }
@@ -174,46 +202,26 @@ public class S3NonStreamingRequestToV2 extends Recipe {
             return super.visitMethodInvocation(method, executionContext);
         }
 
-        private J.MethodInvocation transformBucketArgOverload(J.MethodInvocation method, JavaType.FullyQualified fqcn) {
+        private J.MethodInvocation transformMethod(J.MethodInvocation method, JavaType.FullyQualified fqcn,
+                                                                 String... args) {
             JavaType.Method methodType = method.getMethodType();
             if (methodType == null) {
                 return method;
             }
 
-            Expression bucketExpr = method.getArguments().get(0);
-            List<Expression> newArgs = new ArrayList<>();
+            List<String> names = Arrays.asList(args);
+            List<JavaType> types = new ArrayList<>();
+            List<JRightPadded<Expression>> expressions = new ArrayList<>();
 
-            Expression expr = argsToPojo(fqcn, Collections.singletonList("bucket"),
-                                         Collections.singletonList(bucketExpr.getType()),
-                                         JContainer.build(Collections.singletonList(JRightPadded.build(bucketExpr))));
-            newArgs.add(expr);
-
-            methodType = addParamsToMethod(methodType, newArgs);
-
-            return method.withMethodType(methodType).withArguments(newArgs);
-        }
-
-        private J.MethodInvocation transformTwoStringArgOverload(J.MethodInvocation method, JavaType.FullyQualified fqcn,
-                                                                 String secondArgName) {
-            JavaType.Method methodType = method.getMethodType();
-            if (methodType == null) {
-                return method;
+            for (int i = 0; i < names.size(); i++) {
+                Expression expr = method.getArguments().get(i);
+                types.add(expr.getType());
+                expressions.add(JRightPadded.build(expr));
             }
 
-            Expression bucketExpr = method.getArguments().get(0);
-            Expression stringExpr = method.getArguments().get(1);
-            List<Expression> newArgs = new ArrayList<>();
-
-            List<String> names = Arrays.asList("bucket", secondArgName);
-            List<JavaType> types = Arrays.asList(bucketExpr.getType(), stringExpr.getType());
-            JContainer<Expression> args = JContainer.build(Arrays.asList(JRightPadded.build(bucketExpr),
-                                                                         JRightPadded.build(stringExpr)));
-
-            Expression expr = argsToPojo(fqcn, names, types, args);
-            newArgs.add(expr);
-
+            Expression newPojo = argsToPojo(fqcn, names, types, JContainer.build(expressions));
+            List<Expression> newArgs = Collections.singletonList(newPojo);
             methodType = addParamsToMethod(methodType, newArgs);
-
             return method.withMethodType(methodType).withArguments(newArgs);
         }
 

@@ -140,7 +140,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                          .forcePathStyle(finalBuilder.forcePathStyle)
                          .crossRegionAccessEnabled(finalBuilder.crossRegionAccessEnabled)
                          .putAuthScheme(new CrtS3ExpressNoOpAuthScheme())
-                         .httpClientBuilder(initializeS3CrtAsyncHttpClient(finalBuilder));
+                         .httpClientBuilder(initializeS3CrtAsyncHttpClient(finalBuilder))
+                         .disableS3ExpressSessionAuth(finalBuilder.disableS3ExpressSessionAuth);
 
 
         if (finalBuilder.futureCompletionExecutor != null) {
@@ -225,6 +226,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private boolean crossRegionAccessEnabled;
         private Long thresholdInBytes;
         private Executor futureCompletionExecutor;
+        private Boolean disableS3ExpressSessionAuth;
 
         @Override
         public DefaultS3CrtClientBuilder credentialsProvider(
@@ -341,6 +343,12 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         @Override
         public DefaultS3CrtClientBuilder futureCompletionExecutor(Executor futureCompletionExecutor) {
             this.futureCompletionExecutor = futureCompletionExecutor;
+            return this;
+        }
+
+        @Override
+        public DefaultS3CrtClientBuilder disableS3ExpressSessionAuth(Boolean disableS3ExpressSessionAuth) {
+            this.disableS3ExpressSessionAuth = disableS3ExpressSessionAuth;
             return this;
         }
 
