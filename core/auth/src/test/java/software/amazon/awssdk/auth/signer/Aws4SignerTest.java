@@ -399,7 +399,6 @@ public class Aws4SignerTest {
         assertThat(signed.firstMatchingHeader("Authorization")).hasValue(expectedAuthorization);
     }
 
-
     @Test
     public void TransferEncodingIsNotSigned_NotSigned() {
         AwsBasicCredentials credentials = AwsBasicCredentials.create("akid", "skid");
