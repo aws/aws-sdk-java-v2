@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "Added new capability in the UpdateCluster operation to remove instance groups from your SageMaker HyperPod cluster."
-}
