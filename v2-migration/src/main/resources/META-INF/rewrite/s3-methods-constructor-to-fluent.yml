@@ -215,6 +215,16 @@ recipeList:
         - withBucket
         - withKey
   - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteObjectRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withKey
+        - withVersionId
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.GetObjectRequest
       parameterTypes:
         - java.lang.String
@@ -326,3 +336,39 @@ recipeList:
       fluentNames:
         - withBucket
         - withPrefix
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.CopyObjectRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withSourceBucket
+        - withSourceKey
+        - withDestinationBucket
+        - withDestinationKey
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.ListVersionsRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+        - java.lang.String
+        - java.lang.String
+        - java.lang.String
+        - java.lang.Integer
+      fluentNames:
+        - withBucket
+        - withPrefix
+        - withKeyMarker
+        - withVersionIdMarker
+        - withDelimiter
+        - withMaxKeys
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.PutBucketPolicyRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withPolicy
