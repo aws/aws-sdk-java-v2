@@ -150,6 +150,9 @@ public class TransferProgressUpdater {
 
             @Override
             public void subscriberOnNext(S3MetaRequestProgress s3MetaRequestProgress) {
+                if (!progress.snapshot().totalBytes().isPresent() && s3MetaRequestProgress.getContentLength() != 0) {
+                    progress.updateAndGet(b -> b.totalBytes(s3MetaRequestProgress.getContentLength()));
+                }
                 incrementBytesTransferred(s3MetaRequestProgress.getBytesTransferred());
             }
 

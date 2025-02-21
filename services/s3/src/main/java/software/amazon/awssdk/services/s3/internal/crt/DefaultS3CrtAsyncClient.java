@@ -129,20 +129,20 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     //     return super.getObject(getObjectRequest.toBuilder().overrideConfiguration(overrideConfig).build(), asyncResponseTransformer);
     // }
 
-    @Override
-    public CompletableFuture<GetObjectResponse> getObject(GetObjectRequest getObjectRequest, Path destinationPath) {
-        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
-            new CrtNoBodyResponseTransformer<>();
-
-            AwsRequestOverrideConfiguration overrideConfig =
-                getObjectRequest.overrideConfiguration()
-                                .map(config -> config.toBuilder().putExecutionAttribute(RESPONSE_FILE_PATH, destinationPath))
-                                .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
-                                                                                .putExecutionAttribute(RESPONSE_FILE_PATH, destinationPath))
-                                .build();
-
-        return getObject(getObjectRequest.toBuilder().overrideConfiguration(overrideConfig).build(), responseTransformer);
-    }
+    // @Override
+    // public CompletableFuture<GetObjectResponse> getObject(GetObjectRequest getObjectRequest, Path destinationPath) {
+    //     AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
+    //         new CrtNoBodyResponseTransformer<>();
+    //
+    //         AwsRequestOverrideConfiguration overrideConfig =
+    //             getObjectRequest.overrideConfiguration()
+    //                             .map(config -> config.toBuilder().putExecutionAttribute(RESPONSE_FILE_PATH, destinationPath))
+    //                             .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
+    //                                                                             .putExecutionAttribute(RESPONSE_FILE_PATH, destinationPath))
+    //                             .build();
+    //
+    //     return getObject(getObjectRequest.toBuilder().overrideConfiguration(overrideConfig).build(), responseTransformer);
+    // }
 
     @Override
     public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
@@ -478,80 +478,4 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                             + "on the classpath.", e);
         }
     }
-
-    // TODO: Move this out
-    private static class CrtNoBodyResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT, ResponseT> {
-
-        private static final Logger log = Logger.loggerFor(CrtNoBodyResponseTransformer.class);
-
-        private volatile CompletableFuture<Void> cf;
-        private volatile ResponseT response;
-
-        @Override
-        public CompletableFuture<ResponseT> prepare() {
-            cf = new CompletableFuture<>();
-            return cf.thenApply(ignored -> response);
-        }
-
-        @Override
-        public void onResponse(ResponseT response) {
-            this.response = response;
-        }
-
-        @Override
-        public void onStream(SdkPublisher<ByteBuffer> publisher) {
-            publisher.subscribe(new OnCompleteSubscriber(cf, this::exceptionOccurred));
-        }
-
-        @Override
-        public void exceptionOccurred(Throwable throwable) {
-            if (cf != null) {
-                cf.completeExceptionally(throwable);
-            } else {
-                log.warn(() -> "An exception occurred before the call to prepare() was able to instantiate the CompletableFuture."
-                               + "The future cannot be completed exceptionally because it is null");
-
-            }
-        }
-
-        static class OnCompleteSubscriber implements Subscriber<ByteBuffer> {
-
-            private Subscription subscription;
-            private final CompletableFuture<Void> future;
-            private final Consumer<Throwable> onErrorMethod;
-
-            private OnCompleteSubscriber(CompletableFuture<Void> future, Consumer<Throwable> onErrorMethod) {
-                this.future = future;
-                this.onErrorMethod = onErrorMethod;
-            }
-
-            @Override
-            public void onSubscribe(Subscription s) {
-                if (this.subscription != null) {
-                    s.cancel();
-                    return;
-                }
-                this.subscription = s;
-                // Request the first chunk to start producing content
-                s.request(1);
-            }
-
-            @Override
-            public void onNext(ByteBuffer byteBuffer) {
-                System.out.println("We should probably not be here!!!");
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                onErrorMethod.accept(throwable);
-            }
-
-            @Override
-            public void onComplete() {
-                System.out.println("Yay, we completed!");
-                future.complete(null);
-            }
-        }
-    }
-
 }

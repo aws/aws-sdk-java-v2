@@ -302,8 +302,8 @@ class GenericS3TransferManager implements S3TransferManager {
                                 .build();
     }
 
-    private GetObjectRequest attachSdkAttribute(GetObjectRequest request,
-                                                 Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
+    GetObjectRequest attachSdkAttribute(GetObjectRequest request,
+                                        Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
         AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
             request.overrideConfiguration()
                    .map(o -> o.toBuilder().applyMutation(builderMutation).build())
