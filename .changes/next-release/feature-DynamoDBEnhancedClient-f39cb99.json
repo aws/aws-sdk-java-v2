@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "DynamoDB Enhanced Client",
-    "contributor": "",
-    "description": "Add ability to provide a custom `MethodHandles.Lookup` object when using either `BeanTableSchema` or `ImmutableTableSchema`. By setting a custom `MethodHandles.Lookup` it allows these schemas to be used in applications where the item class and the SDK are loaded by different `ClassLoader`s."
-}

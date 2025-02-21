@@ -1,4 +1,28 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.26__ __2025-02-21__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Allow users to configure the number of TCP keep alive probes in the AWS CRT HTTP client through `keepAliveProbes`.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Transfer-Encoding headers will no longer be signed during SigV4 authentication
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Introduce a new parameter which represents the user-agent header value used by the Bedrock Knowledge Base Web Connector.
+
+## __Amazon AppStream__
+  - ### Features
+    - Added support for Certificate-Based Authentication on AppStream 2.0 multi-session fleets.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Add ability to provide a custom `MethodHandles.Lookup` object when using either `BeanTableSchema` or `ImmutableTableSchema`. By setting a custom `MethodHandles.Lookup` it allows these schemas to be used in applications where the item class and the SDK are loaded by different `ClassLoader`s.
+
 # __2.30.25__ __2025-02-20__
 ## __AWS CodeBuild__
   - ### Features
