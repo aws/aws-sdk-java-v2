@@ -59,8 +59,9 @@ public class GenerationMojo extends AbstractMojo {
     @Parameter(property = "outputDirectory", defaultValue = "${project.build.directory}")
     private String outputDirectory;
 
-    @Parameter(defaultValue = "false")
+    @Parameter(property = "writeIntermediateModel", defaultValue = "false")
     private boolean writeIntermediateModel;
+
 
     @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject project;
@@ -117,7 +118,6 @@ public class GenerationMojo extends AbstractMojo {
                      .resourcesDirectory(resourcesDirectory.toFile().getAbsolutePath())
                      .testsDirectory(testsDirectory.toFile().getAbsolutePath())
                      .intermediateModelFileNamePrefix(intermediateModelFileNamePrefix(models))
-                     .targetDirectory(outputDirectory)
                      .build()
                      .execute();
     }

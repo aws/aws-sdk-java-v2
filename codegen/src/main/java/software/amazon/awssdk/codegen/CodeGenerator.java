@@ -41,7 +41,6 @@ public class CodeGenerator {
      * The prefix for the file name that contains the intermediate model.
      */
     private final String fileNamePrefix;
-    private final String targetDirectory;
 
     static {
         // Make sure ClassName is statically initialized before we do anything in parallel.
@@ -57,7 +56,6 @@ public class CodeGenerator {
         this.resourcesDirectory = builder.resourcesDirectory != null ? builder.resourcesDirectory
                                                                      : builder.sourcesDirectory;
         this.fileNamePrefix = builder.fileNamePrefix;
-        this.targetDirectory = builder.targetDirectory;
     }
 
     public static File getModelDirectory(String outputDirectory) {
@@ -84,39 +82,12 @@ public class CodeGenerator {
             if (fileNamePrefix != null) {
                 writeIntermediateModel(intermediateModel);
             }
-
-            File targetDir = new File(targetDirectory);
-            writeToTargetDirectory(intermediateModel, targetDir);
-
             emitCode(intermediateModel);
 
         } catch (Exception e) {
             log.error(() -> "Failed to generate code. ", e);
             throw new RuntimeException(
                     "Failed to generate code. Exception message : " + e.getMessage(), e);
-        }
-    }
-
-    private void writeToTargetDirectory(IntermediateModel model, File targetDir) throws IOException {
-        PrintWriter writer = null;
-        try {
-            if (!targetDir.exists() && !targetDir.mkdirs()) {
-                throw new RuntimeException("Failed to create " + targetDir.getAbsolutePath());
-            }
-
-            File outputFile = new File(targetDir, "intermediate-model.json");
-
-            if (!outputFile.exists() && !outputFile.createNewFile()) {
-                throw new RuntimeException("Error creating file " + outputFile.getAbsolutePath());
-            }
-
-            writer = new PrintWriter(outputFile, "UTF-8");
-            Jackson.writeWithObjectMapper(model, writer);
-        } finally {
-            if (writer != null) {
-                writer.flush();
-                writer.close();
-            }
         }
     }
 
@@ -167,7 +138,6 @@ public class CodeGenerator {
         private String resourcesDirectory;
         private String testsDirectory;
         private String fileNamePrefix;
-        private String targetDirectory;
 
         private Builder() {
         }
@@ -196,12 +166,6 @@ public class CodeGenerator {
             this.fileNamePrefix = fileNamePrefix;
             return this;
         }
-
-        public Builder targetDirectory(String targetDirectory) {
-            this.targetDirectory = targetDirectory;
-            return this;
-        }
-
         /**
          * @return An immutable {@link CodeGenerator} object.
          */
