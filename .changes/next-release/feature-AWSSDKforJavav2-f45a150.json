@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CRT HTTP Client",
+    "contributor": "",
+    "description": "Allow users to configure the number of TCP keep alive probes in the AWS CRT HTTP client through `keepAliveProbes`."
+}

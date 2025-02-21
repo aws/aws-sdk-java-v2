@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -23,8 +24,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 @SuppressWarnings("unchecked")
 public interface StaticGetterMethod<GetterT> extends Supplier<GetterT> {
-    static <GetterT> StaticGetterMethod<GetterT> create(Method buildMethod) {
+    static <GetterT> StaticGetterMethod<GetterT> create(Method buildMethod,
+                                                        MethodHandles.Lookup lookup) {
         return LambdaToMethodBridgeBuilder.create(StaticGetterMethod.class)
+                                          .lookup(lookup)
                                           .lambdaMethodName("get")
                                           .runtimeLambdaSignature(Object.class)
                                           .compileTimeLambdaSignature(buildMethod.getReturnType())

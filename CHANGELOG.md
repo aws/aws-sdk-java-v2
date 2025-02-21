@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.25__ __2025-02-20__
+## __AWS CodeBuild__
+  - ### Features
+    - Add webhook status and status message to AWS CodeBuild webhooks
+
+## __AWS License Manager User Subscriptions__
+  - ### Features
+    - Updates entity to include Microsoft RDS SAL as a valid type of user subscription.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Reduce the minimum number of required attack sequence signals from 2 to 1
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - CloudWatch Database Insights now supports Amazon RDS.
+
+## __Amazon S3__
+  - ### Features
+    - Allow users to configure disableS3ExpressSessionAuth for S3CrtAsyncClient
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added new capability in the UpdateCluster operation to remove instance groups from your SageMaker HyperPod cluster.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Add support for toolbar configuration under user settings.
+
 # __2.30.24__ __2025-02-19__
 ## __AWS CodePipeline__
   - ### Features

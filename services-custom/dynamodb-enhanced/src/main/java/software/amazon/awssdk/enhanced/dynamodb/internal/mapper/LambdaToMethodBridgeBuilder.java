@@ -28,9 +28,10 @@ import software.amazon.awssdk.utils.Either;
 
 @SdkInternalApi
 public class LambdaToMethodBridgeBuilder<T> {
-    private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
+    private static final MethodHandles.Lookup SELF_LOOKUP = MethodHandles.lookup();
 
     private final Class<T> lambdaType;
+    private MethodHandles.Lookup lookup;
     private String lambdaMethodName;
     private Class<?> postEraseLambdaReturnType;
     private Class<?>[] postEraseLambdaParameters;
@@ -73,14 +74,20 @@ public class LambdaToMethodBridgeBuilder<T> {
         return this;
     }
 
+    public LambdaToMethodBridgeBuilder<T> lookup(MethodHandles.Lookup lookup) {
+        this.lookup = lookup;
+        return this;
+    }
+
     public T build() {
+        MethodHandles.Lookup metaFactoryLookup = resolveLookup();
         try {
             MethodHandle targetMethodHandle = targetMethod.map(
-                m -> invokeSafely(() -> LOOKUP.unreflect(m)),
-                c -> invokeSafely(() -> LOOKUP.unreflectConstructor(c)));
+                m -> invokeSafely(() -> metaFactoryLookup.unreflect(m)),
+                c -> invokeSafely(() -> metaFactoryLookup.unreflectConstructor(c)));
 
             return lambdaType.cast(
-                LambdaMetafactory.metafactory(LOOKUP,
+                LambdaMetafactory.metafactory(metaFactoryLookup,
                                               lambdaMethodName,
                                               MethodType.methodType(lambdaType),
                                               MethodType.methodType(postEraseLambdaReturnType, postEraseLambdaParameters),
@@ -91,5 +98,13 @@ public class LambdaToMethodBridgeBuilder<T> {
         } catch (Throwable e) {
             throw new IllegalArgumentException("Failed to generate method handle.", e);
         }
+    }
+
+    private MethodHandles.Lookup resolveLookup() {
+        if (lookup != null) {
+            return lookup;
+        }
+
+        return SELF_LOOKUP;
     }
 }
