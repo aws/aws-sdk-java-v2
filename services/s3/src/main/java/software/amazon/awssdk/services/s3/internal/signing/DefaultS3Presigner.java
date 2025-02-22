@@ -97,6 +97,7 @@ import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -105,11 +106,13 @@ import software.amazon.awssdk.services.s3.presigner.model.CompleteMultipartUploa
 import software.amazon.awssdk.services.s3.presigner.model.CreateMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.DeleteObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.HeadObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedAbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -120,6 +123,7 @@ import software.amazon.awssdk.services.s3.transform.CompleteMultipartUploadReque
 import software.amazon.awssdk.services.s3.transform.CreateMultipartUploadRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.DeleteObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.GetObjectRequestMarshaller;
+import software.amazon.awssdk.services.s3.transform.HeadObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.PutObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.UploadPartRequestMarshaller;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -141,6 +145,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     private final S3Configuration serviceConfiguration;
     private final List<ExecutionInterceptor> clientInterceptors;
     private final GetObjectRequestMarshaller getObjectRequestMarshaller;
+    private final HeadObjectRequestMarshaller headObjectRequestMarshaller;
     private final PutObjectRequestMarshaller putObjectRequestMarshaller;
     private final CreateMultipartUploadRequestMarshaller createMultipartUploadRequestMarshaller;
     private final UploadPartRequestMarshaller uploadPartRequestMarshaller;
@@ -156,21 +161,21 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         super(b);
 
         S3Configuration serviceConfiguration = b.serviceConfiguration != null ? b.serviceConfiguration :
-                                                S3Configuration.builder()
-                                                               .profileFile(profileFileSupplier())
-                                                               .profileName(profileName())
-                                                               .checksumValidationEnabled(false)
-                                                               .build();
+                S3Configuration.builder()
+                        .profileFile(profileFileSupplier())
+                        .profileName(profileName())
+                        .checksumValidationEnabled(false)
+                        .build();
         S3Configuration.Builder serviceConfigBuilder = serviceConfiguration.toBuilder();
 
         if (serviceConfiguration.checksumValidationEnabled()) {
             log.debug(() -> "The provided S3Configuration has ChecksumValidationEnabled set to true. Please note that "
-                           + "the pre-signed request can't be executed using a web browser if checksum validation is enabled.");
+                    + "the pre-signed request can't be executed using a web browser if checksum validation is enabled.");
         }
 
         if (dualstackEnabled() != null && serviceConfigBuilder.dualstackEnabled() != null) {
             throw new IllegalStateException("Dualstack has been configured in both S3Configuration and at the "
-                                            + "presigner/global level. Please limit dualstack configuration to one location.");
+                    + "presigner/global level. Please limit dualstack configuration to one location.");
         }
 
         if (dualstackEnabled() != null) {
@@ -187,11 +192,13 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
         // Copied from DefaultS3Client#init
         AwsS3ProtocolFactory protocolFactory = AwsS3ProtocolFactory.builder()
-                                                                   .clientConfiguration(clientConfiguration)
-                                                                   .build();
+                .clientConfiguration(clientConfiguration)
+                .build();
 
         // Copied from DefaultS3Client#getObject
         this.getObjectRequestMarshaller = new GetObjectRequestMarshaller(protocolFactory);
+
+        this.headObjectRequestMarshaller = new HeadObjectRequestMarshaller(protocolFactory);
 
         // Copied from DefaultS3Client#putObject
         this.putObjectRequestMarshaller = new PutObjectRequestMarshaller(protocolFactory);
@@ -224,7 +231,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     private List<ExecutionInterceptor> initializeInterceptors() {
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> s3Interceptors =
-            interceptorFactory.getInterceptors("software/amazon/awssdk/services/s3/execution.interceptors");
+                interceptorFactory.getInterceptors("software/amazon/awssdk/services/s3/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         additionalInterceptors.add(new S3AuthSchemeInterceptor());
         additionalInterceptors.add(new S3ResolveEndpointInterceptor());
@@ -238,105 +245,116 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      */
     private SdkClientConfiguration createClientConfiguration() {
         AwsClientEndpointProvider endpointProvider =
-            AwsClientEndpointProvider.builder()
-                                     .clientEndpointOverride(endpointOverride())
-                                     .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_S3")
-                                     .serviceEndpointOverrideSystemProperty("aws.endpointUrlS3")
-                                     .serviceProfileProperty("s3")
-                                     .serviceEndpointPrefix(SERVICE_NAME)
-                                     .defaultProtocol("https")
-                                     .region(region())
-                                     .profileFile(profileFileSupplier())
-                                     .profileName(profileName())
-                                     .dualstackEnabled(serviceConfiguration.dualstackEnabled())
-                                     .fipsEnabled(fipsEnabled())
-                                     .build();
+                AwsClientEndpointProvider.builder()
+                        .clientEndpointOverride(endpointOverride())
+                        .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_S3")
+                        .serviceEndpointOverrideSystemProperty("aws.endpointUrlS3")
+                        .serviceProfileProperty("s3")
+                        .serviceEndpointPrefix(SERVICE_NAME)
+                        .defaultProtocol("https")
+                        .region(region())
+                        .profileFile(profileFileSupplier())
+                        .profileName(profileName())
+                        .dualstackEnabled(serviceConfiguration.dualstackEnabled())
+                        .fipsEnabled(fipsEnabled())
+                        .build();
 
         // Make sure the endpoint resolver can actually resolve an endpoint, so that we fail now instead of
         // when a request is made.
         endpointProvider.clientEndpoint();
 
         return SdkClientConfiguration.builder()
-                                     .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-                                             endpointProvider)
-                                     .build();
+                .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                        endpointProvider)
+                .build();
     }
 
     @Override
     public PresignedGetObjectRequest presignGetObject(GetObjectPresignRequest request) {
         return presign(PresignedGetObjectRequest.builder(),
-                       request,
-                       request.getObjectRequest(),
-                       GetObjectRequest.class,
-                       getObjectRequestMarshaller::marshall,
-                       "GetObject")
-            .build();
+                request,
+                request.getObjectRequest(),
+                GetObjectRequest.class,
+                getObjectRequestMarshaller::marshall,
+                "GetObject")
+                .build();
+    }
+
+    @Override
+    public PresignedHeadObjectRequest presignHeadObject(HeadObjectPresignRequest request) {
+        return presign(PresignedHeadObjectRequest.builder(),
+                request,
+                request.headObjectRequest(),
+                HeadObjectRequest.class,
+                headObjectRequestMarshaller::marshall,
+                "HeadObject")
+                .build();
     }
 
     @Override
     public PresignedPutObjectRequest presignPutObject(PutObjectPresignRequest request) {
         return presign(PresignedPutObjectRequest.builder(),
-                       request,
-                       request.putObjectRequest(),
-                       PutObjectRequest.class,
-                       putObjectRequestMarshaller::marshall,
-                       "PutObject")
-            .build();
+                request,
+                request.putObjectRequest(),
+                PutObjectRequest.class,
+                putObjectRequestMarshaller::marshall,
+                "PutObject")
+                .build();
     }
 
     @Override
     public PresignedDeleteObjectRequest presignDeleteObject(DeleteObjectPresignRequest request) {
         return presign(PresignedDeleteObjectRequest.builder(),
-                       request,
-                       request.deleteObjectRequest(),
-                       DeleteObjectRequest.class,
-                       deleteObjectRequestMarshaller::marshall,
-                       "DeleteObject")
-            .build();
+                request,
+                request.deleteObjectRequest(),
+                DeleteObjectRequest.class,
+                deleteObjectRequestMarshaller::marshall,
+                "DeleteObject")
+                .build();
     }
 
     @Override
     public PresignedCreateMultipartUploadRequest presignCreateMultipartUpload(CreateMultipartUploadPresignRequest request) {
         return presign(PresignedCreateMultipartUploadRequest.builder(),
-                       request,
-                       request.createMultipartUploadRequest(),
-                       CreateMultipartUploadRequest.class,
-                       createMultipartUploadRequestMarshaller::marshall,
-                       "CreateMultipartUpload")
-            .build();
+                request,
+                request.createMultipartUploadRequest(),
+                CreateMultipartUploadRequest.class,
+                createMultipartUploadRequestMarshaller::marshall,
+                "CreateMultipartUpload")
+                .build();
     }
 
     @Override
     public PresignedUploadPartRequest presignUploadPart(UploadPartPresignRequest request) {
         return presign(PresignedUploadPartRequest.builder(),
-                       request,
-                       request.uploadPartRequest(),
-                       UploadPartRequest.class,
-                       uploadPartRequestMarshaller::marshall,
-                       "UploadPart")
-            .build();
+                request,
+                request.uploadPartRequest(),
+                UploadPartRequest.class,
+                uploadPartRequestMarshaller::marshall,
+                "UploadPart")
+                .build();
     }
 
     @Override
     public PresignedCompleteMultipartUploadRequest presignCompleteMultipartUpload(CompleteMultipartUploadPresignRequest request) {
         return presign(PresignedCompleteMultipartUploadRequest.builder(),
-                       request,
-                       request.completeMultipartUploadRequest(),
-                       CompleteMultipartUploadRequest.class,
-                       completeMultipartUploadRequestMarshaller::marshall,
-                       "CompleteMultipartUpload")
-            .build();
+                request,
+                request.completeMultipartUploadRequest(),
+                CompleteMultipartUploadRequest.class,
+                completeMultipartUploadRequestMarshaller::marshall,
+                "CompleteMultipartUpload")
+                .build();
     }
 
     @Override
     public PresignedAbortMultipartUploadRequest presignAbortMultipartUpload(AbortMultipartUploadPresignRequest request) {
         return presign(PresignedAbortMultipartUploadRequest.builder(),
-                       request,
-                       request.abortMultipartUploadRequest(),
-                       AbortMultipartUploadRequest.class,
-                       abortMultipartUploadRequestMarshaller::marshall,
-                       "AbortMultipartUpload")
-            .build();
+                request,
+                request.abortMultipartUploadRequest(),
+                AbortMultipartUploadRequest.class,
+                abortMultipartUploadRequestMarshaller::marshall,
+                "AbortMultipartUpload")
+                .build();
     }
 
     protected S3Configuration serviceConfiguration() {
@@ -361,7 +379,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         Instant expiration = signingInstant.plus(expirationDuration);
 
         ExecutionContext execCtx =
-            invokeInterceptorsAndCreateExecutionContext(requestToPresign, operationName, expiration, signingClock);
+                invokeInterceptorsAndCreateExecutionContext(requestToPresign, operationName, expiration, signingClock);
 
         callBeforeMarshallingHooks(execCtx);
         marshalRequestAndUpdateContext(execCtx, requestToPresignType, requestMarshaller);
@@ -372,8 +390,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         SdkHttpFullRequest httpRequest = getHttpFullRequest(execCtx);
 
         SdkHttpFullRequest signedHttpRequest = execCtx.signer() != null
-                                               ? presignRequest(execCtx, httpRequest)
-                                               : sraPresignRequest(execCtx, httpRequest, signingClock, expirationDuration);
+                ? presignRequest(execCtx, httpRequest)
+                : sraPresignRequest(execCtx, httpRequest, signingClock, expirationDuration);
 
         initializePresignedRequest(presignedRequest, signedHttpRequest, expiration);
 
@@ -389,26 +407,26 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                                                          Clock signingClock) {
 
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
-            .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, SIGNING_NAME)
-            .putAttribute(AwsExecutionAttribute.AWS_REGION, region())
-            .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, region())
-            .putAttribute(SdkInternalExecutionAttribute.IS_FULL_DUPLEX, false)
-            .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, ClientType.SYNC)
-            .putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME)
-            .putAttribute(SdkExecutionAttribute.OPERATION_NAME, operationName)
-            .putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, serviceConfiguration())
-            .putAttribute(PRESIGNER_EXPIRATION, expiration)
-            .putAttribute(AwsSignerExecutionAttribute.SIGNING_CLOCK, signingClock)
-            .putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
-                          clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER))
-            .putAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED, fipsEnabled())
-            .putAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED, serviceConfiguration.dualstackEnabled())
-            .putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER, S3EndpointProvider.defaultProvider())
-            .putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT, useGlobalEndpointResolver.resolve(region()))
-            .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER,
-                          S3ExpressAuthSchemeProvider.create(S3AuthSchemeProvider.defaultProvider()))
-            .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes())
-            .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, resolveIdentityProviders(sdkRequest));
+                .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, SIGNING_NAME)
+                .putAttribute(AwsExecutionAttribute.AWS_REGION, region())
+                .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, region())
+                .putAttribute(SdkInternalExecutionAttribute.IS_FULL_DUPLEX, false)
+                .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, ClientType.SYNC)
+                .putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME)
+                .putAttribute(SdkExecutionAttribute.OPERATION_NAME, operationName)
+                .putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, serviceConfiguration())
+                .putAttribute(PRESIGNER_EXPIRATION, expiration)
+                .putAttribute(AwsSignerExecutionAttribute.SIGNING_CLOCK, signingClock)
+                .putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
+                        clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER))
+                .putAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED, fipsEnabled())
+                .putAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED, serviceConfiguration.dualstackEnabled())
+                .putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER, S3EndpointProvider.defaultProvider())
+                .putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT, useGlobalEndpointResolver.resolve(region()))
+                .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER,
+                        S3ExpressAuthSchemeProvider.create(S3AuthSchemeProvider.defaultProvider()))
+                .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes())
+                .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, resolveIdentityProviders(sdkRequest));
 
         Boolean resolvedDisableS3ExpressSessionAuth = disableS3ExpressSessionAuth;
         if (s3Client != null) {
@@ -422,32 +440,32 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         ExecutionInterceptorChain executionInterceptorChain = new ExecutionInterceptorChain(clientInterceptors);
 
         InterceptorContext interceptorContext = InterceptorContext.builder()
-                                                                  .request(sdkRequest)
-                                                                  .build();
+                .request(sdkRequest)
+                .build();
         interceptorContext = AwsExecutionContextBuilder.runInitialInterceptors(interceptorContext,
-                                                                               executionAttributes,
-                                                                               executionInterceptorChain);
+                executionAttributes,
+                executionInterceptorChain);
 
         Signer signer = sdkRequest.overrideConfiguration().flatMap(RequestOverrideConfiguration::signer).orElse(null);
 
         return ExecutionContext.builder()
-                               .interceptorChain(executionInterceptorChain)
-                               .interceptorContext(interceptorContext)
-                               .executionAttributes(executionAttributes)
-                               .signer(signer)
-                               .build();
+                .interceptorChain(executionInterceptorChain)
+                .interceptorContext(interceptorContext)
+                .executionAttributes(executionAttributes)
+                .signer(signer)
+                .build();
     }
 
     private IdentityProviders resolveIdentityProviders(SdkRequest originalRequest) {
         IdentityProvider<? extends AwsCredentialsIdentity> identityProvider =
-            originalRequest.overrideConfiguration()
-                           .filter(c -> c instanceof AwsRequestOverrideConfiguration)
-                           .map(c -> (AwsRequestOverrideConfiguration) c)
-                           .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
-                           .orElse(credentialsProvider());
+                originalRequest.overrideConfiguration()
+                        .filter(c -> c instanceof AwsRequestOverrideConfiguration)
+                        .map(c -> (AwsRequestOverrideConfiguration) c)
+                        .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
+                        .orElse(credentialsProvider());
         return IdentityProviders.builder()
-                                .putIdentityProvider(identityProvider)
-                                .build();
+                .putIdentityProvider(identityProvider)
+                .build();
     }
 
 
@@ -476,19 +494,19 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                                     Class<T> requestType,
                                                     Function<T, SdkHttpFullRequest> requestMarshaller) {
         T sdkRequest = Validate.isInstanceOf(requestType, execCtx.interceptorContext().request(),
-                                             "Interceptor generated unsupported type (%s) when %s was expected.",
-                                             execCtx.interceptorContext().request().getClass(), requestType);
+                "Interceptor generated unsupported type (%s) when %s was expected.",
+                execCtx.interceptorContext().request().getClass(), requestType);
 
         SdkHttpFullRequest marshalledRequest = requestMarshaller.apply(sdkRequest);
 
         // TODO: The core SDK doesn't put the request body into the interceptor context. That should be fixed.
         Optional<RequestBody> requestBody = marshalledRequest.contentStreamProvider()
-                                                             .map(ContentStreamProvider::newStream)
-                                                             .map(is -> invokeSafely(() -> IoUtils.toByteArray(is)))
-                                                             .map(RequestBody::fromBytes);
+                .map(ContentStreamProvider::newStream)
+                .map(is -> invokeSafely(() -> IoUtils.toByteArray(is)))
+                .map(RequestBody::fromBytes);
 
         execCtx.interceptorContext(execCtx.interceptorContext().copy(r -> r.httpRequest(marshalledRequest)
-                                                                           .requestBody(requestBody.orElse(null))));
+                .requestBody(requestBody.orElse(null))));
     }
 
     /**
@@ -506,10 +524,10 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         SdkHttpRequest httpRequest = execCtx.interceptorContext().httpRequest();
         SdkRequest sdkRequest = execCtx.interceptorContext().request();
         SdkHttpRequest updatedHttpRequest =
-            httpRequest.toBuilder()
-                       .applyMutation(b -> addRequestLevelHeaders(b, sdkRequest))
-                       .applyMutation(b -> addRequestLeveQueryParameters(b, sdkRequest))
-                       .build();
+                httpRequest.toBuilder()
+                        .applyMutation(b -> addRequestLevelHeaders(b, sdkRequest))
+                        .applyMutation(b -> addRequestLeveQueryParameters(b, sdkRequest))
+                        .build();
         execCtx.interceptorContext(execCtx.interceptorContext().copy(c -> c.httpRequest(updatedHttpRequest)));
     }
 
@@ -534,7 +552,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      */
     private void callModifyHttpRequestHooksAndUpdateContext(ExecutionContext execCtx) {
         execCtx.interceptorContext(execCtx.interceptorChain().modifyHttpRequestAndHttpContent(execCtx.interceptorContext(),
-                                                                                              execCtx.executionAttributes()));
+                execCtx.executionAttributes()));
     }
 
     /**
@@ -545,17 +563,17 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         Optional<RequestBody> bodyFromInterceptor = execCtx.interceptorContext().requestBody();
 
         return SdkHttpFullRequest.builder()
-                                 .method(requestFromInterceptor.method())
-                                 .protocol(requestFromInterceptor.protocol())
-                                 .host(requestFromInterceptor.host())
-                                 .port(requestFromInterceptor.port())
-                                 .encodedPath(requestFromInterceptor.encodedPath())
-                                 .applyMutation(r -> {
-                                     requestFromInterceptor.forEachHeader(r::putHeader);
-                                     requestFromInterceptor.forEachRawQueryParameter(r::putRawQueryParameter);
-                                 })
-                                 .contentStreamProvider(bodyFromInterceptor.map(RequestBody::contentStreamProvider).orElse(null))
-                                 .build();
+                .method(requestFromInterceptor.method())
+                .protocol(requestFromInterceptor.protocol())
+                .host(requestFromInterceptor.host())
+                .port(requestFromInterceptor.port())
+                .encodedPath(requestFromInterceptor.encodedPath())
+                .applyMutation(r -> {
+                    requestFromInterceptor.forEachHeader(r::putHeader);
+                    requestFromInterceptor.forEachRawQueryParameter(r::putRawQueryParameter);
+                })
+                .contentStreamProvider(bodyFromInterceptor.map(RequestBody::contentStreamProvider).orElse(null))
+                .build();
     }
 
     /**
@@ -563,8 +581,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      */
     private SdkHttpFullRequest presignRequest(ExecutionContext execCtx, SdkHttpFullRequest request) {
         Presigner presigner = Validate.isInstanceOf(Presigner.class, execCtx.signer(),
-                                                    "Configured signer (%s) does not support presigning (must implement %s).",
-                                                    execCtx.signer().getClass(), Presigner.class);
+                "Configured signer (%s) does not support presigning (must implement %s).",
+                execCtx.signer().getClass(), Presigner.class);
 
         return presigner.presign(request, execCtx.executionAttributes());
     }
@@ -573,7 +591,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      * Presign the provided HTTP request using SRA HttpSigner
      */
     private SdkHttpFullRequest sraPresignRequest(ExecutionContext execCtx, SdkHttpFullRequest request,
-                                              Clock signingClock, Duration expirationDuration) {
+                                                 Clock signingClock, Duration expirationDuration) {
         SelectedAuthScheme selectedAuthScheme = execCtx.executionAttributes().getAttribute(SELECTED_AUTH_SCHEME);
         return doSraPresign(request, selectedAuthScheme, signingClock, expirationDuration);
     }
@@ -586,15 +604,15 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
         // presigned url puts auth info in query string, does not sign the payload, and has an expiry.
         SignRequest.Builder<T> signRequestBuilder = SignRequest
-            .builder(identity)
-            .putProperty(AwsV4FamilyHttpSigner.AUTH_LOCATION, AwsV4FamilyHttpSigner.AuthLocation.QUERY_STRING)
-            .putProperty(AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED, false)
-            .putProperty(AwsV4FamilyHttpSigner.EXPIRATION_DURATION, expirationDuration)
-            .putProperty(HttpSigner.SIGNING_CLOCK, signingClock)
-            .putProperty(AwsV4FamilyHttpSigner.NORMALIZE_PATH, false)
-            .putProperty(AwsV4FamilyHttpSigner.DOUBLE_URL_ENCODE, false)
-            .request(request)
-            .payload(request.contentStreamProvider().orElse(null));
+                .builder(identity)
+                .putProperty(AwsV4FamilyHttpSigner.AUTH_LOCATION, AwsV4FamilyHttpSigner.AuthLocation.QUERY_STRING)
+                .putProperty(AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(AwsV4FamilyHttpSigner.EXPIRATION_DURATION, expirationDuration)
+                .putProperty(HttpSigner.SIGNING_CLOCK, signingClock)
+                .putProperty(AwsV4FamilyHttpSigner.NORMALIZE_PATH, false)
+                .putProperty(AwsV4FamilyHttpSigner.DOUBLE_URL_ENCODE, false)
+                .request(request)
+                .payload(request.contentStreamProvider().orElse(null));
         AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
         authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
 
@@ -607,15 +625,15 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         SdkHttpRequest request = signedRequest.request();
 
         return SdkHttpFullRequest.builder()
-                                 .contentStreamProvider(signedRequest.payload().orElse(null))
-                                 .protocol(request.protocol())
-                                 .method(request.method())
-                                 .host(request.host())
-                                 .port(request.port())
-                                 .encodedPath(request.encodedPath())
-                                 .applyMutation(r -> request.forEachHeader(r::putHeader))
-                                 .applyMutation(r -> request.forEachRawQueryParameter(r::putRawQueryParameter))
-                                 .build();
+                .contentStreamProvider(signedRequest.payload().orElse(null))
+                .protocol(request.protocol())
+                .method(request.method())
+                .host(request.host())
+                .port(request.port())
+                .encodedPath(request.encodedPath())
+                .applyMutation(r -> request.forEachHeader(r::putHeader))
+                .applyMutation(r -> request.forEachRawQueryParameter(r::putRawQueryParameter))
+                .build();
     }
 
     /**
@@ -625,31 +643,31 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                             SdkHttpFullRequest signedHttpRequest,
                                             Instant expiration) {
         SdkBytes signedPayload = signedHttpRequest.contentStreamProvider()
-                                                  .map(p -> SdkBytes.fromInputStream(p.newStream()))
-                                                  .orElse(null);
+                .map(p -> SdkBytes.fromInputStream(p.newStream()))
+                .orElse(null);
 
         List<String> signedHeadersQueryParam = signedHttpRequest.firstMatchingRawQueryParameters("X-Amz-SignedHeaders");
         Validate.validState(!signedHeadersQueryParam.isEmpty(),
-                            "Only SigV4 signers are supported at this time, but the configured "
-                            + "signer did not seem to generate a SigV4 signature.");
+                "Only SigV4 signers are supported at this time, but the configured "
+                        + "signer did not seem to generate a SigV4 signature.");
 
         Map<String, List<String>> signedHeaders =
-            signedHeadersQueryParam.stream()
-                                   .flatMap(h -> Stream.of(h.split(";")))
-                                   .collect(toMap(h -> h, h -> signedHttpRequest.firstMatchingHeader(h)
-                                                                                .map(Collections::singletonList)
-                                                                                .orElseGet(ArrayList::new)));
+                signedHeadersQueryParam.stream()
+                        .flatMap(h -> Stream.of(h.split(";")))
+                        .collect(toMap(h -> h, h -> signedHttpRequest.firstMatchingHeader(h)
+                                .map(Collections::singletonList)
+                                .orElseGet(ArrayList::new)));
 
         boolean isBrowserExecutable = signedHttpRequest.method() == SdkHttpMethod.GET &&
-                                      signedPayload == null &&
-                                      (signedHeaders.isEmpty() ||
-                                       (signedHeaders.size() == 1 && signedHeaders.containsKey("host")));
+                signedPayload == null &&
+                (signedHeaders.isEmpty() ||
+                        (signedHeaders.size() == 1 && signedHeaders.containsKey("host")));
 
         presignedRequest.expiration(expiration)
-                        .isBrowserExecutable(isBrowserExecutable)
-                        .httpRequest(signedHttpRequest)
-                        .signedHeaders(signedHeaders)
-                        .signedPayload(signedPayload);
+                .isBrowserExecutable(isBrowserExecutable)
+                .httpRequest(signedHttpRequest)
+                .signedHeaders(signedHeaders)
+                .signedPayload(signedPayload);
     }
 
     private AttributeMap createClientContextParams(Boolean resolvedDisableS3ExpressSessionAuth) {
@@ -657,7 +675,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
         params.put(S3ClientContextParams.USE_ARN_REGION, serviceConfiguration.useArnRegionEnabled());
         params.put(S3ClientContextParams.DISABLE_MULTI_REGION_ACCESS_POINTS,
-                                !serviceConfiguration.multiRegionEnabled());
+                !serviceConfiguration.multiRegionEnabled());
         params.put(S3ClientContextParams.FORCE_PATH_STYLE, serviceConfiguration.pathStyleAccessEnabled());
         params.put(S3ClientContextParams.ACCELERATE, serviceConfiguration.accelerateModeEnabled());
         params.put(S3ClientContextParams.DISABLE_S3_EXPRESS_SESSION_AUTH, resolvedDisableS3ExpressSessionAuth);
@@ -666,21 +684,21 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
     private UseGlobalEndpointResolver createUseGlobalEndpointResolver() {
         String legacyOption =
-            DefaultsModeConfiguration.defaultConfig(DefaultsMode.LEGACY)
-                                     .get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT);
+                DefaultsModeConfiguration.defaultConfig(DefaultsMode.LEGACY)
+                        .get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT);
 
         SdkClientConfiguration config = clientConfiguration.toBuilder()
-            .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, legacyOption)
-            .option(SdkClientOption.PROFILE_FILE_SUPPLIER, profileFileSupplier())
-            .option(SdkClientOption.PROFILE_NAME, profileName())
-            .build();
+                .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, legacyOption)
+                .option(SdkClientOption.PROFILE_FILE_SUPPLIER, profileFileSupplier())
+                .option(SdkClientOption.PROFILE_NAME, profileName())
+                .build();
 
         return new UseGlobalEndpointResolver(config);
     }
 
     @SdkInternalApi
     public static final class Builder extends DefaultSdkPresigner.Builder<Builder>
-        implements S3Presigner.Builder {
+            implements S3Presigner.Builder {
 
         private S3Configuration serviceConfiguration;
         private Boolean disableS3ExpressSessionAuth;
