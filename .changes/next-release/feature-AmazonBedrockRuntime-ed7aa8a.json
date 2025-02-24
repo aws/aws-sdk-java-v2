@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock Runtime",
+    "contributor": "",
+    "description": "This release adds Reasoning Content support to Converse and ConverseStream APIs"
+}
