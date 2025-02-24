@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Agents for Amazon Bedrock Runtime",
+    "contributor": "",
+    "description": "Adding support for ReasoningContent fields in Pre-Processing, Post-Processing and Orchestration Trace outputs."
+}
