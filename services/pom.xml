@@ -216,7 +216,6 @@
         <module>wafv2</module>
         <module>appconfig</module>
         <module>iotsecuretunneling</module>
-        <module>elasticinference</module>
         <module>imagebuilder</module>
         <module>schemas</module>
         <module>accessanalyzer</module>

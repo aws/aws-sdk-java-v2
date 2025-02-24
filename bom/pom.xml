@@ -1220,11 +1220,6 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
-                <artifactId>elasticinference</artifactId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
                 <artifactId>imagebuilder</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
