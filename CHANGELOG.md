@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.27__ __2025-02-24__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release improves support for newer models in Amazon Bedrock Flows.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Adding support for ReasoningContent fields in Pre-Processing, Post-Processing and Orchestration Trace outputs.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds Reasoning Content support to Converse and ConverseStream APIs
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Documentation update, adding clarity and rephrasing.
+
 # __2.30.26__ __2025-02-21__
 ## __AWS CRT HTTP Client__
   - ### Features
