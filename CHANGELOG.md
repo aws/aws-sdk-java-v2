@@ -1,4 +1,107 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.28__ __2025-02-25__
+## __AWS CodeBuild__
+  - ### Features
+    - Adding "reportArns" field in output of BatchGetBuildBatches API. "reportArns" is an array that contains the ARNs of reports created by merging reports from builds associated with the batch build.
+
+## __AWS Device Farm__
+  - ### Features
+    - Add an optional configuration to the ScheduleRun and CreateRemoteAccessSession API to set a device level http/s proxy.
+
+## __AWS IoT__
+  - ### Features
+    - AWS IoT - AWS IoT Device Defender adds support for a new Device Defender Audit Check that monitors device certificate age and custom threshold configurations for both the new device certificate age check and existing device certificate expiry check.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for time-based EBS-backed AMI copy operations. Time-based copy ensures that EBS-backed AMIs are copied within and across Regions in a specified timeframe.
+
+## __Tax Settings__
+  - ### Features
+    - PutTaxRegistration API changes for Egypt, Greece, Vietnam countries
+
+# __2.30.27__ __2025-02-24__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release improves support for newer models in Amazon Bedrock Flows.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Adding support for ReasoningContent fields in Pre-Processing, Post-Processing and Orchestration Trace outputs.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds Reasoning Content support to Converse and ConverseStream APIs
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Documentation update, adding clarity and rephrasing.
+
+# __2.30.26__ __2025-02-21__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Allow users to configure the number of TCP keep alive probes in the AWS CRT HTTP client through `keepAliveProbes`.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Transfer-Encoding headers will no longer be signed during SigV4 authentication
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Introduce a new parameter which represents the user-agent header value used by the Bedrock Knowledge Base Web Connector.
+
+## __Amazon AppStream__
+  - ### Features
+    - Added support for Certificate-Based Authentication on AppStream 2.0 multi-session fleets.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Add ability to provide a custom `MethodHandles.Lookup` object when using either `BeanTableSchema` or `ImmutableTableSchema`. By setting a custom `MethodHandles.Lookup` it allows these schemas to be used in applications where the item class and the SDK are loaded by different `ClassLoader`s.
+
+# __2.30.25__ __2025-02-20__
+## __AWS CodeBuild__
+  - ### Features
+    - Add webhook status and status message to AWS CodeBuild webhooks
+
+## __AWS License Manager User Subscriptions__
+  - ### Features
+    - Updates entity to include Microsoft RDS SAL as a valid type of user subscription.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Reduce the minimum number of required attack sequence signals from 2 to 1
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - CloudWatch Database Insights now supports Amazon RDS.
+
+## __Amazon S3__
+  - ### Features
+    - Allow users to configure disableS3ExpressSessionAuth for S3CrtAsyncClient
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added new capability in the UpdateCluster operation to remove instance groups from your SageMaker HyperPod cluster.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Add support for toolbar configuration under user settings.
+
 # __2.30.24__ __2025-02-19__
 ## __AWS CodePipeline__
   - ### Features

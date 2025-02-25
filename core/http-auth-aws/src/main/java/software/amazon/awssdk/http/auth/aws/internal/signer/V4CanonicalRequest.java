@@ -43,7 +43,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @Immutable
 public final class V4CanonicalRequest {
     private static final List<String> HEADERS_TO_IGNORE_IN_LOWER_CASE =
-        Arrays.asList("connection", "x-amzn-trace-id", "user-agent", "expect");
+        Arrays.asList("connection", "x-amzn-trace-id", "user-agent", "expect", "transfer-encoding");
 
     private final SdkHttpRequest request;
     private final String contentHash;
