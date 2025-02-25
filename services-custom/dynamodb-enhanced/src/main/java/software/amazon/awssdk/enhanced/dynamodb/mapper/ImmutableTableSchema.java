@@ -333,7 +333,6 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
             if (clazz.getAnnotation(DynamoDbImmutable.class) != null) {
                 return EnhancedType.documentOf(
                     (Class<Object>) clazz,
-                    // TODO
                     (TableSchema<Object>) ImmutableTableSchema.recursiveCreate(clazz,
                                                                                lookup,
                                                                                metaTableSchemaCache),
@@ -341,7 +340,6 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
             } else if (clazz.getAnnotation(DynamoDbBean.class) != null) {
                 return EnhancedType.documentOf(
                     (Class<Object>) clazz,
-                    // TODO
                     (TableSchema<Object>) BeanTableSchema.recursiveCreate(clazz,
                                                                           lookup,
                                                                           metaTableSchemaCache),
