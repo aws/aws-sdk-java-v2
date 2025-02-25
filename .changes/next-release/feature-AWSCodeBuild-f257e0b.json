@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeBuild",
-    "contributor": "",
-    "description": "Adding \"reportArns\" field in output of BatchGetBuildBatches API. \"reportArns\" is an array that contains the ARNs of reports created by merging reports from builds associated with the batch build."
-}
