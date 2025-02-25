@@ -43,15 +43,43 @@ import software.amazon.awssdk.v2migration.internal.utils.IdentifierUtils;
 @SdkInternalApi
 public class S3NonStreamingRequestToV2 extends Recipe {
 
+    private static final String V1_S3_PKG = "com.amazonaws.services.s3";
+
     private static final MethodMatcher DELETE_VERSION =
-        new MethodMatcher("com.amazonaws.services.s3.AmazonS3 deleteVersion(String, String, String)", true);
+        createMethodMatcher("deleteVersion(String, String, String)");
     private static final MethodMatcher COPY_OBJECT =
-        new MethodMatcher("com.amazonaws.services.s3.AmazonS3 copyObject(String, String, String, String)", true);
+        createMethodMatcher("copyObject(String, String, String, String)");
     private static final MethodMatcher LIST_VERSIONS =
-        new MethodMatcher("com.amazonaws.services.s3.AmazonS3 "
-                          + "listVersions(String, String, String, String, String, Integer)", true);
+        createMethodMatcher("listVersions(String, String, String, String, String, Integer)");
     private static final MethodMatcher SET_BUCKET_POLICY =
-        new MethodMatcher("com.amazonaws.services.s3.AmazonS3 setBucketPolicy(String, String)", true);
+        createMethodMatcher("setBucketPolicy(String, String)");
+    private static final MethodMatcher GET_OBJECT_ACL =
+        createMethodMatcher("getObjectAcl(String, String, String)");
+    private static final MethodMatcher SET_BUCKET_ACCELERATE_CONFIGURATION = createMethodMatcher(
+        String.format("setBucketAccelerateConfiguration(String, %s.model.BucketAccelerateConfiguration)", V1_S3_PKG));
+    private static final MethodMatcher SET_BUCKET_CROSS_ORIGIN_CONFIGURATION = createMethodMatcher(
+        String.format("setBucketCrossOriginConfiguration(String, %s.model.BucketCrossOriginConfiguration)", V1_S3_PKG));
+    private static final MethodMatcher SET_BUCKET_ANALYTICS_CONFIGURATION = createMethodMatcher(
+        String.format("setBucketAnalyticsConfiguration(String, %s.model.analytics.AnalyticsConfiguration)", V1_S3_PKG));
+    private static final MethodMatcher SET_BUCKET_INTELLIGENT_TIERING_CONFIGURATION = createMethodMatcher(
+        String.format("setBucketIntelligentTieringConfiguration("
+                      + "String, %s.model.intelligenttiering.IntelligentTieringConfiguration)", V1_S3_PKG));
+    private static final MethodMatcher SET_BUCKET_INVENTORY_CONFIGURATION = createMethodMatcher(
+        String.format("setBucketInventoryConfiguration(String, %s.model.inventory.InventoryConfiguration)", V1_S3_PKG));
+    private static final MethodMatcher SET_BUCKET_LIFECYCLE_CONFIGURATION = createMethodMatcher(
+        String.format("setBucketLifecycleConfiguration(String, %s.model.BucketLifecycleConfiguration)", V1_S3_PKG));
+    private static final MethodMatcher SET_BUCKET_METRICS_CONFIGURATION = createMethodMatcher(
+        String.format("setBucketMetricsConfiguration(String, %s.model.metrics.MetricsConfiguration)", V1_S3_PKG));
+    private static final MethodMatcher SET_BUCKET_NOTIFICATION_CONFIGURATION = createMethodMatcher(
+        String.format("setBucketNotificationConfiguration(String, %s.model.BucketNotificationConfiguration)", V1_S3_PKG));
+    private static final MethodMatcher SET_BUCKET_OWNERSHIP_CONTROLS = createMethodMatcher(
+        String.format("setBucketOwnershipControls(String, %s.model.ownership.OwnershipControls)", V1_S3_PKG));
+    private static final MethodMatcher SET_BUCKET_REPLICATION_CONFIGURATION = createMethodMatcher(
+        String.format("setBucketReplicationConfiguration(String, %s.model.BucketReplicationConfiguration)", V1_S3_PKG));
+    private static final MethodMatcher SET_BUCKET_TAGGING_CONFIGURATION = createMethodMatcher(
+        String.format("setBucketTaggingConfiguration(String, %s.model.BucketTaggingConfiguration)", V1_S3_PKG));
+    private static final MethodMatcher SET_BUCKET_WEBSITE_CONFIGURATION = createMethodMatcher(
+        String.format("setBucketWebsiteConfiguration(String, %s.model.BucketWebsiteConfiguration)", V1_S3_PKG));
 
     private static final Map<MethodMatcher, JavaType.FullyQualified> BUCKET_ARG_METHODS = new HashMap<>();
     private static final Map<MethodMatcher, JavaType.FullyQualified> BUCKET_KEY_ARGS_METHODS = new HashMap<>();
@@ -121,6 +149,10 @@ public class S3NonStreamingRequestToV2 extends Recipe {
         BUCKET_PREFIX_ARGS_METHODS.put(twoStringArgsMethod("listVersions"), fcqn("listVersions"));
     }
 
+    private static MethodMatcher createMethodMatcher(String methodSignature) {
+        return new MethodMatcher(V1_S3_PKG + ".AmazonS3 " + methodSignature, true);
+    }
+
     private static MethodMatcher singleStringArgMethod(String method) {
         String signature = "com.amazonaws.services.s3.AmazonS3 " + method + "(java.lang.String)";
         return new MethodMatcher(signature,  true);
@@ -174,6 +206,61 @@ public class S3NonStreamingRequestToV2 extends Recipe {
                 method = transformMethod(method, fcqn("putBucketPolicy"), "bucket", "policy");
                 return super.visitMethodInvocation(method, executionContext);
             }
+            if (GET_OBJECT_ACL.matches(method)) {
+                method = transformMethod(method, fcqn("getObjectAcl"), "bucket", "key", "versionId");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (SET_BUCKET_ACCELERATE_CONFIGURATION.matches(method)) {
+                method = transformMethod(method, fcqn("setBucketAccelerateConfiguration"), "bucket", "accelerateConfiguration");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (SET_BUCKET_CROSS_ORIGIN_CONFIGURATION.matches(method)) {
+                method = transformMethod(method, fcqn("setBucketCrossOriginConfiguration"), "bucket", "corsConfiguration");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (SET_BUCKET_ANALYTICS_CONFIGURATION.matches(method)) {
+                method = transformMethod(method, fcqn("setBucketAnalyticsConfiguration"), "bucket", "analyticsConfiguration");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (SET_BUCKET_INTELLIGENT_TIERING_CONFIGURATION.matches(method)) {
+                method = transformMethod(method, fcqn("setBucketIntelligentTieringConfiguration"),
+                                         "bucket", "intelligentTieringConfiguration");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (SET_BUCKET_INVENTORY_CONFIGURATION.matches(method)) {
+                method = transformMethod(method, fcqn("setBucketInventoryConfiguration"), "bucket", "inventoryConfiguration");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (SET_BUCKET_LIFECYCLE_CONFIGURATION.matches(method)) {
+                method = transformMethod(method, fcqn("setBucketLifecycleConfiguration"), "bucket", "lifecycleConfiguration");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (SET_BUCKET_METRICS_CONFIGURATION.matches(method)) {
+                method = transformMethod(method, fcqn("setBucketMetricsConfiguration"), "bucket", "metricsConfiguration");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (SET_BUCKET_NOTIFICATION_CONFIGURATION.matches(method)) {
+                method = transformMethod(method, fcqn("setBucketNotificationConfiguration"),
+                                         "bucket", "notificationConfiguration");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (SET_BUCKET_OWNERSHIP_CONTROLS.matches(method)) {
+                method = transformMethod(method, fcqn("setBucketOwnershipControls"), "bucket", "ownershipControls");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (SET_BUCKET_REPLICATION_CONFIGURATION.matches(method)) {
+                method = transformMethod(method, fcqn("setBucketReplicationConfiguration"), "bucket", "replicationConfiguration");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (SET_BUCKET_TAGGING_CONFIGURATION.matches(method)) {
+                method = transformMethod(method, fcqn("setBucketTaggingConfiguration"), "bucket", "taggingConfiguration");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (SET_BUCKET_WEBSITE_CONFIGURATION.matches(method)) {
+                method = transformMethod(method, fcqn("setBucketWebsiteConfiguration"), "bucket", "configuration");
+                return super.visitMethodInvocation(method, executionContext);
+            }
+
             for (Map.Entry<MethodMatcher, JavaType.FullyQualified> entry : BUCKET_ARG_METHODS.entrySet()) {
                 if (entry.getKey().matches(method)) {
                     method = transformMethod(method, entry.getValue(), "bucket");

@@ -34,22 +34,24 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public class S3NonStreamingRequestToV2Complex extends Recipe {
 
-    private static final MethodMatcher DISABLE_REQUESTER_PAYS =
-        new MethodMatcher("software.amazon.awssdk.services.s3.S3Client disableRequesterPays(String)", true);
-    private static final MethodMatcher ENABLE_REQUESTER_PAYS =
-        new MethodMatcher("software.amazon.awssdk.services.s3.S3Client enableRequesterPays(String)", true);
-    private static final MethodMatcher IS_REQUESTER_PAYS_ENABLED =
-        new MethodMatcher("software.amazon.awssdk.services.s3.S3Client isRequesterPaysEnabled(String)", true);
-    private static final MethodMatcher GET_OBJECT_AS_STRING =
-        new MethodMatcher("software.amazon.awssdk.services.s3.S3Client getObjectAsString(String, String)", true);
-    private static final MethodMatcher GET_URL =
-        new MethodMatcher("software.amazon.awssdk.services.s3.S3Client getUrl(String, String)", true);
-    private static final MethodMatcher LIST_BUCKETS =
-        new MethodMatcher("software.amazon.awssdk.services.s3.S3Client listBuckets()", true);
-    private static final MethodMatcher RESTORE_OBJECT =
-        new MethodMatcher("software.amazon.awssdk.services.s3.S3Client restoreObject(String, String, int)", true);
+    private static final String V2_S3_PKG = "software.amazon.awssdk.services.s3";
+
+    private static final MethodMatcher DISABLE_REQUESTER_PAYS = createMethodMatcher("disableRequesterPays(String)");
+    private static final MethodMatcher ENABLE_REQUESTER_PAYS = createMethodMatcher("enableRequesterPays(String)");
+    private static final MethodMatcher IS_REQUESTER_PAYS_ENABLED = createMethodMatcher("isRequesterPaysEnabled(String)");
+    private static final MethodMatcher GET_OBJECT_AS_STRING = createMethodMatcher("getObjectAsString(String, String)");
+    private static final MethodMatcher GET_URL = createMethodMatcher("getUrl(String, String)");
+    private static final MethodMatcher LIST_BUCKETS = createMethodMatcher("listBuckets()");
+    private static final MethodMatcher RESTORE_OBJECT = createMethodMatcher("restoreObject(String, String, int)");
     private static final MethodMatcher SET_OBJECT_REDIRECT_LOCATION =
-        new MethodMatcher("software.amazon.awssdk.services.s3.S3Client objectRedirectLocation(String, String, String)", true);
+        createMethodMatcher("objectRedirectLocation(String, String, String)");
+    private static final MethodMatcher CHANGE_OBJECT_STORAGE_CLASS = createMethodMatcher(
+        String.format("changeObjectStorageClass(String, String, %s.model.StorageClass)", V2_S3_PKG));
+    private static final MethodMatcher CREATE_BUCKET = createMethodMatcher("createBucket(String, String)");
+
+    private static MethodMatcher createMethodMatcher(String methodSignature) {
+        return new MethodMatcher(V2_S3_PKG + ".S3Client " + methodSignature, true);
+    }
 
     @Override
     public String getDisplayName() {
@@ -101,13 +103,35 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
                 method = transformSetObjectRedirectLocation(method);
                 return super.visitMethodInvocation(method, executionContext);
             }
+            if (CHANGE_OBJECT_STORAGE_CLASS.matches(method, false)) {
+                method = transformChangeObjectStorageClass(method);
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (CREATE_BUCKET.matches(method, false)) {
+                method = transformCreateBucket(method);
+                return super.visitMethodInvocation(method, executionContext);
+            }
             return super.visitMethodInvocation(method, executionContext);
         }
 
-        private J.MethodInvocation transformSetObjectRedirectLocation(J.MethodInvocation method) {
+        private J.MethodInvocation transformCreateBucket(J.MethodInvocation method) {
+            String v2Method = "#{any()}.createBucket(CreateBucketRequest.builder().bucket(#{any()})"
+                              + ".createBucketConfiguration(CreateBucketConfiguration.builder().locationConstraint(#{any()})"
+                              + ".build()).build())";
+
+            method = JavaTemplate.builder(v2Method).build()
+                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                        method.getArguments().get(0), method.getArguments().get(1));
+
+            addImport("CreateBucketRequest");
+            addImport("CreateBucketConfiguration");
+            return method;
+        }
+
+        private J.MethodInvocation transformChangeObjectStorageClass(J.MethodInvocation method) {
             String v2Method = "#{any()}.copyObject(CopyObjectRequest.builder().sourceBucket(#{any()}).sourceKey(#{any()})"
                               + ".destinationBucket(#{any()}).destinationKey(#{any()})"
-                              + ".metadataDirective(MetadataDirective.REPLACE).websiteRedirectLocation(#{any()}).build())";
+                              + ".storageClass(#{any()}).build())";
 
             method = JavaTemplate.builder(v2Method).build()
                                  .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
@@ -116,7 +140,21 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
                                         method.getArguments().get(2));
 
             addImport("CopyObjectRequest");
-            addImport("MetadataDirective");
+            return method;
+        }
+
+        private J.MethodInvocation transformSetObjectRedirectLocation(J.MethodInvocation method) {
+            String v2Method = "#{any()}.copyObject(CopyObjectRequest.builder().sourceBucket(#{any()}).sourceKey(#{any()})"
+                              + ".destinationBucket(#{any()}).destinationKey(#{any()})"
+                              + ".websiteRedirectLocation(#{any()}).build())";
+
+            method = JavaTemplate.builder(v2Method).build()
+                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                        method.getArguments().get(0), method.getArguments().get(1),
+                                        method.getArguments().get(0), method.getArguments().get(1),
+                                        method.getArguments().get(2));
+
+            addImport("CopyObjectRequest");
             return method;
         }
 
@@ -171,7 +209,6 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
                                         method.getArguments().get(0));
 
             addImport("GetBucketRequestPaymentRequest");
-            addImport("Payer");
             return method;
         }
 
@@ -192,8 +229,8 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
         }
 
         private void addImport(String pojoName) {
-            String fcqn = "software.amazon.awssdk.services.s3.model." + pojoName;
-            doAfterVisit(new AddImport<>(fcqn, null, false));
+            String fqcn = "software.amazon.awssdk.services.s3.model." + pojoName;
+            doAfterVisit(new AddImport<>(fqcn, null, false));
         }
     }
 }
