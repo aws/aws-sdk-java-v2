@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Device Farm",
+    "contributor": "",
+    "description": "Add an optional configuration to the ScheduleRun and CreateRemoteAccessSession API to set a device level http/s proxy."
+}
