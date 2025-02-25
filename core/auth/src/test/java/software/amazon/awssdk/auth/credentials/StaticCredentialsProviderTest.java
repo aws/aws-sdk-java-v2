@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 
 class StaticCredentialsProviderTest {
     @Test
@@ -39,8 +40,8 @@ class StaticCredentialsProviderTest {
                                                         .build();
         AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
         assertThat(actualCredentials).isEqualTo(credentials);
+        assertThat(actualCredentials.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_CODE.value());
     }
-
 
     @Test
     void getSessionAwsCredentials_ReturnsSameCredentials() {
@@ -48,7 +49,7 @@ class StaticCredentialsProviderTest {
         AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
         assertThat(credentials).isEqualTo(actualCredentials);
         assertThat(credentials.providerName()).isNotPresent();
-        assertThat(actualCredentials.providerName()).isPresent();
+        assertThat(actualCredentials.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_CODE.value());
     }
 
     @Test

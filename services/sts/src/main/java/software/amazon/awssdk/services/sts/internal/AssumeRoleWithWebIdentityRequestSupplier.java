@@ -28,15 +28,14 @@ import software.amazon.awssdk.utils.IoUtils;
 @SdkInternalApi
 public class AssumeRoleWithWebIdentityRequestSupplier implements Supplier<AssumeRoleWithWebIdentityRequest> {
 
-
     private final AssumeRoleWithWebIdentityRequest request;
     private final Path webIdentityTokenFile;
+    private final String source;
 
     public AssumeRoleWithWebIdentityRequestSupplier(Builder builder) {
-
         this.request = builder.request;
         this.webIdentityTokenFile = builder.webIdentityTokenFile;
-
+        this.source = builder.source;
     }
 
     public static Builder builder() {
@@ -46,6 +45,10 @@ public class AssumeRoleWithWebIdentityRequestSupplier implements Supplier<Assume
     @Override
     public AssumeRoleWithWebIdentityRequest get() {
         return request.toBuilder().webIdentityToken(getToken(webIdentityTokenFile)).build();
+    }
+
+    public String source() {
+        return source;
     }
 
     //file extraction
@@ -63,13 +66,15 @@ public class AssumeRoleWithWebIdentityRequestSupplier implements Supplier<Assume
 
         private Path webIdentityTokenFile;
 
+        private String source;
 
         public Builder assumeRoleWithWebIdentityRequest(AssumeRoleWithWebIdentityRequest request) {
             this.request = request;
             return this;
         }
 
-        public Builder webIdentityTokenFile(Path webIdentityTokenFile) {
+        public Builder webIdentityTokenFile(Path
+                                                webIdentityTokenFile) {
             this.webIdentityTokenFile = webIdentityTokenFile;
             return this;
         }
@@ -79,5 +84,9 @@ public class AssumeRoleWithWebIdentityRequestSupplier implements Supplier<Assume
         }
 
 
+        public Builder source(String source) {
+            this.source = source;
+            return this;
+        }
     }
 }
