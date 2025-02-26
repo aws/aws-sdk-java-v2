@@ -17,19 +17,23 @@ package software.amazon.awssdk.v2migration;
 
 import static org.openrewrite.java.Assertions.java;
 
+import java.io.IOException;
+import java.io.InputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnJre;
 import org.junit.jupiter.api.condition.JRE;
-import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
-public class TransferManagerToV2Test implements RewriteTest {
+public class ChangeTransferManagerTypesTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipes(new TransferManagerToV2())
-            .parser(Java8Parser.builder().classpath("s3"));
+        try (InputStream stream = getClass().getResourceAsStream("/META-INF/rewrite/change-transfer-manager-types.yml")) {
+            spec.recipe(stream, "software.amazon.awssdk.v2migration.ChangeTransferManagerTypes");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
@@ -64,11 +68,11 @@ public class TransferManagerToV2Test implements RewriteTest {
                 "\n" +
                 "class Test {\n" +
                 "    static void tm() {\n" +
-                "        TransferManager tm = TransferManagerBuilder.defaultTransferManager();\n" +
+                "        S3TransferManager tm = S3TransferManager.defaultTransferManager();\n" +
                 "        Download download = tm.download(\"bucket\", \"key\", new File(\"path/to/file.txt\"));\n" +
-                "        PersistableDownload persistableDownload = download.pause();\n" +
-                "        MultipleFileDownload multipleFileDownload = tm.downloadDirectory(\"bucket\", \"prefix\", new File(\"path/to/dir\"));\n" +
-                "        MultipleFileUpload multipleFileUpload = tm.uploadDirectory(\"bucket\", \"prefix\", new File(\"path/to/dir\"), true);\n" +
+                "        ResumableFileDownload persistableDownload = download.pause();\n" +
+                "        DirectoryDownload multipleFileDownload = tm.downloadDirectory(\"bucket\", \"prefix\", new File(\"path/to/dir\"));\n" +
+                "        DirectoryUpload multipleFileUpload = tm.uploadDirectory(\"bucket\", \"prefix\", new File(\"path/to/dir\"), true);\n" +
                 "    }\n" +
                 "}\n"
             )

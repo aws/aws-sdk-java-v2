@@ -26,4 +26,4 @@ recipeList:
       artifactId: s3-transfer-manager
       version: 2.30.24
       onlyIfUsing: com.amazonaws.services.s3.transfer.TransferManager
-  - software.amazon.awssdk.v2migration.TransferManagerToV2
+  - software.amazon.awssdk.v2migration.ChangeTransferManagerTypes
