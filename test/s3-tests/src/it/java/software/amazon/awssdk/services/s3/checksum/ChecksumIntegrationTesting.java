@@ -277,16 +277,18 @@ public class ChecksumIntegrationTesting {
                                 && config.getBaseConfig().getFlavor().isAsync(),
                                 "No way to create AsyncRequestBody by giving both an Publisher and the content length");
 
-        // Payload signing doesn't work correctly for async
-        Assumptions.assumeFalse(config.getBaseConfig().getFlavor().isAsync()
-                                && config.getBaseConfig().isPayloadSigning(),
-                                "Async payload signing doesn't work");
+        // Payload signing doesn't work correctly for async java based
+        Assumptions.assumeFalse(config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED
+                                && (config.getBaseConfig().isPayloadSigning()
+                                    // MRAP requires body signing
+                                    || config.getBaseConfig().getBucketType() == BucketType.MRAP),
+                                "Async payload signing doesn't work with Java based clients");
 
         // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
         // Async java based clients don't currently support unknown content-length bodies
         Assumptions.assumeFalse(config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED
                                 && config.getBodyType() == BodyType.CONTENT_PROVIDER_NO_LENGTH,
-                                "Async doesn't");
+                                "Async Java based support unknown content length");
 
         BucketType bucketType = config.getBaseConfig().getBucketType();
 
