@@ -68,6 +68,42 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.services.s3.AmazonS3 setBucketPolicy(com.amazonaws.services.s3.model.PutBucketPolicyRequest)
       newMethodName: putBucketPolicy
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 copyPart(com.amazonaws.services.s3.model.CopyPartRequest)
+      newMethodName: uploadPartCopy
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 setBucketAccelerateConfiguration(com.amazonaws.services.s3.model.SetBucketAccelerateConfigurationRequest)
+      newMethodName: putBucketAccelerateConfiguration
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 setBucketAnalyticsConfiguration(com.amazonaws.services.s3.model.SetBucketAnalyticsConfigurationRequest)
+      newMethodName: putBucketAnalyticsConfiguration
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 setBucketIntelligentTieringConfiguration(com.amazonaws.services.s3.model.SetBucketIntelligentTieringConfigurationRequest)
+      newMethodName: putBucketIntelligentTieringConfiguration
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 setBucketInventoryConfiguration(com.amazonaws.services.s3.model.SetBucketInventoryConfigurationRequest)
+      newMethodName: putBucketInventoryConfiguration
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 setBucketLifecycleConfiguration(com.amazonaws.services.s3.model.SetBucketLifecycleConfigurationRequest)
+      newMethodName: putBucketLifecycleConfiguration
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 setBucketMetricsConfiguration(com.amazonaws.services.s3.model.SetBucketMetricsConfigurationRequest)
+      newMethodName: putBucketMetricsConfiguration
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 setBucketNotificationConfiguration(com.amazonaws.services.s3.model.SetBucketNotificationConfigurationRequest)
+      newMethodName: putBucketNotificationConfiguration
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 setBucketOwnershipControls(com.amazonaws.services.s3.model.SetBucketOwnershipControlsRequest)
+      newMethodName: putBucketOwnershipControls
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 setBucketReplicationConfiguration(com.amazonaws.services.s3.model.SetBucketReplicationConfigurationRequest)
+      newMethodName: putBucketReplication
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 setBucketTaggingConfiguration(com.amazonaws.services.s3.model.SetBucketTaggingConfigurationRequest)
+      newMethodName: putBucketTagging
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 setBucketWebsiteConfiguration(com.amazonaws.services.s3.model.SetBucketWebsiteConfigurationRequest)
+      newMethodName: putBucketWebsite
 
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client getObjectMetadata(com.amazonaws.services.s3.model.GetObjectMetadataRequest)
@@ -120,6 +156,42 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client setBucketPolicy(com.amazonaws.services.s3.model.PutBucketPolicyRequest)
       newMethodName: putBucketPolicy
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client copyPart(com.amazonaws.services.s3.model.CopyPartRequest)
+      newMethodName: uploadPartCopy
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client setBucketAccelerateConfiguration(com.amazonaws.services.s3.model.SetBucketAccelerateConfigurationRequest)
+      newMethodName: putBucketAccelerateConfiguration
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client setBucketAnalyticsConfiguration(com.amazonaws.services.s3.model.SetBucketAnalyticsConfigurationRequest)
+      newMethodName: putBucketAnalyticsConfiguration
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client setBucketIntelligentTieringConfiguration(com.amazonaws.services.s3.model.SetBucketIntelligentTieringConfigurationRequest)
+      newMethodName: putBucketIntelligentTieringConfiguration
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client setBucketInventoryConfiguration(com.amazonaws.services.s3.model.SetBucketInventoryConfigurationRequest)
+      newMethodName: putBucketInventoryConfiguration
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client setBucketLifecycleConfiguration(com.amazonaws.services.s3.model.SetBucketLifecycleConfigurationRequest)
+      newMethodName: putBucketLifecycleConfiguration
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client setBucketMetricsConfiguration(com.amazonaws.services.s3.model.SetBucketMetricsConfigurationRequest)
+      newMethodName: putBucketMetricsConfiguration
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client setBucketNotificationConfiguration(com.amazonaws.services.s3.model.SetBucketNotificationConfigurationRequest)
+      newMethodName: putBucketNotificationConfiguration
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client setBucketOwnershipControls(com.amazonaws.services.s3.model.SetBucketOwnershipControlsRequest)
+      newMethodName: putBucketOwnershipControls
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client setBucketReplicationConfiguration(com.amazonaws.services.s3.model.SetBucketReplicationConfigurationRequest)
+      newMethodName: putBucketReplication
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client setBucketTaggingConfiguration(com.amazonaws.services.s3.model.SetBucketTaggingConfigurationRequest)
+      newMethodName: putBucketTagging
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3Client setBucketWebsiteConfiguration(com.amazonaws.services.s3.model.SetBucketWebsiteConfigurationRequest)
+      newMethodName: putBucketWebsite
 
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.services.s3.model.BucketCrossOriginConfiguration withRules(com.amazonaws.services.s3.model.CORSRule...)
@@ -129,4 +201,16 @@ recipeList:
       newMethodName: withBucket
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.services.s3.model.ListObjectsV2Request withBucketName(String)
+      newMethodName: withBucket
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.model.CopyPartRequest withSourceBucketName(String)
+      newMethodName: withSourceBucket
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.model.CopyPartRequest withDestinationBucketName(String)
+      newMethodName: withDestinationBucket
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.model.analytics.AnalyticsS3BucketDestination withBucketArn(String)
+      newMethodName: withBucket
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.model.CompleteMultipartUploadRequest withBucketName(String)
       newMethodName: withBucket
