@@ -42,6 +42,7 @@ phases:
         sed -i -E "s/(<awsjavasdk.previous.version>).+(<\/awsjavasdk.previous.version>)/\1$RELEASE_VERSION\2/" pom.xml
         sed -i -E "s/(newVersion: ).+/\1$RELEASE_VERSION/" v2-migration/src/main/resources/META-INF/rewrite/upgrade-sdk-dependencies.yml
         sed -i -E "s/(version: ).+/\1$RELEASE_VERSION/" v2-migration/src/main/resources/META-INF/rewrite/upgrade-sdk-dependencies.yml
+        sed -i -E "s/(version: ).+/\1$RELEASE_VERSION/" v2-migration/src/main/resources/META-INF/rewrite/upgrade-transfer-manager.yml
       
         git commit -am "Update to next snapshot version: $NEW_VERSION_SNAPSHOT"
       fi
