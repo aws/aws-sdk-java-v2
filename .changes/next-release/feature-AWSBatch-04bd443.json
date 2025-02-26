@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Batch",
+    "contributor": "",
+    "description": "AWS Batch: Resource Aware Scheduling feature support"
+}
