@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB Enhanced Client",
-    "contributor": "",
-    "description": "Add support in BeanTableSchema for beans that use fluent setters."
-}
