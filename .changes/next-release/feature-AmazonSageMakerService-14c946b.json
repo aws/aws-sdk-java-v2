@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "AWS SageMaker InferenceComponents now support rolling update deployments for Inference Components."
-}

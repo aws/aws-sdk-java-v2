@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "CloudWatch Observability Access Manager",
-    "contributor": "",
-    "description": "This release adds support for sharing AWS::ApplicationSignals::Service and AWS::ApplicationSignals::ServiceLevelObjective resources."
-}
