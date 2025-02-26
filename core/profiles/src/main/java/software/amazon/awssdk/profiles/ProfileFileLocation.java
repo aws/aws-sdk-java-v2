@@ -24,12 +24,16 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * A collection of static methods for loading the location for configuration and credentials files.
  */
 @SdkPublicApi
 public final class ProfileFileLocation {
+
+    private static final Logger LOG = Logger.loggerFor(ProfileFileLocation.class);
+
     private static final Pattern HOME_DIRECTORY_PATTERN =
         Pattern.compile("^~(/|" + Pattern.quote(FileSystems.getDefault().getSeparator()) + ").*$");
 
@@ -87,6 +91,16 @@ public final class ProfileFileLocation {
     }
 
     private static Optional<Path> resolveIfExists(Path path) {
-        return Optional.ofNullable(path).filter(Files::isRegularFile).filter(Files::isReadable);
+        return Optional.ofNullable(path).filter(ProfileFileLocation::isReadableRegularFile);
+    }
+
+    private static boolean isReadableRegularFile(Path path) {
+        try {
+            return Files.isRegularFile(path) && Files.isReadable(path);
+        } catch (SecurityException e) {
+            // Treats SecurityExceptions from JVM as non-existent file.
+            LOG.debug(() -> String.format("Security restrictions prevented access to profile file: %s", e.getMessage()), e);
+            return false;
+        }
     }
 }

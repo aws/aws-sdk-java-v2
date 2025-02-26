@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Handle SecurityException for ProfileFileLocation access checks while accessing aws shared credentials file."
+}
