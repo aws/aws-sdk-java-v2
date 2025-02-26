@@ -166,6 +166,7 @@ public class CodeGenerator {
             this.fileNamePrefix = fileNamePrefix;
             return this;
         }
+
         /**
          * @return An immutable {@link CodeGenerator} object.
          */
