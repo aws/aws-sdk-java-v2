@@ -1,4 +1,50 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.28__ __2025-02-25__
+## __AWS CodeBuild__
+  - ### Features
+    - Adding "reportArns" field in output of BatchGetBuildBatches API. "reportArns" is an array that contains the ARNs of reports created by merging reports from builds associated with the batch build.
+
+## __AWS Device Farm__
+  - ### Features
+    - Add an optional configuration to the ScheduleRun and CreateRemoteAccessSession API to set a device level http/s proxy.
+
+## __AWS IoT__
+  - ### Features
+    - AWS IoT - AWS IoT Device Defender adds support for a new Device Defender Audit Check that monitors device certificate age and custom threshold configurations for both the new device certificate age check and existing device certificate expiry check.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for time-based EBS-backed AMI copy operations. Time-based copy ensures that EBS-backed AMIs are copied within and across Regions in a specified timeframe.
+
+## __Tax Settings__
+  - ### Features
+    - PutTaxRegistration API changes for Egypt, Greece, Vietnam countries
+
+# __2.30.27__ __2025-02-24__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release improves support for newer models in Amazon Bedrock Flows.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Adding support for ReasoningContent fields in Pre-Processing, Post-Processing and Orchestration Trace outputs.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds Reasoning Content support to Converse and ConverseStream APIs
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Documentation update, adding clarity and rephrasing.
+
 # __2.30.26__ __2025-02-21__
 ## __AWS CRT HTTP Client__
   - ### Features
