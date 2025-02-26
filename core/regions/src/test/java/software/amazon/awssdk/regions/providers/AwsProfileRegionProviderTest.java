@@ -25,8 +25,9 @@ import java.security.Permission;
 import java.util.List;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -35,13 +36,22 @@ import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.testutils.LogCaptor;
 import org.junit.jupiter.api.condition.JRE;
 
-public class AwsProfileRegionProviderTest {
+class AwsProfileRegionProviderTest {
 
-    @Rule
-    public EnvironmentVariableHelper settingsHelper = new EnvironmentVariableHelper();
+    public EnvironmentVariableHelper settingsHelper;
+
+    @BeforeEach
+    void setUp() {
+        settingsHelper = new EnvironmentVariableHelper();
+    }
+
+    @AfterEach
+    void tearDown() {
+        settingsHelper.reset();
+    }
 
     @Test
-    public void nonExistentDefaultConfigFile_ThrowsException() {
+    void nonExistentDefaultConfigFile_ThrowsException() {
         settingsHelper.set(ProfileFileSystemSetting.AWS_CONFIG_FILE, "/var/tmp/this/is/invalid.txt");
         settingsHelper.set(ProfileFileSystemSetting.AWS_SHARED_CREDENTIALS_FILE, "/var/tmp/this/is/also.invalid.txt");
         assertThatThrownBy(() -> new AwsProfileRegionProvider().getRegion())
@@ -50,7 +60,7 @@ public class AwsProfileRegionProviderTest {
     }
 
     @Test
-    public void profilePresentAndRegionIsSet_ProvidesCorrectRegion() throws URISyntaxException {
+    void profilePresentAndRegionIsSet_ProvidesCorrectRegion() throws URISyntaxException {
         String testFile = "/profileconfig/test-profiles.tst";
 
         settingsHelper.set(ProfileFileSystemSetting.AWS_PROFILE, "test");
@@ -60,7 +70,7 @@ public class AwsProfileRegionProviderTest {
 
     @Test
     @EnabledForJreRange(min = JRE.JAVA_8, max = JRE.JAVA_16)
-    public void profilePresentAndRegionIsSet_ProvidesCorrectRegion_withException() throws URISyntaxException {
+    void profilePresentAndRegionIsSet_ProvidesCorrectRegion_withException() throws URISyntaxException {
         // Set up test configuration
         String testFile = "/profileconfig/test-profiles.tst";
         settingsHelper.set(ProfileFileSystemSetting.AWS_PROFILE, "test");
