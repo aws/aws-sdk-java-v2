@@ -23,6 +23,7 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.cborServiceMo
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customContentTypeModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customPackageModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.endpointDiscoveryModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.opsWithSigv4a;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.rpcv2ServiceModels;
@@ -114,6 +115,12 @@ public class AsyncClientClassTest {
     public void asyncClientBatchManager() {
         ClassSpec aSyncClientBatchManager = createAsyncClientClass(batchManagerModels());
         assertThat(aSyncClientBatchManager, generatesTo("test-batchmanager-async.java"));
+    }
+
+    @Test
+    public void asyncClientWithStreamingUnsignedPayload() {
+        AsyncClientClass asyncClientClass = createAsyncClientClass(opsWithSigv4a(), false);
+        assertThat(asyncClientClass, generatesTo("test-unsigned-payload-trait-async-client-class.java"));
     }
 
     private AsyncClientClass createAsyncClientClass(IntermediateModel model) {

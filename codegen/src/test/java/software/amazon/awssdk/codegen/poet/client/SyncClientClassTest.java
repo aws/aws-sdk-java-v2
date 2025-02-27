@@ -21,6 +21,7 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.cborServiceMo
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customContentTypeModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customPackageModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.endpointDiscoveryModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.opsWithSigv4a;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.rpcv2ServiceModels;
@@ -104,4 +105,11 @@ public class SyncClientClassTest {
         model.getCustomizationConfig().setUseSraAuth(useSraAuth);
         return createSyncClientClass(model);
     }
+
+    @Test
+    public void syncClientClassWithUnsignedPayload() {
+        SyncClientClass syncClientClass = createSyncClientClass(opsWithSigv4a());
+        assertThat(syncClientClass, generatesTo("test-unsigned-payload-trait-sync-client-class.java"));
+    }
+
 }
