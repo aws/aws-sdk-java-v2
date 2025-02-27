@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.30__ __2025-02-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue in AwsServiceException#getMessage() where it returned an empty string instead of null when the message is null.
+    - Handle SecurityException for ProfileFileLocation access checks while accessing aws shared credentials file.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - This release adds support to invoke a process that cleans the specified file share's cache of file entries that are failing upload to Amazon S3.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Introduces Sessions (preview) to enable stateful conversations in GenAI applications.
+
+## __Amazon EMR__
+  - ### Features
+    - Definition update for EbsConfiguration.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker HubService is introducing support for creating Training Jobs in Curated Hub (Private Hub). Additionally, it is introducing two new APIs: UpdateHubContent and UpdateHubContentReference.
+
+## __QBusiness__
+  - ### Features
+    - This release supports deleting attachments from conversations.
+
+## __Redshift Serverless__
+  - ### Features
+    - Add track support for Redshift Serverless workgroup.
+
 # __2.30.29__ __2025-02-26__
 ## __AWS Batch__
   - ### Features
