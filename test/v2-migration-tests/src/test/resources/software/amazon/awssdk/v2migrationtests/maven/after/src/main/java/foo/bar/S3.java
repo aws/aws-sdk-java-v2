@@ -15,6 +15,7 @@
 
 package foo.bar;
 
+import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
@@ -25,6 +26,8 @@ import software.amazon.awssdk.services.s3.model.BucketAccelerateStatus;
 import software.amazon.awssdk.services.s3.model.BucketLifecycleConfiguration;
 import software.amazon.awssdk.services.s3.model.CORSConfiguration;
 import software.amazon.awssdk.services.s3.model.CORSRule;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
@@ -141,6 +144,21 @@ public class S3 {
             .build();
         CreateMultipartUploadResponse initiateMultipartUploadResult = s3.createMultipartUpload(initiateMultipartUploadRequest);
         System.out.println(initiateMultipartUploadResult);
+    }
+
+    private void completeMpu(S3Client s3, String bucket, String key) {
+        CompletedPart partETag = CompletedPart.builder().partNumber(7).eTag("etag")
+            .build();
+        List<CompletedPart> partETags = new ArrayList<>();
+        partETags.add(partETag);
+
+        CompleteMultipartUploadRequest completeMpuRequest1 =
+            CompleteMultipartUploadRequest.builder().bucket(bucket).key(key).multipartUpload(CompletedMultipartUpload.builder().parts(partETags).build())
+            .build();
+
+        CompleteMultipartUploadRequest completeMpuRequest2 =
+            CompleteMultipartUploadRequest.builder().bucket(bucket).key(key).uploadId("uploadId").multipartUpload(CompletedMultipartUpload.builder().parts(partETags).build())
+                .build();
     }
 
     private void listObjects(S3Client s3, String bucket) {
@@ -322,8 +340,6 @@ public class S3 {
             .build();
         PutBucketWebsiteRequest websiteRequest = PutBucketWebsiteRequest.builder().bucket(bucket).websiteConfiguration(WebsiteConfiguration.builder()
             .build())
-            .build();
-        CompletedPart partETag = CompletedPart.builder().partNumber(7).eTag("etag")
             .build();
     }
 
