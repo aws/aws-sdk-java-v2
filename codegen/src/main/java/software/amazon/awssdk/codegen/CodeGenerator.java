@@ -82,14 +82,12 @@ public class CodeGenerator {
             if (fileNamePrefix != null) {
                 writeIntermediateModel(intermediateModel);
             }
-
             emitCode(intermediateModel);
 
         } catch (Exception e) {
             log.error(() -> "Failed to generate code. ", e);
             throw new RuntimeException(
                     "Failed to generate code. Exception message : " + e.getMessage(), e);
-
         }
     }
 
