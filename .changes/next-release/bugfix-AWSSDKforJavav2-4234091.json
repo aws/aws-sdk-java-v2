@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Fixing getMessage behavior of AwsServiceException to be nullable"
+    "description": "Fixed an issue in AwsServiceException#getMessage() where it returned an empty string instead of null when the message is null."
 }
