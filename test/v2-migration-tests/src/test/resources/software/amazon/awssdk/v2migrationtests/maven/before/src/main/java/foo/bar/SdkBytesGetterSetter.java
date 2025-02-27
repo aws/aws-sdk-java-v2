@@ -17,11 +17,19 @@ package foo.bar;
 
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
-public class SdkBytes {
+public class SdkBytesGetterSetter {
+
+    void byteBufferSetter() {
+        ByteBuffer buffer = ByteBuffer.wrap("helloworld".getBytes(StandardCharsets.UTF_8));
+        MessageAttributeValue messageAttributeValue = new MessageAttributeValue()
+            .withBinaryValue(buffer);
+    }
 
     void sdkBytesGetters() {
         MessageAttributeValue messageAttributeValue = new MessageAttributeValue();
+
         ByteBuffer binaryValue = messageAttributeValue.getBinaryValue();
         String binaryString = new String(messageAttributeValue.getBinaryValue().array());
     }
