@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Storage Gateway",
+    "contributor": "",
+    "description": "This release adds support to invoke a process that cleans the specified file share's cache of file entries that are failing upload to Amazon S3."
+}
