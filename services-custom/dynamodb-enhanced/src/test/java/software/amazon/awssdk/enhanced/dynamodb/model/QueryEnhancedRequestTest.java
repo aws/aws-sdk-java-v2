@@ -23,6 +23,7 @@ import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.util.*;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -183,4 +184,12 @@ public class QueryEnhancedRequestTest {
         assertThat(copiedObject, is(builtObject));
     }
 
+    @org.junit.jupiter.api.Test
+    public void testSelectWithStringInput() {
+        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
+                                                           .select("ALL_ATTRIBUTES")
+                                                           .build();
+
+        assertThat(Select.ALL_ATTRIBUTES, is(request.select()));
+    }
 }
