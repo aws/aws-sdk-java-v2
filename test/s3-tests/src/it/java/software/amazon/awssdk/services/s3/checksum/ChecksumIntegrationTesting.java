@@ -132,7 +132,7 @@ public class ChecksumIntegrationTesting {
 
     @BeforeAll
     static void setup() throws InterruptedException, IOException {
-        Log.initLoggingToStdout(Log.LogLevel.Trace);
+        // Log.initLoggingToStdout(Log.LogLevel.Trace);
 
         s3 = S3Client.builder()
                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
