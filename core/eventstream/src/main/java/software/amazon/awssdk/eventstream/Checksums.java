@@ -17,9 +17,9 @@ package software.amazon.awssdk.eventstream;
 
 import java.nio.ByteBuffer;
 import java.util.zip.Checksum;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
-@SdkProtectedApi
+@SdkInternalApi
 final class Checksums {
 
     private Checksums() {

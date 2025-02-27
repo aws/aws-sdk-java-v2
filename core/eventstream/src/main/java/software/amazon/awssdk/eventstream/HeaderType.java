@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.eventstream;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
-@SdkProtectedApi
+@SdkInternalApi
 enum HeaderType {
     TRUE(0),
     FALSE(1),

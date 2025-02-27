@@ -20,9 +20,9 @@ import static java.lang.String.format;
 import java.nio.ByteBuffer;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
-@SdkProtectedApi
+@SdkInternalApi
 final class Prelude {
     static final int LENGTH = 8;
     static final int LENGTH_WITH_CRC = LENGTH + 4;

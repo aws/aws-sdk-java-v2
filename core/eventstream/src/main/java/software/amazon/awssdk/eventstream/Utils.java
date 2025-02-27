@@ -20,9 +20,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
-@SdkProtectedApi
+@SdkInternalApi
 final class Utils {
 
     private Utils() {
