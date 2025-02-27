@@ -48,29 +48,14 @@ public final class RuleUrl {
         String path = parsed.getPath();
         if (parsed.getQuery() != null) {
             return null;
-
         }
-        boolean isIpAddr = false;
         String host = parsed.getHost();
-        if (host.startsWith("[") && host.endsWith("]")) {
-            isIpAddr = true;
-        }
-        String[] dottedParts = host.split("\\.");
-        if (dottedParts.length == 4) {
-            if (Arrays.stream(dottedParts).allMatch(part -> {
-                try {
-                    int value = Integer.parseInt(part);
-                    return value >= 0 && value <= 255;
-                } catch (NumberFormatException ex) {
-                    return false;
-                }
-            })) {
-                isIpAddr = true;
-            }
-        }
+        boolean isIpAddr = (host.startsWith("[") && host.endsWith("]")) || isIpAddr(host);
         String normalizedPath;
         if (StringUtils.isBlank(path)) {
             normalizedPath = "/";
+        } else if (path.startsWith("/") && path.endsWith("/")) {
+            normalizedPath = path;
         } else {
             StringBuilder builder = new StringBuilder();
             if (!path.startsWith("/")) {
@@ -84,5 +69,59 @@ public final class RuleUrl {
         }
 
         return new RuleUrl(parsed.getProtocol(), parsed.getAuthority(), path, normalizedPath, isIpAddr);
+    }
+
+    private static boolean isIpAddr(String host) {
+        int from = 0;
+        int segments = 0;
+        boolean done = false;
+        while (!done) {
+            int index = host.indexOf('.', from);
+            if (index == -1) {
+                if (segments != 3) {
+                    // E.g., 123.com
+                    return false;
+                }
+                index = host.length();
+                done = true;
+            } else if (segments == 3) {
+                // E.g., 1.2.3.4.5
+                return false;
+            }
+            int length = index - from;
+            if (length == 1) {
+                char ch0 = host.charAt(from);
+                if (ch0 < '0' || ch0 > '9') {
+                    return false;
+                }
+            } else if (length == 2) {
+                char ch0 = host.charAt(from);
+                char ch1 = host.charAt(from + 1);
+                if ((ch0 < '0' || ch0 > '9') || (ch1 < '0' || ch1 > '9')) {
+                    return false;
+                }
+            } else if (length == 3) {
+                char ch0 = host.charAt(from);
+                char ch1 = host.charAt(from + 1);
+                char ch2 = host.charAt(from + 2);
+                if ((ch0 < '0' || ch0 > '9')
+                        || (ch1 < '0' || ch1 > '9')
+                        || (ch2 < '0' || ch2 > '9')
+                ) {
+                    return false;
+                }
+                int value = (host.charAt(from) - '0') * 100
+                        + (host.charAt(from + 1) - '0') * 10
+                        + (host.charAt(from + 2) - '0');
+                if (value > 255) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+            from = index + 1;
+            segments += 1;
+        }
+        return true;
     }
 }
