@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.29__ __2025-02-26__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch: Resource Aware Scheduling feature support
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - This release adds an optional listResponseScope request parameter in certain list API requests to limit the response to metadata only.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime__
+  - ### Features
+    - Removes the Amazon Chime SDK APIs from the "chime" namespace. Amazon Chime SDK APIs continue to be available in the AWS SDK via the dedicated Amazon Chime SDK namespaces: chime-sdk-identity, chime-sdk-mediapipelines, chime-sdk-meetings, chime-sdk-messaging, and chime-sdk-voice.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Documentation update for VPC origin config.
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - This release adds API support for reading Service Level Objectives and Services from monitoring accounts, from SLO and Service-scoped operations, including ListServices and ListServiceLevelObjectives.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Add support in BeanTableSchema for beans that use fluent setters.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 Fleet customers can now override the Block Device Mapping specified in the Launch Template when creating a new Fleet request, saving the effort of creating and associating new Launch Templates to customize the Block Device Mapping.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - AWS SageMaker InferenceComponents now support rolling update deployments for Inference Components.
+
+## __CloudWatch Observability Access Manager__
+  - ### Features
+    - This release adds support for sharing AWS::ApplicationSignals::Service and AWS::ApplicationSignals::ServiceLevelObjective resources.
+
 # __2.30.28__ __2025-02-25__
 ## __AWS CodeBuild__
   - ### Features
@@ -154,7 +195,7 @@
 
 ## __Amazon Cloudfront__
   - ### Bugfixes
-    - Decouple policy logic from resource url for getSignedUrlWithCustomPolicy
+    - Allow users to specify resource URL pattern in `CloudFrontUtilities#getSignedUrlWithCustomPolicy`. See [#5577](https://github.com/aws/aws-sdk-java-v2/issues/5577)
 
 ## __Amazon EMR Containers__
   - ### Features

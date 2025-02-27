@@ -20,6 +20,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,7 @@ public class JPathRuntimeValueTest {
     public void valueReturnsConstructorInput() {
         assertThat(new Value(null).value()).isEqualTo(null);
         assertThat(new Value(sdkPojo()).value()).isEqualTo(sdkPojo());
-        assertThat(new Value(5).value()).isEqualTo(5);
+        assertThat(new Value(5).value()).isEqualTo(new BigDecimal(5));
         assertThat(new Value("").value()).isEqualTo("");
         assertThat(new Value(true).value()).isEqualTo(true);
         assertThat(new Value(emptyList()).value()).isEqualTo(emptyList());
@@ -48,7 +49,7 @@ public class JPathRuntimeValueTest {
     @Test
     public void valuesReturnsListForm() {
         assertThat(new Value(null).values()).isEqualTo(emptyList());
-        assertThat(new Value(5).values()).isEqualTo(singletonList(5));
+        assertThat(new Value(5).values()).isEqualTo(singletonList(new BigDecimal(5)));
         assertThat(new Value("").values()).isEqualTo(singletonList(""));
         assertThat(new Value(true).values()).isEqualTo(singletonList(true));
         assertThat(new Value(singletonList("a")).values()).isEqualTo(singletonList("a"));
@@ -247,7 +248,7 @@ public class JPathRuntimeValueTest {
     @Test
     public void multiSelectListBehaves() {
         assertThat(new Value(5).multiSelectList(x -> new Value(1), x -> new Value(2)))
-            .isEqualTo(new Value(asList(1, 2)));
+            .isEqualTo(new Value(asList(new BigDecimal(1), new BigDecimal(2))));
     }
 
     private Value booleanTrue() {

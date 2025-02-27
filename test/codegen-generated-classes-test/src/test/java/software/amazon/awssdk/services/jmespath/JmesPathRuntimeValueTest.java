@@ -21,6 +21,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,7 @@ class JmesPathRuntimeValueTest {
     @Test
     void valueReturnsConstructorInput() {
         assertThat(new Value(null).value()).isEqualTo(null);
-        assertThat(new Value(5).value()).isEqualTo(5);
+        assertThat(new Value(5).value()).isEqualTo(new BigDecimal(5));
         assertThat(new Value("").value()).isEqualTo("");
         assertThat(new Value(true).value()).isEqualTo(true);
         assertThat(new Value(emptyList()).value()).isEqualTo(emptyList());
@@ -60,7 +61,7 @@ class JmesPathRuntimeValueTest {
     @Test
     void valuesReturnsListForm() {
         assertThat(new Value(null).values()).isEqualTo(emptyList());
-        assertThat(new Value(5).values()).isEqualTo(singletonList(5));
+        assertThat(new Value(5).values()).isEqualTo(singletonList(new BigDecimal(5)));
         assertThat(new Value("").values()).isEqualTo(singletonList(""));
         assertThat(new Value(true).values()).isEqualTo(singletonList(true));
         assertThat(new Value(singletonList("a")).values()).isEqualTo(singletonList("a"));
@@ -73,7 +74,7 @@ class JmesPathRuntimeValueTest {
         assertThatThrownBy(() -> new Value(simpleSdkPojo()).booleanValue()).isInstanceOf(IllegalStateException.class)
                                                                            .hasMessageContaining("Cannot convert type POJO");
         assertThatThrownBy(() -> new Value(5).booleanValue()).isInstanceOf(IllegalStateException.class)
-                                                             .hasMessageContaining("Cannot convert type INTEGER");
+                                                             .hasMessageContaining("Cannot convert type NUMBER");
         assertThat(new Value("").booleanValue()).isEqualTo(false);
         assertThat(new Value(true).booleanValue()).isEqualTo(true);
         assertThatThrownBy(() -> new Value(emptyList()).booleanValue()).isInstanceOf(IllegalStateException.class)
@@ -382,9 +383,28 @@ class JmesPathRuntimeValueTest {
     }
 
     @Test
+    void compareNumberBehaves() {
+        assertThat(new Value(1).compare("<", new Value(1.5))).isEqualTo(new Value(true));
+        assertThat(new Value(2.0).compare(">", new Value(1L))).isEqualTo(new Value(true));
+        assertThat(new Value(1.0f).compare(">=", new Value(1))).isEqualTo(new Value(true));
+        assertThat(new Value(1L).compare("<=", new Value(1.0))).isEqualTo(new Value(true));
+        assertThat(new Value(1.0).compare("!=", new Value(1.1f))).isEqualTo(new Value(true));
+        assertThat(new Value(2L).compare("==", new Value(2.0))).isEqualTo(new Value(true));
+
+        assertThat(new Value(1.5).compare("<", new Value(1))).isEqualTo(new Value(false));
+        assertThat(new Value(1L).compare(">", new Value(2.0))).isEqualTo(new Value(false));
+        assertThat(new Value(0.9f).compare(">=", new Value(1))).isEqualTo(new Value(false));
+        assertThat(new Value(1.1).compare("<=", new Value(1L))).isEqualTo(new Value(false));
+        assertThat(new Value(1.0).compare("!=", new Value(1))).isEqualTo(new Value(false));
+        assertThat(new Value(2L).compare("==", new Value(2.1))).isEqualTo(new Value(false));
+        assertThat(new Value(new BigDecimal("0.1000000000000000000001")).compare("==", new Value(new BigDecimal("0.1"))))
+            .isEqualTo(new Value(false));
+    }
+
+    @Test
     void multiSelectListBehaves() {
         assertThat(new Value(5).multiSelectList(x -> new Value(1), x -> new Value(2)))
-            .isEqualTo(new Value(asList(1, 2)));
+            .isEqualTo(new Value(asList(new BigDecimal(1), new BigDecimal(2))));
     }
 
     @Test
@@ -394,9 +414,9 @@ class JmesPathRuntimeValueTest {
         functionMap.put("k2", x -> new Value(2));
 
 
-        Map<String, Integer> expectedMap = new HashMap<>();
-        expectedMap.put("k1", 1);
-        expectedMap.put("k2", 2);
+        Map<String, Number> expectedMap = new HashMap<>();
+        expectedMap.put("k1", new BigDecimal(1));
+        expectedMap.put("k2", new BigDecimal(2));
         assertThat(new Value(MAP).multiSelectHash(functionMap)).isEqualTo(new Value(expectedMap));
     }
 

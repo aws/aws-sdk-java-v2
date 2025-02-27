@@ -245,5 +245,37 @@ public class WaitersAsyncFunctionalTest {
             .isInstanceOf(CompletionException.class);
     }
 
+    @Test
+    public void numberPathMatcher_evaluatesTrue_whenValuesMatch() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .floatMember(42.5F)
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+        CompletableFuture<AllTypesResponse> serviceFuture =  CompletableFuture.completedFuture(response);
+        when(asyncClient.allTypes(any(AllTypesRequest.class)))
+            .thenReturn(serviceFuture);
 
+        WaiterResponse<AllTypesResponse> waiterResponse = asyncWaiter.waitUntilFloatValueTest(b -> b.build()).join();
+        assertThat(waiterResponse.attemptsExecuted()).isEqualTo(1);
+        assertThat(waiterResponse.matched().response()).hasValueSatisfying(r -> assertThat(r).isEqualTo(response));
+    }
+
+    @Test
+    public void numberPathMatcher_evaluatesFalse_whenValuesDontMatch() {
+        AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
+                                                                       .floatMember(43.5F)
+                                                                       .sdkHttpResponse(SdkHttpResponse.builder()
+                                                                                                       .statusCode(200)
+                                                                                                       .build())
+                                                                       .build();
+        CompletableFuture<AllTypesResponse> serviceFuture =  CompletableFuture.completedFuture(response);
+        when(asyncClient.allTypes(any(AllTypesRequest.class)))
+            .thenReturn(serviceFuture);
+
+        assertThatThrownBy(() ->
+                               asyncWaiter.waitUntilFloatValueTest(b -> b.build()).join())
+            .hasMessageContaining("exceeded the max retry attempts").hasCauseInstanceOf(SdkClientException.class);
+    }
 }
