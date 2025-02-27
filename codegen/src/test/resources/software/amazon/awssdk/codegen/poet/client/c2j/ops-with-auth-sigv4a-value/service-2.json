@@ -215,6 +215,26 @@
             "auth": ["aws.auth#sigv4","aws.auth#sigv4a"],
             "unsignedPayload": true,
             "documentation": "<p>Performs a GET request to get-row with unsigned payload and auth as sigv4 and sigv4a.</p>"
+        },
+        "opWithSigv4UnSignedPayloadAndStreaming": {
+            "name": "opWithSigv4UnSignedPayload",
+            "http": {
+                "method": "GET",
+                "requestUri": "/get-row/"
+            },
+            "input": {
+                "shape": "GetRowRequestWithStreaming"
+            },
+            "output": {
+                "shape": "GetRowResponse"
+            },
+            "errors": [
+                {
+                    "shape": "InvalidInputException"
+                }
+            ],
+            "unsignedPayload": true,
+            "documentation": "<p>Performs a GET with unsignedPayload streaming.</p>"
         }
     },
     "shapes": {
@@ -287,6 +307,17 @@
             },
             "exception": true
         },
+        "GetRowRequestWithStreaming":{
+            "type":"structure",
+            "members":{
+                "Body":{
+                    "shape":"Body",
+                    "streaming":true
+                }
+            },
+            "payload":"Body"
+        },
+        "Body":{"type":"blob"},
         "String":{"type":"string"},
         "invalidInputMessage":{"type":"string"}
     },
