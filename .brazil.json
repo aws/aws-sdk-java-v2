@@ -45,6 +45,7 @@
         "http-auth-aws-eventstream": { "packageName": "AwsJavaSdk-Core-HttpAuthAwsEventStream" },
         "retries-spi": { "packageName": "AwsJavaSdk-Core-RetriesSpi" },
         "retries": { "packageName": "AwsJavaSdk-Core-Retries" },
+        "eventstream": { "packageName": "AwsJavaSdk-Core-EventStream" },
 
         "dynamodb": { "packageName": "AwsJavaSdk-DynamoDb" },
         "waf": { "packageName": "AwsJavaSdk-Waf" },

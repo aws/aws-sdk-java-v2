@@ -247,6 +247,11 @@
                 <artifactId>endpoints-spi</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>eventstream</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
             <!-- Services -->
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
