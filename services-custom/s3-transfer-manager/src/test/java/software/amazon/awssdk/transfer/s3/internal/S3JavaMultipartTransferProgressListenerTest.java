@@ -25,6 +25,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
@@ -32,6 +33,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.BeforeAll;
@@ -113,8 +115,8 @@ public class S3JavaMultipartTransferProgressListenerTest {
                                 .addTransferListener(transferListenerMock)
                                 .build());
 
+        assertTransferListenerCompletion(transferListener);
         assertThatExceptionOfType(CompletionException.class).isThrownBy(() -> fileUpload.completionFuture().join());
-        Thread.sleep(500);
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(NoSuchBucketException.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -142,9 +144,8 @@ public class S3JavaMultipartTransferProgressListenerTest {
                                 .addTransferListener(transferListenerMock)
                                 .build());
 
+        assertTransferListenerCompletion(transferListener);
         assertThatExceptionOfType(CompletionException.class).isThrownBy(() -> fileUpload.completionFuture().join());
-        Thread.sleep(500);
-
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(S3Exception.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -171,9 +172,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
                             .addTransferListener(transferListener)
                             .addTransferListener(transferListenerMock)
                             .build()).completionFuture().cancel(true);
-
-        Thread.sleep(500);
-
+        assertTransferListenerCompletion(transferListener);
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(CancellationException.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -202,7 +201,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
                             .addTransferListener(transferListenerMock)
                             .build()).completionFuture().join();
 
-        Thread.sleep(500);
+        assertTransferListenerCompletion(transferListener);
         assertThat(transferListener.getExceptionCaught()).isNull();
         assertThat(transferListener.isTransferComplete()).isTrue();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -235,9 +234,8 @@ public class S3JavaMultipartTransferProgressListenerTest {
                           .addTransferListener(transferListener)
                           .addTransferListener(transferListenerMock)
                           .build());
-
+        assertTransferListenerCompletion(transferListener);
         assertThatExceptionOfType(CompletionException.class).isThrownBy(() -> copy.completionFuture().join());
-        Thread.sleep(500);
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(NoSuchKeyException.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -266,8 +264,8 @@ public class S3JavaMultipartTransferProgressListenerTest {
                           .addTransferListener(transferListenerMock)
                           .build());
 
+        assertTransferListenerCompletion(transferListener);
         assertThatExceptionOfType(CompletionException.class).isThrownBy(() -> copy.completionFuture().join());
-        Thread.sleep(500);
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(S3Exception.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -295,7 +293,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
                       .addTransferListener(transferListenerMock)
                       .build()).completionFuture().cancel(true);
 
-        Thread.sleep(500);
+        assertTransferListenerCompletion(transferListener);
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(CancellationException.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -339,7 +337,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
                       .addTransferListener(transferListenerMock)
                       .build());
 
-        Thread.sleep(500);
+        assertTransferListenerCompletion(transferListener);
         assertThat(transferListener.getExceptionCaught()).isNull();
         assertThat(transferListener.isTransferComplete()).isTrue();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -349,5 +347,15 @@ public class S3JavaMultipartTransferProgressListenerTest {
 
         int numTimesBytesTransferred = 2;
         Mockito.verify(transferListenerMock, times(numTimesBytesTransferred)).bytesTransferred(ArgumentMatchers.any());
+    }
+
+
+    private static void assertTransferListenerCompletion(CaptureTransferListener transferListener) {
+        assertTimeoutPreemptively(
+            Duration.ofSeconds(5), () -> {
+                while (!transferListener.getCompletionFuture().isDone()) {
+                    Thread.sleep(50);
+                }
+            });
     }
 }
