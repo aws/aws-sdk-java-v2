@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Runtime for Amazon Bedrock Data Automation",
-    "contributor": "",
-    "description": "Added a mandatory parameter DataAutomationProfileArn to support for cross region inference for InvokeDataAutomationAsync API. Renamed DataAutomationArn to DataAutomationProjectArn. Added APIs to support tagging."
-}

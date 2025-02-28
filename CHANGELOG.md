@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.31__ __2025-02-28__
+## __AWS Database Migration Service__
+  - ### Features
+    - Add skipped status to the Result Statistics of an Assessment Run
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - The AWS MediaConvert Probe API allows you to analyze media files and retrieve detailed metadata about their content, format, and structure.
+
+## __AWS Price List Service__
+  - ### Features
+    - Update GetProducts and DescribeServices API request input validations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release lets Amazon Bedrock Flows support newer models by increasing the maximum length of output in a prompt configuration. This release also increases the maximum number of prompt variables to 20 and the maximum number of node inputs to 20.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding licenses to EKS Anywhere Subscription operations response.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Systems Manager doc-only updates for Feb. 2025.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Renamed and added new StandardConfiguration enums. Added support to update EncryptionConfiguration in UpdateBlueprint and UpdateDataAutomation APIs. Changed HttpStatus code for DeleteBlueprint and DeleteDataAutomationProject APIs to 200 from 204. Added APIs to support tagging.
+
+## __Runtime for Amazon Bedrock Data Automation__
+  - ### Features
+    - Added a mandatory parameter DataAutomationProfileArn to support for cross region inference for InvokeDataAutomationAsync API. Renamed DataAutomationArn to DataAutomationProjectArn. Added APIs to support tagging.
+
 # __2.30.30__ __2025-02-27__
 ## __AWS SDK for Java v2__
   - ### Features
