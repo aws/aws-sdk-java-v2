@@ -51,7 +51,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.30.30</version>
+      <version>2.30.31</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -85,12 +85,12 @@ Alternatively you can add dependencies for the specific services you use only:
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>ec2</artifactId>
-  <version>2.30.30</version>
+  <version>2.30.31</version>
 </dependency>
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3</artifactId>
-  <version>2.30.30</version>
+  <version>2.30.31</version>
 </dependency>
 ```
 
@@ -102,7 +102,7 @@ You can import the whole SDK into your project (includes *ALL* services). Please
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>aws-sdk-java</artifactId>
-  <version>2.30.30</version>
+  <version>2.30.31</version>
 </dependency>
 ```
 
@@ -337,6 +337,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://xtansia.com"><img src="https://avatars.githubusercontent.com/u/1222964?v=4?s=100" width="100px;" alt="Thomas Farr"/><br /><sub><b>Thomas Farr</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=Xtansia" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/S-Saranya1"><img src="https://avatars.githubusercontent.com/u/196712423?v=4?s=100" width="100px;" alt="Saranya Somepalli"/><br /><sub><b>Saranya Somepalli</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=S-Saranya1" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/RanVaknin"><img src="https://avatars.githubusercontent.com/u/50976344?v=4?s=100" width="100px;" alt="Ran Vaknin"/><br /><sub><b>Ran Vaknin</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=RanVaknin" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
