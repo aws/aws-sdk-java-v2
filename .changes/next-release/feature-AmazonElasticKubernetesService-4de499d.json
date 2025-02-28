@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Kubernetes Service",
+    "contributor": "",
+    "description": "Adding licenses to EKS Anywhere Subscription operations response."
+}
