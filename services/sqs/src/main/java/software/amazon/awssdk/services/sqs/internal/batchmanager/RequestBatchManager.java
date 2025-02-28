@@ -67,6 +67,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
     public CompletableFuture<ResponseT> batchRequest(RequestT request) {
         CompletableFuture<ResponseT> response = new CompletableFuture<>();
         pendingResponses.add(response);
+        response.whenComplete((r, t) -> pendingResponses.remove(response));
 
         try {
             String batchKey = getBatchKey(request);
@@ -120,10 +121,12 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
         flushableRequests.forEach((contextId, batchExecutionContext) ->
                                       requestEntries.add(new IdentifiableMessage<>(contextId, batchExecutionContext.request())));
         if (!requestEntries.isEmpty()) {
-            CompletableFuture<BatchResponseT> pendingBatchingRequest = batchAndSend(requestEntries, batchKey)
-                .whenComplete((result, ex) -> handleAndCompleteResponses(result, ex, flushableRequests));
-
+            CompletableFuture<BatchResponseT> pendingBatchingRequest = batchAndSend(requestEntries, batchKey);
             pendingBatchResponses.add(pendingBatchingRequest);
+            pendingBatchingRequest.whenComplete((result, ex) -> {
+                handleAndCompleteResponses(result, ex, flushableRequests);
+                pendingBatchResponses.remove(pendingBatchingRequest);
+            });
         }
     }
 

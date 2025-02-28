@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon Simple Queue Service",
+    "contributor": "",
+    "description": "Fixed memory leak in SqsBatch Manager: Resolved an issue where pendingResponses and pendingBatchResponses collections in RequestBatchManager retained references to completed futures, causing memory accumulation over time."
+}
