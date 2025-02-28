@@ -36,6 +36,10 @@
   - ### Features
     - Added a mandatory parameter DataAutomationProfileArn to support for cross region inference for InvokeDataAutomationAsync API. Renamed DataAutomationArn to DataAutomationProjectArn. Added APIs to support tagging.
 
+## __Amazon Simple Queue Service__
+- ### Bugfixes
+    - Fixed memory leak in SqsBatchManager: Resolved an issue where pendingResponses and pendingBatchResponses collections in RequestBatchManager retained references to completed futures, causing memory accumulation over time.
+
 # __2.30.30__ __2025-02-27__
 ## __AWS SDK for Java v2__
   - ### Features

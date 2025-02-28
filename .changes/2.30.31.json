@@ -55,6 +55,12 @@
             "category": "AWS SDK for Java v2",
             "contributor": "",
             "description": "Updated endpoint and partition metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon Simple Queue Service",
+            "contributor": "",
+            "description": "Fixed memory leak in SqsBatch Manager: Resolved an issue where pendingResponses and pendingBatchResponses collections in RequestBatchManager retained references to completed futures, causing memory accumulation over time."
         }
     ]
 }
