@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,8 +57,8 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
         this.maxBatchItems = batchConfiguration.maxBatchItems();
         this.sendRequestFrequency = batchConfiguration.sendRequestFrequency();
         this.scheduledExecutor = Validate.notNull(scheduledExecutor, "Null scheduledExecutor");
-        pendingBatchResponses = Collections.newSetFromMap(new ConcurrentHashMap<>());
-        pendingResponses = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        pendingBatchResponses = ConcurrentHashMap.newKeySet();
+        pendingResponses = ConcurrentHashMap.newKeySet();
         this.requestsAndResponsesMaps = new BatchingMap<>(overrideConfiguration);
 
     }
