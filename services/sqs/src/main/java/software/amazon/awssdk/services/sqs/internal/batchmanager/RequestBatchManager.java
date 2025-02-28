@@ -132,7 +132,6 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
 
     private void handleAndCompleteResponses(BatchResponseT batchResult, Throwable exception,
                                             Map<String, BatchingExecutionContext<RequestT, ResponseT>> requests) {
-        requests.forEach((contextId, batchExecutionContext) ->  pendingResponses.add(batchExecutionContext.response()));
         if (exception != null) {
             requests.forEach((contextId, batchExecutionContext) -> batchExecutionContext.response()
                                                                                         .completeExceptionally(exception));
