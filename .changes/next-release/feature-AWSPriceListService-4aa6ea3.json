@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Price List Service",
+    "contributor": "",
+    "description": "Update GetProducts and DescribeServices API request input validations."
+}
