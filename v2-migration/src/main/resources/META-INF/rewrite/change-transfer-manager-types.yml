@@ -35,7 +35,7 @@ recipeList:
       newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.Copy
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.Download
-      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.Download
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.FileDownload
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.Upload
       newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.Upload
