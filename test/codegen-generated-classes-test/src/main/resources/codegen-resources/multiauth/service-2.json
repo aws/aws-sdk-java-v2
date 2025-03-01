@@ -20,7 +20,7 @@
         "method":"POST",
         "requestUri":"/2016-03-11/multiAuthWithOnlySigv4a"
       },
-      "input":{"shape":"sampleRequest"},
+      "input":{"shape":"SampleRequest"},
       "auth": ["aws.auth#sigv4a"],
       "staticContextParams":{
         "ApiType":{"value":"NoEndpointSigningProperties"}
@@ -32,7 +32,7 @@
         "method":"POST",
         "requestUri":"/2016-03-11/multiAuthWithOnlySigv4aAndSigv4"
       },
-      "input":{"shape":"sampleRequest"},
+      "input":{"shape":"SampleRequest"},
       "auth": ["aws.auth#sigv4a", "aws.auth#sigv4"],
       "staticContextParams":{
         "ApiType":{"value":"NoEndpointSigningProperties"}
@@ -46,7 +46,7 @@
         "responseCode": 200
       },
       "input": {
-        "shape": "sampleRequest"
+        "shape": "SampleRequest"
       },
       "documentation": "<p>Operation with EndpointParams w</p>",
       "staticContextParams": {
@@ -63,7 +63,7 @@
         "responseCode": 200
       },
       "input": {
-        "shape": "sampleRequest"
+        "shape": "SampleRequest"
       },
       "documentation": "<p>Operation with EndpointParams w</p>",
       "auth": ["aws.auth#sigv4a", "aws.auth#sigv4"],
@@ -75,7 +75,7 @@
     }
   },
   "shapes": {
-    "sampleRequest": {
+    "SampleRequest": {
       "type": "structure",
       "members": {
         "StringMember": {
