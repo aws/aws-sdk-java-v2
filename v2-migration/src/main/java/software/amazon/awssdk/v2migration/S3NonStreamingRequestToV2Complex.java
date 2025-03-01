@@ -23,6 +23,8 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
+import org.openrewrite.java.tree.TypeUtils;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
@@ -69,8 +71,15 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
     }
 
     private static final class Visitor extends JavaIsoVisitor<ExecutionContext> {
+
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
+
+            if (isCompleteMpuRequestMultipartUploadSetter(method)) {
+                method = transformCompleteMpuRequestCompletedPartsArg(method);
+                return super.visitMethodInvocation(method, executionContext);
+            }
+
             if (DISABLE_REQUESTER_PAYS.matches(method, false)) {
                 method = transformSetRequesterPays(method, false);
                 return super.visitMethodInvocation(method, executionContext);
@@ -112,6 +121,22 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
                 return super.visitMethodInvocation(method, executionContext);
             }
             return super.visitMethodInvocation(method, executionContext);
+        }
+
+        private boolean isCompleteMpuRequestMultipartUploadSetter(J.MethodInvocation method) {
+            JavaType.FullyQualified completeMpuRequest = TypeUtils.asFullyQualified(JavaType.buildType(
+                "software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest.Builder"));
+            return "multipartUpload".equals(method.getSimpleName()) &&
+                   TypeUtils.isAssignableTo(completeMpuRequest, method.getSelect().getType());
+        }
+
+        private J.MethodInvocation transformCompleteMpuRequestCompletedPartsArg(J.MethodInvocation method) {
+            addImport("CompletedMultipartUpload");
+            String v2Method = "CompletedMultipartUpload.builder().parts(#{any()}).build()";
+
+            return JavaTemplate.builder(v2Method).build()
+                               .apply(getCursor(), method.getCoordinates().replaceArguments(),
+                                      method.getArguments().get(0));
         }
 
         private J.MethodInvocation transformCreateBucket(J.MethodInvocation method) {
