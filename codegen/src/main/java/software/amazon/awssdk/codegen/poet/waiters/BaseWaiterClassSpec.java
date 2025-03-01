@@ -32,6 +32,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -557,15 +558,30 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
 
     private CodeBlock pathAcceptorBody(Acceptor acceptor) {
         String expected = acceptor.getExpected().asText();
-        String expectedType = acceptor.getExpected() instanceof JrsString ? "$S" : "$L";
-        return CodeBlock.builder()
+        boolean isString = acceptor.getExpected() instanceof JrsString;
+        boolean isNumber = acceptor.getExpected().isNumber();
+
+        CodeBlock.Builder block = CodeBlock.builder();
+        if (isNumber) {
+            block.add("new $T($S)", BigDecimal.class, expected);
+        } else if (isString) {
+            block.add("$S", expected);
+        } else {
+            block.add("$L", expected);
+        }
+        CodeBlock rhs = block.build();
+
+        CodeBlock.Builder builder = CodeBlock.builder()
                         .add("response -> {")
                         .add("$1T input = new $1T(response);", poetExtensions.jmesPathRuntimeClass().nestedClass("Value"))
                         .add("return $T.equals(", Objects.class)
                         .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
-                        .add(".value(), " + expectedType + ");", expected)
-                        .add("}")
-                        .build();
+                        .add(".value(), ")
+                        .add(rhs)
+                        .add(");")
+                        .add("}");
+
+        return builder.build();
     }
 
     private CodeBlock pathAllAcceptorBody(Acceptor acceptor) {
@@ -586,18 +602,34 @@ public abstract class BaseWaiterClassSpec implements ClassSpec {
 
     private CodeBlock pathAnyAcceptorBody(Acceptor acceptor) {
         String expected = acceptor.getExpected().asText();
-        String expectedType = acceptor.getExpected() instanceof JrsString ? "$S" : "$L";
-        return CodeBlock.builder()
-                        .add("response -> {")
-                        .add("$1T input = new $1T(response);", poetExtensions.jmesPathRuntimeClass().nestedClass("Value"))
-                        .add("$T<$T> resultValues = ", List.class, Object.class)
-                        .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
-                        .add(".values();")
-                        .add("return !resultValues.isEmpty() && "
-                             + "resultValues.stream().anyMatch(v -> $T.equals(v, " + expectedType + "));",
-                             Objects.class, expected)
-                        .add("}")
-                        .build();
+        boolean isString = acceptor.getExpected() instanceof JrsString;
+        boolean isNumber = acceptor.getExpected().isNumber();
+
+        CodeBlock.Builder block = CodeBlock.builder();
+        if (isNumber) {
+            block.add("new $T($S)", BigDecimal.class, expected);
+        } else if (isString) {
+            block.add("$S", expected);
+        } else {
+            block.add("$L", expected);
+        }
+        CodeBlock rhs = block.build();
+
+
+        CodeBlock.Builder builder = CodeBlock.builder()
+                         .add("response -> {")
+                         .add("$1T input = new $1T(response);", poetExtensions.jmesPathRuntimeClass().nestedClass("Value"))
+                         .add("$T<$T> resultValues = ", List.class, Object.class)
+                         .add(jmesPathAcceptorGenerator.interpret(acceptor.getArgument(), "input"))
+                         .add(".values();")
+                         .add("return !resultValues.isEmpty() &&"
+                              + " resultValues.stream().anyMatch(v " + "-> $T.equals"
+                              + "(v, ", Objects.class)
+                        .add(rhs)
+                        .add("));")
+                        .add("}");
+
+        return builder.build();
     }
 
     private CodeBlock trueForAllResponse() {
