@@ -17,6 +17,7 @@ package software.amazon.awssdk.v2migration;
 
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV2AsyncClientClass;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV2ClientBuilder;
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV2TransferManager;
 
 import java.util.Collections;
 import org.openrewrite.ExecutionContext;
@@ -80,7 +81,7 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
                 return renameAsyncBuilderToBuilder(method, selectType);
             }
 
-            if (isV2ClientBuilder(selectType)) {
+            if (isV2ClientBuilder(selectType) || isV2TransferManager(selectType)) {
                 return renameStandardToBuilderOrDefaultClientToCreate(method, selectType);
             }
 
@@ -88,7 +89,8 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
         }
 
         private static boolean shouldChangeMethod(JavaType selectType) {
-            return isV2ClientBuilder(selectType) || isV2AsyncClientClass(selectType);
+            return isV2ClientBuilder(selectType) || isV2AsyncClientClass(selectType)
+                || isV2TransferManager(selectType);
         }
 
         private J.MethodInvocation renameStandardToBuilderOrDefaultClientToCreate(J.MethodInvocation method,
@@ -107,7 +109,7 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
             if ("standard".equals(methodName)) {
                 methodName = "builder";
                 returnType = fullyQualified;
-            } else if ("defaultClient".equals(methodName)) {
+            } else if ("defaultClient".equals(methodName) || "defaultTransferManager".equals(methodName)) {
                 methodName = "create";
                 returnType = v2Client;
             } else {
