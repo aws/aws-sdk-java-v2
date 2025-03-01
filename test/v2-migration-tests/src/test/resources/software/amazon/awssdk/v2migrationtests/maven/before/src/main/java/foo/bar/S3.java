@@ -27,6 +27,7 @@ import com.amazonaws.services.s3.model.BucketReplicationConfiguration;
 import com.amazonaws.services.s3.model.BucketTaggingConfiguration;
 import com.amazonaws.services.s3.model.BucketWebsiteConfiguration;
 import com.amazonaws.services.s3.model.CORSRule;
+import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CopyPartRequest;
 import com.amazonaws.services.s3.model.CopyPartResult;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
@@ -55,6 +56,7 @@ import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringConf
 import com.amazonaws.services.s3.model.inventory.InventoryConfiguration;
 import com.amazonaws.services.s3.model.metrics.MetricsConfiguration;
 import com.amazonaws.services.s3.model.ownership.OwnershipControls;
+import java.util.ArrayList;
 import java.util.List;
 
 public class S3 {
@@ -89,6 +91,18 @@ public class S3 {
         InitiateMultipartUploadRequest initiateMultipartUploadRequest = new InitiateMultipartUploadRequest(bucket, key);
         InitiateMultipartUploadResult initiateMultipartUploadResult = s3.initiateMultipartUpload(initiateMultipartUploadRequest);
         System.out.println(initiateMultipartUploadResult);
+    }
+
+    private void completeMpu(AmazonS3 s3, String bucket, String key) {
+        PartETag partETag = new PartETag(7, "etag");
+        List<PartETag> partETags = new ArrayList<>();
+        partETags.add(partETag);
+
+        CompleteMultipartUploadRequest completeMpuRequest1 =
+            new CompleteMultipartUploadRequest().withBucketName(bucket).withKey(key).withPartETags(partETags);
+
+        CompleteMultipartUploadRequest completeMpuRequest2 =
+            new CompleteMultipartUploadRequest(bucket, key, "uploadId", partETags);
     }
 
     private void listObjects(AmazonS3 s3, String bucket) {
@@ -207,7 +221,6 @@ public class S3 {
         SetBucketNotificationConfigurationRequest notificationRequest = new SetBucketNotificationConfigurationRequest(bucket, new BucketNotificationConfiguration());
         SetBucketTaggingConfigurationRequest tagRequest = new SetBucketTaggingConfigurationRequest(bucket, new BucketTaggingConfiguration());
         SetBucketWebsiteConfigurationRequest websiteRequest = new SetBucketWebsiteConfigurationRequest(bucket, new BucketWebsiteConfiguration());
-        PartETag partETag = new PartETag(7, "etag");
     }
 
     private void setBucketConfigs(AmazonS3 s3, String bucket) {
