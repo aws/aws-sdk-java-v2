@@ -48,41 +48,88 @@ public final class RuleUrl {
         String path = parsed.getPath();
         if (parsed.getQuery() != null) {
             return null;
-
         }
-        boolean isIpAddr = false;
         String host = parsed.getHost();
+        boolean isIpAddr = isIpAddr(host);
+        String normalizedPath = normalizePath(path);
+        return new RuleUrl(parsed.getProtocol(), parsed.getAuthority(), path, normalizedPath, isIpAddr);
+    }
+
+    static boolean isIpAddr(String host) {
         if (host.startsWith("[") && host.endsWith("]")) {
-            isIpAddr = true;
+            return true;
         }
-        String[] dottedParts = host.split("\\.");
-        if (dottedParts.length == 4) {
-            if (Arrays.stream(dottedParts).allMatch(part -> {
-                try {
-                    int value = Integer.parseInt(part);
-                    return value >= 0 && value <= 255;
-                } catch (NumberFormatException ex) {
+        int from = 0;
+        int segments = 0;
+        boolean done = false;
+        while (!done) {
+            int index = host.indexOf('.', from);
+            if (index == -1) {
+                if (segments != 3) {
+                    // E.g., 123.com
                     return false;
                 }
-            })) {
-                isIpAddr = true;
+                index = host.length();
+                done = true;
+            } else if (segments == 3) {
+                // E.g., 1.2.3.4.5
+                return false;
             }
+            int length = index - from;
+            if (length == 1) {
+                char ch0 = host.charAt(from);
+                if (ch0 < '0' || ch0 > '9') {
+                    return false;
+                }
+            } else if (length == 2) {
+                char ch0 = host.charAt(from);
+                char ch1 = host.charAt(from + 1);
+                if ((ch0 <= '0' || ch0 > '9') || (ch1 < '0' || ch1 > '9')) {
+                    return false;
+                }
+            } else if (length == 3) {
+                char ch0 = host.charAt(from);
+                char ch1 = host.charAt(from + 1);
+                char ch2 = host.charAt(from + 2);
+                if ((ch0 <= '0' || ch0 > '9')
+                        || (ch1 < '0' || ch1 > '9')
+                        || (ch2 < '0' || ch2 > '9')
+                ) {
+                    return false;
+                }
+                int value = ((ch0 - '0') * 100) + ((ch1 - '0') * 10) + (ch2 - '0');
+                if (value > 255) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+            from = index + 1;
+            segments += 1;
         }
-        String normalizedPath;
+        return true;
+    }
+
+    static String normalizePath(String path) {
         if (StringUtils.isBlank(path)) {
-            normalizedPath = "/";
-        } else {
-            StringBuilder builder = new StringBuilder();
-            if (!path.startsWith("/")) {
-                builder.append("/");
-            }
-            builder.append(path);
-            if (!path.endsWith("/")) {
-                builder.append("/");
-            }
-            normalizedPath = builder.toString();
+            return "/";
         }
 
-        return new RuleUrl(parsed.getProtocol(), parsed.getAuthority(), path, normalizedPath, isIpAddr);
+        boolean startsWithSlash = path.startsWith("/");
+        boolean endsWithSlash = path.endsWith("/");
+
+        if (startsWithSlash && endsWithSlash) {
+            return path;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        if (!startsWithSlash) {
+            builder.append("/");
+        }
+        builder.append(path);
+        if (!endsWithSlash) {
+            builder.append("/");
+        }
+        return builder.toString();
     }
 }
