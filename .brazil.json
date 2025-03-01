@@ -111,7 +111,8 @@
         "v2-migration-tests": {"skipImport":  true},
         "crt-unavailable-tests": { "skipImport": true },
         "bundle-shading-tests": { "skipImport": true },
-        "architecture-tests": {"skipImport":  true}
+        "architecture-tests": {"skipImport":  true},
+        "s3-tests": {"skipImport":  true}
     },
 
     "dependencies": {
