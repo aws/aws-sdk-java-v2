@@ -40,6 +40,7 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -148,6 +149,12 @@ public final class ApacheHttpClient implements SdkHttpClient {
         // IdleConnectionReaper as it's required for the successful deregistration of managers
         // from the reaper. See https://github.com/aws/aws-sdk-java/issues/722.
         HttpClientConnectionManager cm = cmFactory.create(configuration, standardOptions);
+
+        Registry<AuthSchemeProvider> authSchemeProviderRegistry = configuration.authSchemeProviderRegistry;
+        if (authSchemeProviderRegistry != null) {
+            builder.setDefaultAuthSchemeRegistry(authSchemeProviderRegistry);
+        }
+
 
         builder.setRequestExecutor(new HttpRequestExecutor())
                // SDK handles decompression
@@ -449,10 +456,17 @@ public final class ApacheHttpClient implements SdkHttpClient {
          * when constructing the SSL context.
          */
         Builder tlsTrustManagersProvider(TlsTrustManagersProvider tlsTrustManagersProvider);
+
+        /**
+         * Configure the authentication scheme registry that can be used to obtain the corresponding authentication scheme
+         * implementation for a given type of authorization challenge.
+         */
+        Builder authSchemeProviderRegistry(Registry<AuthSchemeProvider> authSchemeProviderRegistry);
     }
 
     private static final class DefaultBuilder implements Builder {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
+        private Registry<AuthSchemeProvider> authSchemeProviderRegistry;
         private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
         private InetAddress localAddress;
         private Boolean expectContinueEnabled;
@@ -638,6 +652,16 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         public void setTlsTrustManagersProvider(TlsTrustManagersProvider tlsTrustManagersProvider) {
             tlsTrustManagersProvider(tlsTrustManagersProvider);
+        }
+
+        @Override
+        public Builder authSchemeProviderRegistry(Registry<AuthSchemeProvider> authSchemeProviderRegistry) {
+            this.authSchemeProviderRegistry = authSchemeProviderRegistry;
+            return this;
+        }
+
+        public void setAuthSchemeProviderRegistry(Registry<AuthSchemeProvider> authSchemeProviderRegistry) {
+            authSchemeProviderRegistry(authSchemeProviderRegistry);
         }
 
         @Override

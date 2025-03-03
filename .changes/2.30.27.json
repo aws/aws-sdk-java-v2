@@ -1,0 +1,36 @@
+{
+    "version": "2.30.27",
+    "date": "2025-02-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "This release improves support for newer models in Amazon Bedrock Flows."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Adding support for ReasoningContent fields in Pre-Processing, Post-Processing and Orchestration Trace outputs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "This release adds Reasoning Content support to Converse and ConverseStream APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "Documentation update, adding clarity and rephrasing."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

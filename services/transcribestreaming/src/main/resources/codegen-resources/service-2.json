@@ -358,6 +358,10 @@
         "OutputBucketName":{
           "shape":"BucketName",
           "documentation":"<p>The name of the Amazon S3 bucket where you want the output of Amazon Web Services HealthScribe post-stream analytics stored. Don't include the <code>S3://</code> prefix of the specified bucket. </p> <p>HealthScribe outputs transcript and clinical note files under the prefix: <code>S3://$output-bucket-name/healthscribe-streaming/session-id/post-stream-analytics/clinical-notes</code> </p> <p>The role <code>ResourceAccessRoleArn</code> specified in the <code>MedicalScribeConfigurationEvent</code> must have permission to use the specified location. You can change Amazon S3 permissions using the <a href=\"https://console.aws.amazon.com/s3\"> Amazon Web Services Management Console </a>. See also <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/security_iam_id-based-policy-examples.html#auth-role-iam-user\">Permissions Required for IAM User Roles </a> . </p>"
+        },
+        "NoteTemplate":{
+          "shape":"MedicalScribeNoteTemplate",
+          "documentation":"<p>Specify one of the following templates to use for the clinical note summary. The default is <code>HISTORY_AND_PHYSICAL</code>.</p> <ul> <li> <p>HISTORY_AND_PHYSICAL: Provides summaries for key sections of the clinical documentation. Sections include Chief Complaint, History of Present Illness, Review of Systems, Past Medical History, Assessment, and Plan.</p> </li> <li> <p>GIRPP: Provides summaries based on the patients progress toward goals. Sections include Goal, Intervention, Response, Progress, and Plan.</p> </li> </ul>"
         }
       },
       "documentation":"<p>The output configuration for aggregated transcript and clinical note generation.</p>"
@@ -923,6 +927,13 @@
       "type":"integer",
       "max":48000,
       "min":16000
+    },
+    "MedicalScribeNoteTemplate":{
+      "type":"string",
+      "enum":[
+        "HISTORY_AND_PHYSICAL",
+        "GIRPP"
+      ]
     },
     "MedicalScribeParticipantRole":{
       "type":"string",

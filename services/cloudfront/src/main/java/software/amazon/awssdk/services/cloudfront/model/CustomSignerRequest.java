@@ -24,6 +24,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -35,21 +36,22 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkPublicApi
 public final class CustomSignerRequest implements CloudFrontSignerRequest,
                                                   ToCopyableBuilder<CustomSignerRequest.Builder, CustomSignerRequest> {
-
     private final String resourceUrl;
     private final PrivateKey privateKey;
     private final String keyPairId;
     private final Instant expirationDate;
     private final Instant activeDate;
     private final String ipRange;
+    private final String resourceUrlPattern;
 
     private CustomSignerRequest(DefaultBuilder builder) {
-        this.resourceUrl = builder.resourceUrl;
+        this.resourceUrl = Validate.notNull(builder.resourceUrl, "resourceUrl must not be null");
         this.privateKey = builder.privateKey;
         this.keyPairId = builder.keyPairId;
         this.expirationDate = builder.expirationDate;
         this.activeDate = builder.activeDate;
         this.ipRange = builder.ipRange;
+        this.resourceUrlPattern = builder.resourceUrlPattern;
     }
 
     /**
@@ -99,6 +101,10 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         return ipRange;
     }
 
+    public String resourceUrlPattern() {
+        return resourceUrlPattern;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -114,7 +120,8 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
                && Objects.equals(keyPairId, cookie.keyPairId)
                && Objects.equals(expirationDate, cookie.expirationDate)
                && Objects.equals(activeDate, cookie.activeDate)
-               && Objects.equals(ipRange, cookie.ipRange);
+               && Objects.equals(ipRange, cookie.ipRange)
+               && Objects.equals(resourceUrlPattern, cookie.resourceUrlPattern);
     }
 
     @Override
@@ -125,6 +132,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         result = 31 * result + (expirationDate != null ? expirationDate.hashCode() : 0);
         result = 31 * result + (activeDate != null ? activeDate.hashCode() : 0);
         result = 31 * result + (ipRange != null ? ipRange.hashCode() : 0);
+        result = 31 * result + (resourceUrlPattern != null ? resourceUrlPattern.hashCode() : 0);
         return result;
     }
 
@@ -179,6 +187,16 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
          * IPv6 format is not supported.
          */
         Builder ipRange(String ipRange);
+
+        /**
+         * Configure the resource URL pattern to be used in the policy
+         * <p>
+         * For custom policies, this specifies the URL pattern that determines which files
+         * can be accessed with this signed URL. This can include wildcard characters (*) to
+         * grant access to multiple files or paths. If not specified, the resourceUrl value
+         * will be used in the policy.
+         */
+        Builder resourceUrlPattern(String resourceUrlPattern);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -188,6 +206,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         private Instant expirationDate;
         private Instant activeDate;
         private String ipRange;
+        private String resourceUrlPattern;
 
         private DefaultBuilder() {
         }
@@ -199,6 +218,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
             this.expirationDate = request.expirationDate;
             this.activeDate = request.activeDate;
             this.ipRange = request.ipRange;
+            this.resourceUrlPattern = request.resourceUrlPattern;
         }
 
         @Override
@@ -240,6 +260,12 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         @Override
         public Builder ipRange(String ipRange) {
             this.ipRange = ipRange;
+            return this;
+        }
+
+        @Override
+        public Builder resourceUrlPattern(String resourceUrlPattern) {
+            this.resourceUrlPattern = resourceUrlPattern;
             return this;
         }
 

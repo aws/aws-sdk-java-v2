@@ -19,6 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32C;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC64NVME;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA1;
+import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
 import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_HEADERS;
 import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignatureType.HTTP_REQUEST_VIA_QUERY_PARAMS;
 import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSignedBodyValue.STREAMING_AWS4_ECDSA_P256_SHA256_PAYLOAD;
@@ -45,8 +49,15 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Stream;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -57,6 +68,7 @@ import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 
 /**
@@ -65,6 +77,19 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 public class DefaultAwsCrtV4aHttpSignerTest {
 
     DefaultAwsCrtV4aHttpSigner signer = new DefaultAwsCrtV4aHttpSigner();
+
+    private static final Map<ChecksumAlgorithm, String> ALGORITHM_TO_VALUE = ImmutableMap.<ChecksumAlgorithm, String>builder()
+                                                                              .put(CRC32, "i9aeUg==")
+                                                                              .put(CRC32C, "crUfeA==")
+                                                                              .put(SHA1, "e1AsOh9IyGCa4hLN+2Od7jlnP14=")
+                                                                              .put(SHA256,
+                                                                                   "ZOyIygCyaOW6GjVnihtTFtIS9PNmskdyMlNKiuyjfzw=")
+                                                                              .put(CRC64NVME, "OOJZ0D8xKts=")
+                                                                              .build();
+
+    public static Stream<Map.Entry<ChecksumAlgorithm, String>> checksumAlgorithmToValueParams() {
+        return ALGORITHM_TO_VALUE.entrySet().stream();
+    }
 
     @Test
     public void sign_withBasicRequest_shouldSignWithHeaders() {
@@ -355,5 +380,36 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         SignedRequest signedRequest = signer.sign(request);
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256")).hasValue("UNSIGNED-PAYLOAD");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).isNotPresent();
+    }
+
+    @ParameterizedTest
+    @MethodSource("checksumAlgorithmToValueParams")
+    public void sign_checksumAlgorithmPresent_shouldAddChecksumHeader(Map.Entry<ChecksumAlgorithm, String> checksumToValue) {
+        ChecksumAlgorithm checksumAlgorithm = checksumToValue.getKey();
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> {
+            },
+            signRequest -> signRequest.putProperty(CHECKSUM_ALGORITHM, checksumAlgorithm)
+        );
+
+        SignedRequest signedRequest = signer.sign(request);
+       assertThat(signedRequest.request().firstMatchingHeader("x-amz-checksum-" + checksumAlgorithm.algorithmId()
+                                                                                                   .toLowerCase(Locale.US)))
+           .contains(checksumToValue.getValue());
+    }
+
+    @Test
+    public void sign_checksumValueProvided_shouldNotOverrideChecksumHeader() {
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+                httpRequest -> httpRequest
+                    .putHeader("x-amz-checksum-crc32", "some value"),
+            signRequest -> signRequest.putProperty(CHECKSUM_ALGORITHM, CRC32)
+        );
+
+        SignedRequest signedRequest = signer.sign(request);
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-checksum-crc32"))
+            .contains("some value");
     }
 }
