@@ -97,7 +97,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void listeners_reports_ErrorsWithValidPayload(boolean multipartEnabled) throws InterruptedException {
+    void listeners_reports_ErrorsWithValidPayload(boolean multipartEnabled) {
         S3AsyncClient s3Async = s3AsyncClient(multipartEnabled);
 
         TransferListener transferListenerMock = mock(TransferListener.class);
@@ -126,7 +126,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void listeners_reports_ErrorsWithValidInValidPayload(boolean multipartEnabled) throws InterruptedException {
+    void listeners_reports_ErrorsWithValidInValidPayload(boolean multipartEnabled) {
         S3AsyncClient s3Async = s3AsyncClient(multipartEnabled);
 
         TransferListener transferListenerMock = mock(TransferListener.class);
@@ -156,7 +156,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void listeners_reports_ErrorsWhenCancelled(boolean multipartEnabled) throws InterruptedException {
+    void listeners_reports_ErrorsWhenCancelled(boolean multipartEnabled) {
         S3AsyncClient s3Async = s3AsyncClient(multipartEnabled);
 
         TransferListener transferListenerMock = mock(TransferListener.class);
@@ -181,7 +181,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void listeners_reports_ProgressWhenSuccess(boolean multipartEnabled) throws InterruptedException {
+    void listeners_reports_ProgressWhenSuccess(boolean multipartEnabled) {
         S3AsyncClient s3Async = s3AsyncClient(multipartEnabled);
 
         TransferListener transferListenerMock = mock(TransferListener.class);
@@ -214,7 +214,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
     }
 
     @Test
-    void copyWithJavaBasedClient_listeners_reports_ErrorsWithValidPayload() throws InterruptedException {
+    void copyWithJavaBasedClient_listeners_reports_ErrorsWithValidPayload() {
         S3AsyncClient s3Async = s3AsyncClient(true);
 
         TransferListener transferListenerMock = mock(TransferListener.class);
@@ -243,7 +243,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
     }
 
     @Test
-    void copyWithJavaBasedClient_listeners_reports_ErrorsWithValidInValidPayload() throws InterruptedException {
+    void copyWithJavaBasedClient_listeners_reports_ErrorsWithValidInValidPayload() {
         S3AsyncClient s3Async = s3AsyncClient(true);
 
         TransferListener transferListenerMock = mock(TransferListener.class);
@@ -301,7 +301,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
     }
 
     @Test
-    void copyWithJavaBasedClient_listeners_reports_ProgressWhenSuccess_copy() throws InterruptedException {
+    void copyWithJavaBasedClient_listeners_reports_ProgressWhenSuccess_copy() {
         String destinationKey = "copiedObj";
         S3AsyncClient s3Async = s3AsyncClient(true);
 
@@ -349,13 +349,13 @@ public class S3JavaMultipartTransferProgressListenerTest {
         Mockito.verify(transferListenerMock, times(numTimesBytesTransferred)).bytesTransferred(ArgumentMatchers.any());
     }
 
-
     private static void assertTransferListenerCompletion(CaptureTransferListener transferListener) {
+        Duration waitDuration = Duration.ofSeconds(5);
         assertTimeoutPreemptively(
-            Duration.ofSeconds(5), () -> {
+            waitDuration, () -> {
                 while (!transferListener.getCompletionFuture().isDone()) {
                     Thread.sleep(50);
                 }
-            });
+            }, "TransferListener future not completed even after waiting for " + waitDuration);
     }
 }
