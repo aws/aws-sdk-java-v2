@@ -79,9 +79,12 @@ public class SsoProfileCredentialsProviderFactoryTest {
             cachedTokenFilePath);
 
         SsoProfileCredentialsProviderFactory factory = new SsoProfileCredentialsProviderFactory();
-        assertThat(factory.create(profileFile.profile("foo").get(),
-                                  profileFile,
-                                  tokenProvider)).isInstanceOf(AwsCredentialsProvider.class);
+        assertThat(factory.create(ProfileProviderCredentialsContext.builder()
+                                                                   .profile(profileFile.profile("foo").get())
+                                                                   .profileFile(profileFile)
+                                                                   .build(),
+                                  tokenProvider))
+            .isInstanceOf(AwsCredentialsProvider.class);
     }
 
     private Path prepareTestCachedTokenFile(String tokenFileContent, String generatedTokenFileName) throws IOException {
@@ -169,7 +172,10 @@ public class SsoProfileCredentialsProviderFactoryTest {
                                              "sso_start_url=https//d-abc123.awsapps.com/start");
         SsoProfileCredentialsProviderFactory factory = new SsoProfileCredentialsProviderFactory();
         when(sdkTokenProvider.resolveToken()).thenReturn(SsoAccessToken.builder().accessToken("sample").expiresAt(Instant.now()).build());
-        AwsCredentialsProvider credentialsProvider = factory.create(profileFile.profile("test").get(), profileFile, sdkTokenProvider);
+        AwsCredentialsProvider credentialsProvider = factory.create(ProfileProviderCredentialsContext.builder()
+                                                                                                     .profile(profileFile.profile("test").get())
+                                                                                                     .profileFile(profileFile)
+                                                                                                     .build(), sdkTokenProvider);
         try {
             credentialsProvider.resolveCredentials();
         } catch (Exception e) {

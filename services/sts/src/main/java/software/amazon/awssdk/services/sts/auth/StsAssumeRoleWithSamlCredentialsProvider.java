@@ -25,6 +25,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithSamlRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithSamlResponse;
@@ -48,7 +49,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class StsAssumeRoleWithSamlCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsAssumeRoleWithSamlCredentialsProvider.Builder, StsAssumeRoleWithSamlCredentialsProvider> {
-    private static final String PROVIDER_NAME = "StsAssumeRoleWithSamlCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE_SAML.value();
     private final Supplier<AssumeRoleWithSamlRequest> assumeRoleWithSamlRequestSupplier;
 
 
