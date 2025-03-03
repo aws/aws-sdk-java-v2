@@ -516,3 +516,15 @@ recipeList:
       fluentNames:
         - withPartNumber
         - withETag
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.CompleteMultipartUploadRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+        - java.lang.String
+        - java.util.List<com.amazonaws.services.s3.model.PartETag>
+      fluentNames:
+        - withBucket
+        - withKey
+        - withUploadId
+        - withMultipartUpload
