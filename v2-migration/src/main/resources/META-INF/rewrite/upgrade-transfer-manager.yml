@@ -24,6 +24,6 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: software.amazon.awssdk
       artifactId: s3-transfer-manager
-      version: 2.30.30
+      version: 2.30.32
       onlyIfUsing: com.amazonaws.services.s3.transfer.TransferManager
   - software.amazon.awssdk.v2migration.ChangeTransferManagerTypes

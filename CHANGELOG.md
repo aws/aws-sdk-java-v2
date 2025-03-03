@@ -1,4 +1,81 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.32__ __2025-03-03__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Improving codegen error message when shapes have lowercased names.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Added the capacity to return available challenges in admin authentication and to set version 3 of the pre token generation event for M2M ATC.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fixed DynamoDbEnhancedClient TableSchema::itemToMap to return a map that contains a consistent representation of null top-level (non-flattened) attributes and flattened attributes when their enclosing member is null and ignoreNulls is set to false.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Update the DescribeVpcs response
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add DomainId to CreateDomainResponse
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Updating documentation for post call analytics job queueing.
+
+## __CloudWatch RUM__
+  - ### Features
+    - Add support for PutResourcePolicy, GetResourcePolicy and DeleteResourcePolicy to support resource based policies for AWS CloudWatch RUM
+
+## __QBusiness__
+  - ### Features
+    - Adds support for the ingestion of audio and video files by Q Business, which can be configured with the mediaExtractionConfiguration parameter.
+
+# __2.30.31__ __2025-02-28__
+## __AWS Database Migration Service__
+  - ### Features
+    - Add skipped status to the Result Statistics of an Assessment Run
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - The AWS MediaConvert Probe API allows you to analyze media files and retrieve detailed metadata about their content, format, and structure.
+
+## __AWS Price List Service__
+  - ### Features
+    - Update GetProducts and DescribeServices API request input validations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release lets Amazon Bedrock Flows support newer models by increasing the maximum length of output in a prompt configuration. This release also increases the maximum number of prompt variables to 20 and the maximum number of node inputs to 20.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding licenses to EKS Anywhere Subscription operations response.
+
+## __Amazon Simple Queue Service__
+  - ### Bugfixes
+    - Fixed memory leak in SqsBatch Manager: Resolved an issue where pendingResponses and pendingBatchResponses collections in RequestBatchManager retained references to completed futures, causing memory accumulation over time.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Systems Manager doc-only updates for Feb. 2025.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Renamed and added new StandardConfiguration enums. Added support to update EncryptionConfiguration in UpdateBlueprint and UpdateDataAutomation APIs. Changed HttpStatus code for DeleteBlueprint and DeleteDataAutomationProject APIs to 200 from 204. Added APIs to support tagging.
+
+## __Runtime for Amazon Bedrock Data Automation__
+  - ### Features
+    - Added a mandatory parameter DataAutomationProfileArn to support for cross region inference for InvokeDataAutomationAsync API. Renamed DataAutomationArn to DataAutomationProjectArn. Added APIs to support tagging.
+
 # __2.30.30__ __2025-02-27__
 ## __AWS SDK for Java v2__
   - ### Features
