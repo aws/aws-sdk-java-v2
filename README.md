@@ -336,6 +336,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://xtansia.com"><img src="https://avatars.githubusercontent.com/u/1222964?v=4?s=100" width="100px;" alt="Thomas Farr"/><br /><sub><b>Thomas Farr</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=Xtansia" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/S-Saranya1"><img src="https://avatars.githubusercontent.com/u/196712423?v=4?s=100" width="100px;" alt="Saranya Somepalli"/><br /><sub><b>Saranya Somepalli</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=S-Saranya1" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/RanVaknin"><img src="https://avatars.githubusercontent.com/u/50976344?v=4?s=100" width="100px;" alt="Ran Vaknin"/><br /><sub><b>Ran Vaknin</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=RanVaknin" title="Code">💻</a></td>
     </tr>
   </tbody>
