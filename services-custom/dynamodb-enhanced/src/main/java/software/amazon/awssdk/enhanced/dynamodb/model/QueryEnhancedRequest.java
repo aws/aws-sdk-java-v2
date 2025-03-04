@@ -59,6 +59,7 @@ public final class QueryEnhancedRequest {
     private final Expression filterExpression;
     private final List<NestedAttributeName> attributesToProject;
     private final String returnConsumedCapacity;
+    private final String stringProjectionExpression;
 
     private QueryEnhancedRequest(Builder builder) {
         this.queryConditional = builder.queryConditional;
@@ -69,6 +70,7 @@ public final class QueryEnhancedRequest {
         this.consistentRead = builder.consistentRead;
         this.filterExpression = builder.filterExpression;
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
+        this.stringProjectionExpression = builder.stringProjectionExpression;
         this.attributesToProject = builder.attributesToProject != null
                                    ? Collections.unmodifiableList(builder.attributesToProject)
                                    : null;
@@ -176,6 +178,13 @@ public final class QueryEnhancedRequest {
         return attributesToProject;
     }
 
+    /**
+     * Returns the String projection expression for the query operation.
+     */
+    public String stringProjectionExpression() {
+        return stringProjectionExpression;
+    }
+
 
     /**
      * Whether to return the capacity consumed by this operation.
@@ -239,6 +248,10 @@ public final class QueryEnhancedRequest {
             ? !returnConsumedCapacity.equals(query.returnConsumedCapacity) : query.returnConsumedCapacity != null) {
             return false;
         }
+        if (stringProjectionExpression != null
+            ? !stringProjectionExpression.equals(query.stringProjectionExpression) : query.stringProjectionExpression != null) {
+            return false;
+        }
         return filterExpression != null ? filterExpression.equals(query.filterExpression) : query.filterExpression == null;
     }
 
@@ -253,6 +266,7 @@ public final class QueryEnhancedRequest {
         result = 31 * result + (filterExpression != null ? filterExpression.hashCode() : 0);
         result = 31 * result + (attributesToProject != null ? attributesToProject.hashCode() : 0);
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
+        result = 31 * result + (stringProjectionExpression != null ? stringProjectionExpression.hashCode() : 0);
         return result;
     }
 
@@ -272,6 +286,7 @@ public final class QueryEnhancedRequest {
         private Expression filterExpression;
         private List<NestedAttributeName> attributesToProject;
         private String returnConsumedCapacity;
+        private String stringProjectionExpression;
 
         private Builder() {
         }
@@ -308,17 +323,6 @@ public final class QueryEnhancedRequest {
          */
         public Builder select(Select select) {
             this.select = select;
-            return this;
-        }
-
-        /**
-         * Determines the attributes to be returned in the result. See {@link Select} for examples and constraints.
-         * If not found, returns {@link Select#UNKNOWN_TO_SDK_VERSION}.
-         * @param select the selection criteria as a string
-         * @return a builder of this type
-         */
-        public Builder select(String select) {
-            this.select = Select.fromValue(select);
             return this;
         }
 
@@ -522,6 +526,17 @@ public final class QueryEnhancedRequest {
          */
         public Builder returnConsumedCapacity(String returnConsumedCapacity) {
             this.returnConsumedCapacity = returnConsumedCapacity;
+            return this;
+        }
+
+        /**
+         * Sets the projection expression for the query operation.
+         *
+         * @param stringProjectionExpression the projection expression as a string
+         * @return a builder of this type
+         */
+        public Builder returnStringProjectionExpression(String stringProjectionExpression) {
+            this.stringProjectionExpression = stringProjectionExpression;
             return this;
         }
 

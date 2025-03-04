@@ -295,4 +295,27 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
         assertThat(page.items(), is(KEYS_ONLY_RECORDS.subList(8, 10)));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
+
+    @Test
+    public void queryWithStringProjectionExpression() {
+        insertRecords();
+
+        String projectionExpression = "id, sort";
+        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
+                                                           .queryConditional(keyEqualTo(k -> k.partitionValue("gsi-id-value")))
+                                                           .returnStringProjectionExpression(projectionExpression)
+                                                           .build();
+
+        SdkPublisher<Page<Record>> publisher = keysOnlyMappedIndex.query(request);
+
+        List<Page<Record>> results = drainPublisher(publisher, 1);
+        Page<Record> page = results.get(0);
+
+        assertThat(page.items().size(), is(KEYS_ONLY_RECORDS.size()));
+
+        Record firstRecord = page.items().get(0);
+        assertThat(firstRecord.getId(), is("id-value"));
+        assertThat(firstRecord.getSort(), is(0));
+        assertThat(firstRecord.getValue(), is(nullValue())); // Ensure non-projected attributes are not present
+    }
 }

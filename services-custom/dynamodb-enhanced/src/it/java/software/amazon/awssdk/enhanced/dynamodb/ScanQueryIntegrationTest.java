@@ -43,7 +43,6 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
-import software.amazon.awssdk.services.dynamodb.model.Select;
 
 public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBase {
 
@@ -183,46 +182,60 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
         assertThat(strongConsumedCapacity.capacityUnits(), is(greaterThanOrEqualTo(eventualConsumedCapacity.capacityUnits())));
     }
 
+    @Test
+    public void query_withStringProjectionExpression_checksProjectedAttributes() {
+        insertRecords();
+
+        String projectionExpression = "id, sort";
+        Iterator<Page<Record>> results =
+            mappedTable.query(QueryEnhancedRequest.builder()
+                                                  .queryConditional(sortBetween(k -> k.partitionValue("id-value").sortValue(2),
+                                                                                k -> k.partitionValue("id-value").sortValue(6)))
+                                                  .returnStringProjectionExpression(projectionExpression)
+                                                  .limit(3)
+                                                  .build())
+                       .iterator();
+
+        Page<Record> page1 = results.next();
+        assertThat(results.hasNext(), is(true));
+        Page<Record> page2 = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page1.items().get(0).getId(), is(notNullValue()));
+        assertThat(page1.items().get(0).getSort(), is(notNullValue()));
+
+        assertThat(page2.items().get(0).getId(), is(notNullValue()));
+        assertThat(page2.items().get(0).getSort(), is(notNullValue()));
+    }
+
+    @Test
+    public void scan_withStringProjectionExpression_checksProjectedAttributes() {
+        insertRecords();
+
+        String projectionExpression = "id, sort";
+        Iterator<Page<Record>> results =
+            mappedTable.scan(ScanEnhancedRequest.builder()
+                                                .returnStringProjectionExpression(projectionExpression)
+                                                .limit(5)
+                                                .build())
+                       .iterator();
+
+        Page<Record> page1 = results.next();
+        assertThat(results.hasNext(), is(true));
+        Page<Record> page2 = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page1.items().get(0).getId(), is(notNullValue()));
+        assertThat(page1.items().get(0).getSort(), is(notNullValue()));
+
+        assertThat(page2.items().get(0).getId(), is(notNullValue()));
+        assertThat(page2.items().get(0).getSort(), is(notNullValue()));
+    }
+
     private Map<String, AttributeValue> getKeyMap(int sort) {
         Map<String, AttributeValue> result = new HashMap<>();
         result.put("id", stringValue(RECORDS.get(sort).getId()));
         result.put("sort", numberValue(RECORDS.get(sort).getSort()));
         return Collections.unmodifiableMap(result);
-    }
-
-    @Test
-    public void query_withStringSelect_returnsSpecifiedAttributes() {
-        insertRecords();
-
-        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
-                                                           .queryConditional(sortBetween(k -> k.partitionValue("id-value").sortValue(2),
-                                                                                         k -> k.partitionValue("id-value").sortValue(6)))
-                                                           .select("ALL_ATTRIBUTES")
-                                                           .build();
-
-        Iterator<Page<Record>> results = mappedTable.query(request).iterator();
-
-        while (results.hasNext()) {
-            Page<Record> page = results.next();
-            for (Record record : page.items()) {
-                assertThat(record.getId(), is(notNullValue()));
-                assertThat(record.getSort(), is(notNullValue()));
-                assertThat(record.getValue(), is(notNullValue()));
-                assertThat(record.getStringAttribute(), is(notNullValue()));
-            }
-        }
-    }
-
-    @Test
-    public void query_withInvalidStringSelect_returnsUnknown() {
-        insertRecords();
-
-        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
-                                                           .queryConditional(sortBetween(k -> k.partitionValue("id-value").sortValue(2),
-                                                                                         k -> k.partitionValue("id-value").sortValue(6)))
-                                                           .select("INVALID_SELECT")
-                                                           .build();
-
-        assertThat(request.select(), is(equalTo(Select.UNKNOWN_TO_SDK_VERSION)));
     }
 }

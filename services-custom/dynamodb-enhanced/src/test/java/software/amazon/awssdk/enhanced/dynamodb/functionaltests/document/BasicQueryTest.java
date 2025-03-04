@@ -676,4 +676,27 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
 
             });
     }
+
+    @Test
+    public void queryWithStringProjectionExpression() {
+        insertDocuments();
+
+        String projectionExpression = "id, sort";
+        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
+                                                           .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
+                                                           .returnStringProjectionExpression(projectionExpression)
+                                                           .build();
+
+        Iterator<Page<EnhancedDocument>> results = docMappedtable.query(request).iterator();
+
+        assertThat(results.hasNext(), is(true));
+        Page<EnhancedDocument> page = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page.items().size(), is(DOCUMENTS.size()));
+
+        EnhancedDocument firstRecord = page.items().get(0);
+        assertThat(firstRecord.getString("id"), is("id-value"));
+        assertThat(firstRecord.getNumber("sort").intValue(), is(0));
+    }
 }
