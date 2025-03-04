@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2 Migration Tool",
+    "contributor": "",
+    "description": "Transform the setter methods on the service model classes that take SdkBytes to take ByteBuffer to be compatible with v1 style setters"
+}
