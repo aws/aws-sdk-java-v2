@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.stability.tests.utils;
+package software.amazon.awssdk.testutils.retry;
 
 
 import java.lang.annotation.ElementType;
@@ -26,7 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 /**
  * Denotes that a method is a test template for a retryable test.
  */
-@Target( {ElementType.METHOD, ElementType.TYPE})
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @TestTemplate
 @ExtendWith(RetryableTestExtension.class)

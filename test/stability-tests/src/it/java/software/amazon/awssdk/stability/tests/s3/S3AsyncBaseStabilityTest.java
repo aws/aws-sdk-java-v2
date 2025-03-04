@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
-import software.amazon.awssdk.stability.tests.utils.RetryableTest;
+import software.amazon.awssdk.testutils.retry.RetryableTest;
 import software.amazon.awssdk.stability.tests.utils.StabilityTestRunner;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
