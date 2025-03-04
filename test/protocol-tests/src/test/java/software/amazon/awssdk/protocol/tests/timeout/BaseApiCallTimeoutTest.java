@@ -19,7 +19,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.protocol.tests.util.RetryableTest;
+import software.amazon.awssdk.testutils.retry.RetryableTest;
 import software.amazon.awssdk.utils.Pair;
 
 /**

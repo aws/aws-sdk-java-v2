@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.stability.tests.utils;
+package software.amazon.awssdk.testutils.retry;
 
 
 import java.lang.annotation.ElementType;
