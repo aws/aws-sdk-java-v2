@@ -38,7 +38,7 @@ public class ChangeTransferManagerTypesTest implements RewriteTest {
 
     @Test
     @EnabledOnJre({JRE.JAVA_8})
-    void shouldTransformImports() {
+    void shouldTransformImportsAndTypes() {
         rewriteRun(
             java(
                 "import com.amazonaws.services.s3.transfer.Download;\n" +
@@ -61,7 +61,7 @@ public class ChangeTransferManagerTypesTest implements RewriteTest {
                 "import software.amazon.awssdk.transfer.s3.S3TransferManager;\n" +
                 "import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;\n" +
                 "import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;\n" +
-                "import software.amazon.awssdk.transfer.s3.model.Download;\n" +
+                "import software.amazon.awssdk.transfer.s3.model.FileDownload;\n" +
                 "import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;\n" +
                 "\n" +
                 "import java.io.File;\n" +
@@ -69,7 +69,7 @@ public class ChangeTransferManagerTypesTest implements RewriteTest {
                 "class Test {\n" +
                 "    static void tm() {\n" +
                 "        S3TransferManager tm = S3TransferManager.defaultTransferManager();\n" +
-                "        Download download = tm.download(\"bucket\", \"key\", new File(\"path/to/file.txt\"));\n" +
+                "        FileDownload download = tm.download(\"bucket\", \"key\", new File(\"path/to/file.txt\"));\n" +
                 "        ResumableFileDownload persistableDownload = download.pause();\n" +
                 "        DirectoryDownload multipleFileDownload = tm.downloadDirectory(\"bucket\", \"prefix\", new File(\"path/to/dir\"));\n" +
                 "        DirectoryUpload multipleFileUpload = tm.uploadDirectory(\"bucket\", \"prefix\", new File(\"path/to/dir\"), true);\n" +
